@@ -16,8 +16,6 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
@@ -45,6 +43,7 @@ import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.ops.fitting.FittingSlotCard;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -2855,11 +2854,7 @@ public final class MechLabViewModel {
 
     /** The turret's catalog name; a generic label when the catalog is not loaded. */
     private static String turretName(VehicleType type) {
-        if (!type.hasTurretWeapon()) return null;
-        if (type.ownGun() != null) return type.ownGun().displayName();
-        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
-        StructureDef structure = registry != null ? registry.getStructure(type.turretStructureId) : null;
-        return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");
+        return SpecSheets.vehicleGunName(type);
     }
 
     private static String vehicleSummary(VehicleType type, HullFitEffect fit) {

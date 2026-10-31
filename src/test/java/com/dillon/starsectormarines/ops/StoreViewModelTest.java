@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechPattern;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
@@ -126,6 +128,29 @@ class StoreViewModelTest {
 
         assertEquals(1, model.selectedCards().get().size());
         assertEquals("store-offer-flag", model.rows().get().get(0).flagClasses());
+    }
+
+    @Test
+    void aMechWeaponReadsWhatItHitsForAndAShelfListsNoSlotNothingCanStock() {
+        MechPattern weapon = MechPattern.offerable().stream()
+                .filter(pattern -> pattern.kind() == MechPattern.Kind.WEAPON).findFirst().orElseThrow();
+        StoreViewModel model = new StoreViewModel(new Reactor(),
+                () -> List.of(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, weapon.id(),
+                        EquipmentStore.Shelf.MARKET, 6500)),
+                () -> new EquipmentStore.Holdings(new MarineArmory(), new MechBay(), null), purse(new long[] {0}),
+                () -> "Jangala");
+
+        List<String> stats = model.specRows().get().stream().map(StoreViewModel.SpecRow::label).toList();
+        assertTrue(stats.containsAll(List.of(Strings.get("gearStatDMG"), Strings.get("gearStatPEN"),
+                Strings.get("gearStatRNG"))), stats.toString());
+        assertFalse(model.specNotes().get().isEmpty(), "the weapon's own description is shown");
+
+        model.selectFilter("SECTION:" + StoreSlot.Section.BOATS.name());
+        boolean anyCabinPart = BoatParts.offerable().stream()
+                .anyMatch(part -> new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, part,
+                        EquipmentStore.Shelf.MARKET, 1).slot() == StoreSlot.BOAT_CABIN);
+        assertEquals(anyCabinPart, model.categoryRows().get().stream()
+                .anyMatch(row -> row.id().equals("store-cat-" + StoreSlot.BOAT_CABIN.name())));
     }
 
     private static EquipmentStore.Offer offer(String cardId) {

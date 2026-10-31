@@ -131,6 +131,11 @@ public final class StoreScreen implements Screen {
         props.put("selectedKind", viewModel.selectedKind());
         props.put("selectedCards", viewModel.selectedCards());
         props.put("dollClasses", viewModel.dollClasses());
+        props.put("specRows", viewModel.specRows());
+        props.put("specNotes", viewModel.specNotes());
+        props.put("specClasses", viewModel.specClasses());
+        props.put("partClasses", viewModel.partClasses());
+        props.put("specTopStyle", viewModel.specTopStyle());
         props.put("selectedDetail", viewModel.selectedDetail());
         props.put("priceLabel", viewModel.priceLabel());
         props.put("buyLabel", viewModel.buyLabel());
@@ -163,6 +168,7 @@ public final class StoreScreen implements Screen {
      */
     static void bindSymbols(UiDocument target, MarkupInstance instance, StoreViewModel model) {
         bindSymbol(target, instance, "store-doll", StoreSymbolCanvas.selectedDoll(model::selectedOffer));
+        bindSymbol(target, instance, "store-part", StoreSymbolCanvas.selectedSymbol(model::selectedOffer));
         for (StoreViewModel.OfferRow row : model.rows().get()) {
             bindSymbol(target, instance, row.symbolId(),
                     StoreSymbolCanvas.of(row.offer().kind(), row.offer().id()));

@@ -1,4 +1,4 @@
-<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,specRows,specNotes,specClasses,partClasses,specTopStyle,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
@@ -54,7 +54,26 @@
             <div id="store-card-slot" class="store-card-slot">
               <armory-loadout-card each="tile in selectedCards" key="{tile.id}" tile="{tile}" />
             </div>
-            <div id="store-selected-detail" class="label store-selected-detail console-well">{selectedDetail}</div>
+            <div id="store-spec" class="{specClasses}">
+              <div id="store-spec-top" class="store-spec-top" style="{specTopStyle}">
+                <canvas id="store-part" class="{partClasses}" width="220" height="160" />
+                <div id="store-spec-stats" class="store-spec-stats">
+                  <div each="row in specRows" key="{row.id}" id="{row.id}" class="{row.classes}">
+                    <div id="{row.lineId}" class="store-spec-line">
+                      <div id="{row.labelId}" class="label tone-muted store-spec-label">{row.label}</div>
+                      <div id="{row.valueId}" class="label store-spec-value">{row.value}</div>
+                    </div>
+                    <div id="{row.trackId}" class="{row.trackClasses}">
+                      <div id="{row.fillId}" class="store-spec-fill" style="{row.fillStyle}"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="store-spec-notes" class="store-spec-notes">
+                <div each="note in specNotes" key="{note.id}" id="{note.id}" class="{note.classes}">{note.text}</div>
+              </div>
+            </div>
+            <div id="store-selected-detail" class="label tone-muted store-selected-detail console-well">{selectedDetail}</div>
           </div>
         </div>
         <div id="store-verdict-bar" class="store-verdict-bar console-readout">
@@ -116,7 +135,24 @@
   .store-buy.current { border-color: #31485f; opacity: 0.6; }
   .store-buy.unaffordable { border-color: #c44b4b; opacity: 0.55; }
   .store-buy-label { height: auto; text-align: center; white-space: normal; }
-  .store-selected-detail { width: 100%; height: 0px; flex-grow: 1; padding: 12px; border-width: 2px; white-space: normal; }
+  .store-spec { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 12px; gap: 12px; border-width: 2px; overflow: hidden; }
+  .store-spec.none { display: none; }
+  .store-spec-top { flex-direction: row; width: 100%; gap: 16px; align-items: flex-start; }
+  .store-part { width: 220px; height: 160px; pointer-events: none; }
+  .store-part.none { display: none; }
+  .store-spec-stats { flex-direction: column; width: 460px; height: 100%; gap: 7px; }
+  .store-spec-stat { flex-direction: column; height: 20px; gap: 3px; }
+  .store-spec-stat.metered { height: 28px; }
+  .store-spec-line { flex-direction: row; height: 20px; gap: 8px; }
+  .store-spec-label { width: 0px; flex-grow: 1; white-space: nowrap; }
+  .store-spec-value { width: 220px; text-align: right; white-space: nowrap; font-family: heading; }
+  .store-spec-track { flex-direction: row; height: 5px; background-color: #1a2836; }
+  .store-spec-track.none { display: none; }
+  .store-spec-fill { height: 5px; background-color: #e2965c; }
+  .store-spec-notes { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  .store-spec-note { width: 100%; height: auto; white-space: normal; color: #b9c4cf; }
+  .store-spec-note.lead { color: #e6d8b4; }
+  .store-selected-detail { width: 100%; height: auto; padding: 10px 12px; border-width: 2px; white-space: normal; }
   .store-verdict-bar { flex-direction: row; height: 66px; padding: 8px 9px; gap: 10px; border-width: 2px; align-items: center; }
   .store-verdict { width: 54%; flex-grow: 0; height: auto; white-space: normal; }
   .store-price { width: 0px; height: auto; text-align: left; flex-grow: 1; white-space: normal; }

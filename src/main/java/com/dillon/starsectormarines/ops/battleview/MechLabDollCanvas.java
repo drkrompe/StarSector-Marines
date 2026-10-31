@@ -310,7 +310,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * draws none.
      */
     private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
-        drawBareChassis(c, variant, width * SCHEMATIC_SHARE, height, assets.get(), elapsedSeconds.getAsDouble());
+        drawBareChassis(c, variant, width * SCHEMATIC_SHARE, height, assets.get(), elapsedSeconds.getAsDouble(), true);
     }
 
     /**
@@ -320,7 +320,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * being carried over the doll needs it.
      */
     static void drawBareChassis(CanvasContext c, MechVariant variant, float panelWidth, float height,
-                                LayeredMechAssets assets, double seconds) {
+                                LayeredMechAssets assets, double seconds, boolean warnMissing) {
         MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(variant);
         MechFittingLayout layout = MechFittingLayout.forVariant(variant);
         drawSchematicPanel(c, panelWidth, height);
@@ -332,7 +332,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
                     socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null, false,
                     socket.id().compartment() ? List.of() : null, null, assets,
-                    false, false, false, false, false, seconds);
+                    false, false, false, false, false, seconds, warnMissing);
         }
     }
 

@@ -19,7 +19,12 @@ import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.power.WolfStrike;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorTradition;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
+import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -358,6 +363,8 @@ public final class SpecSheets {
                             stat("Belt", whole(rotary.belt())),
                             stat("Refill", Strings.format("gearRoundsPerSecond", oneDecimal(rotary.refillPerSecond()))),
                             stat("DMG", oneDecimal(component.weaponDef().damage)),
+                            stat("PEN", oneDecimal(component.weaponDef().penetration)),
+                            stat("RNG", whole(component.weaponDef().range)),
                             stat("Flux / round", oneDecimal(component.fluxPerRound()) + " / " + whole(fluxCapacity))),
                     List.of(entry.description(), Strings.get("gearRotaryExplanation"),
                             Strings.get("gearFluxExplanation")));
@@ -368,11 +375,60 @@ public final class SpecSheets {
                         Strings.get("gearHardpoint" + component.hardpointType.name())),
                 entry.factionLogo(),
                 ACCENT_MECH,
-                List.of(new Stat("cycle", component.cycleLabel(), Strings.format("gearSeconds", Float.toString(component.cycleSeconds())), Stat.NO_METER),
+                List.of(stat("DMG", damage(component.weaponDef())),
+                        stat("PEN", oneDecimal(component.weaponDef().penetration)),
+                        stat("RNG", whole(component.weaponDef().range)),
+                        new Stat("cycle", component.cycleLabel(), Strings.format("gearSeconds", Float.toString(component.cycleSeconds())), Stat.NO_METER),
                         stat("Flux / burst", whole(component.fluxPerTrigger()) + " / " + whole(fluxCapacity)),
                         stat("Dissipation / burst", Strings.format("gearDissipationAlone", dissipationPerSecond > 0f
                                 ? oneDecimal(component.fluxPerTrigger() / dissipationPerSecond) : "-"))),
                 List.of(entry.description(), Strings.get("gearFluxExplanation")));
+    }
+
+    /**
+     * A vehicle hull, stock: what it takes, how fast it goes and what it carries, each meter against
+     * the largest hull the bay can fabricate, and what the hull is for.
+     */
+    public static SpecSheet vehicle(VehicleType type) {
+        if (type == null) throw new IllegalArgumentException("A vehicle sheet needs a hull");
+        List<Stat> stats = new ArrayList<>();
+        stats.add(stat("STRUCTURE", whole(type.maxStructure),
+                StatMeter.fraction(type.maxStructure, CatalogCeilings.vehicleStructure())));
+        stats.add(stat("ARMOR", Strings.format("openingMechLabVehicleArmor", whole(type.maxArmor), whole(type.armorRating)),
+                StatMeter.fraction(type.maxArmor, CatalogCeilings.vehicleArmor())));
+        stats.add(stat("SPEED", Strings.format("openingMechLabCellsS", oneDecimal(type.maxSpeed)),
+                StatMeter.fraction(type.maxSpeed, CatalogCeilings.vehicleSpeed())));
+        String gun = vehicleGunName(type);
+        stats.add(stat("GUN", gun != null ? gun : Strings.get("gearVehicleUnarmed")));
+        if (type.capacity > 0) stats.add(stat("SEATS", Integer.toString(type.capacity),
+                StatMeter.fraction(type.capacity, CatalogCeilings.vehicleSeats())));
+        if (type.supplyStock() > 0) stats.add(stat("RESUPPLY", Strings.format("gearRounds", type.supplyStock())));
+        if (type.droneComplement() > 0) stats.add(stat("DRONES", Integer.toString(type.droneComplement())));
+        if (type.sightCells() > 0f) stats.add(stat("SIGHT", Strings.format("gearCells", whole(type.sightCells()))));
+        return new SpecSheet(
+                CampaignVehicle.typeName(type),
+                joined(CampaignVehicle.className(type),
+                        Strings.get("openingMechLabWeightClass" + MechPattern.weightClass(type).name())),
+                null,
+                ACCENT_MECH,
+                stats,
+                paragraphs(Strings.get("gearCatalogVehicle" + type.name() + "Description")));
+    }
+
+    /** The hull's turret by its catalog name, or null for a hull that carries none. */
+    public static String vehicleGunName(VehicleType type) {
+        if (!type.hasTurretWeapon()) return null;
+        if (type.ownGun() != null) return type.ownGun().displayName();
+        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
+        StructureDef structure = registry != null ? registry.getStructure(type.turretStructureId) : null;
+        return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");
+    }
+
+    /** A shot's damage, with its multiplier when one trigger puts more than one round on target. */
+    private static String damage(WeaponDef weapon) {
+        int rounds = Math.max(1, weapon.burstCount) * Math.max(1, weapon.projectilesPerShot);
+        return rounds > 1 ? Strings.format("gearDamageTimes", oneDecimal(weapon.damage), rounds)
+                : oneDecimal(weapon.damage);
     }
 
     /**

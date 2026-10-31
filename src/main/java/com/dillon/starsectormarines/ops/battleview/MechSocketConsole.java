@@ -96,6 +96,21 @@ final class MechSocketConsole {
                      LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time) {
+        draw(c, t, socket, installed, preview, internal, internalPreview, parts, previewPart, assets,
+                selected, hovered, compatible, rejected, draggingHere, time, true);
+    }
+
+    /**
+     * As above; {@code warnMissing} false draws a socket that would keep a mech off the manifest as
+     * merely empty, for a pattern shown for sale rather than a mech being fitted.
+     */
+    static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
+                     SocketDef socket, MechWeaponComponent installed,
+                     MechWeaponComponent preview, MechInternal internal, boolean internalPreview,
+                     List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
+                     LayeredMechAssets assets,
+                     boolean selected, boolean hovered, boolean compatible,
+                     boolean rejected, boolean draggingHere, double time, boolean warnMissing) {
         boolean fixed = socket.factoryLocked();
         Color accent = rejected ? RED : compatible ? FITS : selected ? AMBER : MUTED;
         Color socketTone = HardpointBricks.tone(socket.type());
@@ -105,7 +120,7 @@ final class MechSocketConsole {
                 && (here == null || here.isEmpty());
         // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the
         // drop manifest; it warns.
-        boolean missing = !fixed && (socket.id() == SocketId.CORE ? empty
+        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE ? empty
                 : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
