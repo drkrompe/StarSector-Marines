@@ -127,6 +127,8 @@ final class HardwareArt {
             // The vehicle kits' drawings, the same part on every machine.
             case SPALL_LINER -> "kit-spall-liner";
             case READY_RACK -> "kit-ready-rack";
+            case SENSOR_PAIR -> "kit-sensor-pair";
+            case ACTIVE_PROTECTION -> "kit-active-protection";
         };
     }
 

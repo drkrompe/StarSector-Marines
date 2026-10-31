@@ -111,7 +111,7 @@
     {"item": "mech-pattern:vehicle:scout_car", "station": "none"},
     {"item": "mech-pattern:internal:internal.spall-liner", "station": "relief"},
     {"item": "mech-pattern:internal:internal.ready-rack", "station": "relief"},
-    {"item": "mech-pattern:kit:kit.sensor-pair", "station": "thunder-run"},
-    {"item": "mech-pattern:kit:kit.active-protection", "station": "thunder-run"}
+    {"item": "mech-pattern:internal:internal.sensor-pair", "station": "thunder-run"},
+    {"item": "mech-pattern:internal:internal.active-protection", "station": "thunder-run"}
   ]
 }

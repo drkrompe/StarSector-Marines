@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +53,49 @@ class MachinePartRequirementsTest {
         assertEquals(1.2f, lined.frame().systems().structureFactor(), 1e-6f, "the mech's frame carries its liner");
         assertEquals(1, MechCompartment.limit(MechInternal.Role.LINER));
         assertEquals(1, MechCompartment.limit(MechInternal.Role.READY_RACK));
+    }
+
+    @Test
+    void aSensorPairNeedsADroneHostWithNoBayOfItsOwnOnEitherMachine() {
+        assertTrue(VehicleRack.takes(VehicleType.LRM_CARRIER, MechInternal.SENSOR_PAIR));
+        assertFalse(VehicleRack.takes(VehicleType.HOVER_SCOUT, MechInternal.SENSOR_PAIR), "it has a sensor pair already");
+        assertFalse(VehicleRack.takes(VehicleType.DRONE_SKIMMER, MechInternal.SENSOR_PAIR), "it has a bay");
+        for (MechVariant chassis : MechVariant.values()) {
+            assertTrue(chassis.hostsDrones() && chassis.hostsPointDefence(), "every chassis hosts both: " + chassis);
+        }
+        assertNull(MechInternal.SENSOR_PAIR.unmet(new MachineCapabilities(true, false, true, false)));
+        assertEquals(MechInternal.Requirement.DRONE_HOST,
+                MechInternal.SENSOR_PAIR.unmet(new MachineCapabilities(true, false, false, false)));
+        assertEquals(2, MechCompartment.systems(List.of(MechInternal.SENSOR_PAIR)).droneBay().size());
+    }
+
+    @Test
+    void activeProtectionNeedsAGunAndFlanksForItsLaunchersOnEitherMachine() {
+        assertTrue(VehicleRack.takes(VehicleType.BREAKTHROUGH_TANK, MechInternal.ACTIVE_PROTECTION));
+        assertTrue(VehicleRack.takes(VehicleType.LASER_TANK, MechInternal.ACTIVE_PROTECTION));
+        for (VehicleType other : List.of(VehicleType.DOZER_BREACHER, VehicleType.HEAVY_APC, VehicleType.LRM_CARRIER,
+                VehicleType.MILITIA_TECHNICAL, VehicleType.SUPPLY_TRUCK, VehicleType.HOVER_SCOUT)) {
+            assertFalse(VehicleRack.takes(other, MechInternal.ACTIVE_PROTECTION), "not a gun tank: " + other);
+        }
+        assertEquals(MechInternal.Requirement.ARMED,
+                MechInternal.ACTIVE_PROTECTION.unmet(new MachineCapabilities(false, false, true, true)));
+        assertNull(MechInternal.ACTIVE_PROTECTION.unmet(new MachineCapabilities(true, false, true, true)),
+                "an armed mech chassis with launcher flanks takes it");
+        MachineSystems aps = MechCompartment.systems(List.of(MechInternal.ACTIVE_PROTECTION));
+        assertTrue(aps.activeProtection());
+        assertEquals(.94f, aps.speedFactor(), 1e-6f, "the launchers cost speed");
+    }
+
+    @Test
+    void aHullsCompartmentIsTwoThreeOrFourRowsByWeight() {
+        assertEquals(2, VehicleKit.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has two rows");
+        assertEquals(3, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull three");
+        assertEquals(4, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
+        List<MechInternal> full = new ArrayList<>(VehicleRack.stockFit(VehicleType.FIRE_SUPPORT_APC));
+        full.add(MechInternal.SPALL_LINER);
+        assertTrue(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, List.of(), full));
+        full.add(MechInternal.SENSOR_PAIR);
+        assertFalse(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, List.of(), full), "bank, loader and liner fill it");
     }
 
     @Test

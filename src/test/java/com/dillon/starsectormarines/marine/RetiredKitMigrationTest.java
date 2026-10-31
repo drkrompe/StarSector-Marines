@@ -58,8 +58,9 @@ class RetiredKitMigrationTest {
                 List.of("kit.accelerated-loader", "kit.spall-liner", "kit.sensor-pair"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
         assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER,
-                MechInternal.SPALL_LINER), tank.rackInternals(), "the liner kit is the liner internal");
-        assertEquals(1, tank.kits().size(), "the other kit stays on the rack");
+                MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR), tank.rackInternals(),
+                "every kit is the internal it became");
+        assertTrue(tank.kits().isEmpty());
     }
 
     @Test

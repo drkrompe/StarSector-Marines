@@ -286,68 +286,58 @@ increasing an encounter's total armored threat.
   offered, and unlearned items with no stock are absent from the Mech Lab catalog.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
-  `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
+  `VehicleType`, plus the parts fitted to it. The gantry is the only thing the
   two share. A vehicle has no chassis, engine budget or weapon components (its flux is one hull reservoir on the mech's rule, `convoy-nouns.md`, hull flux):
   its gun and bay are its type's and never come off; its engine and plating are the mech's parts, fitted (below). Mechs and vehicles count against
   the same four gantries and the same restored berths, are bought for credits
   against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
-- A **vehicle kit** (`VehicleKit`) is the one thing a company fits to a vehicle:
-  a bolt-on part from stores, in a **kit rack** of fixed slots. A vehicle is
-  locked down otherwise, and its doll in the Mech Lab says so: the same schematic
-  as a mech's, with the drive in the middle, the turret ahead, the secondary
-  mounts and the bay (seats, supply stock or drones) either side and the kit rack
-  behind, every card but the rack, the engine core, the gun card and the armor point
-  **sealed** with its factory part drawn in it, readable and never draggable. The rack is
-  compartment-packed as a mech's compartment is (`VehicleRack`, owner 2026-10-30): a Light hull has
-  one 2x2 bay (2 slots), a Medium one 2x3 bay (3), a Heavy two 2x2 bays (4)
-  (`VehicleType.weight`). A slot is a two-column row; a kit takes one. The rack also takes the mech's
-  own **capacitor banks**, **vent arrays**, **loaders**, **spall liners** and **ready racks** at their mech
-  footprints (factory and double bank 2x1, military bank 2x2, every other part 2x1), at most one bank, one
-  loader, one liner and one ready rack: the bank and every vent
-  array are the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the
-  loader paces its guns (the loader, below). An
-  **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
-  every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest the factory
-  bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting another bank or
-  loader returns the old one to stores. An unarmed hull takes no bank and is built with no loader. A
-  vehicle carries at most one of each kit, and a kit may need something of the hull
-  (no bay of its own, a gun tank's flanks). Kits are inventory parts exactly as internals are:
-  learned as patterns, bought for their price into stores, dragged onto the rack and
-  off it again, lost with the hull and spared by a scrap. A kit changes the
-  vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
-  bay one the battle already flies, so it adds no behaviour of its own and no
-  balance surface beyond its own effect:
-  - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
-    drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
-    over cover with no spotter (`convoy-nouns.md`, the missile carriers).
-  - **Active protection** (Prestige, the armed gun tanks: the Onager and the laser tank, not the
-    dozer): interceptor launchers on the hull's rear flanks fed by a sensor panel on each cheek, a
-    hull-borne point-defence mount that takes the arcing, top-attack rounds coming down on the hull
-    (`convoy-nouns.md`, active protection), for six hundredths of the hull's speed. It is the one kit
-    that brings a system: the mount the battle already arms for any hull whose rack names it
-    (`VehicleKit.activeProtectionStructureId`), drawn as overlay art on the live hull.
-  A new kit joins by taking a slot and a spawn-time effect; anything that needs a
-  behaviour of its own (a blade, a mortar) stays a
-  **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
-  A bought hull comes with its bank and standard loader and an empty kit row; a hull saved before the
-  rack held banks loads with none and stays off the drop until one is fitted. A hull saved while its
-  loader was sealed in it carries the standard loader in its compartment (an accelerated-loader kit
-  on its rack becomes its loader instead); where that no longer packs, its kits and then its other
-  compartment parts (vent arrays, a liner or ready rack) come off last-fitted first into stores, so nothing
-  owned is lost.
-- **One machine, one part catalog** (owner, 2026-10-30). A mech and a vehicle fit the same internals
-  (`MechInternal`); whether a part goes on a machine is its own **requirements** against what the chassis
-  offers (`MechInternal.unmet`, `MachineCapabilities`), never whether it is a mech or a vehicle: a
-  capacitor bank or vent array needs a gun (an unarmed machine has no reservoir), a ready rack a fed weapon
-  (a finite rack or magazine, or a rotary gun's belt; a beam has none). What the auxiliary compartment's
-  parts make of the machine at the drop beyond its frame and loader is one record, `MachineSystems`, read
-  by a mech's frame and a vehicle's spawn alike:
+- A vehicle's **auxiliary compartment** (`VehicleRack`, once the kit rack) is where a company fits it as it fits
+  a mech's compartment. A vehicle is locked down otherwise, and its doll in the Mech Lab says so: the same
+  schematic as a mech's, with the drive in the middle, the turret ahead, the secondary mounts and the bay
+  (seats, supply stock or drones) either side and the compartment behind, every card but the compartment,
+  the engine core, the gun card and the armor point **sealed** with its factory part drawn in it, readable
+  and never draggable. The compartment packs as a mech's does (owner 2026-10-30): a Light hull has one 2x2
+  bay, a Medium one 2x3 bay, a Heavy two 2x2 bays (`VehicleType.weight`), and it takes the one part catalog's
+  compartment parts at their mech footprints (factory and double bank 2x1, military bank 2x2, every other
+  part 2x1), at most one of each role but vent arrays: the bank and every vent array are the hull's flux
+  reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the loader paces its guns
+  (the loader, below). An **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a
+  mech is; every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest
+  the factory bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting
+  another bank or loader returns the old one to stores. An unarmed hull takes no bank and is built with no
+  loader. Every part is an inventory part: learned as a pattern, bought for its price into stores, dragged
+  onto the compartment and off it again, lost with the hull and spared by a scrap. Anything that needs a
+  behaviour of its own (a blade, a mortar) stays a **variant** (`heavy-equipment-progression.md`, Vehicles:
+  variants and kits). A hull saved before the compartment held banks loads with none and stays off the drop
+  until one is fitted. A hull saved while its loader was sealed in it carries the standard loader in its
+  compartment (an accelerated-loader kit becomes its loader instead); where that no longer packs, its other
+  compartment parts come off last-fitted first into stores, so nothing owned is lost.
+- **One machine, one part catalog** (owner, 2026-10-30). A mech and a vehicle are one kind of machine with one
+  part catalog (`MechInternal`): every non-weapon fitting is an internal, and whether a part goes on a machine
+  is its own **requirements** against what the chassis offers (`MechInternal.unmet`, `MachineCapabilities`),
+  never whether it is a mech or a vehicle: a capacitor bank or vent array needs a gun (an unarmed machine has
+  no reservoir), a ready rack a fed weapon (a finite rack or magazine, or a rotary gun's belt; a beam has
+  none), a sensor pair a **drone host** with no bay of its own, active protection a gun and a **point-defence
+  host** (flanks to stand its launchers on). A mech chassis's hosting is its own data
+  (`MechVariant.hostsDrones`, `MechVariant.hostsPointDefence`; every chassis hosts both); a hull hosts a wing
+  unless it flies a bay of its own, and the armed heavy gun tanks host point defence. What the auxiliary
+  compartment's parts make of the machine at the drop beyond its frame and loader is one record,
+  `MachineSystems`, read by a mech's frame and a vehicle's spawn alike, and the systems that fly drones and
+  arm point defence host a mech (`MachineHosts`) exactly as they host a hull:
   - **Spall liner** (Common, any machine; once the vehicle's kit `kit.spall-liner`): a fifth more structure,
     the mech's sections dividing the larger whole as a hull's locations do.
   - **Ready rack** (Common, a machine with a fed weapon; once `kit.ready-rack`): half again the packs in every
     finite missile rack and magazine and half again every rotary gun's belt, all full at the drop
     (`MechWeaponMount.fitReadyRack`).
+  - **Sensor drone pair** (Advanced, a drone host; once `kit.sensor-pair`): two sensor drones that fly ahead of
+    the machine, so an indirect-fire machine fed by them fires over cover with no spotter (`convoy-nouns.md`,
+    the missile carriers). On a mech the wing follows its body as a hull's does (`DroneBaySystem`).
+  - **Active protection** (Prestige, mass 2, an armed point-defence host; once `kit.active-protection`):
+    interceptor launchers fed by sensor panels, a point-defence mount riding the machine that takes the
+    arcing, top-attack rounds coming down on it (`convoy-nouns.md`, active protection;
+    `PointDefenseService.mountHull`, `mountMachine`), for six hundredths of its speed; drawn as overlay art on
+    the live hull or mech.
   A save's retired kit ids, spares and learned kit patterns read as these internals
   (`MechInternal.RETIRED_KITS`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs

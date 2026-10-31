@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
@@ -56,7 +57,7 @@ public final class MechCompartment {
     /** How many of {@code role} one compartment may hold. */
     public static int limit(MechInternal.Role role) {
         return switch (role) {
-            case CAPACITOR_BANK, LOADER, LINER, READY_RACK -> 1;
+            case CAPACITOR_BANK, LOADER, LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> 1;
             case VENT_ARRAY -> Integer.MAX_VALUE;
             case ENGINE, PLATING -> 0;
         };
@@ -76,12 +77,18 @@ public final class MechCompartment {
      * structure and rounds every part multiplies, the same on a mech as on a vehicle.
      */
     public static MachineSystems systems(List<MechInternal> parts) {
-        float structure = 1f, ammo = 1f;
+        float structure = 1f, ammo = 1f, speed = 1f;
+        List<DroneRole> drones = new ArrayList<>();
+        boolean activeProtection = false;
         for (MechInternal part : parts) {
             structure *= part.structureFactor();
             ammo *= part.ammoFactor();
+            speed *= part.speedFactor();
+            drones.addAll(part.droneBay());
+            activeProtection |= part.role == MechInternal.Role.ACTIVE_PROTECTION;
         }
-        return structure == 1f && ammo == 1f ? MachineSystems.NONE : new MachineSystems(structure, ammo);
+        MachineSystems systems = new MachineSystems(structure, ammo, speed, drones, activeProtection);
+        return systems.equals(MachineSystems.NONE) ? MachineSystems.NONE : systems;
     }
 
     /** Whether {@code parts} obey the role limits and pack into {@code variant}'s compartment. */

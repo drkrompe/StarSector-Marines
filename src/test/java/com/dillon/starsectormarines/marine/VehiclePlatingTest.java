@@ -84,7 +84,7 @@ class VehiclePlatingTest {
     void aSavedVehicleWithTheRetiredArmorKitsWearsThePlatingTheyBecame() throws Exception {
         CampaignVehicle both = vehicleWithKitIds(List.of("kit.applique-plate", "kit.sensor-pair", "kit.spaced-skirts"));
         assertEquals(MechInternal.HEAVY_PLATING, both.plating(), "the heavier of the two wins");
-        assertEquals(List.of(VehicleKit.SENSOR_PAIR), both.kits(), "the rest of the rack is kept");
+        assertTrue(both.rackInternals().contains(MechInternal.SENSOR_PAIR), "the rest of the rack is kept, as internals");
 
         assertEquals(MechInternal.COMPOSITE_PLATING, vehicleWithKitIds(List.of("kit.applique-plate")).plating());
     }
@@ -114,7 +114,7 @@ class VehiclePlatingTest {
         assertEquals(2, bay.ownedInternal(MechInternal.COMPOSITE_PLATING.id));
         assertEquals(1, bay.ownedInternal(MechInternal.HEAVY_PLATING.id));
         assertEquals(0, bay.ownedKit("kit.applique-plate"));
-        assertEquals(1, bay.ownedKit(VehicleKit.SENSOR_PAIR.id), "the rest of the kits stay");
+        assertEquals(1, bay.ownedInternal(MechInternal.SENSOR_PAIR.id), "the rest of the kits stay, as internals");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.COMPOSITE_PLATING).id()),
                 "a company that knew the kit knows its plating");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.HEAVY_PLATING).id()));

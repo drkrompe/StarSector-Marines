@@ -1443,6 +1443,8 @@ public final class MechLabViewModel {
             rows.addAll(internalCatalog(mech, MechInternal.Role.LOADER));
             rows.addAll(internalCatalog(mech, MechInternal.Role.LINER));
             rows.addAll(internalCatalog(mech, MechInternal.Role.READY_RACK));
+            rows.addAll(internalCatalog(mech, MechInternal.Role.DRONE_BAY));
+            rows.addAll(internalCatalog(mech, MechInternal.Role.ACTIVE_PROTECTION));
             return List.copyOf(rows);
         }
         MechInternal.Role role = roleFor(selectedSlot.get());
@@ -1484,6 +1486,8 @@ public final class MechLabViewModel {
             rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
             rows.addAll(internalCatalog(mech, MechInternal.Role.LINER));
             rows.addAll(internalCatalog(mech, MechInternal.Role.READY_RACK));
+            rows.addAll(internalCatalog(mech, MechInternal.Role.DRONE_BAY));
+            rows.addAll(internalCatalog(mech, MechInternal.Role.ACTIVE_PROTECTION));
         }
         if (all || filter == CategoryFilter.PLATING) rows.addAll(internalCatalog(mech, MechInternal.Role.PLATING));
         return List.copyOf(rows);
@@ -1774,6 +1778,10 @@ public final class MechLabViewModel {
                     ? Strings.format("vehicleRackLinerEffect", Math.round((part.structureFactor() - 1f) * 100f))
                     : part.role == MechInternal.Role.READY_RACK
                     ? Strings.format("vehicleRackReadyRackEffect", Math.round((part.ammoFactor() - 1f) * 100f))
+                    : part.role == MechInternal.Role.DRONE_BAY
+                    ? Strings.format("vehicleRackSensorPairEffect", part.droneBay().size())
+                    : part.role == MechInternal.Role.ACTIVE_PROTECTION
+                    ? Strings.format("vehicleRackActiveProtectionEffect", Math.round((1f - part.speedFactor()) * 100f))
                     : Strings.format("vehicleRackVentEffect", number(part.dissipation));
 
             String base = "mech-catalog:" + part.id;
@@ -2130,14 +2138,14 @@ public final class MechLabViewModel {
             case CAPACITOR_BANK -> new float[]{proposed.fluxCapacity() - current.fluxCapacity(),
                     proposed.dissipationPerSecond() - current.dissipationPerSecond()};
             case VENT_ARRAY -> new float[]{proposed.dissipationPerSecond() - current.dissipationPerSecond()};
-            case LOADER, LINER, READY_RACK -> new float[0];
+            case LOADER, LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> new float[0];
         };
         String[] labels = switch (role) {
             case ENGINE -> new String[]{"openingMechLabDeltaOutput", "openingMechLabDeltaSpeed"};
             case PLATING -> new String[]{"openingMechLabDeltaArmor"};
             case CAPACITOR_BANK -> new String[]{"openingMechLabDeltaFlux", "openingMechLabDeltaDissipation"};
             case VENT_ARRAY -> new String[]{"openingMechLabDeltaDissipation"};
-            case LOADER, LINER, READY_RACK -> new String[0];
+            case LOADER, LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> new String[0];
         };
         for (int i = 0; i < stats.length; i++) {
             float value = stats[i];
@@ -2175,6 +2183,9 @@ public final class MechLabViewModel {
                     number(internal.replenisher().loaderFactor()));
             case LINER -> Strings.format("openingMechLabInternalLinerTelemetry", number(internal.structureFactor()));
             case READY_RACK -> Strings.format("openingMechLabInternalReadyRackTelemetry", number(internal.ammoFactor()));
+            case DRONE_BAY -> Strings.format("openingMechLabInternalSensorPairTelemetry", internal.droneBay().size());
+            case ACTIVE_PROTECTION -> Strings.format("openingMechLabInternalActiveProtectionTelemetry",
+                    number(internal.speedFactor()));
         };
     }
 

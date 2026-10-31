@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.VehicleRack;
@@ -87,8 +88,11 @@ public final class ConvoyService implements BodyCarrier {
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     private LongConsumer destructionSink;
 
-    /** The drones a hull's kits add to its bay, by entity id; only hulls that carry such a kit are here. */
-    private final Map<Long, List<DroneRole>> kitBays = new LinkedHashMap<>();
+    /**
+     * What each hull's compartment makes of it beyond its frame ({@link MachineSystems}: the drones it adds, its active
+     * protection), by entity id; only hulls whose compartment changes something are here.
+     */
+    private final Map<Long, MachineSystems> systems = new LinkedHashMap<>();
 
     /** The kits on each hull's rack as it was set down, by entity id; only hulls that carry a kit are here. */
     private final Map<Long, List<VehicleKit>> racks = new LinkedHashMap<>();
@@ -141,6 +145,17 @@ public final class ConvoyService implements BodyCarrier {
                 loadout.compartment(), faction, mission);
     }
 
+    /**
+     * As above, its stock compartment with {@code internals} fitted beside it (a sensor pair, active protection, a
+     * liner): the hull as a company that fitted those parts would set it down.
+     */
+    public long spawnFitted(VehicleType type, List<MechInternal> internals, Faction faction, VehicleMission mission) {
+        List<MechInternal> compartment = new ArrayList<>(VehicleRack.stockFit(type));
+        compartment.addAll(internals);
+        return spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), compartment,
+                faction, mission);
+    }
+
     /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
     public long spawn(VehicleType type, List<VehicleKit> kits, Faction faction, VehicleMission mission) {
         return spawn(type, kits, VehiclePlating.FACTORY, faction, mission);
@@ -184,13 +199,14 @@ public final class ConvoyService implements BodyCarrier {
             flux = new HullReservoir.Frame(flux.capacity(), Math.max(0f, flux.dissipationPerSecond() + engine.dissipation()));
         }
         MissileReplenisherComponent loader = VehicleRack.loader(compartment);
-        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type).with(MechCompartment.systems(compartment));
+        MachineSystems fittedSystems = MechCompartment.systems(compartment);
+        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type).with(fittedSystems);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 
         // Build the kinematics + (optional) turret the mission is agnostic of.
         GroundBody body = type.createBody();
-        body.speedFactor = engine.speedFactor() * VehicleKit.speedFactor(kits);
+        body.speedFactor = engine.speedFactor() * fittedSystems.speedFactor();
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
@@ -249,9 +265,7 @@ public final class ConvoyService implements BodyCarrier {
         }
         world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         entityIds.add(id);
-        List<DroneRole> kitBay = new ArrayList<>();
-        for (VehicleKit kit : kits) kitBay.addAll(kit.droneBay());
-        if (!kitBay.isEmpty()) kitBays.put(id, List.copyOf(kitBay));
+        if (!fittedSystems.equals(MachineSystems.NONE)) systems.put(id, fittedSystems);
         if (!kits.isEmpty()) racks.put(id, List.copyOf(kits));
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
@@ -289,7 +303,7 @@ public final class ConvoyService implements BodyCarrier {
         roster.unindexVehicle(id);
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
-        kitBays.remove(id);
+        systems.remove(id);
         racks.remove(id);
     }
 
@@ -298,18 +312,28 @@ public final class ConvoyService implements BodyCarrier {
         return racks.getOrDefault(id, List.of());
     }
 
-    /**
-     * The turret-catalog structure of this hull's active protection, from its rack ({@link VehicleKit#ACTIVE_PROTECTION}),
-     * or null for a hull that carries none.
-     */
-    public String activeProtectionStructureId(long id) {
-        return VehicleKit.activeProtectionStructureId(kits(id));
+    /** What this hull's compartment makes of it beyond its frame; {@link MachineSystems#NONE} for a hull of neither. */
+    public MachineSystems systems(long id) {
+        return systems.getOrDefault(id, MachineSystems.NONE);
     }
 
-    /** The drones this hull launches, in launch order: its type's bay, then what its kits add. */
+    /** Whether this hull carries active protection in its compartment, whether or not the control mounts it. */
+    public boolean carriesActiveProtection(long id) {
+        return systems(id).activeProtection();
+    }
+
+    /**
+     * The turret-catalog structure of this hull's active protection, from its compartment
+     * ({@link MachineSystems#activeProtectionStructureId}), or null for a hull that carries none.
+     */
+    public String activeProtectionStructureId(long id) {
+        return systems(id).activeProtectionStructureId();
+    }
+
+    /** The drones this hull launches, in launch order: its type's bay, then what its compartment adds. */
     public List<DroneRole> droneBay(long id) {
         VehicleType type = vehicleType(id);
-        List<DroneRole> added = kitBays.get(id);
+        List<DroneRole> added = systems(id).droneBay().isEmpty() ? null : systems(id).droneBay();
         if (type == null) return added == null ? List.of() : added;
         if (added == null) return type.droneBay();
         List<DroneRole> bay = new ArrayList<>(type.droneBay());

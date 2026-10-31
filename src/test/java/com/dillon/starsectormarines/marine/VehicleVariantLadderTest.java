@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
@@ -32,8 +31,8 @@ class VehicleVariantLadderTest {
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.LRM_CARRIER).accessTier());
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
-        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleKit.ACTIVE_PROTECTION).accessTier(),
-                "the Parapet's interceptor system is a Prestige kit, as the hull was");
+        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(MechInternal.ACTIVE_PROTECTION).accessTier(),
+                "the Parapet's interceptor system is a Prestige part, as the hull was");
         for (VehicleType type : VARIANTS) {
             MechPattern pattern = MechPattern.of(type);
             assertEquals(MechPattern.Kind.VEHICLE, pattern.kind());
@@ -85,8 +84,8 @@ class VehicleVariantLadderTest {
         assertEquals(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, dozer.turretStructureId);
         VehicleStockFit parapet = VehicleStockFit.PARAPET;
         assertEquals(tank, parapet.type, "the Parapet is the Onager with active protection on its rack");
-        assertTrue(VehicleKit.activeProtectionStructureId(parapet.kits) != null);
-        assertTrue(VehicleKit.speedFactor(parapet.kits) < 1f);
+        assertTrue(MechCompartment.systems(parapet.compartment).activeProtection());
+        assertTrue(MechCompartment.systems(parapet.compartment).speedFactor() < 1f);
     }
 
     /**

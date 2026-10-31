@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -239,6 +240,11 @@ public final class AirDeliveryContext {
             world.setMaxArmor(unit, sections.totalMaxArmor());
             world.setArmor(unit, sections.totalArmor());
         }
+    }
+
+    /** Enrols a landed mech whose compartment brings a drone wing or active protection with the systems that host it. */
+    public void hostMachineSystems(long unit, MachineSystems systems) {
+        roster.machineHosts().register(unit, systems);
     }
 
     /** Marks a landed mech as the company's own {@code campaignId}, so its damage writes back. */

@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.mech.MachineHosts;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -26,7 +29,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Flies the tethered drones of every hull that carries a drone bay ({@link VehicleType#droneBay()}).
+ * Flies the tethered drones of every machine that carries a drone bay: a hull's own ({@link VehicleType#droneBay()}) or
+ * one its compartment adds, and a mech whose compartment carries a sensor pair ({@link MachineHosts}). One system for
+ * both machines (mechs-nouns.md, one machine, one part catalog): a mech's wing follows its body as a hull's does.
  *
  * <p>Each tick, in the serial part of the tick: a hull that has come onto the field gets a {@link DroneWing} and a
  * drone squad anchored to it; its bay launches one drone at a time in its role; the wing follows the hull, forgets
@@ -45,6 +50,8 @@ import java.util.Map;
 public final class DroneBaySystem {
 
     private static final float DESTROY = 1.0e6f;
+    /** A mech's wing spacing when its chassis is not at hand: about a Hound's length. */
+    private static final float MECH_LENGTH_CELLS = 2f;
     /**
      * A tethered drone is part of its hull's armament, not a hub's disposable screen: it flies on a composite airframe
      * with a light plate, so a lone rifle has to work at it. Hub and tender drones keep {@link Drone#DRONE_MAX_HP}.
@@ -105,7 +112,7 @@ public final class DroneBaySystem {
     public void forEachSensor(BattleSimulation sim, SensorSink sink) {
         for (DroneWing wing : wings.values()) {
             if (!wing.anchorAlive()) continue;
-            Faction side = sim.convoy().faction(wing.hullId());
+            Faction side = side(wing.hullId(), sim);
             if (side == null) continue;
             for (Long id : wing.drones()) {
                 if (wing.role(id) != DroneRole.SENSOR || sim.resolveUnit(id) == 0L) continue;
@@ -128,31 +135,62 @@ public final class DroneBaySystem {
                 wings.put(hull, new DroneWing(hull, bay, type.visualLengthCells));
             }
         }
+        for (Map.Entry<Long, MachineSystems> host : sim.getRoster().machineHosts().entries()) {
+            long mech = host.getKey();
+            List<DroneRole> bay = host.getValue().droneBay();
+            if (bay.isEmpty() || wings.containsKey(mech) || sim.resolveUnit(mech) == 0L) continue;
+            MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
+            float length = loadout != null ? 2f * loadout.variant.radius : MECH_LENGTH_CELLS;
+            wings.put(mech, new DroneWing(mech, bay, length));
+        }
         float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         for (Iterator<DroneWing> it = wings.values().iterator(); it.hasNext(); ) {
             DroneWing wing = it.next();
-            VehicleMission mission = convoy.mission(wing.hullId());
-            GroundBody body = convoy.body(wing.hullId());
-            if (mission == null || body == null || mission.state == VehicleState.WRECKED
-                    || mission.state == VehicleState.GONE) {
+            float[] anchor = anchor(wing.hullId(), sim);
+            if (anchor == null) {
                 collapse(wing, sim);
                 searches.remove(wing.hullId());
                 it.remove();
                 continue;
             }
-            wing.follow(body.x, body.y, body.facingDegrees);
+            wing.follow(anchor[0], anchor[1], anchor[2]);
             for (Long id : wing.drones()) {
                 if (sim.resolveUnit(id) == 0L) wing.lost(id);
             }
-            Faction side = convoy.faction(wing.hullId());
+            Faction side = side(wing.hullId(), sim);
             long focus = scan && side != null ? nearestHostile(side, wing, sim) : wing.focusTarget();
             if (side != null) {
                 strike(wing, side, focus, sim);
                 DroneRole role = wing.readyToLaunch(dt, focus != 0L);
-                if (role != null) launch(wing, role, side, body, focus, sim);
+                if (role != null) launch(wing, role, side, anchor, focus, sim);
             }
             publish(wing, focus, seconds, sim);
         }
+    }
+
+    /**
+     * Where machine {@code id} stands and faces, as {@code {x, y, facingDegrees}}, or null once it is lost: a hull wrecked
+     * or gone, a mech dead or off the field.
+     */
+    private static float[] anchor(long id, BattleSimulation sim) {
+        ConvoyService convoy = sim.convoy();
+        if (convoy.isVehicle(id)) {
+            VehicleMission mission = convoy.mission(id);
+            GroundBody body = convoy.body(id);
+            if (mission == null || body == null || mission.state == VehicleState.WRECKED
+                    || mission.state == VehicleState.GONE) return null;
+            return new float[]{body.x, body.y, body.facingDegrees};
+        }
+        if (sim.resolveUnit(id) == 0L || !sim.world().hasMechLoadout(id)) return null;
+        World world = sim.world();
+        return new float[]{world.x(id), world.y(id), world.mechHipFacingDegrees(id)};
+    }
+
+    /** The side machine {@code id} fights for: a hull's, or a mech's own. */
+    private static Faction side(long id, BattleSimulation sim) {
+        ConvoyService convoy = sim.convoy();
+        if (convoy.isVehicle(id)) return convoy.faction(id);
+        return sim.resolveUnit(id) != 0L ? sim.getRoster().identity().faction(id) : null;
     }
 
     /** The hull is lost: nothing more launches, and every drone still out comes down where it flies. */
@@ -193,13 +231,13 @@ public final class DroneBaySystem {
         wing.lost(drone);
     }
 
-    private void launch(DroneWing wing, DroneRole role, Faction side, GroundBody body, long focus,
+    private void launch(DroneWing wing, DroneRole role, Faction side, float[] anchor, long focus,
                         BattleSimulation sim) {
         if (wing.squadId < 0) {
             wing.squadId = sim.mintSquad(side, UnitType.DRONE);
             sim.getSquad(wing.squadId).droneAnchor = wing;
         }
-        int[] cell = openCell(sim.getGrid(), body.x, body.y);
+        int[] cell = openCell(sim.getGrid(), anchor[0], anchor[1]);
         EntitySpec spec = Drone.create("bay-drone-" + nextDrone++, side, cell[0], cell[1], 0L, role.look())
                 .squad(wing.squadId)
                 .health(role == DroneRole.STRIKE ? STRIKE_DRONE_HP : BAY_DRONE_HP)
@@ -213,8 +251,8 @@ public final class DroneBaySystem {
         if (id == 0L) return;
         AirBody air = sim.world().kinematics(id);
         if (air != null) {
-            air.teleport(body.x, body.y, body.facingDegrees);
-            sim.world().setPos(id, body.x, body.y);
+            air.teleport(anchor[0], anchor[1], anchor[2]);
+            sim.world().setPos(id, anchor[0], anchor[1]);
         }
         wing.launched(id, role);
         if (role == DroneRole.HALO) sim.pointDefense().queuePlacement(id, side, cell[0], cell[1], HALO_MOUNT);
@@ -234,7 +272,7 @@ public final class DroneBaySystem {
             at[2 * i] = world.x(ids[i]);
             at[2 * i + 1] = world.y(ids[i]);
         }
-        Faction side = sim.convoy().faction(wing.hullId());
+        Faction side = side(wing.hullId(), sim);
         Map<Long, float[]> stations = side == null ? Map.of()
                 : searches.computeIfAbsent(wing.hullId(), h -> new SensorSearch())
                         .plan(wing, sim, side, sim.getSimTickIndex());

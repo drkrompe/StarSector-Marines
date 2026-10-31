@@ -133,6 +133,10 @@ final class MechLabSpecSheets {
                     Strings.format("openingMechLabSpecFactor", number(internal.structureFactor()))));
             case READY_RACK -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecRounds"),
                     Strings.format("openingMechLabSpecFactor", number(internal.ammoFactor()))));
+            case DRONE_BAY -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecDrones"),
+                    Integer.toString(internal.droneBay().size())));
+            case ACTIVE_PROTECTION -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSpeed"),
+                    Strings.format("openingMechLabSpecFactor", number(internal.speedFactor()))));
         }
         if (internal.role.compartment()) stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFootprint"),
                 internal.footprintColumns + "x" + internal.footprintRows));
@@ -144,6 +148,8 @@ final class MechLabSpecSheets {
             case LOADER -> Strings.get("openingMechLabRoleLoader");
             case LINER -> Strings.get("openingMechLabRoleLiner");
             case READY_RACK -> Strings.get("openingMechLabRoleReadyRack");
+            case DRONE_BAY -> Strings.get("openingMechLabRoleDroneBay");
+            case ACTIVE_PROTECTION -> Strings.get("openingMechLabRoleActiveProtection");
         };
         String copy = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabEngineCopy");
@@ -153,6 +159,8 @@ final class MechLabSpecSheets {
             case LOADER -> Strings.get("openingMechLabLoaderCopy");
             case LINER -> Strings.get("openingMechLabLinerCopy");
             case READY_RACK -> Strings.get("openingMechLabReadyRackCopy");
+            case DRONE_BAY -> Strings.get("openingMechLabSensorPairCopy");
+            case ACTIVE_PROTECTION -> Strings.get("openingMechLabActiveProtectionCopy");
         };
         return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
     }

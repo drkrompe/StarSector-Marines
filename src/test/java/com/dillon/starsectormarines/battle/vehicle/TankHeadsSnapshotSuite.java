@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.marine.VehicleRack;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
@@ -136,9 +138,11 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
     }
 
     private static long spawn(BattleSimulation sim, MechWeaponComponent gun, boolean activeProtection, float[] at) {
-        List<VehicleKit> kits = activeProtection ? List.of(VehicleKit.ACTIVE_PROTECTION) : List.of();
-        long tank = sim.convoy().spawn(new VehicleDeploymentSpec(null, null, VehicleType.BREAKTHROUGH_TANK, kits,
-                VehiclePlating.FACTORY, VehicleEngine.STOCK, gun), Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+        List<MechInternal> compartment = new ArrayList<>(VehicleRack.stockFit(VehicleType.BREAKTHROUGH_TANK));
+        if (activeProtection) compartment.add(MechInternal.ACTIVE_PROTECTION);
+        long tank = sim.convoy().spawn(new VehicleDeploymentSpec(null, null, VehicleType.BREAKTHROUGH_TANK, List.of(),
+                VehiclePlating.FACTORY, VehicleEngine.STOCK, gun, compartment), Faction.MARINE,
+                VehicleMission.deployed(at[0], at[1]));
         GroundTurret turret = sim.convoy().turret(tank);
         if (turret != null) {
             // Silent: these frames are about how the head looks, not what it hits.

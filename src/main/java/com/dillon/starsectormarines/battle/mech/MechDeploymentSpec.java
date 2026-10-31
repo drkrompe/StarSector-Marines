@@ -174,7 +174,9 @@ public record MechDeploymentSpec(
     public EntitySpec applyTo(EntitySpec spec) {
         MechFrame deployed = deployedFrame();
         spec.mechVariant(variant);
-        spec.armor(deployed.armorCapacity(), variant.armorRating).moveSpeed(deployed.moveSpeed());
+        // Active protection's launchers cost a mech the same share of its speed as a hull.
+        spec.armor(deployed.armorCapacity(), variant.armorRating)
+                .moveSpeed(deployed.moveSpeed() * deployed.systems().speedFactor());
         // A spall liner's structure: the sections divide whatever the chassis lands with.
         if (deployed.systems().structureFactor() != 1f) {
             spec.health(variant.maxStructure * deployed.systems().structureFactor());

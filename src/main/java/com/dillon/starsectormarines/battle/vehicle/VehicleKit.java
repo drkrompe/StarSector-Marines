@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
-import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -9,36 +8,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A bolt-on part a company fits to a vehicle's kit rack (mechs-nouns.md, vehicle kit). A vehicle's
- * gun and bay are sealed; its plating and engine have their own points on the doll ({@link VehiclePlating},
- * {@link VehicleEngine}), and a kit is the one rack part, and it changes only what the hull is set down with: its numbers, or a drone bay on a hull that has none ({@link #SENSOR_PAIR}). It adds no behaviour
- * of its own; the bay's drones fly as any bay's do.
- *
- * <p>A kit takes one slot of the rack ({@link #slots}), beside the capacitor bank and vent arrays the rack also
- * holds (a vehicle is a mech for parts: `VehicleRack`); a rack holds at most one of each kit, and a kit may need
- * something of the hull ({@link #suits}).</p>
+ * The retired vehicle kit rack (mechs-nouns.md, one machine, one part catalog). Every kit became an internal of the
+ * one part catalog ({@code MechInternal.RETIRED_KITS}): the spall liner, ready rack, sensor drone pair and active
+ * protection are fitted in a machine's auxiliary compartment, a mech's or a hull's alike. No kit remains; this shell
+ * keeps the rack's slot arithmetic and the drop effect's record until the kit plumbing is removed.
  */
 public enum VehicleKit {
-    /**
-     * A tethered pair of sensor drones the hull launches and flies ahead of its bow: sight past cover the hull
-     * cannot see over, which is what an indirect-fire hull otherwise needs a spotter for. Hulls with no bay of
-     * their own.
-     */
-    SENSOR_PAIR("kit.sensor-pair", "@vehicleKitSensorPair", 1f, 1f, 1f, 0f),
-    /**
-     * Active protection: interceptor launchers on the hull's rear flanks fed by a sensor panel on each cheek, a
-     * point-defence mount carried by the hull that takes the arcing, top-attack rounds coming down on it
-     * ({@link #activeProtectionStructureId}). It is the tank line's answer to a missile mech, and costs a little
-     * speed for the launchers and their power ({@link #speedFactor}). The gun tanks only.
-     */
-    ACTIVE_PROTECTION("kit.active-protection", "@vehicleKitActiveProtection", 1f, 1f, 1f, 0f);
-
-    /** {@code false} is the control: the active-protection kit mounts nothing. */
-    public static final String ACTIVE_PROTECTION_PROPERTY = "battle.vehicle.activeProtection";
-
-    /** The active-protection kit's turret-catalog structure, or null under the control. */
-    private static final String ACTIVE_PROTECTION_STRUCTURE =
-            Boolean.parseBoolean(System.getProperty(ACTIVE_PROTECTION_PROPERTY, "true")) ? "structure.tank-aps" : null;
+    ;
 
     public final String id;
     private final String label;
@@ -59,53 +35,9 @@ public enum VehicleKit {
 
     public String displayName() { return Strings.resolve(label); }
 
-    /** The drones this kit adds to the hull's bay, in launch order; empty for a kit that adds none. */
-    public List<DroneRole> droneBay() {
-        return this == SENSOR_PAIR ? List.of(DroneRole.SENSOR, DroneRole.SENSOR) : List.of();
-    }
-
-    /**
-     * The turret-catalog structure of the hull-borne point-defence mount this kit gives its hull, or null for a kit
-     * that gives none. The mount ({@code PointDefenseService#mountHull}) engages hostile arcing, top-attack rounds
-     * coming down on the hull, inside its reach, at its rate, from a finite magazine; flat rockets, gun rounds and
-     * rounds falling on anybody else are left alone. {@code -Dbattle.vehicle.activeProtection=false} is the control.
-     */
-    public String activeProtectionStructureId() {
-        return this == ACTIVE_PROTECTION ? ACTIVE_PROTECTION_STRUCTURE : null;
-    }
-
-    /** What the kit multiplies the hull's top speed and acceleration by: the launchers' weight and power. */
-    public float speedFactor() {
-        return this == ACTIVE_PROTECTION ? ACTIVE_PROTECTION_SPEED : 1f;
-    }
-
-    /** The retired Parapet's 2.9 cells a second against the Onager's 3.1. */
-    private static final float ACTIVE_PROTECTION_SPEED = .94f;
-
-    /** The first active-protection structure among {@code kits}, or null for a rack that carries none. */
-    public static String activeProtectionStructureId(List<VehicleKit> kits) {
-        for (VehicleKit kit : kits) if (kit.activeProtectionStructureId() != null) return kit.activeProtectionStructureId();
-        return null;
-    }
-
-    /** What a rack of kits multiplies the hull's top speed and acceleration by. */
-    public static float speedFactor(List<VehicleKit> kits) {
-        float factor = 1f;
-        for (VehicleKit kit : kits) factor *= kit.speedFactor();
-        return factor;
-    }
-
-    /**
-     * Whether the hull has what this kit works on: no bay of its own for the sensor drones, an armed gun tank (the Onager and the laser
-     * tank, not the dozer) for active protection, whose launchers stand on its rear flanks.
-     */
+    /** No kit suits any hull: every part is an internal now. */
     public boolean suits(VehicleType type) {
-        if (type == null) return false;
-        return switch (this) {
-            case SENSOR_PAIR -> type.droneBay().isEmpty();
-            case ACTIVE_PROTECTION -> type.isTank() && type.weight() == VehicleType.Weight.HEAVY
-                    && type.hasTurretWeapon();
-        };
+        return false;
     }
 
     /**
@@ -149,7 +81,7 @@ public enum VehicleKit {
         return null;
     }
 
-    /** What a rack of kits makes of a hull at the drop, every factor multiplied and every bonus added. */
+    /** What a hull's fit makes of it at the drop, every factor multiplied and every bonus added. */
     public record Effect(float armorFactor, float structureFactor, float ammoFactor, float armorRatingBonus) {
         public static final Effect NONE = new Effect(1f, 1f, 1f, 0f);
 
@@ -159,7 +91,7 @@ public enum VehicleKit {
 
         /** This effect with what the hull's compartment adds ({@link MachineSystems}): its liner's structure, its ready rack's rounds. */
         public Effect with(MachineSystems systems) {
-            if (systems == null || systems.equals(MachineSystems.NONE)) return this;
+            if (systems == null) return this;
             return new Effect(armorFactor, structureFactor * systems.structureFactor(), ammoFactor * systems.ammoFactor(),
                     armorRatingBonus);
         }

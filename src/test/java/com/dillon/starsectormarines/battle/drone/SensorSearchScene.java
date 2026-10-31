@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -32,7 +32,7 @@ import java.util.Set;
  * Where a hull's sensor drones look ({@link SensorSearch}): they search the ground round an LRM carrier, find what it
  * cannot see, and shadow a moving target so the carrier keeps a spotter's call to fire on.
  *
- * <p>Three loops, each an {@link VehicleType#LRM_CARRIER} facing east with a {@link VehicleKit#SENSOR_PAIR} behind a
+ * <p>Three loops, each an {@link VehicleType#LRM_CARRIER} facing east with a {@link MechInternal#SENSOR_PAIR} behind a
  * short screening wall. {@code search}: three stationary Defender riflemen far to the carrier's west, behind the
  * wall's line from the hull but open to a drone standing off its end; nothing else on the Marine side looks at them.
  * The drones begin on the quadrants the hull faces, which are empty, and must go round to the west to find them.
@@ -100,7 +100,7 @@ public final class SensorSearchScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        Trace search = runSearch(SEARCH, List.of(VehicleKit.SENSOR_PAIR), frames);
+        Trace search = runSearch(SEARCH, List.of(MechInternal.SENSOR_PAIR), frames);
         Trace control = runSearch(SEARCH_CONTROL, List.of(), frames);
         Trace shadow = runShadow(frames);
         List<SceneReport> reports = new ArrayList<>();
@@ -120,7 +120,7 @@ public final class SensorSearchScene implements BehaviorScene {
                 .unit("marine-holdout", Faction.MARINE, UnitType.MARINE, width - 6, 5);
     }
 
-    private Trace runSearch(String loop, List<VehicleKit> kits, FrameSink frames) {
+    private Trace runSearch(String loop, List<MechInternal> kits, FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(SEARCH_WIDTH, SEARCH_HEIGHT)
                 .missionCompletion(false)
                 .wall(SCREEN_X, SCREEN_Y0, SCREEN_X, SCREEN_Y1)
@@ -129,7 +129,7 @@ public final class SensorSearchScene implements BehaviorScene {
         holdouts(builder, SEARCH_WIDTH, SEARCH_HEIGHT);
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, kits, Faction.MARINE,
+        long carrier = sim.convoy().spawnFitted(VehicleType.LRM_CARRIER, kits, Faction.MARINE,
                 VehicleMission.deployed(SEARCH_CARRIER_X, SEARCH_CARRIER_Y));
         sim.convoy().body(carrier).teleport(SEARCH_CARRIER_X, SEARCH_CARRIER_Y, FACING_EAST);
 
@@ -148,7 +148,7 @@ public final class SensorSearchScene implements BehaviorScene {
         holdouts(builder, SHADOW_WIDTH, SHADOW_HEIGHT);
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, List.of(VehicleKit.SENSOR_PAIR), Faction.MARINE,
+        long carrier = sim.convoy().spawnFitted(VehicleType.LRM_CARRIER, List.of(MechInternal.SENSOR_PAIR), Faction.MARINE,
                 VehicleMission.deployed(SHADOW_CARRIER_X, SHADOW_CARRIER_Y));
         sim.convoy().body(carrier).teleport(SHADOW_CARRIER_X, SHADOW_CARRIER_Y, FACING_EAST);
         // A Defender hull takes no move order, so the tank drives the road as an ordinary delivery with no passengers.

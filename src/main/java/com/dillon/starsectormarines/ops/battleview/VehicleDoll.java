@@ -137,10 +137,7 @@ final class VehicleDoll {
      * the rack wears its own role's colour, as in a mech's compartment.
      */
     static Color tone(VehicleKit kit) {
-        return switch (kit) {
-            case ACTIVE_PROTECTION -> HardpointBricks.UTILITY;
-            default -> HardpointBricks.OMNI;
-        };
+        return HardpointBricks.OMNI;
     }
 
     /**

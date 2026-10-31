@@ -70,12 +70,12 @@ public final class MechFabricationCatalog {
             internal(MechInternal.STANDARD_LOADER, "@gearFabricationStandardIssue"),
             internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
             internal(MechInternal.SPALL_LINER, "@gearFabricationStandardIssue"),
-            internal(MechInternal.READY_RACK, "@gearFabricationStandardIssue"));
+            internal(MechInternal.READY_RACK, "@gearFabricationStandardIssue"),
+            internal(MechInternal.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
+            internal(MechInternal.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
 
     /** Bolt-on vehicle kits; bills are derived like a part's. */
-    private static final List<Recipe> KITS = List.of(
-            kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
+    private static final List<Recipe> KITS = List.of();
 
     /**
      * Prices sit beside the chassis of the same weight class: a hull is cheaper than a walker, and brings at least as much structure plus armor per credit as the class's mech (see
@@ -247,7 +247,8 @@ public final class MechFabricationCatalog {
             // A loader is a small autoforge: guidance stock and feed mechanism.
             case LOADER -> 1200f;
             // A liner or a ready rack is a common bolt-on: the price it had as a vehicle kit.
-            case LINER, READY_RACK -> 900f;
+            // The sensor pair and active protection keep the price they had as vehicle kits too.
+            case LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> 900f;
         };
         return base * tierMultiplier(internal.tier);
     }

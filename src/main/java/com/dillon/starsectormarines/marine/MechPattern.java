@@ -85,10 +85,6 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
 
-        // Vehicle kits: military patterns (the liner and ready rack are internals now, any workshop's).
-        KIT_TIERS.put(VehicleKit.SENSOR_PAIR, EquipmentAccessTier.ADVANCED);
-        // The interceptor system the Parapet was built around: a Prestige pattern, as that hull was.
-        KIT_TIERS.put(VehicleKit.ACTIVE_PROTECTION, EquipmentAccessTier.PRESTIGE);
     }
 
     /**

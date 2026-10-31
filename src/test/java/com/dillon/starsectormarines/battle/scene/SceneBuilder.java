@@ -599,6 +599,7 @@ public final class SceneBuilder {
                     loadout.applyFrame(mechDeployment.frame());
                     loadout.installMissileReplenisher(mechDeployment.missileReplenisher());
                     sim.world().attachMechLoadout(spawned[i], loadout);
+                    sim.getRoster().machineHosts().register(spawned[i], mechDeployment.deployedFrame().systems());
                 } else if (mechVariant != null) {
                     sim.world().attachMechLoadout(spawned[i],
                             mechVariant.createLoadout(mechRole));

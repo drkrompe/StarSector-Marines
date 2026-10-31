@@ -25,7 +25,7 @@ public enum VehicleStockFit {
      * hull of its own until the system became a kit; missions and evidence that field it field this fit.
      */
     PARAPET(VehicleType.BREAKTHROUGH_TANK, VehiclePlating.FACTORY, VehicleEngine.STOCK,
-            List.of(VehicleKit.ACTIVE_PROTECTION), List.of());
+            List.of(), List.of(MechInternal.ACTIVE_PROTECTION));
 
     public final VehicleType type;
     public final VehiclePlating plating;

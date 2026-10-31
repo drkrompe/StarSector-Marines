@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
+import com.dillon.starsectormarines.battle.mech.MachineHosts;
 import com.dillon.starsectormarines.battle.mech.MechSectionModifier;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -232,6 +233,7 @@ public final class UnitRosterService {
     // not dereferenced during construction (used at spawn time).
     private final ConvoyService convoyService = new ConvoyService(this);
     private final CompanyMechLedger companyMechs = new CompanyMechLedger();
+    private final MachineHosts machineHosts = new MachineHosts();
     // Data owner for "which aircraft can be shot at right now". Takes `this` for the
     // same reason the convoy service does; the ref is stored, not dereferenced here.
     private final AirTargetService airTargetService = new AirTargetService(this);
@@ -571,6 +573,8 @@ public final class UnitRosterService {
 
     /** The company's own mechs on this field, whose section damage writes back after it. */
     public CompanyMechLedger companyMechs() { return companyMechs; }
+    /** Mechs whose compartment brings a drone wing or active protection, for the systems that host them. */
+    public MachineHosts machineHosts() { return machineHosts; }
 
     /** Data owner for an aircraft as a target — which craft ground fire can reach, and how fast they are going. */
     public AirTargetService airTargets() { return airTargetService; }

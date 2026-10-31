@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
 
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
+import com.dillon.starsectormarines.battle.mech.MachineHosts;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
@@ -2733,8 +2735,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
     /**
-     * Gives every hull on the map whose rack carries active protection its mount ({@link ConvoyService#activeProtectionStructureId}),
-     * once per hull; {@link PointDefenseService#mountHull} ignores a hull it has already armed.
+     * Gives every machine on the map whose compartment carries active protection its mount, once per machine: a hull
+     * ({@link ConvoyService#activeProtectionStructureId}) or a mech ({@link MachineHosts}), the one system for both;
+     * {@link PointDefenseService} ignores a machine it has already armed.
      */
     private void mountHullProtection() {
         ConvoyService convoy = convoy();
@@ -2743,6 +2746,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             String structureId = convoy.activeProtectionStructureId(id);
             if (structureId == null || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) continue;
             pointDefense.mountHull(id, convoy.faction(id), structureId, convoy.body(id));
+        }
+        for (Map.Entry<Long, MachineSystems> host : rosterService.machineHosts().entries()) {
+            long id = host.getKey();
+            String structureId = host.getValue().activeProtectionStructureId();
+            if (structureId == null || resolveUnit(id) == 0L) continue;
+            pointDefense.mountMachine(id, rosterService.identity().faction(id), structureId);
         }
     }
 

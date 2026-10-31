@@ -91,6 +91,26 @@ public enum MechVariant {
         this.defaultRole = defaultRole;
     }
 
+    /**
+     * Whether this chassis can tether a drone wing (a sensor pair's, mechs-nouns.md, one machine, one part catalog):
+     * the wing flies off the torso as a hull's does off its deck. Chassis capability data, not a mech/vehicle label.
+     */
+    public boolean hostsDrones() {
+        return switch (this) {
+            case BULWARK, HOUND, WARDEN -> true;
+        };
+    }
+
+    /**
+     * Whether this chassis has the flanks to stand active protection's interceptor launchers and sensor panels on:
+     * every chassis carries them on its torso, where the render draws them per chassis.
+     */
+    public boolean hostsPointDefence() {
+        return switch (this) {
+            case BULWARK, HOUND, WARDEN -> true;
+        };
+    }
+
     public static MechVariant fromId(String id) {
         for (MechVariant variant : values()) {
             if (variant.id.equals(id)) return variant;

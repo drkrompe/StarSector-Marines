@@ -36,7 +36,6 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
@@ -545,8 +544,9 @@ class BattleFixtureJsonTest {
     @Test
     void aFittedVehicleRoundTripsItsKitsPlatingEngineAndGunAndAnAbsentFittingIsStock() throws Exception {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
-                List.of(VehicleKit.SENSOR_PAIR), VehiclePlating.HEAVY, VehicleEngine.MILITARY,
-                MechWeaponComponent.HC_10);
+                List.of(), VehiclePlating.HEAVY, VehicleEngine.MILITARY,
+                MechWeaponComponent.HC_10, List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
+                MechInternal.SENSOR_PAIR));
         BattleLaunchFixture fixture = new BattleLaunchFixture(
                 canonicalFixture(), new BattleLaunchOverlay(
                         0, List.of(), List.of(), List.of(),
@@ -563,6 +563,7 @@ class BattleFixtureJsonTest {
         frozen.remove("plating");
         frozen.remove("engine");
         frozen.remove("gun");
+        frozen.remove("compartment");
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
                 legacy.launch().commandPowers().get(0).vehicleDeployments());
