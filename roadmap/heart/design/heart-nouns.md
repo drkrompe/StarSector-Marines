@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-25 — a forward observer attached to each Broad Front lane calls the military's air wing
+Updated: 2026-10-31 — Broad Front's inner row of satellites
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -63,9 +63,13 @@ releases at maw. They stand round the workings, at least twenty-two cells
 apart: one reservoir, several mouths. Every mother collapsed is the win.
 
 **Satellite bore.** An ordinary bore opened at setup and fed to maw, standing
-between the heart and the start line. Broad Front has five, one to each fifth
-of the front, so every lane meets one on its way in; The Burn strings three
-along its one approach. A satellite collapsed is scored, and is a bore whose
+between the heart and the start line. Broad Front has an outer row of five, one
+to each fifth of the front, so every lane meets one on its way in, and an
+**inner row** of up to four deeper in, one on each allied lane's line between
+the outer row and the heart, so every lane fights a second bore before it
+converges (owner, 2026-10-31: more bores). The inner row is optional: drawn
+after every required site, a band whose ground cannot seat a bore has none, so
+it never re-rolls a map. The Burn strings three along its one approach. A satellite collapsed is scored, and is a bore whose
 surges and creep are gone, but it is never required.
 
 **Heart country.** The map (`HeartCountry`): green country the bloom has held
@@ -351,7 +355,7 @@ a biome, never a market.
 | Woods | 70% of the wild ground | 80%: the fuel the burn runs through |
 | Cleared ground | a track along each of four allied lanes | two rides across the approach |
 | Water | none | the brook, about three fifths of the way in |
-| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6) | 2-3 mothers, 3 satellites from 44% to 74% depth |
+| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6); up to 4 inner satellites at 72-84% depth, one on each allied lane's line | 2-3 mothers, 3 satellites from 44% to 74% depth |
 
 A plan states its country through its **landscape** (`mapgen-nouns.md`,
 Authored forests: a plan's landscape): how much of the wild ground is wood,
