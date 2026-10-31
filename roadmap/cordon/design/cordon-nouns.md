@@ -650,12 +650,14 @@ to defend from fliers"): two to four anti-air flak positions (the redoubts'
 flak, `CordonTownGarrison.flakSites`), allied and under garrison authority
 like the gate towers, and the swarm can destroy them. They stand on open
 courtyard ground inside the wall, each open on all four sides and touching no
-building, so never in a room of people nor on a doorstep; never in the truck
+building or street, so never in a room of people, on a doorstep or on the paved
+way through the compound; never in the truck
 yard or the ground beside it (with a cell to spare), on the staging area or
 beside it, within three cells of where the corridor meets the town, in a gate
 or postern or the four cells in from it, nor beside a defender. They are
 spread to cover the whole compound: each next site the one that leaves the
-farthest cell inside the wall nearest a gun, at least a pair, then more until
+farthest cell inside the wall nearest a gun, at least a pair, then more while
+one brings that cell nearer, until
 every cell inside is within thirteen cells of one (untuned; well inside the
 gun's reach, so neighbouring arcs overlap over the rooms).
 
