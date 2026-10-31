@@ -20,10 +20,10 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
-/** The mission board's "Replay completed" toggle, off and on, for a company midway through the campaign. */
+/** The mission board's "Replay Story Missions" toggle, off and on, for a company midway through the campaign. */
 public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "replay-completed"; }
-    @Override public String label() { return "Mission board: Replay completed toggle and the Company records contact"; }
+    @Override public String label() { return "Mission board: Replay Story Missions toggle and the Company records contact"; }
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());

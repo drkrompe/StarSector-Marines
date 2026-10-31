@@ -17,7 +17,7 @@ import java.util.Set;
 
 /**
  * Replays of campaign chapters the company has already won, offered by a contact the
- * mission board shows only while its "Replay completed" toggle is on.
+ * mission board shows only while its "Replay Story Missions" toggle is on.
  *
  * <p>A replay is the chapter's battle as the debug catalogue builds it, flown by the
  * real company and paid the chapter's credits on victory. It never touches the arc that
