@@ -341,7 +341,11 @@ bore is, and dies only to ordinary damage. Its site:
 - past the near ride, short of the heart's own ground (eight tenths in);
 - on the south or north flank band, about a quarter of the front's width in
   from its edge, the flanks taken in turn, the first from the seed;
-- never on or within a few cells of burnt or burning ground;
+- never on or within a few cells of ground the fire holds against creep:
+  burning, or burnt and still refusing creep (`fire-nouns.md`, burnt ground
+  refuses creep for a while). Burnt ground that has recovered is the bloom's
+  again: refusing every burnt cell refused nearly the whole flank five minutes
+  in, and growth stopped at three bores;
 - never within 28 cells of a body of the company's side or its allies, the
   battery's guns and crews included;
 - on clear ground the start line reaches on foot, by the setup's own siting
@@ -349,7 +353,7 @@ bore is, and dies only to ordinary damage. Its site:
 - outside the barrage's firing line and next line, a twentieth of the
   approach either side;
 - at least 28 cells from every living bore.
-A due bore with no ground anywhere tries again five seconds later. Same seed,
+A due bore with no ground anywhere tries again fifteen seconds later. Same seed,
 same growth.
 
 **Burn line** (The Burn). The company's front, which is a firebreak moving:

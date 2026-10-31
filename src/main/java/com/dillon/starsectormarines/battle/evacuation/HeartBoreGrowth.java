@@ -24,7 +24,8 @@ import java.util.SplittableRandom;
  * its creep as any bore does, and dies only to ordinary damage. Nothing here collapses one.
  *
  * <p>Siting ({@link #site}): past the near ride, on the south or north flank band, the flanks taken in turn (the
- * first from the seed); never within {@link #SCORCH_REACH} of burnt or burning ground; never within
+ * first from the seed); never within {@link #SCORCH_REACH} of ground the fire holds against creep (burning, or burnt
+ * and not yet recovered); never within
  * {@link #FRIEND_CLEARANCE} of a body of the company's side or its allies (the battery's guns included); on clear
  * ground the start line reaches on foot ({@link HeartBores#clearGround}, {@link HeartBores#reachableFrom}); outside
  * the barrage's firing and next lines' band; and at least {@link #SPACING} from every living bore. Deterministic from
@@ -39,7 +40,7 @@ public final class HeartBoreGrowth {
     /** At most this many grown bores live at once; the clock waits while they do. */
     static final int MAX_LIVING = 4;
     /** A due growth that found no ground tries again this much later. */
-    static final float RETRY_SECONDS = 5f;
+    static final float RETRY_SECONDS = 15f;
     /** No grown bore deeper than this: the heart's own ground round the workings is the mothers'. */
     static final float DEPTH_TO = 0.80f;
     /** How far past the near ride's far edge, as a depth, the first ground a bore may grow on lies. */
@@ -50,7 +51,11 @@ public final class HeartBoreGrowth {
     static final int FRIEND_CLEARANCE = 28;
     /** No grown bore nearer another living bore than this. */
     static final int SPACING = 28;
-    /** No burnt or burning cell within this of the site: a bore grows on country the burn has not yet taken. */
+    /**
+     * No cell the fire holds against creep (burning, or burnt within {@link FireField#CREEP_REFUSAL_TICKS}) within this
+     * of the site: a bore grows where the burn has not reached, or where its ground has recovered. Every burnt cell
+     * refused once refused nearly the whole flank by five minutes in, and growth stopped at three.
+     */
     static final int SCORCH_REACH = SwarmBores.MOUTH_RADIUS + 3;
     /** Depth either side of the barrage's firing and next lines that no bore grows in. */
     static final float BARRAGE_BAND = 0.05f;
@@ -66,7 +71,7 @@ public final class HeartBoreGrowth {
         float across(int x, int y);
         /** Reachable on foot from the start line, and clear ground a bore can open on. */
         boolean standable(int x, int y);
-        /** Burnt or burning. */
+        /** Burning, or burnt and still refusing creep ({@link FireField#holdsCreepBack}). */
         boolean scorched(int x, int y);
     }
 
@@ -100,6 +105,23 @@ public final class HeartBoreGrowth {
     /** The numbers of the bores grown so far, in the order they grew. */
     public List<Integer> grown() { return List.copyOf(grown); }
 
+    /** The siting rules a cell of a flank band can fail, in {@link #refusals} order. */
+    static final String[] RULES = {"barrage", "ground", "bores", "friends", "scorched"};
+    /**
+     * Over every due growth that found no site: the scans, the flank-band cells judged, how many cells each rule
+     * refused, and how many each rule alone refused (the ground relaxing that one rule would open).
+     */
+    private final long[] refusals = new long[2 + 2 * RULES.length];
+
+    /** The refusal readout, for evidence: why due growths found no site. */
+    public String refusals() {
+        StringBuilder out = new StringBuilder("scans=").append(refusals[0]).append(" cells=").append(refusals[1]);
+        for (int r = 0; r < RULES.length; r++) out.append(' ').append(RULES[r]).append('=').append(refusals[2 + r]);
+        out.append(" | alone:");
+        for (int r = 0; r < RULES.length; r++) out.append(' ').append(RULES[r]).append('=').append(refusals[2 + RULES.length + r]);
+        return out.toString();
+    }
+
     /**
      * Grows a bore when one is due and there is ground for it, and returns its number, else -1. Run in the heart's
      * simulation half, after the bores' own tick.
@@ -118,6 +140,8 @@ public final class HeartBoreGrowth {
         int[] cell = site(ground, situation, flank, depthFrom, rng);
         if (cell == null) cell = site(ground, situation, flank = !flank, depthFrom, rng);
         if (cell == null) {
+            tally(ground, situation, true, depthFrom, refusals);
+            tally(ground, situation, false, depthFrom, refusals);
             nextTick = tick + Math.round(RETRY_SECONDS / BattleSimulation.TICK_DT);
             return -1;
         }
@@ -166,6 +190,30 @@ public final class HeartBoreGrowth {
         return fit.isEmpty() ? null : fit.get(rng.nextInt(fit.size()));
     }
 
+    /** Adds one failed scan of a flank band to {@code into}: each rule's refusals, and each rule's refusals alone. */
+    static void tally(Ground ground, Situation situation, boolean north, float depthFrom, long[] into) {
+        int width = ground.width(), height = ground.height();
+        float edge = HeartBores.EDGE_MARGIN / (float) Math.max(1, height - 1);
+        into[0]++;
+        boolean[] failed = new boolean[RULES.length];
+        for (int y = HeartBores.EDGE_MARGIN; y < height - HeartBores.EDGE_MARGIN; y++) {
+            for (int x = HeartBores.EDGE_MARGIN; x < width - HeartBores.EDGE_MARGIN; x++) {
+                float depth = ground.depth(x, y), across = ground.across(x, y);
+                if (depth < depthFrom || depth > DEPTH_TO) continue;
+                if (north ? across < 1f - edge - FLANK_WIDTH : across > edge + FLANK_WIDTH) continue;
+                into[1]++;
+                failed[0] = inBarrage(situation.barrageDepths(), depth);
+                failed[1] = !ground.standable(x, y);
+                failed[2] = near(situation.bores(), x, y, SPACING);
+                failed[3] = near(situation.friends(), x, y, FRIEND_CLEARANCE);
+                failed[4] = scorchedNear(ground, x, y);
+                int count = 0, only = -1;
+                for (int r = 0; r < RULES.length; r++) if (failed[r]) { into[2 + r]++; count++; only = r; }
+                if (count == 1) into[2 + RULES.length + only]++;
+            }
+        }
+    }
+
     private static boolean inBarrage(float[] depths, float depth) {
         for (float line : depths) if (Math.abs(line - depth) < BARRAGE_BAND) return true;
         return false;
@@ -191,7 +239,7 @@ public final class HeartBoreGrowth {
         return false;
     }
 
-    /** The battle's ground now: its grid, what the start line reaches on foot, and the fire's burnt and burning cells. */
+    /** The battle's ground now: its grid, what the start line reaches on foot, and the ground the fire holds back. */
     private Ground ground(BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
@@ -207,7 +255,7 @@ public final class HeartBoreGrowth {
                 return reach != null && reach[y * width + x] && HeartBores.clearGround(grid, topology, x, y);
             }
             @Override public boolean scorched(int x, int y) {
-                return fire != null && (fire.isBurnt(x, y) || fire.isBurning(x, y));
+                return fire != null && fire.holdsCreepBack(y * width + x);
             }
         };
     }
