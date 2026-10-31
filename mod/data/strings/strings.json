@@ -20,7 +20,7 @@
     "wellhollowReplayTerms": "Replay: {0} credits on victory, nothing on a loss. The arc does not move. ",
     "wellhollowForce": "Challenge mission for the end of the campaign: seven squads and four mechs or vehicles recommended; any ready force may deploy.",
     "wellhollowFlavorColonyBreach": "The seismic activity caught the Khettara district unready. Tazrout is overrun: lift its people out, and put the deep bore down if the company can.",
-    "wellhollowFlavorCordonRoad": "The APDF holds a line across the rim roads, but Ain Tafrant is outside the wire, forty-eight of its people trapped in the town compound. Hold the town while the convoys bring at least half of them back to the camp.",
+    "wellhollowFlavorCordonRoad": "The APDF holds a line across the rim roads, but a shelter at Ain Tafrant still has people trapped in it. Defend it while we get those people pulled back behind the lines.",
     "wellhollowFlavorTheBurn": "Local APDF units and reservists have been activated and positioned for a coordinated burn-out. Walk behind the barrage, shoot anything that still moves, and collapse the bore.",
     "wellhollowFlavorBroadFront": "Regional Command has sent the Khettara its columns at last. Take the spearhead lane against the mother heart and collapse every mother bore.",
 
@@ -37,12 +37,11 @@
 
     "wellhollowRoad1": "We have a line now. Redoubts across the rim roads, reservists in the trenches, the farms walked out behind it. For the first time this month my staff knows where everybody is.",
     "wellhollowRoad2": "Then why call us?",
-    "wellhollowRoad3": "Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. Forty-eight of them are walled up in the town compound. We hear them on the radio every night.",
+    "wellhollowRoad3": "Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. Civilians and a small guard holed up in the compound. We need a fast action force that can help to get those people out of there.",
     "wellhollowRoad4": "And your regulars?",
-    "wellhollowRoad5": "Pulled north. Regional Command is planning its offensive, and Ain Tafrant isn't on that map. So it's your company and my convoys, through a gap in the wire and across ground the bloom holds.",
+    "wellhollowRoad5": "Pulled north. Regional Command is pushing it's own offensives, and Ain Tafrant isn't on that map. I only have enough reserves to hold this line and provide ground lift. I need someone to keep those trucks moving.",
     "wellhollowRoad6": "We hold the town while your trucks run them out through the gap, back to your camp.",
-    "wellhollowRoad7": "Eighteen a trip, five trips at most. Get half of them out and you've done enough. The bores will open along the line while you work.",
-    "wellhollowRoadRetry": "Too few of them reached the camp. Ain Tafrant is still on the radio. We go again.",
+    "wellhollowRoad7": "Exactly right, we'll need to do about 5 loads to get everyone. The ravs are getting more active by the minute so the faster we get this done the better.",
 
     "wellhollowBurn2": "How's the offensive, Orens?",
     "wellhollowBurn3": "The bloom went east along the irrigation channels and seeded a second root in the thick country, mothers on it. Regional Command has sent us batteries and two more battalions, and your company is attached to my brigade.",
@@ -62,7 +61,7 @@
     "wellhollowReplay": "The APDF still needs that ground walked, Castle. Same work, a different day, half the fee.",
 
     "wellhollowDebriefWonColonyBreach": "You brought them out. We're drawing a line across the rim roads now, but there's one town on the wrong side of it. Come back when the company's ready and I'll tell you about Ain Tafrant.",
-    "wellhollowDebriefWonCordonRoad": "The camp is full of Ain Tafrant's people. Regional Command has noticed the Khettara at last. When the push comes, I want the company in it.",
+    "wellhollowDebriefWonCordonRoad": "We've got those people out, but the Ravs are still active. We'll have more work.",
     "wellhollowDebriefWonTheBurn": "The channel root is down. Regional Command is giving us the heart. Come back and we finish it.",
     "wellhollowDebriefWonBroadFront": "The heart is down. The Khettara can be taken back, field by field. The Assembly won't forget the company.",
     "wellhollowDebriefWonReplay": "That ground is walked again. Thank you, Castle.",
