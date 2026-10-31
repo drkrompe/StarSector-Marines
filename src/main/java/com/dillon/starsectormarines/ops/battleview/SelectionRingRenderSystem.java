@@ -88,6 +88,17 @@ public final class SelectionRingRenderSystem implements RenderSystem {
                         vehicle == selection.getSelectedVehicleId(), true, ctx.alphaMult * 0.9f);
             }
         }
+        // A selected civilian rings the whole group a right click would rally, itself the primary.
+        if (selection.hasCivilianSelection()) {
+            long picked = selection.getSelectedCivilianId();
+            for (long civilian : sim.civilianRallyGroup(picked)) {
+                float x = sim.world().renderX(civilian), y = sim.world().renderY(civilian);
+                float radius = Math.max(0.46f, sim.getRoster().radius(civilian) + 0.12f);
+                if (!view.visible(x, y, radius * 2f)) continue;
+                ring(out, camera.cellToScreenX(x), camera.cellToScreenY(y), radius * camera.cellPxSize(),
+                        civilian == picked, true, ctx.alphaMult * 0.9f);
+            }
+        }
         if (attachments.hasAttachments()) tethers(ctx, attachments, view, out);
     }
 

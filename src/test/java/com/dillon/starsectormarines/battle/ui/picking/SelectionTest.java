@@ -70,5 +70,22 @@ class SelectionTest {
         assertEquals(0, selection.vehicleCount());
     }
 
+    @Test
+    void aSelectedCivilianIsExclusiveWithEveryCommandScope() {
+        Selection selection = new Selection();
+        selection.selectGroup(List.of(3, 4), List.of(9L), 3, 30L, 0L, false);
+        selection.selectCivilian(77L);
+        assertTrue(selection.hasCivilianSelection());
+        assertEquals(0, selection.squadCount());
+        assertEquals(0, selection.vehicleCount());
+
+        selection.selectGroup(List.of(5), List.of(), 5, 50L, 0L, true);
+        assertFalse(selection.hasCivilianSelection(), "a Shift box after a civilian starts a fresh scope");
+        assertEquals(1, selection.squadCount());
+        selection.selectCivilian(77L);
+        selection.selectSquad(6);
+        assertEquals(0L, selection.getSelectedCivilianId());
+    }
+
     private static final int NONE_SQUAD = Selection.NONE;
 }
