@@ -118,9 +118,9 @@ public final class HeartLayout {
     static final float GUN_FLANK_DEPTH = 0.10f;
     static final int GUN_FLANK_INSET = 4;
     /**
-     * The Burn's airbase: a station lying along the map's far side, the village's side, its strip along that edge
-     * (owner, 2026-10-31: turned so the columns have the rear's width to advance across), its reservation this many
-     * cells in from the start edge and back from the side's gun-flank trench.
+     * The Burn's airbase: a station lying along the map's far side, the village's side, its sheds backing onto that
+     * edge and its strip inland of them (owner, 2026-10-31: turned so the columns have the rear's width to advance
+     * across), its reservation this many cells in from the start edge and back from the side's gun-flank trench.
      */
     static final int BURN_AIRBASE_REAR = 4, BURN_AIRBASE_TRENCH_GAP = 2;
     /** Cells either side of the ford's middle the ford's site holds. */
@@ -536,12 +536,14 @@ public final class HeartLayout {
     /** Trench and wire along each side of The Burn's battery, facing out, where a breakout would come at the guns. */
     /**
      * The military's airbase on station behind The Burn's start line: a station lot lying along the map's far side,
-     * its strip on that edge, held from before the places grow, its berths and sheds the allied wing's own.
+     * its sheds on that edge and its strip inland, held from before the places grow, its berths and sheds the allied
+     * wing's own.
      */
     public static Airfield airbase(Form form) {
         AirbaseLot.Size size = AirbaseLot.Size.STATION;
-        // The strip runs along the high side across the advance: north of an advance along x, east of one along y.
-        AirbaseLot.Facing facing = form.advancesAlongY() ? AirbaseLot.Facing.EAST : AirbaseLot.Facing.NORTH;
+        // The sheds back onto the far side and the strip runs inland of them (owner, 2026-10-31): the lot faces the
+        // map's middle, south of a far side north of an advance along x, west of one east of an advance along y.
+        AirbaseLot.Facing facing = form.advancesAlongY() ? AirbaseLot.Facing.WEST : AirbaseLot.Facing.SOUTH;
         int side = acrossCells(form) - 1 - GUN_FLANK_INSET - BURN_AIRBASE_TRENCH_GAP;
         if (form.advancesAlongY()) {
             int x0 = side - AirbaseLot.reservedSpanX(size, facing) + 1;

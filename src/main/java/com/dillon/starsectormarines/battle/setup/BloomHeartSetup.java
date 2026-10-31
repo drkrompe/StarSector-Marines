@@ -735,14 +735,14 @@ public final class BloomHeartSetup {
     static final float[] BURN_BATTERY_ACROSS = {0.12f, 0.36f, 0.64f, 0.88f};
     /** Cells ahead of an ammunition dump's middle, toward the heart, its gun is dug in. */
     static final int GUN_BY_DUMP = 9;
-    /** Cells outside the airbase's back fence, behind its sheds, its gun line stands, past the lot's clearance. */
-    static final int GUN_BEHIND_AIRBASE = 5;
+    /** Cells outside the airbase's fence on its strip's side its gun line stands, past the lot's clearance. */
+    static final int GUN_BY_AIRBASE = 5;
 
     /**
      * Digs The Burn's battery in at the bases behind the start line (owner, 2026-10-31): a gun beside each of the
-     * logistics base's ammunition dumps, by its rounds, and two in a line behind the airbase's back fence, each in a
-     * sandbagged pit clear of the landing pads and the airbase with a crew of the company's gunners holding it
-     * ({@link BurnBattery}), and returns the guns' ids. A base the map did not lay leaves its guns on the start line at
+     * logistics base's ammunition dumps, by its rounds, and two in a line outside the airbase's fence past its strip,
+     * each in a sandbagged pit clear of the landing pads and the airbase with a crew of the company's gunners holding
+     * it ({@link BurnBattery}), and returns the guns' ids. A base the map did not lay leaves its guns on the start line at
      * their old shares. The guns fire the barrage and defend themselves, and the swarm can kill them: a battery with
      * none left is overrun, and the battle lost.
      */
@@ -763,9 +763,10 @@ public final class BloomHeartSetup {
             Airfield field = HeartLayout.airbase(form);
             int clear = field.size().clearance();
             keepOff.add(new int[]{lo[0] - clear, lo[1] - clear, hi[0] + clear, hi[1] + clear});
-            // The lot's depth runs from its strip to its sheds; the gun line stands outside the fence behind the sheds.
+            // The lot's depth runs from its strip to its sheds, which back onto the map's side: the gun line stands
+            // outside the fence on the strip's side, toward the middle of the map.
             int deep = field.facing().alongY() ? 1 : 0, into = field.facing().sign();
-            int back = (into > 0 ? hi[deep] : lo[deep]) + into * (clear + GUN_BEHIND_AIRBASE);
+            int back = (into > 0 ? lo[deep] : hi[deep]) - into * (clear + GUN_BY_AIRBASE);
             int alongLo = lo[1 - deep], alongHi = hi[1 - deep];
             for (int q : new int[]{1, 3}) {
                 int along = alongLo + (alongHi - alongLo) * q / 4;
