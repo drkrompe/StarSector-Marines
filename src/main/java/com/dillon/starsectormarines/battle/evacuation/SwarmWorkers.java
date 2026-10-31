@@ -26,7 +26,8 @@ import java.util.Map;
  *
  * <ol>
  *   <li><b>Flee</b> from a marine or an ally near it, or from a hurt: drop the load and scatter.</li>
- *   <li><b>Haul</b> a loose body in its nest home, as a carrier ({@link SwarmHarvest}).</li>
+ *   <li><b>Haul</b> a loose body in its nest home, as a carrier ({@link SwarmHarvest}): only a share of a bore's
+ *   brood at once, its own dead only from near the mouth, and never a body a skitterer just fled from.</li>
  *   <li><b>Repair</b> a wounded growth of its nest: its bore, colonies, outposts, ground colonies or spire.</li>
  *   <li><b>Tend the spire</b>: carry a feed from the mouth to its bore's brood spire, shortening its wait.</li>
  *   <li><b>Grow</b>: re-seed burnt ground its bore's creep claims, strip a creep-held tree to its death and bring
@@ -43,6 +44,14 @@ public final class SwarmWorkers {
 
     /** Control-run switch; bores brood skitterers unless it reads {@code false}. */
     public static final String PROPERTY = "battle.swarm.workers";
+    /**
+     * Experiment switch for sharing out the haul: a bore sends at most {@link #haulersFor} of its skitterers to
+     * bodies, fetches its own dead only from {@link #RAV_HAUL_REACH} of its work range, and leaves a body a
+     * skitterer fled from for {@link #SHUN_SECONDS}. {@code false} is the control: every skitterer hauls first.
+     * Remove it with the losing arm once a Colony Breach {@code commanderEvidence} run with and without it reads
+     * budding, pulp and skitterer losses.
+     */
+    public static final String HAUL_SHARE_PROPERTY = "battle.swarm.haulShare";
 
     /** Seconds between two skitterers out of one bore while it is under its brood. */
     public static final float BROOD_SECONDS = 12f;
@@ -59,6 +68,10 @@ public final class SwarmWorkers {
     /** Structure one skitterer restores a second, and how many work on one body at once. */
     public static final float REPAIR_PER_SECOND = 8f;
     public static final int REPAIRERS_PER_BODY = 2;
+    /** The share of its bore's work range within which a skitterer fetches one of the swarm's own dead. */
+    public static final float RAV_HAUL_REACH = 0.5f;
+    /** Seconds a body a skitterer fled from is left before the nest sends for it again. */
+    public static final float SHUN_SECONDS = 15f;
     /** Seconds one skitterer's feed takes off its spire's wait, and how many carry feeds at once. */
     public static final float SPIRE_FEED_SECONDS = 8f;
     public static final int TENDERS_PER_SPIRE = 2;
@@ -118,7 +131,10 @@ public final class SwarmWorkers {
     }
 
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY, "true"));
+    private final boolean haulShare = !"false".equalsIgnoreCase(System.getProperty(HAUL_SHARE_PROPERTY, "true"));
     private final LinkedHashMap<Long, Worker> workers = new LinkedHashMap<>();
+    /** Bodies a skitterer fled from, and the tick until which the nest leaves each. */
+    private final Map<Long, Integer> shunned = new HashMap<>();
     private final Map<Long, Integer> nextBrood = new HashMap<>();
     private final Map<Long, int[]> burnt = new HashMap<>();
     private int nextBurnScan;
@@ -176,6 +192,22 @@ public final class SwarmWorkers {
                 || ticksSinceHurt >= 0 && ticksSinceHurt < Math.round(HURT_SECONDS / BattleSimulation.TICK_DT);
     }
 
+    /**
+     * How many of a bore's {@code living} skitterers may haul at once: about a third, never none. Bodies lie where
+     * the fighting is, so the rest stay home at the nest's other work.
+     */
+    public static int haulersFor(int living) {
+        return Math.max(1, (living + 1) / 3);
+    }
+
+    /**
+     * Whether a skitterer goes for a body {@code distance} from its bore's mouth: prey anywhere in its
+     * {@code workRange}, one of the swarm's own dead (worth far less) only from the nearer {@link #RAV_HAUL_REACH}.
+     */
+    public static boolean fetches(boolean ravBody, float distance, float workRange) {
+        return distance <= (ravBody ? workRange * RAV_HAUL_REACH : workRange);
+    }
+
     /** A body's structure share after {@code seconds} of {@code repairers} at work: never past full. */
     public static float mended(float hp, float maxHp, int repairers, float seconds) {
         return Math.min(maxHp, hp + REPAIR_PER_SECOND * Math.max(0, repairers) * Math.max(0f, seconds));
@@ -201,6 +233,7 @@ public final class SwarmWorkers {
         if (!enabled) return;
         int tick = sim.getSimTickIndex();
         prune(sim);
+        shunned.values().removeIf(until -> until <= tick);
         broodAll(sim, tick);
         if (tick >= nextBurnScan) {
             nextBurnScan = tick + BURN_SCAN_TICKS;
@@ -352,6 +385,8 @@ public final class SwarmWorkers {
     /** Drop what it hauls and run straight away from the threat, or from where it was hurt, for a few seconds. */
     private void scatter(BattleSimulation sim, Worker w, long threat, int tick) {
         if (w.job != Job.FLEE) fled++;
+        // the body it was going for or dragging lies in the fight: the nest leaves it for a while
+        if (haulShare && w.job == Job.HAUL) shunned.put(w.subject, tick + Math.round(SHUN_SECONDS / BattleSimulation.TICK_DT));
         sim.swarmHarvest().drop(sim, w.id);
         float x = sim.world().x(w.id), y = sim.world().y(w.id);
         float ax, ay;
@@ -424,8 +459,18 @@ public final class SwarmWorkers {
     private boolean decideHaul(BattleSimulation sim, Worker w) {
         if (w.job == Job.PULP) return false;
         SwarmBore bore = w.bore;
-        long body = sim.swarmHarvest().nearestLoose(sim, bore.x() + 0.5f, bore.y() + 0.5f, workRange(bore),
-                b -> b != w.subject && claimedBy(Job.HAUL, b) > 0);
+        float mouthX = bore.x() + 0.5f, mouthY = bore.y() + 0.5f, range = workRange(bore);
+        if (haulShare) {
+            int haulers = 0;
+            for (Worker o : workers.values()) if (o != w && o.bore == bore && o.job == Job.HAUL) haulers++;
+            if (haulers >= haulersFor(living(bore))) return false;
+        }
+        int tick = sim.getSimTickIndex();
+        long body = sim.swarmHarvest().nearestLoose(sim, mouthX, mouthY, range,
+                b -> b != w.subject && claimedBy(Job.HAUL, b) > 0
+                        || haulShare && (shunned.getOrDefault(b, Integer.MIN_VALUE) > tick
+                        || !fetches(SwarmHarvest.isRavBody(sim, b),
+                                distance(sim, b, mouthX, mouthY), range)));
         if (body == 0L) return false;
         assign(w, Job.HAUL, body, sim.world().cellX(body), sim.world().cellY(body));
         return true;
