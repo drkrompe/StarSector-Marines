@@ -13,18 +13,22 @@ import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The Burn's air wing as it ships: the airbase on station behind the start line and an observer with each
  * battlegroup's lane (`heart-nouns.md`, Forward observer). One Burn battle (the evidence fixture, seed 202) played
- * unrecorded to the first sortie the wing flies, then recorded through the look preset over its aim. Plays the battle
- * to the sortie, which costs a minute or two; opt-in.
+ * unrecorded to the first sortie the wing flies, then recorded through the look preset twice: over the airbase as the
+ * sortie rolls out (its sheds, back fence and the gun line behind it), and over its aim. Plays the battle to the
+ * sortie, which costs a minute or two; opt-in.
  */
 public final class BurnAirLookSuite implements SnapshotSuite {
 
     /** The latest tick the wing's first sortie is waited for. */
     static final int SORTIE_BY = 14000;
+    /** Where the base shot looks: the airbase's sheds, back fence and the gun line behind it on the seed-202 map. */
+    static final float[] BASE_VIEW = {36f, 42f};
     /** Ticks recorded from the sortie: its run in, the stick and the smoke. */
     static final int RECORD_TICKS = 450;
 
@@ -40,7 +44,10 @@ public final class BurnAirLookSuite implements SnapshotSuite {
             JSONObject fixture = new JSONObject(Files.readString(context.projectRoot()
                     .resolve("src/test/resources/battle-fixtures/heart-burn-v1.json"), StandardCharsets.UTF_8));
             float[] aim = firstSortie(fixture);
-            return LookReview.record(context.modRoot(), shot("burn-air", fixture, aim));
+            List<SnapshotArtifact> out = new ArrayList<>(LookReview.record(context.modRoot(),
+                    shot("burn-air-base", fixture, aim, BASE_VIEW[0], BASE_VIEW[1])));
+            out.addAll(LookReview.record(context.modRoot(), shot("burn-air", fixture, aim, aim[1], aim[2])));
+            return out;
         }
     }
 
@@ -66,7 +73,7 @@ public final class BurnAirLookSuite implements SnapshotSuite {
     }
 
     /** The battle played unrecorded to {@code aim}'s tick and recorded over its point. */
-    static LookReview.Shot shot(String name, JSONObject fixture, float[] aim) {
+    static LookReview.Shot shot(String name, JSONObject fixture, float[] aim, float viewX, float viewY) {
         return new LookReview.Shot(name, LookGround.verdant(), 40, 30, placement -> {
             BattleSimulation sim;
             try {
@@ -76,7 +83,7 @@ public final class BurnAirLookSuite implements SnapshotSuite {
             }
             while (sim.getSimTickIndex() < aim[0]) sim.advance(BattleSimulation.TICK_DT);
             return sim;
-        }, placement -> List.of(LookReview.View.play(aim[1], aim[2])), RECORD_TICKS, 3, 4);
+        }, placement -> List.of(LookReview.View.play(viewX, viewY)), RECORD_TICKS, 3, 4);
     }
 
     /** Every twenty seconds: which of the officer's gates the field stands at, for the question's note. */

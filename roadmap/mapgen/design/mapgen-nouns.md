@@ -1551,6 +1551,13 @@ compact size therefore fits where the full one cannot — a city block, a
 compound's yard, a map that is not a fortress — and it is the shape a player's
 own arrival wants: a berth, its servicing, and a fence round the lot.
 
+**An allied base is the third answer.** A lot published for an allied side
+(`LandingPad.Purpose.ALLIED_AIRFIELD`) puts out its berths as that side's
+stands and no `AIRBASE` node, so no company lands on its apron and no commander
+is offered it as a place to take. A mission lays one where it names
+(`Airfield`, a layout piece held from before the places grow, as a site stated
+up front is): The Burn's airbase behind its start line.
+
 **Whether a base is operational is one decision, and the lot carries all of
 it.** The geometry is identical either way; what changes is what the lot
 publishes about its berths. A garrison field publishes berths an air arm draws

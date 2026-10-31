@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog.Scenario;
 import org.junit.jupiter.api.Test;
 
@@ -32,5 +33,20 @@ class CompletedReplaysTest {
                 BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.RELAY + "_3_0", "something_else");
 
         assertTrue(CompletedReplays.completed(won).isEmpty());
+    }
+
+    @Test
+    void onlyChaptersFoughtOnThisPlanetAreOffered() {
+        MarineRoster roster = new MarineRoster();
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        roster.markStoryComplete(ShepherdRecoveryProgress.PREFIX + "0");
+        roster.markStoryComplete(AgreusArcProgress.PREFIX + "0");
+
+        var atAsharu = CompletedReplays.offers(roster, "asharu", "Asharu",
+                scenario -> scenario == Scenario.RELIEF ? "jangala" : CompletedReplays.fixedSiteId(scenario));
+
+        assertEquals(List.of(Scenario.SALVAGE_RIGHTS),
+                atAsharu.stream().map(CompletedReplays::scenario).toList());
+        assertEquals("Asharu", atAsharu.get(0).targetPlanetName);
     }
 }

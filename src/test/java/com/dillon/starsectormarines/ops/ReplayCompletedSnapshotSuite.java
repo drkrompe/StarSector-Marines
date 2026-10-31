@@ -20,7 +20,10 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
-/** The mission board's "Replay Story Missions" toggle, off and on, for a company midway through the campaign. */
+/**
+ * The mission board's "Replay Story Missions" toggle, off and on, at Jangala for a company midway through the
+ * campaign: its Asharu and Agreus chapters stay off this board.
+ */
 public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "replay-completed"; }
     @Override public String label() { return "Mission board: Replay Story Missions toggle and the Company records contact"; }
@@ -36,7 +39,11 @@ public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
         roster.markStoryComplete(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.THUNDER + "_0_0");
         roster.markStoryComplete(ShepherdRecoveryProgress.PREFIX + "0");
         roster.markStoryComplete(AgreusArcProgress.PREFIX + "0");
-        List<Mission> replays = CompletedReplays.offers(roster);
+        // Headless there is no sector to place the opening and the route, so both stand at Jangala as on a fresh start.
+        List<Mission> replays = CompletedReplays.offers(roster, "jangala", "Jangala", scenario -> switch (scenario) {
+            case RELIEF, COUNTERATTACK, JUNCTION, THUNDER_RUN -> "jangala";
+            default -> CompletedReplays.fixedSiteId(scenario);
+        });
         Runnable none = () -> { };
         var broker = OpeningBroker.present(new Client("independent", "Independent", OpeningBroker.CREST,
                 RepLevel.NEUTRAL, false, null), true);

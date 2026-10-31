@@ -242,6 +242,8 @@ public final class MissionLaunch {
         // off the arc's own state, so a won chapter needs no live progress to stand up again.
         DebugMissionCatalog.Scenario replay = CompletedReplays.scenario(m);
         if (replay != null) {
+            if (ctx != null && !CompletedReplays.at(replay, ctx.planet))
+                throw new IllegalStateException("Travel to the planet this chapter was fought on before replaying it.");
             Detachment frozen = det;
             return new ScenarioPlan(Arrays.asList(m.id, seed, frozen.shuttleManifest), frozen,
                     DetachmentResolver.employerPhysicalShipCount(m), null,
@@ -356,8 +358,9 @@ public final class MissionLaunch {
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
-            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md).
-            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest)
+            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md);
+            // the Khettara's chapter already carries its own pooled seed.
+            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest) && !WellhollowBloomCampaign.isBattle(m)
                     ? BattleSetup.colonyBreachSeed(profile == null ? null : profile.surface(), seed) : seed;
             CivilianRescueBattleFixture rescueFixture =
                     CivilianRescueBattleFixture.fromFactoryInputs(rescueSeed,

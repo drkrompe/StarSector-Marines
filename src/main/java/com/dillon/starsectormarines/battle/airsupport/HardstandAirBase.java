@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 
 import java.util.ArrayList;
@@ -76,6 +77,17 @@ public final class HardstandAirBase implements AirBase {
         return stand;
     }
 
+    /**
+     * Keeps one airframe of {@code kind} in {@code shed}, a shelter on a field with a runway
+     * ({@link AirfieldService#installRunway}): it cannot lift off where it stands, so every sortie taxis out of the shed,
+     * rolls down the strip, and lands and taxis home to the shed after, as a garrison field's sheds do.
+     */
+    public Stand addShelter(Gantry shed, AirPoolKind kind) {
+        Stand stand = new Stand(field.addShelterBerth(shed, kind.profile()), kind);
+        stands.add(stand);
+        return stand;
+    }
+
     public Faction side() { return side; }
 
     public List<Stand> stands() { return Collections.unmodifiableList(stands); }
@@ -108,6 +120,11 @@ public final class HardstandAirBase implements AirBase {
         ShuttleMission mission = sim.world().mission(craft);
         mission.homeBerth = stand.berth;
         sim.world().kinematics(craft).teleport(padX, padY, stand.berth.facingDegrees);
+        if (stand.berth.kind == AirfieldService.Kind.SHELTER && field.runway() != null) {
+            // Out of the shed and down the strip: a shelter has no room to lift off in.
+            mission.departFromRunway(field.runway(), padX, padY, x, y);
+            return craft;
+        }
         sim.world().setAltitudeT(craft, 0f);
         mission.padPhaseElapsed = 0f;
         mission.state = ShuttleState.PAD_ASCENT;
