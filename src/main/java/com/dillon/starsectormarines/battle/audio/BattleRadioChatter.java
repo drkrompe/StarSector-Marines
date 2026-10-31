@@ -35,6 +35,8 @@ public final class BattleRadioChatter {
 
     private static final float INITIAL_DELAY_SECONDS = 2.5f;
     private static final float VOICE_GAP_SECONDS = 7f;
+    /** Minimum time between two "we're engaged" calls from any squad; a contact inside it is dropped, not held. */
+    private static final float CONTACT_GAP_SECONDS = 30f;
     private static final float ACK_MIN_GAP_SECONDS = 16f;
     private static final float ACK_MAX_GAP_SECONDS = 28f;
 
@@ -42,6 +44,7 @@ public final class BattleRadioChatter {
     private final Map<Integer, SquadState> squadStates = new HashMap<>();
     private PendingCue pending;
     private float voiceCooldown;
+    private float contactCooldown;
     private float acknowledgementTimer;
     private boolean enemyMechAnnounced;
 
@@ -59,6 +62,7 @@ public final class BattleRadioChatter {
         squadStates.clear();
         pending = null;
         voiceCooldown = INITIAL_DELAY_SECONDS;
+        contactCooldown = 0f;
         acknowledgementTimer = nextAcknowledgementGap();
         enemyMechAnnounced = false;
     }
@@ -89,6 +93,7 @@ public final class BattleRadioChatter {
     Emission advance(float dt, Iterable<Squad> squads, FrameEvents events, boolean allowEmission) {
         float elapsed = Math.max(0f, dt);
         voiceCooldown = Math.max(0f, voiceCooldown - elapsed);
+        contactCooldown = Math.max(0f, contactCooldown - elapsed);
         acknowledgementTimer = Math.max(0f, acknowledgementTimer - elapsed);
 
         List<Squad> eligible = new ArrayList<>();
@@ -149,6 +154,7 @@ public final class BattleRadioChatter {
                 pending.cue, pending.squadId, pending.cellX, pending.cellY);
         pending = null;
         voiceCooldown = VOICE_GAP_SECONDS;
+        if (emission.cue() == Cue.CONTACT) contactCooldown = CONTACT_GAP_SECONDS;
         return emission;
     }
 
@@ -159,6 +165,7 @@ public final class BattleRadioChatter {
     }
 
     private boolean queue(Cue cue, Squad squad) {
+        if (cue == Cue.CONTACT && contactCooldown > 0f) return false;
         if (pending != null && pending.cue.priority >= cue.priority) return false;
         pending = new PendingCue(cue, squad.id, squad.centroidX, squad.centroidY);
         return true;
