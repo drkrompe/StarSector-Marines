@@ -62,7 +62,7 @@ FINALS = {"s1a": "c6c31b0cf/s1a-k0.mp4", "s1": "77829d94c/s1-k1.mp4", "s2": "271
           "s6d": "a5c5be9ad/s6d-k3e.mp4", "s7": "a5c5be9ad/s7-k3b.mp4", "s8-s9": "7b1fde1ec/s89-k4.mp4",
           "s9b": "dff7ff26e/s9b-k4b.mp4", "s10": "a5c5be9ad/s10-k5.mp4", "s11": "a5c5be9ad/s11-m11.mp4",
           "s12": "c6c31b0cf/s12-k6.mp4"}
-PLATE_FRAMES = {"s0": ("rec0_f%05d.png", 504), "s13": ("rec13_f%05d.png", 0)}    # (pattern, first frame)
+PLATE_FRAMES = {"s0": ("rec0_f%05d.png", 0), "s13": ("rec13_f%05d.png", 3312)}    # (pattern, first frame)
 
 
 def camel(text):
