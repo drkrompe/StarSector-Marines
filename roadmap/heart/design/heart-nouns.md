@@ -65,7 +65,7 @@ apart: one reservoir, several mouths. Every mother collapsed is the win.
 **Satellite bore.** An ordinary bore opened at setup and fed to maw, standing
 between the heart and the start line. Broad Front has five, one to each fifth
 of the front, so every lane meets one on its way in; The Burn strings three
-along its one approach, and grows more on its flanks in the battle (Bore growth). A satellite collapsed is scored, and is a bore whose
+along its one approach, and grows more ahead of the front as they fall (Bore growth). A satellite collapsed is scored, and is a bore whose
 surges and creep are gone, but it is never required.
 
 **Heart country.** The map (`HeartCountry`): green country the bloom has held
@@ -349,30 +349,40 @@ seven tenths of the way in, some five minutes of shooting; the country is dry an
 wind blows toward the heart for the whole battle. `WalkingBarrage` is general:
 any battle with a ground to map depth onto may carry one.
 
-**Bore growth** (The Burn). New bores opening during the battle on the
-country the burn has not reached, to keep the pressure up while the guns and
-the company push through the centre (owner's pick "Steady", 2026-10-31): the
-first about two minutes in, then one every seventy-five seconds while fewer
-than four grown bores live (`HeartBoreGrowth`). A grown bore is a satellite,
-numbered on from the setup's satellites, opened through the bores' ordinary
-seam at the smallest tier, a fissure, unfed: it grows, surges, sprouts its
-colonies and spreads its creep as any bore does, is hurt into breakouts as any
-bore is, and dies only to ordinary damage. Its site:
-- past the near ride, short of the heart's own ground (eight tenths in);
-- on the south or north flank band, about a quarter of the front's width in
-  from its edge, the flanks taken in turn, the first from the seed;
+**Bore growth** (The Burn). The bloom answering the front's losses: each
+satellite the company and the guns bring down earns new bores ahead of the
+front, back toward the heart, so the pressure the barrage and the first two
+marches took off builds again for the final push through the last quarter
+(owner, 2026-10-31; it replaced a steady clock that grew bores in the front's
+face and behind the columns). A starting satellite's collapse earns two
+growths, a grown bore's one, at most eight in the battle; each opens twenty
+seconds after the collapse that earned it and thirty after the last, while
+fewer than four grown bores live (`HeartBoreGrowth`). No collapse, no growth.
+A grown bore is a satellite, numbered on from the setup's satellites, opened
+through the bores' ordinary seam at the smallest tier, a fissure, unfed: it
+grows, surges, sprouts its colonies and spreads its creep as any bore does, is
+hurt into breakouts as any bore is, and dies only to ordinary damage. Its site:
+- ahead of the front by a twelfth of the approach, and never short of the near
+  ride. The front is the depth four in five of the company's and its allies'
+  bodies stand short of (one squad run deep does not move it), or the
+  barrage's last lifted line, whichever is deeper;
+- on the south or north side, taken in turn, the first from the seed: in the
+  flank band, about a quarter of the front's width in from its edge, short of
+  three quarters in, off the columns' lane; anywhere on that side's half past
+  it, the heart's back country, short of the map's edge margin;
+- in the deeper half of the ground that fits, so it grows back toward the
+  heart rather than in the front's face;
 - never on or within a few cells of ground the fire holds against creep:
   burning, or burnt and still refusing creep (`fire-nouns.md`, burnt ground
   refuses creep for a while). Burnt ground that has recovered is the bloom's
-  again: refusing every burnt cell refused nearly the whole flank five minutes
-  in, and growth stopped at three bores;
+  again;
 - never within 28 cells of a body of the company's side or its allies, the
   battery's guns and crews included;
 - on clear ground the start line reaches on foot, by the setup's own siting
   rules (`HeartBores`);
 - outside the barrage's firing line and next line, a twentieth of the
   approach either side;
-- at least 28 cells from every living bore.
+- at least 28 cells from every living bore, the mothers included.
 A due bore with no ground anywhere tries again fifteen seconds later. Same seed,
 same growth.
 
@@ -544,9 +554,9 @@ replace the scripting when they exist.
    front of the company. The mothers otherwise sleep as on Broad Front, and a
    mother's fall makes the survivors surge on The Burn too. Beat
    `breakout_<bore>` (observer-only, recurring).
-   **Bore growth** runs alongside from two minutes in: a new fissure on an
-   unburnt flank every seventy-five seconds, up to four living at once, each
-   fought down as any satellite (`heart.bore_grown_N`, observer-only; its fall
+   **Bore growth** answers each satellite brought down: new fissures ahead of
+   the front, back toward the heart, up to four living at once, each fought
+   down as any satellite (`heart.bore_grown_N`, observer-only; its fall
    is `bore_collapsed_N`).
 6. **The last line.** The barrage stops at its last line, short of the heart:
    `barrage_ended`. The last stretch is the company's: the mothers are

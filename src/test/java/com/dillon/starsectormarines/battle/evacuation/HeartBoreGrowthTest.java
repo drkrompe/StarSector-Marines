@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -31,15 +32,16 @@ class HeartBoreGrowthTest {
     }
 
     @Test
-    void aGrownBoreStandsOnItsFlankPastTheRideAndShortOfTheHeart() {
+    void aGrownBoreStandsOnItsSideAndInTheDeeperHalfOfItsGround() {
         Field field = new Field();
         for (long seed = 0; seed < 40; seed++) {
             for (boolean north : new boolean[]{true, false}) {
                 int[] cell = HeartBoreGrowth.site(field, EMPTY, north, FROM, new SplittableRandom(seed));
                 assertNotNull(cell);
                 float depth = field.depth(cell[0], cell[1]), across = field.across(cell[0], cell[1]);
-                assertTrue(depth >= FROM && depth <= HeartBoreGrowth.DEPTH_TO, "depth " + depth);
-                assertTrue(north ? across > 0.5f : across < 0.5f, "on its own flank: " + across);
+                assertTrue(depth >= (FROM + (W - 1 - HeartBores.EDGE_MARGIN) / (float) (W - 1)) / 2f - 0.01f && depth <= HeartBoreGrowth.DEPTH_TO,
+                        "back toward the heart: " + depth);
+                assertTrue(north ? across > 0.5f : across < 0.5f, "on its own side: " + across);
             }
         }
     }
@@ -93,11 +95,57 @@ class HeartBoreGrowthTest {
     }
 
     @Test
-    void theClockWaitsForItsTimeAndForRoom() {
-        assertFalse(HeartBoreGrowth.due(99, 100, 0));
-        assertTrue(HeartBoreGrowth.due(100, 100, 0));
-        assertTrue(HeartBoreGrowth.due(500, 100, HeartBoreGrowth.MAX_LIVING - 1));
-        assertFalse(HeartBoreGrowth.due(500, 100, HeartBoreGrowth.MAX_LIVING), "the cap is full");
+    void shortOfTheOpenBackOnlyTheFlankBandGrows() {
+        float edge = 0.1f, from = 0.3f;
+        assertFalse(HeartBoreGrowth.inBand(0.5f, 0.55f, true, edge, from), "the company's lane");
+        assertTrue(HeartBoreGrowth.inBand(0.5f, 0.9f, true, edge, from), "the north flank band");
+        assertTrue(HeartBoreGrowth.inBand(HeartBoreGrowth.OPEN_DEPTH, 0.55f, true, edge, from), "the back, north half");
+        assertFalse(HeartBoreGrowth.inBand(HeartBoreGrowth.OPEN_DEPTH, 0.45f, true, edge, from), "the back, south half");
+        assertFalse(HeartBoreGrowth.inBand(0.29f, 0.95f, true, edge, from), "short of the front");
+    }
+
+    @Test
+    void aCollapseEarnsGrowthsAndPutsTheNextOff() {
+        int after = Math.round(HeartBoreGrowth.AFTER_COLLAPSE / BattleSimulation.TICK_DT);
+        HeartBoreGrowth.Owed first = HeartBoreGrowth.earn(0, 0, true, 1000);
+        assertEquals(HeartBoreGrowth.EARNED_BY_START, first.earned(), "a starting satellite earns the front's share");
+        assertEquals(1000 + after, first.nextTick());
+        HeartBoreGrowth.Owed second = HeartBoreGrowth.earn(first.earned(), 5000, false, 1000);
+        assertEquals(HeartBoreGrowth.EARNED_BY_START + HeartBoreGrowth.EARNED_BY_GROWN, second.earned());
+        assertEquals(5000, second.nextTick(), "a later growth already due stays put");
+    }
+
+    @Test
+    void aGrowthWaitsToBeOwedForItsTimeAndForRoom() {
+        assertFalse(HeartBoreGrowth.due(500, 100, 0, 0), "nothing collapsed, nothing owed");
+        assertFalse(HeartBoreGrowth.due(99, 100, 1, 0));
+        assertTrue(HeartBoreGrowth.due(100, 100, 1, 0));
+        assertTrue(HeartBoreGrowth.due(500, 100, 1, HeartBoreGrowth.MAX_LIVING - 1));
+        assertFalse(HeartBoreGrowth.due(500, 100, 1, HeartBoreGrowth.MAX_LIVING), "the cap is full");
+    }
+
+    @Test
+    void theFrontIsTheBodiesLineOrTheLastLiftedLine() {
+        float[] bodies = {0.1f, 0.2f, 0.3f, 0.3f, 0.9f};
+        assertEquals(0.9f, HeartBoreGrowth.front(bodies, 0f), 1e-6f, "the share's depth, here the deepest");
+        float[] many = new float[10];
+        for (int i = 0; i < many.length; i++) many[i] = i / 10f;
+        many[9] = 0.95f;
+        assertEquals(0.8f, HeartBoreGrowth.front(many, 0f), 1e-6f, "one scout run deep does not move it");
+        assertEquals(0.6f, HeartBoreGrowth.front(new float[]{0.2f}, 0.6f), 1e-6f, "the lifted line leads");
+        assertEquals(0f, HeartBoreGrowth.front(new float[0], 0f));
+    }
+
+    @Test
+    void theLiftedDepthIsTheDeepestLineDoneFiring() {
+        WalkingBarrage.Plan plan = new WalkingBarrage.Plan(List.of(
+                new WalkingBarrage.Line(0.3f, 10f, 10f, 0),
+                new WalkingBarrage.Line(0.4f, 20f, 10f, 0)),
+                new WalkingBarrage.Shell(3f, 70f, 20f, 60, 3f), 2.5f, 0.012f);
+        assertEquals(0f, HeartBoreGrowth.liftedDepth(plan, 19f));
+        assertEquals(0.3f, HeartBoreGrowth.liftedDepth(plan, 20f));
+        assertEquals(0.4f, HeartBoreGrowth.liftedDepth(plan, 99f));
+        assertEquals(0f, HeartBoreGrowth.liftedDepth(null, 99f));
     }
 
     @Test

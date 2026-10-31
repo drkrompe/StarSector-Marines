@@ -10,39 +10,59 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SplittableRandom;
 
 /**
- * The Burn's <b>bore growth</b> (`heart-nouns.md`, Bore growth): while the battle goes on, new bores open on the
- * country the burn has not yet reached, out on the flanks of the approach's middle and back, so the pressure keeps up
- * while the company and the guns push through its centre.
+ * The Burn's <b>bore growth</b> (`heart-nouns.md`, Bore growth): the bloom answers the front's losses. Each satellite
+ * the company and the guns bring down earns new bores, which open ahead of the front on country the burn has not
+ * reached, back toward the heart, so the pressure the barrage and the first marches took off builds again for the
+ * final push (owner, 2026-10-31).
  *
- * <p>Cadence: the first about {@link #FIRST_SECONDS} in, then one every {@link #EVERY_SECONDS}, while fewer than
- * {@link #MAX_LIVING} grown bores live. A grown bore is an ordinary satellite opened through
- * {@link SwarmBores#open}, at the smallest tier (a fissure, unfed): it grows, surges, sprouts its colonies and spreads
- * its creep as any bore does, and dies only to ordinary damage. Nothing here collapses one.
+ * <p>Cadence: a starting satellite's collapse earns {@link #EARNED_BY_START} growths, a grown bore's
+ * {@link #EARNED_BY_GROWN}, at most {@link #BUDGET} in the battle. An earned growth opens {@link #AFTER_COLLAPSE}
+ * after the collapse that earned it and {@link #GAP} after the last, while fewer than {@link #MAX_LIVING} grown bores
+ * live. A grown bore is an ordinary satellite opened through {@link SwarmBores#open}, at the smallest tier (a fissure,
+ * unfed): it grows, surges, sprouts its colonies and spreads its creep as any bore does, and dies only to ordinary
+ * damage. Nothing here collapses one.
  *
- * <p>Siting ({@link #site}): past the near ride, on the south or north flank band, the flanks taken in turn (the
- * first from the seed); never within {@link #SCORCH_REACH} of ground the fire holds against creep (burning, or burnt
- * and not yet recovered); never within
+ * <p>Siting ({@link #site}): ahead of the front ({@link #front}: the company's and its allies' front line or the
+ * barrage's last lifted line, whichever is deeper) by {@link #AHEAD}, and never short of the near ride; on the south
+ * or north side, taken in turn (the first from the seed), in the flank band short of {@link #OPEN_DEPTH} and anywhere
+ * on that side past it, the heart's back country; in the deeper half of the ground that fits; never within
+ * {@link #SCORCH_REACH} of ground the fire holds against creep (burning, or burnt and not yet recovered); never within
  * {@link #FRIEND_CLEARANCE} of a body of the company's side or its allies (the battery's guns included); on clear
  * ground the start line reaches on foot ({@link HeartBores#clearGround}, {@link HeartBores#reachableFrom}); outside
- * the barrage's firing and next lines' band; and at least {@link #SPACING} from every living bore. Deterministic from
- * the battle seed.
+ * the barrage's firing and next lines' band; and at least {@link #SPACING} from every living bore, the mothers
+ * included. Deterministic from the battle seed.
  */
 public final class HeartBoreGrowth {
 
-    /** The first bore grows about this long into the battle. */
-    static final float FIRST_SECONDS = 120f;
-    /** Then one every this long. */
-    static final float EVERY_SECONDS = 75f;
-    /** At most this many grown bores live at once; the clock waits while they do. */
+    /** Growths a starting satellite's collapse earns: the front's losses are what ramps the back up. */
+    static final int EARNED_BY_START = 2;
+    /** Growths a grown bore's collapse earns: one for one, so the pressure holds. */
+    static final int EARNED_BY_GROWN = 1;
+    /** At most this many bores grow in a battle. */
+    static final int BUDGET = 8;
+    /** An earned growth opens this long after the collapse that earned it. */
+    static final float AFTER_COLLAPSE = 20f;
+    /** And at least this long after the last growth. */
+    static final float GAP = 30f;
+    /** At most this many grown bores live at once; earned growths wait while they do. */
     static final int MAX_LIVING = 4;
     /** A due growth that found no ground tries again this much later. */
     static final float RETRY_SECONDS = 15f;
-    /** No grown bore deeper than this: the heart's own ground round the workings is the mothers'. */
-    static final float DEPTH_TO = 0.80f;
+    /** No grown bore deeper than this; the map's edge margin and the spacing from the mothers hold it off the heart. */
+    static final float DEPTH_TO = 0.97f;
+    /** Short of this depth a bore grows only in its flank band, off the company's lane; past it, anywhere on its side. */
+    static final float OPEN_DEPTH = 0.75f;
+    /** How far ahead of the front, as a depth, the nearest ground a bore may grow on lies. */
+    static final float AHEAD = 0.08f;
+    /** The front of the company and its allies is the depth this share of their bodies stands short of. */
+    static final float FRONT_SHARE = 0.8f;
     /** How far past the near ride's far edge, as a depth, the first ground a bore may grow on lies. */
     static final float PAST_RIDE = 0.02f;
     /** Each flank band's width across the front, from its edge's margin inward. */
@@ -81,13 +101,21 @@ public final class HeartBoreGrowth {
      */
     public record Situation(List<float[]> friends, List<float[]> bores, float[] barrageDepths) { }
 
+    /** The growths earned so far, and the earliest tick the next may open. */
+    record Owed(int earned, int nextTick) { }
+
     private final Form form;
     private final int[] start;
-    private final float depthFrom;
+    private final float nearRide;
     private final SplittableRandom rng;
     private boolean north;
-    private int nextTick = Math.round(FIRST_SECONDS / BattleSimulation.TICK_DT);
+    private int nextTick;
+    private int earned;
     private int nextNumber = -1;
+    /** The satellites standing at the first tick: the front's own bores. */
+    private Set<Integer> starting;
+    /** The satellites whose collapse has been counted. */
+    private final Set<Integer> counted = new HashSet<>();
     /** The numbers of the bores grown so far, in order. */
     private final List<Integer> grown = new ArrayList<>();
 
@@ -97,7 +125,7 @@ public final class HeartBoreGrowth {
     public HeartBoreGrowth(Form form, int[] start, long seed) {
         this.form = form;
         this.start = start.clone();
-        this.depthFrom = HeartCountry.burnFirebreaks()[0] + PAST_RIDE;
+        this.nearRide = HeartCountry.burnFirebreaks()[0] + PAST_RIDE;
         this.rng = new SplittableRandom(seed ^ SALT);
         this.north = rng.nextBoolean();
     }
@@ -129,13 +157,26 @@ public final class HeartBoreGrowth {
     public int tick(BattleSimulation sim, WalkingBarrage barrage) {
         int tick = sim.getSimTickIndex();
         SwarmBores bores = sim.swarmBores();
-        if (!due(tick, nextTick, living(bores))) return -1;
-        if (nextNumber < 0) {
+        if (starting == null) {
+            starting = new HashSet<>();
             nextNumber = 1;
-            for (SwarmBore bore : bores.bores()) if (!bore.mother()) nextNumber = Math.max(nextNumber, bore.number() + 1);
+            for (SwarmBore bore : bores.bores()) {
+                if (bore.mother()) continue;
+                starting.add(bore.number());
+                nextNumber = Math.max(nextNumber, bore.number() + 1);
+            }
         }
+        for (SwarmBore bore : bores.bores()) {
+            if (bore.mother() || !bore.collapsed() || !counted.add(bore.number())) continue;
+            Owed owed = earn(earned, nextTick, starting.contains(bore.number()), tick);
+            earned = owed.earned();
+            nextTick = owed.nextTick();
+        }
+        if (!due(tick, nextTick, Math.min(earned, BUDGET) - grown.size(), living(bores))) return -1;
         Ground ground = ground(sim);
         Situation situation = situation(sim, barrage);
+        float lifted = liftedDepth(barrage == null ? null : barrage.plan(), tick * BattleSimulation.TICK_DT);
+        float depthFrom = Math.max(nearRide, front(friendDepths(sim), lifted) + AHEAD);
         boolean flank = north;
         int[] cell = site(ground, situation, flank, depthFrom, rng);
         if (cell == null) cell = site(ground, situation, flank = !flank, depthFrom, rng);
@@ -149,13 +190,49 @@ public final class HeartBoreGrowth {
         bores.open(sim, number, false, cell[0], cell[1]);
         grown.add(number);
         north = !flank;
-        nextTick = tick + Math.round(EVERY_SECONDS / BattleSimulation.TICK_DT);
+        nextTick = tick + Math.round(GAP / BattleSimulation.TICK_DT);
         return number;
     }
 
-    /** Whether a bore may grow on {@code tick}: its time has come and fewer than {@link #MAX_LIVING} grown ones live. */
-    static boolean due(int tick, int nextTick, int living) {
-        return tick >= nextTick && living < MAX_LIVING;
+    /**
+     * What a satellite's collapse on {@code tick} earns: its share added to the growths earned so far, and the next
+     * growth no sooner than {@link #AFTER_COLLAPSE} from now.
+     */
+    static Owed earn(int earned, int nextTick, boolean startingSatellite, int tick) {
+        int share = startingSatellite ? EARNED_BY_START : EARNED_BY_GROWN;
+        return new Owed(earned + share, Math.max(nextTick, tick + Math.round(AFTER_COLLAPSE / BattleSimulation.TICK_DT)));
+    }
+
+    /**
+     * Whether a bore may grow on {@code tick}: one is owed, its time has come and fewer than {@link #MAX_LIVING}
+     * grown ones live.
+     */
+    static boolean due(int tick, int nextTick, int owed, int living) {
+        return owed > 0 && tick >= nextTick && living < MAX_LIVING;
+    }
+
+    /**
+     * The front: the depth {@link #FRONT_SHARE} of the friendly bodies stand short of (a scout run deep does not move
+     * it), or the barrage's last lifted line, whichever is deeper.
+     */
+    static float front(float[] friendDepths, float lifted) {
+        float line = 0f;
+        if (friendDepths.length > 0) {
+            float[] sorted = friendDepths.clone();
+            Arrays.sort(sorted);
+            line = sorted[Math.min(sorted.length - 1, (int) (FRONT_SHARE * sorted.length))];
+        }
+        return Math.max(line, lifted);
+    }
+
+    /** The deepest barrage line lifted by {@code seconds}; 0 before the first lifts. */
+    static float liftedDepth(WalkingBarrage.Plan plan, float seconds) {
+        float deepest = 0f;
+        if (plan == null) return deepest;
+        for (WalkingBarrage.Line line : plan.lines()) {
+            if (line.openSeconds() + line.fireSeconds() <= seconds) deepest = Math.max(deepest, line.depth());
+        }
+        return deepest;
     }
 
     /** Grown bores living, or still waiting to open. */
@@ -170,24 +247,42 @@ public final class HeartBoreGrowth {
     }
 
     /**
-     * A site on the {@code north} or south flank band from {@code depthFrom} to {@link #DEPTH_TO}, by every siting
-     * rule, or {@code null} when the flank has none: every fitting cell is found, and {@code rng} picks one.
+     * A site on the {@code north} or south side from {@code depthFrom} to {@link #DEPTH_TO}, by every siting rule, or
+     * {@code null} when the side has none: every fitting cell is found, and {@code rng} picks one of those in the
+     * deeper half of their depths, so a bore grows back toward the heart rather than in the front's face.
      */
     static int[] site(Ground ground, Situation situation, boolean north, float depthFrom, SplittableRandom rng) {
         int width = ground.width(), height = ground.height();
         float edge = HeartBores.EDGE_MARGIN / (float) Math.max(1, height - 1);
         List<int[]> fit = new ArrayList<>();
+        float shallowest = Float.MAX_VALUE, deepest = -Float.MAX_VALUE;
         for (int y = HeartBores.EDGE_MARGIN; y < height - HeartBores.EDGE_MARGIN; y++) {
             for (int x = HeartBores.EDGE_MARGIN; x < width - HeartBores.EDGE_MARGIN; x++) {
-                float depth = ground.depth(x, y), across = ground.across(x, y);
-                if (depth < depthFrom || depth > DEPTH_TO) continue;
-                if (north ? across < 1f - edge - FLANK_WIDTH : across > edge + FLANK_WIDTH) continue;
+                float depth = ground.depth(x, y);
+                if (!inBand(depth, ground.across(x, y), north, edge, depthFrom)) continue;
                 if (inBarrage(situation.barrageDepths(), depth) || !ground.standable(x, y)) continue;
                 if (near(situation.bores(), x, y, SPACING) || near(situation.friends(), x, y, FRIEND_CLEARANCE)) continue;
-                if (!scorchedNear(ground, x, y)) fit.add(new int[]{x, y});
+                if (scorchedNear(ground, x, y)) continue;
+                fit.add(new int[]{x, y});
+                shallowest = Math.min(shallowest, depth);
+                deepest = Math.max(deepest, depth);
             }
         }
-        return fit.isEmpty() ? null : fit.get(rng.nextInt(fit.size()));
+        float half = (shallowest + deepest) / 2f;
+        List<int[]> back = new ArrayList<>();
+        for (int[] cell : fit) if (ground.depth(cell[0], cell[1]) >= half) back.add(cell);
+        return back.isEmpty() ? null : back.get(rng.nextInt(back.size()));
+    }
+
+    /**
+     * Whether a cell at {@code depth} and {@code across} is on the {@code north} or south side's growing ground: past
+     * {@code depthFrom} and short of {@link #DEPTH_TO}, in the flank band short of {@link #OPEN_DEPTH} and anywhere on
+     * the side's half past it.
+     */
+    static boolean inBand(float depth, float across, boolean north, float edge, float depthFrom) {
+        if (depth < depthFrom || depth > DEPTH_TO) return false;
+        if (depth >= OPEN_DEPTH) return north ? across >= 0.5f : across < 0.5f;
+        return north ? across >= 1f - edge - FLANK_WIDTH : across <= edge + FLANK_WIDTH;
     }
 
     /** Adds one failed scan of a flank band to {@code into}: each rule's refusals, and each rule's refusals alone. */
@@ -198,9 +293,8 @@ public final class HeartBoreGrowth {
         boolean[] failed = new boolean[RULES.length];
         for (int y = HeartBores.EDGE_MARGIN; y < height - HeartBores.EDGE_MARGIN; y++) {
             for (int x = HeartBores.EDGE_MARGIN; x < width - HeartBores.EDGE_MARGIN; x++) {
-                float depth = ground.depth(x, y), across = ground.across(x, y);
-                if (depth < depthFrom || depth > DEPTH_TO) continue;
-                if (north ? across < 1f - edge - FLANK_WIDTH : across > edge + FLANK_WIDTH) continue;
+                float depth = ground.depth(x, y);
+                if (!inBand(depth, ground.across(x, y), north, edge, depthFrom)) continue;
                 into[1]++;
                 failed[0] = inBarrage(situation.barrageDepths(), depth);
                 failed[1] = !ground.standable(x, y);
@@ -260,8 +354,16 @@ public final class HeartBoreGrowth {
         };
     }
 
-    /** Every friendly body, every living bore, and the barrage's firing and next lines. */
-    private static Situation situation(BattleSimulation sim, WalkingBarrage barrage) {
+    /** The depth of every body of the company's side and its allies on the ground. */
+    private float[] friendDepths(BattleSimulation sim) {
+        List<float[]> friends = friendBodies(sim);
+        float[] depths = new float[friends.size()];
+        for (int i = 0; i < depths.length; i++) depths[i] = form.depth((int) friends.get(i)[0], (int) friends.get(i)[1]);
+        return depths;
+    }
+
+    /** Every body of the company's side and its allies on the ground, as {@code {x, y}}. */
+    private static List<float[]> friendBodies(BattleSimulation sim) {
         List<float[]> friends = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
@@ -270,6 +372,12 @@ public final class HeartBoreGrowth {
             if (!sim.world().hasPosition(unit) || sim.isRiding(unit)) continue;
             friends.add(new float[]{sim.world().x(unit), sim.world().y(unit)});
         }
+        return friends;
+    }
+
+    /** Every friendly body, every living bore, and the barrage's firing and next lines. */
+    private static Situation situation(BattleSimulation sim, WalkingBarrage barrage) {
+        List<float[]> friends = friendBodies(sim);
         List<float[]> bores = new ArrayList<>();
         for (SwarmBore bore : sim.swarmBores().bores()) {
             if (!bore.collapsed()) bores.add(new float[]{bore.x() + 0.5f, bore.y() + 0.5f});
