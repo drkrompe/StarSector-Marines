@@ -1099,6 +1099,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
     public LastLiftSequence getLastLiftSequence() { return lastLiftSequence; }
     public CivilianEvacuationSystem.Progress getCivilianEvacuationProgress() { return civilianEvacuationSystem.progress(); }
+
+    /**
+     * The player's rally ({@code CivilianEvacuationSystem#rally}): {@code civilian}'s walking group attaches to
+     * {@code escort}, a company soldier, mech or vehicle. Returns how many changed hands.
+     */
+    public int rallyCivilians(long civilian, long escort) { return civilianEvacuationSystem.rally(civilian, escort, this); }
+
+    /** The walking group a rally of {@code civilian} would hand over, it first; empty when it is not walking. */
+    public List<Long> civilianRallyGroup(long civilian) { return civilianEvacuationSystem.rallyGroup(civilian, this); }
     public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
     public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
         if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null || relayNineStory != null)
@@ -3267,6 +3276,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         detonations.detonateNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y, 0f, radius,
                 weight.secondaryDamage(), weight.penetration(), weight.secondaryStructure(), faction,
                 false, radius * 0.6f, true, false));
+    }
+
+    /** One explosion of a wreck's blast field, {@code radius} cells, thrown at ({@code vx},{@code vy}); presentation only. */
+    public void wreckBlast(float x, float y, float radius, float vx, float vy) {
+        effects.spawnHullBlast(x, y, radius, vx, vy);
+    }
+
+    /** The dust a hull throws up as it strikes, ringing {@code radius} cells out; presentation only. */
+    public void wreckShockwave(float x, float y, float radius) {
+        effects.spawnCrashShockwave(x, y, radius);
     }
 
     /** A length of a wreck at rest burning, with its smoke: presentation and the battle's fire, no damage. */

@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonBoreEscalation;
+import com.dillon.starsectormarines.battle.cordon.CordonPullOut;
 import com.dillon.starsectormarines.battle.cordon.CordonGateYard;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
@@ -648,6 +649,9 @@ public final class CordonSetup {
             int[] rally = rally(sim, cordon, convoys.corridor(), convoys.gapIndex());
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
+            // The pull-out zone at the base's muster yard is where the company falls back to and must hold to finish.
+            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics, rally, CordonFront.lineY(cordon.plan()),
+                    CordonFront.frontward(cordon.plan())));
             // Bores break out along the line as the evacuation goes on, and the swarm surges at the fall-back.
             sequence.attachEscalation(CordonBoreEscalation.plan(sim, redoubts, convoys, town.town(), timetable,
                     CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan()), cordon.battleSeed()));

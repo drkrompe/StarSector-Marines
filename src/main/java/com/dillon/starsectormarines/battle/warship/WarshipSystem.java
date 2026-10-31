@@ -71,6 +71,8 @@ public final class WarshipSystem {
     private static final long WRECK_KEY_BASE = Long.MIN_VALUE / 2;
     /** How often a falling hull sheds a burning piece onto its own track, in seconds. */
     private static final float WRECK_FIRE_PERIOD_SECONDS = 0.2f;
+    /** Cells per second a wreck's outermost field blasts are thrown out from its centre. */
+    private static final float BLAST_THROW_SPEED = 5f;
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -1529,6 +1531,17 @@ public final class WarshipSystem {
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
             float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
+            for (WarshipWreck.Blast blast : wreck.blastsBetween(before, wreck.seconds())) {
+                float[] at = wreck.hullPoint(blast.along(), blast.across());
+                if (!onMap(sim, at[0], at[1])) continue;
+                // Each throws out from the hull's centre on top of the way the hull is going.
+                float out = 2f * (float) Math.hypot(blast.along(), blast.across());
+                float dx = at[0] - ship.x, dy = at[1] - ship.y;
+                float len = Math.max(1e-3f, (float) Math.hypot(dx, dy));
+                float throwSpeed = BLAST_THROW_SPEED * out;
+                sim.wreckBlast(at[0], at[1], blast.radius(), ship.velocityX * 0.5f + dx / len * throwSpeed,
+                        ship.velocityY * 0.5f + dy / len * throwSpeed);
+            }
             for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
                 float[] at = wreck.keelPoint(blast.keel());
                 if (!onMap(sim, at[0], at[1])) continue;
@@ -1543,9 +1556,14 @@ public final class WarshipSystem {
             }
             switch (step) {
                 case FALLING -> {
-                    if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
-                        float drawn = 0.5f * Math.max(ship.lengthCells, ship.widthCells) * wreck.bodyScale();
-                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, drawn * 0.6f));
+                    int period = (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS);
+                    if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != period) {
+                        int fires = wreck.fallFires();
+                        float size = Math.max(2f, 0.5f * ship.widthCells * wreck.bodyScale());
+                        for (int i = 0; i < fires; i++) {
+                            float[] at = wreck.keelPoint(wreck.fallFireKeel(period, i));
+                            sim.spawnFallingWreckFire(at[0], at[1], size);
+                        }
                     }
                 }
                 case STRUCK -> {
@@ -1554,6 +1572,7 @@ public final class WarshipSystem {
                         Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.crashHullWreck(wreck.key, ship.x, ship.y, ship.faction, wreck.crushRadius(), wreck.skidRadius(),
                                 ship.velocityX, ship.velocityY, wreck.weight());
+                        sim.wreckShockwave(ship.x, ship.y, wreck.crushRadius() * 1.15f);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
