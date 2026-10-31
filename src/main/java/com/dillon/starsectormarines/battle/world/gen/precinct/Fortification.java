@@ -314,13 +314,27 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
      *
      * <p>The gate stays no wider than {@link #MAX_GATE_WIDTH}: the town's wall reading
      * ({@code CivilDefenceCompound}) takes a wider gap for no gate at all, and dresses no tower beside it.
+     *
+     * <p>{@link #posterns}: the sides that also get a way in for people, {@link #POSTERN_WIDTH} cells wide in the
+     * middle of the side, across the glacis and through the wall, with a short way in kept clear behind it. Opened
+     * whether or not a road comes to that side, so the place has its other doors on every map.
      */
-    public record GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth) {
+    public record GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth, List<Side> posterns) {
 
         /** The widest gate a yard asks for: wider, the wall reading takes the gap for no gate at all. */
         public static final int MAX_GATE_WIDTH = 10;
+        /** A postern's width: a street for people, too narrow for a truck. */
+        public static final int POSTERN_WIDTH = 3;
+        /** How far in behind a postern the ground is kept clear of buildings. */
+        public static final int POSTERN_DEPTH = 4;
+
+        /** A yard with no posterns. */
+        public GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth) {
+            this(side, gateWidth, depth, breadth, stagingWidth, List.of());
+        }
 
         public GateYard {
+            posterns = List.copyOf(posterns);
             if (side == null) throw new IllegalArgumentException("a gate yard states the side its gate is on");
             if (gateWidth < PrecinctBoundary.DRIVABLE_GATE_WIDTH || gateWidth > MAX_GATE_WIDTH) {
                 throw new IllegalArgumentException("a yard's gate of " + gateWidth + " cells is outside "
@@ -330,6 +344,11 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
                 throw new IllegalArgumentException("a yard " + breadth + " by " + depth
                         + " with staging " + stagingWidth + " cannot take its gate of " + gateWidth);
             }
+        }
+
+        /** The same yard with a postern on each of {@code sides}. */
+        public GateYard withPosterns(Side... sides) {
+            return new GateYard(side, gateWidth, depth, breadth, stagingWidth, List.of(sides));
         }
     }
 }

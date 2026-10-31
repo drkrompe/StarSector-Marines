@@ -112,6 +112,14 @@ public final class CordonPlan {
      * with seven cells of open ground beside it for the people waiting to board. Untuned.
      */
     static final int YARD_GATE = 9, YARD_DEPTH = 9, YARD_BREADTH = 13, YARD_STAGING = 7;
+    /**
+     * Ways into the Road's town compound: the trucks' rear gate, the gates its own roads leave by, and a postern each
+     * in its east side and its front for people (owner, 2026-10-31: more doors for the swarm and more for the company
+     * to defend). Only the rear gate is the convoys'.
+     */
+    static final int TOWN_GATES = 5;
+    /** The layout's name for the town built up round the compound ({@link CordonTownWarren}). */
+    static final String TOWN_WARREN = "town-warren";
     private static final long SEED_SALT = 0x434F52444F4E504CL;
     /** The rear's side, its own splittable draw (see {@code BattleSetup.colonyPlanFor}). */
     private static final long REAR_SIDE_SALT = 0x5245415253494445L;
@@ -221,9 +229,9 @@ public final class CordonPlan {
             Side rear = south ? Side.SOUTH : Side.NORTH;
             places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE, band(south, 0.42f, 0.58f, 0.6f, 0.7f),
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
-                    new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()
+                    new Fortification(TOWN_GATES, CivilDefenceCompound.WALL_HP).laidSquare()
                             .withYard(new Fortification.GateYard(rear, YARD_GATE, YARD_DEPTH, YARD_BREADTH,
-                                    YARD_STAGING))));
+                                    YARD_STAGING).withPosterns(Side.EAST, rear.opposite()))));
         }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
                 LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant, width, height, installationEast));
@@ -449,6 +457,11 @@ public final class CordonPlan {
         pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south, city), false));
         if (variant == CordonVariant.ROAD) {
             pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
+        }
+        if (variant == CordonVariant.ROAD) {
+            // The town round the compound's east side and front, built up so the swarm comes at it through alleys.
+            pieces.add(new Deferred(TOWN_WARREN, Phase.STRUCTURES, ground -> CordonTownWarren.structures(ground, front[1]),
+                    false));
         }
         if (density.ridge) pieces.add(new Deferred(RIDGE, Phase.WORKS, ground -> ridge(ground, front), false));
         pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));

@@ -111,6 +111,28 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                         BattleReviewFrameRenderer plain = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
                                 FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, across);
                         out.add(new SnapshotArtifact("look/" + tag + "town-compound.png", plain.render(sim, "")));
+                        // Each way in, at play zoom, and the town hard against the compound's east side and front.
+                        List<int[]> gates = townGates(sim, town);
+                        StringBuilder list = new StringBuilder();
+                        for (int g = 0; g < gates.size(); g++) {
+                            int[] gate = gates.get(g);
+                            list.append(String.format(Locale.ROOT, " %d: %s side at (%d,%d), %d wide;",
+                                    g + 1, side(town, gate), gate[0], gate[1], gate[2]));
+                            near.refocus(gate[0] + 0.5f, gate[1] + 0.5f, PLAY_ZOOM_CELLS);
+                            out.add(new SnapshotArtifact(tag + "11-town-gate-" + (g + 1) + ".png",
+                                    near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
+                                            + ", the compound's gate " + (g + 1) + " (" + side(town, gate) + ", "
+                                            + gate[2] + " wide), play zoom", CordonReviewAnnotations.townYard(sim))));
+                        }
+                        System.out.println("[cordon-mapgen] " + tag + "town gates:" + list);
+                        int front = CordonFront.frontward(plan);
+                        int halfW = (town.right() - town.left()) / 2, halfH = (town.bottom() - town.top()) / 2;
+                        near.refocus(town.right() + halfW + 0.5f, town.centreY() + 0.5f, 90f);
+                        out.add(new SnapshotArtifact(tag + "12-town-east.png", near.render(sim, "the " + name + ", "
+                                + biome.name().toLowerCase() + " seed " + seed + ", the town east of the compound, 90 cells")));
+                        near.refocus(town.centreX() + 0.5f, town.centreY() + front * (halfH * 2) + 0.5f, 90f);
+                        out.add(new SnapshotArtifact(tag + "13-town-front.png", near.render(sim, "the " + name + ", "
+                                + biome.name().toLowerCase() + " seed " + seed + ", the town in front of the compound, 90 cells")));
                     }
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim))));
@@ -292,5 +314,17 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
         if (sim.getCordon().outerPicket() != null) {
             System.out.println(tag + "pickets: " + sim.getCordon().outerPicket().readings());
         }
+    }
+
+    /** The compound's ways in, read off the live map ({@link CordonTownGarrison#gates}). */
+    static List<int[]> townGates(BattleSimulation sim, CordonTown town) {
+        return CordonTownGarrison.gates(sim.getGrid(), town.left(), town.top(), town.right(), town.bottom());
+    }
+
+    /** Which side of the compound a gate is on, as the map is laid (y up). */
+    static String side(CordonTown town, int[] gate) {
+        if (gate[0] < town.left()) return "west";
+        if (gate[0] > town.right()) return "east";
+        return gate[1] > town.bottom() ? "north" : "south";
     }
 }
