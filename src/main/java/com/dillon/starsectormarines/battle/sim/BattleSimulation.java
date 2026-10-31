@@ -1099,6 +1099,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
     public LastLiftSequence getLastLiftSequence() { return lastLiftSequence; }
     public CivilianEvacuationSystem.Progress getCivilianEvacuationProgress() { return civilianEvacuationSystem.progress(); }
+
+    /**
+     * The player's rally ({@code CivilianEvacuationSystem#rally}): {@code civilian}'s walking group attaches to
+     * {@code escort}, a company soldier, mech or vehicle. Returns how many changed hands.
+     */
+    public int rallyCivilians(long civilian, long escort) { return civilianEvacuationSystem.rally(civilian, escort, this); }
+
+    /** The walking group a rally of {@code civilian} would hand over, it first; empty when it is not walking. */
+    public List<Long> civilianRallyGroup(long civilian) { return civilianEvacuationSystem.rallyGroup(civilian, this); }
     public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
     public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
         if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null || relayNineStory != null)

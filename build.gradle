@@ -232,6 +232,10 @@ test {
     inputs.dir('src/liveTest/catalog-smoke')
             .withPropertyName('catalogSmokeFixture')
             .withPathSensitivity(PathSensitivity.RELATIVE)
+    // TranslationOverlayTest holds each in-repo translation mod against the English catalog.
+    inputs.dir('translations')
+            .withPropertyName('translations')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     // Opt-in gate for the ecs-migration Phase-0 access micro-bench
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.
