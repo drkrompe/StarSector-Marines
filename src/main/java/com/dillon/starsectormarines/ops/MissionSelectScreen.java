@@ -80,6 +80,7 @@ public final class MissionSelectScreen implements Screen {
         }
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();

@@ -150,6 +150,7 @@ com.dillon.starsectormarines.ops.battleview.ShieldDomeLookSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ArmoryRangeSnapshotSuite
 com.dillon.starsectormarines.ops.ShipCommandUiSnapshotSuite
 com.dillon.starsectormarines.ops.HudCompositionSnapshotSuite
+com.dillon.starsectormarines.ops.BattleCheatPanelSnapshotSuite
 com.dillon.starsectormarines.ops.BoatRecoverySnapshotSuite
 com.dillon.starsectormarines.battle.fort.BatteryFortSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.ShieldFortSceneSnapshotSuite
@@ -322,6 +323,7 @@ com.dillon.starsectormarines.battle.cordon.CordonClearRoadLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGateLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonConvoyRunLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonTownCreepLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAirBaseLookSuite

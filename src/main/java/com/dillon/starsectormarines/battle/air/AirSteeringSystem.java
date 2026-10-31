@@ -94,6 +94,25 @@ public final class AirSteeringSystem {
         float thrustGate = Math.max(0f, 1f - headingErrDeg / 90f);
         desiredFwd *= thrustGate;
 
+        // Turn-circle cap — never ask for more speed than the nose can bring
+        // onto the goal. A point off the nose by headingErr at distance dist is
+        // on a circle of radius dist / (2·sin headingErr) through the body, and
+        // the tightest circle the craft can fly is speed / turnRate. Faster
+        // than that and it passes the point to one side, comes round, and
+        // misses again: a limit cycle a turn radius out that the braking taper
+        // alone does not break, because a stiffer brake buys a steeper taper
+        // and so more thrust near the goal. Measured on a Hermes with an
+        // uprated drive, which orbited every pad half a cell out at a cell a
+        // second until the settle's bound landed it. CRUISE is exempt: it is
+        // not arriving anywhere, and its wide turns are the point of it.
+        if (mode != SteeringMode.CRUISE) {
+            float sinErr = (float) Math.sin(Math.toRadians(headingErrDeg));
+            if (sinErr > 1e-3f) {
+                float turnRateRad = (float) Math.toRadians(handling.maxTurnRateDegPerSec());
+                desiredFwd = Math.min(desiredFwd, turnRateRad * dist / (2f * sinErr));
+            }
+        }
+
         float dv = desiredFwd - fwdVel;
         float maxStep = (dv >= 0f) ? handling.accel() * dt : handling.brakingAccel() * dt;
         if (dv >  maxStep) dv =  maxStep;

@@ -7,11 +7,13 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.FortifiedWorks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +32,10 @@ import java.util.Random;
  * <p>The townspeople wait in groups (owner, 2026-10-31: one bunch looks wrong, and spread they make the player choose
  * what to hold): the first truckload in the staging area beside the truck yard ({@link CordonStagingArea}), the rest
  * in the compound's largest rooms, and each group walks out to the yard while a truck there has seats.
+ *
+ * <p>At town density the compound also has flak (owner, 2026-10-31: "put flak turrets in the central compound to
+ * defend from fliers"): {@link #FLAK_MIN} to {@link #FLAK_MAX} allied anti-air flak positions on its open courtyard
+ * ground, spread so every cell inside the wall is within {@link #FLAK_COVER} of one ({@link #flakSites}).
  */
 public final class CordonTownGarrison {
 
@@ -55,6 +61,17 @@ public final class CordonTownGarrison {
     private static final int FALLBACK_DEPTH = 6;
     /** A team's cluster where no wall could be read: room for its four and a little more. */
     private static final int FALLBACK_CLUSTER = 6;
+    /** The compound's flak positions at town density, at least: a pair whose arcs overlap over the rooms. */
+    static final int FLAK_MIN = 2;
+    /** The compound's flak positions, at most. */
+    static final int FLAK_MAX = 4;
+    /**
+     * Cells every cell inside the wall is brought within of a flak position, while {@link #FLAK_MAX} allows: well
+     * inside the gun's reach, so neighbouring arcs overlap over the rooms. Untuned.
+     */
+    static final float FLAK_COVER = 13f;
+    /** Cells in from a gate or postern no flak position stands on: the way through kept clear behind it. */
+    static final int GATE_CLEAR = 4;
 
     private CordonTownGarrison() { }
 
@@ -72,6 +89,12 @@ public final class CordonTownGarrison {
         return man(sim, compound, gate, null, front, risk, rng);
     }
 
+    /** As {@link #man(BattleSimulation, Precinct, int[], CordonGateYard, int, RiskLevel, Random, boolean)}, no flak. */
+    public static Held man(BattleSimulation sim, Precinct compound, int[] gate, CordonGateYard truckYard, int front,
+                           RiskLevel risk, Random rng) {
+        return man(sim, compound, gate, truckYard, front, risk, rng, false);
+    }
+
     /**
      * Dresses and mans the compound round {@code compound}, its loading gate the one nearest {@code gate} (the
      * corridor's last cell), and spreads its {@code CordonConvoys#TOWNSPEOPLE} through it. Where the map laid a truck
@@ -81,9 +104,10 @@ public final class CordonTownGarrison {
      *
      * @param truckYard the yard the convoys drive into, or {@code null}
      * @param front     +1 where the front is high y, -1 where it is low y
+     * @param flak      whether the compound has flak ({@link #flakSites}): town density's
      */
     public static Held man(BattleSimulation sim, Precinct compound, int[] gate, CordonGateYard truckYard, int front,
-                           RiskLevel risk, Random rng) {
+                           RiskLevel risk, Random rng, boolean flak) {
         NavigationGrid grid = sim.getGrid();
         int[] box = compound == null ? null : CordonGarrisons.perimeterBox(sim.getTopology(), compound);
         if (box != null) {
@@ -148,6 +172,20 @@ public final class CordonTownGarrison {
                         cells.add(c);
                     }
                     teams.add(cells);
+                }
+                if (flak) {
+                    List<int[]> taken = new ArrayList<>();
+                    for (List<int[]> team : teams) taken.addAll(team);
+                    CellTopology topology = sim.getTopology();
+                    List<int[]> sites = flakSites((x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                                    && !grid.isDoorway(x, y), (x, y) -> grid.inBounds(x, y)
+                                    && topology.getBuildingId(x, y) != 0,
+                            left, top, right, bottom, gates(grid, left, top, right, bottom), staging, truckYard, gate,
+                            taken);
+                    for (int i = 0; i < sites.size(); i++) {
+                        guns.add(ColonyMilitia.seatEmplacement(sim, sites.get(i), "Town flak " + (i + 1),
+                                TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID));
+                    }
                 }
                 FortifiedWorks.mark(grid, left - 1, top - 1, right + 1, bottom + 1);
                 Held held = seat(sim, teams, holds, left, top, right, bottom, loading, staging, guns, risk, rng, rooms);
@@ -284,6 +322,92 @@ public final class CordonTownGarrison {
             }
         }
         return gates;
+    }
+
+    /**
+     * Where the compound's flak stands: on open courtyard ground inside the wall ({@code left..right} by
+     * {@code top..bottom}), each site open on all four sides and touching no building (so never in a room, nor on a
+     * doorstep), clear of the truck yard and the ground beside it by a cell, of the staging area and beside it, of
+     * where the corridor meets the town ({@link #ROAD_CLEAR}), of every gate and postern and the {@link #GATE_CLEAR}
+     * cells in from it, and of the defenders' cells by a cell. Sites are chosen to cover the whole inside: each next
+     * the candidate that leaves the farthest inside cell nearest a gun, at least {@link #FLAK_MIN} while there are
+     * candidates and then more until every inside cell is within {@link #FLAK_COVER}, at most {@link #FLAK_MAX}. Pure.
+     *
+     * @param open    where a cell is open ground a gun or a body could stand on
+     * @param indoors where a cell is inside a building
+     * @param gates   the compound's ways in, as {@link #gates} gives them: {x, y, width} at each one's middle
+     * @param taken   the defenders' cells
+     */
+    static List<int[]> flakSites(CordonStagingArea.Open open, CordonStagingArea.Open indoors, int left, int top,
+                                 int right, int bottom, List<int[]> gates, CordonStagingArea staging,
+                                 CordonGateYard truckYard, int[] corridorEnd, List<int[]> taken) {
+        int width = right - left + 1, height = bottom - top + 1;
+        if (width <= 0 || height <= 0) return List.of();
+        List<int[]> candidates = new ArrayList<>();
+        for (int y = top; y <= bottom; y++) {
+            for (int x = left; x <= right; x++) {
+                if (flakSite(open, indoors, x, y, gates, staging, truckYard, corridorEnd, taken)) {
+                    candidates.add(new int[]{x, y});
+                }
+            }
+        }
+        // Each inside cell's distance to its nearest gun so far.
+        float[] nearest = new float[width * height];
+        Arrays.fill(nearest, Float.MAX_VALUE);
+        List<int[]> sites = new ArrayList<>();
+        while (sites.size() < FLAK_MAX && !candidates.isEmpty()) {
+            float worst = 0f;
+            for (float d : nearest) worst = Math.max(worst, d);
+            if (sites.size() >= FLAK_MIN && worst <= FLAK_COVER) break;
+            int[] best = null;
+            float bestWorst = Float.MAX_VALUE;
+            for (int[] c : candidates) {
+                float w = 0f;
+                for (int y = 0; y < height && w < bestWorst; y++) {
+                    for (int x = 0; x < width; x++) {
+                        float d = Math.min(nearest[y * width + x], (float) Math.hypot(left + x - c[0], top + y - c[1]));
+                        if (d > w) w = d;
+                    }
+                }
+                if (w < bestWorst) {
+                    bestWorst = w;
+                    best = c;
+                }
+            }
+            sites.add(best);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    nearest[y * width + x] = Math.min(nearest[y * width + x],
+                            (float) Math.hypot(left + x - best[0], top + y - best[1]));
+                }
+            }
+            int[] chosen = best;
+            candidates.removeIf(c -> chebyshev(chosen, c[0], c[1]) <= 1);
+        }
+        return sites;
+    }
+
+    /** Whether a gun may stand at {@code (x, y)}, by {@link #flakSites}' rules. */
+    private static boolean flakSite(CordonStagingArea.Open open, CordonStagingArea.Open indoors, int x, int y,
+                                    List<int[]> gates, CordonStagingArea staging, CordonGateYard truckYard,
+                                    int[] corridorEnd, List<int[]> taken) {
+        if (!open.at(x, y)) return false;
+        for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) if (!open.at(x + d[0], y + d[1])) return false;
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (indoors.at(x + dx, y + dy)) return false;
+                if (truckYard != null && truckYard.contains(x + dx, y + dy)) return false;
+            }
+        }
+        if (truckYard != null) for (int[] b : truckYard.beside()) if (chebyshev(b, x, y) <= 1) return false;
+        if (clear(new int[]{x, y}, staging, corridorEnd, truckYard)) return false;
+        for (int[] g : gates) if (chebyshev(g, x, y) <= g[2] / 2 + GATE_CLEAR) return false;
+        for (int[] t : taken) if (chebyshev(t, x, y) <= 1) return false;
+        return true;
+    }
+
+    private static int chebyshev(int[] c, int x, int y) {
+        return Math.max(Math.abs(c[0] - x), Math.abs(c[1] - y));
     }
 
     /** A few cells in from a gate on the ring, onto the compound's inside ground. */

@@ -95,6 +95,7 @@ public final class StoreScreen implements Screen {
         }
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         specSheets = candidateSheets;
         markupInstance = candidate;

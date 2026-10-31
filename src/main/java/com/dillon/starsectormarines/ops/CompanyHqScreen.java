@@ -121,6 +121,7 @@ public final class CompanyHqScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(
                 CompanyPreparationGuide.roster(), CompanyPreparationGuide.headquarters(context), this::onClose), this::onClose);

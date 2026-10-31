@@ -174,6 +174,7 @@ public final class BoatDeckScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
                 CompanyPreparationGuide.boats(roster, viewModel, context), this::close), this::close);

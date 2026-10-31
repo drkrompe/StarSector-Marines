@@ -93,6 +93,7 @@ public final class UiWorkbenchScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         if (prepared != null) prepared.commit();
+        built.keepScrollFrom(document);
         document = built;
         markupInstance = candidate;
         installWiring(wiring);

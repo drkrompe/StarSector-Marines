@@ -130,6 +130,7 @@ public final class BarracksScreen implements Screen {
         specSheets = candidateSheets;
         cardBindings = candidateCards;
         guide = candidateGuide;
+        built.keepScrollFrom(document);
         document = built;
         campaignGuide = PreparationGuide.install(built, this::campaignLesson, this::close);
         campaignGuide.fallbackInput(guide::inputRegions);

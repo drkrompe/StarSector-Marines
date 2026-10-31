@@ -644,6 +644,21 @@ guns hold the opening and the first convoy's loading; nobody reinforces the
 town, so the tides bleed it, and the company has to come up and hold the
 staging area as it goes (owner's call on its strength).
 
+**Town flak.** At town density the compound also stands **flak** against the
+swarm's fliers (owner, 2026-10-31: "put flak turrets in the central compound
+to defend from fliers"): two to four anti-air flak positions (the redoubts'
+flak, `CordonTownGarrison.flakSites`), allied and under garrison authority
+like the gate towers, and the swarm can destroy them. They stand on open
+courtyard ground inside the wall, each open on all four sides and touching no
+building, so never in a room of people nor on a doorstep; never in the truck
+yard or the ground beside it (with a cell to spare), on the staging area or
+beside it, within three cells of where the corridor meets the town, in a gate
+or postern or the four cells in from it, nor beside a defender. They are
+spread to cover the whole compound: each next site the one that leaves the
+farthest cell inside the wall nearest a gun, at least a pair, then more until
+every cell inside is within thirteen cells of one (untuned; well inside the
+gun's reach, so neighbouring arcs overlap over the rooms).
+
 **Town states.** With its people in several rooms no one room is the town,
 so the **compound** is what is held: **held** while no swarm body is inside
 its wall, **pressed** while one is and a defender or a Marine stands inside it
@@ -945,7 +960,23 @@ eaten). Each bore opens through the ordinary seam and is fed to its tier one
 body at a time, so its age mix is a fed bore's. Then the creep is **matured**:
 every source grown to its full reach at once and filled, walls crusted, as
 creep that has stood for weeks (CreepField.mature), and the trees under it
-die. No mother bore stands on this map: she is the heart's (Mission 3). How
+die. On a town world the Road's town is **held ground** (CordonTownHold;
+owner, 2026-10-31: the streets show early and the town is visibly
+swallowed): the box round the warren's buildings and the compound, six cells
+wider, kept clear of the matured creep, its edge ragged (a cell is held once
+it lies deeper in than a seeded depth of up to twenty-two cells, so the creep
+reaches in in fingers) and the ground within a seeded seven to seventeen cells of a standing
+bore's mouth never held. A bore matured round held ground hands each held
+cell it meets to its **regrowth**, a second search from its mouth that walks
+on over held ground at a quarter of the bore's pace, half again while the
+bore is fed, and stops at the bore's own reach: the front's creep retakes the
+town over the battle as fast as its bores eat, and never past where it would
+have grown it. The town's own bores (*Line bores*: the far side's at seven
+minutes, the far flank's first in the final surge) open on that ground and
+grow over it at their own pace. UNTUNED: the pace (a maw's front about 0.08
+cells a second unfed), the margin, the edge and the bore's keep;
+cordon-town-creep (createSnapshots) records the town from setup to fourteen
+minutes. No mother bore stands on this map: she is the heart's (Mission 3). How
 many bores and at what tiers will follow what Colony Breach left
 (cordon-campaign.md): bores it collapsed stay collapsed, and biomass it fed
 shows as higher tiers.

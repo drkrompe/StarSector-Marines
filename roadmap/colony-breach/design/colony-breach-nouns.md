@@ -399,7 +399,9 @@ the fields, fight in to the redoubts, bring the survivors back out.
 **Rally** (owner, 2026-10-31: the player never moves the people, only says
 whom they follow). A plain click on a walking civilian selects it (a box never
 does) and rings its **group** in yellow, a neutral selection apart from the
-company's green and amber, its own ring bolder: everyone following the same squad or vehicle,
+company's green and amber, its own ring bolder, each member tethered by a
+yellow dotted line to the body it follows (an attached mech's tether to its
+squad is the same dotted line in green): everyone following the same squad or vehicle,
 or, for one following nobody, the unattached people within six cells of it. A
 right click on one of the company's squads, mechs or vehicles then hands the
 whole group to it, pulling them off whatever squad or mech they were with. A
@@ -1870,7 +1872,12 @@ against its own control in `renderEvidence`.
   trees under it die at once and the roofs it stands under cave in
   (`CreepRoofCollapse.matureOn`), as weeks under it would have brought them
   down. Nothing else about the field changes. The heart's country is grown this
-  way too (`heart-nouns.md`).
+  way too (`heart-nouns.md`). Ground may be **held** while it matures (the
+  Road's town, `cordon-nouns.md`, The map): no source grows it at setup, and
+  each source that met it retakes it through its **regrowth**, a second search
+  from its mouth over held ground at a quarter of its pace (`HELD_PACE`), fed
+  when it is fed and never past its own reach; a source declared later grows
+  over held ground as over any other.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground

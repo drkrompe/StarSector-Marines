@@ -33,6 +33,11 @@ import java.util.function.Function;
  * assignments; never renames a squad, writes an order, or consumes simulation randomness.
  */
 public final class OperationRadio {
+    /**
+     * Minimum time between the starts of two portrait transmissions: an order exchange or a combat report,
+     * whichever comes first. Story narration and the turns of an exchange already begun are not gated.
+     */
+    static final float HERO_BARK_GAP_SECONDS = 30;
     public static final String PATH = "data/marines/operation_radio.json";
     private static Catalog builtins = new Catalog(List.of(), Map.of(), Map.of());
     private final Catalog catalog;
@@ -334,7 +339,7 @@ public final class OperationRadio {
         context = pending;
         pending = null;
         sequenceAge = 0;
-        cooldown = 30;
+        cooldown = HERO_BARK_GAP_SECONDS;
         List<String> turns = relay
                 ? List.of(field.call(), field.ack(), order, field.handoff(actor.id(), kind), actor.readback())
                 : List.of(actor.call(), actor.ack(), order, actor.readback());
@@ -342,9 +347,12 @@ public final class OperationRadio {
         return start(sequence.removeFirst());
     }
 
-    /** The shared combat policy has already admitted and prioritized this confirmed report. */
+    /**
+     * The shared combat policy has already admitted and prioritized this confirmed report; it is dropped,
+     * not held, while the hero bark gap is closed.
+     */
     public Transmission report(Cue cue) {
-        if (!available() || busy()) return null;
+        if (!available() || busy() || cooldown > 0) return null;
         List<Report> pool = remainingReports.computeIfAbsent(cue, ignored -> new ArrayList<>());
         if (pool.isEmpty()) {
             for (int i = 0; i < catalog.actors().size(); i++) {
@@ -364,6 +372,7 @@ public final class OperationRadio {
         Report report = pool.remove(selected < 0 ? 0 : selected);
         lastActor = report.actorIndex();
         lastReports.put(cue, report.lineId());
+        cooldown = HERO_BARK_GAP_SECONDS;
         return start(transmission(report.lineId(), catalog.actors().get(lastActor)));
     }
 
