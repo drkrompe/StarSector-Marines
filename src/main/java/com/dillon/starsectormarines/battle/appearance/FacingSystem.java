@@ -341,7 +341,8 @@ public final class FacingSystem {
         srmPhase[row] = trackPhase(srm);
         lrmPhase[row] = trackPhase(lrm);
 
-        int authoredFlags = moving ? LayeredMechAppearance.FLAG_MOVING : 0;
+        int authoredFlags = loadout.fitAppearanceFlags();
+        if (moving) authoredFlags |= LayeredMechAppearance.FLAG_MOVING;
         if (turning) authoredFlags |= LayeredMechAppearance.FLAG_TURNING;
         if (chaingunActive) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_ACTIVE;
         if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;

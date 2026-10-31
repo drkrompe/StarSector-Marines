@@ -304,6 +304,7 @@ com.dillon.starsectormarines.ops.MarineRightButtonSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.TankHeadsSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechActiveProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleDamageSmokeSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.flier.HarrierPackSceneSnapshotSuite

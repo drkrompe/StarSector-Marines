@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -44,9 +45,22 @@ public final class MechLoadoutComponent {
      */
     public void applyFrame(MechFrame frame) {
         flux.configure(frame.fluxCapacity(), frame.dissipationPerSecond());
-        if (frame.systems().ammoFactor() != 1f) {
-            for (MechWeaponMount mount : mounts) if (mount != null) mount.fitReadyRack(frame.systems());
+        systems = frame.systems();
+        if (systems.ammoFactor() != 1f) {
+            for (MechWeaponMount mount : mounts) if (mount != null) mount.fitReadyRack(systems);
         }
+    }
+
+    /** What the compartment brings, from the deployment frame; {@link MachineSystems#NONE} until a frame is applied. */
+    private MachineSystems systems = MachineSystems.NONE;
+
+    public MachineSystems systems() {
+        return systems;
+    }
+
+    /** The appearance flags the compartment's fit shows on the live mech: its active protection's launchers. */
+    public int fitAppearanceFlags() {
+        return systems.activeProtection() ? LayeredMechAppearance.FLAG_ACTIVE_PROTECTION : 0;
     }
 
     /** Manual velocity survives the applied-velocity tick reset, but never handback. */

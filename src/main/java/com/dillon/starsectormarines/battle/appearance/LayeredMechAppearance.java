@@ -12,6 +12,11 @@ public final class LayeredMechAppearance {
     public static final int FLAG_LRM_FLASH = 1 << 6;
     public static final int FLAG_TURNING = 1 << 7;
     public static final int FLAG_LASER_FLASH = 1 << 8;
+    /**
+     * The mech's compartment carries active protection (mechs-nouns.md, one machine, one part catalog): its launchers
+     * and sensor panels are drawn on the torso, per chassis.
+     */
+    public static final int FLAG_ACTIVE_PROTECTION = 1 << 9;
     public static final float FLASH_SECONDS = 0.075f;
     /**
      * Maximum upper-chassis traverse to either side of the planted hips.

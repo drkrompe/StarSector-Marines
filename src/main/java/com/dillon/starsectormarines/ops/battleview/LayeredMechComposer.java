@@ -208,6 +208,21 @@ final class LayeredMechComposer {
                     0f, 0f, 0f, alpha);
         }
 
+        // Active protection's launchers and panels, drawn in the chassis's own registration so they turn with it.
+        // Bare fittings: no worn plate is laid on them.
+        LayeredSpriteCache activeProtection = (flags & LayeredMechAppearance.FLAG_ACTIVE_PROTECTION) != 0
+                ? activeProtectionOverlay(assets, chassis) : null;
+        if (activeProtection != null) {
+            out.section(null);
+            if (gaitPose == null && chassisTransform != null) {
+                emitAuthored(out, activeProtection, chassisTransform, upperX, upperY, hullWidth,
+                        torsoFacingDeg, alpha);
+            } else {
+                emitCentered(out, activeProtection, upperX, upperY, hullWidth, torsoFacingDeg,
+                        0f, 0f, 0f, alpha);
+            }
+        }
+
         // Bulwark's racks are exposed above its armor; Hound carries one dorsal
         // SRM rack. Warden's paired LRMs stay beneath its broader hull.
         if (podsAboveChassis) {
@@ -418,6 +433,17 @@ final class LayeredMechComposer {
         if (chassis == LayeredMechAppearance.CHASSIS_HOUND) return assets.houndChassis;
         if (chassis == LayeredMechAppearance.CHASSIS_WARDEN) return assets.wardenChassis;
         return assets.chassis;
+    }
+
+    /** The chassis's active-protection overlay, or null for a chassis that has none drawn (the socketed variant). */
+    static LayeredSpriteCache activeProtectionOverlay(LayeredMechAssets assets, int chassis) {
+        LayeredMechAssets.ActiveProtection overlays = assets.activeProtection;
+        return switch (chassis) {
+            case LayeredMechAppearance.CHASSIS_CLEAN -> overlays.bulwark();
+            case LayeredMechAppearance.CHASSIS_HOUND -> overlays.hound();
+            case LayeredMechAppearance.CHASSIS_WARDEN -> overlays.warden();
+            default -> null;
+        };
     }
 
     private static void emitPodFlash(Sink out, LayeredMechAssets assets,

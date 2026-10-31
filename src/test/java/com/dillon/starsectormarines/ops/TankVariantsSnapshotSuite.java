@@ -49,9 +49,13 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
             VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
             VehicleType.DOZER_BREACHER);
-    /** The rack each hull of the line is set down with: the Parapet is the Onager with active protection. */
-    private static final List<List<VehicleKit>> LINE_KITS = List.of(List.of(), VehicleStockFit.PARAPET.kits,
-            List.of(), List.of());
+    /**
+     * The rack each hull of the line is set down with: the Parapet is the Onager with active protection. Read when a
+     * view is drawn, not when the suite is discovered: the stock fits need the turret catalog installed.
+     */
+    private static List<List<VehicleKit>> lineKits() {
+        return List.of(List.of(), VehicleStockFit.PARAPET.kits, List.of(), List.of());
+    }
     private static final List<String> NAMES = List.of(
             "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "PULSE-LASER TANK", "DOZER BREACHER");
 
@@ -79,8 +83,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<Long> wrecks = new ArrayList<>();
             for (int i = 0; i < LINE.size(); i++) {
                 float x = 10 + i * 11;
-                live.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, x, 26, 90, 90));
-                wrecks.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, x, 13, 90, 90));
+                live.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, x, 26, 90, 90));
+                wrecks.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, x, 13, 90, 90));
                 labels.label(x, 21.5f, NAMES.get(i), ReviewStyle.NOTE);
                 labels.label(x, 8.5f, NAMES.get(i) + " / WRECK", ReviewStyle.NOTE);
             }
@@ -306,7 +310,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             for (int i = 0; i < LINE.size(); i++) {
                 float[] at = openSpot(sim, lead.x - fx * 4, lead.y - fy * 4, taken);
                 posts.add(at);
-                line.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, at[0], at[1], heading, heading));
+                line.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, at[0], at[1], heading, heading));
             }
             float cx = 0, cy = 0;
             for (float[] at : posts) { cx += at[0] / posts.size(); cy += at[1] / posts.size(); }

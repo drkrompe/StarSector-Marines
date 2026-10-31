@@ -718,7 +718,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                   layer(MECH_ROOT + "pl-3-sweep.png"),
                   layer(MECH_ROOT + "pl-2.png"),
                   layer(MECH_ROOT + "pl-1.png"),
-                  layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
+                  layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"),
+                  new LayeredMechAssets.ActiveProtection(
+                          optionalLayer(MECH_ROOT + "active-protection-bulwark.png"),
+                          optionalLayer(MECH_ROOT + "active-protection-hound.png"),
+                          optionalLayer(MECH_ROOT + "active-protection-warden.png")));
     }
 
     private LayeredSpriteCache optionalLayer(String path) throws IOException {

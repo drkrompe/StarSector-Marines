@@ -1313,6 +1313,8 @@ public class BattleSprites {
     private static final String MECH_ROOT = "graphics/battle/mech-modular-topdown/";
     /** The unpainted layers every livery shares, or null when the base set would not load. */
     private MechBase mechBase;
+    /** Active protection's per-chassis overlays every livery shares; set with the base set. */
+    private LayeredMechAssets.ActiveProtection mechActiveProtection = LayeredMechAssets.ActiveProtection.NONE;
     private final EnumSet<MechLivery> liveriesAttempted = EnumSet.noneOf(MechLivery.class);
 
     private record MechBase(LayeredSpriteCache socketedChassis, LayeredSpriteCache foot,
@@ -1369,13 +1371,18 @@ public class BattleSprites {
             LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
             return;
         }
+        // Bare fittings, the same on every livery; a chassis whose overlay is missing just draws none.
+        mechActiveProtection = new LayeredMechAssets.ActiveProtection(
+                loadLayeredSprite(root + "active-protection-bulwark.png"),
+                loadLayeredSprite(root + "active-protection-hound.png"),
+                loadLayeredSprite(root + "active-protection-warden.png"));
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
                 houndChassis, wardenChassis, foot, thighBone, arm, hc10, hc20,
                 srm, lrm, ll3, pl2Ap, ac6,
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash);
+                pl2, pl1, flash, mechActiveProtection);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
@@ -1450,7 +1457,7 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash));
+                pl2, pl1, flash, mechActiveProtection));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,

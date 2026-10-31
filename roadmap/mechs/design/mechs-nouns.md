@@ -337,7 +337,8 @@ increasing an encounter's total armored threat.
     interceptor launchers fed by sensor panels, a point-defence mount riding the machine that takes the
     arcing, top-attack rounds coming down on it (`convoy-nouns.md`, active protection;
     `PointDefenseService.mountHull`, `mountMachine`), for six hundredths of its speed; drawn as overlay art on
-    the live hull or mech.
+    the live hull or mech: on a mech, one overlay per chassis in its sprite's registration, turning with the
+    torso (anchors in the overlay build, LayeredMechAppearance.FLAG_ACTIVE_PROTECTION).
   A save's retired kit ids, spares and learned kit patterns read as these internals
   (`MechInternal.RETIRED_KITS`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
