@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.KitLadderCatalog;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.ArmorIssueResolver;
@@ -302,8 +303,9 @@ final class StoreViewModel {
     /**
      * A marine loadout offer as the card the Armory and the First Refit print, from the same
      * builders ({@link FleetArmoryViewModel#weaponTile}, {@link FleetArmoryViewModel#armorTile}), so
-     * the card cannot drift from the one the company will hold. Null for any other offer, or a
-     * loadout whose definition is only written into an Armory once chosen.
+     * the card cannot drift from the one the company will hold. A free-pick card (the Wayline path
+     * not taken) is read from the catalog directly, since it is sold here though no pool offers it.
+     * Null for any other offer.
      */
     private FleetArmoryViewModel.DoctrineTile cardTile(EquipmentStore.Offer offer) {
         if (offer.kind() != EquipmentStore.Kind.LOADOUT) return null;
@@ -312,7 +314,7 @@ final class StoreViewModel {
         FleetArmoryViewModel.DoctrineTile tile = null;
         LoadoutCard card = LoadoutCard.parse(offer.id());
         if (card != null && card.kind() == LoadoutCard.Kind.WEAPON) {
-            SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(card.definitionId());
+            SquadWeaponDoctrine doctrine = KitLadderCatalog.require().weaponCard(card.definitionId());
             if (doctrine != null) {
                 tile = FleetArmoryViewModel.weaponTile("store-card:" + offer.id(), doctrine, false, () -> { });
             }
