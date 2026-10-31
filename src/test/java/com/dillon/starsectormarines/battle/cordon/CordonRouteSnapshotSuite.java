@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -24,7 +25,8 @@ import java.util.List;
  * The Road's drive at setup: the convoys' one road from the safe camp to the town's gate, drawn bold over the map,
  * whole and then in close stretches along it, with the camp, the gap and the gate named. Built at tick 0; no battle is
  * played. {@code -Dsnapshot.cordonRoute.seed} picks the town pool's ARID seed (Ain Tafrant's pinned 7 by default),
- * {@code -Dsnapshot.cordonRoute.stretches} how many close frames split the road (3).
+ * {@code -Dsnapshot.cordonRoute.stretches} how many close frames split the road (3). Then the compound itself: through
+ * the look preset whole and at play zoom, and once with its flak positions named (their cells printed).
  */
 public final class CordonRouteSnapshotSuite implements SnapshotSuite {
     private static final int FRAME_W = 1920, FRAME_H = 1080;
@@ -87,6 +89,28 @@ public final class CordonRouteSnapshotSuite implements SnapshotSuite {
                 out.add(new SnapshotArtifact(tag + "05-town-look-play-zoom.png", look.render(sim, "")));
                 look.refocus(town.right() + 18f, town.centreY() + front * 18f, 170f);
                 out.add(new SnapshotArtifact(tag + "06-town-look-close.png", look.render(sim, "")));
+                // The compound itself: whole and at play zoom through the look preset, then its flak named.
+                float across = Math.max(town.right() - town.left(), (town.bottom() - town.top()) * FRAME_W / (float) FRAME_H)
+                        + 16f;
+                float mx = (town.left() + town.right() + 1) / 2f, my = (town.top() + town.bottom() + 1) / 2f;
+                look.refocus(mx, my, across);
+                out.add(new SnapshotArtifact(tag + "07-compound-look.png", look.render(sim, "")));
+                look.refocus(mx, my, 64f);
+                out.add(new SnapshotArtifact(tag + "08-compound-look-play-zoom.png", look.render(sim, "")));
+                ReviewAnnotations.Builder flak = ReviewAnnotations.builder();
+                StringBuilder cells = new StringBuilder();
+                int n = 0;
+                for (long gun : town.guns()) {
+                    if (!sim.turretState().isTurret(gun) || !TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID.equals(
+                            sim.turretState().structure(gun).id)) continue;
+                    int gx = (int) sim.world().x(gun), gy = (int) sim.world().y(gun);
+                    flak.label(gx, gy, "FLAK " + (++n), ReviewStyle.ALLY);
+                    cells.append(" (").append(gx).append(", ").append(gy).append(')');
+                }
+                System.out.println("[cordon-route] town flak on seed " + seed + ":" + cells);
+                near.refocus(mx, my, across);
+                out.add(new SnapshotArtifact(tag + "09-compound-flak.png", near.render(sim,
+                        "the compound's flak positions:" + cells, flak.build())));
             }
         }
         return out;
