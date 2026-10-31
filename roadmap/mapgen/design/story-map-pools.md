@@ -78,8 +78,10 @@ biome, on every attempt: a controlled experience, its patch authored for it,
 its flow the same each time. The Wellhollow campaign plays its chapter's ARID
 story map wherever the pool names one (`WellhollowBloomCampaign.seed`, and the
 debug player's `fixedSeed`), and cycles the ARID entries by attempt only where
-it names none. Broad Front's is `heart-front` ARID seed 5 (owner, 2026-10-31):
-switching it is moving the flag to another entry. The biome's other entries
+it names none. Broad Front's is `heart-front` ARID seed 5 and The Burn's
+`heart-burn` ARID seed 2, the map The Burn's young bores, bore growth and
+station airbase were tuned on (owner, 2026-10-31): switching one is moving the
+flag to another entry. The biome's other entries
 stay in the pool for bloom events on other worlds.
 
 **Size.** Three per biome, twelve per story map (owner, 2026-10-23): few

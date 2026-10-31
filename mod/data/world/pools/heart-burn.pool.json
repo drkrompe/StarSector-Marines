@@ -8,7 +8,7 @@
       { "seed": 5, "note": "two mothers" }
     ],
     "ARID": [
-      { "seed": 2, "note": "two mothers" },
+      { "seed": 2, "note": "two mothers; the Wellhollow story map", "story": true },
       { "seed": 3, "note": "two mothers" },
       { "seed": 5, "note": "two mothers" }
     ],

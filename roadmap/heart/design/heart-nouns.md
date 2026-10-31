@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks; The Burn's story map is ARID seed 2
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -269,7 +269,9 @@ airframe of the bases' list, every sortie taxiing to the strip and rolling,
 landing and taxiing home after, refitted and rebuilt by the field's crew. The
 Burn keeps no standing patrol. The swarm can reach the field and burn what
 stands on it. A map whose rear could not hold the lot flies the wing in over the
-start edge as before.
+start edge as before. On The Burn's story map (ARID seed 2, `story-map-pools.md`,
+Story map) the station takes the rear's north corner, generated rather than
+placed by hand.
 
 **Allied airbase** (Broad Front). The air wing's fields, two named pieces of the
 layout (`HeartLayout.AIRBASES`, `airbase-1` west and `airbase-2` east): each
