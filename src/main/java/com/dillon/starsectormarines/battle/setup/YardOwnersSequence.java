@@ -37,6 +37,7 @@ public final class YardOwnersSequence implements Objective {
     public List<Integer> reserveSquadIds() { return List.copyOf(reserveSquads); }
     public int pendingMembers() { return released || progress.terminal() ? 0 : reserves.stream().mapToInt(List::size).sum(); }
     public YardOwnersProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport();
         return progress.report(2 - sim.squadMemberCount(technicians), 8 - constables.stream().mapToInt(sim::squadMemberCount).sum());
     }
     public void advance(BattleSimulation sim) {

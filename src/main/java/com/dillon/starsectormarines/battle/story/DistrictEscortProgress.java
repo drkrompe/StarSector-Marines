@@ -32,6 +32,8 @@ public final class DistrictEscortProgress {
     public boolean covered() { return covered; }
     public boolean linkedUp() { return linkedUp; }
     public boolean terminal() { return phase == Phase.COMPLETE || phase == Phase.FAILED; }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, true, true, true, false, 0, 0); }
     public Report report(int partyLost, int constablesLost) {
         return new Report(linkedUp, delivered, partyDelivered, companyAtEgress, cargoLost, partyLost, constablesLost);
     }

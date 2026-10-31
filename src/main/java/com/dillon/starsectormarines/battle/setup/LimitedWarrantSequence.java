@@ -47,6 +47,7 @@ public final class LimitedWarrantSequence implements Objective {
         case RECORDS -> LowQuay.RECORDS_Y; case CALIBRATION -> LowQuay.KIT_Y; default -> escortY;
     }; }
     public LimitedWarrantProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport();
         return progress.report(1 - sim.squadMemberCount(technician), 4 - sim.squadMemberCount(constables));
     }
     public void advance(BattleSimulation sim) {

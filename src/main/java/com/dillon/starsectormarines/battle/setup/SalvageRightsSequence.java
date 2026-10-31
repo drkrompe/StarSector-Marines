@@ -24,7 +24,8 @@ import java.util.Set;
 /** Finite recovery operation; engineers physically cross to the hull before inspection can advance. */
 public final class SalvageRightsSequence implements Objective {
     public record Report(boolean inspected,int crewLost){}
-    public Report report(BattleSimulation sim){return new Report(isComplete(),2-sim.squadMemberCount(engineers));}
+    /** The Debug key's Win reports the inspection held with no crew lost. */
+    public Report report(BattleSimulation sim){return sim.isForcedVictory()?new Report(true,0):new Report(isComplete(),2-sim.squadMemberCount(engineers));}
     private static final String ROAD="salvage-south-road";
     private static final int ROAD_WARNING_DELAY_TICKS=20*30;
     private int releasedAtTick;

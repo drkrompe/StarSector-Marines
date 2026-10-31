@@ -49,6 +49,10 @@ public final class SmallWarProgress {
     }
 
     /** @param houseCustody whose party walked the handover: Dormer's custodians, else the joint party */
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport(int withdrawn, boolean houseCustody) {
+        return new Report(true, true, true, true, true, false, split, 0, 0, Math.max(0, withdrawn), houseCustody);
+    }
     public Report report(int custodiansLost, int holdersLost, int withdrawn, boolean houseCustody) {
         return new Report(held(CUSTOMS), held(FUEL_CONTROL), held(DISPATCH), complete, companyPresent,
                 infrastructureLost, split, Math.max(0, Math.min(CUSTODIANS, custodiansLost)),

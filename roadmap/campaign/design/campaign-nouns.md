@@ -78,10 +78,10 @@ Missions: off by default for players (on in a dev build) and saved with the
 game. While it is on, the board lists **Debug missions**, every mission with
 sandbox forces, loadouts and settings that never touch the company or the
 campaign; Company HQ shows its debug button; and a battle's debug panel offers
-**Win**, which ends the battle as the company's victory and settles it like
-any other. Win is withheld where the arc checks a victory against what the
-battle recorded (the Agreus chapters, District Escort and the Working Ship
-chapters), since a bare win would be refused there.
+**Win**, a general "I win": it ends any battle as the company's outright
+victory. Every story record reports each objective met and nobody lost, so the
+arc settles it as a full success (fee, chapter advance, rewards); the company's
+own losses and experience are what the battle had reached.
 
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's

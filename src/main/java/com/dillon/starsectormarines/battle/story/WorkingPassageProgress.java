@@ -22,6 +22,8 @@ public final class WorkingPassageProgress {
         aborted = true;
         phase = Phase.FAILED;
     }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, false, false, 0); }
     public Report report(int militiaLost) {
         return new Report(phase == Phase.COMPLETE, disabled, aborted || phase != Phase.COMPLETE,
                 Math.max(0, Math.min(8, militiaLost)));
