@@ -1,18 +1,11 @@
 package com.dillon.starsectormarines.campaign.start;
 
-import com.dillon.starsectormarines.campaign.refit.RefitBand;
-import com.dillon.starsectormarines.campaign.refit.RefitText;
-import com.dillon.starsectormarines.campaign.refit.RefitTrack;
-import com.dillon.starsectormarines.campaign.refit.ShipCondition;
-import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.combat.BaseHullMod;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import com.fs.starfarer.api.ui.Alignment;
-import com.fs.starfarer.api.ui.TooltipMakerAPI;
 
 /** Permanent yard work; the variant is the sole authority for the conversion. */
 public final class MercenaryCompanyConversion extends BaseHullMod {
@@ -44,52 +37,6 @@ public final class MercenaryCompanyConversion extends BaseHullMod {
         if (stats.getVariant() == null || !"cerberus".equals(stats.getVariant().getHullSpec().getBaseHullId())) return;
         stats.getMaxCrewMod().modifyFlat(id, EXTRA_BERTHS);
         stats.getCargoMod().modifyFlat(id, -CARGO_COST);
-        applyRefits(ShipRefits.condition(stats.getFleetMember()), stats, id);
-    }
-
-    /**
-     * The founding hull's combat refit tracks, as base-game stats so the refit
-     * screen shows them and every fight she is in uses them. Every other hull
-     * is neutral and receives nothing here.
-     */
-    static void applyRefits(ShipCondition refit, MutableShipStatsAPI stats, String id) {
-        if (!refit.applies()) return;
-        stats.getHullBonus().modifyMult(id, refit.hullMult());
-        stats.getArmorBonus().modifyMult(id, refit.armorMult());
-        stats.getFluxCapacity().modifyMult(id, refit.fluxCapacityMult());
-        stats.getFluxDissipation().modifyMult(id, refit.fluxDissipationMult());
-        stats.getSensorStrength().modifyMult(id, refit.sensorStrengthMult());
-        stats.getSensorProfile().modifyMult(id, refit.sensorProfileMult());
-        stats.getMaxSpeed().modifyMult(id, refit.speedMult());
-        stats.getAcceleration().modifyMult(id, refit.accelerationMult());
-        stats.getDeceleration().modifyMult(id, refit.accelerationMult());
-        stats.getMaxBurnLevel().modifyFlat(id, refit.burnDelta());
-        // Facilities whose passive is one of her own fleet figures. The cargo id is
-        // separate so it does not replace the berths' cargo cost above.
-        stats.getSuppliesPerMonth().modifyMult(id, refit.suppliesPerMonthMult());
-        stats.getCargoMod().modifyFlat(id + "_holds", refit.cargoBonus());
-    }
-
-    /** Facility tracks whose passive this hull mod applies, listed on her refit-screen tooltip. */
-    static final RefitTrack[] FLEET_FACILITIES = {RefitTrack.HYDROPONICS, RefitTrack.HOLDS};
-
-    @Override public void addPostDescriptionSection(TooltipMakerAPI tooltip, ShipAPI.HullSize size, ShipAPI ship,
-                                                    float width, boolean isForModSpec) {
-        var refit = ship == null ? ShipCondition.NONE : ShipRefits.condition(ship.getFleetMember());
-        if (!refit.applies()) return;
-        tooltip.addSectionHeading(Strings.get("openingRefitGroupCOMBAT"), Alignment.MID, 10f);
-        for (RefitTrack track : RefitTrack.values()) {
-            if (track.group != RefitTrack.Group.COMBAT) continue;
-            RefitBand band = refit.band(track);
-            tooltip.addPara(Strings.format("openingRefitTooltipRow", RefitText.track(track),
-                    RefitText.tier(track, band), RefitText.effect(track, band)), 4f);
-        }
-        tooltip.addSectionHeading(Strings.get("openingRefitGroupSTORES"), Alignment.MID, 10f);
-        for (RefitTrack track : FLEET_FACILITIES) {
-            RefitBand band = refit.band(track);
-            tooltip.addPara(Strings.format("openingRefitTooltipRow", RefitText.track(track),
-                    RefitText.tier(track, band), RefitText.effect(track, band)), 4f);
-        }
     }
 
     @Override public boolean isApplicableToShip(ShipAPI ship) { return false; }

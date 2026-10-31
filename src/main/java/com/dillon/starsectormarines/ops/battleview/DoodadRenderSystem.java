@@ -90,9 +90,6 @@ public final class DoodadRenderSystem implements RenderSystem {
         serving = settleAtlas(ctx.sim.getDoodads(), out);
         try {
             collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
-            // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
-            if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
-                collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
             if (ctx.highlights != null) {
                 for (BuildPreview ghost : ctx.highlights.buildPreviews()) collectGhost(ghost, out, cam, view, ctx.alphaMult);
             }
