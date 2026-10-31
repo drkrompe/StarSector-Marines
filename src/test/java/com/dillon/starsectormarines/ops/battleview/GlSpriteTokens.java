@@ -73,7 +73,7 @@ import static org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER;
  * <p>Textures belong to the context that made them, so this must be closed
  * while that context is still current.
  */
-final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCloseable {
+public final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCloseable {
 
     /** Uploaded texture names by resource path, so a shared sheet uploads once. */
     /** The border colour a tap past an image reads; see {@link #upload}. */
