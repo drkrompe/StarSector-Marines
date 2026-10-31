@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -240,6 +241,20 @@ public final class FogOfWarService {
     public float getFadeAlpha(int denseIdx) {
         if (!initialized || denseIdx < 0 || denseIdx >= unitCapacity) return 1f;
         return fadeAlpha[denseIdx];
+    }
+
+    /**
+     * Whether the player's picture shows a convoy hull. Hulls keep no slot in the unit
+     * visibility table, so this asks the bitmap directly, on a unit's terms: a contributor
+     * side's hull always, any other while a revealed cell lies under its body.
+     */
+    public boolean isHullShown(ConvoyService convoy, long id) {
+        if (!initialized || visionState.isContributor(convoy.faction(id))) return true;
+        GroundBody body = convoy.body(id);
+        if (isCellRevealed((int) Math.floor(body.x), (int) Math.floor(body.y))) return true;
+        if (bodyReveal() == BodyReveal.CENTRE) return false;
+        VehicleType type = convoy.vehicleType(id);
+        return anyCellRevealed(body.x, body.y, Math.max(type.drawnLengthCells, type.visualWidthCells) * 0.5f);
     }
 
     /**
