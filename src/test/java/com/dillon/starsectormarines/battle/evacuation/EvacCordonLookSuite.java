@@ -284,7 +284,7 @@ public final class EvacCordonLookSuite implements SnapshotSuite {
     }
 
     /** The checked-in colony fixture on {@code seed}, on the world {@code biome} names (null keeps the fixture's). */
-    private static JSONObject colony(long seed, String biome) throws Exception {
+    static JSONObject colony(long seed, String biome) throws Exception {
         try (InputStream stream = EvacCordonLookSuite.class.getResourceAsStream(FIXTURE)) {
             if (stream == null) throw new IllegalStateException("Missing fixture " + FIXTURE);
             JSONObject fixture = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8)).put("seed", seed);
