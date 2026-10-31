@@ -7,8 +7,9 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
 /**
- * An easter egg for the debug launcher: drops a stock Hegemony Onslaught on the targeted cell for the company.
- * Never part of a campaign detachment; only a debug mission's briefing offers it.
+ * Drops a stock Hegemony Onslaught on the targeted cell for the company. A committed Onslaught of any mark is the
+ * source in the campaign, and a debug mission's briefing offers it whatever its roster. The ship called is always the
+ * stock one at the reduced body ({@link #PRESENCE}), not the member's fit, and nothing is written back to the fleet.
  */
 public final class SpawnInOnslaught extends CommandPower {
     private static final Logger LOG = Global.getLogger(SpawnInOnslaught.class);
@@ -22,8 +23,15 @@ public final class SpawnInOnslaught extends CommandPower {
      */
     public static final float PRESENCE = 2f;
 
+    /** Draft tuning: a capital's single call, paid like Ship on Station. */
+    private static final float CP_COST = 4f;
+    private static final float COOLDOWN_SECONDS = 5f;
+    private static final int MAX_CHARGES = 1;
+    private static final int SUPPLY_COST = 3;
+    private static final int SLOT_WEIGHT = 1;
+
     public SpawnInOnslaught() {
-        super(ID, "Spawn in Onslaught", 0f, 5f, 0, 0, 1);
+        super(ID, "@battlePowerSpawnInOnslaught", CP_COST, COOLDOWN_SECONDS, MAX_CHARGES, SUPPLY_COST, SLOT_WEIGHT);
     }
 
     @Override public float previewRadiusCells() { return ShipOnStation.AREA_RADIUS_CELLS; }

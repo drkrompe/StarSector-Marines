@@ -63,6 +63,7 @@ public final class PowerCatalog {
     private static final String VALKYRIE_HULL = "valkyrie";
     private static final String GROUND_SUPPORT_MOD = "ground_support";
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
+    /** The Onslaught's base hull: the Onslaught (XIV) and other skins report it too. */
     private static final String ONSLAUGHT_HULL = "onslaught";
     private static final String INVICTUS_HULL = "invictus";
     /** The Wolf's base hull: the Wolf (H) and Wolf (D) skins report it too. */
@@ -444,6 +445,7 @@ public final class PowerCatalog {
         if (ONSLAUGHT_HULL.equals(baseId) || INVICTUS_HULL.equals(baseId)) {
             ids.add(OrbitalBarrage.ID);
         }
+        if (ONSLAUGHT_HULL.equals(baseId)) ids.add(SpawnInOnslaught.ID);
         if (WOLF_HULL.equals(baseId)) ids.add(WolfStrike.ID);
         return new ArrayList<>(ids);
     }

@@ -51,6 +51,13 @@ class PowerCatalogTest {
     }
 
     @Test
+    void everyOnslaughtGrantsItsDropAndTheInvictusDoesNot() {
+        assertEquals(List.of(OrbitalBarrage.ID, SpawnInOnslaught.ID),
+                PowerCatalog.contributedPowerIds("onslaught", Set.of()));
+        assertEquals(List.of(OrbitalBarrage.ID), PowerCatalog.contributedPowerIds("invictus", Set.of()));
+    }
+
+    @Test
     void valkyrieGrantsMechSupportForTheWholeBay() {
         assertEquals(List.of(MechSupport.ID), PowerCatalog.contributedPowerIds("valkyrie", Set.of()));
     }
