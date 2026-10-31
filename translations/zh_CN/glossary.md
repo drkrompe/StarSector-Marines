@@ -68,3 +68,12 @@ established names (Hegemony as 霸主) is a translation-review question.
 | Water Under Seal | 封存之水 | mission title |
 | A Small War | 一场小战争 | mission title |
 | Cheat (board key) | 作弊 | |
+| debrief / after action | 任务汇报 / 战后 | |
+| recovery claim / salvage | 回收索赔 / 打捞 | |
+| fence (sell overflow) | 变卖 | |
+| field find | 战场缴获 | |
+| RTD / WIA / MIA / KIA | 归队 / 负伤 / 失踪 / 阵亡 | tally codes 归 伤 失 亡 |
+| XP | 经验 | |
+| Captain (officer rank) | 上尉 | |
+| Yard Compact | 船坞公约 | |
+| Cold Start / Working Passage | 冷启动 / 工作航程 | mission titles |

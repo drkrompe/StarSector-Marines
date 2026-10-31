@@ -398,7 +398,8 @@ the fields, fight in to the redoubts, bring the survivors back out.
 
 **Rally** (owner, 2026-10-31: the player never moves the people, only says
 whom they follow). A plain click on a walking civilian selects it (a box never
-does) and rings its **group**: everyone following the same squad or vehicle,
+does) and rings its **group** in yellow, a neutral selection apart from the
+company's green and amber, its own ring bolder: everyone following the same squad or vehicle,
 or, for one following nobody, the unattached people within six cells of it. A
 right click on one of the company's squads, mechs or vehicles then hands the
 whole group to it, pulling them off whatever squad or mech they were with. A
@@ -1187,7 +1188,8 @@ through, made into a thing on the map the company can find and kill.
   seconds and the spire rises at its end in a burst of creep, as a colony does
   (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
   every colonist kept from it is a spire that never grows. The Burn's young
-  bores raise theirs on reaching maw, fed or not (`heart-nouns.md`, Young bore).
+  bores raise theirs on reaching maw, fed or not, and half as far from other
+  spires (`heart-nouns.md`, Young bore).
   A bore raises one spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
   look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,

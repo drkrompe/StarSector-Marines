@@ -88,15 +88,16 @@ public final class SelectionRingRenderSystem implements RenderSystem {
                         vehicle == selection.getSelectedVehicleId(), true, ctx.alphaMult * 0.9f);
             }
         }
-        // A selected civilian rings the whole group a right click would rally, itself the primary.
+        // A selected civilian rings the whole group a right click would rally, in the neutral yellow, itself bolder.
         if (selection.hasCivilianSelection()) {
             long picked = selection.getSelectedCivilianId();
             for (long civilian : sim.civilianRallyGroup(picked)) {
                 float x = sim.world().renderX(civilian), y = sim.world().renderY(civilian);
                 float radius = Math.max(0.46f, sim.getRoster().radius(civilian) + 0.12f);
                 if (!view.visible(x, y, radius * 2f)) continue;
+                boolean primary = civilian == picked;
                 ring(out, camera.cellToScreenX(x), camera.cellToScreenY(y), radius * camera.cellPxSize(),
-                        civilian == picked, true, ctx.alphaMult * 0.9f);
+                        primary ? 2.2f : 1.5f, NEUTRAL_R, NEUTRAL_G, NEUTRAL_B, ctx.alphaMult * (primary ? 0.95f : 0.7f));
             }
         }
         if (attachments.hasAttachments()) tethers(ctx, attachments, view, out);
@@ -135,18 +136,26 @@ public final class SelectionRingRenderSystem implements RenderSystem {
         }
     }
 
+    /** A neutral selection, the rescue's civilians: yellow, apart from the company's green and amber. */
+    static final float NEUTRAL_R = 1f, NEUTRAL_G = 0.92f, NEUTRAL_B = 0.2f;
+
     static void ring(DrawList out, float x, float y, float radius,
                      boolean primary, boolean selected, float alpha) {
         float r = primary ? 1f : selected ? 0.5f : 0.7f;
         float g = primary ? 0.83f : 1f;
         float b = primary ? 0.39f : selected ? 0.5f : 1f;
+        ring(out, x, y, radius, selected ? 1.8f : 1.2f, r, g, b, alpha);
+    }
+
+    static void ring(DrawList out, float x, float y, float radius, float width,
+                     float r, float g, float b, float alpha) {
         for (int i = 0; i < 32; i++) {
             double a = i * Math.PI * 2 / 32;
             double next = (i + 1) * Math.PI * 2 / 32;
             out.addLine(RenderLayer.HIGHLIGHTS,
                     x + radius * (float) Math.cos(a), y + radius * (float) Math.sin(a),
                     x + radius * (float) Math.cos(next), y + radius * (float) Math.sin(next),
-                    selected ? 1.8f : 1.2f, r, g, b, alpha);
+                    width, r, g, b, alpha);
         }
     }
 }
