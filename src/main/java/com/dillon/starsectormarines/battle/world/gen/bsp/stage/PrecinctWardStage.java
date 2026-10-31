@@ -90,12 +90,20 @@ public final class PrecinctWardStage implements GenStage {
             // A gate yard: its gate widened across the glacis and through the wall, laid before the place packs.
             GateYardLayout.Laid yard = square && precinct.isProgrammed() && precinct.fortification().yard() != null
                     ? gateYard(claim, own, road, ownRoad, i, precinct.fortification(), ctx) : null;
+            List<GateYardLayout.Postern> posterns = yard == null ? List.of()
+                    : posterns(claim, own, road, ownRoad, i, precinct.fortification(), yard, ctx);
             PrecinctFill.Masks masks = null;
             FortressInterior.Result result = null;
             if (precinct.isProgrammed()) {
                 masks =
                         PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 if (yard != null) reserveYard(masks, own, i, yard);
+                for (GateYardLayout.Postern postern : posterns) {
+                    for (int[] c : postern.way()) {
+                        masks.buildable()[c[0]][c[1]] = false;
+                        masks.circulation()[c[0]][c[1]] = true;
+                    }
+                }
                 AirbaseLot.Facing facing = AirbaseLot.Facing.of(facing(precinct, ctx));
                 // Lots first, buildings second. A lot claimed after packing gets
                 // whatever shape the leftovers had, which is a shallow strip an
@@ -164,6 +172,13 @@ public final class PrecinctWardStage implements GenStage {
                     for (int[] c : yard.apron()) if (ctx.topology.getSurface(c[0], c[1]) == 0) unpaved.add(c);
                     InstallationGround.pave(ctx, unpaved, GroundKind.STREET, Material.ASPHALT);
                     InstallationGround.pave(ctx, yard.staging(), GroundKind.COURTYARD, Material.CONCRETE);
+                    for (GateYardLayout.Postern postern : posterns) {
+                        List<int[]> bare = new ArrayList<>();
+                        for (List<int[]> cells : List.of(postern.apron(), postern.way())) {
+                            for (int[] c : cells) if (ctx.topology.getSurface(c[0], c[1]) == 0) bare.add(c);
+                        }
+                        InstallationGround.pave(ctx, bare, GroundKind.STREET, Material.ASPHALT);
+                    }
                     yards.add(new Laid(GateYardLayout.pieceName(precinct.name()), Laid.Kind.YARD, Laid.Status.LAID,
                             "", false, yard.yard(), List.of(yard.gate(), yard.entry(), yard.turn(), yard.stop()),
                             yard.staging()));
@@ -233,6 +248,31 @@ public final class PrecinctWardStage implements GenStage {
         if (owner == GrownTrunkPlan.UNOWNED) return null;
         for (int[] c : yard.apron()) if (ownRoad[c[0]][c[1]] == GrownTrunkPlan.UNOWNED) ownRoad[c[0]][c[1]] = owner;
         return yard;
+    }
+
+    /**
+     * Opens a yard's posterns ({@link Fortification.GateYard#posterns}): road ownership run across the glacis and
+     * onto the wall's line, as the yard's own gate is, so the wall leaves each open. A postern that would land on the
+     * yard's own gate is left out.
+     */
+    private static List<GateYardLayout.Postern> posterns(int[][] claim, int[][] own, int[][] road, int[][] ownRoad,
+                                                         int who, Fortification fortification,
+                                                         GateYardLayout.Laid yard, GenContext ctx) {
+        Fortification.GateYard spec = fortification.yard();
+        int owner = road[yard.apron().get(0)[0]][yard.apron().get(0)[1]];
+        for (int[] c : yard.apron()) if (owner == GrownTrunkPlan.UNOWNED) owner = ownRoad[c[0]][c[1]];
+        if (owner == GrownTrunkPlan.UNOWNED) return List.of();
+        List<GateYardLayout.Postern> out = new ArrayList<>();
+        for (Side side : spec.posterns()) {
+            GateYardLayout.Postern postern = GateYardLayout.postern(claim, own, who, ctx.width, ctx.height, side,
+                    Fortification.GateYard.POSTERN_WIDTH, Fortification.GateYard.POSTERN_DEPTH);
+            if (postern == null) continue;
+            int[] g = postern.gate(), y = yard.gate();
+            if (Math.max(Math.abs(g[0] - y[0]), Math.abs(g[1] - y[1])) <= spec.gateWidth()) continue;
+            for (int[] c : postern.apron()) if (ownRoad[c[0]][c[1]] == GrownTrunkPlan.UNOWNED) ownRoad[c[0]][c[1]] = owner;
+            out.add(postern);
+        }
+        return out;
     }
 
     /** The gate's cell nearest the mean of its cells. */
