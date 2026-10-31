@@ -48,6 +48,11 @@ public record BarrageScreen(boolean advancesAlongY, int sign, int[] lineAlong, i
         return Integer.MIN_VALUE;
     }
 
+    /** Whether the barrage still holds a front back at {@code tick}: it has a line yet to lift. */
+    public boolean walking(int tick) {
+        return holdAlong(tick) != Integer.MIN_VALUE;
+    }
+
     /** Whether {@code along} lies past the hold at {@code tick}, on the barrage's side of it. */
     public boolean beyond(int along, int tick) {
         int hold = holdAlong(tick);

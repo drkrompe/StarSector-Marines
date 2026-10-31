@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.command.BarrageScreen;
 import com.dillon.starsectormarines.battle.command.HeartLane;
+import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.command.allied.ScreenedAdvance;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -87,5 +91,16 @@ class HeartLanesTest {
         assertFalse(HeartLanes.broken(6, 6));
         assertFalse(HeartLanes.broken(2, 6));
         assertTrue(HeartLanes.broken(1, 6));
+    }
+
+    @Test
+    void aBurnLaneLeavesTheSatellitesFarBehindItsFront() {
+        BarrageScreen east = new BarrageScreen(false, 1, new int[]{130}, new int[]{0}, new int[]{100}, 18);
+        List<KnownBore> bores = List.of(new KnownBore("4", false, 133, 45, true),
+                new KnownBore("7", false, 276, 32, true), new KnownBore("5", false, 262, 140, true),
+                new KnownBore("mother-1", true, 362, 74, true));
+        List<String> kept = new ArrayList<>();
+        for (KnownBore bore : HeartLanes.ahead(bores, east, 280, 24)) kept.add(bore.key());
+        assertEquals(List.of("7", "5", "mother-1"), kept);
     }
 }

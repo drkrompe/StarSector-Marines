@@ -450,7 +450,22 @@ public final class HeartCountry {
             return RidgePlanner.Band.rect(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH).berm();
         }
         int x0 = Math.round(THE_BURN_RIDGE_DEPTH * (w - 1));
-        return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH).berm();
+        return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH).berm()
+                .withDescents(descents(form, x0 + (RIDGE_THICKNESS - 1) / 2.0));
+    }
+
+    /**
+     * Where The Burn's cordon ridge is graded down its bloom side as well as up its start side: on each battlegroup's
+     * line, so every battlegroup comes down off the crest in its own sector and goes on behind the guns. Broad Front's
+     * lane tracks pass through its ridge instead. Without them the berm's far face was a cliff the whole front but for
+     * the road's pass wherever the village stood clear of it: on the story map (ARID seed 2, 2026-10-31) the four
+     * battlegroups came up onto the crest and queued along it for that one way down, their infantry held at x 80-97
+     * from the third minute to the seventh while the barrage walked on to 290.
+     */
+    static List<ElevationPlan.Point> descents(Form form, double crest) {
+        List<ElevationPlan.Point> out = new ArrayList<>();
+        for (float across : LANE_ACROSS) out.add(new ElevationPlan.Point(crest, form.cellAt(THE_BURN_RIDGE_DEPTH, across)[1]));
+        return out;
     }
 
     /**

@@ -52,4 +52,10 @@ class BarrageScreenTest {
         assertTrue(west.beyond(205, 0));
         assertFalse(west.beyond(215, 0));
     }
+
+    @Test
+    void theWalkIsDoneOnceItsLastLineHasLifted() {
+        assertTrue(screen.walking(3899));
+        assertFalse(screen.walking(3900), "the last line has lifted");
+    }
 }

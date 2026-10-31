@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks; The Burn's forward line held by teams with guns of their own, and flak on its airbase's right wing; The Burn's story map is ARID seed 2
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks; The Burn's forward line held by teams with guns of their own, and flak on its airbase's right wing; The Burn's story map is ARID seed 2; The Burn's clear-out: its battlegroups go up their lines on the barrage's lifts, never stopping at a bore, and its ridge is graded down on every battlegroup's line
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -110,7 +110,11 @@ farmland: a band of hill segments across the whole front, each climbed by a
 ramp from the cordon's side, with a pass wherever a road, a lane, a ride or a
 settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
 it, and it looks down into the overgrowth. The Burn's village stands across most of its
-band, so The Burn's ridge is short. A city's cordon has no ridge: a city's
+band, so The Burn's ridge is short. The Burn's ridge is a berm, and its far face
+is graded down by a ramp on each battlegroup's line, so a lane that climbs it
+can come down the other side; the forward line's gaps stand on the same lines.
+Without them the far face was a cliff and the whole front funnelled through the
+road pass. A city's cordon has no ridge: a city's
 height is its buildings (`elevation-nouns.md`), its blocks fill the band, and
 the line is dug on the last open ground before the streets instead.
 
@@ -441,12 +445,16 @@ Screened advance; `HeartLanes.COMBINED_ARMS`):
   minute, and then goes on without it. With nothing coming it goes on at once:
   no lane freezes waiting on a base the swarm has cut off.
 
-**On The Burn** the same rule holds, adapted to the barrage: a battlegroup's
-formation is aimed at its bore, not at the hold, and the barrage's hold is its
+**On The Burn** the rule holds only once the guns are done; while they walk
+the battlegroups clear out instead (Clear-out, below). Then a battlegroup's
+formation is aimed at its bore ahead (never a satellite left more than 24
+cells behind its lane), not at the hold, and the barrage's hold is its
 **limit** (`allied-command.md`, Scripted per mission): its screen comes up no
 further than the hold, a safe distance short of the line firing, and moves up
 as each line lifts (`BarrageScreen.routeLimit`). A battlegroup with no armour
-to form with walks up behind the guns as before.
+to form with walks up behind the guns as before. A Burn formation that has
+stood at its leg's end 15 seconds rallies even with a member off its slot: a
+slot over the forward line's wire once held a lane there for minutes.
 
 `-Dbattle.heart.broadCombinedArms=false` is the control: the first wave
 marches to its satellite alone while the armour drives onto the satellite's
@@ -479,6 +487,27 @@ the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
 nearest mother. It is `ALLY` (`ai-nouns.md`, Sides): it never ends the battle
 and never touches the roster.
+
+**Clear-out** (The Burn). What the battlegroups do while the guns walk (owner,
+2026-10-31: "This is the 'clear out' aspect of the mission"). The barrage's
+lifts are the clock, not the bores and not the company. Each lift moves every
+lane's **hold** up: the depth a safe distance short of the line now firing
+(`BarrageScreen.holdAlong`). On a lift:
+- the lane's militia attack-move up its own line to the hold, fighting the
+  swarm ahead of them in their area on the way;
+- each wave marching up, and any column of the lane's, goes to the same hold;
+- the lane's armour drives up its line to the hold, leading its militia a
+  screen's distance ahead and no further.
+
+Each stops at the hold and fights there until the next lift. No lane stops to
+assault a bore, forms on its armour or waits for the company while a line is
+yet to lift; a satellite the walk passes is the company's, or the lanes' once
+the guns are done. After the last lift the battlegroups form as combined-arms
+teams (Combined arms on Broad Front, On The Burn) for the bores ahead of them
+and then the mothers. The pace the clear-out keeps is the swarm's to set: the
+young bores' breakouts are what slow it through the first section
+(`-Dbattle.heart.burnTimetable=false` is the control, formations from the
+opening).
 
 **Company sector** (The Burn). The band of the front the company holds,
 centred on its landing: its own satellite first, then the nearest mother.

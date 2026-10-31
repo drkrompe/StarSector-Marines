@@ -175,6 +175,8 @@ public final class HeartLanes {
             // marching past it into the swarm on its own.
             int[] standing = screen == null || combinedArms() ? standing(sim) : null;
             if (standing != null) return standing;
+            // The clear-out: while the guns walk, a wave marches up its lane to the hold behind the lifted line.
+            if (walking) return lineAim(sim, ground, screen.holdAlong(sim.getSimTickIndex()));
             // A lane assaulting its bore takes its waves on its support line, behind its machines.
             if (assault != null) return new int[]{assault.supportX, assault.supportY};
             // Combined arms: a wave with no militia of its lane standing joins the lane's armour, never the bore alone.
@@ -429,6 +431,7 @@ public final class HeartLanes {
     /** One tick; the lanes' beats go into {@code beats}. */
     public void tick(BattleSimulation sim, List<String> beats) {
         int tick = sim.getSimTickIndex();
+        walking = onTimetable(tick);
         // A formation drives the allied command, so it moves before the command carries its orders out.
         for (Lane lane : lanes) if (lane.advance != null && lane.advance.active()) lane.advance.advance(sim);
         allied.advance(sim);
@@ -497,9 +500,11 @@ public final class HeartLanes {
             }
             if (formed || assaulting || lane.squads.isEmpty() || tick % RETARGET_TICKS != 0) continue;
             if (screen == null && livingBoreAt(sim, lane.targetX, lane.targetY)) continue;
-            KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
-            if (next == null) continue;
-            int[] aim = aim(sim, lane.ground, next);
+            // The clear-out: while the guns walk, the lane's aim is the hold on its own line, never a bore.
+            KnownBore next = walking ? null : lane.ground.target(ahead(sim, lane), lane.targetX, lane.targetY);
+            if (next == null && !walking) continue;
+            int[] aim = walking ? lineAim(sim, lane.ground, screen.holdAlong(tick)) : aim(sim, lane.ground, next);
+            String to = next == null ? "the lifted line" : next.key();
             if (combinedArms() && screen != null) {
                 // A Burn lane following the guns without a formation (no armour to form with): it keeps the bore it
                 // was sent for as its target and walks up behind the guns, ordered again only as the hold moves.
@@ -507,7 +512,7 @@ public final class HeartLanes {
                 lane.goingTo = aim;
                 for (int squad : lane.squads) {
                     sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, aim[0], aim[1]),
-                            CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " follows the guns to " + next.key());
+                            CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " follows the guns to " + to);
                 }
                 continue;
             }
@@ -516,7 +521,7 @@ public final class HeartLanes {
             lane.targetY = aim[1];
             for (int squad : lane.squads) {
                 sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, aim[0], aim[1]),
-                        CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " goes on to " + next.key());
+                        CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " clears up to " + to);
             }
         }
     }
@@ -719,6 +724,8 @@ public final class HeartLanes {
      */
     private boolean assault(BattleSimulation sim, Lane lane, int tick) {
         if (!BORE_ASSAULT || waitsAtFoot(lane)) return false;
+        // The clear-out: while the guns walk, the lane goes up behind them line by line, never stopping at a bore.
+        if (lane.assault == null && walking) return false;
         if (tick % RETARGET_TICKS != 0) return lane.assault != null;
         SwarmBore bore = lane.assault == null ? null : bore(sim, lane.assault.boreKey);
         if (lane.assault != null && (bore == null || bore.collapsed())) {
@@ -730,7 +737,7 @@ public final class HeartLanes {
             int[] from = lanePosition(sim, lane);
             // The bore the lane was sent for (Broad Front's formation brought it there), else the nearest of its own.
             KnownBore next = sentFor(sim, lane);
-            if (next == null) next = lane.ground.target(known(sim), from[0], from[1]);
+            if (next == null) next = lane.ground.target(ahead(sim, lane), from[0], from[1]);
             // The guns are still on it: the lane follows the barrage as before.
             if (next == null || screen != null && screen.beyond(screen.along(next.x(), next.y()), tick)) return false;
             bore = bore(sim, next.key());
@@ -1124,7 +1131,7 @@ public final class HeartLanes {
         if (lane.advance == null && lane.armourWaitTick >= 0 && tick % RETARGET_TICKS != 0) return true;
         if (tick % RETARGET_TICKS == 0 && (lane.advance == null || !lane.advance.active())
                 && (lane.nextLeg || lane.targetX < 0 || !livingBoreAt(sim, lane.targetX, lane.targetY))) {
-            KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
+            KnownBore next = lane.ground.target(ahead(sim, lane), lane.targetX, lane.targetY);
             if (next == null) lane.nextLeg = false;
             if (next != null) {
                 // The bore itself: on The Burn the formation's limit, not its aim, keeps it behind the guns.
@@ -1234,6 +1241,7 @@ public final class HeartLanes {
                 .onScreenBroken(ScreenedAdvance.Broken.MAIN_LEADS)
                 .contactTimes(ScreenedAdvance.CONTACT_CLEAR_SECONDS, LANE_CONTACT_HOLD_SECONDS)
                 .beats(key -> lane.pushesRunning = pushesAfter(lane.pushesRunning, key))
+                .rallyWithin(screen == null ? 0f : BURN_RALLY_SECONDS)
                 .build();
     }
 
@@ -1308,8 +1316,68 @@ public final class HeartLanes {
     static final float ARMOUR_WAIT_SECONDS = 60f;
 
     private boolean combinedArms() {
-        return LANE_FORMATION && (screen == null ? COMBINED_ARMS : BURN_COMBINED_ARMS);
+        return LANE_FORMATION && (screen == null ? COMBINED_ARMS : BURN_COMBINED_ARMS && !walking);
     }
+
+    /** Whether The Burn's guns still walk this tick ({@link #onTimetable}), set as each tick begins. */
+    private boolean walking;
+
+    /**
+     * Whether The Burn's lanes are clearing out at {@code tick} (`heart-nouns.md`, Clear-out): while a line is yet to
+     * lift, each lane's militia, its waves and its armour attack-move up its own line to the hold behind the lifted
+     * line, fighting the swarm ahead of them on the way, and never stop for a bore; the armour leads the militia a
+     * screen's distance ahead ({@link #screenedAlong}). Each lift moves every lane's hold up. Once the guns are done the
+     * lanes form as combined-arms teams for the bores ahead of them and then the mothers.
+     */
+    private boolean onTimetable(int tick) {
+        return screen != null && BURN_TIMETABLE && screen.walking(tick);
+    }
+
+    /**
+     * {@code -Dbattle.heart.burnTimetable=false} is the control: The Burn's combined-arms formations from the opening,
+     * each held behind the guns by their hold. Removal condition: the owner has seen The Burn's allies advance on the
+     * timetable and the story map's evidence has been read against the control.
+     */
+    static final boolean BURN_TIMETABLE = Boolean.parseBoolean(System.getProperty("battle.heart.burnTimetable", "true"));
+
+    /** The walkable cell on a lane's own line at {@code along}, the advance's coordinate. */
+    private static int[] lineAim(BattleSimulation sim, HeartLane ground, int along) {
+        boolean alongY = ground.advancesAlongY();
+        return walkableNear(sim, alongY ? ground.across() : along, alongY ? along : ground.across());
+    }
+
+    /** Cells behind a Burn lane a satellite may stand and still be the lane's to go back for. */
+    static final int BEHIND_CELLS = 24;
+
+    /**
+     * The bores a lane goes for: once The Burn's guns are done, never a satellite left more than {@link #BEHIND_CELLS}
+     * behind it, so a lane that has come up to the last line goes on to the heart rather than back down the approach.
+     */
+    private List<KnownBore> ahead(BattleSimulation sim, Lane lane) {
+        List<KnownBore> bores = known(sim);
+        if (screen == null || !BURN_TIMETABLE || walking) return bores;
+        int[] at = lanePosition(sim, lane);
+        return ahead(bores, screen, screen.along(at[0], at[1]), BEHIND_CELLS);
+    }
+
+    /**
+     * The mothers, and the satellites standing no more than {@code behind} cells short of {@code front} along the
+     * barrage's advance. Pure.
+     */
+    static List<KnownBore> ahead(List<KnownBore> bores, BarrageScreen screen, int front, int behind) {
+        List<KnownBore> out = new ArrayList<>(bores.size());
+        for (KnownBore bore : bores) {
+            if (bore.mother() || screen.sign() * (screen.along(bore.x(), bore.y()) - front) >= -behind) out.add(bore);
+        }
+        return out;
+    }
+
+    /**
+     * Seconds a Burn formation stands at its route's end before it rallies with a member off its slot: without it a
+     * slot over the forward line's wire held a lane at a leg's end for minutes (seed 2, 2026-10-31: lane 3 from about
+     * tick 7200 to 12000).
+     */
+    static final float BURN_RALLY_SECONDS = 15f;
 
     /**
      * Whether The Burn's battlegroups advance as combined-arms teams by the same rule as Broad Front's lanes
@@ -1893,9 +1961,10 @@ public final class HeartLanes {
     /** Moves a lane's armour up to its aim when the aim has moved: each machine to its own cell across the lane. */
     private void driveArmour(BattleSimulation sim, Lane lane) {
         if (lane.hulls.isEmpty() && lane.mechs.isEmpty() || waitsAtFoot(lane)) return;
-        KnownBore bore = lane.ground.target(known(sim), lane.entryX, lane.entryY);
-        if (bore == null) return;
-        int[] aim = aim(sim, lane.ground, bore);
+        KnownBore bore = walking ? null : lane.ground.target(known(sim), lane.entryX, lane.entryY);
+        if (bore == null && !walking) return;
+        int[] aim = walking ? lineAim(sim, lane.ground, screen.holdAlong(sim.getSimTickIndex()))
+                : aim(sim, lane.ground, bore);
         boolean alongY = lane.ground.advancesAlongY();
         int toward = screen == null ? advanceSign : screen.sign();
         // The armour screens its militia: it goes no further than a screen's distance in front of where they are.

@@ -139,8 +139,11 @@ public final class HeartLayout {
     static final int LINE_DEPTH = 2, ROAD_GAP = 3, FUNNEL_EVERY = 14, NEST_EVERY = 40;
     /** Where the lanes run through the forward line, as shares across: Broad Front's four and the company's road. */
     static final float[] BROAD_GAPS = {0.15f, 0.33f, 0.50f, 0.67f, 0.85f};
-    /** The Burn's battlegroups' sectors and the company's, as shares across. */
-    static final float[] BURN_GAPS = {0.18f, 0.36f, 0.50f, 0.64f, 0.82f};
+    /**
+     * The Burn's battlegroups' lines and the company's, as shares across: where each battlegroup comes down off the
+     * ridge ({@code HeartCountry.descents}), so its trench gap and its descent are one way through.
+     */
+    static final float[] BURN_GAPS = {0.15f, 0.33f, 0.50f, 0.67f, 0.85f};
     /** Rows short of a city's first built-up row its forward line is dug, and where the search for that row starts. */
     static final int CITY_STANDOFF = 4;
     static final float CITY_SCAN_FROM = 0.10f;

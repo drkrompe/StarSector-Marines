@@ -222,6 +222,16 @@ public final class ScreenedAdvance {
 
     /** Cells a squad's slot must move before it is ordered again. */
     static final int RESTATION = 3;
+    /**
+     * Whether a formation whose anchor reached its route's end at {@code endSince} (-1 for not yet) rallies at
+     * {@code tick}: once screen and main stand in place, or once it has stood there {@code within} seconds (0 for
+     * never).
+     */
+    static boolean rallies(boolean inPlace, float within, int endSince, int tick) {
+        if (endSince < 0) return false;
+        return inPlace || within > 0f && tick - endSince >= Math.round(within / BattleSimulation.TICK_DT);
+    }
+
     /** Ticks between the advance's decisions. */
     static final int DECIDE_TICKS = Math.round(0.5f / BattleSimulation.TICK_DT);
 
@@ -237,6 +247,10 @@ public final class ScreenedAdvance {
     private final Stalled stalled;
     private final Element screen, main, support;
     private final Consumer<String> beats;
+    /** Seconds the formation stands at its route's end before it rallies with members off their slots; 0 for never. */
+    private final float rallyWithin;
+    /** The tick the anchor first stood at the route's end, or -1 while it has not. */
+    private int atEndSince = -1;
 
     private Phase phase = Phase.WAITING;
     private int phaseSince;
@@ -281,6 +295,7 @@ public final class ScreenedAdvance {
         support = b.support;
         supportBehind = b.supportBehind;
         beats = b.beats;
+        rallyWithin = b.rallyWithin;
     }
 
     public static Builder builder(String name, String issuer, AlliedCommand allied, AdvanceRoute route) {
@@ -303,6 +318,7 @@ public final class ScreenedAdvance {
         Element screen = new Element(), main = new Element(), support = new Element();
         float supportBehind = DEFAULT_SUPPORT_BEHIND;
         Consumer<String> beats = beat -> { };
+        float rallyWithin;
 
         Builder(String name, String issuer, AlliedCommand allied, AdvanceRoute route) {
             this.name = name;
@@ -340,6 +356,11 @@ public final class ScreenedAdvance {
          * {@code .pushed_N}, {@code .stalled}, {@code .rallied}, {@code .screen_broken}.
          */
         public Builder beats(Consumer<String> sink) { beats = sink; return this; }
+        /**
+         * The formation rallies at its route's end once it has stood there {@code seconds}, in place or not: a member
+         * whose slot it cannot reach (over a trench's wire, across a ridge's face) never holds it there.
+         */
+        public Builder rallyWithin(float seconds) { rallyWithin = seconds; return this; }
 
         public ScreenedAdvance build() { return new ScreenedAdvance(this); }
     }
@@ -501,7 +522,9 @@ public final class ScreenedAdvance {
                     anchor = next;
                     post(sim, "advance in formation");
                 }
-                if (anchor >= end && inPlace(sim, screen) && inPlace(sim, main)) {
+                if (anchor < end) atEndSince = -1;
+                else if (atEndSince < 0) atEndSince = tick;
+                if (rallies(anchor >= end && inPlace(sim, screen) && inPlace(sim, main), rallyWithin, atEndSince, tick)) {
                     phase(sim, Phase.RALLIED);
                     beat(sim, "rallied");
                 }
