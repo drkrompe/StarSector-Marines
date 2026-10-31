@@ -1544,7 +1544,7 @@ The Wayline depot chapter introduces a recovered Hound named the Hound, fitted
 with a chaingun on its nose mount and empty missile mounts. It is a normal owned chassis
 after victory, including when Wayline must recover and repair its wreck.
 On Second Wind, this recovery also makes the reserved Mech Lab accessible and
-restores its first berth. The other three gantries require separate paid repairs
+restores its first two berths. The other two gantries require separate paid repairs
 owned by company campaign restoration; `company-view-nouns.md` owns those orders.
 Mech fabrication consumes only working physical capacity, rechecked before a
 credit debit. Restoring a berth grants no chassis or component, and a smaller

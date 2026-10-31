@@ -182,7 +182,6 @@ public final class ShipConditionModel {
                     : Strings.get("openingShipConditionVisitMechLabToFabricateOrFit")));
             reason = state.mechBay() ? Strings.get("openingShipConditionTheFirstBerthWasRestoredWithThe") : Strings.get("openingShipConditionLockedUntilTheSecondStoryMissionIs");
             if (state.mechBay() && berths < 4) work = switch (berths) {
-                case 1 -> Work.MECH_BERTH_2;
                 case 2 -> Work.MECH_BERTH_3;
                 default -> Work.MECH_BERTH_4;
             };

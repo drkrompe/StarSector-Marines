@@ -74,8 +74,8 @@ tools as one `AlliedToolShed`:
 
 Besides the base's tools, the world's military attaches a forward observer to
 each Broad Front lane, and its air wing strikes the masses those observers see
-(`heart-nouns.md`, Forward observer). The Burn has none: its battery is its fire
-support.
+(`heart-nouns.md`, Forward observer). On The Burn each battlegroup carries one,
+on the wing flying from the military's airbase behind the start line.
 
 ## Open
 

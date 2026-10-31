@@ -1502,8 +1502,10 @@ public class AirSystem {
 
                 case DEPARTING:
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
+                    // A strike flying home to a hardstand is coming down onto it, not climbing out over an edge.
+                    boolean homing = mission.strikeSortie && mission.homeBerth != null && !mission.usesRunway;
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
-                            /*incoming=*/false, mission.gunship ? 1f : 0f, dt);
+                            /*incoming=*/homing, mission.gunship ? 1f : 0f, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
                             < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, flight, dt)) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {

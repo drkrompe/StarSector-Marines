@@ -436,7 +436,7 @@ public final class AirStrikeDirector {
      * Whether a live combatant friendly to this side stands within {@link #DANGER_CLOSE_CELLS} of the point: its own,
      * and every side it fights beside, so an allied officer does not put a stick on the company it is fighting with.
      */
-    boolean dangerClose(BattleSimulation sim, float x, float y) {
+    public boolean dangerClose(BattleSimulation sim, float x, float y) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         float limit = DANGER_CLOSE_CELLS * DANGER_CLOSE_CELLS;
