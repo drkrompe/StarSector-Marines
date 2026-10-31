@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
@@ -945,7 +946,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on, and it opens
         // Win beside itself.
         if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
-        else if (Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, this::cheatWin));
+        else if (Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, List.of(
+                new DebugHudSwitchPanel.Cheat(Strings.get("cheatsWin"), this::cheatWin, () -> true),
+                new DebugHudSwitchPanel.Cheat(Strings.get("cheatsOnslaught"), this::cheatOnslaught,
+                        this::onslaughtCheatOffered))));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -964,6 +968,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (DevConfig.DEV_MODE) {
             debugPanel = new DebugTogglesPanel(this);
             debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
+            debugPanel.addAction(Strings.get("cheatsOnslaught"), this::cheatOnslaught);
             addDiagnosticRows();
             hud.addPanel(debugPanel);
         }
@@ -1194,6 +1199,17 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void cheatWin() {
         BattleSimulation sim = getSim();
         if (sim != null) sim.forceCompanyVictory();
+    }
+
+    /** CHEAT's Onslaught: puts Spawn in Onslaught on the power bar mid-battle, once. */
+    private void cheatOnslaught() {
+        if (onslaughtCheatOffered()) getSim().getCommandPowerService().register(new SpawnInOnslaught());
+    }
+
+    private boolean onslaughtCheatOffered() {
+        BattleSimulation sim = getSim();
+        return sim != null && sim.getCommandPowerService() != null
+                && sim.getCommandPowerService().getPower(SpawnInOnslaught.ID) == null;
     }
 
     /**
