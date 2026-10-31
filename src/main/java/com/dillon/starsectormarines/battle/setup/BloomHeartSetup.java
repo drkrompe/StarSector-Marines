@@ -396,7 +396,14 @@ public final class BloomHeartSetup {
                     .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
         }
         boolean front = barrage != null && burnFront();
-        if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
+        if (front) {
+            lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
+            // The military's airbase on station behind the start line: its wing launches over the battery, called
+            // through the observer each battlegroup carries (`heart-nouns.md`, Forward observer).
+            int[] airbase = form.cellAt(BURN_AIRBASE_DEPTH, 0.5f);
+            AlliedAirWing.install(sim, airbase[0], airbase[1], lanes.grounds().stream()
+                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
+        }
         sim.installHeart(form, barrage, lanes, built.map().layout);
         sim.getHeart().guns(heartGuns);
         // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
@@ -683,6 +690,8 @@ public final class BloomHeartSetup {
     private static final long LANES_SALT = 0x4C41_4E45_5348_5254L;
 
     static final float BURN_WIND = 0.5f;
+    /** Where The Burn's airbase lies: the start edge itself, behind the battery, so the wing comes in over the guns. */
+    static final float BURN_AIRBASE_DEPTH = 0f;
     /** The Burn's guns: Locust rocket-artillery batteries dug in on the start line, firing a heavier round than a post's Locust. */
     static final String BURN_BATTERY_STRUCTURE = "structure.battery-locust";
     /** Where the guns stand: this far into the farmland, at these shares across it. */

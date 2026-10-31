@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-25 — a forward observer attached to each Broad Front lane calls the military's air wing
+Updated: 2026-10-31 — The Burn's battlegroups carry observers too, on the wing from an airbase behind the start line
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -201,8 +201,12 @@ friendly soldier, never at a Harrier pack overhead. A lane whose observer dies
 calls no more air. Now and then the military also sends a roving observer
 team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
 foremost team, on the way back to its foot, the lanes with the most squads in
-contact first, so the team follows the push. The Burn has none of either: its
-guns are its fire support.
+contact first, so the team follows the push. The Burn has both too (owner,
+2026-10-31): the military's **airbase** is on station behind the start line,
+so the wing launches over the battery, and each battlegroup carries an observer
+the same way, the first team to step off on its band of the front; the
+battery's crews already standing in their pits never take the radio. The guns
+walk the barrage; the wing hunts the masses the observers see past it.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
