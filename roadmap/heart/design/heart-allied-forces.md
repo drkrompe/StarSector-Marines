@@ -75,6 +75,11 @@ city) from the same park by need, as Broad Front's lanes do
 the battlegroups' pairs on a timetable after the barrage). The gunship and the
 fire sections stay Broad Front's: The Burn's indirect fire is its battery.
 
+**The cap.** What the base sends obeys the battle's allied cap
+(`heart-nouns.md`, The allied cap): an armour pair, a mech lance or a fire
+section called while the side is at its machine cap waits its turn at the park
+until losses make room. Trucks and the gunship are outside it.
+
 **Rocket artillery at the bases.** Each base has two Locust emplacements in
 pits the layout lays (`HeartLayout.LOCUST_PIT`): behind the vehicle park on
 both forms, and off each short side of every Broad Front airbase, clear of the

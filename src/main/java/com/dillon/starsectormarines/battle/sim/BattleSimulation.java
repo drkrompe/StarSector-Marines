@@ -184,6 +184,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.turret.SupportFire;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
 import com.dillon.starsectormarines.battle.vehicle.SoftBrush;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -481,6 +482,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Indirect-fire emplacements a mission enrolled to fire for the side, on sighted masses, never danger close. */
     private final SupportFire supportFire = new SupportFire();
+    /** The allied side's on-map cap, unlimited until a mission declares one ({@link AlliedCap}). */
+    private final AlliedCap alliedCap = new AlliedCap();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
@@ -1985,6 +1988,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The battle's support emplacements ({@link SupportFire}). */
     public SupportFire supportFire() { return supportFire; }
+
+    /** The allied side's on-map cap ({@link AlliedCap}): every allied spawn path asks it before bringing bodies on. */
+    public AlliedCap alliedCap() { return alliedCap; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }

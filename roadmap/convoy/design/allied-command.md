@@ -102,6 +102,27 @@ a squad order, not a hull's; its doctrine fights it once there.
 Squads the allied command orders are under `GARRISON` authority, as every
 allied garrison's are.
 
+## The allied cap
+
+Owner, 2026-10-31: "we do need to have a cap of friendly forces on the map. We
+can't have uncapped spawning", and "quite generous, but I don't want the map to
+just blow up with 50 tanks and 200 squads". A mission may declare an **allied
+cap** (`AlliedCap`, `BattleSimulation.alliedCap`): how many allied fighting
+bodies stand on the map at once, in two **pools**:
+- **infantry**: militia teams and observer teams;
+- **machines**: hulls and mechs, fire-section carriers included.
+
+It counts what a spawn path brings on (and the machines a mission sets down at
+the opening), never seated emplacements or their crews, which never spawn again,
+nor aircraft, which their bays bound, nor ammunition trucks, which carry no gun.
+Every allied spawn path asks it first (`AlliedCap.mayGo`): allied columns' waves
+(`AlliedColumns`), roving observer teams, a mission's scheduled machines and the
+tool shed's deliveries of a tool declared `capped`. At the cap a spawn **waits**:
+it takes its place in its pool's queue and goes, first come first served, once
+the pool has room, so losses are replaced rather than piling up. A request no
+longer asked for (three seconds unasked) leaves the queue. Undeclared, a pool is
+unlimited, so a mission that declares nothing is unchanged.
+
 ## Screened advance
 
 Owner, 2026-10-23: "consider how to make armor screened advances or marine

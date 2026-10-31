@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -204,6 +204,19 @@ field. It never orders the company and never ends the battle.
   bore a broken lane is on, else the bore the most stalled lanes are on. Only
   with the air open. While the air is shut, the base shoots the colonies
   keeping it shut instead, since nothing else in play reaches them.
+
+**The allied cap.** Both variants declare an allied cap (`allied-command.md`,
+The allied cap; `BloomHeartSetup.ALLIED_CAP`): at most 240 allied soldiers on
+the map at once, and 32 machines on Broad Front, 40 on The Burn. A wave, a
+called pair or a scheduled tank due at the cap waits its turn until losses make
+room. The numbers are sized to stay out of normal play: a lane at full strength
+holds two waves (one in contact, one joining, 16 soldiers each) and has a third
+on the march, 48, so four lanes, the roving observers and a margin make 240.
+Broad Front opens with 23 machines and The Burn with 31, and a pair on its way to
+every lane adds 8. Uncapped, the waves alone would bring over 800 soldiers and
+the armour some 80 machines over a battle. Ridge guns, base Locusts and flak, the
+Burn's gun crews and the airbase crews are outside it.
+`-Dbattle.heart.alliedCap=false` is the control.
 
 **Forward observer** (Broad Front). The lanes' waves are militia, but the
 world's military attaches one observer to each lane: the radio goes to a

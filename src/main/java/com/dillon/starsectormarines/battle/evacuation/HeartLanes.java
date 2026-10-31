@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.allied.AdvanceRoute;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
@@ -437,6 +438,8 @@ public final class HeartLanes {
             if (a[0] > tick || byNeed()) continue;
             int[] from = depot == null ? new int[]{a[3], a[4]} : depot.dispatchCell(sim);
             if (from == null) continue;
+            // The allied cap: a machine due while the side is at its machine cap waits its turn, in schedule order.
+            if (!sim.alliedCap().mayGo(sim, a, AlliedCap.Pool.MACHINES, 1)) continue;
             due.remove();
             // Later armour keeps clear of the machines standing now, not of where the first ones were set down.
             if (!refreshed) {
@@ -463,6 +466,7 @@ public final class HeartLanes {
                 }
             }
         }
+        if (tick % (60 * RETARGET_TICKS) == 0 && sim.alliedCap().declared()) sim.alliedCap().sample(sim);
         if (tick % RETARGET_TICKS == 0) {
             sampleMouths(sim);
             logSections(sim, tick);
@@ -1845,6 +1849,7 @@ public final class HeartLanes {
             s.originalSize = 1;
             sim.claimSquadCommand(squad, CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " walker");
             lane.mechs.add(mech);
+            sim.alliedCap().enlist(sim, AlliedCap.Pool.MACHINES, mech);
             return true;
         }
         long hull = placeHull(sim, type, null, x, y, facing);
@@ -1878,8 +1883,11 @@ public final class HeartLanes {
                         cell = new int[]{x + dx, y + dy};
         if (cell == null) return 0L;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
-        return fit != null ? allied.deploy(sim, fit, cell[0], cell[1], facing)
+        long hull = fit != null ? allied.deploy(sim, fit, cell[0], cell[1], facing)
                 : allied.deploy(sim, type, cell[0], cell[1], facing);
+        // Every lane hull counts against the allied cap: those set down at the opening, the scheduled and the called.
+        sim.alliedCap().enlist(sim, AlliedCap.Pool.MACHINES, hull);
+        return hull;
     }
 
     /** Moves a lane's armour up to its aim when the aim has moved: each machine to its own cell across the lane. */

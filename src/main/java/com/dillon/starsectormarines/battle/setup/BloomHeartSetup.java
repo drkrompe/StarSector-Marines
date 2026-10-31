@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.command.objective.BatteryObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
 import com.dillon.starsectormarines.battle.evacuation.HeartBaseGuns;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
@@ -349,6 +350,9 @@ public final class BloomHeartSetup {
         // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
         HeartGuns heartGuns = new HeartGuns();
         int[] battery = null;
+        // The allied side's on-map cap, declared before anything allied is set down so the opening counts against it.
+        if (ALLIED_CAP) sim.alliedCap().limit(AlliedCap.Pool.INFANTRY, ALLIED_INFANTRY_CAP)
+                .limit(AlliedCap.Pool.MACHINES, form == Form.BROAD_FRONT ? BROAD_MACHINE_CAP : BURN_MACHINE_CAP);
         if (form == Form.THE_BURN) {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
@@ -381,7 +385,11 @@ public final class BloomHeartSetup {
             // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
             AlliedToolShed shed = new AlliedToolShed(park)
                     .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
-                            Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
+                            Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
+                    // What brings fighting machines on obeys the allied cap; trucks and the gunship do not count.
+                    .capped(AlliedTool.ARMOUR_PAIR, AlliedCap.Pool.MACHINES, 2)
+                    .capped(AlliedTool.MECH_LANCE, AlliedCap.Pool.MACHINES, 2)
+                    .capped(AlliedTool.FIRE_SECTION, AlliedCap.Pool.MACHINES, 2);
             // The gunship and the fire sections are Broad Front's: The Burn's indirect fire is its battery.
             if (broad) shed.stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1,
                     Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT));
@@ -774,6 +782,33 @@ public final class BloomHeartSetup {
      * Removal condition: the owner has seen both forms with them and their evidence has been read against the
      * control; {@code false} is the control, the pits laid and empty.
      */
+    /**
+     * Whether the heart declares its allied on-map cap ({@code AlliedCap}; `heart-nouns.md`, The allied cap). Removal
+     * condition: the owner has picked the numbers and the evidence has been read against the control; {@code false}
+     * is the control, uncapped spawning.
+     */
+    static final boolean ALLIED_CAP = Boolean.parseBoolean(System.getProperty("battle.heart.alliedCap", "true"));
+    /**
+     * Allied soldiers on the map at once, both forms. A lane at full strength holds two waves (one in contact, one
+     * joining, 4 teams of 4 each) and has a third on the march: 48 soldiers; four lanes 192, the roving observer teams
+     * 6 more, and some 40 of margin. Uncapped, Broad Front's 13 waves of 16 a lane would put 832 on the map if none
+     * fell, and The Burn's at parity some 960.
+     */
+    static final int ALLIED_INFANTRY_CAP = 240;
+    /**
+     * Allied machines (hulls and mechs, fire-section carriers included) on the map at once. Broad Front opens with 23
+     * (a lane's escort APC, technical, tank and Hound pair, four lanes, and the company's tank and Hound pair); a pair
+     * on its way to every lane brings it to 31. Uncapped, the park's pairs (a pair a lane every two minutes when called)
+     * could bring some 80 over a battle.
+     */
+    static final int BROAD_MACHINE_CAP = 32;
+    /**
+     * The Burn opens with 31 (a battlegroup's APC, two technicals, two tanks and Hound pair, four of them, and the
+     * company's three); a pair on its way to every battlegroup brings it to 39. Uncapped, its timetable alone brings
+     * 64 more hulls after the barrage.
+     */
+    static final int BURN_MACHINE_CAP = 40;
+
     static final boolean BASE_LOCUSTS = Boolean.parseBoolean(System.getProperty("battle.heart.baseLocusts", "true"));
 
     /** {@code base} moved {@code slot} places across the advance, five cells apart, alternating sides. */

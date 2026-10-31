@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -165,6 +166,8 @@ public final class AlliedColumns {
             if (column.done) continue;
             if (!column.entered) {
                 if (tick < CordonSequence.ticks(column.departure.seconds())) continue;
+                // The allied cap: a column due while the side is at its infantry cap waits its turn for room.
+                if (!sim.alliedCap().mayGo(sim, column, AlliedCap.Pool.INFANTRY, teams * ColonyMilitia.POST_SIZE)) continue;
                 int[] dest = orders.destination(sim);
                 if (dest == null) continue;
                 enter(sim, column, dest, orders);
@@ -204,6 +207,11 @@ public final class AlliedColumns {
              t += ColonyMilitia.POST_SIZE) {
             column.squads.add(ColonyMilitia.seatTeam(sim, cells.subList(t, t + ColonyMilitia.POST_SIZE),
                     "Column " + column.number + " team " + (t / ColonyMilitia.POST_SIZE + 1), risk, rng));
+        }
+        for (int squad : column.squads) {
+            for (int i = 0, n = sim.squadMemberCount(squad); i < n; i++) {
+                sim.alliedCap().enlist(sim, AlliedCap.Pool.INFANTRY, sim.squadMemberAt(squad, i));
+            }
         }
         orders.seated(sim, column.number, List.copyOf(column.squads));
         route(sim, column, dest);
