@@ -22,6 +22,12 @@ public final class StructureFit {
     static final int AIRFIELD_VERGE = 2;
     static final int AIRFIELD_ALONG = AIRFIELD_SIZE.width + 2 * AIRFIELD_VERGE;
     static final int AIRFIELD_DEEP = AIRFIELD_SIZE.depth + 2 * AIRFIELD_VERGE;
+    /** The prefab bunkhouse's plan, the short module's and the control hut's (as authored in {@code BuildingStamp}). */
+    static final int BUNKHOUSE_ALONG = 15, BUNKHOUSE_DEEP = 5, MODULE_ALONG = 9, MODULE_DEEP = 5, HUT_PLAN_ALONG = 7,
+            HUT_PLAN_DEEP = 5;
+    static final int QUARTERS_ALONG = YARD + BUNKHOUSE_ALONG + YARD, QUARTERS_DEEP = YARD + BUNKHOUSE_DEEP + YARD;
+    static final int SHED_ALONG = YARD + MODULE_ALONG + YARD, SHED_DEEP = YARD + MODULE_DEEP + YARD;
+    static final int HUT_ALONG = YARD + HUT_PLAN_ALONG + YARD, HUT_DEEP = YARD + HUT_PLAN_DEEP + YARD;
 
     private StructureFit() {}
 

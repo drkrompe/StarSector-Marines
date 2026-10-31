@@ -19,11 +19,19 @@ import java.util.Set;
  */
 public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes) {
 
-    /** One pooled map. */
-    public record Entry(long seed, String note, MapPatch patch) {
+    /**
+     * One pooled map. A {@code story} entry is the one map a story campaign's chapter plays on this biome, every
+     * attempt: the controlled experience its patch is authored for. The rest of the biome's entries serve bloom
+     * events on other worlds.
+     */
+    public record Entry(long seed, String note, MapPatch patch, boolean story) {
         public Entry {
             note = note == null ? "" : note;
             patch = patch == null ? MapPatch.NONE : patch;
+        }
+
+        public Entry(long seed, String note, MapPatch patch) {
+            this(seed, note, patch, false);
         }
     }
 
@@ -33,9 +41,12 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
             List<Entry> entries = biomes.get(biome);
             if (entries == null || entries.isEmpty()) throw new IllegalArgumentException(map + " has no " + biome + " maps");
             Set<Long> seeds = new HashSet<>();
+            int stories = 0;
             for (Entry e : entries) {
                 if (!seeds.add(e.seed())) throw new IllegalArgumentException(map + " pools " + biome + " seed " + e.seed() + " twice");
+                if (e.story()) stories++;
             }
+            if (stories > 1) throw new IllegalArgumentException(map + " names " + stories + " " + biome + " story maps");
             copy.put(biome, List.copyOf(entries));
         }
         biomes = Map.copyOf(copy);
@@ -48,6 +59,12 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
     public Entry pick(SurfacePalette biome, long roll) {
         List<Entry> entries = entries(biome);
         return entries.get(Math.floorMod(roll, entries.size()));
+    }
+
+    /** The story map of this biome ({@link Entry#story}), or {@code null} when the biome names none. */
+    public Entry story(SurfacePalette biome) {
+        for (Entry e : entries(biome)) if (e.story()) return e;
+        return null;
     }
 
     /** The pooled entry for this seed on this biome, or {@code null} for a seed the pool does not hold there. */
@@ -69,7 +86,8 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
             List<Entry> entries = new ArrayList<>();
             for (int i = 0; i < seeds.length(); i++) {
                 JSONObject e = seeds.getJSONObject(i);
-                entries.add(new Entry(e.getLong("seed"), e.optString("note", ""), MapPatch.read(e.optJSONObject("patch"))));
+                entries.add(new Entry(e.getLong("seed"), e.optString("note", ""), MapPatch.read(e.optJSONObject("patch")),
+                        e.optBoolean("story", false)));
             }
             out.put(biome, entries);
         }

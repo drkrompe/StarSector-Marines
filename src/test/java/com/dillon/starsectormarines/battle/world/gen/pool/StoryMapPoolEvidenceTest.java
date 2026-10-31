@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
@@ -170,13 +171,23 @@ class StoryMapPoolEvidenceTest {
         BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), biome,
                 BloomHeartSetup.densityOf(map), entry);
         try (BattleSimulation sim = built.sim()) {
-            int laid = 0, pieces = 0, airbases = 0;
+            int laid = 0, pieces = 0, airbases = 0, hamlet = 0;
+            // A structure a person placed by hand that did not go down where it was put is a broken pool entry.
+            for (Structure placed : built.plan().layout().placed()) {
+                Laid piece = built.map().layout.find(placed.name());
+                if (piece == null || !piece.isLaid() || piece.cells().get(0)[0] != placed.x()
+                        || piece.cells().get(0)[1] != placed.y()) {
+                    throw new IllegalStateException(placed.name() + " was placed at " + placed.x() + "," + placed.y()
+                            + " but " + (piece == null ? "not laid" : piece.isLaid() ? "laid elsewhere" : "refused: " + piece.reason()));
+                }
+            }
             StringBuilder missing = new StringBuilder();
             String dressing = "none";
             for (Laid piece : built.map().layout.pieces()) {
                 pieces++;
                 if (piece.name().equals(HeartLayout.ORIGIN_DRESSING) && piece.isLaid()) dressing = piece.reason();
-                if (piece.name().startsWith(HeartLayout.AIRBASE) && piece.isLaid()) airbases++;
+                if (piece.name().matches(HeartLayout.AIRBASE + "[0-9]+") && piece.isLaid()) airbases++;
+                if (piece.name().matches(HeartLayout.AIRBASE + "[0-9]+[.][0-9]+") && piece.isLaid()) hamlet++;
                 if (piece.isLaid()) laid++;
                 else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name())
                         .append(piece.reason().isBlank() ? "" : ": " + piece.reason());
@@ -186,7 +197,7 @@ class StoryMapPoolEvidenceTest {
                     + "; " + built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
                     + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"
                     + "; dressing " + dressing
-                    + (BloomHeartSetup.formOf(map) == Form.BROAD_FRONT ? "; airbases " + airbases : "")
+                    + (BloomHeartSetup.formOf(map) == Form.BROAD_FRONT ? "; airbases " + airbases + " (hamlet buildings " + hamlet + ")" : "")
                     + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
                     + (missing.length() == 0 ? "" : " (not " + missing + ")");
         }

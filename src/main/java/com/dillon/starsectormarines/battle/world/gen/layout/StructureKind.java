@@ -19,13 +19,27 @@ public enum StructureKind {
      * An allied airbase: an {@code AirbaseLot} field (strip, hardstands, sheds, tower and fence) and the verge kept
      * round its fence. Unturned its strip runs along x on the footprint's north edge, toward a bloom to the north.
      */
-    AIRFIELD(StructureFit.AIRFIELD_ALONG, StructureFit.AIRFIELD_DEEP);
+    AIRFIELD(StructureFit.AIRFIELD_ALONG, StructureFit.AIRFIELD_DEEP),
+    /** A long prefab bunkhouse on a yard: a field crew's quarters. */
+    CREW_QUARTERS(StructureFit.QUARTERS_ALONG, StructureFit.QUARTERS_DEEP),
+    /** A short prefab module on a yard: fuel and stores. */
+    STORE_SHED(StructureFit.SHED_ALONG, StructureFit.SHED_DEEP),
+    /** A one-room hut on a yard: a pump house or a fuel hut. */
+    PUMP_HUT(StructureFit.HUT_ALONG, StructureFit.HUT_DEEP);
 
     public final int along, deep;
 
     StructureKind(int along, int deep) {
         this.along = along;
         this.deep = deep;
+    }
+
+    /**
+     * Whether the structure keeps off every way, the farmland's tracks included, which the farmland paints only after
+     * structures are raised: an airfield and the buildings of its hamlet ({@link AirfieldSiting}).
+     */
+    public boolean keepsOffWays() {
+        return this == AIRFIELD || this == CREW_QUARTERS || this == STORE_SHED || this == PUMP_HUT;
     }
 
     /** Whether the structure may stand on road: only a square, which is paving itself. */

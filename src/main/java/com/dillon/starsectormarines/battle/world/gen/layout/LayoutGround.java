@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -99,6 +101,33 @@ public final class LayoutGround {
     public Collection<Building> buildings() {
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         return buildings == null ? List.of() : buildings.all();
+    }
+
+    /** The surveyed farmland of an open-field landing ({@code mapgen-nouns.md}, Rural country), or {@code null}. */
+    public RuralLayout rural() {
+        return ctx.get(BspKeys.RURAL_LAYOUT);
+    }
+
+    /** Whether the cell is worked ground: a plot somebody farms (not left wild), or a farm's yard. */
+    public boolean farmed(int x, int y) {
+        RuralLayout rural = rural();
+        if (rural == null) return false;
+        RuralLayout.Plot plot = rural.plotAt(x, y);
+        return plot != null && plot.use() != RuralLayout.Use.WILD || rural.farmsteadAt(x, y) != null;
+    }
+
+    /**
+     * Whether a way runs over the cell: {@link #isRoad road}, a road or track of the surveyed farmland, or a track of
+     * the plan's landscape (a lane's), the last two painted only once the map is finished.
+     */
+    public boolean isWay(int x, int y) {
+        if (isRoad(x, y)) return true;
+        RuralLayout rural = rural();
+        if (rural != null && rural.roadAt(x, y) != null) return true;
+        PrecinctPlan plan = plan();
+        if (plan == null) return false;
+        for (Landscape.Track track : plan.landscape().tracks()) if (track.contains(x, y)) return true;
+        return false;
     }
 
     /** The plan the map is laid out from (its places where they were pinned). */

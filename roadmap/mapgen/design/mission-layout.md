@@ -5,7 +5,7 @@ built.
 
 Written: 2026-10-23
 
-Updated: 2026-10-25 — a road resolved with the works follows the standing streets.
+Updated: 2026-10-31 — an airfield is sited beside a way with a hamlet round it; a layout may carry structures placed by hand. Earlier, 2026-10-25: a road resolved with the works follows the standing streets.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -63,10 +63,31 @@ optional (reported, and the map stands).
   post (a small sandbag ring), a square (open paving with a marker in the
   middle), an airfield (an allied base lot, `AirbaseLot.BASE`, and its verge, its strip on the
   side its turn names, its hardstands an allied field's and no node to take;
-  laid from its own draw). Its whole footprint must be open ground nobody built on, or it is
-  refused rather than squeezed; buildings come from their authored plans, so
+  laid from its own draw, with a worked track from its gate to the way it
+  stands beside), crew quarters (a prefab bunkhouse on a yard), a store shed
+  (a short prefab module on a yard) and a pump hut (a one-room hut on a yard).
+  Its whole footprint must be open ground nobody built on, or it is
+  refused rather than squeezed; an airfield and its hamlet's own kinds also
+  keep off every way, the farmland's tracks and the landscape's lane tracks
+  included. Buildings come from their authored plans, so
   they are buildings like any other. The square's marker stands in for a bell
   until there is bell art.
+- **Airfield siting** (`AirfieldSiting`, mission-neutral). A mission that
+  wants an airfield names the ground and what to keep clear; the field is
+  sited on it never on or across a way, beside one: its gate (on the apron
+  side, away from the strip, else a short side) opens onto a road or track
+  within fourteen cells, joined by a short access track. Unfarmed ground is
+  preferred, then a short track, then nearness to where it was wanted; its
+  strip runs along x and faces whichever way puts the apron toward the way.
+  Round it grows a **hamlet** of up to five buildings (crew quarters, a store
+  shed, a farmstead, a pump hut, a granary) on its flanks within its own
+  depth, clustered toward the gate, doors toward the way, off the field, its
+  access track, the ways, farmed ground, and the strip's rows for thirty
+  cells past either end; fewer or none where there is no room.
+- **Placed by hand.** A layout may carry structures a person put down for one
+  map (`MissionLayout.placed`, from a story map's patch: `story-map-pools.md`,
+  The patch). A deferred piece resolving a structure of that name takes the
+  placed one instead of siting it.
 - **Block.** Cells closed or fortified by hand: a barricade (hedgehogs and
   crates, which fire breaks and a dozer blade pushes), a wreck across a road
   (closed to vehicles until a dozer clears it; laid as crate stacks until

@@ -176,6 +176,11 @@ vetted on:
   fenced base that spawns machines: that is step 3's.
 - **The supply road** (`supply-road`): a drivable road from the landing's
   farmland up to the settlement's near gate.
+- **The allied airbases** (Broad Front, `airbase-1` west and `airbase-2`
+  east, each with its hamlet `airbase-N.1` ...): fields beside a farm or
+  lane track on unfarmed ground behind the line (`heart-nouns.md`, Allied
+  airbase). The story map places both by hand in its patch; other pooled maps
+  site them.
 
 ## The beats' set pieces
 

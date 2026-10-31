@@ -34,6 +34,7 @@ final class LayoutStructures {
             return Laid.refused(s.name(), Laid.Kind.STRUCTURE, s.required(), "off the map");
         }
         LineCourse.CellTest standable = (x, y) -> (held == null || !held[x][y])
+                && !(s.kind().keepsOffWays() && ground.isWay(x, y))
                 && (ground.buildable(x, y)
                 || s.kind().takesRoad() && ground.isRoad(x, y) && PreparedGround.open(ctx, x, y));
         if (!StructureFit.fits(standable, s.x(), s.y(), w, h)) {
@@ -66,6 +67,9 @@ final class LayoutStructures {
             case OBSERVATION_POST -> ring(ctx, x0, y0, x1, y1, s.turns());
             case BELL_SQUARE -> square(ctx, x0, y0, x1, y1);
             case AIRFIELD -> airfield(ctx, ground, s, x0, y0, x1, y1);
+            case CREW_QUARTERS -> outbuilding(ctx, BuildingStamp.PREFAB_BUNKHOUSE, s, x0, y0, x1, y1);
+            case STORE_SHED -> outbuilding(ctx, BuildingStamp.PREFAB_SHORT_MODULE, s, x0, y0, x1, y1);
+            case PUMP_HUT -> outbuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
         }
         return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, "", s.required(),
                 List.of(new int[]{x0, y0}, new int[]{x1, y1}), List.of(), List.of());
@@ -87,6 +91,16 @@ final class LayoutStructures {
         };
         new AirbaseLot(x0 + verge, y0 + verge, x1 - verge, y1 - verge, facing, StructureFit.AIRFIELD_SIZE,
                 LandingPad.Purpose.ALLIED_AIRFIELD, verge).author(ctx, new Random(ground.seed(s.name())));
+        // The track from its gate to the way it stands beside (AirfieldSiting.access).
+        for (int[] c : AirfieldSiting.access(ground, s).track()) {
+            if (PreparedGround.open(ctx, c[0], c[1])) PreparedGround.workedGround(ctx, c[0], c[1]);
+        }
+    }
+
+    /** One building on its worked yard, its door on the side {@code turns} names (0 south). */
+    private static void outbuilding(GenContext ctx, BuildingStamp stamp, Structure s, int x0, int y0, int x1, int y1) {
+        yard(ctx, x0, y0, x1, y1);
+        stamp.place(ctx, x0 + StructureFit.YARD, y0 + StructureFit.YARD, s.turns());
     }
 
     /** Worked earth over the footprint: a farm's or a store's yard. */

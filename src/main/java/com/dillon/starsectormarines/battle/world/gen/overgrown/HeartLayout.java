@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.layout.AirfieldSiting;
 import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
@@ -23,8 +24,10 @@ import com.dillon.starsectormarines.battle.world.gen.layout.StructureFit;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -88,7 +91,9 @@ public final class HeartLayout {
     /** Where each airbase is wanted, as shares across and depth, and the cells round that searched deep and across. */
     static final float[] AIRBASE_ACROSS = {0.245f, 0.755f};
     static final float AIRBASE_DEPTH = 0.13f;
-    static final int AIRBASE_SEARCH = 24, AIRBASE_SLIDE = 4;
+    static final int AIRBASE_SEARCH = 24, AIRBASE_SLIDE = 48;
+    /** Cells an airbase and its hamlet keep past the landing's field of fire, and (square) from the logistics base. */
+    static final int AIRBASE_LANDING_CLEAR = 10, AIRBASE_LOGISTICS_CLEAR = 36;
 
     /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
     static final int LANE_GAP = 6;
@@ -451,25 +456,44 @@ public final class HeartLayout {
     }
 
     /**
-     * The allies' airbases: an airfield on open farmland behind the line on each flank, between the outer lane's foot
-     * and the next lane's, clear of the logistics base and the landing; its strip on the side toward the heart. One
+     * The allies' airbases, one toward each flank on the farmland behind the line, each with the hamlet that grew up
+     * round it ({@link AirfieldSiting}): beside a road or track it never stands on, on unfarmed ground where there is
+     * any, clear of the landing and the logistics base. A base a story map's patch placed by hand
+     * ({@link MissionLayout#placed}) stands where it was put; the rest are sited near where they are wanted. One
      * where only one flank has the ground, none where neither has. Each is raised from its own draw.
      */
     static List<Piece> airbases(LayoutGround ground, Form form) {
+        if (!form.advancesAlongY()) return List.of();
+        MissionLayout layout = ground.plan() == null ? MissionLayout.NONE : ground.plan().layout();
+        RuralLayout rural = ground.rural();
+        FieldOfFire landing = rural == null ? null : rural.field();
+        int[] logistics = baseMiddle(form);
+        List<Structure> taken = new ArrayList<>();
+        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y)
+                && (landing == null || Math.hypot(x - landing.centerX(), y - landing.centerY())
+                > landing.radius() + AIRBASE_LANDING_CLEAR)
+                && Math.max(Math.abs(x - logistics[0]), Math.abs(y - logistics[1])) > AIRBASE_LOGISTICS_CLEAR
+                && taken.stream().noneMatch(s -> x >= s.x() - 2 && x < s.x() + s.width() + 2
+                && y >= s.y() - 2 && y < s.y() + s.height() + 2);
+        int w = StructureKind.AIRFIELD.along, h = StructureKind.AIRFIELD.deep;
         List<Piece> out = new ArrayList<>();
-        int turns = form.advancesAlongY() ? 0 : 1;
-        int w = (turns & 1) == 0 ? StructureKind.AIRFIELD.along : StructureKind.AIRFIELD.deep;
-        int h = (turns & 1) == 0 ? StructureKind.AIRFIELD.deep : StructureKind.AIRFIELD.along;
-        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y);
         for (int i = 0; i < AIRBASE_ACROSS.length; i++) {
-            int[] middle = form.cellAt(AIRBASE_DEPTH, AIRBASE_ACROSS[i]);
-            // Searched deep and back freely, across only a little: either side stand a lane's foot and the road.
-            int halfX = w / 2 + (form.advancesAlongY() ? AIRBASE_SLIDE : AIRBASE_SEARCH);
-            int halfY = h / 2 + (form.advancesAlongY() ? AIRBASE_SEARCH : AIRBASE_SLIDE);
-            int[] region = {Math.max(1, middle[0] - halfX), Math.max(1, middle[1] - halfY),
-                    Math.min(ground.width() - 2, middle[0] + halfX), Math.min(ground.height() - 2, middle[1] + halfY)};
-            int[] at = StructureFit.nearest(open, region, w, h, middle[0] - w / 2, middle[1] - h / 2, 2);
-            if (at != null) out.add(new Structure(AIRBASE + (i + 1), StructureKind.AIRFIELD, at[0], at[1], turns, false));
+            String name = AIRBASE + (i + 1);
+            Structure base = layout.placed(name);
+            if (base == null) {
+                int[] middle = form.cellAt(AIRBASE_DEPTH, AIRBASE_ACROSS[i]);
+                // Inward only so far, the lanes' feet and the landing being that way; outward to the map's side.
+                boolean west = AIRBASE_ACROSS[i] < 0.5f;
+                int[] region = {west ? 1 : middle[0] - w / 2 - AIRBASE_SLIDE, middle[1] - h / 2 - AIRBASE_SEARCH,
+                        west ? middle[0] + w / 2 + AIRBASE_SLIDE : ground.width() - 2, middle[1] + h / 2 + AIRBASE_SEARCH};
+                base = AirfieldSiting.site(ground, name, region, middle[0], middle[1], open);
+            }
+            if (base == null) continue;
+            List<Structure> hamlet = AirfieldSiting.hamlet(ground, base, open);
+            out.add(base);
+            out.addAll(hamlet);
+            taken.add(base);
+            taken.addAll(hamlet);
         }
         return out;
     }

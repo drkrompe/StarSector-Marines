@@ -14,21 +14,44 @@ import java.util.Set;
  * <p>Mission-neutral: nothing here knows which mission asked. A map with no
  * layout ({@link #NONE}) runs no layout stage at all, so every other map is
  * generated exactly as it was before layouts existed.
+ *
+ * <p>{@code placed} are structures a person put down for one map (a story map's patch): a deferred piece that resolves
+ * a structure of the same name takes the placed one instead of searching ({@link #placed(String)}).
  */
-public record MissionLayout(List<Piece> pieces) {
+public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
 
     /** The layout of every map that states none. */
     public static final MissionLayout NONE = new MissionLayout(List.of());
 
     public MissionLayout {
         pieces = pieces == null ? List.of() : List.copyOf(pieces);
+        placed = placed == null ? List.of() : List.copyOf(placed);
         Set<String> names = new HashSet<>();
         for (Piece piece : pieces) {
             if (!names.add(piece.name())) throw new IllegalArgumentException("layout piece named twice: " + piece.name());
         }
+        Set<String> put = new HashSet<>();
+        for (Structure s : placed) {
+            if (!put.add(s.name())) throw new IllegalArgumentException("structure placed twice: " + s.name());
+        }
+    }
+
+    public MissionLayout(List<Piece> pieces) {
+        this(pieces, List.of());
     }
 
     public boolean isEmpty() { return pieces.isEmpty(); }
+
+    /** The structure a person placed under this name, or {@code null} to let the layout site it. */
+    public Structure placed(String name) {
+        for (Structure s : placed) if (s.name().equals(name)) return s;
+        return null;
+    }
+
+    /** The same layout with these structures placed by hand. */
+    public MissionLayout withPlaced(List<Structure> structures) {
+        return new MissionLayout(pieces, structures);
+    }
 
     /**
      * The sites stated in the layout itself rather than resolved later: known
@@ -76,6 +99,6 @@ public record MissionLayout(List<Piece> pieces) {
             }
         }
         if (!found) throw new IllegalArgumentException("the layout has no piece " + name);
-        return new MissionLayout(out);
+        return new MissionLayout(out, placed);
     }
 }

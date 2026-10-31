@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5)
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -217,11 +217,22 @@ guns are its fire support.
 **Allied airbase** (Broad Front). The air wing's fields, two named pieces of the
 layout (`HeartLayout.AIRBASES`, `airbase-1` west and `airbase-2` east): each
 a large airfield lot (`air-nouns.md`, Airbase; `AirbaseLot.BASE`, 72 by 24
-cells and its verge) on the cordon's farmland behind the line, wanted at about a
-quarter and three quarters across, searched deep and back freely and across only
-a little so it stays between a lane's foot and the road, its strip on the side
-toward the heart, each raised from its own draw. One is laid where only one
-flank has the ground, none where neither has. Each base is a common strip and
+cells and its verge) on the cordon's farmland behind the line, sited by the
+common airfield rules (`mission-layout.md`, Airfield siting): never on or
+across a road or track, beside one with its gate and apron toward it and a
+short access track, on unfarmed ground where there is any, clear of the
+landing and the logistics base, its strip along the front. Each is wanted at
+about a quarter and three quarters across, searched a little inward and out to
+the map's side, and each raised from its own draw. Round each grows a small
+**hamlet** of up to five buildings (crew quarters, a store shed, a pump hut, a
+farm, a granary) on its flanks, so it reads as a place that grew there. One is
+laid where only one flank has the ground, none where neither has (every city
+map, where no open ground clear of the ways holds a base). The story map
+(ARID seed 5, `story-map-pools.md`, Story map) places both by hand: the west
+base between the west lane's track and the next lane's at (89, 8), the east
+base on the sandy ground past the east lane's track at (478, 8), both with
+their strip to the south and apron and north gate on the farm track along the
+fields' foot, each with a hamlet of three. Each base is a common strip and
 eight bays: five hardstands and three sheds, holding three Daggers (the wing's
 bombers), three Talons and two Broadswords, and a crew of eight allied
 technicians, one to a bay, who refit and patch an aircraft that lands and
