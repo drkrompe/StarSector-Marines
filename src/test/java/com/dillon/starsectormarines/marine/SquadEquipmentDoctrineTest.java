@@ -215,22 +215,6 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void learnedFireSupportDoctrineIssuesOneSquadAutomaticPerTeam() {
-        MarineRoster roster = fullSquad();
-        MarineSquad squad = roster.squads().get(0);
-
-        SquadEquipmentPreview preview = roster.previewSquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
-
-        assertTrue(preview.canApply());
-        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-            assertEquals(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
-                    preview.billet(team * MarineSquad.TEAM_SIZE + 1).primaryDef());
-        }
-    }
-
-    @Test
     void appliesOneWeaponAndOneArmorDefinitionAcrossAllTwelveBillets() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);

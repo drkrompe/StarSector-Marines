@@ -208,9 +208,8 @@ legibility.
   card is otherwise acquired like any other.
 - **Military warrant** — a named, persistent authorisation from one tradition
   over the Restricted **loadout cards** it lists. It no longer gates acquiring
-  them (the Kit Ladder does); what it still does is bind the company to its
-  obligations, and a suspended or revoked warrant withholds new fitting of its
-  cards. It names cards, never a weapon, a suit or any other single piece of
+  them (the Kit Ladder does) or fitting them; what it still does is bind the
+  company to its obligations. It names cards, never a weapon, a suit or any other single piece of
   equipment, and it teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
@@ -776,25 +775,16 @@ Hegemony auxiliary warrant's first honoured period is what opens its stage two. 
 contract taken against the issuer, or the relationship slipping below the floor,
 **suspends** the warrant at once.
 
-A suspended warrant's cards are not warranted: no squad can be **newly given**
-one. A squad already holding the card keeps it, and
-its replacements are dressed from it as from any card, because a squad's kit is
-always what its cards issue. Nothing learned is revoked and no squad's card is taken
-away; the warrant caps how many squads field its cards, which is where a powered
-company feels the pressure over a long campaign. A suspension begins a fresh period,
-and the first one that ends with loyalty kept restores the warrant.
+A suspension withholds nothing (owner, 2026-10-31: no faction locks): the company
+keeps buying and fitting the warrant's cards as any other. A suspension begins a
+fresh period, and the first one that ends with loyalty kept restores the warrant.
 
-A relationship that falls to hostile **revokes** the warrant: the suspension rules
-apply permanently, and no loyal period lifts them. An authored warrant is never
+A relationship that falls to hostile **revokes** the warrant permanently, and no
+loyal period lifts it. An authored warrant is never
 re-offered, but the standing rule still applies, and a fresh standing grant from
 the same tradition replaces the revoked one.
 
-The fitting check lives in the one place a sheet's billets are resolved for a
-squad (`MarineRoster.previewSquadEquipment`), not in the screens, so every route to
-fitting asks it, and a refused issue says which warrant withholds it.
-
-The gate refuses new fitting and revokes nothing. A Restricted card no warrant
-names fits freely, so no obligation can withhold it. Held warrants are not currently listed on
+Held warrants are not currently listed on
 any company page. The Company HQ's client-standing panel named each warrant's
 issuer, the cards it opens, how it was earned and its standing under its
 obligations (next service deadline, what restores it, revocation); it was removed

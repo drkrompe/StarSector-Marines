@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * Builds the detached {@link MarineRoster} a debug mission deploys.
@@ -115,7 +114,6 @@ public final class DebugCompany {
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
             armory.acquireArmorPlan(plan.id());
         }
-        roster.setWithheldCards(Set.of());
     }
 
     /** Debug size has no scenario ceiling; only negative input normalizes to zero. */

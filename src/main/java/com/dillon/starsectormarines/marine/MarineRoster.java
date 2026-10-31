@@ -45,8 +45,6 @@ public class MarineRoster implements Serializable {
     private List<MarineSoldier> soldiers = new ArrayList<>();
     /** Derived lookup only; campaign saves continue to persist the ordered soldier list. */
     private transient Map<String, MarineSoldier> soldierIndex;
-    /** Withheld templates to use instead of the running campaign's; null reads the campaign. */
-    private transient Set<String> withheldCardsOverride;
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
@@ -1089,29 +1087,7 @@ public class MarineRoster implements Serializable {
         if (!known) {
             return new SquadEquipmentPreview(SquadEquipmentResult.UNKNOWN_CARD, billets);
         }
-        return new SquadEquipmentPreview(withholdsNewCard(squad, weapons.id(), armor.id())
-                ? SquadEquipmentResult.WARRANT_SUSPENDED : SquadEquipmentResult.APPLIED, billets);
-    }
-
-    /**
-     * Whether a suspended or revoked military warrant forbids this issue
-     * ({@code progression-nouns.md}, Kit and armory): the squad would be newly given a card the
-     * warrant withholds. A squad already holding that card keeps it, and its replacements are
-     * dressed from it as ever; a card no warrant names is never withheld.
-     */
-    private boolean withholdsNewCard(MarineSquad squad, String weaponDoctrineId, String armorDoctrineId) {
-        Set<String> withheld = withheldCardsOverride != null
-                ? withheldCardsOverride : MilitaryWarrants.liveWithheldCardIds();
-        if (withheld.isEmpty()) return false;
-        return (!weaponDoctrineId.equals(squad.weaponDoctrineId())
-                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.WEAPON, weaponDoctrineId).id()))
-                || (!armorDoctrineId.equals(squad.armorDoctrineId())
-                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.SHEET, armorDoctrineId).id()));
-    }
-
-    /** Replaces the campaign's withheld warrant cards, for a roster outside a running campaign. */
-    public void setWithheldCards(Set<String> cardIds) {
-        withheldCardsOverride = cardIds != null ? Set.copyOf(cardIds) : null;
+        return new SquadEquipmentPreview(SquadEquipmentResult.APPLIED, billets);
     }
 
     /** Fits known equipment without a material charge. */

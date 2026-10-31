@@ -21,8 +21,9 @@ import java.util.Set;
  *
  * <p>A warrant no longer gates acquisition: a Restricted card is sold in the company store, like
  * any other, once the campaign passes its Kit Ladder station ({@link EquipmentAcquisitionEligibility}).
- * What a warrant still does is hold the company to its obligations: a suspended or revoked
- * warrant withholds new fitting of the cards it names ({@link #withheldCardIds}). It names cards,
+ * Nor does it gate fitting: a card the company holds fits any squad, whatever a warrant's standing.
+ * What a warrant still does is hold the company to its obligations ({@link #withheldCardIds} names the
+ * cards of a suspended or revoked one). It names cards,
  * never a weapon, a suit or any other single piece of equipment. Holding a warrant teaches
  * nothing. It is not the
  * <em>civil-security procurement warrant</em> of the Agreus contracts, which is a contract
@@ -167,18 +168,11 @@ public final class MilitaryWarrants {
     }
 
     /**
-     * Every card a suspended or revoked warrant opens ({@code progression-nouns.md}, Kit and
-     * armory). These are not warranted for acquisition and are not issued to a squad that does
-     * not already hold them; a squad that does keeps its card.
+     * Every card a suspended or revoked warrant names ({@code progression-nouns.md}, Kit and
+     * armory). Neither acquisition nor fitting reads it: the obligation is the warrant's own record.
      */
     public static Set<String> withheldCardIds(CampaignState state) {
         return cardIds(state, true);
-    }
-
-    /** {@link #withheldCardIds} in the running campaign; empty outside one. */
-    public static Set<String> liveWithheldCardIds() {
-        CampaignStateScript script = Global.getSector() != null ? CampaignStateScript.getInstance() : null;
-        return script != null ? withheldCardIds(script.state()) : Set.of();
     }
 
     private static Set<String> cardIds(CampaignState state, boolean withheld) {

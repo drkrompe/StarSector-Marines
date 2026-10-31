@@ -5616,7 +5616,6 @@
 		"warrantObligationAuxiliaryStageTwo": "Hegemony procurement records the first honoured period of the auxiliary warrant. The warrant now opens the Hegemony Shock card.",
 		"warrantObligationRevoked": "{0} military warrant revoked: relations have fallen to hostile. Squads already holding its cards keep them; none may be acquired or given to another squad.",
 		"warrantObligationRegranted": "{0} has granted a fresh standing military warrant, replacing the one it revoked.",
-		"squadEquipmentWarrantSuspended": "A suspended or revoked military warrant withholds this card. Squads already holding it keep it; no other squad can be given it.",
 		"companyHqWarrantActive": "Active",
 		"companyHqWarrantSuspended": "Suspended",
 		"companyHqWarrantRevoked": "Revoked",

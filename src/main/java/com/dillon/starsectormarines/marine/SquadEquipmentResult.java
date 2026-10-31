@@ -10,7 +10,5 @@ public enum SquadEquipmentResult {
     UNKNOWN_ARMOR_DOCTRINE,
     /** The squad would be given a card the company has not collected. */
     UNKNOWN_CARD,
-    INSUFFICIENT_CARGO,
-    /** A suspended or revoked military warrant withholds a suit some occupant is not already wearing. */
-    WARRANT_SUSPENDED
+    INSUFFICIENT_CARGO
 }
