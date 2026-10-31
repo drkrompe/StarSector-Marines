@@ -120,8 +120,8 @@ DOLL_NOTES = {
     "warden": ["The 2x3 shoulders hold 2x2 LRM-5 (Frag) racks, leaving a spare row."],
     "heavy_apc": ["The one APC chassis: the convoy escort is this hull in heavy plating with a spall liner, not a doll of its own."],
     "fire_support_apc": ["No bay card: capacity 0, unlike the troop carrier on the same chassis."],
-    "breakthrough_tank": ["Two kit racks share four slots; the stock fit fills only the first, with its capacitor bank."],
-    "laser_tank": ["The stock flux parts (double bank, two vent arrays) fill three of the four rack slots across both racks."],
+    "breakthrough_tank": ["Two auxiliary bays share four slots; the stock fit fills only the first, with its capacitor bank."],
+    "laser_tank": ["The stock flux parts (double bank, two vent arrays) fill three of the four compartment slots across both bays."],
 }
 
 
@@ -494,7 +494,7 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
     # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
     pattern_src = (JAVA / "marine/MechPattern.java").read_text(encoding="utf-8")
     tiers = {}
-    for kind, name, tier in re.findall(r"(CHASSIS|WEAPON|VEHICLE|KIT)_TIERS\.put\(\w+\.(\w+),\s*EquipmentAccessTier\.(\w+)\)", pattern_src):
+    for kind, name, tier in re.findall(r"(CHASSIS|WEAPON|VEHICLE)_TIERS\.put\(\w+\.(\w+),\s*EquipmentAccessTier\.(\w+)\)", pattern_src):
         tiers[(kind, name)] = tier
     hw_src = (JAVA / "ops/battleview/HardwareArt.java").read_text(encoding="utf-8")
     doll_src = (JAVA / "ops/battleview/DamageDollCanvas.java").read_text(encoding="utf-8")
@@ -571,13 +571,6 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
         internal_tone = {"ENGINE": "ENGINE", "PLATING": "ARMOR", "CAPACITOR_BANK": "FLUX"}.get(role, "UTILITY")
         item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier,
              svg_uri("graphics/ui/mech-hardware/%s.svg" % internal_stem[enum]), internal_tone, ifp.get(enum))
-    for enum, key in re.findall(r'^\s+(\w+)\("kit\.[^"]+", "(@[^"]+)"', (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M):
-        tier = tiers.get(("KIT", enum))
-        if tier:
-            kit_id = re.search(r'^\s+%s\("(kit\.[^"]+)"' % enum, (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M).group(1)
-            item("mpart", "KIT", enum, text(key), "vehicle kit", tier,
-                 svg_uri("graphics/ui/mech-hardware/%s.svg" % kit_id.replace(".", "-")),
-                 "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX", (2, 1))
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 

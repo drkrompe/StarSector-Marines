@@ -135,7 +135,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             MechWeaponComponent[] guns = FITTED_GUNS;
             for (int i = 0; i < types.length; i++) {
                 float[] at = placement.openNear(5f + 4.4f * i, 7f);
-                long hull = sim.convoy().spawn(types[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, guns[i],
+                long hull = sim.convoy().spawn(types[i], VehiclePlating.FACTORY, VehicleEngine.STOCK, guns[i],
                         Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 sim.convoy().turret(hull).facingDeg = 25f - 10f * i;
@@ -154,7 +154,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             long[] hulls = new long[FITTED_TYPES.length];
             for (int i = 0; i < hulls.length; i++) {
                 float[] at = placement.openNear(5f + 4.4f * i, 7f);
-                hulls[i] = sim.convoy().spawn(FITTED_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                hulls[i] = sim.convoy().spawn(FITTED_TYPES[i], VehiclePlating.FACTORY, VehicleEngine.STOCK,
                         FITTED_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hulls[i]).teleport(at[0], at[1], 0f);
                 sim.convoy().turret(hulls[i]).facingDeg = 25f - 10f * i;
@@ -193,7 +193,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             BattleSimulation sim = world.sim();
             for (int i = 0; i < LIGHT_TYPES.length; i++) {
                 float[] at = placement.openNear(5f + 4.4f * i, 7f);
-                long hull = sim.convoy().spawn(LIGHT_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                long hull = sim.convoy().spawn(LIGHT_TYPES[i], VehiclePlating.FACTORY, VehicleEngine.STOCK,
                         LIGHT_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 sim.convoy().turret(hull).facingDeg = 25f - 10f * i;
@@ -217,7 +217,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             BattleSimulation sim = world.sim();
             for (int i = 0; i < 3; i++) {
                 float[] at = placement.openNear(12.5f, 7.5f + 5f * i);
-                long hull = sim.convoy().spawn(LIGHT_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                long hull = sim.convoy().spawn(LIGHT_TYPES[i], VehiclePlating.FACTORY, VehicleEngine.STOCK,
                         LIGHT_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 placement.subject("hull" + i, hull);
@@ -248,7 +248,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
                 boolean second = i >= 3;
                 float[] at = second ? placement.openNear(17.5f, 4.5f + 4.6f * (i - 3))
                         : placement.openNear(10.5f, 7.5f + 5f * i);
-                long hull = sim.convoy().spawn(VehicleType.LASER_TANK, List.of(), VehiclePlating.FACTORY,
+                long hull = sim.convoy().spawn(VehicleType.LASER_TANK, VehiclePlating.FACTORY,
                         VehicleEngine.STOCK, LASER_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 placement.subject("hull" + i, hull);
@@ -331,7 +331,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             SceneWorld world = builder.build();
             BattleSimulation sim = world.sim();
             float[] at = placement.openNear(10.5f, 12.5f);
-            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, List.of(), VehiclePlating.FACTORY,
+            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, VehiclePlating.FACTORY,
                     VehicleEngine.STOCK, MechWeaponComponent.CHAINGUN, Faction.MARINE,
                     VehicleMission.deployed(at[0], at[1]));
             sim.convoy().body(tank).teleport(at[0], at[1], 0f);

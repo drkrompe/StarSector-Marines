@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -107,7 +106,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
             boolean activeProtection = !wrecked && convoy.carriesActiveProtection(id);
             if (activeProtection && !APS_ON_TURRET.contains(type)) {
-                // The kit's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
+                // The active protection's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
                 LayeredSpriteCache aps = sprites.vehicleKitActiveProtection();
                 if (aps != null) {
                     out.addSprite(RenderLayer.CONVOY, aps.sprite, cx, cy, drawLong, drawShort, chassisFacingDeg,
@@ -349,8 +348,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     /**
-     * The hulls whose turret is the Onager's angular housing, on which the active-protection kit rides with the turret
-     * where the Parapet wore it; any other hull wears the kit on its deck.
+     * The hulls whose turret is the Onager's angular housing, on which active protection rides with the turret
+     * where the Parapet wore it; any other hull wears it on its deck.
      */
     private static final Set<VehicleType> APS_ON_TURRET = EnumSet.of(VehicleType.BREAKTHROUGH_TANK);
 

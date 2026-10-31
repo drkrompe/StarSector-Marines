@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
@@ -691,8 +692,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (vehicle == null) continue;
             Gantry gantry = gantries.get(index);
             float x = gantry.worldCenterX(), y = gantry.worldCenterY();
-            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.kits(), vehicle.plating(), Faction.MARINE,
-                    VehicleMission.deployed(x, y));
+            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.plating(), VehicleEngine.STOCK,
+                    vehicle.type().standardPart(), Faction.MARINE, VehicleMission.deployed(x, y));
             simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
             berthedVehicles[index] = hull;
             berthedVehicleIds[index] = vehicle.campaignId();

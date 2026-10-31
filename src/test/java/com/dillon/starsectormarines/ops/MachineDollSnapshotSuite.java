@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MechCompartment;
@@ -164,14 +163,12 @@ public final class MachineDollSnapshotSuite implements SnapshotSuite {
                 viewModel.installedInternal(SocketId.PLATING), viewModel.installedInternal(SocketId.CORE),
                 viewModel.installedWeapon(SocketId.ARMS)));
         if (socket.id().compartment()) {
-            row.put("kitSlots", VehicleKit.slots(type));
+            row.put("compartmentSlots", VehicleRack.slots(type));
             JSONArray holds = new JSONArray();
             for (VehicleRack.Placement part : rack) {
                 if (part.grid() != socket.id()) continue;
-                VehicleKit kit = part.part().kit();
-                MechInternal internal = part.part().internal();
-                holds.put(kit != null ? part(kit.id, kit.displayName(), part.columns(), part.rows())
-                        : part(internal.id, internal.displayName(), part.columns(), part.rows()));
+                MechInternal internal = part.internal();
+                holds.put(part(internal.id, internal.displayName(), part.columns(), part.rows()));
             }
             row.put("holds", holds);
         }

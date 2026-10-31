@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
@@ -46,7 +45,10 @@ public final class MechBay implements Serializable {
     private Map<String, Integer> ownedWeapons = new HashMap<>();
     /** Owned internal assemblies by {@link MechInternal#id}, installed copies included. */
     private Map<String, Integer> ownedInternals = new HashMap<>();
-    /** Vehicle kits owned, fitted and spare alike; null in a save from before kits. */
+    /**
+     * Vehicle kits owned in a save from before every kit became an internal: migration input only, read and emptied by
+     * {@link #readResolve}; null in a save from before kits.
+     */
     private Map<String, Integer> ownedKits = new HashMap<>();
     private String activeSquadId;
     private int nextFabricatedSerial = 1;
@@ -82,10 +84,6 @@ public final class MechBay implements Serializable {
         return internal != null && knowsPattern(MechPattern.of(internal).id());
     }
 
-    public boolean canFabricate(VehicleKit kit) {
-        return kit != null && knowsPattern(MechPattern.of(kit).id());
-    }
-
     public boolean knowsPattern(String patternId) {
         return patternId != null && knownPatternIds.contains(patternId);
     }
@@ -107,12 +105,12 @@ public final class MechBay implements Serializable {
 
     /**
      * What a pre-pattern save's unrestricted workshop could build: every chassis and weapon.
-     * Internals and vehicle kits did not exist then, so it gets only the stock internals and no kits.
+     * Internals did not exist then, so it gets only the stock internals.
      */
     private static Set<String> allPatternIds() {
         Set<String> ids = new LinkedHashSet<>();
         for (MechPattern pattern : MechPattern.all()) {
-            boolean later = pattern.kind() == MechPattern.Kind.INTERNAL || pattern.kind() == MechPattern.Kind.KIT;
+            boolean later = pattern.kind() == MechPattern.Kind.INTERNAL;
             if (!later || pattern.starter()) ids.add(pattern.id());
         }
         return ids;
@@ -248,8 +246,7 @@ public final class MechBay implements Serializable {
         for (String vehicleId : vehicleIds) {
             CampaignVehicle vehicle = removeVehicle(vehicleId);
             if (vehicle == null) continue;
-            // The kits on its rack, the plating at its armor point and the engine at its core go down with it.
-            for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+            // The parts in its compartment, the plating at its armor point and the engine at its core go down with it.
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
@@ -269,11 +266,10 @@ public final class MechBay implements Serializable {
         return mech != null && loseChassis(mech) ? mech : null;
     }
 
-    /** Takes a vehicle off its gantry into the reserve hangar, its kits, plating and engine with it; null when none holds it. */
+    /** Takes a vehicle off its gantry into the reserve hangar, its parts, plating and engine with it; null when none holds it. */
     CampaignVehicle stowVehicle(String vehicleId) {
         CampaignVehicle vehicle = removeVehicle(vehicleId);
         if (vehicle != null) {
-            for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
@@ -282,10 +278,9 @@ public final class MechBay implements Serializable {
         return vehicle;
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its kits, gun and internals again ({@link #addVehicle}). */
+    /** Puts a stored vehicle back on a vacant gantry and owns its gun and internals again ({@link #addVehicle}). */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
         if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
-        for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
         if (vehicle.gun() != null) addWeapon(vehicle.gun().id, 1);
         return true;
     }
@@ -380,7 +375,7 @@ public final class MechBay implements Serializable {
         return false;
     }
 
-    /** Breaks a vehicle up; its kits stay owned and are spares in stores again. */
+    /** Breaks a vehicle up; its parts stay owned and are spares in stores again. */
     public boolean scrapVehicle(String vehicleId) {
         return vehicleId != null && removeVehicle(vehicleId) != null;
     }
@@ -546,31 +541,6 @@ public final class MechBay implements Serializable {
         ownedInternals.merge(internalId, quantity, Integer::sum);
     }
 
-    public int ownedKit(String kitId) {
-        return Math.max(0, ownedKits.getOrDefault(kitId, 0));
-    }
-
-    /** Kits of {@code kitId} on a vehicle's rack, across every lance. */
-    public int installedKit(String kitId) {
-        VehicleKit kit = VehicleKit.findById(kitId);
-        if (kit == null) return 0;
-        int installed = 0;
-        for (CampaignMechSquad squad : squads) {
-            for (CampaignVehicle vehicle : squad.vehicles()) if (vehicle.kits().contains(kit)) installed++;
-        }
-        return installed;
-    }
-
-    public int availableKit(String kitId) {
-        return Math.max(0, ownedKit(kitId) - installedKit(kitId));
-    }
-
-    /** Acquisition seam for fabricated or recovered kits. */
-    public void addKit(String kitId, int quantity) {
-        if (VehicleKit.findById(kitId) == null || quantity <= 0) return;
-        ownedKits.merge(kitId, quantity, Integer::sum);
-    }
-
     /** Takes one spare weapon assembly out of stores; false, and nothing taken, when none is free. */
     public boolean takeWeapon(String componentId) {
         if (availableWeapon(componentId) <= 0) return false;
@@ -583,26 +553,6 @@ public final class MechBay implements Serializable {
         if (availableInternal(internalId) <= 0) return false;
         strike(ownedInternals, internalId);
         return true;
-    }
-
-    /** Takes one spare kit out of stores; false, and nothing taken, when none is free. */
-    public boolean takeKit(String kitId) {
-        if (availableKit(kitId) <= 0) return false;
-        strike(ownedKits, kitId);
-        return true;
-    }
-
-    /** Puts a spare {@code kit} on a vehicle's rack; false with no spare, no slot, or a hull it does not suit. */
-    public boolean fitKit(String vehicleId, VehicleKit kit) {
-        CampaignVehicle vehicle = vehicleById(vehicleId);
-        if (vehicle == null || kit == null || availableKit(kit.id) <= 0) return false;
-        return vehicle.fit(kit);
-    }
-
-    /** Takes {@code kit} off a vehicle's rack back to stores. */
-    public boolean stripKit(String vehicleId, VehicleKit kit) {
-        CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.remove(kit);
     }
 
     /**
@@ -785,12 +735,6 @@ public final class MechBay implements Serializable {
             destroyed += Math.max(0, ownedInternal(internalId) - installed);
             if (installed <= 0) ownedInternals.remove(internalId);
             else ownedInternals.put(internalId, installed);
-        }
-        for (String kitId : new ArrayList<>(ownedKits.keySet())) {
-            int installed = installedKit(kitId);
-            destroyed += Math.max(0, ownedKit(kitId) - installed);
-            if (installed <= 0) ownedKits.remove(kitId);
-            else ownedKits.put(kitId, installed);
         }
         return destroyed;
     }
@@ -1013,6 +957,7 @@ public final class MechBay implements Serializable {
         if (ownedKits == null) ownedKits = new HashMap<>();
         retireArmorKits();
         retireKitsToInternals();
+        ownedKits.clear();
         if (knownPatternIds == null) {
             knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
         }

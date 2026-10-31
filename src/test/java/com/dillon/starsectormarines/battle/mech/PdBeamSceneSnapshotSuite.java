@@ -115,7 +115,7 @@ public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
             MechWeaponComponent[] guns = {MechWeaponComponent.BL_2, MechWeaponComponent.BL_1};
             for (int i = 0; i < types.length; i++) {
                 float[] at = placement.openNear(SHOOTER_X, 8.5f + 6f * i);
-                long hull = sim.convoy().spawn(types[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                long hull = sim.convoy().spawn(types[i], VehiclePlating.FACTORY, VehicleEngine.STOCK,
                         guns[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 placement.subject("hull" + i, hull);

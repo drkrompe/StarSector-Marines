@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
@@ -59,11 +58,6 @@ public final class StoreSymbolCanvas {
                 return new Hardware(internal.footprintColumns, internal.footprintRows,
                         HardpointBricks.tone(internal.role),
                         (c, b) -> HardwareArt.draw(c, internal, b.left(), b.top(), b.width(), b.height(), 255));
-            }
-            case KIT -> {
-                VehicleKit kit = pattern.kit();
-                return new Hardware(2, 1, VehicleDoll.tone(kit),
-                        (c, b) -> HardwareArt.draw(c, kit, b.left(), b.top(), b.width(), b.height(), 255));
             }
         }
         return null;

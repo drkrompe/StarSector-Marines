@@ -492,7 +492,7 @@ class GroundVehicleTurretSystemTest {
             mount = VehicleGun.fit(type, gun);
             weapon = mount.mount.weapon;
             for (int y = 0; y < 96; y++) for (int x = 0; x < 96; x++) grid.setWalkableFloor(x, y);
-            id = roster.convoy().spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
+            id = roster.convoy().spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
                     Faction.MARINE, VehicleMission.deployed(20.5f, 20.5f));
             body = roster.convoy().body(id);
             body.facingDegrees = 0f;

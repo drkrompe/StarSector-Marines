@@ -387,7 +387,6 @@ final class StoreViewModel {
                     case WEAPON -> "mechPatternCardKindWeapon";
                     case INTERNAL -> "mechPatternCardKindInternal";
                     case VEHICLE -> "mechPatternCardKindVehicle";
-                    case KIT -> "mechPatternCardKindKit";
                 });
             }
             case BOAT_PART -> {
@@ -433,7 +432,6 @@ final class StoreViewModel {
                     case WEAPON -> "mechPatternCardWeaponUnlockFmt";
                     case INTERNAL -> "mechPatternCardInternalUnlockFmt";
                     case VEHICLE -> "mechPatternCardVehicleUnlockFmt";
-                    case KIT -> "mechPatternCardKitUnlockFmt";
                 }, pattern.displayName()));
                 if (pattern.weightClass() != null) {
                     text.append("\n\n").append(Strings.format("mechPatternCardWeightFmt",

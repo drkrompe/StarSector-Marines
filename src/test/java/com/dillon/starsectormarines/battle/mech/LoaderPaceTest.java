@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -76,9 +76,9 @@ class LoaderPaceTest {
 
     @Test
     void aVehiclesLoaderPacesTheHopperAndItsReadyRackDeepensTheBelt() {
-        VehicleKit.Effect kits = VehicleKit.Effect.NONE.with(MechCompartment.systems(List.of(MechInternal.READY_RACK)));
+        HullFitEffect fit = HullFitEffect.NONE.with(MechCompartment.systems(List.of(MechInternal.READY_RACK)));
         MissileReplenisherComponent loader = VehicleRack.loader(List.of(MechInternal.ACCELERATED_LOADER));
-        RotaryFeed feed = new RotaryFeed(GUN, loader.loaderFactor(), kits.ammoFactor());
+        RotaryFeed feed = new RotaryFeed(GUN, loader.loaderFactor(), fit.ammoFactor());
         assertEquals(150, feed.beltRounds(), "half again the rounds aboard");
         assertEquals(150, feed.def().belt());
         assertEquals(4f * LoaderPace.ACCELERATED, feed.def().refillPerSecond(), 1e-4f);

@@ -142,7 +142,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
                 for (int column = 0; column < 4; column++) {
                     float[] at = placement.openNear(6f + 6f * column, 5f + 6f * row);
                     float heading = 90f * column;
-                    long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[row], List.of(), VehiclePlating.FACTORY,
+                    long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[row], VehiclePlating.FACTORY,
                             VehicleEngine.STOCK, MechWeaponComponent.LIGHT_MACHINE_GUN, Faction.MARINE,
                             VehicleMission.deployed(at[0], at[1]));
                     sim.convoy().body(hull).teleport(at[0], at[1], heading);
@@ -182,7 +182,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
             for (int i = 0; i < MACHINE_GUN_HULLS.length; i++) {
                 float[] at = placement.openNear(5f + 8f * i, 6f);
                 float heading = 90f * i;
-                long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[i], List.of(), VehiclePlating.FACTORY,
+                long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[i], VehiclePlating.FACTORY,
                         VehicleEngine.STOCK, MechWeaponComponent.LIGHT_MACHINE_GUN, Faction.MARINE,
                         VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], heading);

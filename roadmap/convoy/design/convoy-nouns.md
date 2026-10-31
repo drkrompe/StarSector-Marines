@@ -318,7 +318,7 @@ compartment. An instance is the hull with one such loadout (`VehicleDeploymentSp
 a battle is set down from one through the same path (`ConvoyService.spawn(VehicleDeploymentSpec, …)`).
 The player designs instances in the Mech Lab, fitting parts to a hull the company owns. An
 encounter chooses its instances to hit the difficulty it wants: a deliberately weak one (stock
-engine, factory plating, an empty rack, a light part or none) as readily as a strong one, any
+engine, factory plating, an empty compartment, a light part or none) as readily as a strong one, any
 loadout the parts allow, not only a named fit. A named instance a mission or evidence reuses is a
 **stock fit** (`VehicleStockFit`, below: the convoy escort, the Parapet); it is a loadout with a
 name, never hull data, so a new named variant of a hull is a new fit, not a new `VehicleType`.
@@ -476,7 +476,7 @@ round. It applies to whichever plate the hit meets (above).
   alike: an aimed round, an arcing shell, a missile, a blast. A ballistic or
   arcing round's ground track runs from its shooter, and a top-attack round is
   not read as a roof hit: the anti-armor LRM already defeats a stock tank by
-  design, and the active-protection kit is that threat's answer. A
+  design, and active protection is that threat's answer. A
   blast is read from its firer, not from where it burst. A hit with no origin
   (unattributed or scripted damage, a shooter already gone) meets the hull's
   nominal plate on no arc, and no arc draws on the random stream.
@@ -608,12 +608,12 @@ standard loader's), the SRM rack 12 s, the cannon 10 s a volley, the MG and the
 mortar 6 s, the hover scout's Twin PE-1 4 s. The lasers' are quicker than their flux
 lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
 mech laser's is. Two parts make it an upgrade path, each competing for compartment
-room with the liner and the flux parts (`mechs-nouns.md`, vehicle kit): the **ready
-rack** kit deepens the magazine or a rotary gun's belt (a bigger spike) and the
+room with the liner and the flux parts (`mechs-nouns.md`, one machine, one part catalog): the **ready
+rack** deepens the magazine or a rotary gun's belt (a bigger spike) and the
 **accelerated loader**, in place of the standard one, cuts every pack's time to three quarters and feeds a rotary
 gun's hopper four thirds as fast (a better sustained rate, by the one loader rule,
 `mechs-nouns.md`, missile replenisher). A bigger bank or a
-vent array on the rack is the flux upgrade (hull flux, below).
+vent array in the compartment is the flux upgrade (hull flux, below).
 
 **Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a
 starship's weapons do, and a hull holds it in **one reservoir** as a mech does
@@ -626,7 +626,7 @@ own dissipation, with no faster vent. Where a hull carries more than one gun, th
 mount that best defeats the target's armor is offered the reservoir first
 (`MechFireOrder`). The reservoir's capacity and dissipation are frozen at the drop
 from the hull (`VehicleDeploymentSpec.flux`); a mount's data authors only what a
-round costs, and the frame is the bank and vent arrays on the hull's rack
+round costs, and the frame is the bank and vent arrays in the hull's compartment
 (`VehicleRack.frame`); an enemy hull runs its stock bank (`HullReservoir.stockFrame`). Flux is not the magazine, so a hull venting still reads as armed to
 every engagement question. How much a gun builds is its character:
 - **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
@@ -1513,7 +1513,7 @@ a ship's burst laser where the twin cannons were, the PL-3 pulse laser on the gr
 defence, because it barely marks a warship's plate; on the ground almost nothing it
 meets is plate like that. It is a rung of the tank line, not a point-defence system:
 it does not engage rounds in flight. Hostile rocket and shell interception stays
-with the hull systems built for it (the active-protection kit).
+with the hull systems built for it (active protection).
 
 **It does reach the air** (`TurretMountDef.engagesAir`, a mount law any vehicle gun
 may author). A hostile craft in the air within the gun's reach, with a clear line
@@ -1535,7 +1535,7 @@ flux hog, as it is in space: it fires far faster than it dissipates, so a sectio
 dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
 time long before the tank is dead. It is built with a bigger stock fit for that reason (owner, 2026-10-30;
 `VehicleRack.stockFit`): the double capacitor bank and two vent arrays, 120 flux at 9.5 a
-second, leaving one rack slot for a kit. The laser's flux cost is the mech part's
+second, leaving one compartment slot for another part. The laser's flux cost is the mech part's
 (`PL_3`), so the hull's fit, not the gun, is what sustains it. The flux is visible, as a starship's is: a purple
 haze thickens over the hull's radiator fins as it builds
 (`VehicleType.fluxVentAftCells`), and a venting hull blows a bright lavender plume
@@ -1676,7 +1676,7 @@ Acceptance is the `hover-line` scene:
 - Its sensor pair searches round the hull and puts a defender the hull cannot see into the
   side's picture.
 - `sensor-search`: a carrier's sensor pair, starting on the empty ground it faces, goes
-  round to find riflemen behind a wall; with no kit it finds nothing; and one sensor
+  round to find riflemen behind a wall; with no sensor pair it finds nothing; and one sensor
   shadows a tank driving a road beyond a long wall, keeping a spotter's call on it
   while the carrier fires.
 - The skimmer's drones launch, stay on the leash and fight. Its strike drone detonates on

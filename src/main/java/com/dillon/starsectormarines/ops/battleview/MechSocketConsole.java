@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -190,8 +189,8 @@ final class MechSocketConsole {
 
     /**
      * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
-     * mark and a SEALED tag; or a kit rack bay, its kits, capacitor bank and vent arrays at their packed places
-     * ({@link VehicleRack}), each lifted off by being dragged. A rack bay of an armed hull with no bank warns, as a
+     * mark and a SEALED tag; or an auxiliary compartment bay, its parts at their packed places
+     * ({@link VehicleRack}), each lifted off by being dragged. A compartment bay of an armed hull with no bank warns, as a
      * mech's compartment does: the hull cannot drop.
      *
      * @param parts the parts packed into this bay; empty for a sealed card
@@ -216,15 +215,13 @@ final class MechSocketConsole {
         HardpointBricks.drawEmpty(c, bricks, tone);
         if (rack) {
             for (VehicleRack.Placement part : parts) {
-                VehicleKit kit = part.part().kit();
-                MechInternal internal = part.part().internal();
+                MechInternal internal = part.internal();
                 HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
-                        kit != null ? VehicleDoll.tone(kit) : HardpointBricks.tone(internal.role));
+                        HardpointBricks.tone(internal.role));
                 float left = bricks.brickX(part.column()), top = bricks.brickY(part.row());
                 float width = bricks.span(part.columns(), bricks.brickWidth());
                 float height = bricks.span(part.rows(), bricks.brickHeight());
-                if (kit != null) HardwareArt.draw(c, kit, left, top, width, height, 255);
-                else HardwareArt.draw(c, internal, left, top, width, height, 255);
+                HardwareArt.draw(c, internal, left, top, width, height, 255);
             }
         } else {
             HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),

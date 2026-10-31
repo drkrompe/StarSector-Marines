@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.Locale;
 
 /**
  * Discoverable Mech Lab patterns and their credit prices. Parts are priced from their worth
- * ({@link #weaponValue}, {@link #internalValue}, {@link #kitValue}); chassis and vehicles are authored.
+ * ({@link #weaponValue}, {@link #internalValue}); chassis and vehicles are authored.
  */
 public final class MechFabricationCatalog {
 
@@ -74,9 +73,6 @@ public final class MechFabricationCatalog {
             internal(MechInternal.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
             internal(MechInternal.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
 
-    /** Bolt-on vehicle kits; bills are derived like a part's. */
-    private static final List<Recipe> KITS = List.of();
-
     /**
      * Prices sit beside the chassis of the same weight class: a hull is cheaper than a walker, and brings at least as much structure plus armor per credit as the class's mech (see
      * {@code armorEconomyEvidence}). The fire-support APC is the one deliberate exception per lift: it carries a
@@ -123,15 +119,6 @@ public final class MechFabricationCatalog {
 
     public static List<Recipe> internals() { return INTERNALS; }
 
-    public static List<Recipe> kits() { return KITS; }
-
-    public static Recipe kit(VehicleKit kit) {
-        for (Recipe recipe : KITS) {
-            if (recipe.kit() == kit) return recipe;
-        }
-        return null;
-    }
-
     public static Recipe internal(MechInternal internal) {
         for (Recipe recipe : INTERNALS) {
             if (recipe.internal() == internal) return recipe;
@@ -163,12 +150,12 @@ public final class MechFabricationCatalog {
 
     private static Recipe weapon(MechWeaponComponent component, String provenance) {
         return new Recipe("recipe." + component.id, null, provenance,
-                component, null, null, null, null, weaponCost(component));
+                component, null, null, null, weaponCost(component));
     }
 
     private static Recipe internal(MechInternal internal, String provenance) {
         return new Recipe("recipe." + internal.id, null, provenance,
-                null, null, internal, null, null, internalCost(internal));
+                null, null, internal, null, internalCost(internal));
     }
 
     /**
@@ -186,7 +173,7 @@ public final class MechFabricationCatalog {
         }
         frame -= internalCost(stock.engine()).credits();
         for (MechInternal part : stock.compartment()) frame -= internalCost(part).credits();
-        return new Recipe("recipe.chassis." + variant.id, null, provenance, null, variant, null, null, null,
+        return new Recipe("recipe.chassis." + variant.id, null, provenance, null, variant, null, null,
                 new FabricationCost(Math.max(MINIMUM_FRAME, frame)));
     }
 
@@ -195,16 +182,7 @@ public final class MechFabricationCatalog {
 
     private static Recipe vehicle(VehicleType type, String provenance, int credits) {
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
-                provenance, null, null, null, type, null, new FabricationCost(credits));
-    }
-
-    private static Recipe kit(VehicleKit kit, String provenance) {
-        return new Recipe("recipe." + kit.id, null, provenance, null, null, null, null, kit, kitCost(kit));
-    }
-
-    /** A kit is priced like a part: its tier's worth. */
-    private static FabricationCost kitCost(VehicleKit kit) {
-        return price(kitValue(kit));
+                provenance, null, null, null, type, new FabricationCost(credits));
     }
 
     /*
@@ -253,11 +231,6 @@ public final class MechFabricationCatalog {
         return base * tierMultiplier(internal.tier);
     }
 
-    /** A kit's worth in credits: a common bolt-on's, times its tier. */
-    public static float kitValue(VehicleKit kit) {
-        return 900f * tierMultiplier(MechPattern.of(kit).accessTier());
-    }
-
     private static FabricationCost weaponCost(MechWeaponComponent component) {
         return price(weaponValue(component));
     }
@@ -273,11 +246,10 @@ public final class MechFabricationCatalog {
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         MechInternal internal, VehicleType vehicle, VehicleKit kit, FabricationCost cost) {
+                         MechInternal internal, VehicleType vehicle, FabricationCost cost) {
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
             if (internal != null) return internal.displayName();
-            if (kit != null) return kit.displayName();
             if (vehicle != null) return CampaignVehicle.typeName(vehicle);
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());
@@ -287,7 +259,7 @@ public final class MechFabricationCatalog {
 
         public Recipe {
             int targets = (component != null ? 1 : 0) + (variant != null ? 1 : 0)
-                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0) + (kit != null ? 1 : 0);
+                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0);
             if (targets != 1) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");
             }

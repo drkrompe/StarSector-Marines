@@ -13,7 +13,8 @@ sheet with no suits, a missing string key), a real item with no placement, a bui
 kit-ladder.json, a Wayline free pick off Relief, a reel clip firing a weapon no *.weapon.json defines.
 
 Warnings (codes, so tools/kits/check-allow.json can accept one with a reason as "<code> <id>"):
-  carrier      a vehicle kit sold before any vehicle hull, or a mech part before any chassis
+  carrier      a machine part sold before any machine (a mech chassis or vehicle hull) can carry it, or a mech weapon
+               before any chassis
   restricted   a Restricted card placed on a station: the store still needs a warrant naming it
   start-tier   a start item above Common
   not-sold     an item on "none" with no story or encounter route found in code (hint: where it is referenced)
@@ -42,7 +43,7 @@ RANK = {"COMMON": 0, "ADVANCED": 1, "PRESTIGE": 2, "RESTRICTED": 3}
 NOT_KIT_PRIMARY = {"weapon.drone-pulse", "weapon.drone-ion"}
 # Files that only declare or place an item; a reference anywhere else is a route worth naming.
 DECLARING = {"SquadEquipmentDoctrines.java", "MechPattern.java", "MechVariant.java", "MechWeaponComponent.java",
-             "MechInternal.java", "VehicleType.java", "VehicleKit.java", "FirstRefit.java"}
+             "MechInternal.java", "VehicleType.java", "FirstRefit.java"}
 
 
 class Report:
@@ -138,9 +139,11 @@ def check(page=None, reel=None):
         st = it.get("station")
         if not st or st == "none":
             continue
-        need = first_vehicle if it["id"].startswith("kit:") else first_chassis
+        # One machine, one part catalog: an internal goes in a mech or a hull alike.
+        part = it["id"].startswith("internal:")
+        need = min(first_vehicle, first_chassis) if part else first_chassis
         if rank[st] < need:
-            what = "vehicle hull" if it["id"].startswith("kit:") else "mech chassis"
+            what = "mech chassis or vehicle hull" if part else "mech chassis"
             rep.warn("carrier", it["id"], "%s sells after %s, but no %s is sold before %s" % (it["name"], st, what, station_name.get(need, "never")))
 
     # Tiers against stations.
@@ -247,8 +250,8 @@ SAMPLE_LADDER = {
                    {"item": "loadout-card:weapon:wayline:steady", "station": "start"},
                    {"item": "loadout-card:weapon:weapons:b", "station": "none"},
                    {"item": "loadout-card:sheet:armor:d", "station": "start"},
-                   {"item": "mech-pattern:kit:kit.liner", "station": "start"}]}
-SAMPLE_ENUMS = {"kit": {"LINER": "kit.liner"}, "chassis": {}, "weapon": {}, "internal": {}, "vehicle": {}}
+                   {"item": "mech-pattern:internal:internal.liner", "station": "start"}]}
+SAMPLE_ENUMS = {"internal": {"LINER": "internal.liner"}, "chassis": {}, "weapon": {}, "vehicle": {}}
 
 
 def sample_cards():
@@ -269,7 +272,7 @@ def self_test():
 
     stations = ladder.stations(SAMPLE_LADDER)
     rows = ladder.rows(SAMPLE_LADDER, SAMPLE_ENUMS, stations)
-    expect("rows read page ids", [r["id"] for r in rows] == ["weapons:a", "wayline:steady", "weapons:b", "armor:d", "kit:LINER"])
+    expect("rows read page ids", [r["id"] for r in rows] == ["weapons:a", "wayline:steady", "weapons:b", "armor:d", "internal:LINER"])
     expect("rows read stations", [r["station"] for r in rows] == ["start", "start", "none", "start", "start"])
     bad = json.loads(json.dumps(SAMPLE_LADDER))
     bad["placements"][2]["station"] = "later"
@@ -287,14 +290,14 @@ def self_test():
     expect("patch adds rows", after.get("armor:c") == "relief")
     expect("patch is idempotent", kitdata.dump_ladder(once) == kitdata.dump_ladder(twice))
     expect("patch keeps blocks in campaign order",
-           [r["id"] for r in ladder.rows(once, SAMPLE_ENUMS, stations)] == ["wayline:steady", "weapons:b", "weapons:a", "armor:d", "armor:c", "kit:LINER"])
+           [r["id"] for r in ladder.rows(once, SAMPLE_ENUMS, stations)] == ["wayline:steady", "weapons:b", "weapons:a", "armor:d", "armor:c", "internal:LINER"])
     expect("patch with nothing changes nothing", kitdata.dump_ladder(ladder.patch(SAMPLE_LADDER, {}, {})) == kitdata.dump_ladder(SAMPLE_LADDER))
     expect("dump is LF, one placement a line", "\r" not in kitdata.dump_ladder(once)
            and kitdata.dump_ladder(once).count("\n") == len(once["stations"]) + len(once["placements"]) + 6)
     cards = sample_cards()
     expect("cards dump round-trips", kitdata.dump_cards(json.loads(kitdata.dump_cards(cards))) == kitdata.dump_cards(cards))
-    expect("page and game ids translate", kitdata.page_id("mech-pattern:kit:kit.liner", SAMPLE_ENUMS) == "kit:LINER"
-           and kitdata.game_id("kit:LINER", SAMPLE_ENUMS) == "mech-pattern:kit:kit.liner"
+    expect("page and game ids translate", kitdata.page_id("mech-pattern:internal:internal.liner", SAMPLE_ENUMS) == "internal:LINER"
+           and kitdata.game_id("internal:LINER", SAMPLE_ENUMS) == "mech-pattern:internal:internal.liner"
            and kitdata.game_id("armor:d", SAMPLE_ENUMS) == "loadout-card:sheet:armor:d"
            and kitdata.game_id("wayline:steady", SAMPLE_ENUMS) == "loadout-card:weapon:wayline:steady")
 

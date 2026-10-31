@@ -25,11 +25,10 @@ CARD_PREFIX = "loadout-card:"
 PATTERN_PREFIX = "mech-pattern:"
 # Placement blocks, in file order: a game-id prefix each.
 BLOCKS = [CARD_PREFIX + "weapon:", CARD_PREFIX + "sheet:", PATTERN_PREFIX + "chassis:", PATTERN_PREFIX + "weapon:",
-          PATTERN_PREFIX + "internal:", PATTERN_PREFIX + "vehicle:", PATTERN_PREFIX + "kit:"]
+          PATTERN_PREFIX + "internal:", PATTERN_PREFIX + "vehicle:"]
 # The page's pattern kinds and the Java enum each names.
 PATTERN_ENUMS = {"chassis": "battle/mech/MechVariant.java", "weapon": "battle/mech/MechWeaponComponent.java",
-                 "internal": "marine/MechInternal.java", "vehicle": "battle/vehicle/VehicleType.java",
-                 "kit": "battle/vehicle/VehicleKit.java"}
+                 "internal": "marine/MechInternal.java", "vehicle": "battle/vehicle/VehicleType.java"}
 # The closed set of reach conditions the game reads (UnlockStation.Reach), with the parameters each needs.
 REACH_TYPES = {"always": (), "storyMission": ("mission",), "arcBeat": ("arc", "beat")}
 ARC_BEATS = {
@@ -107,7 +106,7 @@ def load_cards(path=CARDS_JSON):
 # Ids.
 
 def pattern_ids(java=JAVA):
-    """{page kind: {ENUM: game definition id}} read from the five machine enums."""
+    """{page kind: {ENUM: game definition id}} read from the four machine enums."""
     out = {}
     for kind, rel in PATTERN_ENUMS.items():
         text = read(java / rel)

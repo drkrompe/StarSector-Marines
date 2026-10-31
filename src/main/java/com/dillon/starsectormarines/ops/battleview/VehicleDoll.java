@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -18,21 +17,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A vehicle's doll in the Mech Lab (mechs-nouns.md, vehicle kit): the mech schematic's shape with
+ * A vehicle's doll in the Mech Lab (mechs-nouns.md, one machine, one part catalog): the mech schematic's shape with
  * the engine in the middle, as on every machine, the turret ahead, the bay and the systems either
- * side and the kit rack behind. Every card but the rack, the engine core, the armor point and the gun card is sealed; it is derived
+ * side and the auxiliary compartment behind. Every card but the compartment, the engine core, the armor point and the gun card is sealed; it is derived
  * from the hull's type, never authored, so a new vehicle gets a doll by having a turret, seats or systems. The engine
  * core, the armor point and the gun card are live, as on a mech: they take the same engine, plating and weapon parts,
  * the gun card by the type and size of the gun the hull was built around ({@link VehicleGunCard}).
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
- * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the rack.</p>
+ * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the compartment.</p>
  */
 final class VehicleDoll {
 
     private VehicleDoll() { }
 
-    /** The cards a hull of {@code type} shows: the kit rack's bay or bays ({@link VehicleRack#grids}) near last. */
+    /** The cards a hull of {@code type} shows: the auxiliary compartment's bay or bays ({@link VehicleRack#grids}) near last. */
     static List<SocketDef> sockets(VehicleType type) {
         List<SocketDef> sockets = new ArrayList<>();
         sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
@@ -119,8 +118,8 @@ final class VehicleDoll {
 
     /**
      * A card's colour in the lab's hardware language ({@link HardpointBricks}): the engine core is
-     * engine blue; the turret its gun's hardpoint; the systems utility teal; the bay and the rack the
-     * auxiliary compartment's steel, the rack's kits bringing their own colours.
+     * engine blue; the turret its gun's hardpoint; the systems utility teal; the bay and the auxiliary
+     * compartment the compartment's steel, its parts bringing their own role's colours.
      */
     static Color tone(VehicleType type, SocketId card) {
         return switch (card) {
@@ -130,14 +129,6 @@ final class VehicleDoll {
             case PLATING -> HardpointBricks.OMNI;
             default -> HardpointBricks.AUXILIARY;
         };
-    }
-
-    /**
-     * A kit's colour: active protection is a hull system, as the systems card's are. A bank or vent array on
-     * the rack wears its own role's colour, as in a mech's compartment.
-     */
-    static Color tone(VehicleKit kit) {
-        return HardpointBricks.OMNI;
     }
 
     /**

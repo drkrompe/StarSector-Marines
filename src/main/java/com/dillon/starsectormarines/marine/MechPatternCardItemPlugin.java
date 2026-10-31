@@ -71,14 +71,12 @@ public final class MechPatternCardItemPlugin extends BaseSpecialItemPlugin {
             case WEAPON -> "mechPatternCardWeaponUnlockFmt";
             case INTERNAL -> "mechPatternCardInternalUnlockFmt";
             case VEHICLE -> "mechPatternCardVehicleUnlockFmt";
-            case KIT -> "mechPatternCardKitUnlockFmt";
         };
         String kindKey = switch (kind) {
             case CHASSIS -> "mechPatternCardKindChassis";
             case WEAPON -> "mechPatternCardKindWeapon";
             case INTERNAL -> "mechPatternCardKindInternal";
             case VEHICLE -> "mechPatternCardKindVehicle";
-            case KIT -> "mechPatternCardKindKit";
         };
         tooltip.addPara(MessageFormat.format(Strings.get(unlockKey),
                 pattern.displayName()), pad, Misc.getHighlightColor(), pattern.displayName());

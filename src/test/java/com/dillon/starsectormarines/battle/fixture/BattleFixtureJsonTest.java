@@ -542,9 +542,9 @@ class BattleFixtureJsonTest {
     }
 
     @Test
-    void aFittedVehicleRoundTripsItsKitsPlatingEngineAndGunAndAnAbsentFittingIsStock() throws Exception {
+    void aFittedVehicleRoundTripsItsPlatingEngineGunAndCompartmentAndAnAbsentFittingIsStock() throws Exception {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
-                List.of(), VehiclePlating.HEAVY, VehicleEngine.MILITARY,
+                VehiclePlating.HEAVY, VehicleEngine.MILITARY,
                 MechWeaponComponent.HC_10, List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
                 MechInternal.SENSOR_PAIR));
         BattleLaunchFixture fixture = new BattleLaunchFixture(
@@ -559,7 +559,7 @@ class BattleFixtureJsonTest {
 
         JSONObject frozen = encoded.getJSONObject("launch").getJSONArray("commandPowers").getJSONObject(0)
                 .getJSONArray("vehicleDeployments").getJSONObject(0);
-        frozen.remove("kits");
+        assertFalse(frozen.has("kits"), "every kit is an internal now, written in the compartment");
         frozen.remove("plating");
         frozen.remove("engine");
         frozen.remove("gun");

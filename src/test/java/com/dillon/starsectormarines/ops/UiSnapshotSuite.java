@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
@@ -2737,16 +2736,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-lab-recycle-weapons-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "recycle-weapons")),
-                new SnapshotArtifact("mech-lab-recycle-kits-1920x1080.png",
-                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits-recycle")),
+                new SnapshotArtifact("mech-lab-recycle-compartment-parts-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-compartment-recycle")),
                 new SnapshotArtifact("mech-lab-reserve-store-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-store")),
                 new SnapshotArtifact("mech-lab-reserve-strip-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-strip")),
                 new SnapshotArtifact("mech-lab-reserve-recalled-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-recalled")),
-                new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
-                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
+                new SnapshotArtifact("mech-vehicle-compartment-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-compartment")),
                 new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
                 new SnapshotArtifact("mech-vehicle-gun-1920x1080.png",
@@ -3039,12 +3038,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
         }
-        // A tank on the fourth pad, its factory bank, a vent array and a kit on its rack and a second kit spare in
-        // stores: the sealed doll and the two rack bays, with the stores listing the kits and the flux parts.
-        if ("vehicle-kits".equals(materialHint) || "vehicle-kits-recycle".equals(materialHint)) {
+        // A tank on the fourth pad, its factory bank, a vent array and a liner in its auxiliary compartment and a ready
+        // rack spare in stores: the sealed doll and the two compartment bays, with the stores listing the parts.
+        if ("vehicle-compartment".equals(materialHint) || "vehicle-compartment-recycle".equals(materialHint)) {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
-            for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
             bay.learnPattern(MechPattern.of(MechInternal.SPALL_LINER).id());
             bay.learnPattern(MechPattern.of(MechInternal.READY_RACK).id());
             bay.addInternal(MechInternal.SPALL_LINER.id, 1);

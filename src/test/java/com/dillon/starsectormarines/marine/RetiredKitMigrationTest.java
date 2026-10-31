@@ -34,7 +34,7 @@ class RetiredKitMigrationTest {
         CampaignVehicle technical = saved(VehicleType.MILITIA_TECHNICAL, List.of("kit.ready-rack"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
         assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), technical.rackInternals());
-        assertTrue(technical.kits().isEmpty(), "the Light hull is full with bank and loader; the kit is a spare");
+        assertTrue(((List<?>) get(technical, "kitIds")).isEmpty(), "the Light hull is full with bank and loader; the kit is a spare");
 
         CampaignVehicle truck = saved(VehicleType.SUPPLY_TRUCK, List.of(), List.of());
         assertTrue(truck.rackInternals().isEmpty(), "an unarmed hull had no loader to keep");
@@ -60,7 +60,7 @@ class RetiredKitMigrationTest {
         assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER,
                 MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR), tank.rackInternals(),
                 "every kit is the internal it became");
-        assertTrue(tank.kits().isEmpty());
+        assertTrue(((List<?>) get(tank, "kitIds")).isEmpty(), "no kit is left to read");
     }
 
     @Test
@@ -88,7 +88,7 @@ class RetiredKitMigrationTest {
         resolve.invoke(bay);
 
         assertEquals(before + 2, bay.ownedInternal(MechInternal.ACCELERATED_LOADER.id));
-        assertEquals(0, bay.ownedKit("kit.accelerated-loader"));
+        assertTrue(((Map<?, ?>) get(bay, "ownedKits")).isEmpty(), "no kit is left to read");
         assertEquals(1, bay.ownedInternal(MechInternal.SPALL_LINER.id), "a spare liner kit is a spare liner");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.ACCELERATED_LOADER).id()));
         assertFalse(bay.knownPatternIds().contains(MechPattern.PREFIX + "kit:kit.accelerated-loader"));

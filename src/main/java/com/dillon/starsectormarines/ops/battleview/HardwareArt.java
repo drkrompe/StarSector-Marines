@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
@@ -17,7 +16,7 @@ import java.util.Map;
  * highlight, laid over the hardware's coloured bricks so the hardpoint colour is the icon's
  * own ground (after MechWarrior 4's lab). Each drawing's viewBox matches its footprint, so it
  * fills the piece it sits on. Fragmentation racks are their rack plus a burst mark. A sealed vehicle
- * card ({@link VehicleDoll}) and each rack kit draw the same way.
+ * card ({@link VehicleDoll}) draws the same way.
  */
 final class HardwareArt {
     private static final String ROOT = "graphics/ui/mech-hardware/";
@@ -26,7 +25,6 @@ final class HardwareArt {
     private static final Map<MechWeaponComponent, SvgAsset> NOSE_ART = new EnumMap<>(MechWeaponComponent.class);
     private static final Map<MechInternal, SvgAsset> INTERNALS = new EnumMap<>(MechInternal.class);
     private static final Map<String, SvgAsset> VEHICLE = new HashMap<>();
-    private static final Map<VehicleKit, SvgAsset> KITS = new EnumMap<>(VehicleKit.class);
     private static SvgAsset fragMark;
     private static boolean loaded;
 
@@ -46,7 +44,6 @@ final class HardwareArt {
             INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
         }
         for (String stem : VehicleDoll.ART) VEHICLE.put(stem, SvgAsset.load(ROOT + stem + ".svg"));
-        for (VehicleKit kit : VehicleKit.values()) KITS.put(kit, SvgAsset.load(ROOT + stem(kit) + ".svg"));
         fragMark = SvgAsset.load(ROOT + "frag-mark.svg");
         loaded = true;
     }
@@ -55,17 +52,6 @@ final class HardwareArt {
     static boolean drawVehicle(CanvasContext c, String stem, float x, float y, float width, float height, int alpha) {
         preload();
         return draw(c, stem != null ? VEHICLE.get(stem) : null, x, y, width, height, alpha);
-    }
-
-    /** A rack kit's icon inside the box. */
-    static boolean draw(CanvasContext c, VehicleKit kit, float x, float y, float width, float height, int alpha) {
-        preload();
-        return draw(c, KITS.get(kit), x, y, width, height, alpha);
-    }
-
-    /** {@code kit.spall-liner} draws from {@code kit-spall-liner.svg}. */
-    static String stem(VehicleKit kit) {
-        return kit.id.replace('.', '-');
     }
 
     /** Draws the icon inside the box as the weapon looks off a mech (stores, a vehicle's card); false only for an empty box. */
@@ -124,7 +110,7 @@ final class HardwareArt {
             case FACTORY_PLATING -> "plating-factory";
             case COMPOSITE_PLATING -> "plating-composite";
             case HEAVY_PLATING -> "plating-heavy";
-            // The vehicle kits' drawings, the same part on every machine.
+            // The retired vehicle kits' drawings, the same part on every machine.
             case SPALL_LINER -> "kit-spall-liner";
             case READY_RACK -> "kit-ready-rack";
             case SENSOR_PAIR -> "kit-sensor-pair";

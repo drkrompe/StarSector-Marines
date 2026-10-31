@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
@@ -23,19 +23,19 @@ class VehiclePlatingTest {
     @Test
     void platingMovesTheArmorAlongTheHullsBandByTheMechsRuleAndOnlyAHeavyPlateSkirtsATrackedHull() {
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        VehicleKit.Effect composite = VehicleKit.Effect.of(List.of(), VehiclePlating.COMPOSITE, tank);
+        HullFitEffect composite = HullFitEffect.of(VehiclePlating.COMPOSITE, tank);
         assertEquals(1f + MechInternal.COMPOSITE_PLATING.armorFraction * (VehicleType.REFIT_ARMOR_FACTOR - 1f),
                 composite.armorFactor(), 1e-6f, "half the band");
         assertEquals(1.2f, composite.armorFactor(), 1e-6f);
         assertEquals(0f, composite.armorRatingBonus(), 1e-6f);
 
-        VehicleKit.Effect heavy = VehicleKit.Effect.of(List.of(), VehiclePlating.HEAVY, tank);
+        HullFitEffect heavy = HullFitEffect.of(VehiclePlating.HEAVY, tank);
         assertEquals(1.4f, heavy.armorFactor(), 1e-6f);
         assertEquals(2f, heavy.armorRatingBonus(), 1e-6f, "skirts on a tracked hull");
-        assertEquals(0f, VehicleKit.Effect.of(List.of(), VehiclePlating.HEAVY, VehicleType.HEAVY_APC)
+        assertEquals(0f, HullFitEffect.of(VehiclePlating.HEAVY, VehicleType.HEAVY_APC)
                 .armorRatingBonus(), 1e-6f, "an APC runs on wheels");
 
-        assertEquals(VehicleKit.Effect.NONE, VehicleKit.Effect.of(List.of(), VehiclePlating.FACTORY, tank));
+        assertEquals(HullFitEffect.NONE, HullFitEffect.of(VehiclePlating.FACTORY, tank));
     }
 
     @Test
@@ -113,7 +113,7 @@ class VehiclePlatingTest {
 
         assertEquals(2, bay.ownedInternal(MechInternal.COMPOSITE_PLATING.id));
         assertEquals(1, bay.ownedInternal(MechInternal.HEAVY_PLATING.id));
-        assertEquals(0, bay.ownedKit("kit.applique-plate"));
+        assertTrue(((Map<?, ?>) kits.get(bay)).isEmpty(), "no kit is left to read");
         assertEquals(1, bay.ownedInternal(MechInternal.SENSOR_PAIR.id), "the rest of the kits stay, as internals");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.COMPOSITE_PLATING).id()),
                 "a company that knew the kit knows its plating");

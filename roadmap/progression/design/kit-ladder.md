@@ -227,8 +227,8 @@ Errors: everything the game refuses at load (Data, Validation), a real item with
 no placement, the page's station list out of step with `kit-ladder.json`, a free
 pick off Relief, a clip firing a weapon no catalog defines.
 Warnings, each acceptable in `check-allow.json` as `"<code> <id>": "<reason>"`:
-`carrier` (a vehicle kit before any vehicle hull, a mech part before any
-chassis), `restricted` (a Restricted card on a station still needs a warrant),
+`carrier` (a machine part before any mech chassis or vehicle hull can carry it, a
+mech weapon before any chassis), `restricted` (a Restricted card on a station still needs a warrant),
 `start-tier`, `not-sold` (a `none` item, with where else the code names it),
 `stale` (changed since publish), `no-clip`, `no-upload`, `orphan-note`, and `gap`
 (the known code gaps below, which clear themselves once fixed).

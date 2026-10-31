@@ -360,7 +360,7 @@ class MechLabViewModelTest {
         assertEquals(1, viewModel.gantryDeployments().size());
         assertTrue(viewModel.slotRows().get().isEmpty());
         assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
-        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "no kit is known, so the rack lists only its compartment internals");
+        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "the auxiliary compartment lists only compartment parts");
         assertTrue(viewModel.categoryFilterPills().get().isEmpty());
         assertNull(viewModel.installedWeapon(SocketId.LEFT_ARM));
         assertNull(viewModel.socketDefinition(SocketId.LEFT_ARM));
@@ -479,7 +479,41 @@ class MechLabViewModelTest {
         assertTrue(viewModel.feedbackText().get().contains("fabricated"));
         assertTrue(resources.credits < 60_000);
         assertEquals(1, changes.get());
-        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "no kit is known, so the rack lists only its flux parts");
+        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "the auxiliary compartment lists only compartment parts");
+    }
+
+    @Test
+    void aPartAVehicleCannotTakeIsListedDisabledWithWhy() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        bay.learnPattern(MechPattern.of(MechInternal.READY_RACK).id());
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID,
+                new CampaignVehicle("support_vehicle_01", "Mule 01", VehicleType.SUPPLY_TRUCK)));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(1).select().run();
+        viewModel.selectSlot(SocketId.AUXILIARY);
+
+        MechLabViewModel.CatalogRow rack = catalogRow(viewModel, MechInternal.READY_RACK);
+        assertTrue(rack.actionDisabled(), "an unarmed truck has no gun for a ready rack to feed");
+        assertEquals(Strings.get("gearRequirementFedWeapon"), rack.actionHint());
+    }
+
+    @Test
+    void aPartAMechCannotTakeIsListedDisabledWithWhy() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        bay.learnPattern(MechPattern.of(MechInternal.READY_RACK).id());
+        for (MechMountSlot slot : MechMountSlot.values()) bay.stripWeapon(MechBay.STARTER_MECH_ID, slot);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.selectSlot(SocketId.AUXILIARY);
+
+        MechLabViewModel.CatalogRow rack = catalogRow(viewModel, MechInternal.READY_RACK);
+        assertTrue(rack.actionDisabled(), "a mech with no fed weapon has nothing for a ready rack to deepen");
+        assertEquals(Strings.get("gearRequirementFedWeapon"), rack.actionHint());
+    }
+
+    private static MechLabViewModel.CatalogRow catalogRow(MechLabViewModel viewModel, MechInternal part) {
+        return viewModel.catalogRows().get().stream().filter(row -> row.internalPreview() == part).findFirst()
+                .orElseThrow(() -> new AssertionError(part + " is not listed"));
     }
 
     private static boolean onlyRackParts(List<MechLabViewModel.CatalogRow> rows) {

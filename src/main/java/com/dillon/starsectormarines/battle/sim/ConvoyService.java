@@ -23,7 +23,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -94,9 +94,6 @@ public final class ConvoyService implements BodyCarrier {
      */
     private final Map<Long, MachineSystems> systems = new LinkedHashMap<>();
 
-    /** The kits on each hull's rack as it was set down, by entity id; only hulls that carry a kit are here. */
-    private final Map<Long, List<VehicleKit>> racks = new LinkedHashMap<>();
-
     /** Setup-time hook run once for every hull set down, so the battle can enrol it as a fog contributor. */
     private LongConsumer spawnSink;
 
@@ -124,7 +121,7 @@ public final class ConvoyService implements BodyCarrier {
      * {@code mission} (single-use — one mission, one spawn), the air-spawn shape.
      */
     public long spawn(VehicleType type, Faction faction, VehicleMission mission) {
-        return spawn(type, List.of(), faction, mission);
+        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), faction, mission);
     }
 
     /**
@@ -137,11 +134,11 @@ public final class ConvoyService implements BodyCarrier {
 
     /**
      * As above, an instance of a hull in any loadout ({@code convoy-nouns.md}, a vehicle instance is a hull and a
-     * loadout): its engine, plating, kits, gun card part and flux frame, deliberately weak or strong as an encounter
+     * loadout): its engine, plating, gun card part and compartment, deliberately weak or strong as an encounter
      * sets it. The spec's campaign identity is not read; a company vehicle drops through its own delivery.
      */
     public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
-        return spawn(loadout.type(), loadout.kits(), loadout.plating(), loadout.engine(), loadout.gun(),
+        return spawn(loadout.type(), loadout.plating(), loadout.engine(), loadout.gun(),
                 loadout.compartment(), faction, mission);
     }
 
@@ -152,35 +149,19 @@ public final class ConvoyService implements BodyCarrier {
     public long spawnFitted(VehicleType type, List<MechInternal> internals, Faction faction, VehicleMission mission) {
         List<MechInternal> compartment = new ArrayList<>(VehicleRack.stockFit(type));
         compartment.addAll(internals);
-        return spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), compartment,
+        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), compartment,
                 faction, mission);
     }
 
-    /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
-    public long spawn(VehicleType type, List<VehicleKit> kits, Faction faction, VehicleMission mission) {
-        return spawn(type, kits, VehiclePlating.FACTORY, faction, mission);
-    }
-
-    /** As above, in the plating its armor point holds ({@link VehiclePlating}). */
-    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, Faction faction,
-                      VehicleMission mission) {
-        return spawn(type, kits, plating, VehicleEngine.STOCK, faction, mission);
-    }
-
-    /** As above, running the engine its engine core holds ({@link VehicleEngine}). */
-    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
-                      Faction faction, VehicleMission mission) {
-        return spawn(type, kits, plating, engine, type.standardPart(), faction, mission);
-    }
-
     /**
-     * As above, with {@code weapon} in the gun card instead of the hull's own gun ({@link VehicleGun}); null for its own,
-     * or for a modular hull ({@link VehicleType#hasModularTurret}) for the bare ring, which has no gun and reads as a
-     * shot-away turret ({@link GroundTurret#removed}).
+     * As above, in the plating its armor point holds ({@link VehiclePlating}), running the engine its engine core holds
+     * ({@link VehicleEngine}), with {@code weapon} in the gun card instead of the hull's own gun ({@link VehicleGun});
+     * null for its own, or for a modular hull ({@link VehicleType#hasModularTurret}) for the bare ring, which has no gun
+     * and reads as a shot-away turret ({@link GroundTurret#removed}).
      */
-    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
+    public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
-        return spawn(type, kits, plating, engine, weapon, VehicleRack.stockFit(type), faction, mission);
+        return spawn(type, plating, engine, weapon, VehicleRack.stockFit(type), faction, mission);
     }
 
     /**
@@ -188,7 +169,7 @@ public final class ConvoyService implements BodyCarrier {
      * ({@link HullReservoir}; an armed hull with no bank runs its stock bank) and the loader that paces every magazine,
      * hopper and missile pack it carries ({@link VehicleRack#loader}; with none, its missile packs never come back).
      */
-    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
+    public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, List<MechInternal> compartment, Faction faction,
                       VehicleMission mission) {
         if (weapon == null) weapon = type.ownGun();
@@ -200,7 +181,7 @@ public final class ConvoyService implements BodyCarrier {
         }
         MissileReplenisherComponent loader = VehicleRack.loader(compartment);
         MachineSystems fittedSystems = MechCompartment.systems(compartment);
-        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type).with(fittedSystems);
+        HullFitEffect fitted = HullFitEffect.of(plating, type).with(fittedSystems);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 
@@ -266,7 +247,6 @@ public final class ConvoyService implements BodyCarrier {
         world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         entityIds.add(id);
         if (!fittedSystems.equals(MachineSystems.NONE)) systems.put(id, fittedSystems);
-        if (!kits.isEmpty()) racks.put(id, List.copyOf(kits));
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
@@ -304,12 +284,6 @@ public final class ConvoyService implements BodyCarrier {
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
         systems.remove(id);
-        racks.remove(id);
-    }
-
-    /** The kits on this hull's rack as it was set down; empty for a hull that carries none. */
-    public List<VehicleKit> kits(long id) {
-        return racks.getOrDefault(id, List.of());
     }
 
     /** What this hull's compartment makes of it beyond its frame; {@link MachineSystems#NONE} for a hull of neither. */

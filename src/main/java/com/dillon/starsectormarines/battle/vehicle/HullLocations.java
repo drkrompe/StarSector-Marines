@@ -73,14 +73,14 @@ public final class HullLocations {
 
     /** The locations a hull of {@code type} deploys with, around its turret section (null for none). */
     public static HullLocations of(VehicleType type, HullTurretSection turret) {
-        return of(type, turret, VehicleKit.Effect.NONE);
+        return of(type, turret, HullFitEffect.NONE);
     }
 
-    /** As above, with the plate and structure its kits add ({@link VehicleKit}). */
-    public static HullLocations of(VehicleType type, HullTurretSection turret, VehicleKit.Effect kits) {
+    /** As above, with the plate and structure its fit adds ({@link HullFitEffect}). */
+    public static HullLocations of(VehicleType type, HullTurretSection turret, HullFitEffect fit) {
         float turretArmor = turret != null ? turret.maxArmor() : 0f;
-        return new HullLocations(type.maxArmor * kits.armorFactor() - turretArmor, type.plateArmor(),
-                type.maxStructure * kits.structureFactor() * type.driveStructureShare(), type.driveHitShares(),
+        return new HullLocations(type.maxArmor * fit.armorFactor() - turretArmor, type.plateArmor(),
+                type.maxStructure * fit.structureFactor() * type.driveStructureShare(), type.driveHitShares(),
                 turret);
     }
 

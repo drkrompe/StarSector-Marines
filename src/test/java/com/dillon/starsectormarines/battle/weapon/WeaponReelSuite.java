@@ -389,7 +389,7 @@ public final class WeaponReelSuite implements SnapshotSuite {
                             (int) post[1] - placement.site().y0(), spec -> spec.moveSpeed(0f).attackRange(0f).attackDamage(0f));
                     return withTarget(placement, builder, tx, ty, true, world -> {
                         BattleSimulation sim = world.sim();
-                        long hull = sim.convoy().spawn(new VehicleDeploymentSpec(null, null, type, List.of(),
+                        long hull = sim.convoy().spawn(new VehicleDeploymentSpec(null, null, type,
                                         VehiclePlating.FACTORY, VehicleEngine.STOCK, gun),
                                 Faction.MARINE, VehicleMission.deployed(sx, sy));
                         float facing = AirBody.facingToward(1f, 0f);

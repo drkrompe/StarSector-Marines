@@ -90,7 +90,6 @@ public enum StoreSlot {
                         case PLATING -> MECH_ARMOR;
                         default -> MECH_EQUIPMENT;
                     };
-                    case KIT -> MECH_EQUIPMENT;
                 };
             }
             case BOAT_PART -> {

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -821,9 +820,6 @@ public final class BattleFixtureJson {
                     frozen.put("type", vehicle.type().name());
                     putNullable(frozen, "campaignId", vehicle.campaignId());
                     putNullable(frozen, "callsign", vehicle.callsign());
-                    JSONArray kits = new JSONArray();
-                    for (VehicleKit kit : vehicle.kits()) kits.put(kit.id);
-                    if (kits.length() > 0) frozen.put("kits", kits);
                     if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
                     if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     if (vehicle.gun() != null) frozen.put("gun", vehicle.gun().id);
@@ -916,16 +912,15 @@ public final class BattleFixtureJson {
             for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
                 JSONObject frozen = encodedVehicles.getJSONObject(j);
                 VehicleType vehicleType = enumValue(VehicleType.class, frozen.getString("type"), "vehicle type");
-                List<VehicleKit> kits = new ArrayList<>();
+                // A fixture from before every kit became an internal lists its kits; each is read as the internal it
+                // became (MechInternal.RETIRED_KITS), in the compartment.
                 List<MechInternal> retiredKits = new ArrayList<>();
                 JSONArray encodedKits = frozen.optJSONArray("kits");
                 for (int k = 0; encodedKits != null && k < encodedKits.length(); k++) {
                     String kitId = encodedKits.getString(k);
-                    VehicleKit kit = VehicleKit.findById(kitId);
                     MechInternal retired = MechInternal.RETIRED_KITS.get(kitId);
-                    if (kit != null) kits.add(kit);
-                    else if (retired != null) retiredKits.add(retired);
-                    else throw new IllegalArgumentException("Unknown vehicle kit: " + kitId);
+                    if (retired == null) throw new IllegalArgumentException("Unknown vehicle kit: " + kitId);
+                    retiredKits.add(retired);
                 }
                 List<MechInternal> compartment = new ArrayList<>();
                 JSONArray encodedCompartment = frozen.optJSONArray("compartment");
@@ -943,7 +938,7 @@ public final class BattleFixtureJson {
                 vehicles.add(new VehicleDeploymentSpec(
                         frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
                         frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
-                        vehicleType, kits,
+                        vehicleType,
                         frozen.has("plating")
                                 ? enumValue(VehiclePlating.class, frozen.getString("plating"), "vehicle plating")
                                 : VehiclePlating.FACTORY,

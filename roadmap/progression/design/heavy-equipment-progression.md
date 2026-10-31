@@ -673,8 +673,8 @@ being a tank-only gap.
   losing to a dedicated anti-armor fit is by design; the counter is something a
   company buys. It was first a rung, the **screened tank** (the Parapet): the breakthrough tank with active
   protection, a Prestige sidegrade on the tank line at Heavy lift. Since 2026-10-30 (owner: one tank, modular
-  heads) the system is a Prestige rack kit (`VehicleKit.ACTIVE_PROTECTION`, `convoy-nouns.md`, active protection
-  is a rack kit) and the Parapet is the Onager with it (`VehicleStockFit.PARAPET`); the system, its tuning and
+  heads) the system is a Prestige compartment part (`MechInternal.ACTIVE_PROTECTION`, once a rack kit;
+  `convoy-nouns.md`, active protection is a compartment part) and the Parapet is the Onager with it (`VehicleStockFit.PARAPET`); the system, its tuning and
   its cost in speed are unchanged, and `armorMatchup` reads the stock fit within a few seconds of the old hull's
   times with the same wins. The record below is of the hull as it was. Its bill is the breakthrough
   tank's plus machinery and rare metals for the launchers and their sensor

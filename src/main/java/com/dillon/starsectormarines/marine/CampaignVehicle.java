@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -19,15 +18,19 @@ import java.util.List;
  * <p>It shares the gantry with mechs and nothing else: no chassis or sockets. Its hull, turret and kinematics are
  * its {@link VehicleType}'s; what is fitted to it, as to a mech, is the engine at its engine core and the plating at
  * its armor point (each a {@link MechInternal} of its role), the weapon in its gun card (a
- * {@link MechWeaponComponent}), and on its rack the {@link VehicleKit}s beside the capacitor bank and vent arrays
- * that are its flux reservoir ({@link VehicleRack}). An armed hull is built with its stock bank.
+ * {@link MechWeaponComponent}), and in its auxiliary compartment the internals of the one part catalog: the capacitor
+ * bank and vent arrays that are its flux reservoir, its loader, and any liner, ready rack, sensor drones or active
+ * protection ({@link VehicleRack}). An armed hull is built with its stock bank.
  */
 public final class CampaignVehicle implements Serializable {
 
     private final String id;
     private String displayName;
     private final VehicleType type;
-    /** Kit ids on the rack, in fitted order; null in a save from before kits (an empty rack). */
+    /**
+     * Kit ids from a save from before every kit became an internal: migration input only, read and emptied by
+     * {@link #readResolve}; null in a save from before kits.
+     */
     private List<String> kitIds = new ArrayList<>();
     /**
      * The plating part at its armor point: every hull is built with factory plating, which is only ever replaced, as a
@@ -161,26 +164,6 @@ public final class CampaignVehicle implements Serializable {
         return VehiclePlating.of(plating());
     }
 
-    /** The kits on the rack, in fitted order. */
-    public List<VehicleKit> kits() {
-        List<VehicleKit> kits = new ArrayList<>();
-        if (kitIds != null) {
-            for (String id : kitIds) {
-                VehicleKit kit = VehicleKit.findById(id);
-                if (kit != null) kits.add(kit);
-            }
-        }
-        return List.copyOf(kits);
-    }
-
-    /** Whether {@code kit} would go on the rack: room for it, not already fitted, and suiting the hull. */
-    public boolean canFit(VehicleKit kit) {
-        if (kit == null) return false;
-        List<VehicleKit> proposed = new ArrayList<>(kits());
-        proposed.add(kit);
-        return VehicleRack.fits(type, proposed, rackInternals());
-    }
-
     /** The internals in the auxiliary compartment, in fitted order. */
     public List<MechInternal> rackInternals() {
         List<MechInternal> parts = new ArrayList<>();
@@ -194,15 +177,15 @@ public final class CampaignVehicle implements Serializable {
     }
 
     /**
-     * Whether {@code part} would go on the rack: a bank, vent array or loader with room for it. A bank or loader where
+     * Whether {@code part} would go in the compartment: a part the hull meets the requirements of, with room for it. A bank or loader where
      * one is fitted goes in its place, as on a mech.
      */
     public boolean canFitRack(MechInternal part) {
         if (!VehicleRack.takes(type, gun(), part)) return false;
-        return VehicleRack.fits(type, gun(), kits(), withRackPart(part));
+        return VehicleRack.fits(type, gun(), withRackPart(part));
     }
 
-    /** Puts {@code part} on the rack, a bank replacing the bank fitted; false when it would not go. */
+    /** Puts {@code part} in the compartment, a bank replacing the bank fitted; false when it would not go. */
     boolean fitRack(MechInternal part) {
         if (!canFitRack(part)) return false;
         List<String> ids = new ArrayList<>();
@@ -211,7 +194,7 @@ public final class CampaignVehicle implements Serializable {
         return true;
     }
 
-    /** Takes one {@code part} off the rack; false when it was not there. Without a bank the hull is incomplete. */
+    /** Takes one {@code part} out of the compartment; false when it was not there. Without a bank the hull is incomplete. */
     boolean removeRack(MechInternal part) {
         return part != null && rackInternalIds != null && rackInternalIds.remove(part.id);
     }
@@ -223,7 +206,7 @@ public final class CampaignVehicle implements Serializable {
         return parts;
     }
 
-    /** Whether the hull may drop: an engine in its core and, on an armed hull, a capacitor bank on its rack. */
+    /** Whether the hull may drop: an engine in its core and, on an armed hull, a capacitor bank in its compartment. */
     public boolean complete() {
         return missingInternals().isEmpty();
     }
@@ -234,19 +217,6 @@ public final class CampaignVehicle implements Serializable {
         if (engine() == null) missing.add(MechInternal.Role.ENGINE);
         if (!VehicleRack.complete(type, rackInternals())) missing.add(MechInternal.Role.CAPACITOR_BANK);
         return List.copyOf(missing);
-    }
-
-    /** Puts {@code kit} on the rack; false when it would not go. */
-    public boolean fit(VehicleKit kit) {
-        if (!canFit(kit)) return false;
-        if (kitIds == null) kitIds = new ArrayList<>();
-        kitIds.add(kit.id);
-        return true;
-    }
-
-    /** Takes {@code kit} off the rack; false when it was not there. */
-    public boolean remove(VehicleKit kit) {
-        return kit != null && kitIds != null && kitIds.remove(kit.id);
     }
 
     /** Changes only the player-facing callsign; identity and hull stay intact. */
@@ -264,7 +234,7 @@ public final class CampaignVehicle implements Serializable {
 
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
-        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier(), gun(),
+        return new VehicleDeploymentSpec(id, displayName, type, platingTier(), engineTier(), gun(),
                 rackInternals());
     }
 
@@ -284,6 +254,7 @@ public final class CampaignVehicle implements Serializable {
         retireKitsToInternals();
         if (fitVersion < 1) fitTheSealedLoader();
         if (fitVersion < 2) fitTheHullsOwnEngineAndPlate();
+        kitIds.clear();
         fitVersion = FIT_VERSION;
         return this;
     }
@@ -313,7 +284,7 @@ public final class CampaignVehicle implements Serializable {
     /**
      * A save from before the loader was a part: an armed hull had a sealed stock loader, so it now carries the standard
      * loader in its compartment unless a retired accelerated-loader kit already put one there. Where that no longer packs,
-     * kits come off last-fitted first, then the compartment's other parts last-fitted first (vent arrays, and the
+     * the compartment's other parts come off last-fitted first (vent arrays, and the
      * liner or ready rack a retired kit became), as spares in stores (the bay owns what it held), so nothing owned is
      * lost and the hull keeps the bank and loader it always had.
      */
@@ -321,11 +292,7 @@ public final class CampaignVehicle implements Serializable {
         if (!type.hasTurretWeapon()) return;
         if (rackInternals().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
         rackInternalIds.add(MechInternal.STANDARD_LOADER.id);
-        while (!VehicleRack.fits(type, kits(), rackInternals())) {
-            if (!kitIds.isEmpty()) {
-                kitIds.remove(kitIds.size() - 1);
-                continue;
-            }
+        while (!VehicleRack.fits(type, rackInternals())) {
             int spare = -1;
             for (int i = rackInternalIds.size() - 1; i >= 0 && spare < 0; i--) {
                 MechInternal part = MechInternal.findById(rackInternalIds.get(i));

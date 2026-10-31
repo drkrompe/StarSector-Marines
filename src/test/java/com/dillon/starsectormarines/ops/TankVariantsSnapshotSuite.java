@@ -9,8 +9,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -41,7 +41,7 @@ import java.util.Set;
 
 /**
  * The breakthrough hull and its variants side by side, live and wrecked, then the same
- * line in a short gun-range fight. Art review: the Parapet's interceptor kit, the laser
+ * line in a short gun-range fight. Art review: the Parapet's active protection, the laser
  * tank's ship-mounted emitter and the dozer must read as different tanks at game scale, and their
  * guns must leave from the drawn muzzle.
  */
@@ -50,11 +50,11 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
             VehicleType.DOZER_BREACHER);
     /**
-     * The rack each hull of the line is set down with: the Parapet is the Onager with active protection. Read when a
-     * view is drawn, not when the suite is discovered: the stock fits need the turret catalog installed.
+     * What each hull of the line carries beside its stock compartment: the Parapet is the Onager with active
+     * protection ({@link VehicleStockFit#PARAPET}).
      */
-    private static List<List<VehicleKit>> lineKits() {
-        return List.of(List.of(), VehicleStockFit.PARAPET.kits, List.of(), List.of());
+    private static List<List<MechInternal>> lineParts() {
+        return List.of(List.of(), List.of(MechInternal.ACTIVE_PROTECTION), List.of(), List.of());
     }
     private static final List<String> NAMES = List.of(
             "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "PULSE-LASER TANK", "DOZER BREACHER");
@@ -83,8 +83,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<Long> wrecks = new ArrayList<>();
             for (int i = 0; i < LINE.size(); i++) {
                 float x = 10 + i * 11;
-                live.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, x, 26, 90, 90));
-                wrecks.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, x, 13, 90, 90));
+                live.add(spawn(sim, LINE.get(i), lineParts().get(i), Faction.MARINE, x, 26, 90, 90));
+                wrecks.add(spawn(sim, LINE.get(i), lineParts().get(i), Faction.MARINE, x, 13, 90, 90));
                 labels.label(x, 21.5f, NAMES.get(i), ReviewStyle.NOTE);
                 labels.label(x, 8.5f, NAMES.get(i) + " / WRECK", ReviewStyle.NOTE);
             }
@@ -310,7 +310,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             for (int i = 0; i < LINE.size(); i++) {
                 float[] at = openSpot(sim, lead.x - fx * 4, lead.y - fy * 4, taken);
                 posts.add(at);
-                line.add(spawn(sim, LINE.get(i), lineKits().get(i), Faction.MARINE, at[0], at[1], heading, heading));
+                line.add(spawn(sim, LINE.get(i), lineParts().get(i), Faction.MARINE, at[0], at[1], heading, heading));
             }
             float cx = 0, cy = 0;
             for (float[] at : posts) { cx += at[0] / posts.size(); cy += at[1] / posts.size(); }
@@ -414,10 +414,10 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         return id;
     }
 
-    /** As above, with {@code kits} on its rack and its own gun. */
-    private static long spawn(BattleSimulation sim, VehicleType type, List<VehicleKit> kits, Faction faction,
+    /** As above, with {@code parts} in its compartment beside its stock ones, and its own gun. */
+    private static long spawn(BattleSimulation sim, VehicleType type, List<MechInternal> parts, Faction faction,
                               float x, float y, float hull, float turret) {
-        long id = sim.convoy().spawn(type, kits, faction, VehicleMission.deployed(x, y));
+        long id = sim.convoy().spawnFitted(type, parts, faction, VehicleMission.deployed(x, y));
         sim.convoy().body(id).teleport(x, y, hull);
         if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = turret;
         return id;
@@ -426,7 +426,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     /** A hull with a mech weapon fitted in its gun card, parked as {@link #spawn} parks one. */
     private static long spawnFitted(BattleSimulation sim, VehicleType type, MechWeaponComponent gun,
                                     float x, float y, float hull, float turret) {
-        long id = sim.convoy().spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
+        long id = sim.convoy().spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
                 Faction.MARINE, VehicleMission.deployed(x, y));
         sim.convoy().body(id).teleport(x, y, hull);
         if (sim.convoy().turret(id) != null) sim.convoy().turret(id).facingDeg = turret;

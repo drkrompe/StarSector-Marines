@@ -52,7 +52,7 @@ public class ConvoyServiceTest {
         UnitRosterService r = roster();
         ConvoyService convoy = r.convoy();
         long stock = convoy.spawn(VehicleType.LRM_CARRIER, Faction.MARINE, mission());
-        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, VehiclePlating.FACTORY, VehicleEngine.STOCK,
                 MechWeaponComponent.SRM_5, Faction.MARINE, mission());
 
         assertSame(VehicleType.LRM_CARRIER.turretStructure(), convoy.turretStructure(stock));
@@ -65,7 +65,7 @@ public class ConvoyServiceTest {
     public void aHullFightsAsItsFittedWeaponAsksAndAsItsTypeStatesOtherwise() {
         ConvoyService convoy = roster().convoy();
         long stock = convoy.spawn(VehicleType.LRM_CARRIER, Faction.MARINE, mission());
-        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, VehiclePlating.FACTORY, VehicleEngine.STOCK,
                 MechWeaponComponent.PL_2_AP, Faction.MARINE, mission());
 
         assertEquals(VehicleType.Stance.STANDOFF, convoy.engagementStance(stock));
@@ -79,7 +79,7 @@ public class ConvoyServiceTest {
         VehicleStockFit fit = VehicleStockFit.CONVOY_ESCORT;
         long bare = convoy.spawn(fit.type, Faction.ALLY, mission());
         long fitted = convoy.spawn(fit, Faction.ALLY, mission());
-        long same = convoy.spawn(fit.type, fit.kits, fit.plating, fit.engine, fit.type.standardPart(), fit.compartment,
+        long same = convoy.spawn(fit.type, fit.plating, fit.engine, fit.type.standardPart(), fit.compartment,
                 Faction.ALLY, mission());
 
         assertSame(fit.type, convoy.vehicleType(fitted));

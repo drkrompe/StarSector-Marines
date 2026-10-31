@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.marine.VehicleRack;
+import com.dillon.starsectormarines.marine.MachineCapabilities;
 import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
@@ -302,7 +303,7 @@ public final class MechLabViewModel {
                 SocketId slot = selectedSlot.get();
                 return slot == SocketId.PLATING || slot == SocketId.CORE ? slot.label()
                         : slot == SocketId.ARMS ? Strings.get("vehicleDollTurret")
-                        : Strings.get("openingMechLabKitRack");
+                        : Strings.get("gearSocketAuxiliary");
             }
             CampaignMech mech = selectedMech();
             if (mech != null && browsingStores.get()) return Strings.get("openingMechLabAllParts");
@@ -1033,7 +1034,7 @@ public final class MechLabViewModel {
     }
 
     /**
-     * The vehicles on the pads after the lance's mechs, in pad order, with their kits; none while one
+     * The vehicles on the pads after the lance's mechs, in pad order, as fitted; none while one
      * pad stands for the selected mech alone.
      */
     public List<VehicleDeploymentSpec> gantryVehicles() {
@@ -1409,7 +1410,7 @@ public final class MechLabViewModel {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingRule")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineRule")
                     : selectedSlot.get() == SocketId.ARMS ? gunRule(vehicle.type())
-                    : Strings.format("openingMechLabVehicleKitRule", rackRows(vehicle), VehicleRack.slots(vehicle.type()));
+                    : Strings.format("openingMechLabVehicleCompartmentRule", rackRows(vehicle), VehicleRack.slots(vehicle.type()));
         }
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
         SocketDef definition = selectedSocketDefinition();
@@ -1423,17 +1424,13 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
-        // A vehicle's bay and systems are sealed: its engine, plating, gun and kit rack are fitted.
+        // A vehicle's bay and systems are sealed: its engine, plating, gun and auxiliary compartment are fitted.
         if (selectedVehicle() != null) {
             return switch (selectedSlot.get()) {
                 case PLATING -> platingCatalog(selectedVehicle());
                 case CORE -> engineCatalog(selectedVehicle());
                 case ARMS -> gunCatalog(selectedVehicle());
-                default -> {
-                    List<CatalogRow> rack = new ArrayList<>(rackPartCatalog(selectedVehicle()));
-                    rack.addAll(kitCatalog(selectedVehicle()));
-                    yield List.copyOf(rack);
-                }
+                default -> rackPartCatalog(selectedVehicle());
             };
         }
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
@@ -1639,10 +1636,13 @@ public final class MechLabViewModel {
     /**
      * Internals for one role: a part appears when its pattern is known or a copy is owned,
      * the way weapons do. Socket fit, the engine budget, stores and materials decide whether
-     * the row can commit; {@link MechWorkshop#fitInternal} rechecks all of it.
+     * the row can commit; {@link MechWorkshop#fitInternal} rechecks all of it. A part whose
+     * requirements the mech does not meet ({@link MechInternal#unmet}) is listed disabled, its
+     * hint saying why.
      */
     private List<CatalogRow> internalCatalog(CampaignMech mech, MechInternal.Role role) {
         List<CatalogRow> rows = new ArrayList<>();
+        MachineCapabilities capabilities = MachineCapabilities.of(mech);
         MechFrameBudget.Fit fit = mech.fit();
         MechInternal current = mech.internal(role);
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
@@ -1682,8 +1682,10 @@ public final class MechLabViewModel {
             // Every part is dragged onto its mount, the armor point's plate as the engine onto the core.
             boolean offerFab = !locked && !inCargo;
             String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
-            String actionHint = affordable ? Strings.get("openingMechLabFabHint") : shortHint();
-            disabled = !offerFab || !affordable;
+            MechInternal.Requirement unmet = internal.unmet(capabilities);
+            String actionHint = unmet != null ? unmet.reason()
+                    : affordable ? Strings.get("openingMechLabFabHint") : shortHint();
+            disabled = unmet != null || !offerFab || !affordable;
 
             String base = "mech-catalog:" + internal.id;
             boolean showMaterials = offerFab;
@@ -1704,58 +1706,17 @@ public final class MechLabViewModel {
     }
 
     /**
-     * The kits a vehicle's rack can take: every kit with a spare or a known pattern. A spare is fitted
-     * from its row (a rack has no mount to drop on, as plating has none), a pattern built from it.
-     */
-    private List<CatalogRow> kitCatalog(CampaignVehicle vehicle) {
-        List<CatalogRow> rows = new ArrayList<>();
-        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.kits()) {
-            VehicleKit kit = recipe.kit();
-            int free = bay.availableKit(kit.id);
-            boolean locked = !bay.canFabricate(kit);
-            if (locked && free == 0) continue;
-            boolean installed = vehicle.kits().contains(kit);
-            boolean suits = kit.suits(vehicle.type());
-            boolean fits = vehicle.canFit(kit);
-            boolean inCargo = free > 0;
-            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
-            boolean fitFromRow = inCargo && !installed;
-            boolean offerFab = !locked && !inCargo;
-            String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
-                    : offerFab ? Strings.get("openingMechLabFab") : "";
-            String actionHint = installed ? Strings.get("openingMechLabKitOnRack")
-                    : !suits ? Strings.get("openingMechLabKitUnsuited")
-                    : fitFromRow && !fits ? Strings.get("openingMechLabKitRackFull")
-                    : fitFromRow ? Strings.get("openingMechLabKitSpareHint")
-                    : affordable ? Strings.get("openingMechLabFabHint")
-                    : shortHint();
-            boolean disabled = fitFromRow ? !fits : !offerFab || !affordable;
-
-            String base = "mech-catalog:" + kit.id;
-            FabricationCost back = inCargo ? workshop.kitRecovery(kit) : null;
-            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
-            rows.add(catalogRow(base, "catalog-preview hidden", null, null, null, null,
-                    offerFab ? "catalog-row requires-fabrication" : "catalog-row", kit.displayName(),
-                    FittedBadge.label(installed), FittedBadge.classes(installed),
-                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
-                    Strings.get("vehicleKitEffect" + kit.name()), "", "catalog-delta hidden",
-                    Strings.get("openingMechLabKitDetail"), actionLabel, actionHint,
-                    disabled, materials, offerFab ? "material-costs" : recoveryClasses(back),
-                    fitFromRow ? () -> fitKit(kit) : () -> fabricateKit(kit), null,
-                    recycleButton(base, back, () -> workshop.recycleKit(kit), kit.displayName())));
-        }
-        return List.copyOf(rows);
-    }
-
-    /**
-     * The capacitor banks, vent arrays and loaders a vehicle's rack can take, the mech's own parts (a vehicle is a mech
-     * for parts): every one with a spare or a known pattern, dragged onto the rack as onto a mech's compartment.
+     * The parts a vehicle's auxiliary compartment can hold, the mech's own (one machine, one part catalog): every
+     * compartment part with a spare or a known pattern, dragged into the compartment as into a mech's. A part whose
+     * requirements the hull does not meet ({@link MechInternal#unmet}) is listed disabled, its hint saying why.
      */
     private List<CatalogRow> rackPartCatalog(CampaignVehicle vehicle) {
         List<CatalogRow> rows = new ArrayList<>();
+        MachineCapabilities capabilities = MachineCapabilities.of(vehicle);
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
             MechInternal part = recipe.internal();
-            if (!VehicleRack.takes(vehicle.type(), vehicle.gun(), part)) continue;
+            if (!part.role.compartment()) continue;
+            MechInternal.Requirement unmet = part.unmet(capabilities);
             int free = bay.availableInternal(part.id);
             boolean locked = !bay.canFabricate(part);
             if (locked && free == 0) continue;
@@ -1765,8 +1726,9 @@ public final class MechLabViewModel {
             boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
             boolean offerFab = !locked && !inCargo;
             String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
-            String actionHint = installed ? Strings.get("openingMechLabRackPartOnHull")
-                    : inCargo && !vehicle.canFitRack(part) ? Strings.get("openingMechLabKitRackFull")
+            String actionHint = unmet != null ? unmet.reason()
+                    : installed ? Strings.get("openingMechLabRackPartOnHull")
+                    : inCargo && !vehicle.canFitRack(part) ? Strings.get("openingMechLabCompartmentFull")
                     : inCargo ? Strings.get("openingMechLabRackPartSpareHint")
                     : affordable ? Strings.get("openingMechLabFabHint")
                     : shortHint();
@@ -1794,23 +1756,24 @@ public final class MechLabViewModel {
                     effect, "", "catalog-delta hidden",
                     Strings.format("openingMechLabRackPartDetail", part.footprintColumns, part.footprintRows),
                     actionLabel, actionHint,
-                    !offerFab || !affordable, materials, offerFab ? "material-costs" : recoveryClasses(back),
+                    unmet != null || !offerFab || !affordable, materials,
+                    offerFab ? "material-costs" : recoveryClasses(back),
                     () -> fabricateInternal(part), null,
                     recycleButton(base, back, () -> workshop.recycleInternal(part), part.displayName())));
         }
         return List.copyOf(rows);
     }
 
-    /** Slots the vehicle's rack has taken: a row a kit, and a bank or vent array its footprint's rows. */
+    /** Rows the vehicle's compartment parts take, each its footprint's rows. */
     private static int rackRows(CampaignVehicle vehicle) {
-        int rows = vehicle.kits().size();
+        int rows = 0;
         for (MechInternal part : vehicle.rackInternals()) rows += part.footprintRows;
         return rows;
     }
 
-    /** What a vehicle is set down with: its plating and the kits on its rack. */
-    private static VehicleKit.Effect effect(CampaignVehicle vehicle) {
-        return VehicleKit.Effect.of(vehicle.kits(), vehicle.platingTier(), vehicle.type());
+    /** What a vehicle's plating makes of it at the drop. */
+    private static HullFitEffect effect(CampaignVehicle vehicle) {
+        return HullFitEffect.of(vehicle.platingTier(), vehicle.type());
     }
 
     /**
@@ -1979,7 +1942,7 @@ public final class MechLabViewModel {
     public List<VehicleRack.Placement> installedRack() {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle == null) return List.of();
-        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.kits(), vehicle.rackInternals());
+        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.rackInternals());
         return placed != null ? placed : List.of();
     }
 
@@ -2012,42 +1975,10 @@ public final class MechLabViewModel {
         return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
-    /** The kits on the selected vehicle's rack, in fitted order; empty for a mech or nothing. */
-    public List<VehicleKit> installedKits() {
-        CampaignVehicle vehicle = selectedVehicle();
-        return vehicle != null ? vehicle.kits() : List.of();
-    }
-
     /** The selected vehicle's hull, for the sealed doll; null when a mech or nothing is selected. */
     public VehicleType selectedVehicleType() {
         CampaignVehicle vehicle = selectedVehicle();
         return vehicle != null ? vehicle.type() : null;
-    }
-
-    /** Bolts a spare kit to the selected vehicle's rack. */
-    public boolean fitKit(VehicleKit kit) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || kit == null) return false;
-        MechWorkshop.Result result = workshop.fitKit(vehicle.id(), kit);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabKitBolted", kit.displayName())
-                : Strings.get("openingMechLabKitBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
-    }
-
-    /** Takes a kit off the selected vehicle's rack back to stores, from its X on the doll. */
-    public boolean removeKit(VehicleKit kit) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || kit == null) return false;
-        MechWorkshop.Result result = workshop.stripKit(vehicle.id(), kit);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabKitUnbolted", kit.displayName())
-                : Strings.get("openingMechLabKitBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
-    }
-
-    private void fabricateKit(VehicleKit kit) {
-        applyFabricated(workshop.fabricateKit(kit), kit.displayName());
     }
 
     /** Spares in stores, or that the row is a known pattern with none built. */
@@ -2922,28 +2853,28 @@ public final class MechLabViewModel {
         return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");
     }
 
-    private static String vehicleSummary(VehicleType type, VehicleKit.Effect kits) {
-        return Strings.format("openingMechLabVehicleSummary", number(Math.round(type.maxStructure * kits.structureFactor())),
-                number(Math.round(type.maxArmor * kits.armorFactor())), number(type.armorRating + kits.armorRatingBonus()),
+    private static String vehicleSummary(VehicleType type, HullFitEffect fit) {
+        return Strings.format("openingMechLabVehicleSummary", number(Math.round(type.maxStructure * fit.structureFactor())),
+                number(Math.round(type.maxArmor * fit.armorFactor())), number(type.armorRating + fit.armorRatingBonus()),
                 number(type.maxSpeed), type.capacity);
     }
 
     /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
     /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
     private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix) {
-        return vehicleMeters(type, prefix, VehicleKit.Effect.NONE);
+        return vehicleMeters(type, prefix, HullFitEffect.NONE);
     }
 
-    /** As above, with what the kits on its rack add over the bare hull. */
-    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix, VehicleKit.Effect kits) {
-        float structure = Math.round(type.maxStructure * kits.structureFactor());
-        float armor = Math.round(type.maxArmor * kits.armorFactor());
+    /** As above, with what its fit adds over the bare hull. */
+    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix, HullFitEffect fit) {
+        float structure = Math.round(type.maxStructure * fit.structureFactor());
+        float armor = Math.round(type.maxArmor * fit.armorFactor());
         return List.of(
                 meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(structure),
                         structure, vehicleMaximum(t -> t.maxStructure), structure, type.maxStructure, FittingMeter.NEUTRAL_TONE),
                 meter(prefix + "armor", Strings.get("openingMechLabArmor"),
                         Strings.format("openingMechLabVehicleArmor", number(armor),
-                                number(type.armorRating + kits.armorRatingBonus())),
+                                number(type.armorRating + fit.armorRatingBonus())),
                         armor, vehicleMaximum(t -> t.maxArmor), armor, type.maxArmor, FittingMeter.NEUTRAL_TONE),
                 meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
                         type.maxSpeed, vehicleMaximum(t -> t.maxSpeed), type.maxSpeed),

@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -26,12 +25,12 @@ class VehicleRackTest {
     @Test
     void aHeavyRackIsTwoBaysAndAFullOneSpillsIntoTheSecond() {
         VehicleType heavy = VehicleType.BREAKTHROUGH_TANK;
-        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, List.of(), List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, List.of(MechInternal.FACTORY_CAPACITOR_BANK,
                 MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR, MechInternal.ACTIVE_PROTECTION));
         assertNotNull(placed);
         assertEquals(SocketId.AUXILIARY, placed.get(0).grid());
         assertTrue(placed.stream().anyMatch(p -> p.grid() == SocketId.AUXILIARY_2));
-        assertFalse(VehicleRack.fits(heavy, List.of(), List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+        assertFalse(VehicleRack.fits(heavy, List.of(MechInternal.FACTORY_CAPACITOR_BANK,
                 MechInternal.AUXILIARY_VENT_ARRAY, MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR,
                 MechInternal.ACTIVE_PROTECTION)));
     }
@@ -39,14 +38,14 @@ class VehicleRackTest {
     @Test
     void theMilitaryBankFillsOneHeavyBayWhole() {
         VehicleType laser = VehicleType.LASER_TANK;
-        List<VehicleRack.Placement> placed = VehicleRack.pack(laser, List.of(), List.of(MechInternal.MILITARY_CAPACITOR_BANK));
+        List<VehicleRack.Placement> placed = VehicleRack.pack(laser, List.of(MechInternal.MILITARY_CAPACITOR_BANK));
         assertNotNull(placed);
         VehicleRack.Placement bank = placed.get(0);
         assertEquals(SocketId.AUXILIARY, bank.grid());
         assertEquals(2, bank.columns());
         assertEquals(2, bank.rows());
         // It cannot go on a Light hull's single 2x2 bay beside another part.
-        assertFalse(VehicleRack.fits(VehicleType.MILITIA_TECHNICAL, List.of(),
+        assertFalse(VehicleRack.fits(VehicleType.MILITIA_TECHNICAL,
                 List.of(MechInternal.MILITARY_CAPACITOR_BANK, MechInternal.SPALL_LINER)));
     }
 
@@ -75,7 +74,7 @@ class VehicleRackTest {
     void everyArmedHullsStockFitPacksAndIsItsStockFrame() {
         for (VehicleType type : VehicleType.values()) {
             List<MechInternal> fit = VehicleRack.stockFit(type);
-            assertNotNull(VehicleRack.pack(type, List.of(), fit), type + "'s stock fit packs");
+            assertNotNull(VehicleRack.pack(type, fit), type + "'s stock fit packs");
             assertEquals(HullReservoir.stockFrame(type), VehicleRack.frame(fit), type + "'s stock frame");
         }
     }
@@ -108,11 +107,11 @@ class VehicleRackTest {
     void theLoaderIsACompartmentPartEveryArmedHullIsBuiltWithAndEmptyMeansNone() {
         VehicleType light = VehicleType.MILITIA_TECHNICAL;
         assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), VehicleRack.stockFit(light));
-        assertFalse(VehicleRack.fits(light, List.of(),
+        assertFalse(VehicleRack.fits(light,
                         List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
                                 MechInternal.AUXILIARY_VENT_ARRAY)),
                 "a Light hull is full with bank and loader, as a Hound is");
-        assertFalse(VehicleRack.fits(VehicleType.HEAVY_APC, List.of(),
+        assertFalse(VehicleRack.fits(VehicleType.HEAVY_APC,
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
                         MechInternal.ACCELERATED_LOADER)), "one loader a compartment");
         assertTrue(VehicleRack.takes(unarmed(), MechInternal.ACCELERATED_LOADER), "a loader needs nothing of the hull");

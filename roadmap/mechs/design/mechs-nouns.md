@@ -340,7 +340,9 @@ increasing an encounter's total armored threat.
     the live hull or mech: on a mech, one overlay per chassis in its sprite's registration, turning with the
     torso (anchors in the overlay build, LayeredMechAppearance.FLAG_ACTIVE_PROTECTION).
   A save's retired kit ids, spares and learned kit patterns read as these internals
-  (`MechInternal.RETIRED_KITS`).
+  (`MechInternal.RETIRED_KITS`), as does a launch fixture's `kits` list. In the Mech Lab a compartment's catalog
+  lists every compartment part the company can build or holds, on a mech and a hull alike; a part the machine
+  does not meet is listed disabled, its hint the unmet requirement's reason (`MechInternal.Requirement.reason`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): every hull
@@ -369,8 +371,8 @@ increasing an encounter's total armored threat.
   (`VehicleGun`): the carriage (traverse, loader, hit shares) and the hull's flux reservoir stay the hull's, the weapon
   fires with the range, damage and cadence it has on a mech, its pulls are the magazine (a weapon with no limit
   on a mech has none here: a mount authored with no capacity never runs dry, and only its flux limits it) and a
-  round costs its flux in the hull's own reservoir. Kits keep reading the hull's
-  own gun, so any kit that suits a hull suits whatever it carries. The weapon is the turret: it is drawn as
+  round costs its flux in the hull's own reservoir. A compartment part's requirements read the weapon in the
+  card (`MachineCapabilities.of`), so a beam there leaves a ready rack nothing to feed. The weapon is the turret: it is drawn as
   its own mech drawing on a turret mount ring (`VehicleGunArt`, a `gun-mount-<finish>.png` by hull class, `TurretMountStyle`), in place of the hull's turret,
   or by a roof drawing of its own where it has one (`VehicleGunArt.vehicleDrawingPath`: the light machine gun on a pintle,
   `pintle-lmg.png`, art in `art-source/vehicles/pintle-lmg/`), cut with its barrel on the sprite's centre column so it
@@ -407,7 +409,7 @@ increasing an encounter's total armored threat.
   when its empty armor point was its own plate wears factory plating.
   The drop carries the tier (`VehiclePlating`), so the battle sees a factor, never a
   part. The armor point stands under the rest of the doll, wired to nothing, and the
-  kit rack no longer holds armor (the appliqué plate and spaced skirts were retired
+  auxiliary compartment holds no armor (the appliqué plate and spaced skirts, once rack kits, were retired
   into composite and heavy plating; a save converts the fitted ones with their
   vehicle, and the spares and learned patterns with the bay).
 - The **bay manifest** is the active squad's bay spaces frozen at launch: its
@@ -1744,7 +1746,7 @@ support sortie, subject only to practical runtime resources.
   The complete well is the pointer target. Catalog art can be dragged onto a
   compatible mount, installed weapons can move to a compatible vacant mount, and
   dropping them over stores returns them to finite inventory. A carried part
-  (weapon, internal or kit) is never drawn nowhere: over a socket that takes it,
+  (a weapon or an internal) is never drawn nowhere: over a socket that takes it,
   or the one it came off, it is drawn snapped into that socket a little
   translucent; anywhere else, a refusing socket included, it rides the pointer
   above the document. Escape or an outside drop cancels the gesture.
@@ -1858,8 +1860,7 @@ support sortie, subject only to practical runtime resources.
 - Everything the lab builds has one credit **price** (`company-view-nouns.md`, Price).
   **Hardware is priced, not authored.** A weapon is worth its mass (footprint, tier
   weight and heavy build) at a common rate, times its access tier; an internal is
-  worth its role's stock part, times its tier; a kit is a common bolt-on's worth
-  times its tier. A bigger or rarer part therefore costs more without a second
+  worth its role's stock part, times its tier. A bigger or rarer part therefore costs more without a second
   table to keep in step with the first (`MechFabricationCatalog.weaponValue`).
   Chassis and vehicle prices stay authored, because they carry the armor-per-credit
   parity between hulls and walkers; a chassis is sold as a bare frame, its standard-fit

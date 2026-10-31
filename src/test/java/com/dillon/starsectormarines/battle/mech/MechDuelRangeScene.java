@@ -226,7 +226,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
         Faction tankSide = tankOrdered ? Faction.MARINE : Faction.DEFENDER;
         VehicleMission deployed = VehicleMission.deployed(tankX + 0.5f, MID_Y + 0.5f);
         long tank = kind == VehicleCase.TANK_UNORDERED
-                ? sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, List.of(), VehiclePlating.FACTORY,
+                ? sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, VehiclePlating.FACTORY,
                         VehicleEngine.STOCK, OUT_REACHING_GUN, tankSide, deployed)
                 : sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, tankSide, deployed);
         sim.convoy().body(tank).teleport(tankX + 0.5f, MID_Y + 0.5f, tankOrdered ? 0f : 180f);

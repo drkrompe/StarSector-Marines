@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,38 +137,6 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED);
     }
 
-    /** Builds one vehicle kit into the bay's stores against its known pattern. */
-    public Result fabricateKit(VehicleKit kit) {
-        if (kit == null) return Result.of(Status.INVALID);
-        if (!bay.canFabricate(kit)) return Result.of(Status.PATTERN_LOCKED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.kit(kit);
-        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
-            return Result.of(Status.INSUFFICIENT_MATERIALS);
-        }
-        bay.addKit(kit.id, 1);
-        return Result.of(Status.FABRICATED);
-    }
-
-    /** Puts a spare kit on a vehicle's rack. Kits fit from stores only; building one is its own step. */
-    public Result fitKit(String vehicleId, VehicleKit kit) {
-        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
-        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
-        if (vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_INSTALLED);
-        if (!vehicle.canFit(kit)) return Result.of(Status.INCOMPATIBLE);
-        if (bay.availableKit(kit.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
-        return bay.fitKit(vehicleId, kit) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
-                : Result.of(Status.INVALID);
-    }
-
-    /** Takes a kit off a vehicle's rack back to stores. */
-    public Result stripKit(String vehicleId, VehicleKit kit) {
-        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
-        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
-        if (!vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripKit(vehicleId, kit) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
-    }
-
     /**
      * Puts a capacitor bank or vent array on a vehicle's rack from stores, as on a mech's compartment: a bank goes in
      * place of the one fitted, which goes back to stores.
@@ -196,7 +163,7 @@ public final class MechWorkshop {
     }
 
     /**
-     * Puts a plating part at a vehicle's armor point from stores, as a kit is fitted: building one is its own
+     * Puts a plating part at a vehicle's armor point from stores, as a compartment part is fitted: building one is its own
      * step. The plate it replaces goes back to stores.
      */
     public Result fitPlating(String vehicleId, MechInternal plating) {
@@ -350,11 +317,6 @@ public final class MechWorkshop {
         return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
     }
 
-    public FabricationCost kitRecovery(VehicleKit kit) {
-        MechFabricationCatalog.Recipe recipe = kit == null ? null : MechFabricationCatalog.kit(kit);
-        return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
-    }
-
     /**
      * Breaks one spare weapon assembly in stores down for credits, at the machine
      * shop's share of what building one costs now. A fitted copy is never a spare.
@@ -367,11 +329,6 @@ public final class MechWorkshop {
     public Result recycleInternal(MechInternal internal) {
         if (internal == null) return Result.of(Status.INVALID);
         return recycle(bay.availableInternal(internal.id), internalRecovery(internal), () -> bay.takeInternal(internal.id));
-    }
-
-    public Result recycleKit(VehicleKit kit) {
-        if (kit == null) return Result.of(Status.INVALID);
-        return recycle(bay.availableKit(kit.id), kitRecovery(kit), () -> bay.takeKit(kit.id));
     }
 
     /** The purse is paid before the spare leaves stores, so a fleet with no purse keeps it. */
@@ -423,7 +380,7 @@ public final class MechWorkshop {
 
     /**
      * What scrapping {@code vehicleId} would return, or null when it returns nothing: the
-     * machine shop's share of today's quote. A vehicle is bought whole with no kits, so its
+     * machine shop's share of today's quote. A vehicle is bought whole with its stock compartment, so its
      * whole price is hull.
      */
     public FabricationCost vehicleSalvage(String vehicleId) {

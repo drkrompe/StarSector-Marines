@@ -1,6 +1,6 @@
 # Screened tank variant (retired hull; the active-protection kit's source)
 
-The Parapet is no longer a hull: active protection is a rack kit (`VehicleKit.ACTIVE_PROTECTION`) and the Parapet is
+The Parapet is no longer a hull: active protection is a compartment part (`MechInternal.ACTIVE_PROTECTION`) and the Parapet is
 the Onager with it (`VehicleStockFit.PARAPET`). Its sheet no longer ships. These ImageGen sources stay as the kit's
 art source: `pack.py` now writes only the live turret frame to
 `art-source/vehicles/kit-active-protection/screened-turret-frame.png`, and that folder's `build.py` lifts the

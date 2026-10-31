@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -88,14 +88,14 @@ class MachinePartRequirementsTest {
 
     @Test
     void aHullsCompartmentIsTwoThreeOrFourRowsByWeight() {
-        assertEquals(2, VehicleKit.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has two rows");
-        assertEquals(3, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull three");
-        assertEquals(4, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
+        assertEquals(2, VehicleRack.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has two rows");
+        assertEquals(3, VehicleRack.slots(VehicleType.HEAVY_APC), "a Medium hull three");
+        assertEquals(4, VehicleRack.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
         List<MechInternal> full = new ArrayList<>(VehicleRack.stockFit(VehicleType.FIRE_SUPPORT_APC));
         full.add(MechInternal.SPALL_LINER);
-        assertTrue(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, List.of(), full));
+        assertTrue(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, full));
         full.add(MechInternal.SENSOR_PAIR);
-        assertFalse(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, List.of(), full), "bank, loader and liner fill it");
+        assertFalse(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, full), "bank, loader and liner fill it");
     }
 
     @Test
@@ -103,7 +103,7 @@ class MachinePartRequirementsTest {
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
         HullLocations bare = HullLocations.of(tank, null);
         HullLocations lined = HullLocations.of(tank, null,
-                VehicleKit.Effect.NONE.with(MechCompartment.systems(List.of(MechInternal.SPALL_LINER))));
+                HullFitEffect.NONE.with(MechCompartment.systems(List.of(MechInternal.SPALL_LINER))));
         assertEquals(bare.maxDrive() * 1.2f, lined.maxDrive(), 1e-3f, "the drive's share of the larger structure");
     }
 }
