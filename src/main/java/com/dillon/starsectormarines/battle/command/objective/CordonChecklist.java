@@ -73,8 +73,10 @@ public final class CordonChecklist {
                 if (bores != null) items.add(bores);
             }
             int[] rally = cordon.rally();
-            if (cordon.fallingBack() && rally != null) {
-                items.add(fallBack(cordon.outcome(), cordon.withdrawn(), rally));
+            boolean offered = cordon.pullOutOffered() && !cordon.fallingBack();
+            if ((cordon.fallingBack() || offered) && rally != null) {
+                items.add(fallBack(cordon.outcome(), offered, cordon.withdrawn(), rally,
+                        cordon.pullOut() == null ? List.of() : cordon.pullOut().cells()));
             }
         } else {
             List<Post> posts = new ArrayList<>();
@@ -217,20 +219,36 @@ public final class CordonChecklist {
                 markers, state == State.ACTIVE ? id : "");
     }
 
-    /**
-     * The Road's last row once the town is finished, Fall back behind the line: beaconed at the rally place behind the
-     * line, complete once the company is behind it.
-     */
+    /** The fall-back row with no pull-out zone and nothing offered. */
     static Item fallBack(CordonSequence.Outcome outcome, boolean withdrawn, int[] rally) {
+        return fallBack(outcome, false, withdrawn, rally, List.of());
+    }
+
+    /**
+     * The Road's last row ({@code cordon-nouns.md}, The pull-out), beaconed at the pull-out zone (its cells the beacon's
+     * footprint; the rally place where there is none). While pulling out is {@code offered} and not yet ordered it is
+     * the warning that the company has done enough and tells the player how to pull out: order a squad to the zone.
+     * Once the company is falling back it asks for every squad behind the line and some in the zone, complete once
+     * they are.
+     */
+    static Item fallBack(CordonSequence.Outcome outcome, boolean offered, boolean withdrawn, int[] rally,
+                         List<int[]> zone) {
         State state = withdrawn || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
                 : outcome == CordonSequence.Outcome.BROKEN ? State.FAILED : State.ACTIVE;
         String id = "cordon-rally";
-        String phase = Strings.get(state == State.ACTIVE ? "cordonHudFallBackPhase" : "cordonHudFallBackDone");
-        List<Marker> markers = List.of(new Marker(id, Strings.get("cordonHudRally"), rally[0], rally[1], phase, state));
-        return new Item("cordon-3-fall-back", Strings.get("cordonHudFallBackName"), state, phase,
-                Strings.get("cordonHudFallBackSteps"), Strings.get("cordonHudFallBackInstruction"), "", -1,
-                state == State.ACTIVE ? Strings.get("cordonHudBlockerFallBack") : "", markers,
-                state == State.ACTIVE ? id : "");
+        String phase = state != State.ACTIVE ? Strings.get("cordonHudFallBackDone")
+                : Strings.get(offered ? "cordonHudPullOutOffered" : "cordonHudFallBackPhase");
+        List<Cell> footprint = new ArrayList<>();
+        for (int[] c : zone) footprint.add(new Cell(c[0], c[1]));
+        String name = Strings.get(zone.isEmpty() ? "cordonHudRally" : "cordonHudPullOutZone");
+        List<Marker> markers = List.of(new Marker(id, name, rally[0], rally[1], phase, state, footprint));
+        String blocker = state != State.ACTIVE ? ""
+                : Strings.get(offered ? "cordonHudBlockerPullOut" : zone.isEmpty() ? "cordonHudBlockerFallBack"
+                        : "cordonHudBlockerFallBackZone");
+        return new Item("cordon-3-fall-back", Strings.get(offered ? "cordonHudPullOutName" : "cordonHudFallBackName"),
+                state, phase, Strings.get(offered ? "cordonHudPullOutSteps" : "cordonHudFallBackSteps"),
+                Strings.get(offered ? "cordonHudPullOutInstruction" : "cordonHudFallBackInstruction"), "", -1,
+                blocker, markers, state == State.ACTIVE ? id : "");
     }
 
     /**
@@ -248,8 +266,11 @@ public final class CordonChecklist {
         for (CordonBoreEscalation.Reading r : readings) {
             CordonBoreEscalation.Site site = r.site();
             String id = "cordon-line-bore-" + site.order();
-            String where = site.between() ? Strings.format("cordonHudLineBoreBetween", site.west(), site.east())
-                    : Strings.format("cordonHudLineBoreBefore", site.west());
+            String where = switch (site.kind()) {
+                case BETWEEN -> Strings.format("cordonHudLineBoreBetween", site.west(), site.east());
+                case FRONT -> Strings.format("cordonHudLineBoreBefore", site.west());
+                case TOWN_BEYOND, TOWN_FLANK -> Strings.get("cordonHudLineBoreTown");
+            };
             switch (r.status()) {
                 case STIRRING -> {
                     any = true;

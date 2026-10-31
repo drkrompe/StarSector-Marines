@@ -52,14 +52,25 @@ public final class AlliedColumns {
     private static final class Column {
         final int number;
         final Departure departure;
+        /** Teams it brings on: the columns' own count on the timetable, the caller's for a column called by need. */
+        final int teams;
+        /** Its own orders, for a column called by need; {@code null} for a timetable column, which marches under the mission's. */
+        final Orders own;
+        /** Why it marches, as the command log tells it; {@code null} for the timetable's own words. */
+        final String reason;
         final List<Integer> squads = new ArrayList<>();
+        /** Every squad it brought on, the dead ones too. */
+        final List<Integer> seated = new ArrayList<>();
         int destX = -1, destY = -1;
         boolean entered, done;
         final Progress progress = new Progress();
 
-        Column(int number, Departure departure) {
+        Column(int number, Departure departure, int teams, Orders own, String reason) {
             this.number = number;
             this.departure = departure;
+            this.teams = teams;
+            this.own = own;
+            this.reason = reason;
         }
     }
 
@@ -95,6 +106,8 @@ public final class AlliedColumns {
     }
 
     private final List<Column> columns = new ArrayList<>();
+    /** Where the timetable's columns come on, in order: the places a column called by need may come on too. */
+    private final List<int[]> entries = new ArrayList<>();
     private final int teams;
     private final String issuer;
     private final RiskLevel risk;
@@ -105,11 +118,55 @@ public final class AlliedColumns {
      * @param issuer who orders the columns, as the command log names it
      */
     public AlliedColumns(List<Departure> departures, int teams, String issuer, RiskLevel risk, Random rng) {
-        for (int i = 0; i < departures.size(); i++) columns.add(new Column(i + 1, departures.get(i)));
+        for (int i = 0; i < departures.size(); i++) {
+            columns.add(new Column(i + 1, departures.get(i), teams, null, null));
+            entries.add(new int[]{departures.get(i).entryX(), departures.get(i).entryY()});
+        }
         this.teams = teams;
         this.issuer = issuer;
         this.risk = risk;
         this.rng = rng;
+    }
+
+    /** Where the timetable's columns come on, {x, y} each, in timetable order. */
+    public List<int[]> entries() {
+        List<int[]> out = new ArrayList<>();
+        for (int[] e : entries) out.add(e.clone());
+        return out;
+    }
+
+    /**
+     * Calls a column by need rather than on the timetable ({@code cordon-nouns.md}, Replacements): {@code teams} teams
+     * step onto the map at {@code (entryX, entryY)} now and march under {@code orders}, the command log giving
+     * {@code reason}. It is numbered after every column before it and told as they are. {@code -1} when no team could
+     * be seated there or the orders have nowhere to send it.
+     */
+    public int call(BattleSimulation sim, int entryX, int entryY, int teams, Orders orders, String reason) {
+        int seconds = Math.round(sim.getSimTickIndex() * BattleSimulation.TICK_DT);
+        Column column = new Column(columns.size() + 1, new Departure(seconds, entryX, entryY), teams, orders, reason);
+        int[] dest = orders.destination(sim);
+        if (dest == null) return -1;
+        enter(sim, column, dest, orders);
+        if (column.squads.isEmpty()) return -1;
+        columns.add(column);
+        return column.number;
+    }
+
+    /** Whether column {@code number} is still on the march: entered, not joined, someone left in it. */
+    public boolean marching(int number) {
+        Column c = column(number);
+        return c != null && c.entered && !c.done && !c.squads.isEmpty();
+    }
+
+    /** Every squad column {@code number} brought on, the dead ones too; empty for one not yet entered or unknown. */
+    public List<Integer> squads(int number) {
+        Column c = column(number);
+        return c == null ? List.of() : List.copyOf(c.seated);
+    }
+
+    private Column column(int number) {
+        for (Column c : columns) if (c.number == number) return c;
+        return null;
     }
 
     /** Columns that have joined their destination. */
@@ -176,16 +233,17 @@ public final class AlliedColumns {
                 column.done = true;
                 continue;
             }
-            if (!orders.stillNeeded(sim, column.destX, column.destY)) {
-                int[] dest = orders.destination(sim);
+            Orders mine = column.own != null ? column.own : orders;
+            if (!mine.stillNeeded(sim, column.destX, column.destY)) {
+                int[] dest = mine.destination(sim);
                 if (dest == null) continue;
                 route(sim, column, dest);
             }
             column.progress.observe(tick, nearest(sim, column));
-            if (anyArrived(sim, column, orders) || column.progress.stalled(tick, STALL_TICKS)
-                    && orders.holdsFront(sim, List.copyOf(column.squads), column.destX, column.destY)) {
+            if (anyArrived(sim, column, mine) || column.progress.stalled(tick, STALL_TICKS)
+                    && mine.holdsFront(sim, List.copyOf(column.squads), column.destX, column.destY)) {
                 column.done = true;
-                orders.joined(sim, column.number, List.copyOf(column.squads), column.destX, column.destY);
+                mine.joined(sim, column.number, List.copyOf(column.squads), column.destX, column.destY);
                 beat.emit("column_arrived_" + column.number, false);
             }
         }
@@ -199,12 +257,13 @@ public final class AlliedColumns {
     private void enter(BattleSimulation sim, Column column, int[] dest, Orders orders) {
         column.entered = true;
         List<int[]> cells = CordonGround.cluster(sim.getGrid(), sim.getOccupancyMap(),
-                column.departure.entryX(), column.departure.entryY(), teams * ColonyMilitia.POST_SIZE);
-        for (int t = 0; t + ColonyMilitia.POST_SIZE <= cells.size() && t / ColonyMilitia.POST_SIZE < teams;
+                column.departure.entryX(), column.departure.entryY(), column.teams * ColonyMilitia.POST_SIZE);
+        for (int t = 0; t + ColonyMilitia.POST_SIZE <= cells.size() && t / ColonyMilitia.POST_SIZE < column.teams;
              t += ColonyMilitia.POST_SIZE) {
             column.squads.add(ColonyMilitia.seatTeam(sim, cells.subList(t, t + ColonyMilitia.POST_SIZE),
                     "Column " + column.number + " team " + (t / ColonyMilitia.POST_SIZE + 1), risk, rng));
         }
+        column.seated.addAll(column.squads);
         orders.seated(sim, column.number, List.copyOf(column.squads));
         route(sim, column, dest);
     }
@@ -215,7 +274,8 @@ public final class AlliedColumns {
         column.destY = dest[1];
         for (int squad : column.squads) {
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, dest[0], dest[1]),
-                    CommandAuthority.GARRISON, issuer, "allied column " + column.number + " marches up");
+                    CommandAuthority.GARRISON, issuer,
+                    column.reason != null ? column.reason : "allied column " + column.number + " marches up");
         }
     }
 

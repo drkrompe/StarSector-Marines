@@ -24,16 +24,36 @@ class CordonBoreEscalationTest {
         assertTrue(CordonBoreEscalation.due(STEP, 10, 0, 12, 24), "people out bring it forward");
     }
 
-    @Test void theSurgeComesWhenTheTownNoLongerNeedsTheCompanyAndNoTruckIsLoading() {
-        assertTrue(CordonBoreEscalation.surges(true, true, true, 0, 24, true, 0f, 0), "an abandoned town surges at once");
-        assertFalse(CordonBoreEscalation.surges(false, true, true, 48, 24, false, 1f, 600), "the last truck is still at the gate");
-        assertTrue(CordonBoreEscalation.surges(false, true, false, 30, 24, true, 0f, 600), "the last truck has left");
-        assertFalse(CordonBoreEscalation.surges(false, false, false, 23, 24, false, 1f, 600), "short of the number");
-        assertFalse(CordonBoreEscalation.surges(false, false, false, 24, 24, true, 1f, 600), "a Marine still in the town");
-        assertFalse(CordonBoreEscalation.surges(false, false, false, 24, 24, false, 0.25f, 600), "not falling back yet");
-        assertTrue(CordonBoreEscalation.surges(false, false, false, 24, 24, false, 0.5f, 600), "the number out and falling back");
-        assertTrue(CordonBoreEscalation.surges(false, false, true, 0, 24, true, 0f,
-                CordonBoreEscalation.SURGE_LATEST_SECONDS), "the latest time surges whatever the town does");
+    @Test void theSurgeComesOnThePullOutTheTownFinishedOrTheLatestTime() {
+        assertTrue(CordonBoreEscalation.surges(true, false, false, true, 0), "an abandoned town surges at once");
+        assertTrue(CordonBoreEscalation.surges(false, true, false, true, 0), "the player's pull-out order surges at once");
+        assertFalse(CordonBoreEscalation.surges(false, false, true, true, 600), "the last truck is still at the gate");
+        assertTrue(CordonBoreEscalation.surges(false, false, true, false, 600), "the town is empty and its last truck gone");
+        assertFalse(CordonBoreEscalation.surges(false, false, false, false, 600), "nothing has ended the town yet");
+        assertTrue(CordonBoreEscalation.surges(false, false, false, true, CordonBoreEscalation.SURGE_LATEST_SECONDS),
+                "the latest time surges whatever the town does");
+    }
+
+    /** A town at 80..100 x 90..110, the front toward low y, the road coming in from the west. */
+    @Test void theTownsSitesStandBeyondItAndOnItsFarFlankClearOfItsWallAndTheRoad() {
+        Box town = new Box(80, 90, 100, 110);
+        List<int[]> road = new ArrayList<>();
+        for (int x = 10; x < 80; x++) road.add(new int[]{x, 100});
+        assertEquals(1, CordonBoreEscalation.flank(road, 90), "the road comes in from the west: the far flank is east");
+        Box kept = new Box(80 - CordonBoreEscalation.OFF_TOWN, 90 - CordonBoreEscalation.OFF_TOWN,
+                100 + CordonBoreEscalation.OFF_TOWN, 110 + CordonBoreEscalation.OFF_TOWN);
+        List<Site> sites = CordonBoreEscalation.townSites(town, -1, 1, List.of(), road, List.of(kept), List.of(),
+                (x, y) -> true, 260, 200, 7, 7L);
+        assertEquals(2, sites.size());
+        Site beyond = sites.get(0), flank = sites.get(1);
+        assertEquals(8, beyond.order());
+        assertTrue(beyond.surge() && flank.surge() && beyond.town() && flank.town());
+        assertTrue(beyond.y() < 90 - CordonBoreEscalation.OFF_TOWN, "beyond the town, into the front: " + beyond);
+        assertTrue(flank.x() > 100 + CordonBoreEscalation.OFF_TOWN, "on the east flank: " + flank);
+        for (Site s : sites) {
+            for (int[] c : road) assertTrue(Math.max(Math.abs(c[0] - s.x()), Math.abs(c[1] - s.y()))
+                    > CordonBoreEscalation.OFF_ROAD, "off the road: " + s);
+        }
     }
 
     /**

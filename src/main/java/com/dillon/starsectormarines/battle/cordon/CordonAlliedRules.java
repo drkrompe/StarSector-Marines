@@ -193,4 +193,52 @@ public final class CordonAlliedRules {
     static boolean helpComing(boolean carrierBound, boolean columnBound) {
         return carrierBound || columnBound;
     }
+
+    /**
+     * Whether the line replaces a redoubt's lost teams from the base by need ({@code cordon-nouns.md}, Replacements):
+     * on the Road, which runs on long after the timetable's last column. The Line keeps its timetable alone until the
+     * owner says otherwise.
+     */
+    static boolean replacesLosses(CordonVariant variant) {
+        return variant == CordonVariant.ROAD;
+    }
+
+    /**
+     * A redoubt as the replacement rule sees it: whether it is still manned, whether it is calling, the men it was
+     * manned with at setup, the men standing in its garrison now, and the squads already on their way to it.
+     */
+    record Garrison(int number, boolean manned, boolean calling, int establishment, int standing, int coming) { }
+
+    /**
+     * Teams a redoubt is short: the whole teams' worth of men it has lost against its establishment, less the squads
+     * already coming to it. A fallen or given-up redoubt is short of nothing: it is a hole the next column cannot fill.
+     */
+    static int teamsShort(Garrison g, int teamSize) {
+        if (!g.manned() || teamSize <= 0) return 0;
+        int men = g.establishment() - g.standing() - g.coming() * teamSize;
+        return Math.max(0, men / teamSize);
+    }
+
+    /**
+     * The one call for replacements the line makes now, {@code {redoubt, squads}}, or {@code null}: the manned redoubt
+     * most teams short (calling, then the lower number, breaking a tie), sent up to {@code perCall} squads and no more
+     * than the line still has room for in flight. Nothing while the last call's cooldown runs or the line already has
+     * {@code maxInFlight} squads on the way. The base's pool and the swarm on its apron are the producer's to refuse.
+     */
+    static int[] replacement(List<Garrison> garrisons, int teamSize, int perCall, int inFlight, int maxInFlight,
+                             boolean cooling) {
+        if (cooling || inFlight >= maxInFlight) return null;
+        Garrison best = null;
+        int bestShort = 0;
+        for (Garrison g : garrisons) {
+            int s = teamsShort(g, teamSize);
+            if (s <= 0) continue;
+            if (best == null || s > bestShort || s == bestShort && g.calling() && !best.calling()) {
+                best = g;
+                bestShort = s;
+            }
+        }
+        if (best == null) return null;
+        return new int[]{best.number(), Math.min(bestShort, Math.min(perCall, maxInFlight - inFlight))};
+    }
 }

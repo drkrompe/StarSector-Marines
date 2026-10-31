@@ -94,6 +94,10 @@ public final class CordonLogistics implements AlliedDepot {
     private final Map<Long, int[]> outbound = new HashMap<>();
     private final int thresholdX, thresholdY;
     private final Deque<Integer> waiting = new ArrayDeque<>();
+    /** The redoubt each waiting replacement squad was called for ({@code cordon-nouns.md}, Replacements), by squad. */
+    private final Map<Integer, CordonRedoubt> waitingFor = new HashMap<>();
+    /** The squad each carrier has aboard, while it carries. */
+    private final Map<Long, Integer> aboard = new HashMap<>();
     private final RiskLevel risk;
     private final Random rng;
     private final List<String> landed = new ArrayList<>();
@@ -392,6 +396,22 @@ public final class CordonLogistics implements AlliedDepot {
 
     /** The orders a column on the timetable marches under: to the base's apron, where it waits. */
     public AlliedColumns.Orders columnOrders() {
+        return columnOrders(null);
+    }
+
+    /**
+     * Whether a squad that came up to the base is still on its way to the line: waiting at the muster yard, or aboard
+     * a carrier taking it up.
+     */
+    public boolean onTheWay(int squad) {
+        return waiting.contains(squad) || aboard.containsValue(squad);
+    }
+
+    /**
+     * The orders a column marches under to the base's apron, where it waits; {@code bound}, the redoubt it was called
+     * for, is where a carrier takes it while that redoubt stands, and {@code null} sends it where it is needed most.
+     */
+    public AlliedColumns.Orders columnOrders(CordonRedoubt bound) {
         return new AlliedColumns.Orders() {
             @Override public int[] destination(BattleSimulation sim) {
                 return new int[]{musterX, musterY};
@@ -407,6 +427,7 @@ public final class CordonLogistics implements AlliedDepot {
 
             @Override public void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY) {
                 waiting.addAll(squads);
+                if (bound != null) for (int squad : squads) waitingFor.put(squad, bound);
             }
         };
     }
@@ -428,6 +449,9 @@ public final class CordonLogistics implements AlliedDepot {
         letOut(sim);
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
         waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
+        waitingFor.keySet().retainAll(waiting);
+        aboard.keySet().retainAll(carriers);
+        aboard.keySet().removeIf(hull -> !command.carrying(hull));
         lifting.keySet().removeIf(hull -> !command.carrying(hull));
         liftDuty.keySet().retainAll(lifting.values());
         for (int squad : cancels) cancelLift(sim, squad);
@@ -449,11 +473,17 @@ public final class CordonLogistics implements AlliedDepot {
                 command.station(sim, hull, slot[0], slot[1]);
                 continue;
             }
-            CordonRedoubt to = duty(sim, redoubts);
-            if (to == null || waiting.isEmpty()) continue;
+            if (waiting.isEmpty()) continue;
+            // A replacement goes to the redoubt that called for it while that stands; anyone else, and a replacement
+            // whose redoubt fell or was given up on the way, to the redoubt that needs it most.
+            CordonRedoubt calledFor = waitingFor.get(waiting.peek());
+            CordonRedoubt to = calledFor != null && calledFor.manned() ? calledFor : duty(sim, redoubts);
+            if (to == null) continue;
             supporting.put(hull, to);
             bound.put(hull, to);
             int squad = waiting.poll();
+            waitingFor.remove(squad);
+            aboard.put(hull, squad);
             int[] drop = dropAt(sim, to);
             // Each carrier its own place behind the wall, so two sent to one redoubt do not stack.
             int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
