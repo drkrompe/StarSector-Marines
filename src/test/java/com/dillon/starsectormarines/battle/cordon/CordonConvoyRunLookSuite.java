@@ -43,12 +43,15 @@ import java.util.Locale;
  * the gap, and the people stepping down.
  *
  * <p>{@code -Dsnapshot.convoyRun.seed} (default 7, Ain Tafrant's pinned seed, {@code WellhollowBloomCampaign}),
- * {@code .driveSeconds} (20). Opt-in: it plays a whole battle up to the first relief run and the run itself.
+ * {@code .driveSeconds} (20), {@code .trip} (1: the trip recorded; a later one is driven by trucks back from an
+ * earlier trip). Opt-in: it plays a whole battle up to the first relief run and the run itself.
  */
 public final class CordonConvoyRunLookSuite implements SnapshotSuite {
 
-    /** The latest tick a convoy is waited for. */
-    static final int BY = 24_000;
+    /** The latest tick a convoy is waited for: ten minutes of battle. */
+    static final int BY = Math.round(600f / BattleSimulation.TICK_DT);
+    /** Steps in a row the battle may stand still (over: nothing left to play) before the capture gives up. */
+    static final int STALLED = 90;
     /** Cells from the yard's gate the lead truck opens the shot at. */
     static final float APPROACH = 34f;
     /** Corridor cells short of the camp's drop point the drive gives way to the drop-off. */
@@ -107,12 +110,16 @@ public final class CordonConvoyRunLookSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT,
                     pickupHold[0], pickupHold[1], pickupHold[2]);
             List<BufferedImage> stills = new ArrayList<>();
-            int skipped = -1;
+            // The trip to record: the first by default; a later one shows the fleet's trucks cycling.
+            int skipped = Integer.getInteger("snapshot.convoyRun.trip", 1) - 1;
             while (true) {
                 // Fast-forward, drawing nothing, until a convoy's lead truck nears the yard.
-                int number = 0;
+                int number = 0, stalled = 0;
                 while (number == 0) {
+                    int before = sim.getSimTickIndex();
                     step(sim, null, null, fx, false);
+                    stalled = sim.getSimTickIndex() == before ? stalled + 1 : 0;
+                    if (stalled > STALLED) throw new IllegalStateException("the battle stopped at tick " + before);
                     if (sim.getSimTickIndex() % 900 == 0) {
                         System.out.printf("    [convoy-run] tick %d: %s%n", sim.getSimTickIndex(), convoys.describe(sim));
                     }
@@ -169,7 +176,19 @@ public final class CordonConvoyRunLookSuite implements SnapshotSuite {
         int downAt = -1;
         int maxAboard = 0;
         int seats = 0;
+        int lastTick = -1, stalled = 0;
         while (true) {
+            // The battle over (it stands still once nothing is left to play): what was recorded is kept, from the
+            // drop-off on; earlier, the run is given up. Unbounded, the drop-off once recorded forty minutes.
+            stalled = sim.getSimTickIndex() == lastTick ? stalled + 1 : 0;
+            lastTick = sim.getSimTickIndex();
+            if (stalled > STALLED) {
+                System.out.printf("    [convoy-run] tick %d: the battle stopped; ending the %s%n", lastTick,
+                        part.name().toLowerCase(Locale.ROOT));
+                if (part != Part.DROPOFF) throw new IllegalStateException("the battle stopped before the drop-off");
+                run.end();
+                return false;
+            }
             // The tracked truck destroyed: the camera goes to the other truck of the convoy, if one is left.
             if (!alive(sim, hull)) {
                 long other = 0L;
