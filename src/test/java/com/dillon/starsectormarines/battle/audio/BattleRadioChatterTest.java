@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class BattleRadioChatterTest {
@@ -153,6 +154,26 @@ class BattleRadioChatterTest {
         assertEquals(BattleRadioChatter.Cue.CONTACT, emission.cue());
         BattleRadioChatter.Emission killBrag = chatter.advance(7f, List.of(marines), death);
         assertEquals(BattleRadioChatter.Cue.ENEMY_DOWN, killBrag.cue());
+    }
+
+    @Test
+    void contactCallsAreSpacedThirtySecondsApartAcrossSquads() {
+        BattleRadioChatter chatter = new BattleRadioChatter(new Random(9L));
+        Squad first = infantry(1, Faction.MARINE);
+        Squad second = infantry(2, Faction.MARINE);
+        first.alertLevel = SquadAlertLevel.ENGAGED;
+        assertEquals(BattleRadioChatter.Cue.CONTACT,
+                chatter.advance(3f, List.of(first, second)).cue());
+
+        second.alertLevel = SquadAlertLevel.ENGAGED;
+        BattleRadioChatter.Emission early = chatter.advance(10f, List.of(first, second));
+        if (early != null) assertNotEquals(BattleRadioChatter.Cue.CONTACT, early.cue());
+
+        second.alertLevel = SquadAlertLevel.UNAWARE;
+        chatter.advance(21f, List.of(first, second));
+        second.alertLevel = SquadAlertLevel.ENGAGED;
+        assertEquals(BattleRadioChatter.Cue.CONTACT,
+                chatter.advance(8f, List.of(first, second)).cue());
     }
 
     private static Squad infantry(int id, Faction faction) {
