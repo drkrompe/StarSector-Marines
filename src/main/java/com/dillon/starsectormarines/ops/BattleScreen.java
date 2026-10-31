@@ -942,8 +942,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        // A player build has no developer HUD at all (DevConfig.DEV_MODE).
-        if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
+        // A player build shows it only while the mission board's Debug key (Cheats) is on.
+        if (DevConfig.DEV_MODE || Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -958,6 +958,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.
         debugPanel = new DebugTogglesPanel(this);
+        // The alpha's Win heads the list: the one row a player opens the panel for.
+        Mission skippable = ctx != null ? ctx.getSelectedMission() : null;
+        if (Cheats.canWin(skippable)) debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
         debugPanel.addToggle("Auto spike dumps",
                 tickProfilePanel::isAutoDumpEnabled, tickProfilePanel::toggleAutoDump);
         debugPanel.addToggle("Docking paths",
@@ -1179,6 +1182,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                 fixture != null ? fixture.kind() : null);
     }
 
+    /** The Debug key's Win: ends the battle as a company victory, settled like any other. */
+    private void cheatWin() {
+        BattleSimulation sim = getSim();
+        if (sim != null) sim.forceCompanyVictory();
+    }
+
     /**
      * Debug action: post a defender {@link ReinforcementRequest} to the
      * service so the active means picks it up on its next slow-tick.
@@ -1245,7 +1254,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
 
-    @Override public boolean debugHudVisible() { return DevConfig.DEV_MODE && debugHudVisible; }
+    @Override public boolean debugHudVisible() { return (DevConfig.DEV_MODE || Cheats.enabled()) && debugHudVisible; }
 
     @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 
