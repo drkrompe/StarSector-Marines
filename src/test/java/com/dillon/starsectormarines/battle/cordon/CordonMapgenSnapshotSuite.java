@@ -112,7 +112,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                                 FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, across);
                         out.add(new SnapshotArtifact("look/" + tag + "town-compound.png", plain.render(sim, "")));
                         // The compound with its approaches out past the sandbag lines, each line labelled with its facing.
-                        float wide = across + 2.5f * (CordonTownSandbags.TO + CordonTownSandbags.RETURN) * FRAME_W / (float) FRAME_H;
+                        float wide = across + 2.5f * (CordonTownSandbags.FAR + CordonTownSandbags.RETURN) * FRAME_W / (float) FRAME_H;
                         near.refocus(town.centreX() + 0.5f, town.centreY() + 0.5f, wide);
                         out.add(new SnapshotArtifact(tag + "12-town-sandbags.png",
                                 near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
@@ -121,6 +121,20 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                         BattleReviewFrameRenderer approaches = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
                                 FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, wide);
                         out.add(new SnapshotArtifact("look/" + tag + "town-approaches.png", approaches.render(sim, "")));
+                        // Each line at play zoom: through the look preset for the owner, and marked for review.
+                        List<int[]> bags = CordonReviewAnnotations.sandbagCentres(sim);
+                        for (int i = 0; i < bags.size(); i++) {
+                            int[] at = bags.get(i);
+                            BattleReviewFrameRenderer close = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                    FRAME_H, at[0] + 0.5f, at[1] + 0.5f, PLAY_ZOOM_CELLS);
+                            out.add(new SnapshotArtifact("look/" + tag + "town-sandbags-" + (i + 1) + ".png",
+                                    close.render(sim, "")));
+                            near.refocus(at[0] + 0.5f, at[1] + 0.5f, PLAY_ZOOM_CELLS);
+                            out.add(new SnapshotArtifact(tag + "12-town-sandbags-" + (i + 1) + ".png",
+                                    near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
+                                            + ", sandbag line " + (i + 1) + ", play zoom",
+                                            CordonReviewAnnotations.townSandbags(sim))));
+                        }
                         // Each way in, at play zoom, and the town hard against the compound's east side and front.
                         List<int[]> gates = townGates(sim, town);
                         StringBuilder list = new StringBuilder();

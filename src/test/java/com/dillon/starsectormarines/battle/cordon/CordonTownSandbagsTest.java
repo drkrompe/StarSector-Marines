@@ -2,78 +2,124 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Sandbag lines on the approaches to the town compound's ways in ({@link CordonTownSandbags}). */
+/** Sandbag lines across the town compound's postern approaches ({@link CordonTownSandbags}). */
 class CordonTownSandbagsTest {
 
-    /** A compound whose wall's line runs x 20..40 by y 20..40; a postern three wide in its top side at (30, 40). */
+    /** A compound whose wall's line runs x 20..40 by y 20..40, its cells the wall; a postern three wide at (30, 40). */
     private static final int[] WALL = {20, 20, 40, 40};
     private static final int[] POSTERN = {30, 40, 3};
 
-    @Test
-    void aLineStandsEitherSideOfAPosternsApproachJustPastTheRingFacingOutWithThePassGapOpen() {
-        List<CordonTownSandbags.Line> lines = CordonTownSandbags.lines((x, y) -> true, WALL, List.of(POSTERN));
-        assertEquals(2, CordonTownSandbags.lineCount(lines), "one either side of the way in");
-        for (CordonTownSandbags.Line line : lines) {
-            boolean main = line.cells().size() > CordonTownSandbags.RETURN;
-            if (main) assertArrayEquals(new int[]{0, 1}, line.facing(), "facing out down the approach");
-            for (int[] c : line.cells()) {
-                assertTrue(c[1] >= 40 + CordonTownSandbags.FROM - CordonTownSandbags.RETURN, "past the ring");
-                assertTrue(Math.abs(c[0] - 30) > 1 + CordonTownSandbags.PASS, "the postern's lane and a cell beside it open");
+    /** Ground of 80 by 80 cells: the wall's line solid but for its gates, the given cells built on. */
+    private static CordonTownSandbags.Site site(Set<Long> built, List<int[]> gates, CordonCorridor.CellTest convoy) {
+        return new CordonTownSandbags.Site() {
+            @Override public boolean open(int x, int y) { return clear(x, y); }
+            @Override public boolean clear(int x, int y) {
+                if (x < 0 || y < 0 || x >= 80 || y >= 80 || built.contains(key(x, y))) return false;
+                boolean onWall = (x == WALL[0] || x == WALL[2]) && y >= WALL[1] && y <= WALL[3]
+                        || (y == WALL[1] || y == WALL[3]) && x >= WALL[0] && x <= WALL[2];
+                if (!onWall) return true;
+                for (int[] g : gates) {
+                    boolean across = g[1] == WALL[1] || g[1] == WALL[3];
+                    if (across ? y == g[1] && Math.abs(x - g[0]) <= g[2] / 2 : x == g[0] && Math.abs(y - g[1]) <= g[2] / 2) return true;
+                }
+                return false;
             }
-            if (main) {
-                assertEquals(40 + CordonTownSandbags.FROM, line.cells().get(0)[1], "on the nearest row past the ring");
-                assertTrue(line.cells().size() >= CordonTownSandbags.SHORTEST
-                        && line.cells().size() <= CordonTownSandbags.LONGEST);
-            }
-        }
-        assertEquals(4, lines.size(), "each with its return, an L");
+            @Override public boolean convoy(int x, int y) { return convoy.test(x, y); }
+        };
+    }
+
+    private static Set<Long> box(int x0, int y0, int x1, int y1) {
+        Set<Long> out = new HashSet<>();
+        for (int x = x0; x <= x1; x++) for (int y = y0; y <= y1; y++) out.add(key(x, y));
+        return out;
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xFFFFFFFFL);
+    }
+
+    private static List<CordonTownSandbags.Line> lines(Set<Long> built, CordonCorridor.CellTest convoy) {
+        return CordonTownSandbags.lines(site(built, List.of(POSTERN), convoy), WALL, List.of(POSTERN));
     }
 
     @Test
-    void theLinesKeepOffRoadAndAWideGatesRoadIsTheirPassGap() {
-        // The convoys' road comes in five wide on the axis of a nine-wide gate in the left side at (20, 30).
+    void onOpenGroundALineCrossesThePosternsApproachFacingOutWithAGapAndAnL() {
+        List<CordonTownSandbags.Line> lines = lines(Set.of(), (x, y) -> false);
+        assertEquals(1, CordonTownSandbags.lineCount(lines));
+        CordonTownSandbags.Line line = lines.get(0);
+        assertArrayEquals(new int[]{0, 1}, line.facing());
+        assertEquals(CordonTownSandbags.LONGEST, line.cells().size());
+        int y = line.cells().get(0)[1];
+        assertTrue(y >= 40 + CordonTownSandbags.NEAR && y <= 40 + CordonTownSandbags.FAR);
+        int lo = line.cells().get(0)[0], hi = line.cells().get(line.cells().size() - 1)[0];
+        assertTrue(lo - CordonTownSandbags.GAP <= 30 && hi + CordonTownSandbags.GAP >= 30, "line and gap span the axis");
+        assertEquals(2, lines.size(), "with its return");
+    }
+
+    @Test
+    void aBuildingAcrossTheApproachLeavesNoFieldOfFireSoNoLine() {
+        // A row of houses across the whole approach eight cells out, no way round it near the postern.
+        assertTrue(lines(box(0, 48, 79, 49), (x, y) -> false).isEmpty());
+        // One house ahead of part of the approach: every bag laid still has its whole field clear.
+        Set<Long> house = box(26, 49, 29, 52);
+        List<CordonTownSandbags.Line> lines = lines(house, (x, y) -> false);
+        assertFalse(lines.isEmpty());
+        for (CordonTownSandbags.Line line : lines) {
+            for (int[] c : line.cells()) {
+                for (int k = 1; k <= CordonTownSandbags.FIELD; k++) {
+                    assertFalse(house.contains(key(c[0] + line.facing()[0] * k, c[1] + line.facing()[1] * k)));
+                }
+            }
+        }
+    }
+
+    @Test
+    void noBagStandsWithinTwoCellsOfABuildingOrTheWall() {
+        Set<Long> house = box(34, 41, 36, 46);
+        CordonTownSandbags.Site ground = site(house, List.of(POSTERN), (x, y) -> false);
+        assertFalse(CordonTownSandbags.fits(ground, 32, 46, new int[]{0, 1}), "two cells from the house");
+        assertFalse(CordonTownSandbags.fits(ground, 25, 42, new int[]{0, 1}), "two cells from the wall");
+        assertTrue(CordonTownSandbags.fits(ground, 25, 43, new int[]{0, 1}));
+        for (CordonTownSandbags.Line line : lines(house, (x, y) -> false)) {
+            for (int[] c : line.cells()) {
+                for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++) {
+                    assertFalse(house.contains(key(c[0] + dx, c[1] + dy)));
+                }
+                assertTrue(c[1] >= 43, "off the wall");
+            }
+        }
+    }
+
+    @Test
+    void everyBagKeepsOffTheConvoysRouteAndTheYardGatesSwing() {
+        List<int[]> route = new ArrayList<>();
+        for (int y = 40; y < 80; y++) route.add(new int[]{36, y});
+        CordonCorridor.CellTest kept = CordonTownSandbags.convoyKept(route, List.of(), WALL);
+        for (CordonTownSandbags.Line line : lines(Set.of(), kept)) {
+            for (int[] c : line.cells()) assertTrue(Math.abs(c[0] - 36) > CordonTownSandbags.CONVOY_CLEAR);
+        }
+        // A yard gate nine wide in the left side at (20, 30): its swing runs eight out, and four past its half-width.
+        CordonCorridor.CellTest swing = CordonTownSandbags.convoyKept(null, List.of(new int[]{20, 30, 9}), WALL);
+        assertTrue(swing.test(12, 30));
+        assertFalse(swing.test(11, 30));
+        assertTrue(swing.test(15, 38));
+        assertFalse(swing.test(15, 39));
+        assertFalse(CordonTownSandbags.convoyKept(null, List.of(POSTERN), WALL).test(30, 44), "a postern has no swing");
+    }
+
+    @Test
+    void theYardsGatesGetNoLine() {
         int[] yard = {20, 30, 9};
-        CordonCorridor.CellTest free = (x, y) -> Math.abs(y - 30) > 3;
-        List<CordonTownSandbags.Line> lines = CordonTownSandbags.lines(free, WALL, List.of(yard));
-        assertEquals(2, CordonTownSandbags.lineCount(lines));
-        for (CordonTownSandbags.Line line : lines) {
-            for (int[] c : line.cells()) {
-                assertTrue(free.test(c[0], c[1]), "never on the road nor beside it");
-                assertTrue(Math.abs(c[1] - 30) > 4 + CordonTownSandbags.PASS, "the gate's whole width left open");
-                assertTrue(c[0] < 20, "outside the wall");
-            }
-        }
-    }
-
-    @Test
-    void aStreetWiderThanThePosternIsSkippedAndWhereTheTownStandsCloseTheLinesComeInsideTheRing() {
-        // The postern's street runs five wide up its axis; houses stand from seven cells out.
-        CordonCorridor.CellTest free = (x, y) -> Math.abs(x - 30) > 3 && y < 40 + CordonTownSandbags.FROM;
-        List<CordonTownSandbags.Line> lines = CordonTownSandbags.lines(free, WALL, List.of(POSTERN));
-        assertEquals(2, CordonTownSandbags.lineCount(lines));
-        for (CordonTownSandbags.Line line : lines) {
-            if (line.cells().size() <= CordonTownSandbags.RETURN) continue;
-            int[] first = line.cells().get(0);
-            assertEquals(40 + CordonTownSandbags.FROM - 1, first[1], "the row just inside the ring");
-            assertEquals(4, Math.abs(first[0] - 30), "starting at the street's edge");
-        }
-    }
-
-    @Test
-    void whereNothingFitsNoLineIsLaidAndNoMoreThanTheCapOverAll() {
-        assertTrue(CordonTownSandbags.lines((x, y) -> false, WALL, List.of(POSTERN)).isEmpty());
-        List<int[]> gates = List.of(new int[]{30, 40, 3}, new int[]{30, 20, 3}, new int[]{40, 30, 3},
-                new int[]{20, 25, 3}, new int[]{20, 35, 3});
-        assertTrue(CordonTownSandbags.lineCount(CordonTownSandbags.lines((x, y) -> true, WALL, gates))
-                <= CordonTownSandbags.MAX_LINES);
-        assertFalse(CordonTownSandbags.lines((x, y) -> true, WALL, List.of(new int[]{20, 20, 3})).iterator().hasNext(),
-                "a corner gate has no one way out");
+        assertTrue(CordonTownSandbags.lines(site(Set.of(), List.of(yard), (x, y) -> false), WALL, List.of(yard)).isEmpty());
     }
 }

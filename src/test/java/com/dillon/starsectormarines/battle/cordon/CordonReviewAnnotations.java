@@ -111,6 +111,17 @@ public final class CordonReviewAnnotations {
         return out;
     }
 
+    /** The middle cell of each laid sandbag line, returns left out, in order. */
+    static List<int[]> sandbagCentres(BattleSimulation sim) {
+        List<int[]> out = new ArrayList<>();
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null) return out;
+        for (Laid laid : sandbags(cordon)) {
+            if (laid.cells().size() > CordonTownSandbags.RETURN) out.add(laid.cells().get(laid.cells().size() / 2));
+        }
+        return out;
+    }
+
     private static List<Laid> sandbags(CordonSequence cordon) {
         List<Laid> out = new ArrayList<>();
         for (Laid laid : cordon.beats().laid().pieces()) {
