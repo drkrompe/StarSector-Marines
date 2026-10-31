@@ -99,71 +99,71 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_PLATING = new BoatFitting(
             "standard_plating", "@openingBoatFittingYardStandardPlating", BoatFittingSlot.PLATING, 1,
-            Effect.NONE, credits(800), "@openingBoatFittingWhatABoatLeavesTheYardWith");
+            Effect.NONE, credits(400), "@openingBoatFittingWhatABoatLeavesTheYardWith");
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
             "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
-            Effect.armor(1.35f), credits(1600), "@openingBoatFittingASecondSkinLaidOverTheBelly");
+            Effect.armor(1.35f), credits(800), "@openingBoatFittingASecondSkinLaidOverTheBelly");
 
     public static final BoatFitting ARMOURED_PLATING = new BoatFitting(
             "armoured_plating", "@openingBoatFittingArmouredLanderShell", BoatFittingSlot.PLATING, 3,
-            Effect.armor(1.75f), credits(3950), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
+            Effect.armor(1.75f), credits(1980), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
             "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
-            Effect.NONE, credits(1250), "@openingBoatFittingThePlantTheHullWasRatedFor");
+            Effect.NONE, credits(630), "@openingBoatFittingThePlantTheHullWasRatedFor");
 
     public static final BoatFitting TUNED_DRIVE = new BoatFitting(
             "tuned_drive", "@openingBoatFittingTunedDrive", BoatFittingSlot.DRIVE, 2,
-            Effect.drive(1.20f, 0.80f), credits(2250), "@openingBoatFittingARefitCrewSWeekCleanFeed");
+            Effect.drive(1.20f, 0.80f), credits(1130), "@openingBoatFittingARefitCrewSWeekCleanFeed");
 
     public static final BoatFitting UPRATED_DRIVE = new BoatFitting(
             "uprated_drive", "@openingBoatFittingUpratedDrive", BoatFittingSlot.DRIVE, 3,
-            Effect.drive(1.45f, 0.60f), credits(5500), "@openingBoatFittingABiggerPlantThanTheHullWas");
+            Effect.drive(1.45f, 0.60f), credits(2750), "@openingBoatFittingABiggerPlantThanTheHullWas");
 
     public static final BoatFitting STANDARD_LIFT = new BoatFitting(
             "standard_lift", "@boatFittingStandardHold", BoatFittingSlot.LIFT, 1,
-            Effect.NONE, credits(800), "@boatFittingStandardHoldProvenance");
+            Effect.NONE, credits(400), "@boatFittingStandardHoldProvenance");
 
     public static final BoatFitting LIFT_CRADLE = new BoatFitting(
             "lift_cradle", "@boatFittingLiftCradle", BoatFittingSlot.LIFT, 2,
-            Effect.lift(LiftRating.LIGHT), credits(3900), "@boatFittingLiftCradleProvenance");
+            Effect.lift(LiftRating.LIGHT), credits(1950), "@boatFittingLiftCradleProvenance");
 
     public static final BoatFitting HEAVY_CRADLE = new BoatFitting(
             "heavy_cradle", "@boatFittingHeavyCradle", BoatFittingSlot.LIFT, 3,
-            Effect.lift(LiftRating.MEDIUM), credits(8800), "@boatFittingHeavyCradleProvenance");
+            Effect.lift(LiftRating.MEDIUM), credits(4400), "@boatFittingHeavyCradleProvenance");
 
     public static final BoatFitting HEAVY_LIFT_FRAME = new BoatFitting(
             "heavy_lift_frame", "@boatFittingHeavyLiftFrame", BoatFittingSlot.LIFT, 4,
-            Effect.lift(LiftRating.HEAVY), credits(13700), "@boatFittingHeavyLiftFrameProvenance");
+            Effect.lift(LiftRating.HEAVY), credits(6850), "@boatFittingHeavyLiftFrameProvenance");
 
     public static final BoatFitting STANDARD_CABIN = new BoatFitting(
             "standard_cabin", "@boatFittingStandardCabin", BoatFittingSlot.CABIN, 1,
-            Effect.NONE, credits(950), "@boatFittingStandardCabinProvenance");
+            Effect.NONE, credits(480), "@boatFittingStandardCabinProvenance");
 
     public static final BoatFitting STANDARD_EMITTER = new BoatFitting(
             "standard_emitter", "@boatFittingStandardEmitter", BoatFittingSlot.EMITTER, 1,
-            Effect.NONE, credits(1250), "@boatFittingStandardEmitterProvenance");
+            Effect.NONE, credits(630), "@boatFittingStandardEmitterProvenance");
 
     public static final BoatFitting WIDE_EMITTER = new BoatFitting(
             "wide_emitter", "@boatFittingWideEmitter", BoatFittingSlot.EMITTER, 2,
-            Effect.emitter(180f, 0.8f), credits(3500), "@boatFittingWideEmitterProvenance");
+            Effect.emitter(180f, 0.8f), credits(1750), "@boatFittingWideEmitterProvenance");
 
     public static final BoatFitting ASSAULT_EMITTER = new BoatFitting(
             "assault_emitter", "@boatFittingAssaultEmitter", BoatFittingSlot.EMITTER, 3,
-            Effect.emitter(240f, 0.6f), credits(6250), "@boatFittingAssaultEmitterProvenance");
+            Effect.emitter(240f, 0.6f), credits(3130), "@boatFittingAssaultEmitterProvenance");
 
     public static final BoatFitting STANDARD_POWER = new BoatFitting(
             "standard_power", "@boatFittingStandardPower", BoatFittingSlot.POWER, 1,
-            Effect.NONE, credits(950), "@boatFittingStandardPowerProvenance");
+            Effect.NONE, credits(480), "@boatFittingStandardPowerProvenance");
 
     public static final BoatFitting CAPACITOR_BANK = new BoatFitting(
             "capacitor_bank", "@boatFittingCapacitorBank", BoatFittingSlot.POWER, 2,
-            Effect.power(1.5f, 1f), credits(3050), "@boatFittingCapacitorBankProvenance");
+            Effect.power(1.5f, 1f), credits(1530), "@boatFittingCapacitorBankProvenance");
 
     public static final BoatFitting MILITARY_CAPACITORS = new BoatFitting(
             "military_capacitors", "@boatFittingMilitaryCapacitors", BoatFittingSlot.POWER, 3,
-            Effect.power(1.75f, 1.5f), credits(6100), "@boatFittingMilitaryCapacitorsProvenance");
+            Effect.power(1.75f, 1.5f), credits(3050), "@boatFittingMilitaryCapacitorsProvenance");
 
     private static final List<BoatFitting> CATALOG = List.of(
             STANDARD_PLATING, REINFORCED_PLATING, ARMOURED_PLATING,

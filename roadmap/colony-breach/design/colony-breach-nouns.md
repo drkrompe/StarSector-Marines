@@ -2457,6 +2457,19 @@ the things close, cry out when seized, thrown or hurt, and grieve when someone
 near them dies. Colonists outside any squad share one voice channel with the
 colonists on their patch of ground, so a fleeing crowd is a few screams, not one
 each. The enemy's soldiers do not bark.
+**Against people and machines too** (owner, 2026-10-31). The same voices bark in
+any battle, not only against the Rav, with calls of their own for the enemy's
+fighters the player can see: a contact of its own as enemy infantry close on a
+squad that was clear (at gunfire range, not claw range), drones called the same
+way, taking fire when enemy rounds land on a squad after a quiet spell, a turret
+warning when an emplacement fires them, frag out from a marine throwing a grenade
+and a shouted warning from the one nearest where an enemy's will land, and a
+warning the first time each mech, machine frame or vehicle is seen near the line.
+Reloads and man down count the enemy as they count the Rav; a wound by fire draws
+the thrown cries, held for the squad and spaced so a firefight is not all cries;
+an enemy fighter dying near the line draws a marine's kill, never the militia's,
+whose kill lines are for bugs. The militia speak as frightened civilians with
+rifles, with no soldier's jargon; colonists keep to fear and pain.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

@@ -39,8 +39,9 @@ import java.util.function.LongPredicate;
  * decides who holds one.
  *
  * <p>The aircraft are ordinary corridor sorties ({@code spawnSortie}): they fly in across the side's map edge, make
- * their pass with the same ordnance and flight code every aircraft uses, and leave. Nothing here forks flight or
- * damage. The call surface is serial ({@link #request}, {@link #advance}); the reads only read.
+ * their pass with the same ordnance and flight code every aircraft uses, and leave. A side given a field of its own on
+ * the map ({@link #basedAt}) flies the same sorties off the field's stands and home to them instead, and its stock is
+ * what stands ready there ({@link AirBase}). Nothing here forks flight or damage. The call surface is serial ({@link #request}, {@link #advance}); the reads only read.
  */
 public final class AirPoolService {
 
@@ -148,10 +149,15 @@ public final class AirPoolService {
         return !allowance(side).isNone();
     }
 
-    /** Airframes of {@code kind} {@code side} could task right now. */
+    /**
+     * Airframes of {@code kind} {@code side} could task right now: the ledger's count, or for a side flying from a field
+     * of its own ({@link #basedAt}) what stands ready on it less what calls already have reserved.
+     */
     public int available(Faction side, AirPoolKind kind) {
         Ledger l = ledger(side, kind);
-        return l == null ? 0 : l.available;
+        if (l == null) return 0;
+        AirBase base = bases.get(side);
+        return base == null ? l.available : Math.max(0, base.ready(kind) - l.reserved);
     }
 
     /** Airframes of {@code kind} currently out on a sortie or reserved for a call in progress. */
@@ -171,7 +177,8 @@ public final class AirPoolService {
         List<Readout> out = new ArrayList<>();
         for (Map.Entry<AirPoolKind, AirPoolStock> stock : allowance(side).stocks().entrySet()) {
             Ledger l = ledger(side, stock.getKey());
-            out.add(new Readout(stock.getKey(), l.available, l.outFlying + l.reserved, stock.getValue().cap(),
+            out.add(new Readout(stock.getKey(), available(side, stock.getKey()), l.outFlying + l.reserved,
+                    stock.getValue().cap(),
                     l.lost, l.returned, l.aborted, l.launched));
         }
         return out;
@@ -222,9 +229,11 @@ public final class AirPoolService {
             Ledger l = ledger(side, stock.getKey());
             AirPoolStock declared = stock.getValue();
             int held = l.available + l.outFlying + l.reserved;
-            float next = declared.regenSeconds() > 0f && held < declared.cap()
+            AirBase base = bases.get(side);
+            float next = base != null ? base.nextReplacementSeconds(stock.getKey())
+                    : declared.regenSeconds() > 0f && held < declared.cap()
                     ? Math.max(0f, declared.regenSeconds() - l.regenProgress) : -1f;
-            rows.add(new AirPoolView.KindRow(stock.getKey(), l.available, l.outFlying + l.reserved,
+            rows.add(new AirPoolView.KindRow(stock.getKey(), available(side, stock.getKey()), l.outFlying + l.reserved,
                     declared.cap(), l.lost, next));
             calls += l.reserved;
         }
@@ -285,6 +294,22 @@ public final class AirPoolService {
 
     private final List<ForwardObservers> observers = new ArrayList<>();
     private final Map<Faction, float[]> homes = new EnumMap<>(Faction.class);
+    private final Map<Faction, AirBase> bases = new EnumMap<>(Faction.class);
+
+    /**
+     * Gives {@code side}'s pool a field on the map to fly from: its sorties take off from the field's stands and come
+     * home to them, its stock is what stands ready there, and the field, not the pool, replaces what is lost
+     * ({@link AirBase}). Called once at setup.
+     */
+    public AirPoolService basedAt(Faction side, AirBase base) {
+        if (base != null) bases.put(side, base);
+        return this;
+    }
+
+    /** The field {@code side} flies from, or {@code null} for a side whose sorties come in over the map edge. */
+    public AirBase base(Faction side) {
+        return bases.get(side);
+    }
 
     /**
      * Names {@code side}'s home ground, the edge its sorties come in over, for a side with neither a landing zone nor a
@@ -347,7 +372,7 @@ public final class AirPoolService {
     public Outcome request(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y, boolean believes,
                            LongPredicate operators) {
         Ledger ledger = ledger(side, kind);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || available(side, kind) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
@@ -364,7 +389,7 @@ public final class AirPoolService {
     public Outcome requestIncendiary(BattleSimulation sim, Faction side, float x, float y, boolean believes,
                                      LongPredicate operators) {
         Ledger ledger = ledger(side, AirPoolKind.BOMBER);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || available(side, AirPoolKind.BOMBER) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
@@ -396,11 +421,31 @@ public final class AirPoolService {
      */
     public Outcome requestCover(BattleSimulation sim, Faction side, float x, float y, LongPredicate operators) {
         Ledger ledger = ledger(side, AirPoolKind.FIGHTER);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || available(side, AirPoolKind.FIGHTER) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, true, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
         return call(sim, side, AirPoolKind.FIGHTER, AirMission.COVER, operator, x, y, ready, null);
+    }
+
+    /**
+     * Sends one airframe of {@code kind} at {@code (x, y)} on the side's own tasking, with no operator on the net: a
+     * field's operations room putting its own aircraft over ground the side already knows ({@code cordon-nouns.md}, Air
+     * base). It goes at once, from stock like any call, and the caller answers for what it is entitled to know of the
+     * point. {@link Outcome#NO_AIRFRAME} when nothing of that kind is ready or it could not get into the air.
+     */
+    public Outcome dispatch(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y) {
+        Ledger ledger = ledger(side, kind);
+        if (ledger == null || available(side, kind) <= 0) return Outcome.NO_AIRFRAME;
+        PendingCall call = new PendingCall(side, kind, AirMission.strikeOf(kind), 0L, x, y, sim.getSimTickIndex(), null);
+        events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALLED, x, y));
+        tallyOf(side, call.job).called++;
+        if (!launch(sim, call, ledger)) {
+            events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALL_DROPPED, x, y));
+            return Outcome.NO_AIRFRAME;
+        }
+        if (bases.get(side) == null) ledger.available--;
+        return Outcome.CALLING;
     }
 
     private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
@@ -456,6 +501,8 @@ public final class AirPoolService {
     private void regenerate(BattleSimulation sim) {
         float dt = BattleSimulation.TICK_DT;
         for (Map.Entry<Faction, Map<AirPoolKind, Ledger>> side : ledgers.entrySet()) {
+            // A based side's field replaces its own losses, on its own timer.
+            if (bases.containsKey(side.getKey())) continue;
             AirPoolAllowance allowance = allowance(side.getKey());
             for (Map.Entry<AirPoolKind, Ledger> e : side.getValue().entrySet()) {
                 AirPoolStock stock = allowance.stock(e.getKey());
@@ -494,16 +541,25 @@ public final class AirPoolService {
 
     private boolean launch(BattleSimulation sim, PendingCall call, Ledger ledger) {
         World world = sim.world();
-        float[] home = homes.get(call.side);
-        if (home == null) home = homeGround(sim, call.side);
-        if (home == null) home = friendlyCentroid(sim, call.side);
-        if (home == null) home = new float[]{world.x(call.operator), world.y(call.operator)};
-        AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
-                sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
-        if (corridor == null) return false;
         FighterProfile airframe = call.job == AirMission.COVER ? call.kind.coverProfile() : call.kind.profile();
-        long craft = sim.spawnSortie(airframe, call.side, call.x, call.y,
-                corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
+        AirBase base = bases.get(call.side);
+        long craft;
+        if (base != null) {
+            // Off the field's own stand, and home to it.
+            craft = base.launch(sim, call.kind, airframe, call.x, call.y);
+            if (craft == 0L) return false;
+        } else {
+            float[] home = homes.get(call.side);
+            if (home == null) home = homeGround(sim, call.side);
+            if (home == null) home = friendlyCentroid(sim, call.side);
+            if (home == null && call.operator == 0L) return false;
+            if (home == null) home = new float[]{world.x(call.operator), world.y(call.operator)};
+            AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
+                    sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
+            if (corridor == null) return false;
+            craft = sim.spawnSortie(airframe, call.side, call.x, call.y,
+                    corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
+        }
         ShuttleMission mission = world.mission(craft);
         mission.strikeSortie = true;
         mission.poolSortie = true;
