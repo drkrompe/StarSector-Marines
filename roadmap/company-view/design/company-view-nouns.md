@@ -1018,7 +1018,10 @@ anchored callout with her portrait and name, plus a Company Guide resume action.
 She is pragmatic and matriarchal: warm, observant and firm as the moment needs,
 with occasional dry humor rather than a fixed dry tone. The guide highlights the
 next real preparation control and moves beside it; the callout is only as tall as
-her words, up to a cap past which they scroll. A dim backdrop leaves openings
+her words, up to a cap past which they scroll. Its set-aside (Not Now, Skip) sits
+in the heading corner. A lesson may dock the callout in a quiet corner of its room
+instead, as the gantry lesson does above the Mech Lab's slot graph, clear of stores
+and the hull. A dim backdrop leaves openings
 around the lesson's declared controls and readouts: formations with filters and
 paging, or the current resource order with its availability.
 Only those regions and the portrait callout accept pointer and keyboard input;
