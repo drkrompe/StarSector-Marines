@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Cell;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Phase;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Reading;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
+import com.dillon.starsectormarines.battle.cordon.CordonTown;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -19,35 +21,59 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The Cordon's rows in the shared mission picture ({@code cordon-nouns.md}, Flow): on the Road the relief convoys,
- * beaconed at the gap, the town's gate and each convoy on the road, and the line, beaconed at the gap's redoubts and
- * any redoubt calling. Each row's focus is the place the company is wanted now, so Locate and the edge indicator say
- * where to go: a convoy held for an escort or by the swarm first, then one on the road, the gate while one loads,
- * and the gap while the next is still to come. Read-only, and only what the allies' radio would tell the company.
+ * The Cordon's rows in the shared mission picture ({@code cordon-nouns.md}, The player's picture). On the Road, by
+ * phase: Hold Ain Tafrant, beaconed at the town's staging area; Bring the people out, beaconed at the gap, the town's
+ * gate and each convoy on the road; and once the town is finished, Fall back behind the line, beaconed at the rally
+ * place. The line is not the Road's objective and has no row. On the Line: the line, beaconed at any redoubt calling. Each row's focus is the place the company is wanted now, so Locate and the edge indicator say where
+ * to go: a convoy held for an escort or by the swarm first, then one on the road, the gate while one loads, and the
+ * gap while the next is still to come. Read-only, and only what the allies' radio would tell the company.
  */
 public final class CordonChecklist {
     private CordonChecklist() { }
 
     /** One redoubt as the line's row reads it. */
-    record Post(int number, CordonRedoubt.State state, int x, int y, boolean gap) { }
+    record Post(int number, CordonRedoubt.State state, int x, int y) { }
 
     public static List<Item> items(BattleSimulation sim, CordonSequence cordon) {
         int tick = sim.getSimTickIndex();
         List<Item> items = new ArrayList<>();
         CordonConvoys convoys = cordon.convoys();
-        if (cordon.variant() == CordonVariant.ROAD && convoys != null && convoys.corridor().size() > 1) {
-            List<int[]> corridor = convoys.corridor();
-            items.add(convoys(cordon.outcome(), convoys.readings(sim), cordon.timetable().convoysNeeded(),
-                    convoys.peopleOut(), corridor.get(Math.min(convoys.gapIndex(), corridor.size() - 1)),
-                    corridor.get(corridor.size() - 1), tick));
+        if (cordon.variant() == CordonVariant.ROAD) {
+            CordonTown town = cordon.town();
+            List<Reading> readings = convoys == null ? List.of() : convoys.readings(sim);
+            if (town != null) {
+                int standing = 0;
+                for (int squad : town.teams()) standing += sim.squadMemberCount(squad);
+                int aboard = 0, seats = 0;
+                for (Reading r : readings) {
+                    if (r.phase() != Phase.LOADING) continue;
+                    aboard += r.aboard();
+                    seats += r.seats();
+                }
+                items.add(town(cordon.outcome(), cordon.townFinished(), new Town(town.state(), town.calling(standing),
+                        town.staging().cells(), town.staging().centreX(), town.staging().centreY(),
+                        convoys == null ? 0 : convoys.town(), standing, town.garrison(), aboard, seats)));
+            }
+            if (convoys != null && convoys.corridor().size() > 1) {
+                List<int[]> corridor = convoys.corridor();
+                items.add(convoys(cordon.outcome(), readings, new People(convoys.peopleOut(), convoys.peopleLost(),
+                                cordon.population(), cordon.peopleNeeded()),
+                        corridor.get(Math.min(convoys.gapIndex(), corridor.size() - 1)),
+                        corridor.get(corridor.size() - 1), tick));
+            }
+            int[] rally = cordon.rally();
+            if (cordon.fallingBack() && rally != null) {
+                items.add(fallBack(cordon.outcome(), cordon.withdrawn(), rally));
+            }
+        } else {
+            List<Post> posts = new ArrayList<>();
+            for (int i = 0; i < cordon.redoubts().size(); i++) {
+                CordonRedoubt r = cordon.redoubts().get(i);
+                posts.add(new Post(r.number(), r.state(), r.centreX(), r.centreY()));
+            }
+            items.add(line(cordon.outcome(), cordon.endBeat(), posts, cordon.fallen(),
+                    cordon.timetable().allowedFallen(), tick, ticks(cordon.timetable().windowSeconds())));
         }
-        List<Post> posts = new ArrayList<>();
-        for (int i = 0; i < cordon.redoubts().size(); i++) {
-            CordonRedoubt r = cordon.redoubts().get(i);
-            posts.add(new Post(r.number(), r.state(), r.centreX(), r.centreY(), cordon.gap().contains(i)));
-        }
-        items.add(line(cordon.variant(), cordon.outcome(), cordon.endBeat(), posts, cordon.fallen(),
-                cordon.timetable().allowedFallen(), tick, ticks(cordon.timetable().windowSeconds())));
         // The rolled beats follow in the Optional section, in roll order.
         if (cordon.beats() != null) for (CordonBeats.Reading beat : cordon.beats().readings(sim)) items.add(beat(beat));
         return items;
@@ -74,15 +100,19 @@ public final class CordonChecklist {
                 pays, -1, "", markers, markers.isEmpty() ? "" : markers.get(0).id(), true);
     }
 
-    static Item convoys(CordonSequence.Outcome outcome, List<Reading> readings, int needed, int peopleOut,
-                        int[] gap, int[] gate, int tick) {
-        int out = 0, lost = 0;
-        for (Reading r : readings) {
-            if (r.phase() == Phase.OUT) out++;
-            else if (r.phase() == Phase.LOST) lost++;
-        }
-        State state = out >= needed || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
-                : readings.size() - lost < needed || outcome == CordonSequence.Outcome.BROKEN ? State.FAILED
+    /** The townspeople as the Road's people row reads them: out, lost, how many the town had and how many must come out. */
+    record People(int out, int lost, int population, int needed) { }
+
+    /**
+     * The Road's second row, Bring the people out: the townspeople out against the briefing's number, beaconed at the
+     * gap, the town's gate and each convoy on the road. Complete once enough are out (or the Road is won), failed once
+     * too few are left alive to make the number (or the Road is lost).
+     */
+    static Item convoys(CordonSequence.Outcome outcome, List<Reading> readings, People people, int[] gap, int[] gate,
+                        int tick) {
+        int needed = people.needed();
+        State state = people.out() >= needed || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
+                : people.population() - people.lost() < needed || outcome == CordonSequence.Outcome.BROKEN ? State.FAILED
                 : State.ACTIVE;
         Reading wanted = wanted(readings);
         String gapId = "cordon-gap", gateId = "cordon-gate";
@@ -108,11 +138,71 @@ public final class CordonChecklist {
             case BLOCKED -> Strings.format("cordonHudBlockerBlocked", wanted.number());
             case NONE -> "";
         };
-        return new Item("cordon-1-convoys", Strings.get("cordonHudConvoysName"), state, phase,
+        return new Item("cordon-2-convoys", Strings.get("cordonHudConvoysName"), state, phase,
                 Strings.get("cordonHudConvoysSteps"),
                 Strings.get(state == State.ACTIVE ? "cordonHudConvoysInstruction" : "cordonHudConvoysClosed"),
-                Strings.format("cordonHudConvoysTally", out, needed, lost, peopleOut),
-                needed <= 0 ? -1 : Math.min(1f, out / (float) needed), blocker, markers, focus);
+                Strings.format("cordonHudConvoysTally", people.out(), people.population(), needed, people.lost()),
+                needed <= 0 ? -1 : Math.min(1f, people.out() / (float) needed), blocker, markers, focus);
+    }
+
+    /**
+     * The town as its row reads it: how the staging area stands, whether the town is calling, the staging area's cells
+     * and middle, the townspeople still trapped, and the defenders standing of those it stood up with.
+     */
+    record Town(CordonTown.State state, boolean calling, List<int[]> cells, int x, int y, int trapped, int standing,
+                int garrison, int aboard, int seats) { }
+
+    /**
+     * The Road's first row, Hold Ain Tafrant: beaconed at the staging area (its cells the beacon's footprint), saying
+     * how it stands (holding, pressed, overrun) and whether the town is calling, tallying the townspeople still
+     * trapped, the boarding of a convoy at the gate and the defenders standing. Its focus is the staging area while it
+     * runs; it says so when the swarm is in it or the town is calling. Complete once the town is empty, failed once it
+     * is abandoned (its staging area overrun) or the company is lost.
+     *
+     * @param finished why the town is finished ({@code town_empty}, {@code town_abandoned}), or {@code null}
+     */
+    static Item town(CordonSequence.Outcome outcome, String finished, Town town) {
+        boolean overrun = "town_abandoned".equals(finished);
+        State state = overrun ? State.FAILED
+                : finished != null ? State.COMPLETE
+                : outcome == CordonSequence.Outcome.BROKEN ? State.FAILED : State.ACTIVE;
+        String status = town.state() == CordonTown.State.HOLDING && town.calling()
+                ? Strings.get("cordonHudTownCalling") : Strings.named("cordonHudStagingState", town.state().name());
+        List<Cell> footprint = new ArrayList<>();
+        for (int[] c : town.cells()) footprint.add(new Cell(c[0], c[1]));
+        String id = "cordon-staging";
+        List<Marker> markers = List.of(new Marker(id, Strings.get("cordonHudStaging"), town.x(), town.y(), status,
+                overrun ? State.FAILED : state, footprint));
+        String phase = state == State.COMPLETE ? Strings.get("cordonHudTownDone")
+                : state == State.FAILED ? Strings.get("cordonHudTownLost") : status;
+        String blocker = state != State.ACTIVE ? ""
+                : town.state() == CordonTown.State.PRESSED ? Strings.get("cordonHudBlockerStaging")
+                : town.calling() ? Strings.get("cordonHudBlockerTown") : "";
+        return new Item("cordon-1-town", Strings.get("cordonHudTownName"), state, phase,
+                Strings.get("cordonHudTownSteps"),
+                Strings.get(state == State.ACTIVE ? "cordonHudTownInstruction" : "cordonHudTownClosed"),
+                town.seats() > 0
+                        ? Strings.format("cordonHudTownTallyBoarding", town.trapped(), town.aboard(), town.seats(),
+                                town.standing(), town.garrison())
+                        : Strings.format("cordonHudTownTally", town.trapped(), town.standing(), town.garrison()),
+                town.garrison() <= 0 ? -1 : Math.min(1f, town.standing() / (float) town.garrison()), blocker,
+                markers, state == State.ACTIVE ? id : "");
+    }
+
+    /**
+     * The Road's last row once the town is finished, Fall back behind the line: beaconed at the rally place behind the
+     * line, complete once the company is behind it.
+     */
+    static Item fallBack(CordonSequence.Outcome outcome, boolean withdrawn, int[] rally) {
+        State state = withdrawn || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
+                : outcome == CordonSequence.Outcome.BROKEN ? State.FAILED : State.ACTIVE;
+        String id = "cordon-rally";
+        String phase = Strings.get(state == State.ACTIVE ? "cordonHudFallBackPhase" : "cordonHudFallBackDone");
+        List<Marker> markers = List.of(new Marker(id, Strings.get("cordonHudRally"), rally[0], rally[1], phase, state));
+        return new Item("cordon-3-fall-back", Strings.get("cordonHudFallBackName"), state, phase,
+                Strings.get("cordonHudFallBackSteps"), Strings.get("cordonHudFallBackInstruction"), "", -1,
+                state == State.ACTIVE ? Strings.get("cordonHudBlockerFallBack") : "", markers,
+                state == State.ACTIVE ? id : "");
     }
 
     /**
@@ -148,27 +238,23 @@ public final class CordonChecklist {
         };
     }
 
-    static Item line(CordonVariant variant, CordonSequence.Outcome outcome, String endBeat, List<Post> posts,
-                     int fallen, int allowedFallen, int tick, int windowTicks) {
-        boolean road = variant == CordonVariant.ROAD;
-        // The line's own breaks fail this row; a Road lost on its convoys leaves the line as it stood.
-        boolean broken = outcome == CordonSequence.Outcome.BROKEN && endBeat != null
-                && !endBeat.startsWith("convoys");
+    /**
+     * The Line's row: beaconed at any redoubt calling, the first of them its focus, tallying the redoubts lost against
+     * those allowed and the window's time left. Only the line's own break fails it; a wiped company does too.
+     */
+    static Item line(CordonSequence.Outcome outcome, String endBeat, List<Post> posts, int fallen, int allowedFallen,
+                     int tick, int windowTicks) {
+        boolean broken = outcome == CordonSequence.Outcome.BROKEN && endBeat != null;
         State state = outcome == CordonSequence.Outcome.HELD ? State.COMPLETE : broken ? State.FAILED : State.ACTIVE;
         List<Marker> markers = new ArrayList<>();
         List<Integer> calling = new ArrayList<>();
-        String standingGap = "";
         for (Post p : posts) {
-            if (p.state() == CordonRedoubt.State.CALLING) calling.add(p.number());
-            if (!p.gap() && p.state() != CordonRedoubt.State.CALLING) continue;
-            String id = "cordon-redoubt-" + p.number();
-            State shown = p.state() == CordonRedoubt.State.FALLEN ? State.FAILED : State.ACTIVE;
-            markers.add(new Marker(id, Strings.format(p.gap() ? "cordonHudGapRedoubt" : "cordonHudRedoubt", p.number()),
-                    p.x(), p.y(), Strings.named("cordonHudRedoubtState", p.state().name()), shown));
-            if (p.gap() && shown == State.ACTIVE && standingGap.isEmpty()) standingGap = id;
+            if (p.state() != CordonRedoubt.State.CALLING) continue;
+            calling.add(p.number());
+            markers.add(new Marker("cordon-redoubt-" + p.number(), Strings.format("cordonHudRedoubt", p.number()),
+                    p.x(), p.y(), Strings.named("cordonHudRedoubtState", p.state().name()), State.ACTIVE));
         }
-        // A calling redoubt outranks a quiet gap redoubt for the focus.
-        String focus = state != State.ACTIVE ? "" : !calling.isEmpty() ? "cordon-redoubt-" + calling.get(0) : standingGap;
+        String focus = state != State.ACTIVE || calling.isEmpty() ? "" : "cordon-redoubt-" + calling.get(0);
         int left = Math.max(0, windowTicks - tick);
         String phase = state == State.COMPLETE ? Strings.get("cordonHeld")
                 : state == State.FAILED ? Strings.get("cordonBroken")
@@ -177,9 +263,8 @@ public final class CordonChecklist {
         String blocker = state != State.ACTIVE || calling.isEmpty() ? ""
                 : calling.size() == 1 ? Strings.format("cordonHudBlockerCalling", calling.get(0))
                 : Strings.format("cordonHudBlockerCallingMany", joined(calling));
-        return new Item("cordon-2-line", Strings.get(road ? "cordonHudGapName" : "cordonHudLineName"), state, phase,
-                Strings.get(road ? "cordonHudGapSteps" : "cordonHudLineSteps"),
-                Strings.get(road ? "cordonHudGapInstruction" : "cordonHudLineInstruction"),
+        return new Item("cordon-2-line", Strings.get("cordonHudLineName"), state, phase,
+                Strings.get("cordonHudLineSteps"), Strings.get("cordonHudLineInstruction"),
                 Strings.format("cordonHudLineTally", fallen, allowedFallen, clock(left)),
                 windowTicks <= 0 ? -1 : Math.min(1f, tick / (float) windowTicks), blocker, markers, focus);
     }
