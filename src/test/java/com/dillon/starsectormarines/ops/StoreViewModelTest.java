@@ -120,6 +120,21 @@ class StoreViewModelTest {
     }
 
     @Test
+    void theFreeLicensesCheatTeachesTheCardAndChargesNothing() {
+        MarineArmory armory = new MarineArmory();
+        long[] credits = {100};
+        var id = LoadoutCards.all().get(0).id();
+        StoreViewModel model = new StoreViewModel(new Reactor(), () -> List.of(offer(id)),
+                () -> new EquipmentStore.Holdings(armory, new MechBay(), null), purse(credits), () -> "Jangala", () -> true);
+
+        assertFalse(model.buyClasses().get().contains("unaffordable"));
+        assertEquals(EquipmentStore.Sale.SOLD, model.buySelected());
+
+        assertEquals(100, credits[0]);
+        assertTrue(armory.knowsLoadoutCard(id));
+    }
+
+    @Test
     void theWaylinePathNotTakenIsShownAsItsCard() {
         String id = new LoadoutCard(LoadoutCard.Kind.WEAPON, FirstRefit.Path.STEADY_LINE.weapons).id();
         StoreViewModel model = new StoreViewModel(new Reactor(), () -> List.of(offer(id)),
