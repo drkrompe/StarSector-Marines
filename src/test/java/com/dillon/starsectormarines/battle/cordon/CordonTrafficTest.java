@@ -37,6 +37,19 @@ class CordonTrafficTest {
     }
 
     @Test
+    void outOfAOneWayYardTheNextConvoyGoesInOnceTheLastTruckIsBackOnTheRoadAndOnlyOneLoadsAtATime() {
+        // The yard 100..130; its exit rejoins the road at 90, short of the yard's mouth.
+        CordonTraffic yard = new CordonTraffic(List.of(new Stretch(100, 130, true)));
+        yard.update(List.of(in(1, 95, 85, 75)));
+        assertEquals(100 - B, yard.update(List.of(in(1, 130, 126, 122), in(2, 100 - B, 76, 66))).get(2),
+                "one convoy loads at a time");
+        // Loaded and out of the exit: two trucks back on the road below the mouth, the last still in the yard.
+        assertEquals(100 - B, yard.update(List.of(out(1, 90, 88, 128), in(2, 100 - B, 76, 66))).get(2));
+        assertTrue(yard.update(List.of(out(1, 70, 80, 90), in(2, 100 - B, 76, 66))).isEmpty(),
+                "all out: the next drives in while the first goes on home down the road");
+    }
+
+    @Test
     void goingHomeGoesFirstWhenTwoMeetAtEitherEndOfANarrowStretchAndNeitherIsStuck() {
         CordonTraffic narrow = new CordonTraffic(List.of(new Stretch(100, 120, false)));
         Map<Integer, Integer> holds = narrow.update(List.of(in(1, 100 - B, 100 - B - 8), out(2, 120 + B, 120 + B + 8)));

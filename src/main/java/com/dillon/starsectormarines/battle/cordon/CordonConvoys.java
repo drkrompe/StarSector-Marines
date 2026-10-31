@@ -1455,7 +1455,42 @@ public final class CordonConvoys {
         // the road.
         List<int[]> loop = corridor.subList(yardFrom, corridor.size());
         inward = join(lay(sim, entry, yardFrom), cells(loop, 1));
+        if (yard.oneWay()) {
+            // One-way: on past the stop and out of the exit gate, then onto the road where it passes nearest and down it.
+            List<int[]> way = yard.wayOut();
+            int[] outside = way.get(way.size() - 1);
+            int join = rejoin(outside);
+            int[] from = VehicleRoutePlanner.snapToMask(clearance, outside[0], outside[1], SNAP);
+            int[] to = VehicleRoutePlanner.snapToMask(clearance, corridor.get(join)[0], corridor.get(join)[1], SNAP);
+            float[][] onto = prove(sim, from, to);
+            if (onto == null) {
+                List<int[]> line = new ArrayList<>();
+                line.add(outside);
+                line.add(corridor.get(join));
+                onto = cells(line, 1);
+            }
+            outward = join(join(join(cells(loop, 0), cells(way, 1)), onto), lay(sim, join, entry));
+            return;
+        }
         outward = join(join(cells(loop, 0), cells(yard.wayOut(), 1)), lay(sim, yardFrom, entry));
+    }
+
+    /**
+     * The road's cell a truck out of a one-way yard's exit joins the road at: the nearest to the exit's outside short
+     * of the yard's tight stretch, so it never drives back up into the mouth the next convoy comes in by.
+     */
+    private int rejoin(int[] outside) {
+        int last = Math.max(entry, Math.min(corridor.size() - 1, yardFrom - YARD_APPROACH - 1));
+        int best = Math.max(0, Math.min(entry, last));
+        long bestD = Long.MAX_VALUE;
+        for (int i = Math.min(entry, last); i <= last; i++) {
+            long dx = corridor.get(i)[0] - outside[0], dy = corridor.get(i)[1] - outside[1];
+            if (dx * dx + dy * dy < bestD) {
+                bestD = dx * dx + dy * dy;
+                best = i;
+            }
+        }
+        return best;
     }
 
     /** The middles of {@code cells} from index {@code from} on, as a path. */

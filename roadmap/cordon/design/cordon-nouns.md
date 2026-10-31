@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -602,6 +602,20 @@ second truck drawn up behind round the yard; loaded, they drive forward out of
 the gate (the corridor is carried on into the yard, `CordonGateYard.extend`).
 No defender stands in the yard. Untuned: the yard's size and the gate's width.
 The yard is laid behind the gate furthest toward the rear that it fits behind.
+
+**One-way yard.** On the Road's compound the yard is a **loop** (owner,
+2026-10-31: "a clean loop"; `GateYard.withExit`): a second gate as wide as
+the first in the same wall, two cells of wall or more past it toward the rear,
+the yard the ground between and behind the two (as deep as before), and the
+staging area behind the yard between the gates. A convoy drives in at the
+gate, in to the lane two cells short of the yard's depth, along it to its
+stop beside the staging area, and on along it and out at the exit, rejoining
+the road where it passes nearest short of the yard's mouth: no turn in place,
+no reversing, no two-way mouth. Where the wall has no room for the exit the
+yard keeps its one gate and the old turn. The yard and its mouth stay one
+convoy's at a time (*Convoy traffic*): the next goes in once the last truck of
+the one before is back on the road. No guard team stands at the exit; the
+flak and the posterns keep off the yard as before.
 
 **Posterns.** The compound also opens a **postern** in the middle of its east
 side and of its front (`GateYard.posterns`: three cells wide, across the glacis

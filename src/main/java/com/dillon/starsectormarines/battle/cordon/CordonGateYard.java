@@ -24,6 +24,10 @@ import java.util.Set;
  * <p>A truck drives in on the gate's axis, runs to the yard's far side, swings across toward the staging area and
  * comes back toward the gate to its stop ({@link #loop}), so it stands to load already facing out; loaded, it drives
  * forward out of the gate ({@link #wayOut}).
+ *
+ * <p>A <b>one-way</b> yard ({@link #oneWay}; owner, 2026-10-31: "a clean loop") has a second gate in the same wall: a
+ * truck drives in at the gate, along the yard past its stop beside the staging area, and out at the exit, never
+ * turning in place nor meeting the next convoy in a two-way mouth.
  */
 public final class CordonGateYard {
 
@@ -36,6 +40,8 @@ public final class CordonGateYard {
     private final List<int[]> beside;
     private final Set<Long> keys = new HashSet<>();
     private final int[] gate, entry, turn, stop;
+    /** The exit gate's middle on the wall's line, for a one-way yard; {@code null} where the yard has its one gate. */
+    private final int[] exit;
 
     /**
      * @param cells  the yard's cells
@@ -46,6 +52,16 @@ public final class CordonGateYard {
      * @param stop   the yard's cell beside the staging ground, where a truck stops to load
      */
     public CordonGateYard(List<int[]> cells, List<int[]> beside, int[] gate, int[] entry, int[] turn, int[] stop) {
+        this(cells, beside, gate, entry, turn, stop, null);
+    }
+
+    /**
+     * A one-way yard: in at {@code gate}, along past the stop, out at {@code exit} ({@code null} for a yard with its
+     * one gate).
+     */
+    public CordonGateYard(List<int[]> cells, List<int[]> beside, int[] gate, int[] entry, int[] turn, int[] stop,
+                          int[] exit) {
+        this.exit = exit == null ? null : exit.clone();
         this.cells = List.copyOf(cells);
         this.beside = List.copyOf(beside);
         for (int[] c : cells) keys.add(key(c[0], c[1]));
@@ -64,7 +80,7 @@ public final class CordonGateYard {
             return null;
         }
         return new CordonGateYard(laid.cells(), laid.nests(), laid.gaps().get(0), laid.gaps().get(1),
-                laid.gaps().get(2), laid.gaps().get(3));
+                laid.gaps().get(2), laid.gaps().get(3), laid.gaps().size() > 4 ? laid.gaps().get(4) : null);
     }
 
     /** The yard's cells, row by row from the gate inward. */
@@ -74,6 +90,12 @@ public final class CordonGateYard {
 
     /** The open ground the map kept beside the yard, where the staging area stands. */
     public List<int[]> beside() { return beside; }
+
+    /** Whether the yard is one-way: in at its gate, out at an exit gate of its own. */
+    public boolean oneWay() { return exit != null; }
+
+    /** The exit gate's middle cell on the wall's line, or {@code null} where the yard has its one gate. */
+    public int[] exit() { return exit == null ? null : exit.clone(); }
 
     /** The gate's middle cell, on the wall's line. */
     public int gateX() { return gate[0]; }
@@ -139,6 +161,13 @@ public final class CordonGateYard {
      * stop, so it stands there facing out.
      */
     public List<int[]> loop() {
+        if (exit != null) {
+            // One-way: in on the gate's axis to the lane, along it to the stop.
+            List<int[]> out = new ArrayList<>();
+            out.add(gate.clone());
+            for (int[] point : List.of(entry, turn, stop)) line(out, point);
+            return out;
+        }
         int s = side(), far = Math.max(1, depth() - 1), across = Math.abs(alongOf(stop));
         List<int[]> out = new ArrayList<>();
         out.add(gate.clone());
@@ -148,6 +177,14 @@ public final class CordonGateYard {
 
     /** A loaded truck's way out from its stop, forward through the gate to the line-up point outside, cell by cell. */
     public List<int[]> wayOut() {
+        if (exit != null) {
+            // One-way: on along the lane past the stop, out through the exit gate and across the glacis.
+            int lane = depthOf(stop), along = alongOf(exit);
+            List<int[]> out = new ArrayList<>();
+            out.add(stop.clone());
+            for (int[] point : List.of(at(lane, along), at(1, along), exit, at(-APPROACH, along))) line(out, point);
+            return out;
+        }
         int s = side(), across = Math.abs(alongOf(stop));
         List<int[]> out = new ArrayList<>();
         out.add(stop.clone());
