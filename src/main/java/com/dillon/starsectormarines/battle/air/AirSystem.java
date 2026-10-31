@@ -625,6 +625,16 @@ public class AirSystem {
         this.boatShieldPositions = positions;
     }
 
+    /**
+     * The strip a rolling sortie uses: the one it rolled off ({@link ShuttleMission#strip}), else its home berth's
+     * field's, else the first field's. A battle with several fields sends each craft back to its own.
+     */
+    private Runway stripFor(ShuttleMission mission) {
+        if (mission.strip != null) return mission.strip;
+        if (mission.homeBerth != null) return airfield.stripOf(mission.homeBerth);
+        return airfield.runway();
+    }
+
     /** Tells this system which field its based sorties belong to. */
     public void setAirfield(AirfieldService airfield) {
         this.airfield = airfield;
@@ -1104,7 +1114,7 @@ public class AirSystem {
                     mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
                             rollCarrotX(mission), rollCarrotY(mission), /*targetSpeed*/ 0f,
                             GroundHandling.rolling(flight), dt);
-                    if (airfield != null && airfield.claimRunway(id)) {
+                    if (airfield != null && airfield.claimRunway(stripFor(mission), id)) {
                         beginShuttleLeg(mission, body, mission.rollX, mission.rollY);
                         mission.state = ShuttleState.TAKEOFF_ROLL;
                     }
@@ -1211,7 +1221,7 @@ public class AirSystem {
                     // is straight on arrival because the path it flew ended
                     // that way rather than because the simulation put it
                     // straight when it got there.
-                    Runway strip = airfield == null ? null : airfield.runway();
+                    Runway strip = airfield == null ? null : stripFor(mission);
                     if (strip == null) {
                         // No strip to come home to. Leave, rather than circle a
                         // field that is not there.
@@ -1251,7 +1261,7 @@ public class AirSystem {
                     // most of the time. Both ends of the strip's queue now ask
                     // at the same rate, so a landing that has to wait waits for
                     // the strip rather than for its own next circuit.
-                    boolean holdsTheStrip = airfield.claimRunway(id)
+                    boolean holdsTheStrip = airfield.claimRunway(strip, id)
                             // An aircraft that cannot land is a worse outcome
                             // than two on one strip. After enough circuits it
                             // stops asking and puts down: a real machine low on
@@ -1269,7 +1279,7 @@ public class AirSystem {
                         // emergency landing that left the strip recorded to
                         // somebody else would have the aircraft roll out
                         // without holding the runway it is on.
-                        airfield.takeRunway(id);
+                        airfield.takeRunway(strip, id);
                         // Touchdown, and nothing is moved. The aircraft is
                         // where it flew itself to, pointed the way the path
                         // ended, carrying the speed it arrived with; the wheels
@@ -1958,7 +1968,7 @@ public class AirSystem {
      * own field to land the wrong way down it.
      */
     private void beginEgress(ShuttleMission mission, AirBody body) {
-        Runway strip = airfield == null ? null : airfield.runway();
+        Runway strip = airfield == null ? null : stripFor(mission);
         if (mission.usesRunway && strip != null) {
             mission.landOnRunway(strip, body.x, body.y, mission.shelterX, mission.shelterY);
             // The approach itself is solved on the first RETURNING tick rather

@@ -87,7 +87,15 @@ public final class AirbaseLot {
         STATION(58, 24, 4, true, 3, 3, 11, 8, 5, 4, 3, 2, 2),
         FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2, 2),
         PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1, 2),
-        STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 2, 1, 1, 0);
+        STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 2, 1, 1, 0),
+        /**
+         * A wing's base: one long common strip and eight bays, five hardstands
+         * and three sheds, each with its own work round it. A station grown
+         * along its frontage again, the scarce axis kept to a station's depth,
+         * so it is laid only where a mission has open country for it (the
+         * heart's farmland), never in a ward.
+         */
+        BASE(72, 24, 4, true, 5, 3, 11, 8, 5, 4, 3, 2, 2);
 
         /** Cells across the lot, fence to fence. */
         public final int width;

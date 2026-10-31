@@ -14,19 +14,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An air wing's airbase on the map (`air-nouns.md`, Air support pool): the field whose berths hold part of a side's
- * pool on the ground, so the pool's sorties roll off its strip and land back on it instead of crossing the map edge.
+ * One airbase a side's air pool flies from (`air-nouns.md`, Airbase): the bays of one field on the map, each holding
+ * one kind of the pool's airframes ({@link AirPoolKind}), and the ground the base stands on.
  *
- * <p>The pool stays the ledger: how many airframes of each kind the side holds, and which are out. The base says which
- * of them are standing here. A call is flown off the base when a berth of its kind is airworthy and the base is not
- * overrun, and from the side's own edge otherwise, as a wing's squadrons further back fly. Each berth holds one kind
- * ({@link AirPoolKind}): a sortie leaves on the airframe the berth holds, the one the call asked for when one of those
- * is ready.
+ * <p>For a based side the bays are the pool's ledger ({@link AirPoolService}): what it has available is what stands
+ * airworthy in them. A call rolls off the nearest base's bay of its kind, on the airframe the call asked for when one
+ * of those is ready, down that base's own strip, and lands back on it. Nothing launches from a base while the side's
+ * enemies stand on it ({@link #overrun}).
  *
- * <p>The base is a real place and losing it is a cost, never a loss. An aircraft burned where it stands is written off
- * the pool ({@link #newlyBurned}) and its stand keeps the hulk; one lost in the air leaves an empty stand that the
- * pool's next replacement of that kind is ferried onto ({@link #restock}). Nothing launches while the side's enemies
- * stand on the base ({@link #overrun}).
+ * <p>The base is a real place and losing it is a cost, never a loss. An aircraft lost in the air leaves its bay empty
+ * and the field's crew builds a replacement on it, which takes their work ({@code AirfieldService.beginRebuild}); one
+ * burned where it stands leaves its hulk and the bay is gone for the battle ({@link #newlyBurned}).
  */
 public final class WingAirbase {
 
@@ -40,7 +38,7 @@ public final class WingAirbase {
     private final Set<Berth> burned = Collections.newSetFromMap(new IdentityHashMap<>());
 
     /**
-     * The base over {@code field}, inside {@code bounds} ({x0, y0, x1, y1}, inclusive), with {@code berths}, each
+     * The base of {@code berths} on {@code field}, inside {@code bounds} ({x0, y0, x1, y1}, inclusive), each berth
      * holding an airframe of the kind at the same index of {@code kinds}.
      */
     public WingAirbase(AirfieldService field, int[] bounds, List<Berth> berths, List<AirPoolKind> kinds) {
@@ -56,9 +54,9 @@ public final class WingAirbase {
         return airframe == AirPoolKind.BOMBER.profile() ? AirPoolKind.BOMBER : AirPoolKind.FIGHTER;
     }
 
-    /** Whose base it is: the field's owner. */
+    /** Whose base it is: its bays' field's owner. */
     public Faction side() {
-        return field.owner();
+        return berths.isEmpty() ? field.owner() : field.ownerOf(berths.get(0));
     }
 
     public AirfieldService field() {
@@ -70,27 +68,34 @@ public final class WingAirbase {
         return bounds.clone();
     }
 
-    /** Every berth of the base, in registration order. */
+    /** Every bay of the base, in registration order. */
     public List<Berth> berths() {
         return berths;
     }
 
-    /** The kind the berth holds, or null for a berth not of this base. */
+    /** The kind the bay holds, or null for a berth not of this base. */
     public AirPoolKind kindOf(Berth berth) {
         return kinds.get(berth);
     }
 
+    /** Bays of {@code kind} that could put an aircraft in the air now. */
+    public int airworthy(AirPoolKind kind) {
+        int n = 0;
+        for (Berth berth : berths) if (berth.airworthy() && kinds.get(berth) == kind) n++;
+        return n;
+    }
+
     /**
-     * The berth a sortie of {@code kind} rolls from: an airworthy one holding {@code wanted} when there is one, else any
-     * airworthy one of the kind, nearest {@code (x, y)} either way; null when none is ready or the base has no strip.
-     * Every berth of the base reaches the air down its strip, a stand's aircraft taxiing to it as a shed's does.
+     * The bay a sortie of {@code kind} rolls from: an airworthy one holding {@code wanted} when there is one, else any
+     * airworthy one of the kind, nearest {@code (x, y)} either way; null when none is ready. Only a bay whose field has
+     * a strip: every bay reaches the air down its own field's strip, a stand's aircraft taxiing to it as a shed's does.
      */
     public Berth berthFor(AirPoolKind kind, FighterProfile wanted, float x, float y) {
-        if (field.runway() == null) return null;
         Berth exact = null, any = null;
         float exactD = Float.MAX_VALUE, anyD = Float.MAX_VALUE;
         for (Berth berth : berths) {
             if (!berth.airworthy() || kinds.get(berth) != kind || !(berth.airframe instanceof FighterProfile)) continue;
+            if (field.stripOf(berth) == null) continue;
             float d = (berth.centerX - x) * (berth.centerX - x) + (berth.centerY - y) * (berth.centerY - y);
             if (d < anyD) {
                 anyD = d;
@@ -121,18 +126,7 @@ public final class WingAirbase {
                 && y >= bounds[1] - OVERRUN_MARGIN && y <= bounds[3] + 1 + OVERRUN_MARGIN;
     }
 
-    /**
-     * Ferries a replacement of {@code kind} onto the first stand of that kind left empty by a loss in the air; answers
-     * whether one was. A stand with a hulk on it takes none.
-     */
-    public boolean restock(AirPoolKind kind) {
-        for (Berth berth : berths) {
-            if (kinds.get(berth) == kind && field.restock(berth)) return true;
-        }
-        return false;
-    }
-
-    /** The kinds of the aircraft burned on their stands since the last call, one entry each. */
+    /** The kinds of the aircraft burned on their bays since the last call, one entry each. */
     public List<AirPoolKind> newlyBurned() {
         List<AirPoolKind> out = new ArrayList<>();
         for (Berth berth : berths) {

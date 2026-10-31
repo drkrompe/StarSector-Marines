@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from an allied airbase and keeps a standing patrol over the lanes
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -200,7 +200,8 @@ field. It never orders the company and never ends the battle.
 world's military attaches one observer to each lane: the radio goes to a
 soldier other than the leader of the first team to step off on the lane's
 ground (`air-nouns.md`, Forward observer). Through it the military's **air
-wing** (three bombers and four fighters, flying from the allied airbase, below)
+wing** (the bays of the allied airbases, below: six bombers and ten fighters
+with two bases)
 strikes a swarm mass that observer has in sight. It is a different
 tool from the base's gunship: the gunship is the commander's one heavy sortie
 onto a bore, flown when called; the wing is the observers' own, onto the masses
@@ -213,26 +214,33 @@ foremost team, on the way back to its foot, the lanes with the most squads in
 contact first, so the team follows the push. The Burn has none of either: its
 guns are its fire support.
 
-**Allied airbase** (Broad Front). The air wing's field, a named piece of the
-layout (`HeartLayout.AIRBASE`): an airfield lot (`air-nouns.md`, Airbase) on
-the cordon's farmland behind the line, between the outer lane and the company's
-road on the west flank, else the east, its strip on the side toward the heart,
-clear of the landing and the logistics base. Three hardstands (two Daggers, a
-Talon) and two sheds (a Talon, a Broadsword) hold five of the wing's seven
-airframes, and an allied ground crew turns them round. A call rolls off the
-base when a berth of its kind is ready and the swarm is not on it, and from the
-start edge otherwise. The air war is **passive**: while the flier law lets
-Harriers fly, the wing keeps up to two fighters on a **standing patrol** over
-the lanes, each over a lane's foremost squad in turn, uncalled, and they hunt
-the Harrier packs air to air (`air-nouns.md`, Standing patrol; Fighters and
-fliers); bombers still come only through the observers. The base is a real
-place: the swarm can reach it and burn the aircraft on their stands, each one
-burned written off the wing with its hulk left on the stand, and an aircraft
-lost in the air is replaced onto its empty stand at the wing's pace. Losing the
-base costs the wing, never the battle. Where no flank has the ground no base is
-laid and the wing flies from the edge, smaller. `-Dbattle.heart.airbase=false`
-is the control: the old wing of two and two from the edge, no patrol, the base
-laid and empty.
+**Allied airbase** (Broad Front). The air wing's fields, two named pieces of the
+layout (`HeartLayout.AIRBASES`, `airbase-1` west and `airbase-2` east): each
+a large airfield lot (`air-nouns.md`, Airbase; `AirbaseLot.BASE`, 72 by 24
+cells and its verge) on the cordon's farmland behind the line, wanted at about a
+quarter and three quarters across, searched deep and back freely and across only
+a little so it stays between a lane's foot and the road, its strip on the side
+toward the heart, each raised from its own draw. One is laid where only one
+flank has the ground, none where neither has. Each base is a common strip and
+eight bays: five hardstands and three sheds, holding three Daggers (the wing's
+bombers), three Talons and two Broadswords, and a crew of eight allied
+technicians, one to a bay, who refit and patch an aircraft that lands and
+rebuild on its bay one lost in the air; with its crew dead a bay's aircraft
+does not fly again and nothing is rebuilt on it, and dead crews are not
+replaced. The wing is the bays (six bombers and ten fighters with two bases):
+what it has to fly is what stands airworthy in them. A call rolls off the
+nearest base with a bay of its kind ready and the swarm not on it, down that
+base's own strip, and lands back on it; with none ready no sortie flies. The air
+war is **passive**: while the flier law lets Harriers fly, the wing keeps up to
+two fighters a base on a **standing patrol** over the lanes, each over a lane's
+foremost squad in turn, uncalled, and they hunt the Harrier packs air to air
+(`air-nouns.md`, Standing patrol; Fighters and fliers); bombers still come only
+through the observers. The bases are real places: the swarm can reach them and
+burn the aircraft on their bays, each one burned lost with its hulk left on the
+bay for the battle. Losing a base, its aircraft or its crew costs the wing,
+never the battle. Where no base is laid the wing flies from the edge, the old
+two and two. `-Dbattle.heart.airbase=false` is the control: the old wing of two
+and two from the edge, no patrol, the bases laid and empty.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at

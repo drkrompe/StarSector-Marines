@@ -122,15 +122,9 @@ public final class AirStrikeSystem {
         if (nextStrikeIn > 0f) return;
 
         AirfieldService field = sim.getAirfieldService();
-        // Only this side's own field: an allied base's sheds fly for its allies' wing, never for the garrison.
-        if (field.owner() != side) {
-            nextStrikeIn = LAUNCH_INTERVAL_SEC;
-            return;
-        }
-        Runway strip = field.runway();
-        // A strike rolls, so a field with no strip flies none however many
-        // aircraft are in its sheds.
-        if (strip == null) {
+        // Only this side's own fields: another side's base flies for that side, never for this one. And a strike
+        // rolls, so a field with no strip flies none however many aircraft are in its sheds.
+        if (!hasStrip(field)) {
             nextStrikeIn = LAUNCH_INTERVAL_SEC;
             return;
         }
@@ -140,7 +134,7 @@ public final class AirStrikeSystem {
         }
         // A hostile hull this field's ordnance can hurt comes before the ground; see HullStrike.
         HullTarget hull = HullStrike.choose(sim, side, h -> {
-            AirfieldService.Berth near = field.nearestAirworthy(h.x(), h.y(), AirfieldService.Kind.SHELTER);
+            AirfieldService.Berth near = nearestShed(field, h.x(), h.y());
             return near == null ? null : near.airframe.ordnance();
         });
         float targetX;
@@ -158,13 +152,12 @@ public final class AirStrikeSystem {
             targetX = world.x(target);
             targetY = world.y(target);
         }
-        AirfieldService.Berth shed = field.nearestAirworthy(
-                targetX, targetY, AirfieldService.Kind.SHELTER);
+        AirfieldService.Berth shed = nearestShed(field, targetX, targetY);
         if (shed == null) {
             nextStrikeIn = RETRY_SEC;
             return;
         }
-        launch(sim, field, strip, shed, targetX, targetY);
+        launch(sim, field, field.stripOf(shed), shed, targetX, targetY);
         nextStrikeIn = LAUNCH_INTERVAL_SEC;
     }
 
@@ -207,10 +200,38 @@ public final class AirStrikeSystem {
      * appear here at all. Counting it would let a friendly carrier overhead
      * keep the garrison's sheds shut for the whole battle.
      */
-    private static int committed(AirfieldService field) {
+    /** Whether this side holds a field with a strip. */
+    private boolean hasStrip(AirfieldService field) {
+        for (AirfieldService.Field f : field.fields()) {
+            if (f.owner() == side && f.strip() != null) return true;
+        }
+        return false;
+    }
+
+    /** The airworthy shed of this side's nearest the point whose field has a strip, or null. */
+    private AirfieldService.Berth nearestShed(AirfieldService field, float x, float y) {
+        AirfieldService.Berth best = null;
+        float bestDistance = Float.MAX_VALUE;
+        for (AirfieldService.Berth berth : field.berths()) {
+            if (!ours(field, berth) || !berth.airworthy() || field.stripOf(berth) == null) continue;
+            float d = (berth.centerX - x) * (berth.centerX - x) + (berth.centerY - y) * (berth.centerY - y);
+            if (d < bestDistance) {
+                bestDistance = d;
+                best = berth;
+            }
+        }
+        return best;
+    }
+
+    /** Whether {@code berth} is one of this side's sheds. */
+    private boolean ours(AirfieldService field, AirfieldService.Berth berth) {
+        return berth.kind == AirfieldService.Kind.SHELTER && field.ownerOf(berth) == side;
+    }
+
+    private int committed(AirfieldService field) {
         int out = 0;
         for (AirfieldService.Berth berth : field.berths()) {
-            if (berth.kind == AirfieldService.Kind.SHELTER
+            if (ours(field, berth)
                     && berth.state == AirfieldService.BerthState.AWAY) {
                 out++;
             }
@@ -230,10 +251,10 @@ public final class AirStrikeSystem {
      * field's hangars narrows what it can put up now as well as what it can put
      * up ever.
      */
-    private static int concurrentLimit(AirfieldService field) {
+    private int concurrentLimit(AirfieldService field) {
         int surviving = 0;
         for (AirfieldService.Berth berth : field.berths()) {
-            if (berth.kind == AirfieldService.Kind.SHELTER
+            if (ours(field, berth)
                     && berth.state != AirfieldService.BerthState.DESTROYED) {
                 surviving++;
             }

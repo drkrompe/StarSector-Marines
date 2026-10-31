@@ -44,8 +44,11 @@ import java.util.function.LongPredicate;
  * their pass with the same ordnance and flight code every aircraft uses, and leave. Nothing here forks flight or
  * damage. The call surface is serial ({@link #request}, {@link #advance}); the reads only read.
  *
- * <p>A side with an airbase on the map ({@link WingAirbase}) flies a call off it instead: the airframe rolls off its
- * berth down the strip and lands back on it, and only a call with no berth of its kind ready crosses the edge.
+ * <p>A side with airbases on the map ({@link WingAirbase}) flies every call off them instead: the airframe rolls off
+ * its bay down its base's strip and lands back on it. For such a side the bays are the ledger: what it has available
+ * of a kind is the airworthy bays of that kind less the calls already reserved against them, nothing regenerates by
+ * the clock, and an airframe lost comes back only when a bay's crew has rebuilt it ({@code AirfieldService.beginRebuild}).
+ * A side with no base keeps the counted pool and flies in over the edge.
  */
 public final class AirPoolService {
 
@@ -156,7 +159,7 @@ public final class AirPoolService {
     /** Airframes of {@code kind} {@code side} could task right now. */
     public int available(Faction side, AirPoolKind kind) {
         Ledger l = ledger(side, kind);
-        return l == null ? 0 : l.available;
+        return l == null ? 0 : avail(side, kind, l);
     }
 
     /** Airframes of {@code kind} currently out on a sortie or reserved for a call in progress. */
@@ -176,7 +179,7 @@ public final class AirPoolService {
         List<Readout> out = new ArrayList<>();
         for (Map.Entry<AirPoolKind, AirPoolStock> stock : allowance(side).stocks().entrySet()) {
             Ledger l = ledger(side, stock.getKey());
-            out.add(new Readout(stock.getKey(), l.available, l.outFlying + l.reserved, stock.getValue().cap(),
+            out.add(new Readout(stock.getKey(), avail(side, stock.getKey(), l), l.outFlying + l.reserved, stock.getValue().cap(),
                     l.lost, l.returned, l.aborted, l.launched));
         }
         return out;
@@ -226,10 +229,10 @@ public final class AirPoolService {
         for (Map.Entry<AirPoolKind, AirPoolStock> stock : allowance(side).stocks().entrySet()) {
             Ledger l = ledger(side, stock.getKey());
             AirPoolStock declared = stock.getValue();
-            int held = l.available + l.outFlying + l.reserved;
-            float next = declared.regenSeconds() > 0f && held < declared.cap()
+            int held = avail(side, stock.getKey(), l) + l.outFlying + l.reserved;
+            float next = !based(side) && declared.regenSeconds() > 0f && held < declared.cap()
                     ? Math.max(0f, declared.regenSeconds() - l.regenProgress) : -1f;
-            rows.add(new AirPoolView.KindRow(stock.getKey(), l.available, l.outFlying + l.reserved,
+            rows.add(new AirPoolView.KindRow(stock.getKey(), avail(side, stock.getKey(), l), l.outFlying + l.reserved,
                     declared.cap(), l.lost, next));
             calls += l.reserved;
         }
@@ -310,19 +313,35 @@ public final class AirPoolService {
     }
 
     private final List<RovingObservers> roving = new ArrayList<>();
-    private final Map<Faction, WingAirbase> bases = new EnumMap<>(Faction.class);
+    private final Map<Faction, List<WingAirbase>> bases = new EnumMap<>(Faction.class);
     private final List<StandingPatrol> patrols = new ArrayList<>();
     private final Map<Faction, Integer> basedLaunches = new EnumMap<>(Faction.class);
 
-    /** Bases {@code base}'s side's sorties on it: a call whose kind has a berth ready there rolls off its strip. */
+    /** Bases {@code base}'s side's sorties on it, beside any other base of the side's. */
     public AirPoolService basedAt(WingAirbase base) {
-        bases.put(base.side(), base);
+        bases.computeIfAbsent(base.side(), s -> new ArrayList<>()).add(base);
         return this;
     }
 
-    /** The airbase {@code side}'s pool flies from, or null when it flies in over the edge. */
-    public WingAirbase base(Faction side) {
-        return bases.get(side);
+    /** The airbases {@code side}'s pool flies from; empty when it flies in over the edge. */
+    public List<WingAirbase> bases(Faction side) {
+        return Collections.unmodifiableList(bases.getOrDefault(side, List.of()));
+    }
+
+    /** Whether {@code side} flies from bases on the map, whose bays are then its ledger. */
+    public boolean based(Faction side) {
+        return !bases.getOrDefault(side, List.of()).isEmpty();
+    }
+
+    /**
+     * What {@code side} has of {@code kind} to task now: the counted stock, or for a based side its airworthy bays of
+     * the kind less the calls already reserved against them.
+     */
+    private int avail(Faction side, AirPoolKind kind, Ledger l) {
+        if (!based(side)) return l.available;
+        int bays = 0;
+        for (WingAirbase base : bases.get(side)) bays += base.airworthy(kind);
+        return Math.max(0, bays - l.reserved);
     }
 
     /** Sorties of {@code side}'s that rolled off its airbase rather than crossing the edge, for evidence. */
@@ -384,7 +403,7 @@ public final class AirPoolService {
     public Outcome request(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y, boolean believes,
                            LongPredicate operators) {
         Ledger ledger = ledger(side, kind);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || avail(side, kind, ledger) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
@@ -401,7 +420,7 @@ public final class AirPoolService {
     public Outcome requestIncendiary(BattleSimulation sim, Faction side, float x, float y, boolean believes,
                                      LongPredicate operators) {
         Ledger ledger = ledger(side, AirPoolKind.BOMBER);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || avail(side, AirPoolKind.BOMBER, ledger) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
@@ -433,7 +452,7 @@ public final class AirPoolService {
      */
     public Outcome requestCover(BattleSimulation sim, Faction side, float x, float y, LongPredicate operators) {
         Ledger ledger = ledger(side, AirPoolKind.FIGHTER);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        if (ledger == null || avail(side, AirPoolKind.FIGHTER, ledger) <= 0) return Outcome.NO_AIRFRAME;
         Operator operator = CommsOperators.best(sim, side, x, y, true, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
@@ -450,8 +469,8 @@ public final class AirPoolService {
      */
     public Outcome patrol(BattleSimulation sim, Faction side, float x, float y) {
         Ledger ledger = ledger(side, AirPoolKind.FIGHTER);
-        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
-        ledger.available--;
+        if (ledger == null || avail(side, AirPoolKind.FIGHTER, ledger) <= 0) return Outcome.NO_AIRFRAME;
+        if (!based(side)) ledger.available--;
         ledger.reserved++;
         int ready = sim.getSimTickIndex() + Math.round(PATROL_READY_SECONDS / BattleSimulation.TICK_DT);
         pending.add(new PendingCall(side, AirPoolKind.FIGHTER, AirMission.COVER, 0L, x, y, ready, null));
@@ -463,7 +482,7 @@ public final class AirPoolService {
     private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
                          float x, float y, int ready, AirOrdnance ordnance) {
         Ledger ledger = ledger(side, kind);
-        ledger.available--;
+        if (!based(side)) ledger.available--;
         ledger.reserved++;
         pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready, ordnance));
         if (operator.atFort()) {
@@ -515,6 +534,8 @@ public final class AirPoolService {
     private void regenerate(BattleSimulation sim) {
         float dt = BattleSimulation.TICK_DT;
         for (Map.Entry<Faction, Map<AirPoolKind, Ledger>> side : ledgers.entrySet()) {
+            // A based side's replacements are its bays' crews' work, not the clock's.
+            if (based(side.getKey())) continue;
             AirPoolAllowance allowance = allowance(side.getKey());
             for (Map.Entry<AirPoolKind, Ledger> e : side.getValue().entrySet()) {
                 AirPoolStock stock = allowance.stock(e.getKey());
@@ -529,9 +550,6 @@ public final class AirPoolService {
                     l.regenProgress -= stock.regenSeconds();
                     l.available++;
                     events.add(new Event(sim.getSimTickIndex(), side.getKey(), e.getKey(), EventType.REPLACED, 0f, 0f));
-                    // A replacement ferried onto a stand the base lost in the air, when it has one standing empty.
-                    WingAirbase base = bases.get(side.getKey());
-                    if (base != null) base.restock(e.getKey());
                 }
             }
         }
@@ -548,7 +566,7 @@ public final class AirPoolService {
             ledger.reserved--;
             if (dropped || !launch(sim, call, ledger)) {
                 // The call never went out: the airframe never left the pool.
-                ledger.available++;
+                if (!based(call.side)) ledger.available++;
                 events.add(new Event(sim.getSimTickIndex(), call.side, call.kind, EventType.CALL_DROPPED,
                         call.x, call.y));
             }
@@ -558,13 +576,25 @@ public final class AirPoolService {
     private boolean launch(BattleSimulation sim, PendingCall call, Ledger ledger) {
         World world = sim.world();
         FighterProfile airframe = call.job == AirMission.COVER ? call.kind.coverProfile() : call.kind.profile();
-        WingAirbase base = bases.get(call.side);
-        AirfieldService.Berth berth = base == null ? null : base.berthFor(call.kind, airframe, call.x, call.y);
-        if (berth != null && base.overrun(sim)) berth = null;
         long craft;
-        if (berth != null) {
+        if (based(call.side)) {
+            // Off the nearest base with a bay of the kind ready that the enemy is not standing on; none, no sortie.
+            WingAirbase from = null;
+            AirfieldService.Berth berth = null;
+            float best = Float.MAX_VALUE;
+            for (WingAirbase base : bases.get(call.side)) {
+                AirfieldService.Berth b = base.berthFor(call.kind, airframe, call.x, call.y);
+                if (b == null || base.overrun(sim)) continue;
+                float d = (b.centerX - call.x) * (b.centerX - call.x) + (b.centerY - call.y) * (b.centerY - call.y);
+                if (d < best) {
+                    best = d;
+                    from = base;
+                    berth = b;
+                }
+            }
+            if (berth == null) return false;
             airframe = (FighterProfile) berth.airframe;
-            craft = rollOff(sim, base, berth, airframe, call.side, call.x, call.y);
+            craft = rollOff(sim, from, berth, airframe, call.side, call.x, call.y);
             basedLaunches.merge(call.side, 1, Integer::sum);
         } else {
             float[] home = homes.get(call.side);
@@ -601,7 +631,7 @@ public final class AirPoolService {
     private static long rollOff(BattleSimulation sim, WingAirbase base, AirfieldService.Berth berth,
                                 FighterProfile airframe, Faction side, float x, float y) {
         AirfieldService field = base.field();
-        Runway strip = field.runway();
+        Runway strip = field.stripOf(berth);
         float standX = berth.centerX + 0.5f;
         float standY = berth.centerY + 0.5f;
         long craft = sim.spawnSortie(airframe, side, x, y, standX, standY, standX, standY, 0f);
@@ -614,15 +644,14 @@ public final class AirPoolService {
     }
 
     /**
-     * Writes off the pool what burned on the side's base: an aircraft standing there was one of the side's available
-     * airframes, so it is lost as surely as one shot down, and comes back only by replacement.
+     * Records what burned on the side's bases as lost: an aircraft burned where it stood is lost as surely as one shot
+     * down, and its bay, with the hulk on it, is gone for the battle. The bays are the ledger, so nothing else moves.
      */
     private void writeOffBurned(BattleSimulation sim) {
-        for (WingAirbase base : bases.values()) {
+        for (List<WingAirbase> sideBases : bases.values()) for (WingAirbase base : sideBases) {
             for (AirPoolKind kind : base.newlyBurned()) {
                 Ledger ledger = ledger(base.side(), kind);
-                if (ledger == null || ledger.available <= 0) continue;
-                ledger.available--;
+                if (ledger == null) continue;
                 ledger.lost++;
                 events.add(new Event(sim.getSimTickIndex(), base.side(), kind, EventType.LOST,
                         base.bounds()[0], base.bounds()[1]));
@@ -669,7 +698,7 @@ public final class AirPoolService {
             }
             if (listed && mission.state != ShuttleState.GONE) continue;
             ledger.outFlying--;
-            ledger.available++;
+            if (!based(sortie.side)) ledger.available++;
             ledger.returned++;
             sorties.remove(i);
             tallyOf(sortie.side, sortie.job).returned++;

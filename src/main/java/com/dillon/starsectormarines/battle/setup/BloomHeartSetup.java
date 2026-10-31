@@ -399,13 +399,13 @@ public final class BloomHeartSetup {
         if (lanes != null) {
             // The military's air wing over Broad Front, called through the observer it attaches to each lane (`heart-nouns.md`).
             Precinct home = built.plan().landingPlace();
-            // Flown from the airbase the layout laid, where it stands, with a standing patrol over the lanes (`heart-nouns.md`).
-            WingAirbase airbase = AIRBASE ? alliedAirbase(sim, built.map()) : null;
+            // Flown from the airbases the layout laid, where they stand, with a standing patrol over the lanes (`heart-nouns.md`).
+            List<WingAirbase> airbases = AIRBASE ? alliedAirbases(sim, built.map()) : List.of();
             int axis = form.advancesAlongY() ? 1 : 0;
             int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
             AlliedAirWing.install(sim, home.seedX(), home.seedY(), lanes.grounds().stream()
                     .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList(),
-                    airbase, lanes.grounds().stream()
+                    airbases, lanes.grounds().stream()
                             .map(g -> StandingPatrol.lane(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth(), sign))
                             .toList(),
                     SwarmFliers::hasAirCover);
@@ -455,31 +455,43 @@ public final class BloomHeartSetup {
     }
 
     /**
-     * Whether Broad Front's air wing flies from the airbase its layout laid ({@code -Dbattle.heart.airbase}, default
-     * true). {@code false} is the control: the old wing, smaller and flying in over the start edge, no standing patrol,
-     * the base laid but empty. Temporary A/B lever: remove it, and the edge-only path for the heart, once the based
+     * Whether Broad Front's air wing flies from the airbases its layout laid ({@code -Dbattle.heart.airbase}, default
+     * true). {@code false} is the control: the old wing of two and two flying in over the start edge, no standing
+     * patrol, the bases laid but empty. Temporary A/B lever: remove it, and the edge-only path for the heart, once the based
      * wing's evidence is accepted (`switches.md`).
      */
     static final boolean AIRBASE = Boolean.parseBoolean(System.getProperty("battle.heart.airbase", "true"));
 
-    /** What stands on the airbase: its three hardstands, then its two sheds. */
+    /**
+     * What stands in an airbase's eight bays: its five hardstands, then its three sheds. Three bombers (Daggers, the
+     * pool's bomber) and five fighters (three Talons for the patrol, two Broadswords for gun runs).
+     */
     static final List<FighterProfile> AIRBASE_AIRFRAMES = List.of(FighterProfile.DAGGER, FighterProfile.TALON,
-            FighterProfile.DAGGER, FighterProfile.TALON, FighterProfile.BROADSWORD);
+            FighterProfile.DAGGER, FighterProfile.TALON, FighterProfile.DAGGER,
+            FighterProfile.TALON, FighterProfile.BROADSWORD, FighterProfile.BROADSWORD);
 
     /**
-     * The allies' airbase the layout laid ({@link HeartLayout#AIRBASE}), stood up as the battle's allied field with its
-     * aircraft and crew, or null where none was laid.
+     * The allies' airbases the layout laid ({@link HeartLayout#AIRBASE} 1 and 2), each opened as an allied field of
+     * its own with its strip, its aircraft and a crew for every bay that turns them round and rebuilds what is lost;
+     * empty where none was laid.
      */
-    static WingAirbase alliedAirbase(BattleSimulation sim, MapResult map) {
-        Laid laid = map.layout == null ? null : map.layout.find(HeartLayout.AIRBASE);
-        if (laid == null || !laid.isLaid() || laid.cells().size() < 2) return null;
-        int[] a = laid.cells().get(0), b = laid.cells().get(1);
-        int[] bounds = {Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
-        List<AirfieldService.Berth> berths = BattleSetup.installAlliedAirfield(sim, map, bounds, AIRBASE_AIRFRAMES);
-        if (berths.isEmpty()) return null;
-        List<AirPoolKind> kinds = new ArrayList<>();
-        for (AirfieldService.Berth berth : berths) kinds.add(WingAirbase.kindOf((FighterProfile) berth.airframe));
-        return new WingAirbase(sim.getAirfieldService(), bounds, berths, kinds);
+    static List<WingAirbase> alliedAirbases(BattleSimulation sim, MapResult map) {
+        List<WingAirbase> out = new ArrayList<>();
+        if (map.layout == null) return out;
+        for (int n = 1; n <= 2; n++) {
+            Laid laid = map.layout.find(HeartLayout.AIRBASE + n);
+            if (laid == null || !laid.isLaid() || laid.cells().size() < 2) continue;
+            int[] a = laid.cells().get(0), b = laid.cells().get(1);
+            int[] bounds = {Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
+            List<AirfieldService.Berth> berths = BattleSetup.installAirfield(sim, map, bounds, Faction.ALLY,
+                    LandingPad.Purpose.ALLIED_AIRFIELD, true, AIRBASE_AIRFRAMES);
+            if (berths.isEmpty()) continue;
+            List<AirPoolKind> kinds = new ArrayList<>();
+            for (AirfieldService.Berth berth : berths) kinds.add(WingAirbase.kindOf((FighterProfile) berth.airframe));
+            out.add(new WingAirbase(sim.getAirfieldService(), bounds, berths, kinds));
+        }
+        if (!out.isEmpty()) BattleSetup.installAirfieldCrew(sim, map);
+        return out;
     }
 
     /** An allied lane's band: satellites this share of the front's width either side of its line are its own. */

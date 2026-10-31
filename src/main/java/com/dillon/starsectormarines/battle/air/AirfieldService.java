@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +72,44 @@ public final class AirfieldService {
         SHELTER
     }
 
+    /**
+     * One airfield: whose it is, its strip, and whether it rebuilds what it loses. A battle may hold several, each
+     * with its own berths, strip and crew, belonging to different sides; a berth belongs to exactly one.
+     *
+     * <p>There is always a first field, the one a garrison's lot installs into ({@link #installRunway},
+     * {@link #setOwner}, the berth methods that name no field), so a battle with one field reads exactly as it did
+     * when the service was one field.
+     */
+    public static final class Field {
+        public final int id;
+        private Faction owner;
+        private Runway strip;
+        private final boolean rebuilds;
+
+        Field(int id, Faction owner, Runway strip, boolean rebuilds) {
+            this.id = id;
+            this.owner = owner;
+            this.strip = strip;
+            this.rebuilds = rebuilds;
+        }
+
+        /** Whose field this is, and therefore whose aircraft stand on it and who works it. */
+        public Faction owner() { return owner; }
+
+        /** The field's strip, or null when it has none. */
+        public Runway strip() { return strip; }
+
+        /**
+         * Whether an aircraft the field loses is rebuilt on its stand by the field's crew ({@link #beginRebuild}). A
+         * garrison's never is: what it has on the day is what it has. A field whose owner replaces airframes (an
+         * allied wing's) does, and the rebuild is the crew's work, so a field whose crew is dead replaces nothing.
+         */
+        public boolean rebuilds() { return rebuilds; }
+    }
+
     public static final class Berth {
+        /** The field this berth is part of. */
+        public Field field;
         /** The stand this berth is, or null for a shelter — nothing lands in a shed. */
         public final LandingPad pad;
         /** Where the aircraft stands, whichever kind of place this is. */
@@ -216,8 +254,8 @@ public final class AirfieldService {
     private static final float REFIT_REPAIR_FRACTION = 0.5f;
 
     private final List<Berth> berths = new ArrayList<>();
-    /** Whose field this is; a garrison's unless a host says otherwise. */
-    private Faction owner = Faction.DEFENDER;
+    /** Every field, the first a garrison's unless a host says otherwise. */
+    private final List<Field> fields = new ArrayList<>(List.of(new Field(0, Faction.DEFENDER, null, false)));
     /** Standing cell of every servicing point on the apron, to the berth it works. */
     private final Map<Long, Integer> serviceCells = new HashMap<>();
     /**
@@ -228,31 +266,61 @@ public final class AirfieldService {
      * carries its own position instead. See {@link #addGroundWreck}.
      */
     private final List<GroundWreck> groundWrecks = new ArrayList<>();
-    private Runway runway;
-    /** The craft currently using the strip, or {@code 0} when it is free. */
-    private long runwayOccupant;
+    /** The craft using each strip, keyed by the strip (the first field's may be null); absent when it is free. */
+    private final Map<Runway, Long> runwayOccupants = new IdentityHashMap<>();
 
     /**
-     * Gives this field its strip. Called once at setup; a field without one
+     * Gives the first field its strip. Called once at setup; a field without one
      * flies nothing that has to roll.
      */
     public void installRunway(Runway runway) {
-        this.runway = runway;
+        fields.get(0).strip = runway;
     }
 
-    /** The field's strip, or null when it has none. */
+    /** The first field's strip, or null when it has none. */
     public Runway runway() {
-        return runway;
+        return fields.get(0).strip;
     }
 
-    /** Whether anything is on the strip right now. */
+    /**
+     * Opens another field, with its own owner, strip and berths: a second side's base, or a second base of one side.
+     * Called at setup.
+     */
+    public Field addField(Faction owner, Runway strip, boolean rebuilds) {
+        Field field = new Field(fields.size(), owner, strip, rebuilds);
+        fields.add(field);
+        return field;
+    }
+
+    /** Every field, the first one first. */
+    public List<Field> fields() {
+        return Collections.unmodifiableList(fields);
+    }
+
+    /** The strip {@code berth}'s aircraft rolls from and lands back on: its own field's, or null when that has none. */
+    public Runway stripOf(Berth berth) {
+        return berth.field == null ? runway() : berth.field.strip;
+    }
+
+    /** Whose aircraft stands on {@code berth}: its field's owner. */
+    public Faction ownerOf(Berth berth) {
+        return berth.field == null ? owner() : berth.field.owner;
+    }
+
+    /** Whether anything is on the first field's strip right now. */
     public boolean runwayBusy() {
-        return runwayOccupant != 0L;
+        return runwayOccupant() != 0L;
     }
 
-    /** The craft on the strip, or {@code 0}. */
+    /** The craft on the first field's strip, or {@code 0}. */
     public long runwayOccupant() {
-        return runwayOccupant;
+        return runwayOccupant(runway());
+    }
+
+    /** The craft on {@code strip}, or {@code 0}. */
+    public long runwayOccupant(Runway strip) {
+        Long craft = runwayOccupants.get(strip);
+        return craft == null ? 0L : craft;
     }
 
     /**
@@ -267,10 +335,16 @@ public final class AirfieldService {
      * @return whether {@code craft} now holds the strip
      */
     public boolean claimRunway(long craft) {
+        return claimRunway(runway(), craft);
+    }
+
+    /** The same, for {@code strip}: each field's strip has its own single occupant. */
+    public boolean claimRunway(Runway strip, long craft) {
         if (craft == 0L) return false;
-        if (runwayOccupant == craft) return true;
-        if (runwayOccupant != 0L) return false;
-        runwayOccupant = craft;
+        long holder = runwayOccupant(strip);
+        if (holder == craft) return true;
+        if (holder != 0L) return false;
+        runwayOccupants.put(strip, craft);
         return true;
     }
 
@@ -286,8 +360,13 @@ public final class AirfieldService {
      * it while one that is rolls out unrecorded.
      */
     public void takeRunway(long craft) {
+        takeRunway(runway(), craft);
+    }
+
+    /** The same, for {@code strip}. */
+    public void takeRunway(Runway strip, long craft) {
         if (craft == 0L) return;
-        runwayOccupant = craft;
+        runwayOccupants.put(strip, craft);
     }
 
     /**
@@ -304,12 +383,18 @@ public final class AirfieldService {
      * has to remember it.
      */
     public void releaseRunway(long craft) {
-        if (runwayOccupant == craft) runwayOccupant = 0L;
+        runwayOccupants.values().removeIf(holder -> holder == craft);
     }
 
     /** Registers one hardstand and the aircraft based on it. Called once at setup. */
     public Berth addBerth(LandingPad pad, Airframe airframe, float facingDegrees) {
+        return addBerth(fields.get(0), pad, airframe, facingDegrees);
+    }
+
+    /** Registers one hardstand of {@code field} and the aircraft based on it. Called once at setup. */
+    public Berth addBerth(Field field, LandingPad pad, Airframe airframe, float facingDegrees) {
         Berth berth = new Berth(pad, airframe, facingDegrees);
+        berth.field = field;
         berths.add(berth);
         return berth;
     }
@@ -344,6 +429,7 @@ public final class AirfieldService {
     public Berth addBayBerth(Gantry bay, Airframe airframe, float[] offship) {
         Berth berth = new Berth(null, bay.centerX, bay.centerY,
                 Kind.HARDSTAND, airframe, bay.facing.degrees());
+        berth.field = fields.get(0);
         berth.offship = offship == null ? null : new float[]{offship[0], offship[1]};
         berths.add(berth);
         return berth;
@@ -357,8 +443,14 @@ public final class AirfieldService {
      * nothing to roll down strands it in the shed for the battle.
      */
     public Berth addShelterBerth(Gantry shelter, Airframe airframe) {
+        return addShelterBerth(fields.get(0), shelter, airframe);
+    }
+
+    /** Registers one hangar bay of {@code field} and the aircraft kept in it. */
+    public Berth addShelterBerth(Field field, Gantry shelter, Airframe airframe) {
         Berth berth = new Berth(null, shelter.centerX, shelter.centerY,
                 Kind.SHELTER, airframe, shelter.facing.degrees());
+        berth.field = field;
         berths.add(berth);
         return berth;
     }
@@ -374,12 +466,12 @@ public final class AirfieldService {
      * to do with what it does.
      */
     public Faction owner() {
-        return owner;
+        return fields.get(0).owner;
     }
 
-    /** Hand this field to a side. Called at setup, before anything stands on it. */
+    /** Hand the first field to a side. Called at setup, before anything stands on it. */
     public void setOwner(Faction owner) {
-        if (owner != null) this.owner = owner;
+        if (owner != null) fields.get(0).owner = owner;
     }
 
     /** Every berth on the field, in registration order. */
@@ -443,10 +535,16 @@ public final class AirfieldService {
      * hardstand would have it take off from the middle of the apron.
      */
     public Berth nearestAirworthy(float x, float y, Kind kind) {
+        return nearestAirworthy(x, y, kind, null);
+    }
+
+    /** As {@link #nearestAirworthy(float, float, Kind)}, among the fields {@code owner} holds (any, when null). */
+    public Berth nearestAirworthy(float x, float y, Kind kind, Faction owner) {
         Berth best = null;
         float bestDistance = Float.MAX_VALUE;
         for (Berth berth : berths) {
             if (!berth.airworthy() || berth.kind != kind) continue;
+            if (owner != null && ownerOf(berth) != owner) continue;
             float dx = berth.centerX - x;
             float dy = berth.centerY - y;
             float distance = dx * dx + dy * dy;
@@ -579,21 +677,40 @@ public final class AirfieldService {
     }
 
     /**
-     * Puts a replacement aircraft, whole, on a berth whose own was lost over the battle, and answers whether it did.
+     * Hand-seconds a field's crew spends assembling a replacement on an empty stand, before the hull work.
      *
-     * <p>Only a stand left empty: a berth whose aircraft burned where it stood still has the hulk on it and is gone for
-     * the battle, which is what makes reaching a field and burning it a cost a ferry flight does not undo. A field
-     * whose owner replaces airframes at all is told so by whoever holds that establishment (an allied wing's pool);
-     * a garrison's never is.
+     * <p>A rebuild is a turnaround with more in it: the same crew, at the same servicing points, on an aircraft that
+     * stands on its stand while they build it ({@link AirfieldSystem} puts it out as a frame), so it is done only while
+     * the crew stands and works, and a crew shot off its apron leaves the frame where it is. UNTUNED: about a
+     * minute of one hand, the pace a wing used to replace a loss at by the clock.
      */
-    public boolean restock(Berth berth) {
+    public static final float REBUILD_HAND_SECONDS = 60f;
+
+    /**
+     * Starts rebuilding the aircraft lost from {@code berth}, and answers whether it did: only a field that rebuilds
+     * ({@link Field#rebuilds}), only a written-off berth, and only one whose stand is clear. A stand with the hulk of
+     * the aircraft that burned there on it is gone for the battle, because the hulk is ground nobody clears.
+     *
+     * <p>The replacement starts as a frame of one hull point and is worked up by hand: {@link #REBUILD_HAND_SECONDS}
+     * of assembly and the whole hull at {@link #HULL_PER_HAND_SECOND}, and it flies once the work is done.
+     */
+    public boolean beginRebuild(Berth berth) {
         if (berth.state != BerthState.DESTROYED || berth.wreckOnPad) return false;
-        berth.state = BerthState.PARKED;
-        berth.hullHp = berth.airframe.maxHp();
-        berth.refitTarget = 0f;
-        berth.refitWork = 0f;
+        if (berth.field == null || !berth.field.rebuilds) return false;
+        berth.state = BerthState.REFITTING;
+        berth.hullHp = 1f;
+        berth.refitTarget = berth.airframe.maxHp();
+        berth.refitWork = REBUILD_HAND_SECONDS + (berth.refitTarget - berth.hullHp) / HULL_PER_HAND_SECOND;
         berth.airframeId = 0L;
+        rebuildsBegun++;
         return true;
+    }
+
+    private int rebuildsBegun;
+
+    /** Replacements the fields have begun building this battle, for evidence. */
+    public int rebuildsBegun() {
+        return rebuildsBegun;
     }
 
     /** The berth holding a given live parked airframe, or null. */

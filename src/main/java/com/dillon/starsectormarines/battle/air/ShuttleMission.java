@@ -545,6 +545,12 @@ public final class ShuttleMission {
     public boolean usesRunway;
 
     /**
+     * The strip this sortie rolled off and lands back on: its own field's, set with the procedure, so a battle with
+     * several fields sends each craft home to its own. Null for a craft that does not roll.
+     */
+    public Runway strip;
+
+    /**
      * Sends this sortie out of its shelter and down the strip toward
      * {@code (towardX, towardY)}.
      *
@@ -565,6 +571,7 @@ public final class ShuttleMission {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
         this.usesRunway = true;
+        this.strip = strip;
         this.state = ShuttleState.TAXI_OUT;
     }
 
@@ -598,6 +605,7 @@ public final class ShuttleMission {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
         this.usesRunway = true;
+        this.strip = strip;
         // A fresh landing, so a fresh patience. A craft on its second sortie
         // must not inherit the circuits its first one flew.
         this.goAroundsFlown = 0;

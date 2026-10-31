@@ -17,8 +17,8 @@ public final class StructureFit {
     static final int GRANARY_ALONG = YARD + BARN_ALONG + YARD, GRANARY_DEEP = YARD + BARN_DEEP + YARD;
     /** Sides of the ammo dump's ring, the post's ring and the square. */
     static final int DUMP_SIDE = 7, POST_SIDE = 5, SQUARE_SIDE = 9;
-    /** An airfield's lot ({@link AirbaseLot.Size#FIELD}) and the verge it keeps outside its fence, fence to verge edge. */
-    static final AirbaseLot.Size AIRFIELD_SIZE = AirbaseLot.Size.FIELD;
+    /** An airfield's lot ({@link AirbaseLot.Size#BASE}) and the verge it keeps outside its fence, fence to verge edge. */
+    static final AirbaseLot.Size AIRFIELD_SIZE = AirbaseLot.Size.BASE;
     static final int AIRFIELD_VERGE = 2;
     static final int AIRFIELD_ALONG = AIRFIELD_SIZE.width + 2 * AIRFIELD_VERGE;
     static final int AIRFIELD_DEEP = AIRFIELD_SIZE.depth + 2 * AIRFIELD_VERGE;

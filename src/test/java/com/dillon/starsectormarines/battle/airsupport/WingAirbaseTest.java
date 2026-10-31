@@ -21,13 +21,12 @@ class WingAirbaseTest {
 
     private static AirfieldService field(boolean strip) {
         AirfieldService field = new AirfieldService();
-        field.setOwner(Faction.ALLY);
-        if (strip) field.installRunway(new Runway(0f, 40f, 40f, 40f, 4f));
+        field.addField(Faction.ALLY, strip ? new Runway(0f, 40f, 40f, 40f, 4f) : null, true);
         return field;
     }
 
     private static Berth stand(AirfieldService field, int x, FighterProfile airframe) {
-        return field.addBerth(LandingPad.allied(x, 30, LandingPad.Approach.NORTH), airframe, 0f);
+        return field.addBerth(field.fields().get(1), LandingPad.allied(x, 30, LandingPad.Approach.NORTH), airframe, 0f);
     }
 
     private static WingAirbase base(AirfieldService field) {
@@ -58,21 +57,31 @@ class WingAirbaseTest {
     }
 
     @Test
-    void aStandLostInTheAirIsRestockedButABurnedOneKeepsItsHulk() {
+    void aBurnedBayIsWrittenOffOnceAndTheBaseIsWhoseFieldItIs() {
         AirfieldService field = field(true);
-        Berth lost = stand(field, 5, FighterProfile.TALON);
+        stand(field, 5, FighterProfile.TALON);
         Berth burned = stand(field, 15, FighterProfile.TALON);
         WingAirbase base = base(field);
+        assertEquals(Faction.ALLY, base.side());
         field.burnedOnPad(burned);
         assertEquals(List.of(AirPoolKind.FIGHTER), base.newlyBurned());
         assertTrue(base.newlyBurned().isEmpty(), "written off once");
-        assertFalse(base.restock(AirPoolKind.FIGHTER), "a hulk takes no replacement");
-        field.launch(lost);
-        field.destroyed(lost);
-        assertFalse(base.restock(AirPoolKind.BOMBER), "only its own kind");
-        assertTrue(base.restock(AirPoolKind.FIGHTER));
-        assertTrue(lost.airworthy());
-        assertEquals(FighterProfile.TALON.maxHp(), lost.hullHp);
+    }
+
+    /** What the base has to fly is what stands airworthy in its bays, kind by kind. */
+    @Test
+    void theBaysAreWhatTheBaseHasToFly() {
+        AirfieldService field = field(true);
+        Berth talon = stand(field, 5, FighterProfile.TALON);
+        stand(field, 15, FighterProfile.BROADSWORD);
+        stand(field, 25, FighterProfile.DAGGER);
+        WingAirbase base = base(field);
+        assertEquals(2, base.airworthy(AirPoolKind.FIGHTER));
+        assertEquals(1, base.airworthy(AirPoolKind.BOMBER));
+        field.launch(talon);
+        assertEquals(1, base.airworthy(AirPoolKind.FIGHTER), "an aircraft away is not available");
+        field.recover(talon, FighterProfile.TALON.maxHp() * 0.5f);
+        assertEquals(1, base.airworthy(AirPoolKind.FIGHTER), "nor one home that its crew has not turned round");
     }
 
     @Test

@@ -18,7 +18,8 @@ import java.util.List;
 /**
  * Broad Front's allied airbase as the owner would see it (`heart-nouns.md`, Allied airbase): one Broad Front battle
  * (verdant, seed 3) stood up and played unrecorded to {@code -Dsnapshot.heartAirbase.from} (default 60), then recorded
- * on a fixed camera over the base: the aircraft on its hardstands, the ground crew, and the standing patrol's fighters
+ * on a fixed camera framing the whole west base: its common strip, its eight bays with their aircraft, the crew at
+ * every bay, and the standing patrol's fighters
  * taxiing out and rolling off the strip ({@code airbase}). Opt-in.
  */
 public final class HeartAirbaseLookSuite implements SnapshotSuite {
@@ -47,7 +48,7 @@ public final class HeartAirbaseLookSuite implements SnapshotSuite {
 
     /** The fixture played unrecorded to {@code fromTick}, then {@code ticks} recorded on a camera over the airbase. */
     static LookReview.Shot shot(String name, int fromTick, int ticks) {
-        float[] camera = {0f, 0f, 64f};
+        float[] camera = {0f, 0f, 84f};
         return new LookReview.Shot(name, LookGround.verdant(), 40, 30, placement -> {
             BattleSimulation sim;
             try {
@@ -55,7 +56,8 @@ public final class HeartAirbaseLookSuite implements SnapshotSuite {
             } catch (Exception e) {
                 throw new IllegalStateException("heart fixture", e);
             }
-            WingAirbase base = sim.airPool() == null ? null : sim.airPool().base(Faction.ALLY);
+            WingAirbase base = sim.airPool() == null || !sim.airPool().based(Faction.ALLY) ? null
+                    : sim.airPool().bases(Faction.ALLY).get(0);
             if (base == null) throw new IllegalStateException("Broad Front verdant 3 laid no airbase");
             int[] b = base.bounds();
             camera[0] = (b[0] + b[2] + 1) / 2f;
