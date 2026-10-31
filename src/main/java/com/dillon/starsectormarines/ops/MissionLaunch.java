@@ -225,7 +225,7 @@ public final class MissionLaunch {
                                 m.source.isDebug() ? List.of() : committedPowerSources);
         if (debugMechs != null)
             det = debugMechs.applyTo(det, committedShuttles, PowerCatalog.providesHeavyLift(m));
-        if (m.source.isDebug()) det = DebugMechRoster.withEasterEggs(det);
+        if (m.source.isDebug() || Cheats.enabled()) det = DebugMechRoster.withEasterEggs(det);
         det = CommandDeck.apply(det, selectedPowerIds);
         if (DetachmentResolver.usesSelectedPersonnel(m)) {
             int selectedPersonnel = m.source.isDebug()
