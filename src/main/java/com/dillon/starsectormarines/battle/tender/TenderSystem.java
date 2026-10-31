@@ -129,6 +129,7 @@ public final class TenderSystem {
                 tenders.remove(i);
                 continue;
             }
+            t.rebuild(dt);
             tickDefence(t, dt, sim);
             t.pointDefence().tick(dt, sim, t);
             TenderDirector.direct(t, sim, dt);
@@ -338,7 +339,7 @@ public final class TenderSystem {
         for (Long id : t.builders) {
             if (Math.hypot(world.x(id) - o.siteX(), world.y(id) - o.siteY()) <= WORK_RADIUS) onSite++;
         }
-        if (t.builders.isEmpty() && t.builderReserve() == 0) {
+        if (t.builders.isEmpty() && t.builderReserve() == 0 && !t.rebuildingBuilder()) {
             t.retire(o, "no builders left");
             return;
         }

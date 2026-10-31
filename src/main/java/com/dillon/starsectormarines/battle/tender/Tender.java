@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipSlot;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,6 +55,12 @@ public final class Tender implements DroneAnchor {
      * to bite.
      */
     public static final int DEFAULT_STOCK = UNLIMITED;
+
+    /**
+     * Seconds the bay takes to rebuild one lost drone (owner, 2026-10-31): losses come back over time, one at a time,
+     * so a wing worn down by fire recovers if the tender is given the time, but a fast run of losses still bites.
+     */
+    public static final float REBUILD_SECONDS = 30f;
     /** Spacing, in cells, two sites must keep. */
     public static final float SITE_SPACING = 2f;
 
@@ -185,6 +192,9 @@ public final class Tender implements DroneAnchor {
     private int built;
     private int defenceLost;
     private int builderLost;
+    /** Lost drones waiting their turn in the bay, oldest first: {@code true} a builder, {@code false} a defender. */
+    private final ArrayDeque<Boolean> rebuilds = new ArrayDeque<>();
+    private float rebuildClock;
     private final TenderPointDefence pointDefence = new TenderPointDefence();
     int defenceSquadId = -1;
     float launchClock;
@@ -614,12 +624,50 @@ public final class Tender implements DroneAnchor {
 
     void lostBuilder(long id) {
         flight.forget(id);
-        if (builders.remove(id)) builderLost++;
+        if (builders.remove(id)) {
+            builderLost++;
+            rebuilds.add(true);
+        }
     }
 
     void lostDefender(long id) {
         flight.forget(id);
-        if (defenders.remove(id)) defenceLost++;
+        if (defenders.remove(id)) {
+            defenceLost++;
+            rebuilds.add(false);
+        }
+    }
+
+    /**
+     * Works the bay's rebuild line for {@code dt} seconds: each lost drone comes back to the bay {@link #REBUILD_SECONDS}
+     * after the one before it, in the order they were lost, and launches like any drone in reserve.
+     */
+    void rebuild(float dt) {
+        if (rebuilds.isEmpty()) {
+            rebuildClock = 0f;
+            return;
+        }
+        rebuildClock += dt;
+        while (!rebuilds.isEmpty() && rebuildClock >= REBUILD_SECONDS) {
+            rebuildClock -= REBUILD_SECONDS;
+            if (rebuilds.poll()) builderReserve++;
+            else defenceReserve++;
+        }
+    }
+
+    /** Lost drones not yet rebuilt. */
+    public int rebuilding() {
+        return rebuilds.size();
+    }
+
+    /** Whether a lost builder is on the rebuild line, so a site without builders waits rather than fails. */
+    public boolean rebuildingBuilder() {
+        return rebuilds.contains(true);
+    }
+
+    /** Whether a lost defence drone is on the rebuild line. */
+    public boolean rebuildingDefender() {
+        return rebuilds.contains(false);
     }
 
     /** One line for the debug readout. */

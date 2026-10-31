@@ -5398,6 +5398,7 @@
 		"tenderStatusWorkingLost": "WORKING {0}  LOST {1}",
 		"tenderStatusOutLost": "OUT {0}  LOST {1}",
 		"tenderStatusNoneLeft": "NONE LEFT",
+		"tenderStatusRebuilding": "REBUILDING",
 		"tenderStatusWorking": "WORKING",
 		"tenderStatusOut": "OUT",
 		"tenderStatusDocked": "DOCKED",
