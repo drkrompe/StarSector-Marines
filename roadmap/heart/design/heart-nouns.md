@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -122,7 +122,12 @@ of it in each half of the front; and on the farmland behind it the logistics
 base's ammunition dumps and vehicle park, with a supply road up to the
 settlement. Where no road can be laid (a city's ground) the streets are the
 supply road, as the Cordon's are: the way a truck drives from the landing to the
-settlement, a street priced cheapest. Each beat's set piece is laid the
+settlement, a street priced cheapest. The forward line is armed
+(`HeartRidgeGuns`, owner 2026-10-31: the ridge reads as a front line): an
+allied heavy machine gun in every nest it laid, every third a Hephaestus, and a
+flak emplacement three cells behind every other nest. They are the military's
+guns, never the company's, shoot whatever comes up to the line, and their flak
+meets the flier law as the base's does. Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there

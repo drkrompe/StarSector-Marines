@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.evacuation.HeartRidgeGuns;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
@@ -401,6 +402,8 @@ public final class BloomHeartSetup {
         sim.getHeart().guns(heartGuns);
         // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
         HeartObjectives.airDefence(sim, built.map().layout, heartGuns, battery);
+        // The forward line on the cordon ridge is a front that has held for weeks: guns in its nests, flak behind them.
+        HeartRidgeGuns.man(sim, built.map().layout, form);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
         List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
