@@ -195,6 +195,15 @@ public final class CordonAlliedRules {
     }
 
     /**
+     * Whether the base's shed builds now ({@link CordonAlliedTable.Production}): only while fewer machines from the base
+     * stand than its cap and fewer finished ones wait at its door than its idle cap. Held otherwise, and building again
+     * as soon as one is lost or gets out of the door.
+     */
+    static boolean shedBuilds(int alive, int idle, CordonAlliedTable.Production cap) {
+        return alive < cap.alive() && idle < cap.idle();
+    }
+
+    /**
      * Whether the line replaces a redoubt's lost teams from the base by need ({@code cordon-nouns.md}, Replacements):
      * on the Road, which runs on long after the timetable's last column. The Line keeps its timetable alone until the
      * owner says otherwise.

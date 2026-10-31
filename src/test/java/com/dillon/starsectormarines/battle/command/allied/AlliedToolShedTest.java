@@ -81,4 +81,21 @@ class AlliedToolShedTest {
         assertEquals(1, noGround.stock(AlliedTool.ARMOUR_PAIR));
         assertEquals("none", noGround.refusal(null, AlliedTool.COLUMN));
     }
+
+    @Test
+    void aCapThatCountsTheRoadRestocksOnlyOnceOneComesOffIt() {
+        AtomicBoolean arrived = new AtomicBoolean();
+        AlliedRequest truck = new AlliedRequest(AlliedTool.AMMO_TRUCK, "redoubt 1", 5, 5, "low");
+        AlliedToolShed shed = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.AMMO_TRUCK, (sim, from, r) -> s -> arrived.get(), 1, 1, 10)
+                .capsOnRoad(AlliedTool.AMMO_TRUCK);
+        assertTrue(shed.request(null, truck, 0));
+        for (int tick = 1; tick <= 100; tick++) shed.advance(null, tick);
+        assertEquals(0, shed.stock(AlliedTool.AMMO_TRUCK), "one out of a cap of one: no more however long it is out");
+        arrived.set(true);
+        for (int tick = 101; tick < 111; tick++) shed.advance(null, tick);
+        assertEquals(0, shed.stock(AlliedTool.AMMO_TRUCK), "the clock starts when it comes off the road");
+        shed.advance(null, 111);
+        assertEquals(1, shed.stock(AlliedTool.AMMO_TRUCK));
+    }
 }

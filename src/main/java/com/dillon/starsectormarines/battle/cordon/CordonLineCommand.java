@@ -141,6 +141,7 @@ public final class CordonLineCommand {
                     CordonRedoubt to = redoubt(request.toPlace());
                     if (to == null) return null;
                     List<Long> mechs = armour.sendMechs(s, PAIR, from, to, "Redoubt " + to.number() + " relief Hound");
+                    mechs.forEach(logistics::fromBase);
                     return mechs.isEmpty() ? null : arrived(mechs, to);
                 }, reserve.cover(), reserve.cover(), restockCover);
             } else {
@@ -148,6 +149,7 @@ public final class CordonLineCommand {
                     CordonRedoubt to = redoubt(request.toPlace());
                     if (to == null) return null;
                     List<Long> hulls = armour.sendHulls(s, reserve.coverHull(), PAIR, from, to);
+                    hulls.forEach(logistics::fromBase);
                     return hulls.isEmpty() ? null : arrived(hulls, to);
                 }, reserve.cover(), reserve.cover(), restockCover);
             }
@@ -164,7 +166,9 @@ public final class CordonLineCommand {
                 CordonRedoubt to = redoubt(request.toPlace());
                 int[] start = to == null ? null : truckStart.get(to);
                 return truck.make(s, start != null ? start : from, request);
-            }, reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()));
+            }, reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()))
+                    // Its cap counts the trucks still out: one waiting at the gate for an escort is still one of them.
+                    .capsOnRoad(AlliedTool.AMMO_TRUCK);
             if (CordonAlliedRules.replacesLosses(sequence.variant())) {
                 for (CordonRedoubt r : redoubts) establishment.put(r, CordonSequence.standing(sim, r));
                 CordonAlliedTable.Replacements pool = CordonAlliedTable.REPLACEMENTS;

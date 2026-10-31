@@ -6,7 +6,7 @@ Status: ACTIVE — the table is built (`CordonAlliedTable`, read by
 wing, called through each redoubt's forward observer; the rows marked *not built* below are open.
 
 Written: 2026-10-23
-Updated: 2026-10-25 — air: the military's wing through a forward observer in each redoubt.
+Updated: 2026-10-31 — production caps on the base's shed (*Production caps*). Earlier, 2026-10-25 — air: the military's wing through a forward observer in each redoubt.
 
 Step 3 of the owner's plan for the Cordon. `cordon-nouns.md` is the model
 (Allied armour, Logistics base, Allied column, Density); `allied-tools.md` is
@@ -49,6 +49,34 @@ truck).
 How the street mouths, the rear gate and a mech's sector are found is the
 standing model: `cordon-nouns.md`, Allied armour (Allied mechs) and Logistics
 base.
+
+## Production caps
+
+The base's shed does not build on a loop for ever (owner, 2026-10-31: "the
+manufacturing pad builds up a stock of mechs/vehicles meant for defense ...
+Essentially we need production caps"; `CordonAlliedTable.PRODUCTION`,
+`CordonAlliedRules.shedBuilds`, `CordonLogistics`). It builds only while
+
+- fewer than **six** machines the base put out still stand: the shed's own,
+  the reserve's armour or Hound pairs and the opening carrier (with the four
+  hulls the line opens with, ten: a floor of one a sector, a convoy's escort of
+  three and a spare), and
+- no finished machine waits at the base: one still on its berth or not yet
+  clear of the machine door holds the shed (an idle cap of **one**).
+
+Held, the shed lays no keel and puts no structure on the machine on its
+stocks, which stands as far built as it was; a machine lost, or one getting
+clear of the door, lets it build again up to the cap. Every finished machine
+goes straight out: a carrier to its staging slot while there is a slot free
+(three; an APC beyond that fights with the armour), a car or technical through
+the threshold to the sector that needs it most, a Hound to its street mouths;
+from a sector above its floor the armour's surplus takes it for a convoy's or
+a truck's escort (`cordon-nouns.md`, Escort). Nothing the shed builds stands
+idle at the base. The ammunition trucks are capped the same way: the reserve's
+two count the trucks still out, one waiting at the gate for its escort
+included, and a new one comes into stock only once one is off the road
+(`AlliedToolShed.capsOnRoad`). Replacement squads are capped by their own pool
+and flight limit (`cordon-nouns.md`, Replacements). All UNTUNED.
 
 ## The company's role by density
 

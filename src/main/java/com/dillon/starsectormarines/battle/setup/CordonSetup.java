@@ -477,6 +477,7 @@ public final class CordonSetup {
         works.toolForLine(table.baseLine());
         works.setPace(table.basePace());
         works.onRollOut(hull -> logistics.rolledOut(sim, hull));
+        logistics.produceWith(works);
         sim.setFabrication(works);
         StructureWatch.man(sim, Faction.ALLY, rooms, map.fixtureTasks, works.berthed(),
                 EnumSet.of(RoomPurpose.VEHICLE_BAY), BASE_CREW, sim.getWorksCrews());
