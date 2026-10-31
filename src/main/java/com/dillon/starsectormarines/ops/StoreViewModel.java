@@ -177,8 +177,10 @@ final class StoreViewModel {
         buyClasses = reactor.computed(() -> {
             EquipmentStore.Offer offer = selected();
             revision.get();
-            if (offer == null || owned(offer)) return "store-buy current";
-            return purse.credits() < offer.price() ? "store-buy unaffordable" : "store-buy";
+            // The shared command key: lit to buy, red when the purse is short, dimmed when there is nothing to buy.
+            if (offer == null || owned(offer)) return "store-buy console-action current";
+            return purse.credits() < offer.price() ? "store-buy console-action danger-surface unaffordable"
+                    : "store-buy console-action good-surface";
         });
         resourceStock = reactor.computed(() -> {
             revision.get();
