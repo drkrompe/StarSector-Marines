@@ -631,6 +631,7 @@ public final class CordonSetup {
             sequence.attachStaging(town.staging());
             CordonConvoys convoys = convoys(sim, cordon, town, timetable, logistics);
             sequence.attachConvoys(convoys);
+            sequence.onAbandonTown(convoys::abandonTown);
             int[] rally = rally(sim, cordon, convoys.gapIndex());
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
@@ -788,10 +789,10 @@ public final class CordonSetup {
                 break;
             }
         }
-        List<Integer> departTicks = new ArrayList<>();
-        for (int seconds : timetable.convoySeconds()) departTicks.add(Math.round(seconds / BattleSimulation.TICK_DT));
-        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
-                timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
+        // The first convoy on the timetable; the rest are called while people are still trapped.
+        int firstDepart = Math.round(timetable.convoySeconds().get(0) / BattleSimulation.TICK_DT);
+        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, firstDepart,
+                CordonConvoys.MAX_CONVOYS, CordonConvoys.TOWNSPEOPLE);
         convoys.setTownMilitia(town.militia());
         // The townspeople are trapped in the staging area, stood after the defenders so the defenders' cells are taken first.
         CordonStagingArea staging = town.staging();

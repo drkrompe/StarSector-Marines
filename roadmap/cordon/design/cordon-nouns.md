@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -524,9 +524,18 @@ with what it has, or empty. It does not fight its way through: it stops when the
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
 swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
-destroyed; its passengers die with their truck. The standard timetable sends
-three convoys of two trucks, four minutes apart from minute one; each truck
-brings out six of the town's thirty-six, and two convoys must come back out.
+destroyed; its passengers die with their truck. Convoys of two trucks, six
+seats each, are **called while people are trapped**: the first at minute one,
+each after it once the one before has passed the gap toward the town, so long
+as the town has more people than the seats already on their way, and never
+more than **five** in all. Forty-eight are trapped, so getting everyone out
+takes four full trips, the fifth there for seats lost to a truck or a short
+loading. No convoy sets out to an empty town or one given up. The **last
+convoy** is the one that reaches the gate as the fifth or with seats for
+everyone left (R3 and R4 wait on it).
+
+A town **abandoned** (*Town states*) calls no convoy again, and one on its way
+or loading turns for home with whoever is aboard (`CordonConvoys.abandonTown`).
 
 **Escort.** The allied armour escorts the convoys, and the company is the
 backstop (*The allies hold, the company decides*). From the moment a convoy
@@ -1058,7 +1067,8 @@ The owner's answers to the flow cards (2026-10-22):
 - **How the swarm escalates:** both tides on the timetable over the bores'
   own surges and new bores erupting in front of the line (*Eruption*).
 - **How the Road's convoys run:** three convoys on a timetable, each one out
-  and back.
+  and back (since 2026-10-31, the owner: the win is people, so up to five are
+  called while people are trapped).
 
 ## Boundaries
 

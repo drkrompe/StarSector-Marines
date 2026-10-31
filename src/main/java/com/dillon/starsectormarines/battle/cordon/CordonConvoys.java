@@ -47,6 +47,13 @@ public final class CordonConvoys {
     public static final int TRUCKS = 2;
     /** Townspeople a truck carries out. */
     public static final int SEATS = 6;
+    /** The most convoys that come for the town: five trips. */
+    public static final int MAX_CONVOYS = 5;
+    /**
+     * The people trapped in the town: four full trips of {@link #TRUCKS} by {@link #SEATS}, so getting everyone out
+     * takes more than three convoys, and the fifth is there for the seats lost to a truck or a slow loading.
+     */
+    public static final int TOWNSPEOPLE = 48;
     /** Corridor cells from either end of the road a truck counts as there. */
     static final int AT_LEG = 5;
     /** Corridor cells ahead of a truck the road is looked at for the swarm. */
@@ -160,7 +167,8 @@ public final class CordonConvoys {
 
     private static final class Convoy {
         final int number;
-        final int departTick;
+        /** The tick it set out on; -1 while it has not been called. */
+        int departTick;
         Phase phase = Phase.WAITING;
         final List<Truck> trucks = new ArrayList<>();
         int loadingSince;
@@ -194,7 +202,19 @@ public final class CordonConvoys {
     private final List<Convoy> convoys = new ArrayList<>();
     /** The townspeople still in the town. */
     private CordonTownspeople town;
+    /** The town's people at the start. */
+    private final int peopleTotal;
     private int peopleOut, peopleLost;
+    /** The tick the first convoy sets out on; the rest are called while people are still trapped. */
+    private final int firstDepartTick;
+    /** Whether the town has been given up ({@link #abandonTown}). */
+    private boolean abandoned;
+    /** Ticks a beat adds to the last convoy's loading (R3), given to it when it reaches the gate. */
+    private int lastExtra;
+    /** The convoy known to be the last, from when it reached the gate; 0 until then. */
+    private int lastConvoy;
+    /** Beats published from outside {@link #advance}, sent with the next. */
+    private final List<String> pending = new ArrayList<>();
     /** The trucks at the gate with seats free, made each tick. */
     private final List<CordonTownspeople.Seat> seats = new ArrayList<>();
     /** The company's marines at the last look. */
@@ -210,15 +230,43 @@ public final class CordonConvoys {
      * @param corridor the relief road's cells in driving order, rear edge first
      * @param entry the corridor cell trucks set out from and come back to: where it passes the base
      * @param gapIndex the corridor cell where it crosses the line
-     * @param departTicks when each convoy sets out, in order
-     * @param townspeople the people waiting in the compound
+     * @param firstDepartTick when the first convoy sets out
+     * @param maxConvoys the most convoys that may come ({@link #MAX_CONVOYS})
+     * @param townspeople the people trapped in the town
      */
-    public CordonConvoys(List<int[]> corridor, int entry, int gapIndex, List<Integer> departTicks, int townspeople) {
+    public CordonConvoys(List<int[]> corridor, int entry, int gapIndex, int firstDepartTick, int maxConvoys,
+                         int townspeople) {
         this.corridor = List.copyOf(corridor);
         this.entry = entry;
         this.gapIndex = gapIndex;
-        for (int i = 0; i < departTicks.size(); i++) convoys.add(new Convoy(i + 1, departTicks.get(i)));
+        this.firstDepartTick = firstDepartTick;
+        for (int i = 0; i < maxConvoys; i++) convoys.add(new Convoy(i + 1, -1));
+        this.peopleTotal = Math.max(0, townspeople);
         this.town = CordonTownspeople.counted(townspeople);
+    }
+
+    /**
+     * Whether the next convoy, number {@code number}, sets out now: never past {@code max}, to a town given up, or
+     * while the convoys already on their way have seats for everyone still trapped; the first on its tick, each
+     * after it once the one before has passed the gap toward the town (so two are never queued at the line, and one
+     * lost on the road is followed).
+     *
+     * @param previousOn  whether the convoy before it has passed the gap inbound, or is further on (loading, home or lost)
+     * @param trapped     the people still trapped in the town
+     * @param seatsComing the free seats on the convoys on their way to the town or loading at its gate
+     */
+    static boolean setsOut(int number, int max, int tick, int firstTick, boolean previousOn, int trapped,
+                           int seatsComing, boolean abandoned) {
+        if (abandoned || number > max || trapped <= seatsComing) return false;
+        return number == 1 ? tick >= firstTick : previousOn;
+    }
+
+    /**
+     * Whether a convoy reaching the gate is the last that will come: the last there can be, or one with seats for
+     * everyone still trapped.
+     */
+    static boolean last(int number, int max, int trapped, int seats) {
+        return number >= max || trapped <= seats;
     }
 
     /**
@@ -282,6 +330,90 @@ public final class CordonConvoys {
     /** Convoy {@code number} waits this many more ticks at the gate while its people board (beat R3). */
     public void extendLoading(int number, int ticks) {
         if (number >= 1 && number <= convoys.size()) convoys.get(number - 1).extraLoading += Math.max(0, ticks);
+    }
+
+    /**
+     * The last convoy waits this many more ticks at the gate (beat R3): given to the convoy found to be the last when
+     * it reaches the gate ({@link #lastConvoy}), or at once to one already loading there as the last.
+     */
+    public void extendLastLoading(int ticks) {
+        lastExtra += Math.max(0, ticks);
+        if (lastConvoy > 0) extendLoading(lastConvoy, Math.max(0, ticks));
+    }
+
+    /** The number of the convoy known to be the last, from when it reached the gate; 0 until one has. */
+    public int lastConvoy() { return lastConvoy; }
+
+    /**
+     * The town is given up (its staging area overrun, or the company pulled out): every townsperson still trapped
+     * dies, taken off the field and counted lost; no convoy sets out again; one on its way to the town or loading at
+     * its gate turns for home with whoever is aboard. The sequence publishes {@code town_abandoned} as it calls this
+     * ({@link CordonSequence#onAbandonTown}). Idempotent.
+     */
+    public void abandonTown(BattleSimulation sim) {
+        if (abandoned) return;
+        abandoned = true;
+        town.abandon(sim);
+        for (Convoy c : convoys) {
+            if (c.phase != Phase.INBOUND && c.phase != Phase.LOADING) continue;
+            if (c.phase == Phase.LOADING) pending.add("convoy_loaded_" + c.number);
+            c.phase = Phase.OUTBOUND;
+            for (Truck t : c.trucks) {
+                if (t.gone || !sim.convoy().isVehicle(t.hull)) continue;
+                t.atGate = false;
+                route(sim, t, -1);
+            }
+        }
+        prune();
+    }
+
+    /** Whether the town has been given up. */
+    public boolean townAbandoned() { return abandoned; }
+
+    /**
+     * The convoys that will never set out come off the end of the list: every one still waiting once the town is
+     * empty or given up, and one turned for home before any truck of it came on.
+     */
+    private void prune() {
+        boolean done = abandoned || town.left() == 0;
+        for (int i = convoys.size() - 1; i >= 0; i--) {
+            Convoy c = convoys.get(i);
+            boolean never = c.phase == Phase.WAITING && done || c.phase == Phase.OUTBOUND && c.trucks.isEmpty();
+            if (!never) break;
+            convoys.remove(i);
+        }
+    }
+
+    /** Calls the next convoy when {@link #setsOut} says it goes. */
+    private void callNext(int tick, Consumer<String> beat) {
+        for (int i = 0; i < convoys.size(); i++) {
+            Convoy c = convoys.get(i);
+            if (c.phase != Phase.WAITING) continue;
+            Convoy before = i == 0 ? null : convoys.get(i - 1);
+            boolean previousOn = before == null || before.throughGap || before.phase != Phase.WAITING
+                    && before.phase != Phase.INBOUND;
+            int seatsComing = 0;
+            for (Convoy o : convoys) seatsComing += seatsComing(o);
+            if (setsOut(c.number, MAX_CONVOYS, tick, firstDepartTick, previousOn, town.left(), seatsComing, abandoned)) {
+                c.phase = Phase.INBOUND;
+                c.departTick = tick;
+                beat.accept("convoy_entered_" + c.number);
+            }
+            return;
+        }
+    }
+
+    /** The free seats a convoy brings to the town: on its way there or loading at its gate. */
+    private static int seatsComing(Convoy c) {
+        if (c.phase != Phase.INBOUND && c.phase != Phase.LOADING) return 0;
+        int seats = 0;
+        for (Truck t : c.trucks) {
+            if (t.gone) continue;
+            seats += SEATS - t.people;
+        }
+        // Trucks still to come on at the rear end.
+        if (c.phase == Phase.INBOUND) seats += Math.max(0, TRUCKS - c.trucks.size()) * SEATS;
+        return seats;
     }
 
     /**
@@ -402,6 +534,8 @@ public final class CordonConvoys {
     public int out() { return count(Phase.OUT); }
     /** Convoys whose every truck was destroyed. */
     public int lost() { return count(Phase.LOST); }
+    /** The town's people at the start: everyone there was to bring out. */
+    public int peopleTotal() { return peopleTotal; }
     /** Townspeople driven out so far. */
     public int peopleOut() { return peopleOut; }
     /** Townspeople killed: aboard a destroyed truck, walking from a stranded one, or in the town before they boarded. */
@@ -470,13 +604,12 @@ public final class CordonConvoys {
         List<float[]> swarm = review ? positions(sim, true) : List.of();
         company = review ? positions(sim, false) : company;
         guards = review ? guards(sim) : guards;
+        for (String b : pending) beat.accept(b);
+        pending.clear();
+        prune();
+        callNext(tick, beat);
         for (Convoy c : convoys) {
-            if (c.phase == Phase.OUT || c.phase == Phase.LOST) continue;
-            if (c.phase == Phase.WAITING) {
-                if (tick < c.departTick) continue;
-                c.phase = Phase.INBOUND;
-                beat.accept("convoy_entered_" + c.number);
-            }
+            if (c.phase == Phase.OUT || c.phase == Phase.LOST || c.phase == Phase.WAITING) continue;
             comeOn(sim, c);
             bury(sim, c);
             if (c.trucks.isEmpty() || allGone(c) && !anyStranded(c)) {
@@ -581,6 +714,12 @@ public final class CordonConvoys {
         if (atGate && c.trucks.size() >= TRUCKS) {
             c.phase = Phase.LOADING;
             c.loadingSince = tick;
+            int seats = 0;
+            for (Truck t : c.trucks) if (!t.gone) seats += SEATS - t.people;
+            if (lastConvoy == 0 && last(c.number, Math.min(MAX_CONVOYS, convoys.size()), town.left(), seats)) {
+                lastConvoy = c.number;
+                c.extraLoading += lastExtra;
+            }
             beat.accept("convoy_at_town_" + c.number);
         }
     }

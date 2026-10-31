@@ -33,11 +33,13 @@ final class LastLoadingBeat extends CordonBeat {
     protected Status step(BattleSimulation sim, int tick) {
         CordonConvoys convoys = beats.sequence().convoys();
         if (convoys == null || convoys.convoys() == 0) return Status.LAPSED;
-        int last = convoys.convoys();
         if (!extended) {
             extended = true;
-            convoys.extendLoading(last, CordonSequence.ticks(EXTRA_SECONDS));
+            convoys.extendLastLoading(CordonSequence.ticks(EXTRA_SECONDS));
         }
+        int last = convoys.lastConvoy();
+        // Not known until a convoy reaches the gate as the last; none ever will once every convoy is home or lost.
+        if (last == 0) return convoys.out() + convoys.lost() >= convoys.convoys() ? Status.LAPSED : Status.ACTIVE;
         return rule(sim.getStoryBeatLog().has("cordon.convoy_loaded_" + last),
                 sim.getStoryBeatLog().has("cordon.convoy_lost_" + last));
     }
@@ -45,7 +47,7 @@ final class LastLoadingBeat extends CordonBeat {
     @Override
     int[] call(BattleSimulation sim) {
         CordonConvoys convoys = beats.sequence().convoys();
-        if (convoys == null || !"loading".equals(convoys.phase(convoys.convoys()))) return null;
+        if (convoys == null || convoys.lastConvoy() == 0 || !"loading".equals(convoys.phase(convoys.lastConvoy()))) return null;
         List<int[]> corridor = convoys.corridor();
         int[] gate = corridor.get(corridor.size() - 1);
         return new int[]{gate[0], gate[1], 3};
