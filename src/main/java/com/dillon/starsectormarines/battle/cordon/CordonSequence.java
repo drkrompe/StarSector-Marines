@@ -92,7 +92,10 @@ public final class CordonSequence implements Objective {
     private CordonOuterPicket outerPicket;
     private CordonStrikes strikes;
     private CordonLogistics logistics;
+    private CordonAirBase airBase;
     private CordonConvoys convoys;
+    /** The Road's staging area inside the town's gate, or {@code null}. */
+    private CordonStagingArea staging;
     private CordonLineCommand line;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
@@ -173,9 +176,25 @@ public final class CordonSequence implements Objective {
         this.convoys = convoys;
     }
 
+    /** The Road's staging area inside the town's gate, where the trapped townspeople wait and the trucks load; or {@code null}. */
+    public CordonStagingArea staging() { return staging; }
+
+    /** Gives the Road its staging area; at setup, before the first tick. */
+    public void attachStaging(CordonStagingArea staging) {
+        this.staging = staging;
+    }
+
     /** Gives the line its logistics base: columns then march to it and are carried forward from it. */
     public void attachLogistics(CordonLogistics logistics) {
         this.logistics = logistics;
+    }
+
+    /** The allies' air base behind the line, or {@code null} where the rear had no room for one. */
+    public CordonAirBase airBase() { return airBase; }
+
+    /** Gives the line its air base: the allied wing's stands and its own sorties; at setup, before the first tick. */
+    public void attachAirBase(CordonAirBase airBase) {
+        this.airBase = airBase;
     }
 
     /** Gives the line its people on the move (the Line's; {@code null} on the Road) and its columns; at setup, before the first tick. */
@@ -285,6 +304,8 @@ public final class CordonSequence implements Objective {
         if (strikes != null) for (String beat : strikes.drainBeats()) emit(tick, beat);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
         if (line != null) line.advance(sim);
+        if (airBase != null) airBase.advance(sim, redoubts, beat ->
+                log.emitOnce(tick, "cordon." + beat, StoryBeatLog.Audience.OBSERVER_ONLY));
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
         // Columns muster at the base where carriers lift them up; in a city they walk the whole way.
         AlliedColumns.Orders orders = logistics != null && logistics.musters() ? logistics.columnOrders() : new ColumnOrders();

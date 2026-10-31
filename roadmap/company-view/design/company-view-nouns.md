@@ -1718,19 +1718,21 @@ also be repaired here through its existing yard authority.
 
 The original hull reserves a four-berth Mech Lab as a sealed wreck until **Take
 Back the Depot**, the second story mission. Completion opens the room and restores
-berth one with the Hound's recovery, so the first-mech fitting lesson opens into a
-working bay without another bill. The completed chapter is the durable first-berth
-repair fact, including on older saves.
+berths one and two with the Hound's recovery, so the first-mech fitting lesson opens
+into a working bay without another bill and a second berth stands empty for the
+player's next mech or vehicle (owner, 2026-10-31: it invites the first purchase).
+The completed chapter is the durable recovery fact, including on older saves.
 
-Engineering offers three separate 5,000-credit yard repairs in berth order. Each
-includes labor and materials, restores one gantry and increases usable capacity
-from one through four; it awards no chassis or components. Every berth requires its
+Engineering offers two separate 5,000-credit yard repairs in berth order, for
+berths three and four. Each includes labor and materials, restores one gantry and
+increases usable capacity from two through four; it awards no chassis or components.
+A save's receipt for the retired second-berth order is no longer read. Every berth requires its
 own review and authorization at an accessible planetary spaceport, with the active,
 converted original hull as the owned company home. Payment rechecks recovery,
 preceding repairs, funds and ownership; stale or repeated orders spend nothing.
 The hull retains these paid receipts through saves and company transfers. Older
-saves with the depot completed begin with berth one restored and the other three
-damaged; their owned mechs are never removed. Ordinary hulls retain their facilities.
+saves with the depot completed begin with berths one and two restored and the
+other two damaged; their owned mechs are never removed. Ordinary hulls retain their facilities.
 
 The room survey shows working berths out of four and the next repair's benefit and
 bill. Mech Lab reads working physical gantries, so a damaged pad cannot be selected

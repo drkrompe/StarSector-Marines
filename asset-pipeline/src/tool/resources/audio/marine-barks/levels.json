@@ -899,6 +899,636 @@
     "seconds": 1.84,
     "volume": 0.359
   },
+  "marines_bark_contact_hostile_kestrel_1": {
+    "lufs": -17.5,
+    "seconds": 2.24,
+    "volume": 0.376
+  },
+  "marines_bark_contact_hostile_kestrel_2": {
+    "lufs": -17.6,
+    "seconds": 1.92,
+    "volume": 0.38
+  },
+  "marines_bark_contact_hostile_kestrel_3": {
+    "lufs": -16.7,
+    "seconds": 2.4,
+    "volume": 0.343
+  },
+  "marines_bark_contact_hostile_hammer_1": {
+    "lufs": -14.9,
+    "seconds": 2.08,
+    "volume": 0.279
+  },
+  "marines_bark_contact_hostile_hammer_2": {
+    "lufs": -14.7,
+    "seconds": 1.92,
+    "volume": 0.272
+  },
+  "marines_bark_contact_hostile_hammer_3": {
+    "lufs": -14.2,
+    "seconds": 2.4,
+    "volume": 0.257
+  },
+  "marines_bark_contact_hostile_viper_1": {
+    "lufs": -16.9,
+    "seconds": 2.48,
+    "volume": 0.351
+  },
+  "marines_bark_contact_hostile_viper_2": {
+    "lufs": -17.5,
+    "seconds": 2.16,
+    "volume": 0.376
+  },
+  "marines_bark_contact_hostile_viper_3": {
+    "lufs": -15.8,
+    "seconds": 2.64,
+    "volume": 0.309
+  },
+  "marines_bark_contact_hostile_jackal_1": {
+    "lufs": -18.1,
+    "seconds": 2.32,
+    "volume": 0.403
+  },
+  "marines_bark_contact_hostile_jackal_2": {
+    "lufs": -17.5,
+    "seconds": 2.16,
+    "volume": 0.376
+  },
+  "marines_bark_contact_hostile_jackal_3": {
+    "lufs": -18.3,
+    "seconds": 2.64,
+    "volume": 0.412
+  },
+  "marines_bark_contact_hostile_ox_1": {
+    "lufs": -17.6,
+    "seconds": 2.4,
+    "volume": 0.38
+  },
+  "marines_bark_contact_hostile_ox_2": {
+    "lufs": -15.4,
+    "seconds": 2.24,
+    "volume": 0.295
+  },
+  "marines_bark_contact_hostile_ox_3": {
+    "lufs": -16.6,
+    "seconds": 2.56,
+    "volume": 0.339
+  },
+  "marines_bark_contact_hostile_rivet_1": {
+    "lufs": -16.7,
+    "seconds": 2.48,
+    "volume": 0.343
+  },
+  "marines_bark_contact_hostile_rivet_2": {
+    "lufs": -17.9,
+    "seconds": 2.16,
+    "volume": 0.394
+  },
+  "marines_bark_contact_hostile_rivet_3": {
+    "lufs": -16.7,
+    "seconds": 2.56,
+    "volume": 0.343
+  },
+  "marines_bark_taking_fire_kestrel_1": {
+    "lufs": -15.3,
+    "seconds": 1.36,
+    "volume": 0.292
+  },
+  "marines_bark_taking_fire_kestrel_2": {
+    "lufs": -14.9,
+    "seconds": 1.92,
+    "volume": 0.279
+  },
+  "marines_bark_taking_fire_kestrel_3": {
+    "lufs": -17.0,
+    "seconds": 1.92,
+    "volume": 0.355
+  },
+  "marines_bark_taking_fire_hammer_1": {
+    "lufs": -12.5,
+    "seconds": 1.36,
+    "volume": 0.211
+  },
+  "marines_bark_taking_fire_hammer_2": {
+    "lufs": -13.3,
+    "seconds": 1.76,
+    "volume": 0.232
+  },
+  "marines_bark_taking_fire_hammer_3": {
+    "lufs": -13.9,
+    "seconds": 1.76,
+    "volume": 0.248
+  },
+  "marines_bark_taking_fire_viper_1": {
+    "lufs": -15.2,
+    "seconds": 1.36,
+    "volume": 0.288
+  },
+  "marines_bark_taking_fire_viper_2": {
+    "lufs": -15.2,
+    "seconds": 1.76,
+    "volume": 0.288
+  },
+  "marines_bark_taking_fire_viper_3": {
+    "lufs": -16.5,
+    "seconds": 1.92,
+    "volume": 0.335
+  },
+  "marines_bark_taking_fire_jackal_1": {
+    "lufs": -17.0,
+    "seconds": 1.44,
+    "volume": 0.355
+  },
+  "marines_bark_taking_fire_jackal_2": {
+    "lufs": -17.5,
+    "seconds": 1.76,
+    "volume": 0.376
+  },
+  "marines_bark_taking_fire_jackal_3": {
+    "lufs": -17.6,
+    "seconds": 1.84,
+    "volume": 0.38
+  },
+  "marines_bark_taking_fire_ox_1": {
+    "lufs": -14.4,
+    "seconds": 1.36,
+    "volume": 0.263
+  },
+  "marines_bark_taking_fire_ox_2": {
+    "lufs": -17.2,
+    "seconds": 1.84,
+    "volume": 0.363
+  },
+  "marines_bark_taking_fire_ox_3": {
+    "lufs": -16.5,
+    "seconds": 1.76,
+    "volume": 0.335
+  },
+  "marines_bark_taking_fire_rivet_1": {
+    "lufs": -16.6,
+    "seconds": 1.44,
+    "volume": 0.339
+  },
+  "marines_bark_taking_fire_rivet_2": {
+    "lufs": -16.7,
+    "seconds": 2.0,
+    "volume": 0.343
+  },
+  "marines_bark_taking_fire_rivet_3": {
+    "lufs": -17.5,
+    "seconds": 2.0,
+    "volume": 0.376
+  },
+  "marines_bark_frag_out_kestrel_1": {
+    "lufs": -15.5,
+    "seconds": 1.2,
+    "volume": 0.266
+  },
+  "marines_bark_frag_out_kestrel_2": {
+    "lufs": -14.9,
+    "seconds": 1.36,
+    "volume": 0.248
+  },
+  "marines_bark_frag_out_kestrel_3": {
+    "lufs": -13.8,
+    "seconds": 1.52,
+    "volume": 0.219
+  },
+  "marines_bark_frag_out_hammer_1": {
+    "lufs": -12.2,
+    "seconds": 1.28,
+    "volume": 0.182
+  },
+  "marines_bark_frag_out_hammer_2": {
+    "lufs": -11.9,
+    "seconds": 1.36,
+    "volume": 0.176
+  },
+  "marines_bark_frag_out_hammer_3": {
+    "lufs": -11.5,
+    "seconds": 1.44,
+    "volume": 0.168
+  },
+  "marines_bark_frag_out_viper_1": {
+    "lufs": -15.1,
+    "seconds": 1.2,
+    "volume": 0.254
+  },
+  "marines_bark_frag_out_viper_2": {
+    "lufs": -15.8,
+    "seconds": 1.52,
+    "volume": 0.275
+  },
+  "marines_bark_frag_out_viper_3": {
+    "lufs": -13.6,
+    "seconds": 1.68,
+    "volume": 0.214
+  },
+  "marines_bark_frag_out_jackal_1": {
+    "lufs": -16.2,
+    "seconds": 1.28,
+    "volume": 0.288
+  },
+  "marines_bark_frag_out_jackal_2": {
+    "lufs": -16.5,
+    "seconds": 1.44,
+    "volume": 0.299
+  },
+  "marines_bark_frag_out_jackal_3": {
+    "lufs": -15.0,
+    "seconds": 1.44,
+    "volume": 0.251
+  },
+  "marines_bark_frag_out_ox_1": {
+    "lufs": -15.4,
+    "seconds": 1.28,
+    "volume": 0.263
+  },
+  "marines_bark_frag_out_ox_2": {
+    "lufs": -15.6,
+    "seconds": 1.52,
+    "volume": 0.269
+  },
+  "marines_bark_frag_out_ox_3": {
+    "lufs": -14.0,
+    "seconds": 1.52,
+    "volume": 0.224
+  },
+  "marines_bark_frag_out_rivet_1": {
+    "lufs": -16.4,
+    "seconds": 1.2,
+    "volume": 0.295
+  },
+  "marines_bark_frag_out_rivet_2": {
+    "lufs": -15.9,
+    "seconds": 1.44,
+    "volume": 0.279
+  },
+  "marines_bark_frag_out_rivet_3": {
+    "lufs": -15.3,
+    "seconds": 1.6,
+    "volume": 0.26
+  },
+  "marines_bark_grenade_kestrel_1": {
+    "lufs": -13.6,
+    "seconds": 1.04,
+    "volume": 0.269
+  },
+  "marines_bark_grenade_kestrel_2": {
+    "lufs": -17.9,
+    "seconds": 1.68,
+    "volume": 0.442
+  },
+  "marines_bark_grenade_kestrel_3": {
+    "lufs": -15.5,
+    "seconds": 2.0,
+    "volume": 0.335
+  },
+  "marines_bark_grenade_hammer_1": {
+    "lufs": -11.6,
+    "seconds": 1.04,
+    "volume": 0.214
+  },
+  "marines_bark_grenade_hammer_2": {
+    "lufs": -15.2,
+    "seconds": 1.6,
+    "volume": 0.324
+  },
+  "marines_bark_grenade_hammer_3": {
+    "lufs": -11.9,
+    "seconds": 1.84,
+    "volume": 0.221
+  },
+  "marines_bark_grenade_viper_1": {
+    "lufs": -15.2,
+    "seconds": 1.2,
+    "volume": 0.324
+  },
+  "marines_bark_grenade_viper_2": {
+    "lufs": -16.6,
+    "seconds": 1.76,
+    "volume": 0.38
+  },
+  "marines_bark_grenade_viper_3": {
+    "lufs": -16.4,
+    "seconds": 2.0,
+    "volume": 0.372
+  },
+  "marines_bark_grenade_jackal_1": {
+    "lufs": -15.5,
+    "seconds": 0.96,
+    "volume": 0.335
+  },
+  "marines_bark_grenade_jackal_2": {
+    "lufs": -18.4,
+    "seconds": 1.68,
+    "volume": 0.468
+  },
+  "marines_bark_grenade_jackal_3": {
+    "lufs": -17.1,
+    "seconds": 1.92,
+    "volume": 0.403
+  },
+  "marines_bark_grenade_ox_1": {
+    "lufs": -14.2,
+    "seconds": 1.2,
+    "volume": 0.288
+  },
+  "marines_bark_grenade_ox_2": {
+    "lufs": -16.1,
+    "seconds": 1.68,
+    "volume": 0.359
+  },
+  "marines_bark_grenade_ox_3": {
+    "lufs": -15.2,
+    "seconds": 1.92,
+    "volume": 0.324
+  },
+  "marines_bark_grenade_rivet_1": {
+    "lufs": -15.3,
+    "seconds": 1.04,
+    "volume": 0.327
+  },
+  "marines_bark_grenade_rivet_2": {
+    "lufs": -17.3,
+    "seconds": 1.84,
+    "volume": 0.412
+  },
+  "marines_bark_grenade_rivet_3": {
+    "lufs": -16.9,
+    "seconds": 2.0,
+    "volume": 0.394
+  },
+  "marines_bark_armor_kestrel_1": {
+    "lufs": -16.8,
+    "seconds": 1.84,
+    "volume": 0.389
+  },
+  "marines_bark_armor_kestrel_2": {
+    "lufs": -15.6,
+    "seconds": 2.24,
+    "volume": 0.339
+  },
+  "marines_bark_armor_kestrel_3": {
+    "lufs": -17.8,
+    "seconds": 2.56,
+    "volume": 0.437
+  },
+  "marines_bark_armor_hammer_1": {
+    "lufs": -13.8,
+    "seconds": 1.76,
+    "volume": 0.275
+  },
+  "marines_bark_armor_hammer_2": {
+    "lufs": -14.0,
+    "seconds": 2.16,
+    "volume": 0.282
+  },
+  "marines_bark_armor_hammer_3": {
+    "lufs": -13.3,
+    "seconds": 2.48,
+    "volume": 0.26
+  },
+  "marines_bark_armor_viper_1": {
+    "lufs": -16.1,
+    "seconds": 1.92,
+    "volume": 0.359
+  },
+  "marines_bark_armor_viper_2": {
+    "lufs": -16.4,
+    "seconds": 2.48,
+    "volume": 0.372
+  },
+  "marines_bark_armor_viper_3": {
+    "lufs": -16.0,
+    "seconds": 2.72,
+    "volume": 0.355
+  },
+  "marines_bark_armor_jackal_1": {
+    "lufs": -17.3,
+    "seconds": 1.84,
+    "volume": 0.412
+  },
+  "marines_bark_armor_jackal_2": {
+    "lufs": -16.5,
+    "seconds": 2.32,
+    "volume": 0.376
+  },
+  "marines_bark_armor_jackal_3": {
+    "lufs": -17.3,
+    "seconds": 2.56,
+    "volume": 0.412
+  },
+  "marines_bark_armor_ox_1": {
+    "lufs": -17.2,
+    "seconds": 1.84,
+    "volume": 0.407
+  },
+  "marines_bark_armor_ox_2": {
+    "lufs": -15.7,
+    "seconds": 2.32,
+    "volume": 0.343
+  },
+  "marines_bark_armor_ox_3": {
+    "lufs": -15.9,
+    "seconds": 2.64,
+    "volume": 0.351
+  },
+  "marines_bark_armor_rivet_1": {
+    "lufs": -17.5,
+    "seconds": 1.92,
+    "volume": 0.422
+  },
+  "marines_bark_armor_rivet_2": {
+    "lufs": -17.6,
+    "seconds": 2.4,
+    "volume": 0.427
+  },
+  "marines_bark_armor_rivet_3": {
+    "lufs": -16.7,
+    "seconds": 2.72,
+    "volume": 0.385
+  },
+  "marines_bark_turret_kestrel_1": {
+    "lufs": -15.7,
+    "seconds": 1.76,
+    "volume": 0.305
+  },
+  "marines_bark_turret_kestrel_2": {
+    "lufs": -17.6,
+    "seconds": 2.56,
+    "volume": 0.38
+  },
+  "marines_bark_turret_kestrel_3": {
+    "lufs": -15.4,
+    "seconds": 2.56,
+    "volume": 0.295
+  },
+  "marines_bark_turret_hammer_1": {
+    "lufs": -13.4,
+    "seconds": 1.76,
+    "volume": 0.234
+  },
+  "marines_bark_turret_hammer_2": {
+    "lufs": -14.1,
+    "seconds": 2.48,
+    "volume": 0.254
+  },
+  "marines_bark_turret_hammer_3": {
+    "lufs": -12.8,
+    "seconds": 2.4,
+    "volume": 0.219
+  },
+  "marines_bark_turret_viper_1": {
+    "lufs": -14.6,
+    "seconds": 1.92,
+    "volume": 0.269
+  },
+  "marines_bark_turret_viper_2": {
+    "lufs": -16.5,
+    "seconds": 2.64,
+    "volume": 0.335
+  },
+  "marines_bark_turret_viper_3": {
+    "lufs": -16.4,
+    "seconds": 2.88,
+    "volume": 0.331
+  },
+  "marines_bark_turret_jackal_1": {
+    "lufs": -17.1,
+    "seconds": 1.76,
+    "volume": 0.359
+  },
+  "marines_bark_turret_jackal_2": {
+    "lufs": -18.1,
+    "seconds": 2.56,
+    "volume": 0.403
+  },
+  "marines_bark_turret_jackal_3": {
+    "lufs": -17.2,
+    "seconds": 2.72,
+    "volume": 0.363
+  },
+  "marines_bark_turret_ox_1": {
+    "lufs": -15.8,
+    "seconds": 1.84,
+    "volume": 0.309
+  },
+  "marines_bark_turret_ox_2": {
+    "lufs": -16.2,
+    "seconds": 2.64,
+    "volume": 0.324
+  },
+  "marines_bark_turret_ox_3": {
+    "lufs": -15.8,
+    "seconds": 2.8,
+    "volume": 0.309
+  },
+  "marines_bark_turret_rivet_1": {
+    "lufs": -16.2,
+    "seconds": 1.84,
+    "volume": 0.324
+  },
+  "marines_bark_turret_rivet_2": {
+    "lufs": -17.7,
+    "seconds": 2.64,
+    "volume": 0.385
+  },
+  "marines_bark_turret_rivet_3": {
+    "lufs": -17.2,
+    "seconds": 2.8,
+    "volume": 0.363
+  },
+  "marines_bark_drones_kestrel_1": {
+    "lufs": -15.6,
+    "seconds": 1.92,
+    "volume": 0.302
+  },
+  "marines_bark_drones_kestrel_2": {
+    "lufs": -16.5,
+    "seconds": 2.56,
+    "volume": 0.335
+  },
+  "marines_bark_drones_kestrel_3": {
+    "lufs": -15.8,
+    "seconds": 2.16,
+    "volume": 0.309
+  },
+  "marines_bark_drones_hammer_1": {
+    "lufs": -13.6,
+    "seconds": 1.84,
+    "volume": 0.24
+  },
+  "marines_bark_drones_hammer_2": {
+    "lufs": -13.7,
+    "seconds": 2.48,
+    "volume": 0.243
+  },
+  "marines_bark_drones_hammer_3": {
+    "lufs": -14.3,
+    "seconds": 1.84,
+    "volume": 0.26
+  },
+  "marines_bark_drones_viper_1": {
+    "lufs": -15.3,
+    "seconds": 2.08,
+    "volume": 0.292
+  },
+  "marines_bark_drones_viper_2": {
+    "lufs": -15.7,
+    "seconds": 2.72,
+    "volume": 0.305
+  },
+  "marines_bark_drones_viper_3": {
+    "lufs": -16.0,
+    "seconds": 1.84,
+    "volume": 0.316
+  },
+  "marines_bark_drones_jackal_1": {
+    "lufs": -17.8,
+    "seconds": 1.92,
+    "volume": 0.389
+  },
+  "marines_bark_drones_jackal_2": {
+    "lufs": -17.8,
+    "seconds": 2.56,
+    "volume": 0.389
+  },
+  "marines_bark_drones_jackal_3": {
+    "lufs": -18.5,
+    "seconds": 2.0,
+    "volume": 0.422
+  },
+  "marines_bark_drones_ox_1": {
+    "lufs": -17.0,
+    "seconds": 1.92,
+    "volume": 0.355
+  },
+  "marines_bark_drones_ox_2": {
+    "lufs": -17.0,
+    "seconds": 2.64,
+    "volume": 0.355
+  },
+  "marines_bark_drones_ox_3": {
+    "lufs": -16.3,
+    "seconds": 2.08,
+    "volume": 0.327
+  },
+  "marines_bark_drones_rivet_1": {
+    "lufs": -15.2,
+    "seconds": 2.08,
+    "volume": 0.288
+  },
+  "marines_bark_drones_rivet_2": {
+    "lufs": -16.8,
+    "seconds": 2.72,
+    "volume": 0.347
+  },
+  "marines_bark_drones_rivet_3": {
+    "lufs": -16.6,
+    "seconds": 2.08,
+    "volume": 0.339
+  },
   "marines_bark_militia_contact_a_1": {
     "lufs": -13.8,
     "seconds": 2.08,
@@ -1498,6 +2128,426 @@
     "lufs": -20.5,
     "seconds": 1.84,
     "volume": 0.376
+  },
+  "marines_bark_militia_contact_hostile_a_1": {
+    "lufs": -14.5,
+    "seconds": 1.76,
+    "volume": 0.266
+  },
+  "marines_bark_militia_contact_hostile_a_2": {
+    "lufs": -15.3,
+    "seconds": 2.24,
+    "volume": 0.292
+  },
+  "marines_bark_militia_contact_hostile_a_3": {
+    "lufs": -15.1,
+    "seconds": 2.32,
+    "volume": 0.285
+  },
+  "marines_bark_militia_contact_hostile_b_1": {
+    "lufs": -19.3,
+    "seconds": 1.84,
+    "volume": 0.462
+  },
+  "marines_bark_militia_contact_hostile_b_2": {
+    "lufs": -18.0,
+    "seconds": 2.48,
+    "volume": 0.398
+  },
+  "marines_bark_militia_contact_hostile_b_3": {
+    "lufs": -18.5,
+    "seconds": 2.48,
+    "volume": 0.422
+  },
+  "marines_bark_militia_contact_hostile_c_1": {
+    "lufs": -18.4,
+    "seconds": 1.84,
+    "volume": 0.417
+  },
+  "marines_bark_militia_contact_hostile_c_2": {
+    "lufs": -17.1,
+    "seconds": 2.32,
+    "volume": 0.359
+  },
+  "marines_bark_militia_contact_hostile_c_3": {
+    "lufs": -17.6,
+    "seconds": 2.24,
+    "volume": 0.38
+  },
+  "marines_bark_militia_contact_hostile_d_1": {
+    "lufs": -18.4,
+    "seconds": 1.92,
+    "volume": 0.417
+  },
+  "marines_bark_militia_contact_hostile_d_2": {
+    "lufs": -15.3,
+    "seconds": 2.4,
+    "volume": 0.292
+  },
+  "marines_bark_militia_contact_hostile_d_3": {
+    "lufs": -16.8,
+    "seconds": 2.32,
+    "volume": 0.347
+  },
+  "marines_bark_militia_taking_fire_a_1": {
+    "lufs": -14.3,
+    "seconds": 1.52,
+    "volume": 0.26
+  },
+  "marines_bark_militia_taking_fire_a_2": {
+    "lufs": -15.0,
+    "seconds": 2.16,
+    "volume": 0.282
+  },
+  "marines_bark_militia_taking_fire_a_3": {
+    "lufs": -14.0,
+    "seconds": 2.56,
+    "volume": 0.251
+  },
+  "marines_bark_militia_taking_fire_b_1": {
+    "lufs": -17.8,
+    "seconds": 1.6,
+    "volume": 0.389
+  },
+  "marines_bark_militia_taking_fire_b_2": {
+    "lufs": -18.6,
+    "seconds": 2.4,
+    "volume": 0.427
+  },
+  "marines_bark_militia_taking_fire_b_3": {
+    "lufs": -16.9,
+    "seconds": 2.8,
+    "volume": 0.351
+  },
+  "marines_bark_militia_taking_fire_c_1": {
+    "lufs": -17.4,
+    "seconds": 1.52,
+    "volume": 0.372
+  },
+  "marines_bark_militia_taking_fire_c_2": {
+    "lufs": -17.9,
+    "seconds": 2.08,
+    "volume": 0.394
+  },
+  "marines_bark_militia_taking_fire_c_3": {
+    "lufs": -17.8,
+    "seconds": 2.4,
+    "volume": 0.389
+  },
+  "marines_bark_militia_taking_fire_d_1": {
+    "lufs": -17.1,
+    "seconds": 1.6,
+    "volume": 0.359
+  },
+  "marines_bark_militia_taking_fire_d_2": {
+    "lufs": -15.3,
+    "seconds": 2.24,
+    "volume": 0.292
+  },
+  "marines_bark_militia_taking_fire_d_3": {
+    "lufs": -16.8,
+    "seconds": 2.64,
+    "volume": 0.347
+  },
+  "marines_bark_militia_frag_out_a_1": {
+    "lufs": -15.0,
+    "seconds": 2.0,
+    "volume": 0.251
+  },
+  "marines_bark_militia_frag_out_a_2": {
+    "lufs": -15.9,
+    "seconds": 2.16,
+    "volume": 0.279
+  },
+  "marines_bark_militia_frag_out_a_3": {
+    "lufs": -17.0,
+    "seconds": 1.76,
+    "volume": 0.316
+  },
+  "marines_bark_militia_frag_out_b_1": {
+    "lufs": -19.0,
+    "seconds": 2.0,
+    "volume": 0.398
+  },
+  "marines_bark_militia_frag_out_b_2": {
+    "lufs": -18.2,
+    "seconds": 2.16,
+    "volume": 0.363
+  },
+  "marines_bark_militia_frag_out_b_3": {
+    "lufs": -19.6,
+    "seconds": 1.84,
+    "volume": 0.427
+  },
+  "marines_bark_militia_frag_out_c_1": {
+    "lufs": -15.9,
+    "seconds": 1.92,
+    "volume": 0.279
+  },
+  "marines_bark_militia_frag_out_c_2": {
+    "lufs": -18.1,
+    "seconds": 2.08,
+    "volume": 0.359
+  },
+  "marines_bark_militia_frag_out_c_3": {
+    "lufs": -19.4,
+    "seconds": 1.68,
+    "volume": 0.417
+  },
+  "marines_bark_militia_frag_out_d_1": {
+    "lufs": -13.5,
+    "seconds": 1.92,
+    "volume": 0.211
+  },
+  "marines_bark_militia_frag_out_d_2": {
+    "lufs": -16.2,
+    "seconds": 2.24,
+    "volume": 0.288
+  },
+  "marines_bark_militia_frag_out_d_3": {
+    "lufs": -18.0,
+    "seconds": 1.6,
+    "volume": 0.355
+  },
+  "marines_bark_militia_grenade_a_1": {
+    "lufs": -14.2,
+    "seconds": 1.68,
+    "volume": 0.288
+  },
+  "marines_bark_militia_grenade_a_2": {
+    "lufs": -15.2,
+    "seconds": 2.24,
+    "volume": 0.324
+  },
+  "marines_bark_militia_grenade_a_3": {
+    "lufs": -13.9,
+    "seconds": 1.44,
+    "volume": 0.279
+  },
+  "marines_bark_militia_grenade_b_1": {
+    "lufs": -16.7,
+    "seconds": 1.76,
+    "volume": 0.385
+  },
+  "marines_bark_militia_grenade_b_2": {
+    "lufs": -17.9,
+    "seconds": 2.24,
+    "volume": 0.442
+  },
+  "marines_bark_militia_grenade_b_3": {
+    "lufs": -16.4,
+    "seconds": 1.52,
+    "volume": 0.372
+  },
+  "marines_bark_militia_grenade_c_1": {
+    "lufs": -16.9,
+    "seconds": 1.68,
+    "volume": 0.394
+  },
+  "marines_bark_militia_grenade_c_2": {
+    "lufs": -16.3,
+    "seconds": 2.24,
+    "volume": 0.367
+  },
+  "marines_bark_militia_grenade_c_3": {
+    "lufs": -16.4,
+    "seconds": 1.28,
+    "volume": 0.372
+  },
+  "marines_bark_militia_grenade_d_1": {
+    "lufs": -15.5,
+    "seconds": 1.84,
+    "volume": 0.335
+  },
+  "marines_bark_militia_grenade_d_2": {
+    "lufs": -16.1,
+    "seconds": 2.32,
+    "volume": 0.359
+  },
+  "marines_bark_militia_grenade_d_3": {
+    "lufs": -16.0,
+    "seconds": 1.52,
+    "volume": 0.355
+  },
+  "marines_bark_militia_armor_a_1": {
+    "lufs": -15.6,
+    "seconds": 2.72,
+    "volume": 0.339
+  },
+  "marines_bark_militia_armor_a_2": {
+    "lufs": -15.0,
+    "seconds": 2.08,
+    "volume": 0.316
+  },
+  "marines_bark_militia_armor_a_3": {
+    "lufs": -16.1,
+    "seconds": 2.56,
+    "volume": 0.359
+  },
+  "marines_bark_militia_armor_b_1": {
+    "lufs": -18.3,
+    "seconds": 2.88,
+    "volume": 0.462
+  },
+  "marines_bark_militia_armor_b_2": {
+    "lufs": -16.7,
+    "seconds": 2.24,
+    "volume": 0.385
+  },
+  "marines_bark_militia_armor_b_3": {
+    "lufs": -19.3,
+    "seconds": 2.72,
+    "volume": 0.519
+  },
+  "marines_bark_militia_armor_c_1": {
+    "lufs": -17.5,
+    "seconds": 2.64,
+    "volume": 0.422
+  },
+  "marines_bark_militia_armor_c_2": {
+    "lufs": -18.6,
+    "seconds": 2.0,
+    "volume": 0.479
+  },
+  "marines_bark_militia_armor_c_3": {
+    "lufs": -19.0,
+    "seconds": 2.48,
+    "volume": 0.501
+  },
+  "marines_bark_militia_armor_d_1": {
+    "lufs": -16.7,
+    "seconds": 2.64,
+    "volume": 0.385
+  },
+  "marines_bark_militia_armor_d_2": {
+    "lufs": -16.2,
+    "seconds": 2.16,
+    "volume": 0.363
+  },
+  "marines_bark_militia_armor_d_3": {
+    "lufs": -18.8,
+    "seconds": 2.48,
+    "volume": 0.49
+  },
+  "marines_bark_militia_turret_a_1": {
+    "lufs": -14.9,
+    "seconds": 2.48,
+    "volume": 0.279
+  },
+  "marines_bark_militia_turret_a_2": {
+    "lufs": -15.3,
+    "seconds": 1.92,
+    "volume": 0.292
+  },
+  "marines_bark_militia_turret_a_3": {
+    "lufs": -14.9,
+    "seconds": 1.68,
+    "volume": 0.279
+  },
+  "marines_bark_militia_turret_b_1": {
+    "lufs": -16.8,
+    "seconds": 2.56,
+    "volume": 0.347
+  },
+  "marines_bark_militia_turret_b_2": {
+    "lufs": -17.0,
+    "seconds": 1.84,
+    "volume": 0.355
+  },
+  "marines_bark_militia_turret_b_3": {
+    "lufs": -18.2,
+    "seconds": 1.92,
+    "volume": 0.407
+  },
+  "marines_bark_militia_turret_c_1": {
+    "lufs": -18.0,
+    "seconds": 2.32,
+    "volume": 0.398
+  },
+  "marines_bark_militia_turret_c_2": {
+    "lufs": -16.9,
+    "seconds": 1.84,
+    "volume": 0.351
+  },
+  "marines_bark_militia_turret_c_3": {
+    "lufs": -18.1,
+    "seconds": 1.76,
+    "volume": 0.403
+  },
+  "marines_bark_militia_turret_d_1": {
+    "lufs": -15.6,
+    "seconds": 2.4,
+    "volume": 0.302
+  },
+  "marines_bark_militia_turret_d_2": {
+    "lufs": -15.8,
+    "seconds": 1.92,
+    "volume": 0.309
+  },
+  "marines_bark_militia_turret_d_3": {
+    "lufs": -17.1,
+    "seconds": 1.84,
+    "volume": 0.359
+  },
+  "marines_bark_militia_drones_a_1": {
+    "lufs": -15.5,
+    "seconds": 2.08,
+    "volume": 0.299
+  },
+  "marines_bark_militia_drones_a_2": {
+    "lufs": -15.2,
+    "seconds": 1.44,
+    "volume": 0.288
+  },
+  "marines_bark_militia_drones_a_3": {
+    "lufs": -14.7,
+    "seconds": 2.88,
+    "volume": 0.272
+  },
+  "marines_bark_militia_drones_b_1": {
+    "lufs": -17.5,
+    "seconds": 1.92,
+    "volume": 0.376
+  },
+  "marines_bark_militia_drones_b_2": {
+    "lufs": -17.4,
+    "seconds": 1.6,
+    "volume": 0.372
+  },
+  "marines_bark_militia_drones_b_3": {
+    "lufs": -19.7,
+    "seconds": 2.96,
+    "volume": 0.484
+  },
+  "marines_bark_militia_drones_c_1": {
+    "lufs": -17.1,
+    "seconds": 1.76,
+    "volume": 0.359
+  },
+  "marines_bark_militia_drones_c_2": {
+    "lufs": -17.9,
+    "seconds": 1.44,
+    "volume": 0.394
+  },
+  "marines_bark_militia_drones_c_3": {
+    "lufs": -18.0,
+    "seconds": 2.64,
+    "volume": 0.398
+  },
+  "marines_bark_militia_drones_d_1": {
+    "lufs": -16.6,
+    "seconds": 2.0,
+    "volume": 0.339
+  },
+  "marines_bark_militia_drones_d_2": {
+    "lufs": -16.1,
+    "seconds": 1.52,
+    "volume": 0.32
+  },
+  "marines_bark_militia_drones_d_3": {
+    "lufs": -18.1,
+    "seconds": 2.8,
+    "volume": 0.403
   },
   "marines_bark_civilian_contact_a_1": {
     "lufs": -15.5,

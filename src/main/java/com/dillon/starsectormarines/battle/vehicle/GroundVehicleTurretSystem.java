@@ -477,7 +477,9 @@ public final class GroundVehicleTurretSystem {
         aim.turnRateDegPerSec = mount.turnRateDegPerSec;
         if (weapon.hitscanBeam()) aim.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         aim.attackRange = weapon.range;
-        aim.minRange = weapon.minRange;
+        // A body close enough that the round's burst would reach this hull is no target: the gun takes one further out.
+        aim.minRange = GunDeadZone.fromMount(weapon, roster.radius(id),
+                (float) Math.hypot(mountX - body.x, mountY - body.y));
         // A gun its flux holds keeps the trigger the way a cooldown does, until the flux would admit it.
         aim.cooldownTimer = Math.max(turret.cooldownTimer, fluxWait(turret, mount));
         // A rotary gun has no cooldown: the aim loop only says whether the barrel is on, and the feed sets the pace.

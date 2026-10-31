@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
@@ -35,6 +36,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -222,6 +224,8 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
 
     private static void addGrounded(SnapshotContext context, List<SnapshotArtifact> frames) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
+        // Cold Start garrisons its basin from the ground rosters, which only the full installer loads.
+        TileRegistryTestInstaller.install(context.projectRoot());
         HeadlessSvgAssets.install(context.modRoot());
         for (boolean powered : List.of(false, true)) {
             try (BattleSimulation sim = BattleSetup.createColdStart(14101,
@@ -254,6 +258,17 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
                 }
                 frames.add(new SnapshotArtifact(powered ? "09-grounded-powered-1920x1080-ui100.png"
                         : "08-grounded-unpowered-1920x1080-ui100.png", plates.frame(context, sim, selection)));
+                if (powered) {
+                    // Supply spent on a fire base, then 25 s of income: one point back, every build still short.
+                    Tender morrow = sim.tenders().tenders().get(0);
+                    require(morrow.lay(BuildOption.LOCUST_FIRE_BASE, ColdStartSequence.BUILD_X + .5f,
+                            ColdStartSequence.BUILD_Y + .5f, sim.getGrid()) != null, "Morrow's supply pays for a fire base");
+                    tick(sim, 30 * 25);
+                    require(morrow.stock() == 1, "One point of supply earned back, not " + morrow.stock());
+                    plates.update(controller.state());
+                    frames.add(new SnapshotArtifact("10-grounded-supply-spent-1920x1080-ui100.png",
+                            plates.frame(context, sim, selection)));
+                }
             }
         }
     }

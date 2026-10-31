@@ -1104,7 +1104,11 @@ retains the same existing cross-domain behavior as an autonomous hull.
   allied hulls their scripts own (an allied hull a mission has *enlisted* under
   allied command is not one, and fights as the player's do; `allied-command.md`),
   delivery legs, unarmed hulls, shot-away guns (which
-  withdraw instead) and empty magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
+  withdraw instead) and empty magazines never engage, and infantry is not a duel target.
+  A gun has a **dead zone** (`GunDeadZone`): its minimum range, or for a bursting
+  round the distance at which the burst would reach its own hull. The turret takes
+  no target inside it, so a cannon tank with Ravs clawing at it shoots the ones
+  further off rather than holding its round on the nearest. A hull's **stance** adjusts the band
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of
   its own reach otherwise, never closer; an **ambusher** never drives at armor and
