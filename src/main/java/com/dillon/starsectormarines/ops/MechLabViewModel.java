@@ -390,10 +390,11 @@ public final class MechLabViewModel {
                         : List.of("mech-doll-canvas", "mech-slot-rack", "mech-component-catalog"),
                 step == 1 ? "lessonOpenWayward" : step == 4 ? "lessonReady" : null,
                 step == 1 || step == 4 ? this::guideLabLesson : null);
-        if (step == 4) return lesson;
+        // At the gantry, Castle stands in the empty dark above the slot graph, clear of stores and the hull.
+        String dock = step == 1 ? null : "mech-doll-canvas";
         return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
-                lesson.actionLabel(), lesson.action(), lesson.height(), this::skipLabLesson,
-                LessonCopy.text("lessonSkip"));
+                lesson.actionLabel(), lesson.action(), lesson.height(), step == 4 ? null : this::skipLabLesson,
+                step == 4 ? null : LessonCopy.text("lessonSkip"), dock);
     }
 
     void skipLabLesson() {
