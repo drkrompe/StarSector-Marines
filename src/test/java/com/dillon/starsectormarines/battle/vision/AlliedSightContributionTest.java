@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.vision;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -86,6 +88,21 @@ class AlliedSightContributionTest {
             settle(sim);
             assertTrue(sim.getFogOfWar().isCellRevealed(ALLY_X, ROOM_Y),
                     "an allied contributor opens the room it is standing in");
+        }
+    }
+
+    /**
+     * A gun post is spawned with its weapon and no eyes of its own, so it once cast a footprint of nothing: an
+     * allied battery held a line the player could not see from it.
+     */
+    @Test
+    void anAlliedGunPostRevealsTheGroundAroundIt() {
+        try (BattleSimulation sim = scene()) {
+            sim.spawn(MapTurret.create("post", Faction.ALLY, TurretCatalogRegistry.VULCAN_STRUCTURE_ID,
+                    MARINE_X, ROOM_Y));
+            settle(sim);
+            assertTrue(sim.getFogOfWar().isCellRevealed(MARINE_X, ROOM_Y - 8),
+                    "the post's crew sees the open ground in front of its gun");
         }
     }
 
