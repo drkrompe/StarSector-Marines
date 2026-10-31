@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-31 — Simplified Chinese translation mod: opening, board, briefing, muster, results, debrief and battle UI; overlay parity guard
+Updated: 2026-10-31 — Simplified Chinese: every Alpha-route slice translated; gear catalogs and review left
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
@@ -82,7 +82,8 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   `BriefingViewModel` and its lift, survey, air and hint helpers) and
   `SquadDeploymentScreen` read, with their markup. The debug drawer and
   placeholder-only keys (`{0} {1}`, separators) stay as they are.
-- [ ] Stationing and the story briefings' spoken lines (`waylineBriefing*`).
+- [x] Stationing, posting and polity, and the story briefings' and arc
+  radios' spoken lines (Wayline, Corvus, Shepherd, Khettara, Agreus).
 - [x] Results, debrief and salvage: every key `ResultsScreen`,
   `MissionDebriefConversation`, `OfficerMissionResult`, `LootScreen` and
   `DebriefRewardPrompt` read, with their markup, including each arc's debrief
@@ -93,11 +94,26 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   plans read (`ops/Battle*`, `ops/battleview`, `battle/ui`, the battle
   markup). Expanded-copy lint: seven clipped spots in the HUD overlay panel.
 - [x] Mission objective picture: every `objective*` name, phase, step,
-  timer, blocker, marker and squad task.
-- [ ] Mission HUDs with their own catalogs: Relief (`cordonHud*`) and Dust
-  Ledger (`dustLedger*`).
-- [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
-  ship transfer and refit (the bulk of the `opening*` keys).
+  timer, blocker, marker and squad task, and the mission HUDs with their own
+  catalogs: Relief (`cordon*`), Dust Ledger (`dustLedger*`) and the Heart
+  barrage (`heartHud*`). zh_CN lint of `mission-objectives`: one 13 px clip
+  spill in the objectives panel.
+- [x] Company rooms: Barracks, Company HQ, Fleet Armory, Mech Lab, ship
+  transfer and condition, refit, workshop, Shuttle Deck and the yard.
+  Company HQ, Fleet Armory, ship condition, the refit tracks and the
+  workshop appear in no snapshot, so their zh_CN layout is unlinted.
+- [ ] Shared gear catalogs and spec sheets (`gearCatalog*`, `loadoutCard*`,
+  `gearStat*`, `equipmentTemplate*`), `vehicleType*`, and the story-arc work
+  guides on the HQ action board.
+- [ ] Translation review: the glossary's open list, and a native read.
+
+Still English in zh_CN because code builds the text (catalog work, not
+translation): the Relief side objectives' names and descriptions
+(`CordonObjectives`); the battle speed button's "Pause" in the objective
+snapshots; Mech Lab's empty-pad "BUILD" (`MechLabDollCanvas`), raw hardpoint
+names in `openingMechLabSocketGrid`, and `mountCallout`'s short forms, which
+match English label text; the "FLAGSHIP / FIRST COMMAND" fixture label in
+`UiSnapshotSuite`.
 
 Fonts: the translation mod replaces each retained-UI face in `Fonts` at its
 vanilla path (`graphics/fonts/<face>.fnt`). `GenerateCjkFontsTask`

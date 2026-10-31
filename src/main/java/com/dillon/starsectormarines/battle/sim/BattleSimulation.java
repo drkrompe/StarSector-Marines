@@ -378,6 +378,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.IntPredicate;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
@@ -1014,11 +1015,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * under have caved in. Setup only
      * ({@code cordon-nouns.md}, The map).
      */
-    public void matureCreep() {
+    public void matureCreep() { matureCreep(null); }
+
+    /**
+     * As {@link #matureCreep()}, keeping {@code held} ground (cell indices) clear: the creep round it retakes it
+     * over the battle ({@link CreepField#mature(IntPredicate)}; {@code cordon-nouns.md}, Cut-off town). Null holds
+     * nothing.
+     */
+    public void matureCreep(IntPredicate held) {
         if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
         boreCreep.sync(this);
         if (creep == null) return;
-        creep.mature();
+        creep.mature(held);
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);

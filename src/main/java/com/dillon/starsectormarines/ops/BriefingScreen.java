@@ -430,6 +430,7 @@ public class BriefingScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         if (hints != null) hints.clear();
+        built.keepScrollFrom(document);
         document = built;
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
@@ -1803,6 +1804,8 @@ public class BriefingScreen implements Screen {
                 ? DetachmentResolver.resolveStationed(mission).powers
                 : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
+        // CHEAT offers the Onslaught in every briefing's command deck, as a debug mission does.
+        if (!mission.source.isDebug() && Cheats.enabled()) powers = DebugMechRoster.withEasterEggs(powers);
         return debugMechRoster(mission) != null
                 ? debugMechRoster(mission).applyTo(powers, lift(), PowerCatalog.providesHeavyLift(mission))
                 : powers;

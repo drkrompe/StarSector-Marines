@@ -940,7 +940,23 @@ eaten). Each bore opens through the ordinary seam and is fed to its tier one
 body at a time, so its age mix is a fed bore's. Then the creep is **matured**:
 every source grown to its full reach at once and filled, walls crusted, as
 creep that has stood for weeks (CreepField.mature), and the trees under it
-die. No mother bore stands on this map: she is the heart's (Mission 3). How
+die. On a town world the Road's town is **held ground** (CordonTownHold;
+owner, 2026-10-31: the streets show early and the town is visibly
+swallowed): the box round the warren's buildings and the compound, six cells
+wider, kept clear of the matured creep, its edge ragged (a cell is held once
+it lies deeper in than a seeded depth of up to twenty-two cells, so the creep
+reaches in in fingers) and the ground within a seeded seven to seventeen cells of a standing
+bore's mouth never held. A bore matured round held ground hands each held
+cell it meets to its **regrowth**, a second search from its mouth that walks
+on over held ground at a quarter of the bore's pace, half again while the
+bore is fed, and stops at the bore's own reach: the front's creep retakes the
+town over the battle as fast as its bores eat, and never past where it would
+have grown it. The town's own bores (*Line bores*: the far side's at seven
+minutes, the far flank's first in the final surge) open on that ground and
+grow over it at their own pace. UNTUNED: the pace (a maw's front about 0.08
+cells a second unfed), the margin, the edge and the bore's keep;
+cordon-town-creep (createSnapshots) records the town from setup to fourteen
+minutes. No mother bore stands on this map: she is the heart's (Mission 3). How
 many bores and at what tiers will follow what Colony Breach left
 (cordon-campaign.md): bores it collapsed stay collapsed, and biomass it fed
 shows as higher tiers.

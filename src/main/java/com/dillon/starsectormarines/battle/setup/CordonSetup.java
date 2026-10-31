@@ -589,7 +589,9 @@ public final class CordonSetup {
                     Math.max(a[0], b[0]) + 1, Math.max(a[1], b[1]) + 1);
         }
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
-        CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
+        // The Road's town starts clear of the front's creep, which retakes it over the battle (owner, 2026-10-31).
+        CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed(),
+                variant == CordonVariant.ROAD ? map.layout : null);
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");
         }

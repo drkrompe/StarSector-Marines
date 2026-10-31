@@ -98,7 +98,7 @@ public final class DebugMechRoster {
         return out.size() > DebugBaySlot.SLOTS ? out.subList(0, DebugBaySlot.SLOTS) : out;
     }
 
-    /** Powers only a debug mission's briefing offers, whatever its roster. */
+    /** Powers a debug mission's briefing offers whatever its roster, and every briefing while CHEAT is on ({@link Cheats}). */
     public static List<CommandPower> easterEggPowers() {
         return List.of(new SpawnInOnslaught());
     }
@@ -143,9 +143,14 @@ public final class DebugMechRoster {
 
     /** A debug detachment with the easter-egg powers added, whatever the bay holds. */
     public static Detachment withEasterEggs(Detachment detachment) {
-        List<CommandPower> powers = new ArrayList<>(detachment.powers);
+        return new Detachment(detachment.shuttleManifest, detachment.marineWings, withEasterEggs(detachment.powers));
+    }
+
+    /** {@code powers} with any easter-egg power it lacks appended. */
+    public static List<CommandPower> withEasterEggs(List<CommandPower> powers) {
+        List<CommandPower> out = new ArrayList<>(powers);
         for (CommandPower egg : easterEggPowers())
-            if (powers.stream().noneMatch(p -> p.id.equals(egg.id))) powers.add(egg);
-        return new Detachment(detachment.shuttleManifest, detachment.marineWings, powers);
+            if (out.stream().noneMatch(p -> p.id.equals(egg.id))) out.add(egg);
+        return out;
     }
 }

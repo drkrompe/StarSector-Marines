@@ -942,8 +942,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         if (DevConfig.DEV_MODE) hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on.
-        if (DevConfig.DEV_MODE || Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this));
+        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on, and it opens
+        // Win beside itself.
+        if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
+        else if (Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, this::cheatWin));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -957,13 +959,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         // the prior DebugTogglesWidget which was attached to the screen's
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.
-        debugPanel = new DebugTogglesPanel(this);
-        // The alpha's Win heads the list: the one row a player opens the panel for.
-        debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
         turretAuthor = new TurretAuthorPanel(this);
-        // A player's cheats stop at Win; the diagnostic rows are a developer's.
-        if (DevConfig.DEV_MODE) addDiagnosticRows();
-        hud.addPanel(debugPanel);
+        // A dev build's panel: Win, then the diagnostic rows. A player's Win is the CHEAT switch's.
+        if (DevConfig.DEV_MODE) {
+            debugPanel = new DebugTogglesPanel(this);
+            debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
+            addDiagnosticRows();
+            hud.addPanel(debugPanel);
+        }
         hud.addPanel(turretAuthor);
         // Player-facing battle dispatch surface. Added last so urgent comms
         // plates and the counterattack signpost paint above ordinary HUD
