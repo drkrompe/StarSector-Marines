@@ -115,6 +115,11 @@ final class CordonTownspeople {
         return out;
     }
 
+    /** One more stands on the field here, at home on {@code (homeX, homeY)}: someone brought out to the camp. */
+    void admit(long id, int homeX, int homeY) {
+        people.add(new Person(id, homeX, homeY));
+    }
+
     /**
      * The town is given up: everyone still trapped dies, taken off the field (a walker included) and counted lost,
      * and the counted with them.

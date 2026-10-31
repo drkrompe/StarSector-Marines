@@ -506,15 +506,34 @@ body is inside its wall or half its defenders are down (*Town calling*,
 `cordon-allied-command.md`): the company is wanted at the staging area before
 it is pressed.
 
+**Camp (the Road).** The safe point behind the line where the convoys bring
+the townspeople: a small allied encampment on the corridor where the convoys
+set out from and come back to (where it passes the logistics base, or near the
+rear edge), a square of open ground twenty-five cells across with the road
+running through it, a sandbag ring on its edge broken where the road crosses
+it, crate stacks in its corners, an aid station, a field HQ and a supply dump
+on its rear half either side of the road, and four allied guards on its side
+toward the front (`CordonCamp`, found at setup clear of the landing field, the base's
+berths and door and the air base). A convoy home stops on the road through
+it and lets its people down one every two seconds: each steps off as a
+civilian, is **out** from that moment, and walks in to wait at the camp's rear
+for the rest of the battle. Its emptied trucks pull back down the road behind
+the camp and wait there; the next convoy called sets out in them (a new truck
+comes on only when none waits), so pick-ups and drop-offs are one road from the
+camp to the gate and back. A townsperson the swarm kills in the camp is taken
+off the count out and counted lost (owner's question whether the camp can be
+reached at all). R2's passengers walk to the camp and are out when they reach
+it.
+
 **Corridor.** The relief road from the rear edge through the line to the
 cut-off town's compound: the way the convoys drive (*The map*). Nothing is
 parked or built on it, so a convoy can always drive it if nothing is standing
 in the way.
 
 **Convoy (the Road).** An allied column of trucks that sets out from the
-logistics base where the corridor passes it, drives the corridor to the town,
-waits at the compound's gate while the townspeople board, and drives back to
-the base. Only a truck at the gate takes people aboard, one every two seconds
+camp (*Camp*; with none, from where the corridor passes the logistics base),
+drives the corridor to the town, waits at the compound's gate while the
+townspeople board, and drives back to the camp to let them down. Only a truck at the gate takes people aboard, one every two seconds
 while its seats last: a truck still on its way when the first arrives drives
 on to the gate and boards whoever is left when it gets there. The convoy turns
 for home when every truck is at the gate and full, or at once when the town has
@@ -977,7 +996,7 @@ with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 | L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
 | L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
 | R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
-| R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap | Four are behind the line | Fewer than four can be |
+| R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap to the camp | Four reach the camp | Fewer than four can be |
 | R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate, its people (the wounded) boarding slowly enough to fill its seats over that time | It leaves loaded | It is lost first |
 | R4 | `militia` | none | When the last convoy is at the gate the town militia go to the gap and hold it (allied, never the player's) | One reaches the gap | All die on the way (lapses when none is left to ride) |
 | R5 | `maw_on_road` | second road | At 5:30 a bore opens sixteen cells off the corridor past the gap, on the second road's side | Collapsed while a fissure | It grows: the convoys that set out after drive a corridor found again round it |
