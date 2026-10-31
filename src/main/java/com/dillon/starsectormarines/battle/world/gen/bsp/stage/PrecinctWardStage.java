@@ -87,7 +87,9 @@ public final class PrecinctWardStage implements GenStage {
             if (precinct.isProgrammed()) {
                 masks =
                         PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
-                AirbaseLot.Facing facing = AirbaseLot.Facing.of(facing(precinct, ctx));
+                // A program may say which way its field fronts (the Cordon's fronts the front); else the ward's way.
+                AirbaseLot.Facing facing = precinct.program().airfieldFacing() != null
+                        ? precinct.program().airfieldFacing() : AirbaseLot.Facing.of(facing(precinct, ctx));
                 // Lots first, buildings second. A lot claimed after packing gets
                 // whatever shape the leftovers had, which is a shallow strip an
                 // aircraft cannot use; taken from the middle it severs the
@@ -369,7 +371,9 @@ public final class PrecinctWardStage implements GenStage {
         int[] centre = centroid(masks.buildable(), ctx);
         for (int i = 0; i < precinct.program().airfields(); i++) {
             Reserved placed = null;
+            AirbaseLot.Size largest = precinct.program().airfieldSize();
             for (AirbaseLot.Size size : SIZES) {
+                if (largest != null && size.ordinal() < largest.ordinal()) continue;
                 placed = findLot(masks.buildable(), size, facing, centre, ctx);
                 if (placed != null) break;
             }

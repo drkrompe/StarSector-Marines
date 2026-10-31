@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
-import com.dillon.starsectormarines.battle.airsupport.HardstandAirBase;
+import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
@@ -79,8 +79,8 @@ public final class CordonAirBaseLookSuite implements SnapshotSuite {
     /** Whether some stand's aircraft is away: the first sortie has left the apron. */
     private static boolean launched(BattleSimulation sim) {
         AirPoolService pool = sim.airPool();
-        if (pool == null || !(pool.base(Faction.ALLY) instanceof HardstandAirBase base)) return false;
-        for (HardstandAirBase.Stand s : base.stands()) {
+        if (pool == null || !(pool.base(Faction.ALLY) instanceof FieldAirBase base)) return false;
+        for (FieldAirBase.Stand s : base.stands()) {
             if (s.berth().state == AirfieldService.BerthState.AWAY) return true;
         }
         return false;

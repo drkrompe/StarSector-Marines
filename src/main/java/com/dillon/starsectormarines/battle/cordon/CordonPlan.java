@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
@@ -89,6 +90,15 @@ public final class CordonPlan {
     static final float BASE_X1 = 0.62f;
     static final float BASE_NEAR = 0.04f;
     static final float BASE_FAR = 0.26f;
+    /**
+     * The allies' air base's place name ({@code cordon-nouns.md}, Air base): a field lot of its own in the rear beside
+     * the logistics base, on the side away from the front's installation, its runway along the edge toward the front.
+     */
+    public static final String AIR_BASE_PLACE = "air-base";
+    /** Where the air base's seed lies across the width, on its side of the logistics base. */
+    static final float AIR_BASE_X0 = 0.21f, AIR_BASE_X1 = 0.29f;
+    /** Where it lies in depth: the rear, behind the line's crest ground. */
+    static final float AIR_BASE_NEAR = 0.0f, AIR_BASE_FAR = 0.04f;
     /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
     private static final int BASE_GATES = 2;
     private static final int BASE_FENCE_HP = 60;
@@ -195,6 +205,9 @@ public final class CordonPlan {
         places.add(PrecinctBrief.garrison(BASE_PLACE, band(south, BASE_X0, BASE_X1, BASE_NEAR, BASE_FAR),
                 REDOUBT_GROWTH, FortressProgram.logisticsBase(),
                 new Fortification(BASE_GATES, BASE_FENCE_HP).laidSquare()));
+        // The allies' air base: a field lot reserved before anything packs, fronting the front. After the base and before
+        // the compound, so every place listed before it keeps its index and its seed.
+        places.add(airBase(south, installationEast));
         if (variant == CordonVariant.ROAD) {
             // The colony's people are still in its compound, on the town's near side where the road comes in.
             places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE, band(south, 0.42f, 0.58f, 0.6f, 0.7f),
@@ -213,6 +226,20 @@ public final class CordonPlan {
         Landscape landscape = density == Density.RURAL ? plan.landscape().withHeld(held)
                 : plan.landscape().withUnploughed(held);
         return plan.withLandscape(landscape.withKept(crestGround(seeds)));
+    }
+
+    /**
+     * The air base's brief: an open place (the lot fences itself) whose program is one airfield, at most a
+     * {@link AirbaseLot.Size#FIELD} (a strip, three berths, two sheds: room for the wing's four airframes), its runway
+     * on the edge toward the front. Seeded on the side of the rear away from the front's installation.
+     */
+    static PrecinctBrief airBase(boolean rearSouth, boolean installationEast) {
+        float x0 = installationEast ? AIR_BASE_X0 : 1f - AIR_BASE_X1;
+        float x1 = installationEast ? AIR_BASE_X1 : 1f - AIR_BASE_X0;
+        AirbaseLot.Facing front = rearSouth ? AirbaseLot.Facing.NORTH : AirbaseLot.Facing.SOUTH;
+        return new PrecinctBrief(AIR_BASE_PLACE, band(rearSouth, x0, x1, AIR_BASE_NEAR, AIR_BASE_FAR), REDOUBT_GROWTH,
+                new FortressProgram(List.of(), 1, 0).withAirfield(AirbaseLot.Size.FIELD, front),
+                Precinct.Boundary.OPEN, null, null);
     }
 
     /**

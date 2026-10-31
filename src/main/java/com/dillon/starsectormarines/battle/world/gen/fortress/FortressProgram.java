@@ -25,7 +25,8 @@ import java.util.function.UnaryOperator;
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
  */
-public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron) {
+public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron,
+                              AirbaseLot.Size airfieldSize, AirbaseLot.Facing airfieldFacing) {
 
     public FortressProgram {
         buildings = List.copyOf(buildings);
@@ -40,6 +41,19 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
     /** A program that owes buildings and airfields but no open ground of its own. */
     public FortressProgram(List<FortressBuilding> buildings, int airfields) {
         this(buildings, airfields, 0);
+    }
+
+    /** A program whose airfields are tried largest first and face the way the ward packs. */
+    public FortressProgram(List<FortressBuilding> buildings, int airfields, int apron) {
+        this(buildings, airfields, apron, null, null);
+    }
+
+    /**
+     * The same program with its airfields capped at {@code size} (tried at that size and smaller, never larger) and
+     * fronting onto {@code facing} rather than the way the ward packs; a null leaves that choice to the ward.
+     */
+    public FortressProgram withAirfield(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        return new FortressProgram(buildings, airfields, apron, size, facing);
     }
 
     /**
@@ -75,12 +89,12 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
             throw new IllegalArgumentException(
                     "this program has no " + purpose + " to set a count for");
         }
-        return new FortressProgram(out, airfields, apron);
+        return new FortressProgram(out, airfields, apron, airfieldSize, airfieldFacing);
     }
 
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
-        return new FortressProgram(buildings, count, apron);
+        return new FortressProgram(buildings, count, apron, airfieldSize, airfieldFacing);
     }
 
     /**
@@ -93,7 +107,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * the one that knows what the map can spare.
      */
     public FortressProgram withApron(int cells) {
-        return new FortressProgram(buildings, airfields, cells);
+        return new FortressProgram(buildings, airfields, cells, airfieldSize, airfieldFacing);
     }
 
     /**
@@ -490,7 +504,8 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         // The apron is added rather than scaled for the same reason the lot is:
         // it is ground the place holds and nothing stands on, so the packing
         // slack has nothing to say about it.
-        return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION) + apron;
+        return buildingGround()
+                + airfields * AirbaseLot.area(airfieldSize != null ? airfieldSize : AirbaseLot.Size.STATION) + apron;
     }
 
     /**

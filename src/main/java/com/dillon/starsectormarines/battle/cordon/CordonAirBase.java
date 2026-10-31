@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
 import com.dillon.starsectormarines.battle.airsupport.AirTasking;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators;
-import com.dillon.starsectormarines.battle.airsupport.HardstandAirBase;
+import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -16,6 +16,14 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -87,22 +95,79 @@ public final class CordonAirBase {
 
     private record Struck(float x, float y, int tick) {}
 
-    private final HardstandAirBase field;
+    private final FieldAirBase field;
     private final List<Struck> struck = new ArrayList<>();
     private int nextTick = ticks(FIRST_SORTIE_SECONDS);
     private int sorties;
 
-    CordonAirBase(HardstandAirBase field) {
+    private final Ground ground;
+
+    CordonAirBase(FieldAirBase field, Ground ground) {
         this.field = field;
+        this.ground = ground;
+    }
+
+    /** Where the wing stands: the map's airbase lot, or the open-ground fallback. */
+    public Ground ground() { return ground; }
+
+    /** Where the wing stands: the airbase lot the map reserved, or the open-ground fallback where it reserved none. */
+    public enum Ground { LOT, OPEN_GROUND }
+
+    private static final Logger LOG = Global.getLogger(CordonAirBase.class);
+
+    /** Cells from the strip's middle a shed stands on the same lot. */
+    static final int LOT_REACH = 40;
+
+    /**
+     * Bases the allies' wing on the airbase lot the Cordon's map reserved in the rear ({@code cordon-nouns.md}, Air
+     * base): its fighters in the lot's sheds, rolling off its strip, its bombers on the apron's stands. Where the map laid no lot, the open-ground fallback
+     * ({@link #lay}), and the log says so. {@code null} when there is no wing, or neither finds room.
+     */
+    public static CordonAirBase base(BattleSimulation sim, MapResult map, int anchorX, int anchorY, int frontward,
+                                     List<int[]> corridor, List<int[]> roadLines, List<int[]> keepOff) {
+        List<LandingPad> pads = new ArrayList<>();
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.GARRISON_AIRFIELD) pads.add(pad);
+        }
+        Runway strip = map.runways.isEmpty() ? null : map.runways.get(0);
+        List<Gantry> sheds = new ArrayList<>();
+        if (strip != null) {
+            for (Gantry shed : map.shelters) {
+                if (Math.hypot(shed.centerX - strip.centreX(), shed.centerY - strip.centreY()) <= LOT_REACH) sheds.add(shed);
+            }
+        }
+        if (!pads.isEmpty() || !sheds.isEmpty()) {
+            FieldAirBase field = AlliedAirWing.baseOnLot(sim, pads, sheds, strip, AirBody.facingToward(0f, frontward));
+            if (field != null) return new CordonAirBase(field, Ground.LOT);
+        }
+        LOG.warn("cordon: the map reserved no airbase lot; the wing stands on open ground behind the logistics base");
+        return lay(sim, anchorX, anchorY, frontward, corridor, roadLines, keepOff);
     }
 
     /**
-     * Lays the air base in the rear and bases the allies' wing on it: a row of stands, one for each airframe of the
-     * wing, on open ground behind {@code (anchorX, anchorY)} (the logistics base), clear of the corridor, the roads, the
-     * company's pads and the base's apron. {@code null} when the battle has no wing or the rear has no room, and the
-     * wing then flies in over the map edge as before.
+     * {@code map} less the capture beacon its airbase lot published: the lot is laid as a working garrison field so its
+     * berths and strip are published, and a garrison field is a defender's compound to take; the allies' air base is no
+     * compound for the swarm to hold.
      */
-    public static CordonAirBase lay(BattleSimulation sim, int anchorX, int anchorY, int frontward, List<int[]> corridor,
+    public static MapResult withoutAirbaseNode(MapResult map) {
+        if (map.tacticalMap == null || map.tacticalMap.ofKind(TacticalNode.Kind.AIRBASE).isEmpty()) return map;
+        List<TacticalNode> kept = new ArrayList<>();
+        for (TacticalNode node : map.tacticalMap.all()) if (node.kind != TacticalNode.Kind.AIRBASE) kept.add(node);
+        MapResult out = new MapResult(map.grid, map.topology, map.marineSpawnX, map.marineSpawnY, map.defenderSpawnX,
+                map.defenderSpawnY, map.pointsOfInterest, map.doodads, new TacticalMap(kept), map.buildings,
+                map.defensePosts, map.roadGraph, map.landingPads, map.landingAreas, map.biomeMap, map.gantries,
+                map.fixtureTasks, map.runways, map.shelters, map.vehicleCorridor, map.frontDepth, map.lanes)
+                .withFieldOfFire(map.fieldOfFire).withLayout(map.layout);
+        return map.initialDamage != null ? out.withInitialDamage(map.initialDamage) : out;
+    }
+
+    /**
+     * The open-ground fallback: a row of stands, one for each airframe of the wing, on open ground behind
+     * {@code (anchorX, anchorY)} (the logistics base), clear of the corridor, the roads, the company's pads and the
+     * base's apron. {@code null} when the battle has no wing or the rear has no room, and the wing then flies in over
+     * the map edge as before.
+     */
+    static CordonAirBase lay(BattleSimulation sim, int anchorX, int anchorY, int frontward, List<int[]> corridor,
                                     List<int[]> roadLines, List<int[]> keepOff) {
         NavigationGrid grid = sim.getGrid();
         int w = grid.getWidth(), h = grid.getHeight();
@@ -116,21 +181,21 @@ public final class CordonAirBase {
                         && (elevation == null || elevation.tier(x, y) == elevation.tier(ax, ay)),
                 ax, ay, AlliedAirWing.stands(), STAND_PITCH, STAND_HALF, SITE_REACH);
         if (sites == null) return null;
-        HardstandAirBase field = AlliedAirWing.baseAt(sim, sites, AirBody.facingToward(0f, frontward));
-        return field == null ? null : new CordonAirBase(field);
+        FieldAirBase field = AlliedAirWing.baseAt(sim, sites, AirBody.facingToward(0f, frontward));
+        return field == null ? null : new CordonAirBase(field, Ground.OPEN_GROUND);
     }
 
     /** The wing's stands. */
-    public HardstandAirBase field() { return field; }
+    public FieldAirBase field() { return field; }
 
     /** Sorties the base has tasked on its own so far. */
     public int sorties() { return sorties; }
 
     /** The middle of the apron, as {x, y}. */
     public int[] centre() {
-        List<HardstandAirBase.Stand> stands = field.stands();
+        List<FieldAirBase.Stand> stands = field.stands();
         int sx = 0, sy = 0;
-        for (HardstandAirBase.Stand s : stands) {
+        for (FieldAirBase.Stand s : stands) {
             sx += s.x();
             sy += s.y();
         }

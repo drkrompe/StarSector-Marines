@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /** Selects authored shuttle berths first, then fills any shortfall with legacy BFS LZs. */
 final class LandingPadSelector {
@@ -18,8 +19,14 @@ final class LandingPadSelector {
     private LandingPadSelector() {}
 
     static List<LandingPad> select(MapResult map, int count, int minSeparation) {
+        return select(map, count, minSeparation, pad -> true);
+    }
+
+    /** As above, among the authored pads {@code admit} accepts: a mission keeps its own side's field off the list. */
+    static List<LandingPad> select(MapResult map, int count, int minSeparation, Predicate<LandingPad> admit) {
         List<LandingPad> selected = new ArrayList<>();
         List<LandingPad> authored = new ArrayList<>(map.landingPads);
+        authored.removeIf(admit.negate());
         authored.sort(Comparator
                 .comparingInt((LandingPad p) -> distanceSq(
                         p.centerX, p.centerY, map.marineSpawnX, map.marineSpawnY))

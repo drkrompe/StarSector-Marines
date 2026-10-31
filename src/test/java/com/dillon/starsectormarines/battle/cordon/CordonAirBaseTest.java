@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.airsupport.AirTasking.Ground;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Candidate;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Pick;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Reason;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -72,5 +74,15 @@ class CordonAirBaseTest {
         Candidate thick = new Candidate(Reason.MASS, 9, 9, Ground.OPEN, 9, 9f, 0f);
         Pick pick = CordonAirBase.choose(List.of(thin, thick), 1, 1);
         assertEquals(9f, pick.x());
+    }
+
+    @Test
+    void theAirBaseIsOneFieldLotWhoseStripFrontsTheFront() {
+        PrecinctBrief south = CordonPlan.airBase(true, true);
+        assertEquals(1, south.program().airfields());
+        assertEquals(AirbaseLot.Size.FIELD, south.program().airfieldSize());
+        // The rear is the south (low y), so the front lies toward high y: the approach the strip fronts.
+        assertEquals(AirbaseLot.Facing.NORTH, south.program().airfieldFacing());
+        assertEquals(AirbaseLot.Facing.SOUTH, CordonPlan.airBase(false, true).program().airfieldFacing());
     }
 }

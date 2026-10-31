@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.airsupport;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 
 import java.util.List;
 
@@ -48,17 +51,40 @@ public final class AlliedAirWing {
     }
 
     /**
-     * Bases the wing {@link #install} gave the allies on an air base of their own on the map
-     * ({@code cordon-nouns.md}, Air base): one hardstand for each airframe of the wing's establishment, bombers first,
-     * at {@code sites} in order (fewer sites lay fewer stands), every nose on {@code facingDegrees}. From then on the
-     * wing takes off from and lands on those stands, its stock is what stands ready there, and a loss is replaced on its
-     * stand after the wing's own regeneration time. Returns the base, or {@code null} when the battle has no wing or no
-     * site was given.
+     * Bases the wing {@link #install} gave the allies on their airbase lot ({@code cordon-nouns.md}, Air base): its
+     * fighters in the lot's sheds, rolling off {@code strip}, and its bombers on the apron's {@code pads}, lifting off
+     * them; a fighter with no shed (or no strip) takes a pad left over. One berth for each airframe of the wing's
+     * establishment that finds one. From then on the wing takes off from and lands on those berths, its stock is what
+     * stands ready there, and a loss is replaced on its berth after the wing's own regeneration time. Returns the base,
+     * or {@code null} when the battle has no wing or the lot gave it nowhere to stand.
      */
-    public static HardstandAirBase baseAt(BattleSimulation sim, List<int[]> sites, float facingDegrees) {
+    public static FieldAirBase baseOnLot(BattleSimulation sim, List<LandingPad> pads, List<Gantry> sheds, Runway strip,
+                                         float facingDegrees) {
+        AirPoolService pool = sim.airPool();
+        if (pool == null || !pool.hasPool(Faction.ALLY)) return null;
+        FieldAirBase base = new FieldAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
+        int pad = 0, shed = 0;
+        for (int i = 0; i < WING.stock(AirPoolKind.BOMBER).cap() && pad < pads.size(); i++) {
+            base.addPad(pads.get(pad++), AirPoolKind.BOMBER, facingDegrees);
+        }
+        for (int i = 0; i < WING.stock(AirPoolKind.FIGHTER).cap(); i++) {
+            if (strip != null && shed < sheds.size()) base.addShed(sheds.get(shed++), AirPoolKind.FIGHTER);
+            else if (pad < pads.size()) base.addPad(pads.get(pad++), AirPoolKind.FIGHTER, facingDegrees);
+        }
+        if (base.stands().isEmpty()) return null;
+        if (strip != null) base.installRunway(strip);
+        pool.basedAt(Faction.ALLY, base);
+        return base;
+    }
+
+    /**
+     * The fallback where no lot was laid: one stand on open ground for each airframe of the wing's establishment,
+     * bombers first, at {@code sites} in order, every nose on {@code facingDegrees}. Otherwise as {@link #baseOnLot}.
+     */
+    public static FieldAirBase baseAt(BattleSimulation sim, List<int[]> sites, float facingDegrees) {
         AirPoolService pool = sim.airPool();
         if (pool == null || !pool.hasPool(Faction.ALLY) || sites == null || sites.isEmpty()) return null;
-        HardstandAirBase base = new HardstandAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
+        FieldAirBase base = new FieldAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
         int next = 0;
         for (AirPoolKind kind : AirPoolKind.values()) {
             for (int i = 0; i < WING.stock(kind).cap() && next < sites.size(); i++, next++) {
