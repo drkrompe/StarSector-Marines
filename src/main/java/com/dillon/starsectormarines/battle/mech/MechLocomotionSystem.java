@@ -68,15 +68,16 @@ public final class MechLocomotionSystem {
                 // cell-index values this phase (units only ever sit on centers).
                 int rowCellX = (int) Math.floor(posX[row]);
                 int rowCellY = (int) Math.floor(posY[row]);
-                // Crippled legs cannot walk the route, so the hips answer the fight instead of it:
-                // the chassis pivots onto its target like one with no route at all.
-                boolean crippled = MechSectionModifier.crippled(roster.world(), id);
                 // A staggered mech's hips hold still: no walk, no pivot, until it has its feet back.
                 if (roster.stagger().isStaggered(id)) {
                     MechLocomotion.stopTurning(world, components, id, dt);
                     continue;
                 }
-                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row]) && !crippled) {
+                // Crippled legs still walk the route, at a crawl (mechs-nouns.md, Section loss), so the
+                // route owns the hips as it does on whole legs: the mover only translates a chassis
+                // aligned with its next waypoint, and hips turned onto the fight instead would strand
+                // a crippled mech on any route that does not lead toward its target, a withdrawal first.
+                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])) {
                     // Walking anywhere ends the heading a move order left the mech standing on.
                     if (orders != null) orders.releaseHeldFacing(id);
                     MovementService movement = roster.movement();
@@ -111,7 +112,7 @@ public final class MechLocomotionSystem {
                 }
                 // A dragged move order told the hips which way to stand. That outranks the target: the
                 // torso twists to keep fighting while the legs and their armour point where they were put.
-                float held = orders == null || crippled ? Float.NaN : orders.heldFacing(id);
+                float held = orders == null ? Float.NaN : orders.heldFacing(id);
                 if (!Float.isNaN(held)) {
                     MechLocomotion.turnToward(world, components, id, held, dt);
                     continue;

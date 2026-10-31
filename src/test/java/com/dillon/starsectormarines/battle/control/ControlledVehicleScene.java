@@ -58,6 +58,7 @@ public final class ControlledVehicleScene implements BehaviorScene {
             float blockedY = body.y, openedY = body.y, releaseY = body.y;
             boolean legal = true, heldAtEdge = true, singleOwner = true, paused = false;
             int shots = 0, suspendedAmmo = 0;
+            float fluxPeak = 0f;
             int ticks = wall ? 420 : 720;
             StringBuilder trace = new StringBuilder();
             for (int tick = 0; tick < ticks; tick++) {
@@ -89,6 +90,7 @@ public final class ControlledVehicleScene implements BehaviorScene {
                 }
                 sim.advance(BattleSimulation.TICK_DT);
                 shots += (int) sim.getShotsThisFrame().stream().filter(shot -> shot.shooterId == id).count();
+                if (wall && tick < 300) fluxPeak = Math.max(fluxPeak, turret.fluxValue());
                 legal &= VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
                         type.visualLengthCells, type.visualWidthCells, sim.getGrid());
                 if (wall && tick < 180) heldAtEdge &= body.y <= 16f - type.visualLengthCells * .5f + .001f;
@@ -112,8 +114,17 @@ public final class ControlledVehicleScene implements BehaviorScene {
                         "chassis advances and stops nose at closed edge, center y=" + blockedY));
                 verdicts.add(Verdict.of("opened-edge", openedY > 20f,
                         "same held input traverses newly opened edge, center y=" + openedY));
-                verdicts.add(Verdict.of("point-fire", shots > 0 && initialAmmo - suspendedAmmo == shots,
-                        shots + " physical shots debit exactly one round each without an entity target"));
+                // A magazine gun pays a round a shot; a gun with no magazine (the APC's light machine gun, a
+                // mech part with no ammunition limit) never runs dry, and its hull's flux reservoir limits it.
+                boolean paid = turret.unlimited
+                        ? initialAmmo == suspendedAmmo && fluxPeak > 0f
+                        : initialAmmo - suspendedAmmo == shots;
+                verdicts.add(Verdict.of("point-fire", shots > 0 && paid, turret.unlimited
+                        ? shots + " physical shots without an entity target, from a gun with no magazine: rounds "
+                                + initialAmmo + " -> " + suspendedAmmo + " (wanted untouched), hull flux peak " + fluxPeak
+                                + " (wanted above zero)"
+                        : shots + " physical shots without an entity target debit " + (initialAmmo - suspendedAmmo)
+                                + " rounds (wanted one each)"));
                 verdicts.add(Verdict.of("suspended-input", turret.ammo == suspendedAmmo && turret.burstRemaining == 0
                                 && body.speed == 0f && body.y - openedY < 1.5f,
                         "neutral input brakes the chassis and cancels queued rounds"));
@@ -124,7 +135,8 @@ public final class ControlledVehicleScene implements BehaviorScene {
                         "current move resumes from manual pose: final y=" + body.y));
             }
             return new Run(ticks, trace.toString(), verdicts, Map.of("shots", shots,
-                    "ammo", turret.ammo, "finalX", body.x, "finalY", body.y));
+                    "ammo", turret.ammo, "finalX", body.x, "finalY", body.y, "initialAmmo", initialAmmo,
+                    "suspendedAmmo", suspendedAmmo, "unlimited", turret.unlimited ? 1 : 0, "fluxPeak", fluxPeak));
         }
     }
     private record Run(int ticks, String trace, List<Verdict> verdicts, Map<String, Number> metrics) {}

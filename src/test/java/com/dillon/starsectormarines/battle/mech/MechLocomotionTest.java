@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -64,6 +66,36 @@ public class MechLocomotionTest {
 
         // North is the queued path bearing; the east-facing target must not snap
         // the chassis away from its travel direction.
+        assertEquals(179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
+    }
+
+    /**
+     * Crippled is slowed, never stranded: the mover only walks a chassis aligned with its route, so
+     * the route must own a crippled mech's hips too, or a route away from its target (a withdrawal)
+     * never moves it.
+     */
+    @Test
+    public void crippledHipsFollowTheRouteNotTheTarget() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long mech = sim.spawn(new EntitySpec("mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 5, 5));
+        MechVariant hound = MechVariant.HOUND;
+        MechLoadoutComponent loadout = hound.createLoadout(null);
+        loadout.sectionsFor(hound.maxStructure, hound.maxStructure, hound.armorCapacity, hound.armorCapacity)
+                .resolve(MechSection.LEGS, 400f, 14f, 0f, hound.armorRating,
+                        new DurabilityModel.Resolution(), new MechSections.Hit());
+        sim.world().attachMechLoadout(mech, loadout);
+        assertTrue(MechSectionModifier.crippled(sim.world(), mech));
+        long eastTarget = sim.spawn(new EntitySpec("target", Faction.MARINE, UnitType.MARINE, 8, 5));
+        sim.setPath(mech, new int[]{5, 5, 5, 6});
+        sim.world().setTargetId(mech, eastTarget);
+
+        new MechLocomotionSystem(sim.getEntityWorld(), c, sim.getRoster())
+                .tick(BattleSimulation.TICK_DT);
+
+        // The same turn as whole legs make toward this route (pathBearingOwnsHeadingWhileTravelIsQueued);
+        // turned onto the east target instead, it would read -179.6.
         assertEquals(179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
     }

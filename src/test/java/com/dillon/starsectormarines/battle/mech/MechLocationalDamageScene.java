@@ -74,7 +74,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
      * on the pod and the legs then go before the torso. Chosen, not typical; the sweep says how
      * typical.
      */
-    private static final long SUBJECT_SEED = 4L;
+    private static final long SUBJECT_SEED = 3L;
     private static final int SWEEP_SEEDS = 8;
 
     private static final String RIFLE = "weapon.field-rifle";
@@ -87,6 +87,12 @@ public final class MechLocationalDamageScene implements BehaviorScene {
     private static final double CRAWL_HEADROOM = 1.15;
     /** Cells a tick a pivot on the spot may shift the body by, on top of the crawl. */
     private static final double PIVOT_SHIFT = 0.02;
+    /** Ticks crippled with a gun for men and rounds on it that count as a chance to fire: two seconds. */
+    private static final int ARMED_WINDOW_TICKS = 60;
+    /** Ticks a disarmed Hound must outlive its last mount by before its withdrawal is judged: four seconds. */
+    private static final int WITHDRAW_WINDOW_TICKS = 120;
+    /** Cells a disarmed Hound must put behind it in that window; a crippled one's crawl covers about two. */
+    private static final double WITHDRAW_MIN_CELLS = 0.5;
 
     private static final String HOUND = "hound";
     private static final String SQUAD = "rifles";
@@ -177,6 +183,20 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         int firstCrippledShotTick = -1;
         /** Rounds from a mount observed after that mount was seen destroyed: must stay zero. */
         int shotsFromLostMounts;
+        /**
+         * Ticks it stood crippled free to fire at men. The stock pod is an anti-armor rack, held against
+         * infantry by rule ({@code mechs-nouns.md}, Missile warheads), so against this rifle squad only the
+         * nose gun counts; an autonomous chaingun below its belt reserve stops asking for rounds until the
+         * hopper has refilled it ({@link RotaryFeed}); and an autonomous chassis high on flux holds its
+         * fire until it has bled some off ({@link MechFlux}).
+         */
+        int crippledTicksWithRounds;
+        /** The first tick seen with every mount gone, or -1. */
+        int disarmedTick = -1;
+        float disarmedX = Float.NaN;
+        float disarmedY = Float.NaN;
+        /** Farthest the chassis got from where it stood when disarmed: a withdrawal walks, crippled or not. */
+        double withdrawnCells;
         float crippledX = Float.NaN;
         float crippledY = Float.NaN;
         double crippledDrift;
@@ -223,6 +243,15 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             }
             lastX = x;
             lastY = y;
+            if (disarmedTick < 0 && loadout != null && !MechDamageDoctrine.armed(loadout.mounts())) {
+                disarmedTick = tick;
+                disarmedX = x;
+                disarmedY = y;
+            }
+            if (disarmedTick >= 0) {
+                withdrawnCells = Math.max(withdrawnCells, Math.hypot(x - disarmedX, y - disarmedY));
+            }
+            if (crippled && tick > legsLostTick && freeToFireAtMen(loadout)) crippledTicksWithRounds++;
             if (crippled) {
                 if (Float.isNaN(crippledX)) {
                     crippledX = x;
@@ -245,6 +274,25 @@ public final class MechLocationalDamageScene implements BehaviorScene {
                     shotsFromLostMounts++;
                 }
             }
+        }
+
+        /**
+         * Whether a fitted gun the AI fires at men has rounds it would give now, on a chassis not holding
+         * its fire to bleed flux.
+         */
+        private static boolean freeToFireAtMen(MechLoadoutComponent loadout) {
+            if (loadout.flux.aiDissipating()) return false;
+            for (MechWeaponMount mount : loadout.mounts()) {
+                if (mount == null || mount.component.antiArmorOnly()) continue;
+                if (mount.isRotary() ? !mount.rotary.reserveHeld() : mount.hasAmmo()) return true;
+            }
+            return false;
+        }
+
+        /** Whether it stood disarmed long enough for a withdrawal to show: its crawl covers a cell in this. */
+        boolean disarmedLongEnough() {
+            int end = deathTick >= 0 ? deathTick : ticks;
+            return disarmedTick >= 0 && end - disarmedTick >= WITHDRAW_WINDOW_TICKS;
         }
 
         private static boolean fromLostMount(ShotEvent shot, MechWeaponComponent component, int lostTick, int tick) {
@@ -273,11 +321,12 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             return topStepCrippled <= topStepBefore * Crippled.SPEED_SHARE * CRAWL_HEADROOM + PIVOT_SHIFT;
         }
 
-        /** Whether the nose gun or the pod was still fitted when the legs went. */
+        /**
+         * Whether, crippled, it had a gun for these rifles with rounds to give for long enough to spin up
+         * and fire: the case the limping promise is about.
+         */
         boolean armedWhenCrippled() {
-            boolean gunGone = armsLostTick >= 0 && armsLostTick <= legsLostTick;
-            boolean podGone = podLostTick >= 0 && podLostTick <= legsLostTick;
-            return legsLostTick >= 0 && !(gunGone && podGone);
+            return legsLostTick >= 0 && crippledTicksWithRounds >= ARMED_WINDOW_TICKS;
         }
 
         boolean fullStory() {
@@ -360,6 +409,8 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         int firedCrippled = 0;
         int crippledArmed = 0;
         int armedFiredCrippled = 0;
+        int disarmedJudged = 0;
+        int disarmedWithdrew = 0;
         int fullStory = 0;
         int ticks = 0;
         Map<String, Number> m = new LinkedHashMap<>();
@@ -377,6 +428,10 @@ public final class MechLocationalDamageScene implements BehaviorScene {
                 }
             }
             lostMountRounds += t.shotsFromLostMounts;
+            if (t.disarmedLongEnough()) {
+                disarmedJudged++;
+                if (t.withdrawnCells >= WITHDRAW_MIN_CELLS) disarmedWithdrew++;
+            }
             if (t.podLostTick >= 0 && (t.podLostTick <= firstLoss(t))) podFirst++;
             if (t.podLostTick >= 0 && (t.legsLostTick < 0 || t.podLostTick < t.legsLostTick)) podBeforeLegs++;
             if (t.fullStory()) fullStory++;
@@ -387,6 +442,9 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             m.put(key + ".head", t.headLostTick);
             m.put(key + ".death", t.deathTick);
             m.put(key + ".shotsCrippled", t.shotsAfterCrippled);
+            m.put(key + ".crippledTicksWithRounds", t.crippledTicksWithRounds);
+            m.put(key + ".disarmed", t.disarmedTick);
+            m.put(key + ".withdrawnCells", t.withdrawnCells);
         }
         m.put("plays", sweep.size());
         m.put("deaths", deaths);
@@ -395,6 +453,8 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         m.put("crippledCrawled", crippledCrawled);
         m.put("firedWhileCrippled", firedCrippled);
         m.put("crippledWithAWeaponLeft", crippledArmed);
+        m.put("disarmedJudged", disarmedJudged);
+        m.put("disarmedWithdrew", disarmedWithdrew);
         m.put("podAmongFirstLosses", podFirst);
         m.put("podBeforeLegs", podBeforeLegs);
         m.put("fullStoryInOrder", fullStory);
@@ -412,8 +472,15 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         // that crippled one with a weapon still fitted; one disarmed first has nothing to fire.
         verdicts.add(Verdict.of("every-armed-crippled-hound-fires",
                 crippledArmed > 0 && armedFiredCrippled == crippledArmed,
-                armedFiredCrippled + " of " + crippledArmed + " Hounds crippled with a weapon left fired after the"
-                        + " legs went (" + (crippled - crippledArmed) + " more were disarmed first)"));
+                armedFiredCrippled + " of " + crippledArmed + " Hounds crippled and free to fire a gun for men"
+                        + " for " + seconds(ARMED_WINDOW_TICKS) + " or more fired after the legs went ("
+                        + (crippled - crippledArmed) + " more had only the anti-armor pod, nothing, or held fire for"
+                        + " belt or flux)"));
+        // Disarmed breaks contact whatever its legs: a crippled one crawls away, it is never stranded.
+        verdicts.add(Verdict.of("every-disarmed-hound-withdraws", disarmedWithdrew == disarmedJudged,
+                disarmedWithdrew + " of " + disarmedJudged + " Hounds that stood disarmed for "
+                        + seconds(WITHDRAW_WINDOW_TICKS) + " or more walked " + WITHDRAW_MIN_CELLS
+                        + " cells or more from where they lost their last mount"));
         return new SceneReport(id(), SWEEP_LOOP, ticks, verdicts, m);
     }
 
