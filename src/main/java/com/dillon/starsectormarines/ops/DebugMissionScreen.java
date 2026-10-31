@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,6 +34,20 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         props.put("ravBiome", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleBiome));
         props.put("ravSeed", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleSeed));
         return props;
+    }
+    @Override protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+        bindGlobes(built, instance, placeLabels(catalog, group));
+    }
+    /** Gives every location filter but the first, which shows them all, its planet globe. */
+    static void bindGlobes(UiDocument document, MarkupInstance instance, List<String> labels) {
+        for (int i = 1; i < labels.size(); i++) {
+            document.canvases().set(instance.requireElement("debug-place-globe-" + i), PlanetGlobeCanvas.forLocation(labels.get(i)));
+        }
+    }
+    static List<String> placeLabels(List<Mission> catalog, int group) {
+        var labels = new ArrayList<>(List.of(allLocations()));
+        labels.addAll(locations(catalog, group));
+        return labels;
     }
     /** Changes the Rav Bloom choice and rebuilds the catalog so the selected mission carries its new seed. */
     private void rechoose(Runnable change) {
@@ -101,13 +117,18 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = new LinkedHashMap<>();
         List<Mission> visible = visible(catalog, group, location);
         List<MarkupPropertySource> places = new ArrayList<>();
-        var labels = new ArrayList<>(List.of(allLocations()));
-        labels.addAll(locations(catalog, group));
+        var labels = placeLabels(catalog, group);
         for (int i = 0; i < labels.size(); i++) {
             String label = labels.get(i);
             Map<String, Object> place = new LinkedHashMap<>();
             place.put("id", "debug-place-" + i);
             place.put("label", label);
+            place.put("labelId", "debug-place-label-" + i);
+            place.put("globeId", "debug-place-globe-" + i);
+            place.put("globeWrapId", "debug-place-globe-wrap-" + i);
+            place.put("unknownId", "debug-place-unknown-" + i);
+            place.put("globeClasses", "debug-place-globe-wrap" + (i == 0 ? " hidden" : ""));
+            place.put("unknownClasses", "label title debug-place-unknown" + (i == 0 || PlanetGlobeCanvas.placed(label) ? " hidden" : ""));
             place.put("classes", "debug-place catalog-filter-pill" + (label.equals(location) ? " selected" : ""));
             place.put("action", (Runnable) () -> setLocation.accept(label));
             places.add(place::get);
