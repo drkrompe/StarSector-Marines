@@ -2392,6 +2392,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         doodadService.clearNatureCover(x, y);
     }
 
+    /** Takes the loose props off a cell a build's pad paves; see {@link DoodadService#clearLoose}. */
+    public boolean clearLooseProps(int x, int y) {
+        return doodadService.clearLoose(x, y);
+    }
+
+    /** Whether a prop on this cell stops a build's plot; see {@link DoodadService#plotKeeps}. */
+    public boolean plotKeepsProp(int x, int y) {
+        return doodadService.plotKeeps(x, y);
+    }
+
     /** Whether a structural blow on this cell lands on a sandbag, fence or crate barricade; see {@link DoodadService#barricadeAt}. */
     public boolean isBarricadeAt(int x, int y) {
         return doodadService.barricadeAt(x, y, topology);

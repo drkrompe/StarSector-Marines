@@ -12,9 +12,9 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 /**
  * Puts one stage of a {@link BuildPlot} on the live map, through the same cell writes a fort's pad and the redoubts'
- * mid-battle works make: paving is the fort pad's concrete with the ground scatter cleared, and the rim and stores are
- * walkable wearable cover, so rounds wear them down like any other cover prop. Nothing is laid on a cell that is no
- * longer open ground or already carries a prop, and nothing is laid without the art.
+ * mid-battle works make: paving is the fort pad's concrete with the ground scatter and loose props cleared, and the rim
+ * and stores are walkable wearable cover, so rounds wear them down like any other cover prop. Nothing is laid on a cell
+ * that is no longer open ground or carries a prop with weight, and nothing is laid without the art.
  */
 final class PlotWorks {
 
@@ -37,6 +37,7 @@ final class PlotWorks {
                 topology.setSurface(x, y, topology.surfaceIndex(
                         Material.CONCRETE.block(RoadRasterizer.age(.55, WEAR_SEED, x, y))));
                 sim.clearNatureOverlay(x, y);
+                if (sim.clearLooseProps(x, y)) topology.setFixture(x, y, false);
                 continue;
             }
             DoodadDef def = registry == null ? null : registry.doodad(piece.doodad());
@@ -47,11 +48,13 @@ final class PlotWorks {
         }
     }
 
-    /** Whether a prop already stands on the cell; a stage steps round it rather than stacking on it. */
+    /**
+     * Whether a prop with cover already stands on the cell; a stage steps round it rather than stacking on it. Flat
+     * dressing lies under the piece.
+     */
     private static boolean dressed(BattleSimulation sim, int x, int y) {
         for (Doodad d : sim.getDoodads()) {
-            if (x >= d.cellX && x < d.cellX + d.footprintCellsX
-                    && y >= d.cellY && y < d.cellY + d.footprintCellsY) return true;
+            if (d.occupiesCell(x, y) && d.cover > 0) return true;
         }
         return false;
     }

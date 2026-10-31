@@ -59,6 +59,8 @@ public final class BattleHud {
     }
 
     public void render(float alphaMult) {
+        // A placement cursor sets its build ghost each frame it renders, so a hidden one's ghost goes with it.
+        if (ctx != null && ctx.getHighlights() != null) ctx.getHighlights().clearBuildPreviews();
         for (HudPanel p : panels) {
             if (visible(p)) p.render(alphaMult);
         }

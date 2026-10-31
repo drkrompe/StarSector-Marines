@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.ui.highlight.BuildPreview;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderPilot;
@@ -95,7 +97,13 @@ public final class DirectControlPanel implements HudPanel {
         crosshair(aimX, aimY, alpha);
         Tender tender = sim.directControl().controlledTender();
         if (tender != null && sim.directControl().selectedBuildOption() != null) {
-            siteReticle(sim, camera, tender, sim.directControl().selectedBuildOption(), aim.aimX(), aim.aimY(), alpha);
+            BuildOption option = sim.directControl().selectedBuildOption();
+            var where = siteReticle(sim, camera, tender, option, aim.aimX(), aim.aimY(), alpha);
+            if (where != TenderPilot.Placement.OFF_MAP && context.getHighlights() != null) {
+                context.getHighlights().setBuildPreview(HighlightOverlay.SRC_BUILD_GHOST_DIRECT, BuildPreview.of(sim,
+                        tender, option, (int) Math.floor(aim.aimX()), (int) Math.floor(aim.aimY()),
+                        where == TenderPilot.Placement.OPEN));
+            }
         }
     }
 
@@ -103,10 +111,10 @@ public final class DirectControlPanel implements HudPanel {
      * The cells a left click would lay a site on, the whole plot for a staged build: the controlled blue where it can
      * be built, red where it cannot.
      */
-    private static void siteReticle(BattleSimulation sim, BattleCamera camera, Tender tender, BuildOption option,
-                                    float x, float y, float alpha) {
+    private static TenderPilot.Placement siteReticle(BattleSimulation sim, BattleCamera camera, Tender tender,
+                                                     BuildOption option, float x, float y, float alpha) {
         var where = TenderPilot.placement(tender, option, x, y, sim.getGrid(), sim.getFogOfWar()::isCellRevealed);
-        if (where == TenderPilot.Placement.OFF_MAP) return;
+        if (where == TenderPilot.Placement.OFF_MAP) return where;
         int reach = option == null ? 0 : option.reach();
         float x0 = (float) Math.floor(x) - reach, x1 = (float) Math.floor(x) + reach + 1f;
         float y0 = (float) Math.floor(y) - reach, y1 = (float) Math.floor(y) + reach + 1f;
@@ -114,6 +122,7 @@ public final class DirectControlPanel implements HudPanel {
         Color color = where == TenderPilot.Placement.OPEN ? CONTROLLED : DANGER_AREA;
         HudDraw.borderRect(Math.min(camera.cellToScreenX(x0), camera.cellToScreenX(x1)),
                 Math.min(camera.cellToScreenY(y0), camera.cellToScreenY(y1)), side, side, color, alpha);
+        return where;
     }
 
     private static void ring(BattleSimulation sim, BattleCamera camera, Warship ship,

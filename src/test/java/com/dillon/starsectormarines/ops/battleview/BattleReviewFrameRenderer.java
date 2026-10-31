@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -48,6 +49,7 @@ public final class BattleReviewFrameRenderer {
     private float clockSeconds = REVIEW_CLOCK_SECONDS;
     /** What the player has selected while this renderer draws, or null for nothing. */
     private Selection selection;
+    private HighlightOverlay highlights;
     private static final int CAPTION_MARGIN = 12;
     private static final int MAX_CAPTION_POINTS = 14;
     private static final int MIN_CAPTION_POINTS = 9;
@@ -191,6 +193,12 @@ public final class BattleReviewFrameRenderer {
         return this;
     }
 
+    /** Draws what the HUD would have published to the world pass, such as a build ghost under a placement cursor. */
+    public BattleReviewFrameRenderer highlighting(HighlightOverlay highlights) {
+        this.highlights = highlights;
+        return this;
+    }
+
     /** Moves a close-view camera: for a recording that follows the fight rather than framing the whole map. */
     public BattleReviewFrameRenderer refocus(float focusX, float focusY, float cellsAcross) {
         this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
@@ -255,7 +263,7 @@ public final class BattleReviewFrameRenderer {
                                 ReviewImpactFx impacts) throws IOException {
         long start = System.nanoTime();
         BufferedImage image = backend.draw(new ReviewSceneBackend.Scene(simulation,
-                cameraFor(width, height, simulation), layers(), clockSeconds, impacts, selection), width, height);
+                cameraFor(width, height, simulation), layers(), clockSeconds, impacts, selection, highlights), width, height);
         long scene = System.nanoTime();
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));

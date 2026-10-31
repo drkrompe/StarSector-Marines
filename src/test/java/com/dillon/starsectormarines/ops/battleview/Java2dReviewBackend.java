@@ -44,7 +44,8 @@ final class Java2dReviewBackend implements ReviewSceneBackend {
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
                 RenderContext context = new RenderContext(scene.simulation(), scene.camera(),
                         null, alphaMult, 0f, false,
-                        new HighlightOverlay(), scene.selection() != null ? scene.selection() : new Selection(),
+                        scene.highlights() != null ? scene.highlights() : new HighlightOverlay(),
+                        scene.selection() != null ? scene.selection() : new Selection(),
                         BattleRenderHostProfile.OBSERVER_SCENE, scene.clockSeconds());
                 return new BattleSceneFrame(context, scene.layers());
             }

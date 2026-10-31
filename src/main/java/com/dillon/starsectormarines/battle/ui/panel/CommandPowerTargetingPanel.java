@@ -5,11 +5,14 @@ import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.ui.highlight.BuildPreview;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -201,16 +204,22 @@ public final class CommandPowerTargetingPanel implements HudPanel {
 
     @Override
     public void render(float alphaMult) {
+        BuildPreview ghost = paint(alphaMult);
+        if (ctx.getHighlights() != null) ctx.getHighlights().setBuildPreview(HighlightOverlay.SRC_BUILD_GHOST_POWER, ghost);
+    }
+
+    /** Paints the cursor for the power being aimed; returns the build ghost it shows, or null. */
+    private BuildPreview paint(float alphaMult) {
         BattleSimulation sim = ctx.getSim();
-        if (sim == null) return;
+        if (sim == null) return null;
         CommandPower power = sim.getCommandPowerService().getPower(targetingPowerId);
-        if (power == null) return;
+        if (power == null) return null;
         BattleCamera camera = ctx.getCamera();
-        if (!camera.containsScreen(mouseX, mouseY)) return;
+        if (!camera.containsScreen(mouseX, mouseY)) return null;
 
         int cellX = (int) Math.floor(camera.screenToCellX(mouseX));
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
-        if (!inBounds(camera, cellX, cellY)) return;
+        if (!inBounds(camera, cellX, cellY)) return null;
 
         if (power.lineMaxCells() > 0f && lineStart != null) {
             int[] end = lineEnd(lineStart[0], lineStart[1], cellX, cellY, power.lineMaxCells());
@@ -220,7 +229,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             paintLine(camera, marker, lineStart, end, power.previewRadiusCells(), alphaMult);
             paintTargetingMarker(camera, marker, camera.cellToScreenX(end[0] + 0.5f),
                     camera.cellToScreenY(end[1] + 0.5f), alphaMult);
-            return;
+            return null;
         }
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
@@ -236,6 +245,8 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             paintPlot(camera, marker, cellX + 0.5f, cellY + 0.5f, power.previewSquareCells(), alphaMult);
         }
         paintTargetingMarker(camera, marker, centerX, centerY, alphaMult);
+        return power instanceof YardConstruction yard
+                ? BuildPreview.of(sim, yard.source(), yard.option(), cellX, cellY, valid) : null;
     }
 
     /** Outlines the {@code side}-cell square a build would lay, centred on the cell at {@code (x, y)}, in the marker's tone. */

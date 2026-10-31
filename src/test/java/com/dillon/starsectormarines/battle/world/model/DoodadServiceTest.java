@@ -132,4 +132,42 @@ class DoodadServiceTest {
         assertEquals(TileCover.HEAVY.defaultBallisticHalfHeight(),
                 grid.getCoverCatchHalfHeightAtFacing(2, 1, NavigationGrid.FACING_E), EPS);
     }
+
+    @Test
+    void clearingALoosePropTakesItAndItsCoverAndLeavesItsNeighboursCover() {
+        NavigationGrid grid = open(6, 4);
+        DoodadService service = new DoodadService(grid);
+        DoodadDef scrub = new DoodadDef("nature.test-scrub", TileManifest.DOODAD_SHEET, 0, 0, DoodadCover.LIGHT);
+        DoodadDef machine = new DoodadDef("test.machine", TileManifest.DOODAD_SHEET, 0, 0, DoodadCover.MED);
+        service.addDoodad(new Doodad(2, 1, scrub));
+        service.addDoodad(new Doodad(3, 1, machine));
+
+        assertTrue(service.clearLoose(2, 1));
+
+        assertEquals(1, service.getDoodads().size());
+        assertEquals(Doodad.COVER_NONE, service.getDoodadLevelOnCell(2, 1, 0.1f));
+        assertEquals(Doodad.COVER_NONE, service.getDoodadCoverAtFacing(2, 1, NavigationGrid.FACING_W));
+        assertEquals(Doodad.COVER_MED, service.getDoodadCoverAtFacing(2, 1, NavigationGrid.FACING_E));
+        assertEquals(Doodad.COVER_MED, service.getDoodadLevelOnCell(3, 1, 0.1f));
+        assertFalse(service.clearLoose(3, 1), "a machine is not loose");
+    }
+
+    @Test
+    void aPlotIsKeptOffPropsWithWeightThatAreNotLooseButNotOffScatterOrFlatDressing() {
+        NavigationGrid grid = open(6, 4);
+        DoodadService service = new DoodadService(grid);
+        service.addDoodad(new Doodad(1, 1, new DoodadDef("test.decal", TileManifest.DOODAD_SHEET, 0, 0, DoodadCover.NONE)));
+        service.addDoodad(new Doodad(2, 1, new DoodadDef("nature.test-scrub", TileManifest.DOODAD_SHEET, 0, 0, DoodadCover.LIGHT)));
+        service.addDoodad(new Doodad(3, 1, new DoodadDef("test.machine", TileManifest.DOODAD_SHEET, 0, 0, DoodadCover.MED)));
+
+        assertFalse(service.plotKeeps(1, 1), "flat dressing lies under the plot");
+        assertFalse(service.plotKeeps(2, 1), "scatter is cleared");
+        assertTrue(service.plotKeeps(3, 1));
+    }
+
+    private static NavigationGrid open(int w, int h) {
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) grid.setWalkableFloor(x, y);
+        return grid;
+    }
 }

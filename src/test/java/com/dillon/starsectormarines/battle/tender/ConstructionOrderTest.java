@@ -48,6 +48,33 @@ class ConstructionOrderTest {
     }
 
     @Test
+    void aHeldGunStopsTheWorkAtFullProgressUntilItsCellClears() {
+        ConstructionOrder order = working();
+        order.holdGun(true);
+        assertFalse(order.gunHeld(), "nothing is held while there is work left");
+        for (int i = 0; i < 600; i++) assertFalse(order.work(DT, 3, 3, false));
+        assertEquals(ConstructionOrder.Phase.WORKING, order.phase());
+        assertEquals(1f, order.fraction(), 1e-6f);
+        assertTrue(order.gunHeld());
+        order.holdGun(false);
+        assertTrue(order.work(DT, 3, 3, false), "the gun stands on the first clear tick");
+        assertEquals(ConstructionOrder.Phase.COMPLETE, order.phase());
+    }
+
+    @Test
+    void aPlotIsFacedOnceAndKeepsThatFacing() {
+        ConstructionOrder order = new ConstructionOrder(BuildOption.LOCUST_FIRE_BASE, 10.5f, 10.5f);
+        assertFalse(order.faced());
+        order.face(new int[]{1, 0});
+        assertTrue(order.faced());
+        order.begin();
+        order.startWork();
+        order.work(DT, 3, 3, false);
+        assertEquals(1, order.facing()[0]);
+        assertEquals(0, order.facing()[1]);
+    }
+
+    @Test
     void aContestedSiteOrAnEmptyCrewMakesNoProgress() {
         ConstructionOrder order = working();
         for (int i = 0; i < 300; i++) assertFalse(order.work(DT, 3, 3, true));

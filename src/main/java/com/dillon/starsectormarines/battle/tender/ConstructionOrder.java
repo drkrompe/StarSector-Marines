@@ -14,7 +14,8 @@ package com.dillon.starsectormarines.battle.tender;
  *
  * <p>A staged build ({@link BuildOption#plot}) completes its plot's stages as the progress crosses each one's share;
  * the system lays each on the ground as it falls {@linkplain #stageDue due}. A stage once laid stays laid whatever
- * happens to the order after: only the gun waits for completion.
+ * happens to the order after: only the gun waits for completion, and it also waits, at full progress, while
+ * something stands on its cell ({@link #gunHeld}).
  */
 public final class ConstructionOrder {
 
@@ -48,6 +49,8 @@ public final class ConstructionOrder {
     private int stagesLaid;
     private int facingX;
     private int facingY = 1;
+    private boolean faced;
+    private boolean gunHeld;
 
     public ConstructionOrder(BuildOption option, float siteX, float siteY) {
         this.option = option;
@@ -109,6 +112,22 @@ public final class ConstructionOrder {
     void face(int[] facing) {
         this.facingX = facing[0];
         this.facingY = facing[1];
+        this.faced = true;
+    }
+
+    /** Whether the plot's facing has been chosen; it is chosen once, on the first tick after the lay. */
+    public boolean faced() {
+        return faced;
+    }
+
+    /** Whether the finished work is waiting for its gun's cell to clear: the site is done but the gun not yet up. */
+    public boolean gunHeld() {
+        return gunHeld && progressSeconds >= option.buildSeconds();
+    }
+
+    /** Tells the order whether its gun's cell is taken; while it is, the work stops at full progress short of done. */
+    void holdGun(boolean held) {
+        this.gunHeld = held;
     }
 
     /** How many of the plot's stages are on the ground. */
@@ -160,13 +179,18 @@ public final class ConstructionOrder {
 
     /**
      * Does {@code dt} seconds of work with {@code onSite} of {@code fullCrew} builders present.
-     * A contested site is not worked at all. Returns whether the site is now finished.
+     * A contested site is not worked at all, and a {@linkplain #gunHeld held} one stops at full progress. Returns
+     * whether the site is now finished.
      */
     boolean work(float dt, int onSite, int fullCrew, boolean contested) {
         if (phase != Phase.WORKING) return false;
         this.contested = contested;
         if (!contested) progressSeconds += dt * rate(onSite, fullCrew);
         if (progressSeconds < option.buildSeconds()) return false;
+        if (gunHeld) {
+            progressSeconds = option.buildSeconds();
+            return false;
+        }
         phase = Phase.COMPLETE;
         return true;
     }

@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderPilot;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.ui.highlight.BuildPreview;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
@@ -98,19 +100,30 @@ public final class ShipOrderTargetingPanel implements HudPanel {
     }
 
     @Override public void render(float alphaMult) {
+        BuildPreview ghost = paint(alphaMult);
+        if (ctx.getHighlights() != null) ctx.getHighlights().setBuildPreview(HighlightOverlay.SRC_BUILD_GHOST_SHIP_ORDER, ghost);
+    }
+
+    /** Paints the order cursor; returns the build ghost it shows, or null. */
+    private BuildPreview paint(float alphaMult) {
         BattleCamera camera = ctx.getCamera();
         if (!active() || camera == null || !pointerKnown || !camera.containsScreen(mouseX, mouseY)
-                || chrome.test((float) mouseX, (float) mouseY)) return;
+                || chrome.test((float) mouseX, (float) mouseY)) return null;
         float x = (float) Math.floor(camera.screenToCellX(mouseX)) + .5f;
         float y = (float) Math.floor(camera.screenToCellY(mouseY)) + .5f;
-        if (!ctx.getSim().getGrid().inBounds((int) x, (int) y)) return;
+        if (!ctx.getSim().getGrid().inBounds((int) x, (int) y)) return null;
         String label = option == null ? Strings.get("battleShipMove") : option.label();
         var marker = BattlefieldMarkerPresentation.target(label, preview(x, y) == Notice.NONE, 1f);
+        BuildPreview ghost = null;
         if (option != null && option.plot() != null) {
             CommandPowerTargetingPanel.paintPlot(camera, marker, x, y, option.plot().span(), alphaMult);
+            BattleSimulation sim = ctx.getSim();
+            ghost = BuildPreview.of(sim, tender(sim, ship), option, (int) Math.floor(x), (int) Math.floor(y),
+                    marker.valid());
         }
         CommandPowerTargetingPanel.paintTargetingMarker(camera, marker,
                 camera.cellToScreenX(x), camera.cellToScreenY(y), alphaMult);
+        return ghost;
     }
 
     @Override public void handleInput(List<InputEventAPI> events) {

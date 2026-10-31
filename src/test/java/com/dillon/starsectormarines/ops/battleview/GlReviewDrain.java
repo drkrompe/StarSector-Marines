@@ -140,7 +140,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
             glClearColor(0f, 0f, 0f, 1f);
             glClear(GL_COLOR_BUFFER_BIT);
             RenderContext context = new RenderContext(scene.simulation(), scene.camera(), null, 1f, 0f, false,
-                    null, scene.selection(), PROFILE, scene.clockSeconds());
+                    scene.highlights(), scene.selection(), PROFILE, scene.clockSeconds());
             // The suite's own code may install settings of its own between frames, and the composite reads the
             // screen off whatever is installed, so the drain's are in place only while it draws.
             SettingsAPI previous = Global.getSettings();

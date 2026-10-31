@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,10 @@ public final class HighlightOverlay {
 
     /** Source ids the in-tree panels publish under. New consumers should add their own constants here. */
     public static final String SRC_ACTION_CELLS    = "action-cells";
+    /** The staged-build ghosts under the yard power's, the ship order's and direct control's placement cursors. */
+    public static final String SRC_BUILD_GHOST_POWER = "build-ghost-power";
+    public static final String SRC_BUILD_GHOST_SHIP_ORDER = "build-ghost-ship-order";
+    public static final String SRC_BUILD_GHOST_DIRECT = "build-ghost-direct";
     public static final String SRC_SELECTED_SQUAD  = "selected-squad";
     public static final String SRC_SELECTED_UNIT   = "selected-unit";
     public static final String SRC_MECH_MOVE_DESTINATION =
@@ -123,6 +128,7 @@ public final class HighlightOverlay {
     private final Map<String, List<CellHighlight>> sources = new LinkedHashMap<>();
     private final Map<String, List<LineMark>> lineSources = new LinkedHashMap<>();
     private final Map<String, List<FacingMark>> facingSources = new LinkedHashMap<>();
+    private final Map<String, BuildPreview> buildPreviews = new LinkedHashMap<>();
 
     /**
      * A drawn frontage, drawn as a stroke with its front rather than as cells, and, while the drag
@@ -198,6 +204,27 @@ public final class HighlightOverlay {
         sources.clear();
         lineSources.clear();
         facingSources.clear();
+        buildPreviews.clear();
+    }
+
+    /**
+     * Sets the build ghost {@code sourceId} shows, or takes it away when {@code preview} is null. A placement cursor
+     * sets its own every frame it renders; the HUD {@linkplain #clearBuildPreviews clears} them all before it
+     * renders, so a cursor that stops rendering takes its ghost away.
+     */
+    public void setBuildPreview(String sourceId, BuildPreview preview) {
+        if (preview == null) buildPreviews.remove(sourceId);
+        else buildPreviews.put(sourceId, preview);
+    }
+
+    /** Takes every build ghost away. */
+    public void clearBuildPreviews() {
+        buildPreviews.clear();
+    }
+
+    /** Every build ghost a source is showing, for the doodad pass. */
+    public Collection<BuildPreview> buildPreviews() {
+        return Collections.unmodifiableCollection(buildPreviews.values());
     }
 
     public boolean hasSource(String sourceId) {

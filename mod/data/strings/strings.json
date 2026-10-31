@@ -5390,6 +5390,7 @@
 		"tenderStatusOutOfRange": "OUT OF RANGE",
 		"tenderStatusUnderFire": "UNDER FIRE",
 		"tenderStatusStoodDown": "STOOD DOWN",
+		"tenderStatusGunHeld": "CLEAR THE GUN CELL",
 		"tenderStatusBuilding": "BUILDING",
 		"tenderStatusQueued": "QUEUED",
 		"tenderStatusBuildersKey": "BUILDERS",
