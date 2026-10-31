@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — on the Road, bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — on the Road, the town compound's posterns east and front, with guards inside its other ways in; bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -537,6 +537,15 @@ their **stop** beside the staging area, so they stand to load facing out, the
 second truck drawn up behind round the yard; loaded, they drive forward out of
 the gate (the corridor is carried on into the yard, `CordonGateYard.extend`).
 No defender stands in the yard. Untuned: the yard's size and the gate's width.
+The yard is laid behind the gate furthest toward the rear that it fits behind.
+
+**Posterns.** The compound also opens a **postern** in the middle of its east
+side and of its front (`GateYard.posterns`: three cells wide, across the glacis
+and through the wall, four cells kept clear of buildings behind it; owner,
+2026-10-31: more doors for the swarm to come through and for the company to
+cover). They are opened whether or not a road comes to that side, so every Road
+map has them, and are for people only: the convoys use the yard's gate alone.
+With the roads' own gates the compound keeps up to five ways in.
 
 The **townspeople** are trapped civilians waiting in **groups** (owner,
 2026-10-31: one bunch looks wrong, and spread they make the player choose what
@@ -559,9 +568,10 @@ heavy machine gun beside each gate, slits along the runs, floodlights), and its
 **defenders**: what is left of the town militia (two teams of four, the ones
 beat R4 rides out) at the posts behind the slits, the side facing the front
 first, interleaved so each team holds the whole front wall, and the town guard
-(three more) inside, a team with each of the three largest rooms of people
-(the staging area where there are fewer), each told to hold the ground round
-it; never in the truck yard, on the staging area or beside it, nor within three
+(three more) inside: a team just inside each way in the convoys do not use (up
+to two, so the swarm's other doors are watched), then one with each of the
+largest rooms of people (the staging area where there are fewer), each told to
+hold the ground round it; never in the truck yard, on the staging area or beside it, nor within three
 cells of where the corridor meets the town. Allied, under garrison authority,
 never in the player's command pool. A wall the dressing cannot read is still
 manned, its teams in the yard; a compound with no wall found at all has its
