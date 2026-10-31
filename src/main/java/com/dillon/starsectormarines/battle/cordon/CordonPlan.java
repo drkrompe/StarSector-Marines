@@ -105,6 +105,13 @@ public final class CordonPlan {
     /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
     private static final int BASE_GATES = 2;
     private static final int BASE_FENCE_HP = 60;
+    /**
+     * The town compound's truck yard on the Road ({@code cordon-nouns.md}, Cut-off town): its rear gate, where the
+     * corridor comes in, nine cells wide (at most ten, or the wall reading takes the gap for no gate), and inside it
+     * a yard thirteen along the wall by nine deep, room for a truck three wide to drive in, turn and stand to load,
+     * with seven cells of open ground beside it for the people waiting to board. Untuned.
+     */
+    static final int YARD_GATE = 9, YARD_DEPTH = 9, YARD_BREADTH = 13, YARD_STAGING = 7;
     private static final long SEED_SALT = 0x434F52444F4E504CL;
     /** The rear's side, its own splittable draw (see {@code BattleSetup.colonyPlanFor}). */
     private static final long REAR_SIDE_SALT = 0x5245415253494445L;
@@ -209,10 +216,14 @@ public final class CordonPlan {
                 REDOUBT_GROWTH, FortressProgram.logisticsBase(),
                 new Fortification(BASE_GATES, BASE_FENCE_HP).laidSquare()));
         if (variant == CordonVariant.ROAD) {
-            // The colony's people are still in its compound, on the town's near side where the road comes in.
+            // The colony's people are still in its compound, on the town's near side where the road comes in; the
+            // convoys drive in through its rear gate to a yard inside it.
+            Side rear = south ? Side.SOUTH : Side.NORTH;
             places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE, band(south, 0.42f, 0.58f, 0.6f, 0.7f),
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
-                    new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
+                    new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()
+                            .withYard(new Fortification.GateYard(rear, YARD_GATE, YARD_DEPTH, YARD_BREADTH,
+                                    YARD_STAGING))));
         }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
                 LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant, width, height, installationEast));

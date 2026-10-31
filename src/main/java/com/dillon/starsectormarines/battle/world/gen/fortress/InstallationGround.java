@@ -76,6 +76,24 @@ public final class InstallationGround {
         }
     }
 
+    /**
+     * Lays open ground of a walled place as paving of one material and ground kind, worn by its own cell as the
+     * installation's is: a gate yard's road and the ground beside it. Walls, fixtures, buildings' hints, doorways and
+     * closed cells are left as they are.
+     */
+    public static void pave(GenContext ctx, List<int[]> cells, GroundKind kind, Material material) {
+        int[] surface = surfaces(ctx, material);
+        for (int[] c : cells) {
+            int x = c[0], y = c[1];
+            if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height || ctx.topology.isWall(x, y)
+                    || ctx.topology.isFixture(x, y) || ctx.topology.hasBuildingKindHint(x, y)
+                    || ctx.grid.isDoorway(x, y) || !ctx.grid.isWalkable(x, y)) continue;
+            ctx.topology.setGroundKind(x, y, kind);
+            ctx.topology.setSurface(x, y, surface[RoadRasterizer.age(.4, ctx.seed, x, y)]);
+            ctx.topology.setNatureOverlayIndex(x, y, -1);
+        }
+    }
+
     /** The planet's own unworked earth at a cell, and the surface that lays it: a basin's floor or its rim. */
     private static final class Earth {
         private final SurfaceField field;

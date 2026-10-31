@@ -22,8 +22,8 @@ import java.util.SplittableRandom;
  * reached, back toward the heart, so the pressure the barrage and the first marches took off builds again for the
  * final push (owner, 2026-10-31).
  *
- * <p>Cadence: a starting satellite's collapse earns {@link #EARNED_BY_START} growths, a grown bore's
- * {@link #EARNED_BY_GROWN}, at most {@link #BUDGET} in the battle. An earned growth opens {@link #AFTER_COLLAPSE}
+ * <p>Cadence: a starting satellite's collapse earns {@link #EARNED_BY_START} growths, a young bore's or a grown
+ * bore's {@link #EARNED_BY_GROWN}, at most {@link #BUDGET} in the battle. An earned growth opens {@link #AFTER_COLLAPSE}
  * after the collapse that earned it and {@link #GAP} after the last, while fewer than {@link #MAX_LIVING} grown bores
  * live. A grown bore is an ordinary satellite opened through {@link SwarmBores#open}, at the smallest tier (a fissure,
  * unfed): it grows, surges, sprouts its colonies and spreads its creep as any bore does, and dies only to ordinary
@@ -43,7 +43,7 @@ public final class HeartBoreGrowth {
 
     /** Growths a starting satellite's collapse earns: the front's losses are what ramps the back up. */
     static final int EARNED_BY_START = 2;
-    /** Growths a grown bore's collapse earns: one for one, so the pressure holds. */
+    /** Growths a young or grown bore's collapse earns: one for one, so the pressure holds. */
     static final int EARNED_BY_GROWN = 1;
     /** At most this many bores grow in a battle. */
     static final int BUDGET = 8;
@@ -112,7 +112,7 @@ public final class HeartBoreGrowth {
     private int nextTick;
     private int earned;
     private int nextNumber = -1;
-    /** The satellites standing at the first tick: the front's own bores. */
+    /** The satellites standing grown at the first tick: the front's own bores, the young ones not among them. */
     private Set<Integer> starting;
     /** The satellites whose collapse has been counted. */
     private final Set<Integer> counted = new HashSet<>();
@@ -162,7 +162,7 @@ public final class HeartBoreGrowth {
             nextNumber = 1;
             for (SwarmBore bore : bores.bores()) {
                 if (bore.mother()) continue;
-                starting.add(bore.number());
+                if (bore.tier() != BoreTier.FISSURE) starting.add(bore.number());
                 nextNumber = Math.max(nextNumber, bore.number() + 1);
             }
         }

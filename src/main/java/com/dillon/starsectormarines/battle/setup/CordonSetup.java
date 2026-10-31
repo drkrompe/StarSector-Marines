@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.cordon.CordonGateYard;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
@@ -632,6 +633,7 @@ public final class CordonSetup {
             CordonTownGarrison.Held town = town(sim, cordon);
             sequence.attachTown(town.town());
             sequence.attachStaging(town.staging());
+            sequence.attachYard(CordonGateYard.of(cordon.map().layout));
             CordonConvoys convoys = convoys(sim, cordon, town, timetable, logistics);
             sequence.attachConvoys(convoys);
             sequence.onAbandonTown(convoys::abandonTown);
@@ -797,6 +799,9 @@ public final class CordonSetup {
         CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, firstDepart,
                 CordonConvoys.MAX_CONVOYS, CordonConvoys.TOWNSPEOPLE);
         convoys.setTownMilitia(town.militia());
+        // In through the compound's wide gate to its truck yard, where they turn and load beside the staging area.
+        CordonGateYard yard = CordonGateYard.of(cordon.map().layout);
+        if (yard != null) convoys.driveInto(yard, sim.getGrid());
         // The townspeople are trapped in the staging area, stood after the defenders so the defenders' cells are taken first.
         CordonStagingArea staging = town.staging();
         if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, staging.cells());
@@ -834,7 +839,8 @@ public final class CordonSetup {
     static CordonTownGarrison.Held town(BattleSimulation sim, CordonMap cordon) {
         List<int[]> corridor = cordon.corridor();
         return CordonTownGarrison.man(sim, CordonCorridor.compound(cordon.plan()), corridor.get(corridor.size() - 1),
-                CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ TOWN_SALT));
+                CordonGateYard.of(cordon.map().layout), CordonFront.frontward(cordon.plan()), GARRISON_RISK,
+                new Random(cordon.battleSeed() ^ TOWN_SALT));
     }
 
     /**

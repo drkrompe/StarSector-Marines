@@ -68,6 +68,15 @@ of the front, so every lane meets one on its way in; The Burn strings three
 along its one approach, and grows more ahead of the front as they fall (Bore growth). A satellite collapsed is scored, and is a bore whose
 surges and creep are gone, but it is never required.
 
+**Young bore** (The Burn). A satellite opened at setup as a fissure, unfed, on
+the route's first two quarters past the start: one on each flank and one in the
+middle of each, at least twenty-six cells from any other bore, so the advance
+is a clearing of bores from the first march on (owner, 2026-10-31). It grows on
+its own clock as any bore does, to a bore in about three minutes and a maw in
+about seven, so one the company leaves behind it is a maw at its back. One the
+map has no ground for is left out; the map is not re-rolled for it
+(`HeartBores.youngBands`).
+
 **Heart country.** The map (`HeartCountry`): green country the bloom has held
 for weeks. Along the start edge, the **cordon's farmland**, the surveyed rural
 country of an open-field landing (`mapgen-nouns.md`, Rural country), where the
@@ -355,7 +364,7 @@ front, back toward the heart, so the pressure the barrage and the first two
 marches took off builds again for the final push through the last quarter
 (owner, 2026-10-31; it replaced a steady clock that grew bores in the front's
 face and behind the columns). A starting satellite's collapse earns two
-growths, a grown bore's one, at most eight in the battle; each opens twenty
+growths, a young or grown bore's one, at most eight in the battle; each opens twenty
 seconds after the collapse that earned it and thirty after the last, while
 fewer than four grown bores live (`HeartBoreGrowth`). No collapse, no growth.
 A grown bore is a satellite, numbered on from the setup's satellites, opened
