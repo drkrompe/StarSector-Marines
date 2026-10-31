@@ -167,7 +167,7 @@ public final class CommsOperators {
      * Whether the line from the operator's cell to the target is open. A structure stands on a blocked cell, so the
      * target cell itself and its four neighbours are all tried: seeing a nest is seeing the ground it stands in.
      */
-    static boolean lineClear(NavigationGrid grid, int ox, int oy, int tx, int ty, float range) {
+    public static boolean lineClear(NavigationGrid grid, int ox, int oy, int tx, int ty, float range) {
         if (grid.hasLineOfSightWithin(ox, oy, tx, ty, range)) return true;
         return grid.hasLineOfSightWithin(ox, oy, tx + 1, ty, range)
                 || grid.hasLineOfSightWithin(ox, oy, tx - 1, ty, range)

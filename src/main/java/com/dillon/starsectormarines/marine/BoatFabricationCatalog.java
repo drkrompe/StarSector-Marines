@@ -22,17 +22,17 @@ import java.util.List;
 public final class BoatFabricationCatalog {
 
     private static final List<Recipe> RECIPES = List.of(
-            recipe(ShuttleType.HERMES, "@openingBoatFabricationCatalogShipSGig", 4100),
-            recipe(ShuttleType.KITE, "@openingBoatFabricationCatalogCommonMarket", 4570),
-            recipe(ShuttleType.MUDSKIPPER, "@openingBoatFabricationCatalogCommonMarket", 5140),
-            recipe(ShuttleType.AEROSHUTTLE, "@openingBoatFabricationCatalogPurposeBuiltLander", 8050),
-            recipe(ShuttleType.SHEPHERD, "@openingBoatFabricationCatalogUtilityHull", 8520),
-            recipe(ShuttleType.WAYFARER, "@openingBoatFabricationCatalogUtilityHull", 8930),
-            recipe(ShuttleType.TARSUS, "@openingBoatFabricationCatalogCivilianFreighter", 11110),
-            recipe(ShuttleType.BUFFALO, "@openingBoatFabricationCatalogCivilianFreighter", 11740),
-            recipe(ShuttleType.MULE, "@openingBoatFabricationCatalogCivilianFreighter", 12880),
-            recipe(ShuttleType.NEBULA, "@openingBoatFabricationCatalogCivilianFreighter", 14700),
-            recipe(ShuttleType.VALKYRIE, "@openingBoatFabricationCatalogMilitaryTransport", 20200));
+            recipe(ShuttleType.HERMES, "@openingBoatFabricationCatalogShipSGig", 2050),
+            recipe(ShuttleType.KITE, "@openingBoatFabricationCatalogCommonMarket", 2290),
+            recipe(ShuttleType.MUDSKIPPER, "@openingBoatFabricationCatalogCommonMarket", 2570),
+            recipe(ShuttleType.AEROSHUTTLE, "@openingBoatFabricationCatalogPurposeBuiltLander", 4030),
+            recipe(ShuttleType.SHEPHERD, "@openingBoatFabricationCatalogUtilityHull", 4260),
+            recipe(ShuttleType.WAYFARER, "@openingBoatFabricationCatalogUtilityHull", 4470),
+            recipe(ShuttleType.TARSUS, "@openingBoatFabricationCatalogCivilianFreighter", 5560),
+            recipe(ShuttleType.BUFFALO, "@openingBoatFabricationCatalogCivilianFreighter", 5870),
+            recipe(ShuttleType.MULE, "@openingBoatFabricationCatalogCivilianFreighter", 6440),
+            recipe(ShuttleType.NEBULA, "@openingBoatFabricationCatalogCivilianFreighter", 7350),
+            recipe(ShuttleType.VALKYRIE, "@openingBoatFabricationCatalogMilitaryTransport", 10100));
 
     private BoatFabricationCatalog() {
     }
