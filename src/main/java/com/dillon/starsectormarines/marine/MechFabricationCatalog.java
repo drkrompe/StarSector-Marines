@@ -50,9 +50,9 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.PL_1, "@gearFabricationTriTachyonPattern"));
 
     private static final List<Recipe> CHASSIS = List.of(
-            chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),
-            chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 30040),
-            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 45540));
+            chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 10760),
+            chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 15020),
+            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 22770));
 
     /** Stock parts are built too: a replacement plate or engine is still an assembly. Bills are derived. */
     private static final List<Recipe> INTERNALS = List.of(
@@ -79,27 +79,27 @@ public final class MechFabricationCatalog {
      * mortar instead of plate, so its armor per Medium lift is below the Warden's.
      */
     private static final List<Recipe> VEHICLES = List.of(
-            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 11220),
-            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 14050),
-            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 39050),
+            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 5610),
+            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 7030),
+            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 19530),
             // Variants cost more than the hull they improve on.
-            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 16810),
-            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 42540),
+            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 8410),
+            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 21270),
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
-            vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 45000),
+            vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 22500),
             // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.
             // Field rigs are workshop pickups, not issue hulls: the supply pickup is mostly bodywork, the spotter's
             // bill the transplutonics in its salvaged sensor mast.
-            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 12110),
-            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 11760),
+            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 6060),
+            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 5880),
             // The rocket pickup is a stripped pickup plus a pod.
-            vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 11250),
+            vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 5630),
             // The missile carrier is the APC chassis plus its LRM rack.
-            vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 22400),
+            vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 11200),
             // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
             // control are transplutonics, and the composite skirt is light on plate.
-            vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 15060),
-            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 24000));
+            vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 7530),
+            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 12000));
 
     private MechFabricationCatalog() {
     }
@@ -195,7 +195,7 @@ public final class MechFabricationCatalog {
      */
 
     /** Credits per unit of weapon mass at the common tier. */
-    private static final float CREDITS_PER_WEAPON_MASS = 250f;
+    private static final float CREDITS_PER_WEAPON_MASS = 125f;
 
     /** What a better pattern multiplies its part's worth by. */
     static float tierMultiplier(EquipmentAccessTier tier) {
@@ -219,14 +219,14 @@ public final class MechFabricationCatalog {
      */
     public static float internalValue(MechInternal internal) {
         float base = switch (internal.role) {
-            case ENGINE -> 4000f;
-            case PLATING -> 2300f;
-            case CAPACITOR_BANK, VENT_ARRAY -> 1550f;
+            case ENGINE -> 2000f;
+            case PLATING -> 1150f;
+            case CAPACITOR_BANK, VENT_ARRAY -> 775f;
             // A loader is a small autoforge: guidance stock and feed mechanism.
-            case LOADER -> 1200f;
+            case LOADER -> 600f;
             // A liner or a ready rack is a common bolt-on: the price it had as a vehicle kit.
             // The sensor pair and active protection keep the price they had as vehicle kits too.
-            case LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> 900f;
+            case LINER, READY_RACK, DRONE_BAY, ACTIVE_PROTECTION -> 450f;
         };
         return base * tierMultiplier(internal.tier);
     }
