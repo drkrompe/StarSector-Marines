@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -59,6 +60,10 @@ public final class CivilDefenceCompound {
     /** Cells along the wall from a gate's edge a gun tower's centre may stand: beside it, or past what abuts it. */
     private static final int TOWER_REACH = 4;
     private static final String LIGHT_CIRCUIT = "civil-defence";
+    /** Cells out from the wall's line the outer fence stands: past the corner towers, with a walk between. */
+    static final int FENCE_OFFSET = 3;
+    /** Cells either side of a way in through the wall the fence leaves open, so a gate is never shut. */
+    static final int FENCE_GATE_CLEARANCE = 2;
 
     enum Kind { WALL, SLIT, GUN }
 
@@ -438,6 +443,73 @@ public final class CivilDefenceCompound {
             }
             return;
         }
+    }
+
+    /**
+     * The compound's outer fence (owner, 2026-10-31: it buys time against Brutes breaking through): industrial fence
+     * {@link #FENCE_OFFSET} cells out from the wall's line on the three sides away from the main gate, the side
+     * relief comes in by left open. A piece stands only on open ground {@code ground} allows and off every prop, and
+     * the fence leaves a gap of {@link #FENCE_GATE_CLEARANCE} either side of any way in through the wall (a gate or a
+     * building on the wall's line), so it never shuts a gate or a door. Laid as a redoubt's barricade is
+     * ({@link RedoubtWorks#lay}): a barricade the swarm assaults, and works ground ({@link FortifiedWorks}).
+     */
+    static List<RedoubtWorks.Piece> fence(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, Plan plan,
+                                          RedoubtWorks.Ground ground) {
+        int l = plan.left() - FENCE_OFFSET, t = plan.top() - FENCE_OFFSET;
+        int r = plan.right() + FENCE_OFFSET, b = plan.bottom() + FENCE_OFFSET;
+        // The main gate's side: the wall line its gate lies on. 0 west, 1 north (top), 2 east, 3 south (bottom).
+        int[] reach = {Math.abs(plan.gateX() - plan.left()), Math.abs(plan.gateY() - plan.top()),
+                Math.abs(plan.gateX() - plan.right()), Math.abs(plan.gateY() - plan.bottom())};
+        int open = 0;
+        for (int side = 1; side < 4; side++) if (reach[side] < reach[open]) open = side;
+        Set<Long> dressed = dressedCells(doodads, l, t, r, b);
+        List<RedoubtWorks.Piece> pieces = new ArrayList<>();
+        for (int y = t; y <= b; y++) {
+            for (int x = l; x <= r; x++) {
+                boolean west = x == l, north = y == t, east = x == r, south = y == b;
+                if (!west && !north && !east && !south) continue;
+                // On the open side's line only where another fenced side turns the corner onto it: none.
+                if (open == 0 && west || open == 1 && north || open == 2 && east || open == 3 && south) continue;
+                if (!ground.open(x, y) || dressed.contains(key(x, y))) continue;
+                boolean vertical = west || east;
+                boolean corner = (west || east) && (north || south);
+                if (!corner && facesAWayIn(grid, topology, plan, x, y, vertical)) continue;
+                String id = corner ? "doodad.industrial-fence-corner-" + (north ? "n" : "s") + (west ? "w" : "e")
+                        : "doodad.industrial-fence-straight-" + (vertical ? "v" : "h");
+                pieces.add(new RedoubtWorks.Piece(x, y, id, 0, 1, 1));
+            }
+        }
+        return pieces;
+    }
+
+    /**
+     * Whether the wall's line, at the fence cell's place along it and {@link #FENCE_GATE_CLEARANCE} either side, has a
+     * way in: a cell that is no wall, no dressing and no building. Past the wall's ends (a corner's run-on) is wall.
+     */
+    private static boolean facesAWayIn(NavigationGrid grid, CellTopology topology, Plan plan, int x, int y,
+                                       boolean vertical) {
+        int line = vertical ? (x < plan.left() ? plan.left() : plan.right()) : (y < plan.top() ? plan.top() : plan.bottom());
+        int along = vertical ? y : x;
+        int from = vertical ? plan.top() : plan.left(), to = vertical ? plan.bottom() : plan.right();
+        for (int a = along - FENCE_GATE_CLEARANCE; a <= along + FENCE_GATE_CLEARANCE; a++) {
+            if (a < from || a > to) continue;
+            int wx = vertical ? line : a, wy = vertical ? a : line;
+            if (!grid.inBounds(wx, wy) || plan.cells().containsKey(key(wx, wy))) continue;
+            if (topology.isWall(wx, wy) || topology.getBuildingId(wx, wy) != 0 && !grid.isDoorway(wx, wy)) continue;
+            return true;
+        }
+        return false;
+    }
+
+    /** Lays the fence {@link #fence} plans and marks it works; returns the pieces laid. */
+    static int raiseFence(BattleSimulation sim, Plan plan, RedoubtWorks.Ground ground) {
+        List<RedoubtWorks.Piece> pieces = fence(sim.getGrid(), sim.getTopology(), sim.getDoodads(), plan, ground);
+        TileRegistry registry = TileRegistry.installed();
+        if (pieces.isEmpty() || registry == null || registry.doodad("doodad.industrial-fence-straight-h") == null)
+            return 0;
+        RedoubtWorks.lay(sim, new RedoubtWorks.Plan(0, 0, 0, 0, pieces, List.of(), -1, -1, -1, -1, 0));
+        for (RedoubtWorks.Piece p : pieces) FortifiedWorks.mark(sim.getGrid(), p.x(), p.y(), p.x(), p.y());
+        return pieces.size();
     }
 
     static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
