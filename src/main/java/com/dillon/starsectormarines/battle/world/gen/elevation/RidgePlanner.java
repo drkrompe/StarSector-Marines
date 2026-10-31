@@ -38,11 +38,14 @@ public final class RidgePlanner {
      * One authored ridge: a band {@code thickness} cells through, centred on a
      * path of cell points. Its ramps climb from the side {@code rampSide} names:
      * +1 is the left of the path's direction of travel (counter-clockwise from
-     * it, in cell coordinates), -1 the right. {@code rampWidth} cells wide.
+     * it, in cell coordinates), -1 the right. {@code rampWidth} cells wide. {@code descents} are points along the
+     * path where a segment also has a ramp down its far side ({@link #withDescents}); none for most bands.
      */
-    public record Band(List<Point> path, int thickness, int rampSide, int rampWidth, Relief relief) {
+    public record Band(List<Point> path, int thickness, int rampSide, int rampWidth, Relief relief,
+                       List<Point> descents) {
         public Band {
             path = List.copyOf(path);
+            descents = descents == null ? List.of() : List.copyOf(descents);
             if (path.size() < 2) throw new IllegalArgumentException("a band runs along at least two points");
             if (thickness < 4 || thickness > 64) throw new IllegalArgumentException("thickness 4-64");
             if (rampSide != -1 && rampSide != 1) throw new IllegalArgumentException("a ramp climbs from one side");
@@ -55,9 +58,23 @@ public final class RidgePlanner {
             this(path, thickness, rampSide, rampWidth, Relief.NATURAL);
         }
 
+        /** A band with no descents. */
+        public Band(List<Point> path, int thickness, int rampSide, int rampWidth, Relief relief) {
+            this(path, thickness, rampSide, rampWidth, relief, List.of());
+        }
+
         /** This band as an engineered bank. */
         public Band berm() {
-            return new Band(path, thickness, rampSide, rampWidth, Relief.BERM);
+            return new Band(path, thickness, rampSide, rampWidth, Relief.BERM, descents);
+        }
+
+        /**
+         * This band with a ramp down its far side at the sample of each segment nearest each of {@code points}, as well
+         * as its one ramp up: a way down off the crest where a force crossing it means to go on. A descent that does
+         * not fit is left out, never the segment.
+         */
+        public Band withDescents(List<Point> points) {
+            return new Band(path, thickness, rampSide, rampWidth, relief, points);
         }
 
         /**
@@ -163,11 +180,17 @@ public final class RidgePlanner {
                 // Natural ground first, then kept to the band's own width, then the plain capsule where neither stands.
                 List<Shape> shapes = band.relief() == Relief.BERM ? List.of(Shape.BERM)
                         : List.of(Shape.NATURAL, Shape.NARROW, Shape.PLAIN);
-                for (Shape shape : shapes) {
+                List<Boolean> descending = band.descents().isEmpty() ? List.of(false) : List.of(true, false);
+                List<Shape> tries = new ArrayList<>();
+                List<Boolean> descends = new ArrayList<>();
+                for (boolean descend : descending) for (Shape shape : shapes) { tries.add(shape); descends.add(descend); }
+                for (int t = 0; t < tries.size(); t++) {
+                    Shape shape = tries.get(t);
                     List<Plateau> nextPlateaus = new ArrayList<>(plateaus);
                     List<Ramp> nextRamps = new ArrayList<>(ramps);
                     long salt = seed * 0x9E3779B97F4A7C15L + b * 0x632BE59BD9B4E019L + run[0];
-                    if (!segment(band, shape, span, salt, width, height, nextPlateaus, nextRamps, rampClear)) continue;
+                    if (!segment(band, shape, span, salt, width, height, nextPlateaus, nextRamps, rampClear,
+                            descends.get(t))) continue;
                     ElevationLayout layout;
                     try {
                         layout = ElevationLayout.resolve(new ElevationPlan(width, height, PlateauPlanner.FACE_WIDTH,
@@ -355,7 +378,7 @@ public final class RidgePlanner {
      * run, cut square there.
      */
     private static boolean segment(Band band, Shape shape, List<Sample> run, long salt, int width, int height,
-                                   List<Plateau> plateaus, List<Ramp> ramps, IntPredicate rampClear) {
+                                   List<Plateau> plateaus, List<Ramp> ramps, IntPredicate rampClear, boolean descend) {
         double radius = band.thickness() / 2.0;
         int trim = switch (shape) {
             // A capsule chain: its round ends lie inside the run, so the cliffs close round the segment's ends.
@@ -399,6 +422,14 @@ public final class RidgePlanner {
         // The tail once: a repeated point is a capsule of no length, a round end on a berm cut square.
         points.add(crest(run.get(tail), offset[tail]));
         radii.add(r[tail]);
+        // The run's descents, each on the sample nearest where it is wanted.
+        List<Integer> down = new ArrayList<>();
+        if (descend) {
+            for (Point want : band.descents()) {
+                int d = descentAt(run, want, trim);
+                if (d >= 0) down.add(d);
+            }
+        }
         // Outward from the middle, alternately each way, to the first point whose ramp stands clear.
         int middle = n / 2;
         for (int pass = 0; pass < 2; pass++) {
@@ -406,6 +437,7 @@ public final class RidgePlanner {
                 int at = middle + (k % 2 == 0 ? k / 2 : -(k / 2 + 1));
                 if (at < trim || at >= n - trim) continue;
                 if (pass == 0 && shape.natural() && r[at] < Math.min(radius, widest - 1)) continue;
+                if (besideDescent(at, down, band.rampWidth())) continue;
                 Sample mid = run.get(at);
                 Point c = crest(mid, offset[at]);
                 double fx = mid.nx() * band.rampSide(), fy = mid.ny() * band.rampSide();
@@ -420,6 +452,11 @@ public final class RidgePlanner {
                     case NATURAL, NARROW -> new Plateau(1, widest, points, radii, false);
                     case BERM -> new Plateau(1, radius, points, List.of(), true);
                 });
+                // The descents first: the ramp up stays the last, the one whose foot the plan checks.
+                for (int d : down) {
+                    Ramp descent = descent(run.get(d), offset[d], r[d], -band.rampSide(), band.rampWidth(), width, height);
+                    if (rampClear(descent.foot(), descent.head(), band.rampWidth(), width, height, rampClear)) ramps.add(descent);
+                }
                 ramps.add(new Ramp(foot, head, band.rampWidth()));
                 return true;
             }
@@ -427,6 +464,51 @@ public final class RidgePlanner {
         }
         return false;
     }
+
+    /**
+     * Whether a ramp up at sample {@code at} would stand beside one of the run's descents: nearer along the run than a
+     * ramp's width and a cell either side, where the two would cut through each other's crest.
+     */
+    static boolean besideDescent(int at, List<Integer> descents, int rampWidth) {
+        for (int d : descents) if (Math.abs(at - d) < rampWidth + 2) return true;
+        return false;
+    }
+
+    /** Cells from a wanted descent within which a segment's nearest sample stands for it. */
+    static final double DESCENT_REACH = 1.5;
+
+    /**
+     * The index of the sample of {@code run} nearest {@code want}, inside the run's trimmed ends and within
+     * {@link #DESCENT_REACH} of it; -1 when the run has none.
+     */
+    static int descentAt(List<Sample> run, Point want, int trim) {
+        int best = -1;
+        double bestDistance = DESCENT_REACH;
+        for (int i = trim + 1; i < run.size() - trim - 1; i++) {
+            double distance = Math.hypot(run.get(i).x() - want.x(), run.get(i).y() - want.y());
+            if (distance <= bestDistance) {
+                best = i;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * A descent: a ramp onto the crest at sample {@code s} from the side {@code side} names (+1 or -1 times its normal),
+     * its head {@link #DESCENT_HEAD} past the crest's line, so it clears whatever face that side draws (a berm's far
+     * face may stand four cells deep) and the top beyond its head stays the crest's own ground.
+     */
+    private static Ramp descent(Sample s, double offset, double r, int side, int rampWidth, int width, int height) {
+        Point c = crest(s, offset);
+        double fx = s.nx() * side, fy = s.ny() * side;
+        Point foot = new Point(clamp(c.x() + fx * (r + 3), width), clamp(c.y() + fy * (r + 3), height));
+        Point head = new Point(clamp(c.x() + fx * DESCENT_HEAD, width), clamp(c.y() + fy * DESCENT_HEAD, height));
+        return new Ramp(foot, head, rampWidth);
+    }
+
+    /** Cells past the crest's line, toward its foot, a descent's head stands. */
+    static final double DESCENT_HEAD = 1.5;
 
     private static Point crest(Sample s, double offset) {
         return new Point(s.x() + s.nx() * offset, s.y() + s.ny() * offset);

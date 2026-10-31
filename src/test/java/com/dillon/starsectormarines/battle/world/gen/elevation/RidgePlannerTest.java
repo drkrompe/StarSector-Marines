@@ -134,4 +134,19 @@ class RidgePlannerTest {
         int reach = 44 + west.spread();
         assertTrue(side[20][reach - 6] && !side[20][reach], "the side reaches the band, its swell, its apron and the margin");
     }
+
+    @Test
+    void aDescentGradesTheBermDownItsFarSideToo() {
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5).berm()
+                .withDescents(List.of(new ElevationPlan.Point(30, 24.5)));
+        ElevationPlan plan = RidgePlanner.plan(W, H, 1L, List.of(band), RidgePlannerTest::free, layout -> true);
+        assertNotNull(plan);
+        assertEquals(2, plan.plateaus().size(), "the descent costs no segment");
+        // Wanted where the first segment's ramp up would stand: the ramp up gives way along the run.
+        assertEquals(3, plan.ramps().size(), "a ramp up each segment, and one down the first");
+        ElevationPlan.Ramp down = null;
+        for (ElevationPlan.Ramp ramp : plan.ramps()) if (ramp.foot().y() > ramp.head().y()) down = ramp;
+        assertNotNull(down, "climbed from the far side");
+        assertEquals(30, down.foot().x(), 1.5);
+    }
 }

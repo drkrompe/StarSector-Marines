@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import org.junit.jupiter.api.Test;
@@ -58,5 +59,17 @@ class HeartCountryTest {
 
         List<Landscape.Track> clear = HeartCountry.laneTracks(84, 268, town, knoll);
         assertEquals(List.of(new Landscape.Track(84, 0, 86, 268)), clear);
+    }
+
+    @Test
+    void theBurnsRidgeIsGradedDownOnEveryBattlegroupsLine() {
+        HeartCountry.Form burn = HeartCountry.Form.THE_BURN;
+        List<ElevationPlan.Point> descents = HeartCountry.ridge(burn).descents();
+        assertEquals(HeartCountry.laneAcross().length, descents.size());
+        for (int i = 0; i < descents.size(); i++) {
+            assertEquals(burn.cellAt(0f, HeartCountry.laneAcross()[i])[1], descents.get(i).y(), 1e-6);
+        }
+        assertTrue(HeartCountry.ridge(HeartCountry.Form.BROAD_FRONT).descents().isEmpty(),
+                "Broad Front's lane tracks pass its ridge");
     }
 }

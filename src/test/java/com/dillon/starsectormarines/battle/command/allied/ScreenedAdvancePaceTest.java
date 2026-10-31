@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.allied;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,5 +92,15 @@ class ScreenedAdvancePaceTest {
         assertFalse(walker.keepsUp(15), "walking up from far behind, it does not hold the formation");
         walker.observe(30, 196f, 154f, 100f, 1f, true);
         assertTrue(walker.keepsUp(30));
+    }
+
+    @Test
+    void aFormationGivenAWaitRalliesAtItsEndWithAMemberOffItsSlot() {
+        int wait = Math.round(15f / BattleSimulation.TICK_DT);
+        assertFalse(ScreenedAdvance.rallies(false, 15f, -1, 1000), "not at its end yet");
+        assertTrue(ScreenedAdvance.rallies(true, 0f, 100, 100), "in place");
+        assertFalse(ScreenedAdvance.rallies(false, 0f, 100, 100 + 10 * wait), "with no wait it waits for its slots");
+        assertFalse(ScreenedAdvance.rallies(false, 15f, 100, 99 + wait));
+        assertTrue(ScreenedAdvance.rallies(false, 15f, 100, 100 + wait));
     }
 }
