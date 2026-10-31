@@ -238,6 +238,17 @@ public final class MissionLaunch {
                     det.marineWings, det.powers);
         }
 
+        // A replay flies the real company into the chapter's battle as the debug catalogue builds it,
+        // off the arc's own state, so a won chapter needs no live progress to stand up again.
+        DebugMissionCatalog.Scenario replay = CompletedReplays.scenario(m);
+        if (replay != null) {
+            Detachment frozen = det;
+            return new ScenarioPlan(Arrays.asList(m.id, seed, frozen.shuttleManifest), frozen,
+                    DetachmentResolver.employerPhysicalShipCount(m), null,
+                    () -> DebugMissionCatalog.build(replay, seed, frozen.shuttleManifest), "pirates",
+                    HostileShipReport.UNDEFENDED);
+        }
+
         // Heavy-armaments availability on the target world drives whether the
         // defender side fields a HEAVY_MECH (see BattleSetup).
         if (CorvusWaylineCampaign.owns(m.id)) {
@@ -592,6 +603,7 @@ public final class MissionLaunch {
                 if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
+            if (debugScenario == null) debugScenario = CompletedReplays.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
                     && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario.wellhollow() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;

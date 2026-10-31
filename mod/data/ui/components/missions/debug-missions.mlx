@@ -20,7 +20,13 @@
           <button id="debug-node-11" class="{tabClass2}" onclick="{tab2}"><div id="debug-tab-lamp-2" class="console-toggle-lamp" /><div id="debug-tab-legend-2" class="console-key-legend">DIAGNOSTICS</div></button>
         </div>
         <div id="debug-places" class="debug-places">
-          <button each="place in places" key="{place.id}" id="{place.id}" class="{place.classes}" onclick="{place.action}">{place.label}</button>
+          <button each="place in places" key="{place.id}" id="{place.id}" class="{place.classes}" onclick="{place.action}">
+            <div id="{place.globeWrapId}" class="{place.globeClasses}">
+              <canvas id="{place.globeId}" class="debug-place-globe" width="48" height="48" />
+              <div id="{place.unknownId}" class="{place.unknownClasses}">?</div>
+            </div>
+            <div id="{place.labelId}" class="label debug-place-label">{place.label}</div>
+          </button>
         </div>
         <div id="debug-cards" class="debug-cards">
           <button each="card in cards" key="{card.id}" id="{card.id}" class="{card.classes}" onclick="{card.action}">
@@ -77,10 +83,16 @@
 .debug-catalog { width: 58%; flex-direction: column; gap: 10px; padding: 12px; border-width: 1px; }
 .debug-tabs { flex-direction: row; height: 44px; gap: 5px; padding: 4px; border-width: 2px; }
 .debug-tab { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 12px; gap: 8px; border-width: 2px; }
-.debug-places { flex-direction: row; height: 30px; gap: 6px; }
-.debug-place { width: 0px; flex-grow: 1; padding: 2px 6px; text-align: center; border-width: 1px; }
+.debug-places { flex-direction: row; height: 36px; gap: 6px; }
+.debug-place { flex-direction: row; align-items: center; justify-content: center; width: 0px; flex-grow: 1; padding: 2px 6px; gap: 6px; border-width: 1px; }
+.debug-place-globe-wrap { width: 26px; height: 26px; }
+.debug-place-globe-wrap.hidden { display: none; }
+.debug-place-globe { width: 26px; height: 26px; pointer-events: none; }
+.debug-place-unknown { position: absolute; left: 0px; top: 0px; width: 26px; height: 26px; padding: 4px 0px; text-align: center; color: #edc273; pointer-events: none; }
+.debug-place-unknown.hidden { display: none; }
+.debug-place-label { height: 20px; pointer-events: none; }
 .debug-cards { display: grid; flex-grow: 1; gap: 10px; padding: 1px; overflow: scroll; }
-.debug-card { flex-direction: row; align-items: center; width: 506px; height: 150px; padding: 14px; gap: 14px; border-width: 1px; text-align: left; }
+.debug-card { flex-direction: row; align-items: center; width: 506px; height: 146px; padding: 14px; gap: 14px; border-width: 1px; text-align: left; }
 .debug-card-badge { width: 58px; height: 58px; padding: 16px 2px; border-width: 1px; text-align: center; }
 .debug-card-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 .debug-card .label { height: 20px; }

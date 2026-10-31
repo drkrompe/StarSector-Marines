@@ -2653,7 +2653,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         var frames = new ArrayList<SnapshotArtifact>();
-        for (int step = 1; step <= 4; step++) frames.add(new SnapshotArtifact("gantry-" + step + ".png",
+        for (int step = 1; step <= 2; step++) frames.add(new SnapshotArtifact("gantry-" + step + ".png",
                 renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-" + step)));
         return frames;
     }
@@ -2712,8 +2712,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("castle-lab-workspace.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-5")),
                 new SnapshotArtifact("castle-lab-introduction.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-1")),
                 new SnapshotArtifact("castle-lab-fit.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-2")),
-                new SnapshotArtifact("castle-lab-swap.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-3")),
-                new SnapshotArtifact("castle-lab-ready.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-4")),
                 new SnapshotArtifact("mech-welding-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f,
                                 false, false, false, false, null, null, true)),
@@ -2966,11 +2964,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
-            if (step >= 3) viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
-            if (step >= 4) {
-                viewModel.stripWeapon(SocketId.LEFT_SHOULDER);
-                viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
-            }
         }
         if ("lesson-5".equals(materialHint)) viewModel.dismissLabPrompt();
         if (machineName != null) {

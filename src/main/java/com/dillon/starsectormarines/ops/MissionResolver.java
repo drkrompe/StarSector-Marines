@@ -741,7 +741,8 @@ public final class MissionResolver {
      * Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
      */
     static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
-        if (marks == null || outcome == null) return;
+        // A replay re-fights a chapter the campaign has already recorded; it marks nothing new.
+        if (marks == null || outcome == null || outcome.missionSource == MissionSource.REPLAY) return;
         for (SideObjectiveResult side : outcome.sideObjectives) if (side.marked()) marks.write(side.mark());
         if (outcome.blindWatch != null && outcome.blindWatch.garnirWarned()) marks.write(BlindWatchProgress.GARNIR_WARNED);
     }

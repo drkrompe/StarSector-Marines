@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.BatteryObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
+import com.dillon.starsectormarines.battle.evacuation.HeartBoreGrowth;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
@@ -415,6 +416,10 @@ public final class BloomHeartSetup {
         sim.installHeart(form, barrage, lanes, built.map().layout);
         sim.getHeart().guns(heartGuns);
         if (airBase != null) sim.getHeart().airBase(airBase);
+        if (form == Form.THE_BURN) {
+            Precinct start = built.plan().landingPlace();
+            sim.getHeart().growBores(new HeartBoreGrowth(form, new int[]{start.seedX(), start.seedY()}, built.battleSeed()));
+        }
         // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
         HeartObjectives.airDefence(sim, built.map().layout, heartGuns, battery);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.

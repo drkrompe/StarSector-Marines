@@ -388,12 +388,12 @@ public final class MechLabViewModel {
         var lesson = CampaignLessons.lesson(step - 1, "lessonGantryTitle", "lessonGantry" + step,
                 step == 1 ? List.of("mech-overview-gantries", "mech-overview-browse")
                         : List.of("mech-doll-canvas", "mech-slot-rack", "mech-component-catalog"),
-                step == 1 ? "lessonOpenWayward" : step == 4 ? "lessonReady" : null,
-                step == 1 || step == 4 ? this::guideLabLesson : null);
-        if (step == 4) return lesson;
+                step == 1 ? "lessonOpenWayward" : null, step == 1 ? this::guideLabLesson : null);
+        // At the gantry, Castle stands in the empty dark above the slot graph, clear of stores and the hull.
+        String dock = step == 1 ? null : "mech-doll-canvas";
         return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
                 lesson.actionLabel(), lesson.action(), lesson.height(), this::skipLabLesson,
-                LessonCopy.text("lessonSkip"));
+                LessonCopy.text("lessonSkip"), dock);
     }
 
     void skipLabLesson() {
@@ -407,10 +407,10 @@ public final class MechLabViewModel {
             return labGuideVisible() ? "lesson-backdrop" : "lesson-backdrop-hidden";
         }));
         props.put("lessonTitle", reactor.computed(() -> { revision.get(); return LessonCopy.text("lessonGantryTitle"); }));
-        props.put("lessonCopy", reactor.computed(() -> { revision.get(); return LessonCopy.text("lessonGantry" + Math.min(4, Math.max(1, bay.labLesson()))); }));
+        props.put("lessonCopy", reactor.computed(() -> { revision.get(); return LessonCopy.text("lessonGantry" + Math.min(2, Math.max(1, bay.labLesson()))); }));
         props.put("lessonActionLabel", reactor.computed(() -> {
             revision.get();
-            return LessonCopy.text(bay.labLesson() == 1 ? "lessonOpenWayward" : "lessonReady");
+            return LessonCopy.text("lessonOpenWayward");
         }));
         props.put("lessonAction", (Runnable) this::guideLabLesson);
         props.put("lessonPause", (Runnable) () -> { bay.pauseLabLesson(true); revision.update(value -> value + 1); });
@@ -431,7 +431,6 @@ public final class MechLabViewModel {
     public void dismissLabPrompt() { dismissedLesson.set(bay.labLesson()); }
 
     public void guideLabLesson() {
-        if (bay.labLesson() == 4) { bay.advanceLabLesson(); revision.update(value -> value + 1); return; }
         for (CampaignMechSquad squad : bay.squads()) {
             if (squad.mechById(WaylineHound.ID) == null) continue;
             selectSquad(squad.id());

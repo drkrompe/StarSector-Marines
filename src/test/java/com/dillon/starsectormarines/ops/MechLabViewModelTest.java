@@ -545,7 +545,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void castleSpotlightKeepsFittingControlsLiveAndResumesAfterLeaving() throws Exception {
+    void castleSpotlightKeepsFittingControlsLiveAndEndsOnTheFit() throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
@@ -577,14 +577,9 @@ class MechLabViewModelTest {
             assertEquals(height, stage.box().borderBox().height(), EPSILON);
             // The spare is dragged onto the shoulder; the drop is what the lesson waits for.
             assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
-            assertEquals(3, bay.labLesson(), "Fitting the spare must advance the lesson through the spotlight");
-            var reopened = new MechLabViewModel(new Reactor(), bay);
-            reopened.resumeCampaignLesson();
-            assertEquals(3, bay.labLesson());
-            assertNotNull(reopened.campaignLesson());
-            assertTrue(reopened.removeInstalledWeapon(SocketId.LEFT_SHOULDER));
-            assertTrue(reopened.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
-            assertEquals(4, bay.labLesson());
+            assertEquals(5, bay.labLesson(), "Fitting the spare through the spotlight ends the lesson");
+            guide.update();
+            assertFalse(guide.visible());
         }
     }
 
