@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective;
-import com.dillon.starsectormarines.marine.LoadoutCard;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -191,8 +190,6 @@ final class MissionDebriefConversation {
                     termsLine("withdrawal", "CASTLE", Strings.format(why, cost)),
                     termsLine("replacement", "RUSK", Strings.get("debriefTermsReplacement")));
         }
-        var card = LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD);
-        boolean pending = card == null || !card.presentationDeclared();
         // Whoever can actually speak to the work explains it; a dead witness is not quoted.
         var witness = r.techniciansLost() < TermsOfProtectionProgress.TECHNICIANS
                 ? termsLine("dossier", Strings.get("debriefSpeakerUtilitiesCrew"), Strings.get("debriefTermsDossierCrew"))
@@ -202,8 +199,7 @@ final class MissionDebriefConversation {
                         Strings.get(custody ? "debriefTermsRatifiedCustody" : "debriefTermsRatifiedCompact")),
                 termsLine("award", "RUSK", Strings.get("debriefTermsAward")),
                 witness,
-                termsLine("issue", "CASTLE", Strings.get(pending
-                        ? "debriefTermsIssuePending" : "debriefTermsIssueReady")),
+                termsLine("issue", "CASTLE", Strings.get("debriefTermsIssue")),
                 AgreusArcCampaign.RUSK_FAMILY,
                 termsLine("drent", Strings.get("debriefSpeakerDrent"), AgreusArcCampaign.DRENT_LEAD),
                 termsLine("cost", "CASTLE", Strings.format("debriefTermsClosing", cost)));

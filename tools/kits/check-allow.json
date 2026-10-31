@@ -1,3 +1,4 @@
 {
- "_doc": "Accepted check.py warnings: \"<code> <item id>\": \"<the owner's reason>\". Add one only on the owner's decision (kit-ladder.md, Checks)."
+ "_doc": "Accepted check.py warnings: \"<code> <item id>\": \"<the owner's reason>\". Add one only on the owner's decision (kit-ladder.md, Checks).",
+ "not-sold armor:salvage-assisted": "Left unsold: A Small War is cut from alpha, and its chapters no longer hand the section over."
 }

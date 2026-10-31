@@ -15,7 +15,7 @@ Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fir
 Updated: 2026-10-30 — the Kit Ladder and the built-in cards are data files.
 
 Updated: 2026-10-30 — the Kit Ladder paces the store: each card and machine pattern goes on sale after its station's mission; victory milestones retired.
-Updated: 2026-10-31 — the Junction no longer hands over Trench-Clearing Issue; the store sells it.
+Updated: 2026-10-31 — no story battle hands a card into cargo: the Junction and Agreus awards retired for the store.
 
 ## Purpose
 
@@ -579,15 +579,17 @@ revokes a card, never learns a carried card implicitly, and stops well short of 
 whole collection. A save from before the card ledger knows exactly the cards it
 could already field, once.
 
-Faction source pools author which cards may enter through market, license,
-patron, and recovery channels. Every card also authors an access tier. **The
-store's shelves are paced by the Kit Ladder, not by tier**: an open-market or
-licensed shelf offers a card once the campaign has passed its station, whatever its
-tier, and never one placed at *none*. The tier still sets the price. A Restricted
-card additionally needs a warrant naming it, and only its tradition's licence shelf
-sells it. Selection is faction-and-market-stable, weighted, rotates monthly and
-scales with market size; Favorable-or-better standing adds the licensed shelf.
-Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
+Faction source pools author which cards may enter through patron and recovery
+channels. Every card also authors an access tier. **The company store is paced by
+the Kit Ladder alone**: every loadout card and machine pattern whose station the
+campaign has passed, and which the company does not already know or carry, is on
+sale at every store, whatever its tier, the market's size or owner, or the month.
+There is no rotation, slot count or faction-pool filter, and nothing placed at
+*none* is ever sold. The tier only sets the price (tier times the market's
+tariff). A Restricted card additionally needs a warrant naming it, and stands only
+on the licence shelf (Favorable-or-better standing) of a faction whose pool fields
+its Restricted kit, its tradition's. Boat parts are not on the ladder and keep a
+small monthly rotation by access tier. Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
 contract access. High-risk recovery instead uses operational history, admitting Advanced
 after 5 company victories and Prestige after 15, so field discovery does not
 require bureaucratic standing. Already-owned or carried cards are omitted.
@@ -803,13 +805,11 @@ when the HQ was simplified, and that readout has no home yet. A Restricted card'
 tooltip and spec sheet name the tradition that issues it, in place of the
 reputation and victory thresholds the other tiers show.
 
-**Market listings are how a story stocks a shelf.** A card dropped into a market's
-cargo would not survive, because every open-market restock clears the cards and
-refills from the pools. So a story beat records a listing instead, and each restock
-puts listed cards on a shelf of their own before it draws the rotation. Listings
-are additional slots that never displace a rotating card, and a listed card is left
-out of the rotating draw. A listing bypasses the reputation and victory thresholds,
-because the story is the permission. It never bypasses the Restricted tier: listing
+**Market listings are how a story stocks a shelf.** A story beat records a listing
+rather than dropping a card into a market's cargo, and the store shows listed cards
+on a shelf of their own, first, before what the Kit Ladder opens; a listed card is
+never offered a second time. A listing bypasses the Kit Ladder station, because the
+story is the permission. It never bypasses the Restricted tier: listing
 a Restricted card needs a military warrant naming it, and a shelf never shows a
 Restricted card the company is not warranted for. A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
@@ -829,11 +829,9 @@ won: Advanced kit, no warrant. *Builder's Guard* (satchel-charge sappers and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
-payment. Each beat is also its card's Kit Ladder station, so the cards circulate like any
-other from then on, because a card's pool weight is
-its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
-Arrestor pack, the others reach independent markets and licences. The listing is
-the guaranteed route; the pools are the fallback.
+payment. Each beat is also its card's Kit Ladder station, so from then on every
+store sells the card as it sells anything else the ladder has opened; the listing
+only names the event at the market where it happened.
 **A card's identity is not about the company.** Its name and lore describe the kit
 as the wider sector knows it, typically an old licensed pattern or a schedule that
 is simply scarce, not a thank-you, a souvenir, or a record of the player's own
@@ -850,19 +848,17 @@ permanently ineligible source.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and an
 acquisition owner, and the catalog audit preserves that coverage as content is
-added. Recovered Specter is a guaranteed cargo-card reward for Limited Warrant
-on Agreus after the Shepherd actually joins the fleet and North Weir is restored.
-Learning it exposes its matching heavy fitting sheet; reward settlement never
-changes issued equipment. Recovered Arbalest is the guaranteed cargo-card reward for The Yard's Owners.
-Learning both recovered roles exposes Salvage-assisted Section, with eight regular,
-two powered assault and two powered support billets. Explicit fitting preserves
-the named squad and ordinary lift seats. Development test controls remain available. Neither A Cold Account completion nor the grounded
-Shepherd's repair automatically learns either pattern.
+added. The recovered Specter and Arbalest sections and the Boarding Jack Section
+are sold in the company store once *A Small War* settles, the Kit Ladder station
+they share; no Agreus chapter hands one over, and a save keeps any already carried
+or learned. Salvage-assisted Section (eight regular, two powered assault and two
+powered support billets) is placed at *none* and is never sold: *A Small War* is cut from alpha. Explicit fitting preserves the named
+squad and ordinary lift seats. Neither A Cold Account completion nor the grounded
+Shepherd's repair learns any of them.
 The pirate Boarding Jack is the third recovered-rung assault suit, worn by two
 assault billets in the Boarding Jack Section card. Its template is story-only
-(`storySource` names *A Small War*), so no market, patron, licence, recovery or
-milestone route can reach it, and no card carrying it is awarded until its
-presentation is declared.
+(`storySource` names *A Small War*), so no market, patron, licence or recovery
+pool offers it; only the store's ladder-paced shelf does.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage

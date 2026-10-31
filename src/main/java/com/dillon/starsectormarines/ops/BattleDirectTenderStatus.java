@@ -134,9 +134,10 @@ final class BattleDirectTenderStatus {
         boolean working = o != null && o.phase() == ConstructionOrder.Phase.WORKING && !o.contested();
         String detail = Strings.format(working ? "tenderStatusWorkingLost" : "tenderStatusOutLost",
                 tender.buildersOut(), tender.buildersLost());
-        String state = Strings.get(tender.buildersOut() + tender.builderReserve() == 0 ? "tenderStatusNoneLeft"
+        boolean none = tender.buildersOut() + tender.builderReserve() == 0;
+        String state = Strings.get(none ? tender.rebuildingBuilder() ? "tenderStatusRebuilding" : "tenderStatusNoneLeft"
                 : working ? "tenderStatusWorking" : tender.buildersOut() > 0 ? "tenderStatusOut" : "tenderStatusDocked");
-        Tone tone = tender.buildersOut() + tender.builderReserve() == 0 ? Tone.WARN
+        Tone tone = none ? Tone.WARN
                 : working ? Tone.BUSY : Tone.READY;
         return new ShipCard("BUILDERS", Strings.get("tenderStatusBuildersKey"), detail,
                 Strings.format("tenderStatusReady", tender.builderReserve(), tender.builderComplement()), state, tone,
@@ -145,7 +146,8 @@ final class BattleDirectTenderStatus {
 
     private static ShipCard defenceCard(Tender tender) {
         int alive = tender.defendersOut() + tender.defenceReserve();
-        String state = Strings.get(alive == 0 ? "tenderStatusNoneLeft"
+        String state = Strings.get(alive == 0
+                ? tender.rebuildingDefender() ? "tenderStatusRebuilding" : "tenderStatusNoneLeft"
                 : tender.defenceOut() ? "tenderStatusDeployed" : "tenderStatusRecalled");
         Tone tone = alive == 0 ? Tone.WARN : tender.defenceOut() ? Tone.READY : Tone.BUSY;
         String detail = Strings.format("tenderStatusOutLost", tender.defendersOut(), tender.defendersLost());

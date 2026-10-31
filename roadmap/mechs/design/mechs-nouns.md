@@ -279,10 +279,10 @@ increasing an encounter's total armored threat.
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and gates as loadout cards (`progression-nouns.md`): the store
-  sells a pattern after its Kit Ladder station (`kit-ladder.md`), patrons and recovery by tier,
-  as their own scarce stack: one market slot on large or military markets, an
+  sells every pattern whose Kit Ladder station (`kit-ladder.md`) the campaign has passed, at
+  every store; patrons and recovery hand them out by tier as their own scarce stack: an
   occasional patron award in place of a loadout card, at most one per high-risk
-  salvage; faction issue weights the draw. Known or carried patterns are never
+  salvage; faction issue weights those draws. Known or carried patterns are never
   offered, and unlearned items with no stock are absent from the Mech Lab catalog.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
@@ -1820,7 +1820,7 @@ support sortie, subject only to practical runtime resources.
   on the row or the card's BUILD, spends anything. Every chassis and vehicle pattern is
   credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
   faction crest and a procurement line such as the Ordnance Board heavy schedule), and
-  the credit must agree with which faction's markets weight the pattern up
+  the credit must agree with which faction's patrons and recovery weight the pattern up
   (`MechPatternPicker`): a navy's issue is that navy's, and a pickup-based field rig is a
   frontier or pirate workshop's. With nothing chosen the first pattern
   the filter shows is previewed. A successful BUILD, paid in credits at a civilized port, puts one persistent

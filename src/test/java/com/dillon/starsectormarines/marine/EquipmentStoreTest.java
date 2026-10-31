@@ -31,8 +31,8 @@ class EquipmentStoreTest {
     }
 
     @Test
-    void shelfIsListedThenMarketThenLicensedAndEveryOfferIsPricedAtTheTariff() {
-        EquipmentStore.Place place = new EquipmentStore.Place("hegemony", "chicomoztoc", 7, true, 0.3f, true);
+    void shelfIsListedFirstThenBySlotAndEveryOfferIsPricedAtTheTariff() {
+        EquipmentStore.Place place = new EquipmentStore.Place("hegemony", "chicomoztoc", 7, 0.3f, true);
         String listedId = LoadoutCards.all().get(0).id();
 
         List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), Set.of(),
@@ -40,13 +40,15 @@ class EquipmentStoreTest {
 
         assertEquals(listedId, shelf.get(0).id());
         assertEquals(EquipmentStore.Shelf.LISTED, shelf.get(0).shelf());
+        assertEquals(1, shelf.stream().filter(o -> o.id().equals(listedId)).count(), "a listing is never offered twice");
         assertTrue(shelf.stream().anyMatch(o -> o.shelf() == EquipmentStore.Shelf.MARKET));
-        assertTrue(shelf.stream().anyMatch(o -> o.shelf() == EquipmentStore.Shelf.LICENSE));
-        assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN),
-                "a military market carries a mech pattern");
+        assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN));
         assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.BOAT_PART),
                 "a sizeable market carries boat parts");
         assertTrue(shelf.stream().allMatch(o -> o.slot() != null), "every offer is filed in a store slot");
+        for (int i = 2; i < shelf.size(); i++) {
+            assertTrue(shelf.get(i - 1).slot().ordinal() <= shelf.get(i).slot().ordinal(), "sorted by slot");
+        }
         for (EquipmentStore.Offer o : shelf) {
             EquipmentAccessTier tier = o.kind() == EquipmentStore.Kind.LOADOUT
                     ? LoadoutCard.parse(o.id()).accessTier()
@@ -59,15 +61,15 @@ class EquipmentStoreTest {
     }
 
     @Test
-    void anUnlicensedSmallMarketHasNoLicensedShelfAndNoMechPattern() {
-        EquipmentStore.Place place = new EquipmentStore.Place("independent", "jangala", 3, false, 0.3f, false);
+    void aSmallUnlicensedMarketStillCarriesEveryPatternTheLadderOpens() {
+        EquipmentStore.Place place = new EquipmentStore.Place("independent", "jangala", 3, 0.3f, false);
 
         List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 12L, Set.of(), Set.of(), Set.of(),
                 FULL_ACCESS, List.of());
 
-        assertFalse(shelf.isEmpty());
         assertTrue(shelf.stream().noneMatch(o -> o.shelf() == EquipmentStore.Shelf.LICENSE));
-        assertTrue(shelf.stream().noneMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN));
+        assertEquals(Set.copyOf(StoreStock.patterns(Set.of(), FULL_ACCESS)), Set.copyOf(shelf.stream()
+                .filter(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN).map(EquipmentStore.Offer::id).toList()));
     }
 
     @Test

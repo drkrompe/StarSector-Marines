@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -85,6 +86,21 @@ class KitLadderCatalogTest {
         assertFalse(relief.reach().test(id -> false, state));
         assertFalse(junction.reach().test(id -> true, state), "an arc beat reads the arc's ledger, not the story list");
         assertEquals("arcBeat broken-supply-route junction-won", junction.reach().toString());
+    }
+
+    @Test
+    void winningTheJunctionReachesTheJunctionStationAndLosingItDoesNot() throws Exception {
+        UnlockStation junction = parse(ladder(), cards()).station("junction");
+        CampaignState state = new CampaignState();
+        state.brokenSupplyRoute = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        String lost = state.brokenSupplyRoute.missionId();
+        assertTrue(state.brokenSupplyRoute.begin(lost));
+        state.brokenSupplyRoute.settle(lost, false, null);
+        assertFalse(junction.reach().test(id -> false, state), "a lost junction opens nothing");
+        String won = state.brokenSupplyRoute.missionId();
+        assertTrue(state.brokenSupplyRoute.begin(won));
+        state.brokenSupplyRoute.settle(won, true, null);
+        assertTrue(junction.reach().test(id -> false, state), "the settled win is what the store reads");
     }
 
     @Test

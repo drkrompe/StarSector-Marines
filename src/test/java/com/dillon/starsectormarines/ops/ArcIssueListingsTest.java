@@ -2,13 +2,10 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
-import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.KitLadder;
 import com.dillon.starsectormarines.marine.LoadoutCard;
-import com.dillon.starsectormarines.marine.LoadoutCardPicker;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MarketListings;
 import com.dillon.starsectormarines.marine.UnlockStation;
@@ -78,12 +75,5 @@ class ArcIssueListingsTest {
             assertNotEquals(ArcIssueListings.Beat.RELIEF.doctrineId, path.weapons,
                     "Checkpoint Issue is bought beside A Proper Issue's free choice, never one of it");
         }
-    }
-
-    @Test
-    void counterBatteryIssueAlsoCirculatesUnderAHegemonyLicence() {
-        List<String> picked = LoadoutCardPicker.pick("hegemony", FactionEquipmentSource.LICENSE, 500, 7L,
-                Set.of(), new EquipmentAcquisitionEligibility.Progress(99, 100));
-        assertTrue(picked.contains(ArcIssueListings.Beat.BLIND_WATCH.cardId()));
     }
 }

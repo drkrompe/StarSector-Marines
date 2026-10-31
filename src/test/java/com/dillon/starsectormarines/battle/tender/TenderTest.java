@@ -168,6 +168,27 @@ class TenderTest {
     }
 
     @Test
+    void lostDronesComeBackToTheBayOneAtATimeInTheOrderTheyWereLost() {
+        tender.launchedBuilder(101L);
+        tender.launchedDefender(202L);
+        tender.lostBuilder(101L);
+        tender.lostDefender(202L);
+        int builders = tender.builderReserve(), defenders = tender.defenceReserve();
+        assertEquals(2, tender.rebuilding());
+        assertTrue(tender.rebuildingBuilder());
+
+        tender.rebuild(Tender.REBUILD_SECONDS - 0.5f);
+        assertEquals(builders, tender.builderReserve(), "nothing back before its time");
+        tender.rebuild(0.5f);
+        assertEquals(builders + 1, tender.builderReserve(), "the builder, lost first, comes back first");
+        assertEquals(defenders, tender.defenceReserve());
+        tender.rebuild(Tender.REBUILD_SECONDS);
+        assertEquals(defenders + 1, tender.defenceReserve());
+        assertEquals(0, tender.rebuilding());
+        assertEquals(2, tender.dronesLost(), "a rebuilt drone still counts as lost");
+    }
+
+    @Test
     void theComplementIsTheHullsBuiltInWingSplitBetweenBuildAndDefence() {
         assertEquals(6, Tender.complement());
         assertEquals(3, tender.builderComplement());

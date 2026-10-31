@@ -188,13 +188,9 @@ class FirstRefitTest {
             var other = choice == FirstRefit.Path.STEADY_LINE ? FirstRefit.Path.FORWARD_SCREEN : FirstRefit.Path.STEADY_LINE;
             String weapon = other == FirstRefit.Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
             String card = new LoadoutCard(LoadoutCard.Kind.WEAPON, other.weapons).id();
-            boolean offered = false;
-            for (int month = 0; month < 120; month++) {
-                var market = FactionEquipmentMarketStockPlanner.plan("independent", "technology-test", 6, month,
-                        false, LoadoutCardInventory.knownCardIds(roster.armory()), afterRelief());
-                offered |= market.marketCardIds().contains(card);
-            }
-            assertTrue(offered, "The alternative must reach ordinary markets without a license");
+            var market = StoreStock.cards("independent", false,
+                    LoadoutCardInventory.knownCardIds(roster.armory()), afterRelief());
+            assertTrue(market.marketCardIds().contains(card), "The alternative must reach ordinary markets without a license");
             assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(), card));
             assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
                     new LoadoutCard(LoadoutCard.Kind.SHEET, other.armor).id()));

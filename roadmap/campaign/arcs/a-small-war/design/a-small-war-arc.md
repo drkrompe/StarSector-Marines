@@ -4,6 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
+Updated: 2026-10-31 — chapters pay fees only; the store sells the Agreus sections once the arc settles.
 Updated: 2026-10-19 — the duel ends in the Greyhook's run for the south edge: she escapes or is shot down, and the battle waits for it.
 
 ## Premise, place and cast
@@ -114,9 +115,9 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Chapter | Place and objective | Fee and lasting result | Delivery state |
 |---|---|---|---|
 | Water Under Seal | North Weir: escort repair cargo, reopen switching rooms, build a road gun and complete handover | 26,000 credits; sponsorship and Limited Warrant offer, no suit pattern | Implemented; live transition and settlement acceptance remain |
-| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and the Tri-Tachyon Specter Section card (two suits in twelve) | Implemented; live learning/fitting and save acceptance remain |
-| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and the Salvage-assisted Section card (four suits in twelve) | Implemented; live inspection, mixed fitting and save acceptance remain |
-| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and a Boarding Jack section card on either agreement | Planned; Boarding Jack remains proposed |
+| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits; the Tri-Tachyon Specter Section is sold in the store once the arc settles | Implemented; live settlement and save acceptance remain |
+| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits | Implemented; live inspection and save acceptance remain |
+| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits on either agreement; the Boarding Jack Section is sold in the store once the arc settles | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites while Greyhook splits, and hand them to local holders | Planned 44,000 credits, completed settlement and the Hegemony auxiliary warrant offer | Planned |
 
 Recommendations are two squads for the first two chapters, then three, with
