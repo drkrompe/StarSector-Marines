@@ -177,7 +177,8 @@ vetted on:
 - **The supply road** (`supply-road`): a drivable road from the landing's
   farmland up to the settlement's near gate.
 - **The allied airbases** (Broad Front, `airbase-1` west and `airbase-2`
-  east, each with its hamlet `airbase-N.1` ...): fields beside a way on
+  east, each with its hamlet `airbase-N.1` ... on its lane `airbase-N.lane`):
+  fields beside a way on
   unfarmed ground behind the line, clear of the columns' roads
   (`heart-nouns.md`, Allied airbase). The story map places both by hand in
   its patch; other pooled maps site them.

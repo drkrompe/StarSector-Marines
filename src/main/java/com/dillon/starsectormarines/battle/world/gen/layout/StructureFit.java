@@ -25,9 +25,21 @@ public final class StructureFit {
     /** The prefab bunkhouse's plan, the short module's and the control hut's (as authored in {@code BuildingStamp}). */
     static final int BUNKHOUSE_ALONG = 15, BUNKHOUSE_DEEP = 5, MODULE_ALONG = 9, MODULE_DEEP = 5, HUT_PLAN_ALONG = 7,
             HUT_PLAN_DEEP = 5;
-    static final int QUARTERS_ALONG = YARD + BUNKHOUSE_ALONG + YARD, QUARTERS_DEEP = YARD + BUNKHOUSE_DEEP + YARD;
-    static final int SHED_ALONG = YARD + MODULE_ALONG + YARD, SHED_DEEP = YARD + MODULE_DEEP + YARD;
-    static final int HUT_ALONG = YARD + HUT_PLAN_ALONG + YARD, HUT_DEEP = YARD + HUT_PLAN_DEEP + YARD;
+    /** The long prefab module's plan, a hamlet's mess. */
+    static final int MESS_PLAN_ALONG = 11, MESS_PLAN_DEEP = 5;
+    /**
+     * A hamlet building's fenced yard round its building: the fence on the outer ring and two cells inside it, room
+     * for its stores, drums, a tank or a parked truck.
+     */
+    static final int HAMLET_YARD = 3;
+    static final int QUARTERS_ALONG = HAMLET_YARD + BUNKHOUSE_ALONG + HAMLET_YARD,
+            QUARTERS_DEEP = HAMLET_YARD + BUNKHOUSE_DEEP + HAMLET_YARD;
+    static final int SHED_ALONG = HAMLET_YARD + MODULE_ALONG + HAMLET_YARD, SHED_DEEP = HAMLET_YARD + MODULE_DEEP + HAMLET_YARD;
+    static final int HUT_ALONG = HAMLET_YARD + HUT_PLAN_ALONG + HAMLET_YARD, HUT_DEEP = HAMLET_YARD + HUT_PLAN_DEEP + HAMLET_YARD;
+    static final int MESS_ALONG = HAMLET_YARD + MESS_PLAN_ALONG + HAMLET_YARD,
+            MESS_DEEP = HAMLET_YARD + MESS_PLAN_DEEP + HAMLET_YARD;
+    static final int HOMESTEAD_ALONG = HAMLET_YARD + HOUSE_ALONG + HAMLET_YARD,
+            HOMESTEAD_DEEP = HAMLET_YARD + HOUSE_DEEP + HAMLET_YARD;
 
     private StructureFit() {}
 

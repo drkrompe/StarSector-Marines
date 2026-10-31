@@ -760,8 +760,11 @@ public final class OutdoorLandscapeStage implements GenStage {
         TileRegistry registry = TileRegistry.installed();
         List<Integer> plants = new ArrayList<>();
         for (String id : MARGIN_PLANTS) if (registry != null && registry.has(id)) plants.add(registry.indexOf(id));
+        boolean[] laid = laidGround(c);
         boolean[] field = new boolean[w * h];
-        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) field[y * w + x] = c.isMadeGround(x, y) && naturalGround(c, x, y);
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            field[y * w + x] = !laid[y * w + x] && c.isMadeGround(x, y) && naturalGround(c, x, y);
+        }
         // Outward: from a field's burning ground over the bare earth beside it.
         int[] out = new int[w * h];
         Arrays.fill(out, Integer.MAX_VALUE);
@@ -779,13 +782,37 @@ public final class OutdoorLandscapeStage implements GenStage {
             float line = marginNoise(seed, x, y);
             boolean grown = out[i] > 0 && out[i] != Integer.MAX_VALUE && out[i] <= line * (margin + 1);
             boolean eaten = in[i] > 0 && in[i] != Integer.MAX_VALUE && in[i] <= (1f - line) * (margin + 1);
-            if (!grown && !eaten) continue;
+            if (!grown && !eaten || laid[i]) continue;
             c.topology.setSurface(x, y, 0);
             c.topology.setGroundKind(x, y, GroundKind.GRASS);
             long roll = mix(seed + 1, x, y);
             boolean plant = !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
             c.topology.setNatureOverlayIndex(x, y, plant ? plants.get((int) Math.floorMod(roll >>> 8, (long) plants.size())) : -1);
         }
+    }
+
+    /**
+     * Ground a mission layout raised or worked by hand (a structure's yard, a hamlet's lane): kept as it was laid, so
+     * no field's ragged margin grows over it or eats into it.
+     */
+    private static boolean[] laidGround(GenContext c) {
+        boolean[] out = new boolean[c.width * c.height];
+        LaidLayout laid = c.get(BspKeys.MISSION_LAYOUT_LAID);
+        if (laid == null) return out;
+        for (Laid piece : laid.pieces()) {
+            if (!piece.isLaid() || piece.cells().isEmpty()) continue;
+            if (piece.kind() == Laid.Kind.STRUCTURE && piece.cells().size() == 2) {
+                int[] a = piece.cells().get(0), b = piece.cells().get(1);
+                for (int y = Math.max(0, a[1]); y <= Math.min(c.height - 1, b[1]); y++) {
+                    for (int x = Math.max(0, a[0]); x <= Math.min(c.width - 1, b[0]); x++) out[y * c.width + x] = true;
+                }
+            } else if (piece.kind() == Laid.Kind.BLOCK) {
+                for (int[] cell : piece.cells()) {
+                    if (cell[0] >= 0 && cell[1] >= 0 && cell[0] < c.width && cell[1] < c.height) out[cell[1] * c.width + cell[0]] = true;
+                }
+            }
+        }
+        return out;
     }
 
     /** Chebyshev distances out from the queued cells, over cells {@code passable} admits, up to {@code limit}. */

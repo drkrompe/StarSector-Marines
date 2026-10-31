@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -227,9 +227,13 @@ gate and a short access track that keeps out of the clearance too, on unfarmed
 ground where there is any, clear of the landing and the logistics base, its
 strip along the front. Each is wanted at
 about a quarter and three quarters across, searched a little inward and out to
-the map's side, and each raised from its own draw. Round each grows a small
-**hamlet** of up to five buildings (crew quarters, a store shed, a pump hut, a
-farm, a granary) on its flanks, so it reads as a place that grew there. One is
+the map's side, and each raised from its own draw. Round each grows a
+**hamlet** (`mission-layout.md`, Hamlet): a lane of its own off a farm track
+or the road out along the map's edge, with up to six fenced or hedged yards on
+it (crew quarters with a utility truck, a mess, a stores shed with drums and
+crates, a pump house with its tanks, a homestead, a radio hut), on whichever
+side of the base has the most open, unfarmed ground, so it reads as a place
+that grew beside the field; smaller where room is short. One is
 laid where only one flank has the ground, none where neither has (most city
 maps, where the farm tracks and the lanes' clearance leave no open strip 76
 cells wide). The story map (ARID seed 5, `story-map-pools.md`, Story map)
@@ -237,10 +241,12 @@ places both by hand, strip to the north and apron and gate to the south, the
 gate's track running out to the map's south edge: the west base between the
 west lane's track and the next lane's at (96, 8), ten cells clear of the west
 track; the east base on the sandy ground past the east lane's track at
-(483, 8), six cells clear of it and against the map's east edge. The west
-base's hamlet of two stands across the west lane's track, the east base's of
-three across the east lane's, the clearance leaving no room on the bases' own
-side. Each base is a common strip and
+(483, 8), six cells clear of it and against the map's east edge. The
+clearance leaves no room on the bases' own side, so each hamlet stands across
+its lane's track: the west base's six round a lane running out to the map's
+west edge, on the open ground south of the pond; the east base's two on a lane
+off the map's south edge, in the 27-cell strip of wild ground between the farm
+track and the east lane's band, trees taking the rest of it. Each base is a common strip and
 eight bays: five hardstands and three sheds, holding three Daggers (the wing's
 bombers), three Talons and two Broadswords, and a crew of eight allied
 technicians, one to a bay, who refit and patch an aircraft that lands and

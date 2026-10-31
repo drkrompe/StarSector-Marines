@@ -20,12 +20,18 @@ public enum StructureKind {
      * round its fence. Unturned its strip runs along x on the footprint's north edge, toward a bloom to the north.
      */
     AIRFIELD(StructureFit.AIRFIELD_ALONG, StructureFit.AIRFIELD_DEEP),
-    /** A long prefab bunkhouse on a yard: a field crew's quarters. */
+    /** A long prefab bunkhouse on a fenced yard, a utility truck parked in it: a field crew's quarters. */
     CREW_QUARTERS(StructureFit.QUARTERS_ALONG, StructureFit.QUARTERS_DEEP),
-    /** A short prefab module on a yard: fuel and stores. */
+    /** A short prefab module on a fenced yard stacked with drums and crates: fuel and stores. */
     STORE_SHED(StructureFit.SHED_ALONG, StructureFit.SHED_DEEP),
-    /** A one-room hut on a yard: a pump house or a fuel hut. */
-    PUMP_HUT(StructureFit.HUT_ALONG, StructureFit.HUT_DEEP);
+    /** A one-room hut on a fenced yard with a water tank: a pump house. */
+    PUMP_HUT(StructureFit.HUT_ALONG, StructureFit.HUT_DEEP),
+    /** A long prefab module on a fenced yard: a crew's mess. */
+    MESS_HALL(StructureFit.MESS_ALONG, StructureFit.MESS_DEEP),
+    /** A one-room hut on a fenced yard with a dish: a radio hut. */
+    RADIO_HUT(StructureFit.HUT_ALONG, StructureFit.HUT_DEEP),
+    /** A farmhouse alone on a hedged yard: the family that was farming here before the field came. */
+    HOMESTEAD(StructureFit.HOMESTEAD_ALONG, StructureFit.HOMESTEAD_DEEP);
 
     public final int along, deep;
 
@@ -39,7 +45,13 @@ public enum StructureKind {
      * structures are raised: an airfield and the buildings of its hamlet ({@link AirfieldSiting}).
      */
     public boolean keepsOffWays() {
-        return this == AIRFIELD || this == CREW_QUARTERS || this == STORE_SHED || this == PUMP_HUT;
+        return this == AIRFIELD || hamlet();
+    }
+
+    /** Whether the structure is one of a hamlet's buildings ({@link HamletGrowth}): on a fenced or hedged yard. */
+    public boolean hamlet() {
+        return this == CREW_QUARTERS || this == STORE_SHED || this == PUMP_HUT || this == MESS_HALL
+                || this == RADIO_HUT || this == HOMESTEAD;
     }
 
     /** Whether the structure may stand on road: only a square, which is paving itself. */

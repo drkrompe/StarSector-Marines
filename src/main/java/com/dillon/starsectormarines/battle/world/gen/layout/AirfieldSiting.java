@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Where an {@link StructureKind#AIRFIELD airfield} stands on open country, and the few buildings that grew up round it
@@ -16,9 +18,10 @@ import java.util.List;
  * ground nobody farms where there is any, and as near the ground the mission wanted as those allow. Its strip runs
  * along x, so it suits a front across x; it may face either way along y, whichever puts its apron toward the way.
  *
- * <p>Its {@link #hamlet hamlet} is a handful of buildings on its flanks within its own depth, clustered toward its gate: crew
- * quarters, a store shed, a farmstead, a pump hut and a granary. They keep off the field and its access track, farmed ground, the strip's
- * run-up past either end, and off the ways, so the strip, the bays and the gate stay clear.
+ * <p>Its {@link #hamlet hamlet} ({@link HamletGrowth}) is a lane of its own with up to six fenced yards on it (crew
+ * quarters, a mess, a stores shed, a pump house, a homestead, a radio hut), on whichever side of the field has the
+ * most open, unfarmed ground. It keeps off the field and its access track, farmed ground, the strip's run-up past
+ * either end, the ways and the column clearance, so the strip, the bays and the gate stay clear.
  */
 public final class AirfieldSiting {
 
@@ -28,13 +31,8 @@ public final class AirfieldSiting {
     public static final int RUN_UP = 30;
     /** Rows of the field from its strip-side edge that the strip and its shoulders take: the run-up's width. */
     static final int STRIP_BAND = 8;
-    /** Cost per cell a hamlet building stands from the nearest one already up, against its pull toward the gate. */
-    static final float CLUSTER_COST = 2f;
-    /** Cells a hamlet's buildings stand out from the field's short ends, at most, and the gap they keep. */
-    static final int HAMLET_REACH = 44, HAMLET_GAP = 2;
-    /** What a hamlet raises, in order, while there is room. */
-    static final List<StructureKind> HAMLET = List.of(StructureKind.CREW_QUARTERS, StructureKind.STORE_SHED,
-            StructureKind.FARMSTEAD, StructureKind.PUMP_HUT, StructureKind.GRANARY);
+    /** Cells a hamlet keeps from the field. */
+    static final int HAMLET_GAP = 2;
     /** Cost per cell of farmed ground a footprint takes, per cell of access track, for a short-side gate, per cell off. */
     static final float FARMED_COST = 1f, ACCESS_COST = 6f, FLANK_COST = 20f, DISTANCE_COST = 0.4f;
     /** Cost of a field with no way within reach of any gate: still laid where nothing better is, but last. */
@@ -198,82 +196,47 @@ public final class AirfieldSiting {
     }
 
 
+
+    /** Cells out from the field's ends and edges a hamlet is looked for in. */
+    static final int HAMLET_REACH = 96, HAMLET_DEEP = 12;
+
     /**
-     * The hamlet round {@code field}: up to {@link #HAMLET}'s buildings, named {@code field.name() + ".<n>"}, on cells
-     * {@code open} passes, along the apron's way and toward the gate, clear of the field, its access track, its strip's
-     * run-up and the ways. Fewer, or none, where the ground has no room.
+     * The hamlet round {@code field} ({@link HamletGrowth}): its lane and buildings, named {@code field.name() + ".<n>"},
+     * on cells {@code open} passes that nobody farms, off the ways and the column clearance, clear of the field and
+     * its gap, its access track, and its strip's rows for {@link #RUN_UP} cells past either end. The lane joins a
+     * way off the clearance or the field's access track. Smaller, or none, where the ground has no room.
      */
-    public static List<Structure> hamlet(LayoutGround ground, Structure field, LineCourse.CellTest open) {
+    public static HamletGrowth.Hamlet hamlet(LayoutGround ground, Structure field, LineCourse.CellTest open) {
         int fw = field.width(), fh = field.height();
-        int rx0 = Math.max(1, field.x() - HAMLET_REACH), rx1 = Math.min(ground.width() - 2, field.x() + fw - 1 + HAMLET_REACH);
+        int[] region = {Math.max(1, field.x() - HAMLET_REACH), Math.max(1, field.y() - HAMLET_DEEP),
+                Math.min(ground.width() - 2, field.x() + fw - 1 + HAMLET_REACH),
+                Math.min(ground.height() - 2, field.y() + fh - 1 + HAMLET_DEEP)};
         int step = apronStep(field);
-        // On its flanks, within the field's own depth: never out past the apron edge, where its way runs.
-        int ry0 = field.y(), ry1 = field.y() + fh - 1;
-        int gw = rx1 - rx0 + 1, gh = ry1 - ry0 + 1;
-        if (gw <= 0 || gh <= 0) return List.of();
-        boolean[] kept = new boolean[gw * gh];
-        // The field and its gap; the strip's own rows out past both ends for the run-up and the approach.
         int stripY0 = step > 0 ? field.y() : field.y() + fh - STRIP_BAND;
         int stripY1 = step > 0 ? field.y() + STRIP_BAND - 1 : field.y() + fh - 1;
-        keep(kept, rx0, ry0, gw, gh, field.x() - HAMLET_GAP, field.y() - HAMLET_GAP,
-                field.x() + fw - 1 + HAMLET_GAP, field.y() + fh - 1 + HAMLET_GAP);
-        keep(kept, rx0, ry0, gw, gh, field.x() - RUN_UP, stripY0, field.x() + fw - 1 + RUN_UP, stripY1);
-        for (int[] c : access(ground, field).track()) keep(kept, rx0, ry0, gw, gh, c[0] - 1, c[1] - 1, c[0] + 1, c[1] + 1);
-        for (int y = ry0; y <= ry1; y++) {
-            for (int x = rx0; x <= rx1; x++) {
-                if (!open.test(x, y) || ground.isWay(x, y) || ground.inColumnClearance(x, y) || ground.farmed(x, y)) kept[(y - ry0) * gw + (x - rx0)] = true;
-                else if (ground.isWay(x - 1, y) || ground.isWay(x + 1, y) || ground.isWay(x, y - 1) || ground.isWay(x, y + 1)) {
-                    kept[(y - ry0) * gw + (x - rx0)] = true;
-                }
+        Set<Long> track = new HashSet<>();
+        for (int[] c : access(ground, field).track()) track.add(key(c[0], c[1]));
+        LineCourse.CellTest lane = (x, y) -> open.test(x, y) && !ground.isWay(x, y) && !ground.inColumnClearance(x, y)
+                && !ground.farmed(x, y) && !track.contains(key(x, y))
+                && !(x >= field.x() - HAMLET_GAP && x < field.x() + fw + HAMLET_GAP
+                && y >= field.y() - HAMLET_GAP && y < field.y() + fh + HAMLET_GAP)
+                && !(x >= field.x() - RUN_UP && x < field.x() + fw + RUN_UP && y >= stripY0 && y <= stripY1);
+        // A yard keeps a cell off the access track, so the field's own track is never fenced in.
+        LineCourse.CellTest yard = (x, y) -> {
+            if (!lane.test(x, y)) return false;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) if (track.contains(key(x + dx, y + dy))) return false;
             }
-        }
-        // Doors toward the way the apron faces.
-        int turns = step > 0 ? 2 : 0;
-        int gateX = field.x() + fw / 2, edgeY = step > 0 ? field.y() + fh - 1 : field.y();
-        List<Structure> out = new ArrayList<>();
-        int n = 0;
-        for (StructureKind kind : HAMLET) {
-            Structure probe = new Structure(field.name() + "." + (n + 1), kind, 0, 0, turns, false);
-            int w = probe.width(), h = probe.height();
-            int[] best = null;
-            float bestCost = Float.MAX_VALUE;
-            for (int y = ry0; y + h - 1 <= ry1; y++) {
-                for (int x = rx0; x + w - 1 <= rx1; x++) {
-                    if (!clear(kept, rx0, ry0, gw, x, y, w, h)) continue;
-                    // Toward the gate along the way, and out to the apron's edge: a hamlet on its road.
-                    float cost = Math.abs(x + w / 2f - gateX) + 2f * Math.abs((step > 0 ? y + h - 1 : y) - edgeY);
-                    // And beside the buildings already up, so they read as one cluster rather than a scatter.
-                    float near = Float.MAX_VALUE;
-                    for (Structure o : out) {
-                        near = Math.min(near, (float) Math.hypot(x + w / 2f - o.x() - o.width() / 2f,
-                                y + h / 2f - o.y() - o.height() / 2f));
-                    }
-                    if (!out.isEmpty()) cost += CLUSTER_COST * near;
-                    if (cost < bestCost) {
-                        bestCost = cost;
-                        best = new int[]{x, y};
-                    }
-                }
-            }
-            if (best == null) continue;
-            Structure s = new Structure(field.name() + "." + (++n), kind, best[0], best[1], turns, false);
-            out.add(s);
-            keep(kept, rx0, ry0, gw, gh, s.x() - HAMLET_GAP, s.y() - HAMLET_GAP,
-                    s.x() + w - 1 + HAMLET_GAP, s.y() + h - 1 + HAMLET_GAP);
-        }
-        return out;
+            return true;
+        };
+        // The lane opens onto a way off the clearance (a farm track, or the road out along the map's edge that the
+        // field's own track takes), or onto that track.
+        LineCourse.CellTest join = (x, y) -> track.contains(key(x, y))
+                || ground.isWay(x, y) && !ground.inColumnClearance(x, y);
+        return HamletGrowth.grow(field.name(), region, field.x() + fw / 2, field.y() + fh / 2, lane, yard, join);
     }
 
-    private static void keep(boolean[] kept, int rx0, int ry0, int gw, int gh, int x0, int y0, int x1, int y1) {
-        for (int y = Math.max(ry0, y0); y <= Math.min(ry0 + gh - 1, y1); y++) {
-            for (int x = Math.max(rx0, x0); x <= Math.min(rx0 + gw - 1, x1); x++) kept[(y - ry0) * gw + (x - rx0)] = true;
-        }
-    }
-
-    private static boolean clear(boolean[] kept, int rx0, int ry0, int gw, int x, int y, int w, int h) {
-        for (int cy = y; cy < y + h; cy++) {
-            for (int cx = x; cx < x + w; cx++) if (kept[(cy - ry0) * gw + (cx - rx0)]) return false;
-        }
-        return true;
+    private static long key(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
     }
 }

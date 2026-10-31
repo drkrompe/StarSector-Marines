@@ -73,9 +73,12 @@ final class LayoutStructures {
             case OBSERVATION_POST -> ring(ctx, x0, y0, x1, y1, s.turns());
             case BELL_SQUARE -> square(ctx, x0, y0, x1, y1);
             case AIRFIELD -> airfield(ctx, ground, s, x0, y0, x1, y1);
-            case CREW_QUARTERS -> outbuilding(ctx, BuildingStamp.PREFAB_BUNKHOUSE, s, x0, y0, x1, y1);
-            case STORE_SHED -> outbuilding(ctx, BuildingStamp.PREFAB_SHORT_MODULE, s, x0, y0, x1, y1);
-            case PUMP_HUT -> outbuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
+            case CREW_QUARTERS -> hamletBuilding(ctx, BuildingStamp.PREFAB_BUNKHOUSE, s, x0, y0, x1, y1);
+            case STORE_SHED -> hamletBuilding(ctx, BuildingStamp.PREFAB_SHORT_MODULE, s, x0, y0, x1, y1);
+            case PUMP_HUT -> hamletBuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
+            case MESS_HALL -> hamletBuilding(ctx, BuildingStamp.PREFAB_MODULE, s, x0, y0, x1, y1);
+            case RADIO_HUT -> hamletBuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
+            case HOMESTEAD -> hamletBuilding(ctx, BuildingStamp.FARMHOUSE, s, x0, y0, x1, y1);
         }
         return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, s.kind().takesRoad() ? PAVING_REASON : "",
                 s.required(),
@@ -117,10 +120,94 @@ final class LayoutStructures {
         return "";
     }
 
-    /** One building on its worked yard, its door on the side {@code turns} names (0 south). */
-    private static void outbuilding(GenContext ctx, BuildingStamp stamp, Structure s, int x0, int y0, int x1, int y1) {
+    /** The props a hamlet's yards are dressed with; each is skipped quietly where its art is missing. */
+    static final String DRUMS = "doodad.industrial-drum-cluster", TANK = "doodad.industrial-fluid-tank",
+            UTILITY_TRUCK = "doodad.parked-utility-truck", HEDGE = "nature.shrub-1";
+    /** Cells of a hamlet yard's gate, in the middle of its door side. */
+    static final int GATE = 3;
+
+    /**
+     * A hamlet's building ({@link HamletGrowth}) on its worked yard, its door on the side {@code turns} names (0 south,
+     * 1 west, 2 north, 3 east), the yard closed by a fence (a homestead's by a hedge) with a gate before the door, and
+     * dressed by what the building is: drums and crates at the stores, a tank at the pump house, a utility truck at
+     * the quarters, a dish at the radio hut.
+     */
+    private static void hamletBuilding(GenContext ctx, BuildingStamp stamp, Structure s, int x0, int y0, int x1, int y1) {
         yard(ctx, x0, y0, x1, y1);
-        stamp.place(ctx, x0 + StructureFit.YARD, y0 + StructureFit.YARD, s.turns());
+        stamp.place(ctx, x0 + StructureFit.HAMLET_YARD, y0 + StructureFit.HAMLET_YARD, s.turns());
+        Yard yard = new Yard(s.turns(), x0, y0, x1, y1);
+        int a = yard.along(), d = yard.deep();
+        TileRegistry tiles = TileRegistry.installed();
+        int hedge = tiles == null || !tiles.has(HEDGE) ? -1 : tiles.indexOf(HEDGE);
+        for (int u = 0; u < a; u++) {
+            for (int v = 0; v < d; v++) {
+                boolean ring = u == 0 || v == 0 || u == a - 1 || v == d - 1;
+                if (!ring || v == 0 && Math.abs(u - a / 2) <= GATE / 2) continue;
+                int[] c = yard.cell(u, v);
+                if (s.kind() == StructureKind.HOMESTEAD) {
+                    if (hedge >= 0 && PreparedGround.open(ctx, c[0], c[1])) {
+                        ctx.topology.setGroundKind(c[0], c[1], GroundKind.GRASS);
+                        ctx.topology.setSurface(c[0], c[1], 0);
+                        ctx.topology.setNatureOverlayIndex(c[0], c[1], hedge);
+                    }
+                } else {
+                    // Along the door side's own direction the fence runs as that side does.
+                    boolean alongSide = v == 0 || v == d - 1;
+                    PreparedGround.fence(ctx, c[0], c[1], alongSide == ((s.turns() & 1) == 0));
+                }
+            }
+        }
+        int back = d - 2;
+        switch (s.kind()) {
+            case STORE_SHED -> {
+                for (int u = 2; u <= a - 3; u += 2) dress(ctx, yard.cell(u, back), u % 4 == 2 ? DRUMS : CRATES);
+                for (int v = 2; v < back; v += 2) dress(ctx, yard.cell(1, v), DRUMS);
+            }
+            case PUMP_HUT -> {
+                dress(ctx, yard.cell(1, back), TANK);
+                dress(ctx, yard.cell(a - 2, back), TANK);
+            }
+            case MESS_HALL -> {
+                dress(ctx, yard.cell(1, back), CRATES);
+                dress(ctx, yard.cell(a - 2, back), DRUMS);
+            }
+            case RADIO_HUT -> dress(ctx, yard.cell(a - 2, back), MARKER);
+            case HOMESTEAD -> dress(ctx, yard.cell(a - 2, back), CRATES);
+            case CREW_QUARTERS -> {
+                // The truck in the end margin, two cells across and three deep inside the fence.
+                int[] p = yard.cell(1, 3), q = yard.cell(2, 5);
+                int bx = Math.min(p[0], q[0]), by = Math.min(p[1], q[1]);
+                boolean wide = Math.abs(p[0] - q[0]) + 1 == 3;
+                DoodadDef truck = tiles == null ? null : tiles.doodad(UTILITY_TRUCK);
+                if (truck != null) PreparedGround.prop(ctx, bx, by, truck, truck.footprintCellsX == 3 == wide ? 0 : 1);
+            }
+            default -> { }
+        }
+    }
+
+    private static void dress(GenContext ctx, int[] c, String doodad) {
+        TileRegistry tiles = TileRegistry.installed();
+        DoodadDef def = tiles == null ? null : tiles.doodad(doodad);
+        if (def != null && def.footprintCellsX == 1 && def.footprintCellsY == 1) PreparedGround.prop(ctx, c[0], c[1], def, 0);
+    }
+
+    /**
+     * A footprint read from its door side: {@code u} along the door side, {@code v} inward from it, for the side
+     * {@code turns} names.
+     */
+    record Yard(int turns, int x0, int y0, int x1, int y1) {
+        int along() { return (turns & 1) == 0 ? x1 - x0 + 1 : y1 - y0 + 1; }
+
+        int deep() { return (turns & 1) == 0 ? y1 - y0 + 1 : x1 - x0 + 1; }
+
+        int[] cell(int u, int v) {
+            return switch (turns) {
+                case 0 -> new int[]{x0 + u, y0 + v};
+                case 2 -> new int[]{x0 + u, y1 - v};
+                case 1 -> new int[]{x0 + v, y0 + u};
+                default -> new int[]{x1 - v, y0 + u};
+            };
+        }
     }
 
     /** Worked earth over the footprint: a farm's or a store's yard. */

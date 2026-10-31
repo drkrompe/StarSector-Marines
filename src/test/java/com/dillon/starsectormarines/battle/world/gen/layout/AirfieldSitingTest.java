@@ -96,8 +96,9 @@ class AirfieldSitingTest {
         AirfieldSiting.Access access = AirfieldSiting.access(ground, field);
         assertTrue(access.reaches(), "the gate reaches the edge's road");
         for (int[] c : access.track()) assertFalse(ground.inColumnClearance(c[0], c[1]), "the track crosses the band");
-        List<Structure> hamlet = AirfieldSiting.hamlet(ground, field, (x, y) -> ground.buildable(x, y));
-        for (Structure s : hamlet) {
+        HamletGrowth.Hamlet grown = AirfieldSiting.hamlet(ground, field, (x, y) -> ground.buildable(x, y));
+        for (int[] c : grown.lane()) assertFalse(ground.inColumnClearance(c[0], c[1]), "the lane runs in the clearance");
+        for (Structure s : grown.buildings()) {
             for (int x = s.x(); x < s.x() + s.width(); x++) {
                 for (int y = s.y(); y < s.y() + s.height(); y++) {
                     assertFalse(ground.inColumnClearance(x, y), s.name() + " stands in the clearance");
@@ -106,14 +107,23 @@ class AirfieldSitingTest {
         }
     }
 
-    /** The hamlet keeps off the field, the ways, and the strip's rows past either end. */
+    /**
+     * The hamlet grows round a lane of its own joined to a way, four or more buildings where there is room, and keeps
+     * off the field, the ways, and the strip's rows past either end.
+     */
     @Test
     void aHamletLeavesTheStripTheFieldAndTheWaysClear() {
         LayoutGround ground = ground();
         Structure field = new Structure("airbase-1", StructureKind.AIRFIELD, 40, ROAD_Y - 3 - StructureKind.AIRFIELD.deep,
                 2, false);
-        List<Structure> hamlet = AirfieldSiting.hamlet(ground, field, (x, y) -> ground.buildable(x, y));
-        assertFalse(hamlet.isEmpty(), "open ground either side and nothing built");
+        HamletGrowth.Hamlet grown = AirfieldSiting.hamlet(ground, field, (x, y) -> ground.buildable(x, y));
+        List<Structure> hamlet = grown.buildings();
+        assertTrue(hamlet.size() >= 4, "open ground either side and nothing built: " + hamlet.size());
+        assertFalse(grown.lane().isEmpty(), "the hamlet has its lane");
+        for (int[] c : grown.lane()) {
+            assertFalse(ground.isWay(c[0], c[1]), "the lane runs on a way");
+            for (Structure s : hamlet) assertFalse(overlaps(s, c[0], c[1], c[0], c[1]), s.name() + " stands on the lane");
+        }
         int stripY1 = field.y() + AirfieldSiting.STRIP_BAND - 1;
         for (Structure s : hamlet) {
             assertFalse(overlaps(s, field.x() - 1, field.y() - 1, field.x() + field.width(), field.y() + field.height()),
@@ -122,7 +132,6 @@ class AirfieldSitingTest {
                     field.x() + field.width() - 1 + AirfieldSiting.RUN_UP, stripY1), s.name() + " stands in the run-up");
             assertFalse(overlaps(s, 0, ROAD_Y, W - 1, ROAD_Y + 2), s.name() + " stands on the road");
             assertFalse(overlaps(s, TRACK_X, 0, TRACK_X + 2, ROAD_Y), s.name() + " stands on the track");
-            assertTrue(s.y() + s.height() - 1 <= field.y() + field.height() - 1, s.name() + " is past the apron edge");
         }
         for (int i = 0; i < hamlet.size(); i++) {
             for (int j = i + 1; j < hamlet.size(); j++) {

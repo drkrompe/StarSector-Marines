@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
+import com.dillon.starsectormarines.battle.world.gen.layout.HamletGrowth;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Line;
 import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
@@ -22,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureFit;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.layout.Worked;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
@@ -88,6 +90,10 @@ public final class HeartLayout {
     public static final String AIRBASES = "airbases";
     /** One airbase: this plus 1 (west) and 2 (east). */
     public static final String AIRBASE = "airbase-";
+    /** An airbase's hamlet's lane: the base's name and this. */
+    public static final String HAMLET_LANE = ".lane";
+    /** An airbase's access track from its gate: the base's name and this. */
+    public static final String ACCESS_TRACK = ".track";
     /**
      * How the heart keeps its ways: {@link #COLUMN_BAND} cells clear either side of every column's way, so the allied
      * columns and the company form up at their feet and drive out with nothing built beside the road; and a line of
@@ -510,11 +516,15 @@ public final class HeartLayout {
                 base = AirfieldSiting.site(ground, name, region, middle[0], middle[1], open);
             }
             if (base == null) continue;
-            List<Structure> hamlet = AirfieldSiting.hamlet(ground, base, open);
+            HamletGrowth.Hamlet hamlet = AirfieldSiting.hamlet(ground, base, open);
             out.add(base);
-            out.addAll(hamlet);
+            out.addAll(hamlet.buildings());
+            if (!hamlet.lane().isEmpty()) out.add(new Worked(name + HAMLET_LANE, hamlet.lane(), false));
+            // The gate's track as worked ground of its own, so the landscape keeps it as laid.
+            List<int[]> track = AirfieldSiting.access(ground, base).track();
+            if (!track.isEmpty()) out.add(new Worked(name + ACCESS_TRACK, track, false));
             taken.add(base);
-            taken.addAll(hamlet);
+            taken.addAll(hamlet.buildings());
         }
         return out;
     }

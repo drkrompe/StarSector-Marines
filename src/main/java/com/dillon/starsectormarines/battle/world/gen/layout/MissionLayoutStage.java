@@ -170,6 +170,10 @@ public final class MissionLayoutStage implements GenStage {
                     continue;
                 }
                 out.add(LayoutStructures.raise(ctx, ground, structure, held));
+            } else if (piece instanceof Worked worked) {
+                out.add(layWorked(ctx, worked, held));
+            } else if (piece instanceof Props props && phase == Phase.STRUCTURES) {
+                out.add(layProps(ctx, props));
             } else if (phase == Phase.STRUCTURES) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(),
                         "only structures are raised in the structures phase"));
@@ -279,6 +283,19 @@ public final class MissionLayoutStage implements GenStage {
      * Each prop through the ordinary placement, and a tree's canopy through the forest brush, which refuses it on
      * ground a tree may not stand on; laid when any stood, reported by the low corners of those that did.
      */
+    /** Worked earth over a {@link Worked} piece's open cells, off held ground. */
+    static Laid layWorked(GenContext ctx, Worked worked, boolean[][] held) {
+        List<int[]> done = new ArrayList<>();
+        for (int[] c : worked.cells()) {
+            if (held != null && ctx.grid.inBounds(c[0], c[1]) && held[c[0]][c[1]]) continue;
+            if (PreparedGround.workedGround(ctx, c[0], c[1])) done.add(c);
+        }
+        return done.isEmpty()
+                ? Laid.refused(worked.name(), Laid.Kind.BLOCK, worked.required(), "no open ground")
+                : new Laid(worked.name(), Laid.Kind.BLOCK, Laid.Status.LAID, done.size() + " of " + worked.cells().size(),
+                        worked.required(), done, List.of(), List.of());
+    }
+
     static Laid layProps(GenContext ctx, Props props) {
         TileRegistry tiles = TileRegistry.installed();
         List<int[]> stood = new ArrayList<>();

@@ -5,7 +5,7 @@ built.
 
 Written: 2026-10-23
 
-Updated: 2026-10-31 — nothing but paving stands on a way; a layout may keep a column clearance either side of the columns' ways and break its lines at tracks; an airfield is sited beside a way with a hamlet round it; a layout may carry structures placed by hand. Earlier, 2026-10-25: a road resolved with the works follows the standing streets.
+Updated: 2026-10-31 — a hamlet grows round a placed structure on a lane of its own, its yards fenced and dressed; nothing but paving stands on a way; a layout may keep a column clearance either side of the columns' ways and break its lines at tracks; an airfield is sited beside a way with a hamlet round it; a layout may carry structures placed by hand. Earlier, 2026-10-25: a road resolved with the works follows the standing streets.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -64,8 +64,12 @@ optional (reported, and the map stands).
   middle), an airfield (an allied base lot, `AirbaseLot.BASE`, and its verge, its strip on the
   side its turn names, its hardstands an allied field's and no node to take;
   laid from its own draw, with a worked track from its gate to the way it
-  stands beside), crew quarters (a prefab bunkhouse on a yard), a store shed
-  (a short prefab module on a yard) and a pump hut (a one-room hut on a yard).
+  stands beside), and a hamlet's buildings, each on a yard closed by a fence
+  with a gate before its door and dressed by what it is: crew quarters (a
+  prefab bunkhouse, a utility truck parked in the yard), a mess (a long prefab
+  module), a stores shed (a short prefab module, drums and crates), a pump
+  house (a one-room hut, water tanks), a radio hut (a one-room hut and a
+  dish), and a homestead (a farmhouse alone, its yard hedged).
   Its whole footprint must be open ground nobody built on, or it is
   refused rather than squeezed. Nothing but a square stands on a way, the
   farmland's tracks and the landscape's lane tracks included; an airfield and
@@ -84,11 +88,21 @@ optional (reported, and the map stands).
   column forms up. Every footprint cell by cell is tried. Unfarmed ground is
   preferred, then a short track, then nearness to where it was wanted; its
   strip runs along x and faces whichever way puts the apron toward the way.
-  Round it grows a **hamlet** of up to five buildings (crew quarters, a store
-  shed, a farmstead, a pump hut, a granary) on its flanks within its own
-  depth, clustered toward the gate, doors toward the way, off the field, its
-  access track, the ways, farmed ground, and the strip's rows for thirty
-  cells past either end; fewer or none where there is no room.
+  Round it grows a hamlet (below), off the field, its access track, the ways,
+  the clearance, farmed ground, and the strip's rows for thirty cells past
+  either end; its lane may open onto the field's access track.
+- **Hamlet** (`HamletGrowth`, mission-neutral): a settlement grown round a
+  placed structure. A three-cell lane of its own, opening at one end onto a
+  way off the column clearance (a farm track, the road out along the map's
+  edge, a field's access track), with up to six buildings on yards fronting it
+  either side across a one-cell verge, gates and doors on the lane: crew
+  quarters, a mess, a stores shed, a pump house, a homestead and a radio hut,
+  in that order while there is room. Of every lane that fits, the one seating
+  the most buildings wins, a joined lane counting for a building and a half,
+  then the nearest; so a hamlet stands on whichever side has the most open,
+  unfarmed ground, smaller where room is short, none where no yard fits. The
+  lane is laid as worked ground (**Worked**, a piece of worked earth by cells,
+  laid in the phase of the deferred piece that resolved it).
 - **Placed by hand.** A layout may carry structures a person put down for one
   map (`MissionLayout.placed`, from a story map's patch: `story-map-pools.md`,
   The patch). A deferred piece resolving a structure of that name takes the
@@ -98,7 +112,8 @@ optional (reported, and the map stands).
   (closed to vehicles until a dozer clears it; laid as crate stacks until
   there is wreck art), or sandbag positions facing a direction.
 - **Props.** Props set down by hand, each a doodad by id at a cell and turn,
-  laid with the works through the ordinary prop placement, which skips one
+  laid with the works (or with the structures, when a structures-phase
+  deferred piece resolved them) through the ordinary prop placement, which skips one
   whose ground is not open. One piece, laid when any prop stood and reporting
   how many did: set dressing that says what a place was (a freight yard's
   containers, a lab's tank racks), never a building or cover a beat relies on.
@@ -147,7 +162,8 @@ optional (reported, and the map stands).
   first), so the finishing stages treat their buildings as buildings.
 - **Works phase.** Once the places, roads and lanes stand and before the
   landscape grows round them, deferred pieces resolve, ridges are raised, and
-  every line, block and site is laid. The landscape then keeps clear of what was laid, except ground held
+  every line, block and site is laid. The landscape then keeps clear of what was laid (no field's ragged margin
+  grows over a structure's yard or worked ground), except ground held
   for authored terrain.
 - A map whose plan states no layout runs none of this and is generated exactly
   as before.
