@@ -39,7 +39,10 @@ public final class CreateSnapshotsCli {
         List<SnapshotSuite> suites = catalog.select(selector);
         if (TextureUsageCapture.install("snapshots")) suites = labelled(suites);
         if (LayoutLint.enabled()) suites = linted(suites);
-        try (var strings = new HeadlessStrings(projectRoot.resolve("mod"))) {
+        // -Dsnapshot.translation=<locale> renders every selected suite in that translation mod.
+        String locale = System.getProperty(HeadlessStrings.TRANSLATION_PROPERTY, "");
+        try (var strings = locale.isBlank() ? new HeadlessStrings(projectRoot.resolve("mod"))
+                : HeadlessStrings.translation(projectRoot.resolve("mod"), locale)) {
             List<Path> outputs = new SnapshotRunner().create(
                     new SnapshotContext(projectRoot, starsectorCore),
                     suites, outputRoot, true);

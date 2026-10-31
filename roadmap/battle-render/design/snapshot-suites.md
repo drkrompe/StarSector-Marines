@@ -78,10 +78,12 @@ workbench's Snapshots tab share one catalog.
   copy and `[<locale>]` for a translation mod. Pass absolute
   paths, and leave out suites that play battles: they cost minutes and add no screens. It lints the page the suite
   built, so a suite that leaves out a sheet the game installs lints a different page.
-- **`-Dsnapshot.translation=<locale>` adds a translation mod** to suites that render translated copy
-  (`opening-localization`): `HeadlessStrings.translation` merges `translations/<locale>/` strings over the English
-  catalog, reads its `settings.json`, and resolves its files, fonts included, ahead of `mod/` and the game. A CJK
-  translation needs its fonts baked first (`gradlew :asset-pipeline:generateCjkFonts`).
+- **`-Dsnapshot.translation=<locale>` renders the selected suites in a translation mod**:
+  `HeadlessStrings.translation` merges `translations/<locale>/` strings over the English catalog, reads its
+  `settings.json`, and resolves its files, fonts included, ahead of `mod/` and the game; the lint labels its screens
+  `[<locale>]`. A suite's own English or expanded overlay sets the translation aside while open, so
+  `opening-localization` renders `english/`, `expanded/` and a `<locale>/` set. A CJK translation needs its fonts
+  baked first (`gradlew :asset-pipeline:generateCjkFonts`).
 - A suite artifact is a PNG, an animated GIF for a suite whose evidence is a played battle, or an MP4 the suite
   has encoded to a scratch file under `build/tmp` (`SnapshotArtifact.video`). The runner writes or moves each into
   place; a suite never writes into the output tree itself. Animated review frames come from `BattleReviewFrameRenderer`, shared
