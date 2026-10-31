@@ -1057,7 +1057,6 @@
 		"companyResourceShortBy": "还差 {0}",
 		"companyResourceNamedCost": "{0} · 花费 {1}",
 		"openingNewsVisibleCount": "{0,choice,0#此视图中 0 份报告|1#此视图中 1 份报告|1<此视图中 {0,number,integer} 份报告}",
-		"openingRecoveryNow": "现在",
 		"openingCompanyHqOfficersStationed": "2 名军官  /  1 名外驻",
 		"openingCompanyHqCompletedFailed": "5 完成  /  0 失败",
 		"openingCompanyHqCompletedFailed2": "2 完成  /  1 失败",
