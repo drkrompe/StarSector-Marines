@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -55,6 +57,8 @@ public final class AlliedToolShed implements AlliedProducer {
     /** Tools that bring fighting bodies on, the pool they count against and how many each brings ({@link AlliedCap}). */
     private final Map<AlliedTool, AlliedCap.Pool> capPools = new EnumMap<>(AlliedTool.class);
     private final Map<AlliedTool, Integer> capSizes = new EnumMap<>(AlliedTool.class);
+    /** Tools whose cap counts those on their way ({@link #capsOnRoad}). */
+    private final Set<AlliedTool> onRoadCapped = EnumSet.noneOf(AlliedTool.class);
 
     public AlliedToolShed(AlliedDepot depot) {
         this.depot = depot;
@@ -81,6 +85,17 @@ public final class AlliedToolShed implements AlliedProducer {
      */
     public AlliedToolShed suppliedWhile(AlliedTool tool, Predicate<BattleSimulation> supplied) {
         supplies.put(tool, supplied);
+        return this;
+    }
+
+    /**
+     * A tool whose cap counts those still on their way as well as those in stock: it restocks only while stock and
+     * road together are short of the cap, so the base never has more of it out than the cap however slowly they
+     * arrive (an ammunition truck waiting at the gate for an escort is still one of the cap's;
+     * {@code cordon-allied-forces.md}, Production caps).
+     */
+    public AlliedToolShed capsOnRoad(AlliedTool tool) {
+        onRoadCapped.add(tool);
         return this;
     }
 
@@ -143,9 +158,15 @@ public final class AlliedToolShed implements AlliedProducer {
     }
 
     void advance(BattleSimulation sim, int tick) {
+        onRoad.removeIf(d -> d.sent().done(sim));
         for (Map.Entry<AlliedTool, Line> e : lines.entrySet()) {
             Line line = e.getValue();
-            if (line.restockTicks <= 0 || line.stock >= line.cap) continue;
+            int out = onRoadCapped.contains(e.getKey()) ? onRoad(e.getKey()) : 0;
+            if (line.restockTicks <= 0 || line.stock + out >= line.cap) {
+                // Held at its cap: the clock starts again when one comes off the road.
+                if (out > 0) line.nextRestock = 0;
+                continue;
+            }
             if (line.nextRestock == 0) line.nextRestock = tick + line.restockTicks;
             Predicate<BattleSimulation> supplied = supplies.get(e.getKey());
             if (supplied != null && !supplied.test(sim)) {
@@ -158,7 +179,13 @@ public final class AlliedToolShed implements AlliedProducer {
                 line.nextRestock = tick + line.restockTicks;
             }
         }
-        onRoad.removeIf(d -> d.sent().done(sim));
+    }
+
+    /** Tools of this kind on their way anywhere. */
+    public int onRoad(AlliedTool tool) {
+        int n = 0;
+        for (Dispatch d : onRoad) if (d.request().tool() == tool) n++;
+        return n;
     }
 
     @Override

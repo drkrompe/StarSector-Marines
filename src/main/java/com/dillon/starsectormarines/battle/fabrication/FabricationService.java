@@ -137,6 +137,7 @@ public final class FabricationService {
     private final List<MechVariant> buildable;
     private List<Machine> line = List.of();
     private float pace = 1f;
+    private boolean held;
     private LongConsumer rolledOut = id -> { };
     private final String factionId;
     private Faction lastBuilder = Faction.DEFENDER;
@@ -323,6 +324,18 @@ public final class FabricationService {
     }
 
     public float pace() { return pace; }
+
+    /**
+     * Holds the line or lets it run again: a held line lays no keel and puts no structure on the machine on its stocks,
+     * which stands as far built as it was. A mission's production cap holds it while its side has as many machines out
+     * as it may ({@code cordon-allied-forces.md}, Production caps).
+     */
+    public void setHeld(boolean held) {
+        this.held = held;
+    }
+
+    /** Whether the line is held ({@link #setHeld}). */
+    public boolean held() { return held; }
 
     /** Told the id of every finished machine as it rolls out: the mech, or the hull. */
     public void onRollOut(LongConsumer listener) {

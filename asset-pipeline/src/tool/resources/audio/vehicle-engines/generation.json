@@ -1,6 +1,6 @@
 {
   "documentation": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
-  "note": "Engine loops for ground vehicles, played by MachineAudio with pitch and volume following speed. Each is recorded at one steady mid throttle; the game bends it toward idle and full. The owner kept tracked A (diesel for most tanks) and the A take of wheeled and hover (2026-10-23). The laser tank's turbine voice moved from tracked B to its own turbine batch; turbine A ships. Turbine C and D came back almost entirely sub-bass (under 100 Hz) from two prompts each.",
+  "note": "Engine loops for ground vehicles, played by MachineAudio with pitch and volume following speed. Each is recorded at one steady mid throttle; the game bends it toward idle and full. The owner kept tracked A (diesel for most tanks) and the A take of wheeled and hover (2026-10-23). The laser tank's turbine voice moved from tracked B to its own turbine batch; the owner picked turbine B (2026-10-31) and moved the hover hulls onto it too, so hover A no longer ships. Turbine C and D came back almost entirely sub-bass (under 100 Hz) from two prompts each.",
   "settings": {
     "model_id": "eleven_text_to_sound_v2",
     "duration_seconds": 6,

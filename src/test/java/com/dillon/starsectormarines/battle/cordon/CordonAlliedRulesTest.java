@@ -138,4 +138,19 @@ class CordonAlliedRulesTest {
         assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.URBAN, CordonVariant.LINE));
         assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.TOWN, CordonVariant.ROAD));
     }
+
+    @Test
+    void theShedStopsAtItsCapAndBuildsAgainAfterALoss() {
+        CordonAlliedTable.Production cap = new CordonAlliedTable.Production(3, 1);
+        assertTrue(CordonAlliedRules.shedBuilds(2, 0, cap));
+        assertFalse(CordonAlliedRules.shedBuilds(3, 0, cap), "three out: held");
+        assertTrue(CordonAlliedRules.shedBuilds(3 - 1, 0, cap), "one lost: building again");
+    }
+
+    @Test
+    void aFinishedMachineWaitingAtTheDoorHoldsTheShedUntilItIsOut() {
+        CordonAlliedTable.Production cap = new CordonAlliedTable.Production(10, 1);
+        assertFalse(CordonAlliedRules.shedBuilds(1, 1, cap), "one waiting at the door: nothing more piles up behind it");
+        assertTrue(CordonAlliedRules.shedBuilds(1, 0, cap), "sent out: the shed goes on");
+    }
 }

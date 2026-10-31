@@ -49,7 +49,6 @@ public final class MachineAudio {
     public static final String ENGINE_TRACKED = "marines_engine_tracked";
     public static final String ENGINE_TURBINE = "marines_engine_turbine";
     public static final String ENGINE_WHEELED = "marines_engine_wheeled";
-    public static final String ENGINE_HOVER = "marines_engine_hover";
 
     /** A loop to hold this frame. Velocity is in cells a second, for Doppler. */
     public record Loop(String soundId, Object key, float pitch, float volume,
@@ -70,7 +69,8 @@ public final class MachineAudio {
     private static final EngineVoice TRACKED = new EngineVoice(ENGINE_TRACKED, .78f, 1.08f, .40f, .85f);
     private static final EngineVoice TURBINE = new EngineVoice(ENGINE_TURBINE, .82f, 1.12f, .40f, .85f);
     private static final EngineVoice WHEELED = new EngineVoice(ENGINE_WHEELED, .85f, 1.18f, .28f, .65f);
-    private static final EngineVoice HOVER = new EngineVoice(ENGINE_HOVER, .90f, 1.15f, .35f, .70f);
+    /** Hover hulls run the turbine too, on a lighter curve: higher at idle, quieter at full. */
+    private static final EngineVoice HOVER = new EngineVoice(ENGINE_TURBINE, .90f, 1.15f, .35f, .70f);
 
     /** Which vents were open last frame; a vent first seen open opens silently rather than replaying. */
     private final Map<Object, Boolean> venting = new IdentityHashMap<>();
@@ -82,8 +82,8 @@ public final class MachineAudio {
         bumped.clear();
     }
 
-    /** The voice a hull's engine speaks with: a gas turbine for the high-tech laser hull, a diesel for the other tank and
-     *  APC lines, a fan for hover, wheels otherwise. */
+    /** The voice a hull's engine speaks with: a gas turbine for the high-tech laser hull and the hover
+     *  hulls, a diesel for the other tank and APC lines, wheels otherwise. */
     static EngineVoice engineVoice(VehicleType type) {
         if (type.isHover()) return HOVER;
         if (type == VehicleType.LASER_TANK) return TURBINE;

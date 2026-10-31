@@ -83,9 +83,15 @@ public final class CordonLineCommand {
     private final Set<Long> picketsLost = new HashSet<>();
     /** The men each redoubt was manned with at setup, against which its losses are replaced; empty where none are. */
     private final Map<CordonRedoubt, Integer> establishment = new LinkedHashMap<>();
-    /** The tick of the last call for replacements, and the calls made, by redoubt number. */
+    /** The tick of the last call for replacements, and the calls made, by redoubt number (the camp's as 0). */
     private int lastCall = Integer.MIN_VALUE / 2;
     private final Map<Integer, Integer> calls = new TreeMap<>();
+    /** The safe camp whose guard is replaced, or {@code null}: none on the map, or no replacements on this line. */
+    private CordonCamp camp;
+    /** The men the camp's guard was manned with at setup, against which its losses are replaced. */
+    private int campEstablishment;
+    /** Whether the camp's guard has been wiped out: it is never refilled after. */
+    private boolean campFallen;
 
     /**
      * @param pickets the picket nests' guns; each joins the stock of the redoubt it stands nearest
@@ -141,6 +147,7 @@ public final class CordonLineCommand {
                     CordonRedoubt to = redoubt(request.toPlace());
                     if (to == null) return null;
                     List<Long> mechs = armour.sendMechs(s, PAIR, from, to, "Redoubt " + to.number() + " relief Hound");
+                    mechs.forEach(logistics::fromBase);
                     return mechs.isEmpty() ? null : arrived(mechs, to);
                 }, reserve.cover(), reserve.cover(), restockCover);
             } else {
@@ -148,6 +155,7 @@ public final class CordonLineCommand {
                     CordonRedoubt to = redoubt(request.toPlace());
                     if (to == null) return null;
                     List<Long> hulls = armour.sendHulls(s, reserve.coverHull(), PAIR, from, to);
+                    hulls.forEach(logistics::fromBase);
                     return hulls.isEmpty() ? null : arrived(hulls, to);
                 }, reserve.cover(), reserve.cover(), restockCover);
             }
@@ -164,16 +172,30 @@ public final class CordonLineCommand {
                 CordonRedoubt to = redoubt(request.toPlace());
                 int[] start = to == null ? null : truckStart.get(to);
                 return truck.make(s, start != null ? start : from, request);
-            }, reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()));
+            }, reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()))
+                    // Its cap counts the trucks still out: one waiting at the gate for an escort is still one of them.
+                    .capsOnRoad(AlliedTool.AMMO_TRUCK);
             if (CordonAlliedRules.replacesLosses(sequence.variant())) {
-                for (CordonRedoubt r : redoubts) establishment.put(r, CordonSequence.standing(sim, r));
+                if (CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.REDOUBT)) {
+                    for (CordonRedoubt r : redoubts) establishment.put(r, CordonSequence.standing(sim, r));
+                }
+                // The safe camp's guard is replaced from the same pool; the town outside the wire never is.
+                CordonCamp safe = sequence.convoys() == null ? null : sequence.convoys().camp();
+                if (safe != null && CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.CAMP)) {
+                    campEstablishment = CordonSequence.standing(sim, safe.teams());
+                    if (campEstablishment > 0) camp = safe;
+                }
                 CordonAlliedTable.Replacements pool = CordonAlliedTable.REPLACEMENTS;
-                shed.stock(AlliedTool.COLUMN, (s, from, request) -> replacement(s, redoubt(request.toPlace())),
+                shed.stock(AlliedTool.COLUMN, (s, from, request) -> CAMP_PLACE.equals(request.toPlace())
+                                ? campReplacement(s) : replacement(s, redoubt(request.toPlace())),
                         pool.squads(), pool.squads(), CordonSequence.ticks(pool.restockSeconds()));
             }
         }
         armour.escortHulls(this::roadHulls);
     }
+
+    /** The name the safe camp goes by in replacement requests. */
+    static final String CAMP_PLACE = "camp";
 
     /** The name a redoubt goes by in requests, stocks and deliveries. */
     static String place(CordonRedoubt r) {
@@ -226,37 +248,86 @@ public final class CordonLineCommand {
                 ask(sim, tick, new AlliedRequest(cover, place, r.centreX(), r.centreY(), "uncovered"));
             }
         }
-        if (!establishment.isEmpty()) replace(sim, tick, beat);
+        if (!establishment.isEmpty() || camp != null) replace(sim, tick, beat);
     }
 
     /**
-     * The line's call for replacements at this look ({@link CordonAlliedRules#replacement}): the redoubt most teams
-     * short asks the base for up to its call's squads, one request a squad, until the pool or the apron refuses. Told
-     * as {@code reinforcements_N_K}, redoubt N's Kth call, when any set out.
+     * The line's call for replacements at this look ({@link CordonAlliedRules#replacement}): the post most teams short,
+     * a redoubt or the camp, asks the base for up to its call's squads, one request a squad, until the pool or the
+     * apron refuses. Told as {@code reinforcements_N_K}, redoubt N's Kth call ({@code reinforcements_camp_K} for the
+     * camp), when any set out.
      */
     private void replace(BattleSimulation sim, int tick, Consumer<String> beat) {
         CordonAlliedTable.Replacements pool = CordonAlliedTable.REPLACEMENTS;
+        int inFlight = 0;
+        for (AlliedToolShed.Dispatch d : shed.pending()) if (d.request().tool() == AlliedTool.COLUMN) inFlight++;
+        int[] call = CordonAlliedRules.replacement(garrisons(sim), ColonyMilitia.POST_SIZE, pool.perCall(), inFlight,
+                pool.inFlight(), tick < lastCall + CordonSequence.ticks(pool.cooldownSeconds()));
+        if (call == null) return;
+        boolean toCamp = call[0] == CordonAlliedRules.CAMP && camp != null;
+        CordonRedoubt r = null;
+        if (!toCamp) for (CordonRedoubt each : establishment.keySet()) if (each.number() == call[0]) r = each;
+        if (!toCamp && r == null) return;
+        AlliedRequest request = toCamp
+                ? new AlliedRequest(AlliedTool.COLUMN, CAMP_PLACE, camp.centreX(), camp.centreY(), "guard lost")
+                : new AlliedRequest(AlliedTool.COLUMN, place(r), r.centreX(), r.centreY(), "teams lost");
+        int sent = 0;
+        for (int i = 0; i < call[1]; i++) {
+            if (!ask(sim, tick, request)) break;
+            sent++;
+        }
+        if (sent == 0) return;
+        lastCall = tick;
+        beat.accept("reinforcements_" + (toCamp ? "camp" : String.valueOf(call[0])) + "_"
+                + calls.merge(call[0], 1, Integer::sum));
+    }
+
+    /** Every post the line replaces losses at, as the rule sees it: the redoubts west to east, then the camp. */
+    private List<CordonAlliedRules.Garrison> garrisons(BattleSimulation sim) {
         List<CordonAlliedRules.Garrison> garrisons = new ArrayList<>();
         for (Map.Entry<CordonRedoubt, Integer> e : establishment.entrySet()) {
             CordonRedoubt r = e.getKey();
             garrisons.add(new CordonAlliedRules.Garrison(r.number(), r.manned(), r.state() == CordonRedoubt.State.CALLING,
                     e.getValue(), CordonSequence.standing(sim, r), shed.onRoad(AlliedTool.COLUMN, place(r))));
         }
-        int inFlight = 0;
-        for (AlliedToolShed.Dispatch d : shed.pending()) if (d.request().tool() == AlliedTool.COLUMN) inFlight++;
-        int[] call = CordonAlliedRules.replacement(garrisons, ColonyMilitia.POST_SIZE, pool.perCall(), inFlight,
-                pool.inFlight(), tick < lastCall + CordonSequence.ticks(pool.cooldownSeconds()));
-        if (call == null) return;
-        CordonRedoubt r = null;
-        for (CordonRedoubt each : establishment.keySet()) if (each.number() == call[0]) r = each;
-        int sent = 0;
-        for (int i = 0; i < call[1]; i++) {
-            if (!ask(sim, tick, new AlliedRequest(AlliedTool.COLUMN, place(r), r.centreX(), r.centreY(), "teams lost"))) break;
-            sent++;
+        if (camp != null) {
+            garrisons.add(new CordonAlliedRules.Garrison(CordonAlliedRules.CAMP, campManned(sim), false,
+                    campEstablishment, CordonSequence.standing(sim, camp.teams()),
+                    shed.onRoad(AlliedTool.COLUMN, CAMP_PLACE)));
         }
-        if (sent == 0) return;
-        lastCall = tick;
-        beat.accept("reinforcements_" + r.number() + "_" + calls.merge(r.number(), 1, Integer::sum));
+        return garrisons;
+    }
+
+    /** Whether the camp's guard still stands: once none of it does, the camp is fallen for good. */
+    private boolean campManned(BattleSimulation sim) {
+        if (camp == null || campFallen) return false;
+        if (CordonSequence.standing(sim, camp.teams()) > 0) return true;
+        campFallen = true;
+        return false;
+    }
+
+    /**
+     * One replacement squad for the camp: a team off the rear edge at the entry nearest the camp, walking straight
+     * there (it stands beside the base's muster yard, so no carrier is wanted) to join its guard. {@code null} when it
+     * could not come on.
+     */
+    private AlliedToolShed.Sent campReplacement(BattleSimulation sim) {
+        AlliedColumns columns = sequence.columns();
+        if (camp == null || columns == null) return null;
+        int[] entry = entryToward(columns, camp.centreX());
+        if (entry == null) return null;
+        int number = columns.call(sim, entry[0], entry[1], 1, toPost(null), "replacements march to the camp");
+        if (number < 0) return null;
+        return s -> !columns.marching(number);
+    }
+
+    /** The timetable's entry across the rear edge nearest {@code x}, or {@code null}. */
+    private static int[] entryToward(AlliedColumns columns, int x) {
+        int[] entry = null;
+        for (int[] e : columns.entries()) {
+            if (entry == null || Math.abs(e[0] - x) < Math.abs(entry[0] - x)) entry = e;
+        }
+        return entry;
     }
 
     /**
@@ -270,12 +341,9 @@ public final class CordonLineCommand {
         if (to == null || columns == null || logistics == null) return null;
         boolean musters = logistics.musters();
         int towardX = musters ? logistics.musterX() : to.centreX();
-        int[] entry = null;
-        for (int[] e : columns.entries()) {
-            if (entry == null || Math.abs(e[0] - towardX) < Math.abs(entry[0] - towardX)) entry = e;
-        }
+        int[] entry = entryToward(columns, towardX);
         if (entry == null) return null;
-        AlliedColumns.Orders orders = musters ? logistics.columnOrders(to) : toRedoubt(to);
+        AlliedColumns.Orders orders = musters ? logistics.columnOrders(to) : toPost(to);
         int number = columns.call(sim, entry[0], entry[1], 1, orders, "replacements march to redoubt " + to.number());
         if (number < 0) return null;
         List<Integer> squads = columns.squads(number);
@@ -287,31 +355,62 @@ public final class CordonLineCommand {
     }
 
     /**
-     * The orders a replacement walking the whole way marches under: to the redoubt it was called for while that stands,
-     * else to the one that needs it most, joining its garrison there.
+     * The orders a replacement walking the whole way marches under: to the post it was called for (redoubt
+     * {@code bound}, or the camp where {@code null}) while that stands, else to the post most teams short still
+     * standing (the redoubt that needs it most where none is short), joining its garrison there.
      */
-    private AlliedColumns.Orders toRedoubt(CordonRedoubt bound) {
+    private AlliedColumns.Orders toPost(CordonRedoubt bound) {
         return new AlliedColumns.Orders() {
             @Override public int[] destination(BattleSimulation sim) {
-                CordonRedoubt to = bound.manned() ? bound : neediest(sim);
-                return to == null ? null : new int[]{to.centreX(), to.centreY()};
+                if (bound == null && campManned(sim)) return new int[]{camp.centreX(), camp.centreY()};
+                if (bound != null && bound.manned()) return new int[]{bound.centreX(), bound.centreY()};
+                return divert(sim);
             }
 
             @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
+                if (inCamp(x, y)) return campManned(sim);
                 CordonRedoubt r = at(x, y);
                 return r != null && r.manned();
             }
 
             @Override public boolean arrived(int x, int y, int destX, int destY) {
+                if (inCamp(destX, destY)) return camp.contains(x, y);
                 CordonRedoubt r = at(destX, destY);
                 return r != null && r.contains(x, y, CordonSequence.RELIEF_REACH);
             }
 
             @Override public void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY) {
+                if (inCamp(destX, destY)) {
+                    camp.join(sim, squads);
+                    return;
+                }
                 CordonRedoubt r = at(destX, destY);
                 if (r != null) CordonSequence.join(sim, r, squads);
             }
         };
+    }
+
+    private boolean inCamp(int x, int y) {
+        return camp != null && camp.contains(x, y);
+    }
+
+    /**
+     * Where a replacement whose post fell on the way goes: the post most teams short still standing, else the redoubt
+     * that needs it most; {@code null} when nothing stands.
+     */
+    private int[] divert(BattleSimulation sim) {
+        CordonAlliedRules.Garrison best = shed == null ? null
+                : CordonAlliedRules.mostShort(garrisons(sim), ColonyMilitia.POST_SIZE);
+        if (best != null && best.number() == CordonAlliedRules.CAMP && camp != null) {
+            return new int[]{camp.centreX(), camp.centreY()};
+        }
+        if (best != null) {
+            for (CordonRedoubt r : sequence.redoubts()) {
+                if (r.number() == best.number()) return new int[]{r.centreX(), r.centreY()};
+            }
+        }
+        CordonRedoubt to = neediest(sim);
+        return to == null ? null : new int[]{to.centreX(), to.centreY()};
     }
 
     private CordonRedoubt neediest(BattleSimulation sim) {
@@ -427,7 +526,7 @@ public final class CordonLineCommand {
         out.append("trucks ").append(delivered).append(" delivered, ").append(lost).append(" lost");
         int onRoad = deliveries.size() - delivered - lost;
         if (onRoad > 0) out.append(", ").append(onRoad).append(" on the road");
-        if (!establishment.isEmpty()) out.append("; replacement calls by redoubt ").append(calls);
+        if (!establishment.isEmpty() || camp != null) out.append("; replacement calls by post (0 the camp) ").append(calls);
         if (logistics != null) out.append("; company lifts ").append(logistics.liftReadings());
         out.append(" (ways");
         for (CordonRedoubt r : sequence.redoubts()) {
