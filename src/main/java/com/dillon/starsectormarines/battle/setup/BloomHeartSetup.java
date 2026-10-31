@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
@@ -734,7 +735,7 @@ public final class BloomHeartSetup {
     static final float[] BURN_BATTERY_ACROSS = {0.12f, 0.36f, 0.64f, 0.88f};
     /** Cells ahead of an ammunition dump's middle, toward the heart, its gun is dug in. */
     static final int GUN_BY_DUMP = 9;
-    /** Cells behind the airbase's back fence its gun line stands, past the lot's clearance. */
+    /** Cells outside the airbase's back fence, behind its sheds, its gun line stands, past the lot's clearance. */
     static final int GUN_BEHIND_AIRBASE = 5;
 
     /**
@@ -759,13 +760,16 @@ public final class BloomHeartSetup {
         }
         if (airbase != null && airbase.isLaid()) {
             int[] lo = airbase.cells().get(0), hi = airbase.cells().get(1);
-            int clear = AirbaseLot.Size.STATION.clearance();
+            Airfield field = HeartLayout.airbase(form);
+            int clear = field.size().clearance();
             keepOff.add(new int[]{lo[0] - clear, lo[1] - clear, hi[0] + clear, hi[1] + clear});
-            int back = (sign > 0 ? hi[axis] + clear : lo[axis] - clear) + sign * GUN_BEHIND_AIRBASE;
-            int acrossLo = lo[1 - axis], acrossHi = hi[1 - axis];
+            // The lot's depth runs from its strip to its sheds; the gun line stands outside the fence behind the sheds.
+            int deep = field.facing().alongY() ? 1 : 0, into = field.facing().sign();
+            int back = (into > 0 ? hi[deep] : lo[deep]) + into * (clear + GUN_BEHIND_AIRBASE);
+            int alongLo = lo[1 - deep], alongHi = hi[1 - deep];
             for (int q : new int[]{1, 3}) {
-                int across = acrossLo + (acrossHi - acrossLo) * q / 4;
-                wants.add(axis == 0 ? new int[]{back, across} : new int[]{across, back});
+                int along = alongLo + (alongHi - alongLo) * q / 4;
+                wants.add(deep == 0 ? new int[]{back, along} : new int[]{along, back});
             }
         } else {
             wants.add(form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[0]));

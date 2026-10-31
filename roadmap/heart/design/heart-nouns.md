@@ -209,9 +209,11 @@ The guns walk the barrage; the wing hunts the masses the observers see past it.
 
 **Airbase** (The Burn). The military's air wing on station behind the start
 line, on an airbase lot of its own (`mapgen-nouns.md`, airbase lot): a
-**station**, its strip along the start edge, its apron and three sheds behind
-it, fenced, in the open rear north of the company's landing (`HeartLayout`,
-`Airfield`). The lot is held from before the places grow, so no field, wood or
+**station** lying along the rear of the map's far side, the village's side,
+its strip on that edge and its apron and three sheds inland of it, fenced
+(`HeartLayout`, `Airfield`). Turned along the advance rather than across it
+(owner, 2026-10-31), it takes a corner of the rear and leaves the rear's width
+open for the columns to advance across. The lot is held from before the places grow, so no field, wood or
 road takes its ground. Its berths are published as an *allied* field's: no
 company lands on them and no garrison node offers the base to the attacker. The
 wing's two bombers and one fighter are kept in the sheds and taxi out to roll
@@ -252,7 +254,8 @@ under them.
 **Battery** (The Burn). The guns that fire the barrage: Locust rocket-artillery
 batteries dug in at the bases behind the start line, the company's own (owner,
 2026-10-31): a gun beside each of the logistics base's two ammunition dumps,
-toward the heart, and two in a gun line behind the airbase's back fence; a base
+toward the heart, and two in a gun line outside the airbase's back fence,
+behind its sheds; a base
 the map did not lay leaves its guns on the start line. Every shell is a
 round fired from the gun nearest its point, lobbing in on a high, slow arc, so
 the warning is the rounds themselves coming in: a player reads the walk by
