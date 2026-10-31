@@ -222,16 +222,24 @@ public final class EquipmentStore {
     }
 
     /**
-     * Every loadout card, machine pattern and boat part any store may sell, whatever the Kit Ladder allows:
-     * the list the store's Unlock Everything cheat teaches. Priced without tariff.
+     * Every loadout card, machine pattern and boat part the Kit Ladder sells at any station, whether or not the
+     * campaign has reached it: the list the store's Unlock Everything cheat teaches. An item on {@code none}, or not
+     * placed, is never sold and so never taught. Priced without tariff.
      */
     public static List<Offer> everything() {
+        Set<UnlockStation> every = UnlockStation.all();
         List<Offer> offers = new ArrayList<>();
-        for (LoadoutCard card : LoadoutCards.all()) offers.add(offer(Kind.LOADOUT, card.id(), Shelf.MARKET, 0f));
-        for (MechPattern pattern : MechPattern.offerable()) {
-            offers.add(offer(Kind.MECH_PATTERN, pattern.id(), Shelf.MARKET, 0f));
+        for (LoadoutCard card : LoadoutCards.all()) {
+            if (KitLadder.forSale(card.id(), every)) offers.add(offer(Kind.LOADOUT, card.id(), Shelf.MARKET, 0f));
         }
-        for (String id : BoatParts.offerable()) offers.add(offer(Kind.BOAT_PART, id, Shelf.MARKET, 0f));
+        for (MechPattern pattern : MechPattern.offerable()) {
+            if (KitLadder.forSale(pattern.id(), every)) {
+                offers.add(offer(Kind.MECH_PATTERN, pattern.id(), Shelf.MARKET, 0f));
+            }
+        }
+        for (String id : BoatParts.offerable()) {
+            if (KitLadder.forSale(BoatParts.ladderId(id), every)) offers.add(offer(Kind.BOAT_PART, id, Shelf.MARKET, 0f));
+        }
         return List.copyOf(offers);
     }
 

@@ -31,6 +31,18 @@ class EquipmentStoreTest {
     }
 
     @Test
+    void unlockEverythingNeverTeachesWhatTheLadderNeverSells() {
+        String noneCard = "loadout-card:weapon:weapons:assault";
+        assertEquals(UnlockStation.NONE, KitLadder.station(noneCard));
+        List<EquipmentStore.Offer> everything = EquipmentStore.everything();
+        assertTrue(everything.stream().noneMatch(o -> o.id().equals(noneCard)));
+        for (EquipmentStore.Offer offer : everything) {
+            String ladderId = offer.kind() == EquipmentStore.Kind.BOAT_PART ? BoatParts.ladderId(offer.id()) : offer.id();
+            assertFalse(KitLadder.station(ladderId).equals(UnlockStation.NONE), offer.id());
+        }
+    }
+
+    @Test
     void shelfIsListedFirstThenBySlotAndEveryOfferIsPricedAtTheTariff() {
         EquipmentStore.Place place = new EquipmentStore.Place(0.3f);
         String listedId = LoadoutCards.all().stream().map(LoadoutCard::id)
@@ -121,7 +133,7 @@ class EquipmentStoreTest {
     }
 
     @Test
-    void takeEverythingTeachesEveryOfferableThingFreeAndOnlyOnce() {
+    void takeEverythingTeachesEveryPlacedThingFreeAndOnlyOnce() {
         BoatDeck deck = new BoatDeck();
         MechBay bay = new MechBay();
         Purse purse = new Purse(0, true);
@@ -129,10 +141,16 @@ class EquipmentStoreTest {
 
         assertTrue(EquipmentStore.takeEverything(held, purse) > 0);
 
-        for (String part : BoatParts.offerable()) assertTrue(deck.knowsPart(part), part);
-        for (MechPattern pattern : MechPattern.offerable()) assertTrue(EquipmentStore.known(
-                new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(), EquipmentStore.Shelf.MARKET, 1), held),
-                pattern.id());
+        for (String part : BoatParts.offerable()) {
+            if (KitLadder.station(BoatParts.ladderId(part)).equals(UnlockStation.NONE)) continue;
+            assertTrue(deck.knowsPart(part), part);
+        }
+        for (MechPattern pattern : MechPattern.offerable()) {
+            boolean known = EquipmentStore.known(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(),
+                    EquipmentStore.Shelf.MARKET, 1), held);
+            boolean neverSold = KitLadder.station(pattern.id()).equals(UnlockStation.NONE);
+            assertEquals(!neverSold || new MechBay().knownPatternIds().contains(pattern.id()), known, pattern.id());
+        }
         assertEquals(0, purse.credits, "a cheat charges nothing");
         assertEquals(0, EquipmentStore.takeEverything(held, purse), "nothing is taught twice");
     }
