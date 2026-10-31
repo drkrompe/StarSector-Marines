@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
+import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
@@ -136,6 +137,9 @@ public final class HeadlessArmoryPreviewRenderer {
             }
             loadouts.validateBuiltins();
             SquadLoadoutPresentationRegistry.install(loadouts);
+        }
+        if (!SquadMedicine.installed()) {
+            SquadMedicine.loadBuiltins(path -> new JSONObject(Files.readString(modRoot.resolve(path))));
         }
     }
 

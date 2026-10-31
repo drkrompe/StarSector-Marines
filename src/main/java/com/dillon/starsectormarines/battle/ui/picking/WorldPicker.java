@@ -311,6 +311,11 @@ public final class WorldPicker implements HudPanel {
         }
 
         long picked = nearestUnit(sim, worldX, worldY);
+        // A walking civilian is picked by a plain click alone, so a right click can rally its group.
+        if (picked != 0L && !additiveGesture && !sim.civilianRallyGroup(picked).isEmpty()) {
+            ctx.getSelection().selectCivilian(picked);
+            return;
+        }
         if (picked != 0L && sim.squad().hasSquad(picked)) {
             if (additiveGesture && isDragSelectable(sim, picked)) {
                 selectPlayerGroup(sim, Set.of(sim.squad().squadId(picked)), Set.of(), picked);
@@ -382,6 +387,17 @@ public final class WorldPicker implements HudPanel {
     }
 
     private static final float VEHICLE_PICK_RADIUS_CELLS = 1.5f;
+
+    /**
+     * The company's force under a world point, what a rally attaches civilians to: a company vehicle, else a
+     * company soldier or mech; {@code 0L} when there is none.
+     */
+    public static long companyForceAt(BattleSimulation sim, float worldX, float worldY) {
+        long vehicle = nearestVehicle(sim, worldX, worldY);
+        if (vehicle != 0L) return vehicle;
+        long unit = nearestUnit(sim, worldX, worldY);
+        return unit != 0L && isDragSelectable(sim, unit) ? unit : 0L;
+    }
 
     /** Entity id of the nearest visible convoy vehicle within the pick radius, or {@code 0L} if none. */
     private static long nearestVehicle(BattleSimulation sim, float worldX, float worldY) {
