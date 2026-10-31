@@ -108,4 +108,13 @@ class CordonConvoysRulesTest {
         assertEquals(12, CordonConvoys.peopleOut(12, 3), "they reached the drop-off");
         assertEquals(7, CordonConvoys.peopleLost(5, 2, 3), "only deaths before the drop-off count");
     }
+
+    @Test
+    void aTruckDestroyedOnTheRoadIsMadeGoodWithAnotherTripNotCountedAgainstTheCap() {
+        assertEquals(CordonConvoys.MAX_CONVOYS, CordonConvoys.trips(CordonConvoys.MAX_CONVOYS, 0));
+        assertEquals(CordonConvoys.MAX_CONVOYS + 1, CordonConvoys.trips(CordonConvoys.MAX_CONVOYS, 1),
+                "one truck's seats lost is a trip more");
+        assertEquals(CordonConvoys.MAX_CONVOYS + 1, CordonConvoys.trips(CordonConvoys.MAX_CONVOYS, CordonConvoys.TRUCKS));
+        assertEquals(CordonConvoys.MAX_CONVOYS + 2, CordonConvoys.trips(CordonConvoys.MAX_CONVOYS, CordonConvoys.TRUCKS + 1));
+    }
 }

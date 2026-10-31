@@ -54,6 +54,11 @@ public final class CordonConvoys {
     /** The most convoys that come for the town: five trips. */
     public static final int MAX_CONVOYS = 5;
     /**
+     * How long after a truck is destroyed on the road its replacement trip may set out from the camp: a truck lost
+     * coming in or going out is made good, so the trips go on while people are trapped ({@link #trips}). Untuned.
+     */
+    static final int REPLACE_TICKS = Math.round(45f / BattleSimulation.TICK_DT);
+    /**
      * The people trapped in the town: four full trips of {@link #TRUCKS} by {@link #SEATS}, so getting everyone out
      * takes more than three convoys, and the fifth is there for the seats lost to a truck or a slow loading.
      */
@@ -199,6 +204,8 @@ public final class CordonConvoys {
         boolean throughGap, ambushed;
         /** Where a swarm body stands on one of its trucks at the last look, or {@code null}. */
         int[] reachedAt;
+        /** The tick before which it may not set out: a replacement trip waits for its trucks. */
+        int readyTick;
 
         Convoy(int number, int departTick) {
             this.number = number;
@@ -225,6 +232,8 @@ public final class CordonConvoys {
     private TerrainCostField cost;
     private int gapIndex;
     private final List<Convoy> convoys = new ArrayList<>();
+    /** Trucks destroyed on the road, and the tick a replacement trip for the latest may set out from. */
+    private int trucksLost, replaceFrom;
     /** The townspeople still in the town. */
     private CordonTownspeople town;
     /** The town's people at the start. */
@@ -274,6 +283,14 @@ public final class CordonConvoys {
         for (int i = 0; i < maxConvoys; i++) convoys.add(new Convoy(i + 1, -1));
         this.peopleTotal = Math.max(0, townspeople);
         this.town = CordonTownspeople.counted(townspeople);
+    }
+
+    /**
+     * The trips that may set out: {@code max}, and one more for every {@link #TRUCKS} trucks (or part of that)
+     * destroyed on the road, so a lost truck's seats are made good rather than counted against the cap. Pure.
+     */
+    static int trips(int max, int trucksLost) {
+        return max + (Math.max(0, trucksLost) + TRUCKS - 1) / TRUCKS;
     }
 
     /**
@@ -448,6 +465,14 @@ public final class CordonConvoys {
 
     /** Calls the next convoy when {@link #setsOut} says it goes. */
     private void callNext(int tick, Consumer<String> beat) {
+        // A destroyed truck's trip is made good: another convoy waits at the camp for its trucks.
+        int trips = trips(MAX_CONVOYS, trucksLost);
+        while (convoys.size() < trips && !abandoned && town.left() > 0) {
+            int number = convoys.isEmpty() ? 1 : convoys.get(convoys.size() - 1).number + 1;
+            Convoy replacement = new Convoy(number, -1);
+            replacement.readyTick = replaceFrom;
+            convoys.add(replacement);
+        }
         for (int i = 0; i < convoys.size(); i++) {
             Convoy c = convoys.get(i);
             if (c.phase != Phase.WAITING) continue;
@@ -456,7 +481,8 @@ public final class CordonConvoys {
                     && before.phase != Phase.INBOUND;
             int seatsComing = 0;
             for (Convoy o : convoys) seatsComing += seatsComing(o);
-            if (setsOut(c.number, MAX_CONVOYS, tick, firstDepartTick, previousOn, town.left(), seatsComing, abandoned)) {
+            if (tick < c.readyTick) return;
+            if (setsOut(c.number, trips, tick, firstDepartTick, previousOn, town.left(), seatsComing, abandoned)) {
                 c.phase = Phase.INBOUND;
                 c.departTick = tick;
                 beat.accept("convoy_entered_" + c.number);
@@ -848,7 +874,8 @@ public final class CordonConvoys {
             c.loadingSince = tick;
             int seats = 0;
             for (Truck t : c.trucks) if (!t.gone) seats += SEATS - t.people;
-            if (lastConvoy == 0 && last(c.number, Math.min(MAX_CONVOYS, convoys.size()), town.left(), seats)) {
+            if (lastConvoy == 0 && last(c.number, Math.min(trips(MAX_CONVOYS, trucksLost), convoys.size()),
+                    town.left(), seats)) {
                 lastConvoy = c.number;
                 c.extraLoading += lastExtra;
             }
@@ -1517,6 +1544,8 @@ public final class CordonConvoys {
             t.gone = true;
             peopleLost += t.people;
             t.people = 0;
+            trucksLost++;
+            replaceFrom = sim.getSimTickIndex() + REPLACE_TICKS;
         }
     }
 
