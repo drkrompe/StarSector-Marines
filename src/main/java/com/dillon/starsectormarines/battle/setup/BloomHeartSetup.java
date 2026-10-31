@@ -453,6 +453,12 @@ public final class BloomHeartSetup {
         if (BASE_LOCUSTS) HeartBaseGuns.man(sim, built.map().layout, heartGuns);
         // The forward line on the cordon ridge is a front that has held for weeks: guns in its nests, flak behind them.
         HeartRidgeGuns.man(sim, built.map().layout, form);
+        if (form == Form.THE_BURN) {
+            // The Burn's line is held as well as armed, and its airbase's right wing has flak of its own.
+            HeartRidgeGuns.holdLine(sim, built.map().layout, form, RiskLevel.MEDIUM,
+                    new Random(built.battleSeed() ^ LINE_SALT));
+            HeartObjectives.airbaseFlak(sim, built.map().layout, heartGuns, form.advancesAlongY());
+        }
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
         List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
@@ -529,6 +535,9 @@ public final class BloomHeartSetup {
         if (!out.isEmpty()) BattleSetup.installAirfieldCrew(sim, map);
         return out;
     }
+
+    /** Salts the forward line's teams' kit rolls. */
+    private static final long LINE_SALT = 0x52494447454C494EL;
 
     /** An allied lane's band: satellites this share of the front's width either side of its line are its own. */
     static final float ALLIED_LANE_HALF_WIDTH = 0.10f;

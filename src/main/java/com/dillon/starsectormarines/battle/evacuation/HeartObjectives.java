@@ -648,6 +648,18 @@ public final class HeartObjectives {
         if (battery != null) baseFlak(sim, guns, HeartGuns.BATTERY_FLAK, "battery-flak", battery[0], battery[1]);
     }
 
+    /**
+     * Flak on the right wing of The Burn's station airbase (owner, 2026-10-31): a flak position at the lot's end toward
+     * the front, half way along it, on the guns' stock as the base's other flak is. Nothing where the lot was not laid.
+     */
+    public static void airbaseFlak(BattleSimulation sim, LaidLayout laid, HeartGuns guns, boolean advancesAlongY) {
+        int[] lot = bounds(laid, HeartLayout.BURN_AIRBASE, 0);
+        if (lot == null) return;
+        int x = advancesAlongY ? (lot[0] + lot[2]) / 2 : lot[2];
+        int y = advancesAlongY ? lot[3] : (lot[1] + lot[3]) / 2;
+        baseFlak(sim, guns, HeartGuns.AIRBASE_FLAK, "airbase-flak", x, y);
+    }
+
     private static void baseFlak(BattleSimulation sim, HeartGuns guns, String place, String name, int x, int y) {
         long gun = digFlak(sim, name, x, y);
         if (gun == 0L) return;
