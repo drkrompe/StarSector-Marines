@@ -673,7 +673,7 @@ public final class MissionLaunch {
     }
 
     private static boolean debugShipIsSource(Mission m, DebugWarship.Spec spec) {
-        return DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+        return (DevConfig.DEBUG_WARSHIP_PICKER || Cheats.enabled()) && m.source.isDebug() && spec != null && spec.active()
                 && spec.side() == Faction.MARINE;
     }
 
@@ -686,7 +686,7 @@ public final class MissionLaunch {
      */
     private static void installHostileShip(Mission m, DebugWarship.Spec spec, ShipSupportSource worldShip,
                                            BattleSimulation sim) {
-        boolean debugPick = DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+        boolean debugPick = (DevConfig.DEBUG_WARSHIP_PICKER || Cheats.enabled()) && m.source.isDebug() && spec != null && spec.active()
                 && spec.side() == Faction.DEFENDER;
         ShipSupportSource source = debugPick ? spec.hull().source() : worldShip;
         if (source == null) return;

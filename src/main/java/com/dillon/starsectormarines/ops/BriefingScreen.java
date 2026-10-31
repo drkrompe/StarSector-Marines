@@ -552,7 +552,7 @@ public class BriefingScreen implements Screen {
         props.put("tierSteps", debug && DebugMissionCatalog.scenario(mission) == null ? retainedTierSteps(mission) : List.of());
         props.put("debugControls", debug ? retainedDebugControls(mission) : List.of());
         putDebugKit(props, mission, debug);
-        props.put("airRows", debug && DevConfig.DEBUG_AIRCRAFT_PICKER
+        props.put("airRows", debug && (DevConfig.DEBUG_AIRCRAFT_PICKER || Cheats.enabled())
                 ? retainedAirRows() : List.of());
 
         PersonnelReadiness readiness = !debug ? personnelReadiness(mission) : null;
@@ -764,7 +764,7 @@ public class BriefingScreen implements Screen {
         props.put("debugKitRows", DebugKitPicker.squadRows(roster, DEBUG_CARD_SQUADS,
                 kind -> openKitPicker(kind, DebugKitPicker.ALL_SQUADS), this::openKitPicker));
         DebugBaySlot[] bay = debugBaySlots(mission);
-        props.put("debugBaySlots", DevConfig.DEBUG_MECH_SUPPORT_PICKER
+        props.put("debugBaySlots", DevConfig.DEBUG_MECH_SUPPORT_PICKER || Cheats.enabled()
                 ? DebugKitPicker.baySlots(bay, slot -> openKitPicker(DebugKitPicker.Kind.BAY, slot)) : List.of());
         Map<String, Object> modal = kitPicker.modal(roster, bay, this::pickKitCard,
                 slot -> pickKitSlot(mission, slot), this::closeKitPicker);
@@ -847,7 +847,7 @@ public class BriefingScreen implements Screen {
                     () -> adjustDebugConquestJitter(-DEBUG_CONQUEST_JITTER_STEP_SEC),
                     () -> adjustDebugConquestJitter(DEBUG_CONQUEST_JITTER_STEP_SEC)));
         }
-        if (DevConfig.DEBUG_WARSHIP_PICKER) {
+        if (DevConfig.DEBUG_WARSHIP_PICKER || Cheats.enabled()) {
             controls.add(conquestControl("debug-warship-hull", "WARSHIP DEBUG · hull",
                     debugWarship.hull().label, false, false,
                     () -> cycleDebugWarshipHull(-1), () -> cycleDebugWarshipHull(1)));
@@ -2473,7 +2473,7 @@ public class BriefingScreen implements Screen {
 
     /** Force-spawned wings from the debug picker (both sides), or {@link FlybyRoster#EMPTY} when off / nothing picked. */
     private FlybyRoster debugWings() {
-        if (!DevConfig.DEBUG_AIRCRAFT_PICKER || debugAirSelections.isEmpty()) return FlybyRoster.EMPTY;
+        if (!(DevConfig.DEBUG_AIRCRAFT_PICKER || Cheats.enabled()) || debugAirSelections.isEmpty()) return FlybyRoster.EMPTY;
         java.util.List<FighterWing> wings = new java.util.ArrayList<>();
         for (String key : debugAirSelections) {
             int bar = key.indexOf('|');

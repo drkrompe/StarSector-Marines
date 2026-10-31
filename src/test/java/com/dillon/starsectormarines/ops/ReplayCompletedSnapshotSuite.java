@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The mission board's "Replay Story Missions" toggle, off and on, at Jangala for a company midway through the
+ * The mission board's "Replay Story Missions" and "Debug" keys, both off and then both on, at Jangala for a company midway through the
  * campaign: its Asharu and Agreus chapters stay off this board.
  */
 public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
@@ -61,11 +61,14 @@ public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
         off.put("missionEmpty", Strings.get("missionSelectChooseAClientToInspectTheirCurrent"));
         MissionSelectScreen.putDetail(off, null, none, none);
         MissionSelectScreen.putReplayToggle(off, true, false, none);
+        MissionSelectScreen.putCheatsToggle(off, false, none);
 
         var on = MissionSelectScreen.previewProps();
         Mission selected = replays.get(2);
         on.put("locationLabel", "Jangala  ·  Current local offers");
-        on.put("clients", List.of(venn, new MissionSelectScreen.ClientRow("client-replay", "client-replay-name",
+        var debug = new MissionSelectScreen.ClientRow("client-debug", "client-debug-name", "client-debug-rep", null,
+                "client-card", Strings.get("cheatsClientName"), Strings.get("cheatsClientRole"), false, none);
+        on.put("clients", List.of(debug, venn, new MissionSelectScreen.ClientRow("client-replay", "client-replay-name",
                 "client-replay-rep", records.crestPath, "client-card selected", records.displayName,
                 "Completed campaign missions", false, none)));
         on.put("missionHeader", records.displayName);
@@ -76,6 +79,7 @@ public final class ReplayCompletedSnapshotSuite implements SnapshotSuite {
         MissionSelectScreen.putBroker(on, records, roster);
         MissionSelectScreen.putDetail(on, selected, none, none);
         MissionSelectScreen.putReplayToggle(on, true, true, none);
+        MissionSelectScreen.putCheatsToggle(on, true, none);
 
         return List.of(board(context, renderer, off, "1-toggle-off.png"), board(context, renderer, on, "2-toggle-on.png"));
     }

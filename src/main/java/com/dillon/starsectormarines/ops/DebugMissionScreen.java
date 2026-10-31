@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -23,7 +22,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     private static final int PAGE_SIZE = 8;
     public DebugMissionScreen() { super(ROOT, COMPONENTS); }
     @Override protected void onAttach() {
-        catalog = DevConfig.DEBUG_CLIENT ? DebugMissionCatalog.missions(context.planet) : List.of();
+        catalog = Cheats.enabled() ? DebugMissionCatalog.missions(context.planet) : List.of();
         if (selected == null && !catalog.isEmpty()) selected = catalog.get(0);
     }
     @Override protected List<String> requiredElementIds() { return List.of("debug-missions-root", "debug-launch", "debug-back"); }
@@ -53,7 +52,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     private void rechoose(Runnable change) {
         change.run();
         String id = selected == null ? null : selected.id;
-        catalog = DevConfig.DEBUG_CLIENT ? DebugMissionCatalog.missions(context.planet) : List.of();
+        catalog = Cheats.enabled() ? DebugMissionCatalog.missions(context.planet) : List.of();
         selected = catalog.stream().filter(m -> m.id.equals(id)).findFirst().orElse(selected);
         rebuildDocument();
     }
@@ -85,7 +84,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     }
     private void page(int value) { page = Math.max(0, value); rebuildDocument(); }
     private void launch() {
-        if (!DevConfig.DEBUG_CLIENT || selected == null) return;
+        if (!Cheats.enabled() || selected == null) return;
         context.setSelectedClient(DebugMissionCatalog.client());
         context.setSelectedMission(selected);
         context.resetDebugPreset(selected);

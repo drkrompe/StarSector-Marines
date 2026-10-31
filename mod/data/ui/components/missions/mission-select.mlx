@@ -1,4 +1,4 @@
-<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,replayToggleClasses,replayKeyClasses,replayToggleLabel,replayToggleAction,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,replayKeyClasses,replayToggleLabel,replayToggleAction,cheatsKeyClasses,cheatsLabel,cheatsAction,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -7,11 +7,16 @@
         <div id="mission-select-location" class="label tone-muted">{locationLabel}</div>
       </div>
       <button id="mission-company-news" class="{companyNewsClasses}" onclick="{companyNewsAction}">{companyNewsLabel}</button>
-      <div id="mission-replay-rail" class="{replayToggleClasses}">
+      <div id="mission-option-rail" class="option-rail console-command-rail">
         <button id="mission-replay-toggle" class="{replayKeyClasses}" onclick="{replayToggleAction}">
           <div id="mission-replay-signal" class="console-command-signal" />
           <div id="mission-replay-legend" class="console-key-legend">{replayToggleLabel}</div>
           <img id="mission-replay-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+        </button>
+        <button id="mission-debug-toggle" class="{cheatsKeyClasses}" onclick="{cheatsAction}">
+          <div id="mission-debug-signal" class="console-command-signal" />
+          <div id="mission-debug-legend" class="console-key-legend">{cheatsLabel}</div>
+          <img id="mission-debug-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
         </button>
       </div>
       <div id="mission-select-purpose" class="label heading tone-accent">{i18n.missionSelectBoard}</div>
@@ -119,9 +124,11 @@
 <style>
   .company-news { padding: 5px 10px; color: #ffd464; border-color: #aa8742; }
   .company-news.hidden { display: none; }
-  .replay-toggle { flex-direction: row; width: 250px; height: 32px; padding: 3px; border-width: 2px; }
-  .replay-toggle.hidden { display: none; }
-  .replay-toggle button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
+  .option-rail { flex-direction: row; height: 32px; padding: 3px; gap: 4px; border-width: 2px; }
+  .option-rail button { flex-direction: row; align-items: center; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
+  #mission-replay-toggle { width: 240px; }
+  #mission-debug-toggle { width: 112px; }
+  .option-rail .hidden { display: none; }
   .mission-select-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-select-header { flex-direction: row; height: 58px; padding: 8px 10px; gap: 10px; border-width: 2px; }

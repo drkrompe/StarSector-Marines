@@ -60,7 +60,7 @@ public final class MissionGenerator {
         if (planet == null || client == null) return Collections.emptyList();
 
         // Debug client — every eligible MissionType × OperationTier pairing at
-        // medium risk, with no caps. Gated upstream by DevConfig.DEBUG_CLIENT.
+        // medium risk, with no caps. Gated upstream by the Debug key (Cheats).
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return generateDebugGrid(planet, client);
         }
