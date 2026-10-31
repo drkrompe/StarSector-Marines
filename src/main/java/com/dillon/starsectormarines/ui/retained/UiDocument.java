@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.ui.retained.style.UiTheme;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -142,6 +144,43 @@ public final class UiDocument {
         layoutPasses++;
         canvases.prune();
         refreshHoverAfterLayout();
+    }
+
+    /**
+     * Carries scroll offsets over from the document this one replaces, so a
+     * screen that rebuilds on every state change keeps each list where the
+     * player left it. Surfaces match by element id; an offset the new content
+     * can no longer reach is clamped to its end. Call it after
+     * {@link #layout}, which it repeats only when something moved.
+     */
+    public void keepScrollFrom(UiDocument previous) {
+        if (previous == null || previous == this) return;
+        Map<String, Float> offsets = new HashMap<>();
+        collectScroll(previous.root, offsets);
+        if (offsets.isEmpty() || !applyScroll(root, offsets)) return;
+        layout.layout(root, viewport.width(), viewport.height());
+        layoutPasses++;
+        canvases.prune();
+        refreshHoverAfterLayout();
+    }
+
+    private static void collectScroll(UiElement element, Map<String, Float> offsets) {
+        if (element.id() != null && element.scrollTop() > 0f) offsets.put(element.id(), element.scrollTop());
+        for (UiElement child : element.children()) collectScroll(child, offsets);
+    }
+
+    private static boolean applyScroll(UiElement element, Map<String, Float> offsets) {
+        boolean moved = false;
+        Float offset = element.id() == null ? null : offsets.get(element.id());
+        if (offset != null && element.overflow() == Overflow.SCROLL) {
+            float clamped = Math.min(offset, element.box().maxScrollTop());
+            if (clamped > 0f) {
+                element.scrollTop(clamped);
+                moved = true;
+            }
+        }
+        for (UiElement child : element.children()) moved |= applyScroll(child, offsets);
+        return moved;
     }
 
     /**
