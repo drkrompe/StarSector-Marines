@@ -28,7 +28,7 @@ public final class BurnAirLookSuite implements SnapshotSuite {
     /** The latest tick the wing's first sortie is waited for. */
     static final int SORTIE_BY = 14000;
     /** Where the base shot looks: the airbase's sheds, back fence and the gun line behind it on the seed-202 map. */
-    static final float[] BASE_VIEW = {36f, 42f};
+    static final float[] BASE_VIEW = {36f, 212f};
     /** Ticks recorded from the sortie: its run in, the stick and the smoke. */
     static final int RECORD_TICKS = 450;
 

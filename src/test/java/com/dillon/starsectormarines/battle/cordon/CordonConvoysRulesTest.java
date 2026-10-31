@@ -12,17 +12,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CordonConvoysRulesTest {
 
-    private static final int LOADING = CordonConvoys.LOADING_TICKS;
+    private static final int CAP = CordonConvoys.LOADING_CAP_TICKS;
 
     @Test
-    void aConvoyWaitsAtTheGateForItsStraggler() {
-        assertFalse(CordonConvoys.leaves(LOADING - 1, LOADING, 2, 2));
-        assertTrue(CordonConvoys.leaves(LOADING, LOADING, 2, 2));
-        // One truck still on its way: it is waited for, then left to turn back empty.
-        assertFalse(CordonConvoys.leaves(LOADING, LOADING, 2, 1));
-        assertFalse(CordonConvoys.leaves(LOADING + CordonConvoys.STRAGGLER_TICKS - 1, LOADING, 2, 1));
-        assertTrue(CordonConvoys.leaves(LOADING + CordonConvoys.STRAGGLER_TICKS, LOADING, 2, 1));
-        assertFalse(CordonConvoys.leaves(10 * LOADING, LOADING, 0, 0));
+    void aConvoyLeavesWhenItsTrucksAreFullOrTheTownIsEmpty() {
+        assertFalse(CordonConvoys.leaves(10, 0, 2, 2, false, false), "seats free and people left: it waits");
+        assertTrue(CordonConvoys.leaves(10, 0, 2, 2, true, false), "both trucks full");
+        assertTrue(CordonConvoys.leaves(0, 0, 2, 2, false, true), "nobody left in the town");
+        assertTrue(CordonConvoys.leaves(CAP, 0, 2, 2, false, false), "the cap turns it for home part-loaded");
+        assertFalse(CordonConvoys.leaves(10 * CAP, 0, 0, 0, false, true), "a convoy with no live truck never leaves");
+    }
+
+    @Test
+    void aConvoyWaitsForItsStragglerUpToTheCap() {
+        assertFalse(CordonConvoys.leaves(10, 0, 2, 1, true, false), "the truck at the gate is full, one still coming");
+        assertFalse(CordonConvoys.leaves(CAP - 1, 0, 2, 1, true, false));
+        assertTrue(CordonConvoys.leaves(CAP, 0, 2, 1, true, false));
+    }
+
+    @Test
+    void aBeatsExtraLoadingHoldsTheConvoyAndSlowsTheBoarding() {
+        int extra = 3600;
+        assertFalse(CordonConvoys.leaves(extra - 1, extra, 2, 2, true, false));
+        assertTrue(CordonConvoys.leaves(extra, extra, 2, 2, true, false));
+        assertFalse(CordonConvoys.leaves(extra + CAP - 1, extra, 2, 2, false, false));
+        assertTrue(CordonConvoys.leaves(extra + CAP, extra, 2, 2, false, false));
+        assertEquals(CordonConvoys.BOARD_TICKS, CordonConvoys.boardTicks(0));
+        assertTrue(CordonConvoys.SEATS * CordonConvoys.boardTicks(extra) >= extra,
+                "a truck's seats take the extra wait to fill");
     }
 
     @Test

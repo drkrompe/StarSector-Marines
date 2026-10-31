@@ -118,11 +118,11 @@ public final class HeartLayout {
     static final float GUN_FLANK_DEPTH = 0.10f;
     static final int GUN_FLANK_INSET = 4;
     /**
-     * The Burn's airbase: a station, its strip along the start edge, in the open rear north of the company's landing,
-     * its reservation's low corner this many cells in from the start edge and the near side, clear of the gun-flank
-     * trench, the first gun's pit behind it and the ammunition dumps south of it.
+     * The Burn's airbase: a station lying along the map's far side, the village's side, its sheds backing onto that
+     * edge and its strip inland of them (owner, 2026-10-31: turned so the columns have the rear's width to advance
+     * across), its reservation this many cells in from the start edge and back from the side's gun-flank trench.
      */
-    static final int BURN_AIRBASE_REAR = 12, BURN_AIRBASE_SIDE = 12;
+    static final int BURN_AIRBASE_REAR = 4, BURN_AIRBASE_TRENCH_GAP = 2;
     /** Cells either side of the ford's middle the ford's site holds. */
     static final int FORD_HALF = 4;
 
@@ -535,14 +535,22 @@ public final class HeartLayout {
 
     /** Trench and wire along each side of The Burn's battery, facing out, where a breakout would come at the guns. */
     /**
-     * The military's airbase on station behind The Burn's start line: a station lot whose strip runs along the start
-     * edge, held from before the places grow, its berths and sheds the allied wing's own.
+     * The military's airbase on station behind The Burn's start line: a station lot lying along the map's far side,
+     * its sheds on that edge and its strip inland, held from before the places grow, its berths and sheds the allied
+     * wing's own.
      */
-    static Airfield airbase(Form form) {
-        AirbaseLot.Facing facing = form.advancesAlongY() ? AirbaseLot.Facing.SOUTH : AirbaseLot.Facing.WEST;
-        int x0 = form.advancesAlongY() ? BURN_AIRBASE_SIDE : BURN_AIRBASE_REAR;
-        int y0 = form.advancesAlongY() ? BURN_AIRBASE_REAR : BURN_AIRBASE_SIDE;
-        return new Airfield(AIRBASE, x0, y0, facing, AirbaseLot.Size.STATION, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+    public static Airfield airbase(Form form) {
+        AirbaseLot.Size size = AirbaseLot.Size.STATION;
+        // The sheds back onto the far side and the strip runs inland of them (owner, 2026-10-31): the lot faces the
+        // map's middle, south of a far side north of an advance along x, west of one east of an advance along y.
+        AirbaseLot.Facing facing = form.advancesAlongY() ? AirbaseLot.Facing.WEST : AirbaseLot.Facing.SOUTH;
+        int side = acrossCells(form) - 1 - GUN_FLANK_INSET - BURN_AIRBASE_TRENCH_GAP;
+        if (form.advancesAlongY()) {
+            int x0 = side - AirbaseLot.reservedSpanX(size, facing) + 1;
+            return new Airfield(AIRBASE, x0, BURN_AIRBASE_REAR, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+        }
+        int y0 = side - AirbaseLot.reservedSpanY(size, facing) + 1;
+        return new Airfield(AIRBASE, BURN_AIRBASE_REAR, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
     }
 
     static List<Piece> gunFlanks(Form form) {
