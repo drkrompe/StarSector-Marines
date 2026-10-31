@@ -1,10 +1,17 @@
-<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,specRows,specNotes,specClasses,partClasses,specTopStyle,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,specRows,specNotes,specClasses,partClasses,specTopStyle,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,freeRailClasses,freeKeyClasses,freeLabel,freeAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
       <img id="store-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="store-room-title" class="label heading tone-edge">{roomTitle}</div>
       <div id="store-room-copy" class="label tone-muted">{roomCopy}</div>
+      <div id="store-cheat-rail" class="{freeRailClasses}">
+        <button id="store-free-licenses" class="{freeKeyClasses}" onclick="{freeAction}">
+          <div id="store-free-signal" class="console-command-signal" />
+          <div id="store-free-legend" class="console-key-legend">{freeLabel}</div>
+          <img id="store-free-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+        </button>
+      </div>
       <div id="store-stock-slot" class="header-stock-slot">
         <company-resource-stock stockId="store-resource-stock" rows="{resourceStock}" />
       </div>
@@ -133,6 +140,9 @@
   .store-selected-name { height: 25px; font-family: title; }
   .store-buy { width: 320px; height: 46px; border-width: 2px; font-family: heading; text-align: center; }
   .store-buy.current { opacity: 0.45; }
+  .store-cheat-rail { flex-direction: row; height: 32px; padding: 3px; border-width: 2px; }
+  .store-cheat-rail.hidden { display: none; }
+  .store-cheat-rail button { flex-direction: row; align-items: center; width: 230px; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
   .store-spec { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 12px; gap: 12px; border-width: 2px; overflow: hidden; }
   .store-spec.none { display: none; }
   .store-spec-top { flex-direction: row; width: 100%; gap: 16px; align-items: flex-start; }

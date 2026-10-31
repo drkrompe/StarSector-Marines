@@ -115,6 +115,7 @@ public final class CordonSequence implements Objective {
     private Consumer<BattleSimulation> abandonTown = sim -> { };
     /** The Road's staging area inside the town's gate, or {@code null}. */
     private CordonStagingArea staging;
+    private CordonGateYard yard;
     private CordonLineCommand line;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
@@ -256,6 +257,17 @@ public final class CordonSequence implements Objective {
     /** Gives the Road its staging area; at setup, before the first tick. */
     public void attachStaging(CordonStagingArea staging) {
         this.staging = staging;
+    }
+
+    /**
+     * The Road's truck yard inside the town compound's rear gate, where a convoy's truck pulls in, turns and stops to
+     * load beside the staging area; {@code null} on the Line or where the map laid none.
+     */
+    public CordonGateYard yard() { return yard; }
+
+    /** Gives the Road its truck yard; at setup, before the first tick. */
+    public void attachYard(CordonGateYard yard) {
+        this.yard = yard;
     }
 
     /** Gives the line its logistics base: columns then march to it and are carried forward from it. */

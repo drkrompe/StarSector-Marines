@@ -224,6 +224,9 @@ public final class MissionLayoutStage implements GenStage {
         if (closed && ctx.get(BspKeys.TACTICAL_REGIONS) != null) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
+        // The gate yards the precinct ward laid inside walled places, reported with the rest.
+        List<Laid> yards = ctx.get(BspKeys.GATE_YARDS);
+        if (yards != null) out.addAll(yards);
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
     }
 

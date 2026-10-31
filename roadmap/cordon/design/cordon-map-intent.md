@@ -62,9 +62,11 @@ A line drawn across country by someone who has had weeks to choose:
   redoubt (beat L2). The base stands on the main road behind the middle, as it
   does now.
 - **The safe camp (the Road).** A small allied encampment on the corridor
-  where the convoys set out, raised at setup rather than laid as a map piece:
-  a square of open ground round a corridor cell, clear of the landing field,
-  the base's berths and the air base (`cordon-nouns.md`, Camp).
+  where the convoys set out, seventy corridor cells behind the line's crossing,
+  raised at setup rather than laid as a map piece:
+  a square round a corridor cell cleared of its trees, ringed with sandbags,
+  a gun on each corner, clear of the landing field, the base's berths and the
+  air base (`cordon-nouns.md`, Camp).
 - **The air base.** The allies' airbase lot (`mapgen-nouns.md`, airbase lot),
   a field: a strip, three berths and two sheds, room for the wing's four
   airframes, where a station's sixty cells would crowd the rear hamlets. It is

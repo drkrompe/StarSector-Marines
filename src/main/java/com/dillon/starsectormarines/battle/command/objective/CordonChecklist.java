@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
 import com.dillon.starsectormarines.battle.cordon.CordonBeats;
 import com.dillon.starsectormarines.battle.cordon.CordonBoreEscalation;
+import com.dillon.starsectormarines.battle.cordon.CordonCamp;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Hold;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Phase;
@@ -57,10 +58,13 @@ public final class CordonChecklist {
             }
             if (convoys != null && convoys.corridor().size() > 1) {
                 List<int[]> corridor = convoys.corridor();
+                CordonCamp camp = convoys.camp();
                 items.add(convoys(cordon.outcome(), readings, new People(convoys.peopleOut(), convoys.peopleLost(),
-                                cordon.population(), cordon.peopleNeeded()),
+                                convoys.peopleTotal(), cordon.peopleNeeded()),
                         corridor.get(Math.min(convoys.gapIndex(), corridor.size() - 1)),
-                        corridor.get(corridor.size() - 1), tick));
+                        corridor.get(corridor.size() - 1),
+                        camp == null ? null : new Camp(camp.centreX(), camp.centreY(), convoys.sheltered(),
+                                convoys.unloading()), tick));
             }
             CordonBoreEscalation escalation = cordon.escalation();
             if (escalation != null) {
@@ -110,13 +114,25 @@ public final class CordonChecklist {
     /** The townspeople as the Road's people row reads them: out, lost, how many the town had and how many must come out. */
     record People(int out, int lost, int population, int needed) { }
 
-    /**
-     * The Road's second row, Bring the people out: the townspeople out against the briefing's number, beaconed at the
-     * gap, the town's gate and each convoy on the road. Complete once enough are out (or the Road is won), failed once
-     * too few are left alive to make the number (or the Road is lost).
-     */
+    /** The safe camp the convoys bring the people to: its middle, the people sheltering there, and whether a truck is letting people down in it. */
+    record Camp(int x, int y, int sheltered, boolean unloading) { }
+
+    /** As {@link #convoys(CordonSequence.Outcome, List, People, int[], int[], Camp, int)} on a Road with no camp. */
     static Item convoys(CordonSequence.Outcome outcome, List<Reading> readings, People people, int[] gap, int[] gate,
                         int tick) {
+        return convoys(outcome, readings, people, gap, gate, null, tick);
+    }
+
+    /**
+     * The Road's second row, Bring the people out: the townspeople out against the briefing's number, beaconed at the
+     * gap, the town's gate, the safe camp and each convoy on the road; its focus the camp while a truck is letting
+     * people down there. Complete once enough are out (or the Road is won), failed once too few are left alive to make
+     * the number (or the Road is lost).
+     *
+     * @param camp the safe camp, or {@code null} where the convoys bring the people back to where they set out
+     */
+    static Item convoys(CordonSequence.Outcome outcome, List<Reading> readings, People people, int[] gap, int[] gate,
+                        Camp camp, int tick) {
         int needed = people.needed();
         State state = people.out() >= needed || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
                 : people.population() - people.lost() < needed || outcome == CordonSequence.Outcome.BROKEN ? State.FAILED
@@ -137,6 +153,11 @@ public final class CordonChecklist {
             if (r == wanted && r.phase() != Phase.LOADING) focus = id;
         }
         if (wanted != null && wanted.phase() == Phase.LOADING && state == State.ACTIVE) focus = gateId;
+        if (camp != null) {
+            markers.add(new Marker("cordon-camp", Strings.get("cordonHudCamp"), camp.x(), camp.y(),
+                    Strings.format("cordonHudCampStatus", camp.sheltered()), state));
+            if (camp.unloading() && state == State.ACTIVE) focus = "cordon-camp";
+        }
         String phase = state == State.COMPLETE ? Strings.get("cordonHudConvoysDone")
                 : state == State.FAILED ? Strings.get("cordonHudConvoysFailed")
                 : wanted == null ? Strings.get("cordonHudConvoysDone") : convoyStatus(wanted, tick);
@@ -291,7 +312,8 @@ public final class CordonChecklist {
 
     static String convoyStatus(Reading r, int tick) {
         return switch (r.phase()) {
-            case WAITING -> Strings.format("cordonHudConvoyDue", r.number(), clock(r.departTick() - tick));
+            case WAITING -> r.departTick() < 0 ? Strings.format("cordonHudConvoyUncalled", r.number())
+                    : Strings.format("cordonHudConvoyDue", r.number(), clock(r.departTick() - tick));
             case INBOUND -> Strings.format(r.hold() == Hold.ESCORT ? "cordonHudConvoyHeld"
                     : r.hold() == Hold.BLOCKED ? "cordonHudConvoyBlocked" : "cordonHudConvoyInbound", r.number());
             case LOADING -> Strings.format("cordonHudConvoyLoading", r.number());

@@ -22,12 +22,17 @@ import java.util.Set;
  * climb down and walk in to wait there for the rest of the battle (they are out the moment they step off), and its
  * trucks pull back down the road to wait for the next trip.
  *
- * <p>The camp is a square of open ground {@code 2 * HALF + 1} cells across round a corridor cell, the road through it
- * kept clear, a sandbag ring on its edge broken where the road crosses it, crate stacks in its corners, an aid
- * station, a field HQ and a supply dump on its rear half either side of the road, and a few allied guards on its side
- * toward the front. It is found at setup round where the convoys would set out
- * ({@link #plan}, pure), on the nearest corridor cell whose square is mostly open ground and stands clear of the
+ * <p>The camp is a square {@code 2 * HALF + 1} cells across round a corridor cell, cleared at setup of its trees and
+ * loose props, the road through it kept clear: a sandbag ring on its edge, whole round with its corner pieces and broken
+ * only where the road crosses it; the line's heavy machine gun on each inner corner (the redoubts' corner gun); an
+ * aid station, a field HQ and a supply dump on its rear half either side of the road; and two allied teams, one along
+ * its side toward the front and one along its rear. It is found at setup round where the convoys would set out
+ * ({@link #plan}, pure), on the nearest corridor cell whose square is mostly ground it can clear and stands clear of the
  * landing field, the logistics base's apron and the air base.
+ *
+ * <p>It is meant to hold against the swarm's ordinary pressure, which the line stops well short of it, and to fall
+ * to a tide that breaks through: four guns and twelve rifles behind bags, no wall (UNTUNED: {@link #GUARDS} and the
+ * gun are the levers). The people waiting in it are ordinary civilians the swarm can reach and kill.
  */
 public final class CordonCamp {
 
@@ -37,14 +42,22 @@ public final class CordonCamp {
     static final int ROAD_KEEP = 3;
     /** Cells the camp's square keeps from each point kept off (a landing pad, a base berth, an air base stand). */
     static final int KEEP_OFF = 12;
-    /** Corridor cells either way of the convoys' entry the camp is looked for. */
-    static final int SEARCH = 40;
+    /** Corridor cells either way of where the camp is wanted that it is looked for. */
+    static final int SEARCH = 60;
+    /**
+     * Corridor cells behind the line's crossing the camp's middle is wanted (owner, 2026-10-31: off the rear edge,
+     * nearer the line, to shorten the drive's safe leg): a buffer the swarm crosses only once it is through the line,
+     * well behind the company's fall-back ground. UNTUNED.
+     */
+    static final int BEHIND_GAP = 70;
     /** Corridor cells short of the gap the camp keeps at the nearest: it stands behind the line. */
-    static final int SHORT_OF_GAP = 60;
+    static final int SHORT_OF_GAP = 50;
     /** The least share of the square that must be open ground. */
     static final float MIN_OPEN = 0.5f;
-    /** Allied guards standing in the camp. UNTUNED. */
-    static final int GUARDS = 4;
+    /** Allied riflemen in each of the camp's two teams. UNTUNED. */
+    static final int GUARDS = 6;
+    /** The gun on each of the camp's inner corners: the redoubts' corner gun. UNTUNED. */
+    static final String CORNER_GUN = ColonyMilitia.EMPLACEMENT_STRUCTURE;
     /** Cells the camp's square keeps from the map's edge. */
     static final int EDGE = 4;
 
@@ -80,15 +93,18 @@ public final class CordonCamp {
         boolean at(int x, int y);
     }
 
-    /** A sandbag on the ring: its cell and the way it faces out, as the art names it ({@code n}, {@code s}, ...). */
-    public record Bag(int x, int y, char facing) { }
+    /**
+     * A sandbag on the ring: its cell and its art after {@code doodad.fort-sandbag-}: the way it faces out on a side
+     * ({@code n}, {@code s}, ...) or {@code corner-ne} and so on at a corner.
+     */
+    public record Bag(int x, int y, String art) { }
 
     /**
      * Where the camp stands: the corridor cell the trucks stop at (its middle), its open cells, the ring's bags, where
      * the people wait (nearest the middle first), the crate stacks' cells and the guards' cells.
      */
     public record Plan(int dropIndex, int cx, int cy, List<int[]> cells, List<Bag> bags, List<int[]> waiting,
-                List<int[]> crates, List<int[]> guards, List<Prop> props) { }
+                List<int[]> guns, List<int[]> guards, List<int[]> rearGuards, List<Prop> props) { }
 
     private final Plan plan;
     private int nextHome;
@@ -119,19 +135,22 @@ public final class CordonCamp {
     }
 
     /**
-     * Finds the camp round the convoys' entry: on the corridor cell nearest {@code entry} (the rear way first on a
-     * tie), never nearer the gap than {@link #SHORT_OF_GAP}, whose square lies on the map, keeps {@link #KEEP_OFF}
-     * from every point in {@code keepOff} and is at least {@link #MIN_OPEN} open. {@code null} where none is.
+     * Finds the camp {@link #BEHIND_GAP} corridor cells behind the line's crossing, or beside the base where the
+     * convoys would set out ({@code entry}) when that is nearer the gap: on the corridor cell nearest there (the rear
+     * way first on a tie), never nearer the gap than {@link #SHORT_OF_GAP}, whose square lies on the map, keeps
+     * {@link #KEEP_OFF} from every point in {@code keepOff} and is at least {@link #MIN_OPEN} ground it can clear.
+     * {@code null} where none is.
      *
      * @param front +1 or -1, the front's way in y
      */
     public static Plan plan(List<int[]> corridor, int entry, int gapIndex, int front, int width, int height, Open open,
                      List<int[]> keepOff) {
-        int hi = Math.min(corridor.size() - 1, Math.min(entry + SEARCH, gapIndex - SHORT_OF_GAP));
-        int lo = Math.max(1, entry - SEARCH);
+        int wanted = wanted(entry, gapIndex);
+        int hi = Math.min(corridor.size() - 1, Math.min(wanted + SEARCH, gapIndex - SHORT_OF_GAP));
+        int lo = Math.max(1, wanted - SEARCH);
         List<Integer> order = new ArrayList<>();
         for (int i = lo; i <= hi; i++) order.add(i);
-        order.sort(Comparator.<Integer>comparingInt(i -> Math.abs(i - entry)).thenComparingInt(i -> i));
+        order.sort(Comparator.<Integer>comparingInt(i -> Math.abs(i - wanted)).thenComparingInt(i -> i));
         for (int index : order) {
             int[] c = corridor.get(index);
             if (c[0] - HALF < EDGE || c[1] - HALF < EDGE || c[0] + HALF >= width - EDGE
@@ -145,6 +164,11 @@ public final class CordonCamp {
             return lay(index, c[0], c[1], front, corridor, cells);
         }
         return null;
+    }
+
+    /** The corridor cell the camp is wanted on: {@link #BEHIND_GAP} behind the gap, or the entry where it is nearer. */
+    static int wanted(int entry, int gapIndex) {
+        return Math.max(1, Math.max(entry, gapIndex - BEHIND_GAP));
     }
 
     private static boolean crowded(int cx, int cy, List<int[]> keepOff) {
@@ -168,30 +192,22 @@ public final class CordonCamp {
             }
         }
         List<Bag> bags = new ArrayList<>();
-        List<int[]> inner = new ArrayList<>(), crates = new ArrayList<>(), guards = new ArrayList<>();
+        List<int[]> inner = new ArrayList<>(), guns = new ArrayList<>();
         for (int[] c : cells) {
             int dx = c[0] - cx, dy = c[1] - cy;
             int ring = Math.max(Math.abs(dx), Math.abs(dy));
             long k = key(c[0], c[1]);
             if (ring == HALF) {
-                if (!road.contains(k)) bags.add(new Bag(c[0], c[1], facing(dx, dy)));
+                if (!road.contains(k)) bags.add(new Bag(c[0], c[1], bagArt(dx, dy)));
             } else if (ring == HALF - 1 && Math.abs(dx) == HALF - 1 && Math.abs(dy) == HALF - 1) {
-                if (!near.contains(k)) crates.add(c);
+                if (!near.contains(k)) guns.add(c);
             } else if (ring <= HALF - 2 && !near.contains(k)) {
                 inner.add(c);
             }
         }
-        // Guards on the side toward the front, just inside the bags, spread along it.
-        List<int[]> frontRow = new ArrayList<>();
-        for (int[] c : cells) {
-            if (c[1] - cy == front * (HALF - 1) && Math.abs(c[0] - cx) < HALF - 1 && !road.contains(key(c[0], c[1]))) {
-                frontRow.add(c);
-            }
-        }
-        frontRow.sort(Comparator.comparingInt(c -> c[0]));
-        for (int g = 0; g < GUARDS && !frontRow.isEmpty(); g++) {
-            guards.add(frontRow.get((int) ((g + .5f) * frontRow.size() / GUARDS)));
-        }
+        // One team just inside the bags on the side toward the front, one on the rear, each spread along its side.
+        List<int[]> guards = row(cells, cx, cy + front * (HALF - 1), road);
+        List<int[]> rearGuards = row(cells, cx, cy - front * (HALF - 1), road);
         // The stations stand on the rear half, either side of the road; the people wait round them.
         List<Prop> props = new ArrayList<>();
         Set<Long> free = new HashSet<>();
@@ -205,7 +221,25 @@ public final class CordonCamp {
         int restY = cy - front * (HALF / 2);
         inner.sort(Comparator.<int[]>comparingInt(c -> Math.abs(c[0] - cx) + Math.abs(c[1] - restY))
                 .thenComparingInt(c -> c[1]).thenComparingInt(c -> c[0]));
-        return new Plan(index, cx, cy, List.copyOf(cells), bags, inner, crates, guards, props);
+        return new Plan(index, cx, cy, List.copyOf(cells), bags, inner, guns, guards, rearGuards, props);
+    }
+
+    /** {@link #GUARDS} cells spread along the row {@code y} just inside the bags, off the road and the corner guns. */
+    private static List<int[]> row(List<int[]> cells, int cx, int y, Set<Long> road) {
+        List<int[]> along = new ArrayList<>();
+        for (int[] c : cells) {
+            if (c[1] == y && Math.abs(c[0] - cx) < HALF - 1 && !road.contains(key(c[0], c[1]))) along.add(c);
+        }
+        along.sort(Comparator.comparingInt(c -> c[0]));
+        List<int[]> out = new ArrayList<>();
+        for (int g = 0; g < GUARDS && !along.isEmpty(); g++) out.add(along.get((int) ((g + .5f) * along.size() / GUARDS)));
+        return out;
+    }
+
+    /** A ring cell's bag art: its corner piece on a corner, else the way it faces out. */
+    static String bagArt(int dx, int dy) {
+        if (Math.abs(dx) == Math.abs(dy) && dx != 0) return "corner-" + (dy > 0 ? 'n' : 's') + (dx > 0 ? 'e' : 'w');
+        return String.valueOf(facing(dx, dy));
     }
 
     /**
@@ -241,28 +275,27 @@ public final class CordonCamp {
     }
 
     /**
-     * Raises the camp on the live map before the first tick: the bags (walkable, open to sight), the crate stacks
-     * (closed to movement, open to sight) and the guards, an allied team under garrison authority. {@code null} where
-     * {@link #plan} finds no ground.
+     * Raises the camp on the live map before the first tick: its square cleared ({@link #clear}), the bags (walkable,
+     * open to sight), the stations' props (closed to movement, open to sight), a gun on each inner corner and the two
+     * teams, allied under garrison authority. {@code null} where {@link #plan} finds no ground.
      */
     public static CordonCamp raise(BattleSimulation sim, Plan plan, RiskLevel risk, Random rng) {
         if (plan == null) return null;
         TileRegistry registry = TileRegistry.installed();
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
+        clear(sim, plan.cells());
         if (registry != null) {
             for (Bag bag : plan.bags()) {
-                DoodadDef def = registry.doodad("doodad.fort-sandbag-" + bag.facing());
-                if (def == null) continue;
+                DoodadDef def = registry.doodad("doodad.fort-sandbag-" + bag.art());
+                if (def == null || !grid.isWalkable(bag.x(), bag.y()) || topology.isFixture(bag.x(), bag.y())) continue;
                 grid.setSeeThrough(bag.x(), bag.y(), true);
                 topology.setFixture(bag.x(), bag.y(), true);
                 sim.addDoodad(new Doodad(bag.x(), bag.y(), def));
             }
-            List<Prop> props = new ArrayList<>(plan.props());
-            for (int[] c : plan.crates()) props.add(new Prop("doodad.industrial-crate-stack", c[0], c[1], 1, 1));
-            for (Prop p : props) {
+            for (Prop p : plan.props()) {
                 DoodadDef def = registry.doodad(p.doodad());
-                if (def == null) continue;
+                if (def == null || !standable(grid, topology, p)) continue;
                 for (int y = p.y(); y < p.y() + p.height(); y++) {
                     for (int x = p.x(); x < p.x() + p.width(); x++) {
                         grid.setWalkable(x, y, false);
@@ -276,16 +309,80 @@ public final class CordonCamp {
                     for (int x = p.x() - 1; x <= p.x() + p.width(); x++) if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
             }
         }
-        if (!plan.guards().isEmpty()) ColonyMilitia.seatTeam(sim, plan.guards(), "Camp guard", risk, rng);
+        int gun = 0;
+        for (int[] c : plan.guns()) {
+            if (!grid.isWalkable(c[0], c[1]) || topology.isFixture(c[0], c[1])) continue;
+            ColonyMilitia.seatEmplacement(sim, c, "Camp gun " + (++gun), CORNER_GUN);
+        }
+        seat(sim, plan.guards(), "Camp guard", risk, rng);
+        seat(sim, plan.rearGuards(), "Camp rear guard", risk, rng);
         return new CordonCamp(plan);
     }
 
-    /** Open ground on the live map: walkable, outside every building, no door, no prop, no wall. */
+    private static void seat(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
+        List<int[]> open = new ArrayList<>();
+        for (int[] c : cells) if (sim.getGrid().isWalkable(c[0], c[1])) open.add(c);
+        if (!open.isEmpty()) ColonyMilitia.seatTeam(sim, open, name, risk, rng);
+    }
+
+    private static boolean standable(NavigationGrid grid, CellTopology topology, Prop p) {
+        for (int y = p.y(); y < p.y() + p.height(); y++)
+            for (int x = p.x(); x < p.x() + p.width(); x++)
+                if (!grid.isWalkable(x, y) || topology.isFixture(x, y)) return false;
+        return true;
+    }
+
+    /** Hits a fallen tree takes: enough to fell any the country grows in one. */
+    private static final int FELL = 1_000_000;
+
+    /**
+     * Clears the camp's square before anything is set on it: the ground cover, every loose prop, and each tree felled
+     * through the ordinary destruction path, as a heavy blade would take it, so its cells open to walking.
+     */
+    static void clear(BattleSimulation sim, List<int[]> cells) {
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        for (int[] c : cells) {
+            int x = c[0], y = c[1];
+            sim.clearNatureOverlay(x, y);
+            if (sim.clearLooseProps(x, y)) topology.setFixture(x, y, false);
+            for (int hit = 0; hit < 3 && !grid.isWalkable(x, y) && natural(sim, x, y); hit++) {
+                sim.mapEditor().damageWall(x, y, FELL);
+            }
+            if (sim.clearLooseProps(x, y) && grid.isWalkable(x, y)) topology.setFixture(x, y, false);
+        }
+    }
+
+    /** Whether a prop is the country's own: a tree or undergrowth, ground scatter, a rock formation. */
+    static boolean natural(String id) {
+        return id != null && (id.startsWith("forest.") || id.startsWith("nature.") || id.startsWith("formation."));
+    }
+
+    /** Whether a tree or other natural prop stands on the cell. */
+    private static boolean natural(BattleSimulation sim, int x, int y) {
+        for (Doodad d : sim.getDoodads()) {
+            String id = d.definitionId();
+            if (natural(d.definitionId()) && d.occupiesCell(x, y)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Ground the camp may stand on and clear: outside every building, no wall, no door, and either open ground or a
+     * cell only a tree or loose scatter holds.
+     */
     public static Open open(BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
-        return (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
-                && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y);
+        Set<Long> natural = new HashSet<>();
+        for (Doodad d : sim.getDoodads()) {
+            if (!natural(d.definitionId())) continue;
+            for (int dy = 0; dy < d.footprintCellsY; dy++)
+                for (int dx = 0; dx < d.footprintCellsX; dx++) natural.add(key(d.cellX + dx, d.cellY + dy));
+        }
+        return (x, y) -> grid.inBounds(x, y) && !grid.isDoorway(x, y) && topology.getBuildingId(x, y) == 0
+                && !topology.isWall(x, y)
+                && (natural.contains(key(x, y)) || grid.isWalkable(x, y) && !topology.isFixture(x, y));
     }
 
     private static long key(int x, int y) {
