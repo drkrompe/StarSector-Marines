@@ -943,9 +943,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         if (DevConfig.DEV_MODE) hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on. Either build's
-        // switch opens Win and Add Onslaught beside itself.
-        if (DevConfig.DEV_MODE || Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, List.of(
+        // Every battle has it, labelled CHEAT in a player build whatever the mission board's CHEAT key says, so a
+        // battle an alpha bug leaves unwinnable can still be won (owner, 2026-10-31). Either build's switch opens
+        // Win and Add Onslaught beside itself.
+        hud.addPanel(new DebugHudSwitchPanel(this, List.of(
                 new DebugHudSwitchPanel.Cheat(Strings.get("cheatsWin"), this::cheatWin, () -> true),
                 new DebugHudSwitchPanel.Cheat(Strings.get("cheatsOnslaught"), this::cheatOnslaught,
                         this::onslaughtCheatOffered))));
@@ -1275,7 +1276,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
 
-    @Override public boolean debugHudVisible() { return (DevConfig.DEV_MODE || Cheats.enabled()) && debugHudVisible; }
+    @Override public boolean debugHudVisible() { return debugHudVisible; }
 
     @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 

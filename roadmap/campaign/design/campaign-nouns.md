@@ -77,9 +77,10 @@ and a replay does not retry.
 Missions: off by default (in a dev build too) and saved with the
 game. While it is on, the board lists **Debug missions**, every mission with
 sandbox forces, loadouts and settings that never touch the company or the
-campaign; Company HQ shows its debug button; and a battle's debug panel offers
-**Win**, a general "I win": it ends any battle as the company's outright
-victory. Every story record reports each objective met and nobody lost, so the
+campaign; and Company HQ shows its debug button. Every battle, whatever the
+key says, has a CHEAT switch offering **Win**, a general "I win": it ends any
+battle as the company's outright victory, so an alpha bug never forces a new
+campaign. Every story record reports each objective met and nobody lost, so the
 arc settles it as a full success (fee, chapter advance, rewards); the company's
 own losses and experience are what the battle had reached.
 The store's **[Cheat] Free Licenses** key, shown only while Debug is on and
