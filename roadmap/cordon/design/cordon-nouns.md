@@ -588,12 +588,18 @@ body is inside its wall or half its defenders are down (*Town calling*,
 it is pressed.
 
 **Camp (the Road).** The safe point behind the line where the convoys bring
-the townspeople: a small allied encampment on the corridor where the convoys
-set out from and come back to, seventy corridor cells behind where the corridor
-crosses the line (or beside the logistics base where that is nearer the gap):
-a buffer the swarm crosses only once it is through the line, well behind the
-company's fall-back ground, and a short safe leg for the drive (owner,
-2026-10-31; untuned). It is a square twenty-five cells across with the road running through
+the townspeople: a small allied encampment where the convoys set out from and
+come back to, beside the logistics base on its west side (its east where the
+west has no room), level with the base's middle, with an apron of ten cells
+between camp and base where trucks are set down and vehicles are built out and
+drive away (owner, 2026-10-31: "to the left of the logistics base with a gap
+for vehicles to spawn"; untuned). Its own road runs out of its middle to the
+apron, where the trucks stop and the people step off, and on the cheapest way a
+truck drives to the corridor; that road is the convoys' corridor from then on.
+Where the base has no room or no way beside it, the camp stands on the corridor
+seventy corridor cells behind where it crosses the line. Either way it is well
+behind the company's fall-back ground and keeps off the base's muster yard. It
+is a square twenty-five cells across with the road running into or through
 it, cleared at setup of its trees and loose props: a sandbag ring on its edge,
 whole round with its corner pieces and broken only where the road crosses it;
 the line's heavy machine gun on each inner corner (the redoubts' corner gun);
