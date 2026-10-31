@@ -197,7 +197,7 @@ final class BattleShipCommandController {
     }
     private static String name(BattleSimulation sim, Warship ship, Tender tender) {
         if (ship.supportSource() != null) return ship.supportSource().shipName();
-        if (tender != null && (tender.grounded() && sim.getColdStart() != null || tender.lowHover())) return "Morrow";
+        if (tender != null && (tender.grounded() && sim.getColdStart() != null || tender.lowHover())) return Strings.get("morrowShipName");
         return ship.hullId.isEmpty() ? text("Heading")
                 : Strings.named("shipHull", ship.hullId);
     }
