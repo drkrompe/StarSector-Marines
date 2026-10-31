@@ -358,8 +358,9 @@ public final class MissionLaunch {
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
-            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md).
-            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest)
+            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md);
+            // the Khettara's chapter already carries its own pooled seed.
+            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest) && !WellhollowBloomCampaign.isBattle(m)
                     ? BattleSetup.colonyBreachSeed(profile == null ? null : profile.surface(), seed) : seed;
             CivilianRescueBattleFixture rescueFixture =
                     CivilianRescueBattleFixture.fromFactoryInputs(rescueSeed,
