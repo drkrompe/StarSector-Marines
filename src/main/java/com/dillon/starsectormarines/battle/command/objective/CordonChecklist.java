@@ -151,7 +151,7 @@ public final class CordonChecklist {
         for (Reading r : readings) {
             if (r.x() < 0 || r.phase() == Phase.OUT || r.phase() == Phase.LOST) continue;
             String id = "cordon-convoy-" + r.number();
-            markers.add(new Marker(id, Strings.format("cordonHudConvoy", r.number()), r.x(), r.y(),
+            markers.add(new Marker(id, Strings.format("cordonHudConvoy", r.number(), CordonConvoys.MAX_CONVOYS), r.x(), r.y(),
                     convoyStatus(r, tick), State.ACTIVE));
             if (r == wanted && r.phase() != Phase.LOADING) focus = id;
         }
