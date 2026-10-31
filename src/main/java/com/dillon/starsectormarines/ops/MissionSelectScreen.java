@@ -537,14 +537,16 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putReplayToggle(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
-        props.put("replayToggleClasses", !available ? "replay-toggle hidden" : on ? "replay-toggle good-surface" : "replay-toggle");
-        props.put("replayToggleLabel", Strings.get(on ? "replayCompletedToggleOn" : "replayCompletedToggleOff"));
+        props.put("replayToggleClasses", "replay-toggle console-command-rail" + (available ? "" : " hidden"));
+        // A lit key, as Brief & Deploy is: the theme lights a command key's lamp on its good surface.
+        props.put("replayKeyClasses", on ? "good-surface" : "");
+        props.put("replayToggleLabel", Strings.get("replayCompletedToggle"));
         props.put("replayToggleAction", toggle);
     }
 
     private List<Mission> replayOffers() {
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        return CompletedReplays.offers(script == null ? null : script.roster());
+        return CompletedReplays.offers(script == null ? null : script.roster(), context == null ? null : context.planet);
     }
 
     /** Shows or hides the replay contact; hiding it while open returns the board to no selection. */

@@ -387,3 +387,4 @@ com.dillon.starsectormarines.battle.power.WolfStrikeLookSuite
 com.dillon.starsectormarines.battle.tender.MorrowLookSuite
 com.dillon.starsectormarines.battle.tender.LocustFireBaseMockSuite
 com.dillon.starsectormarines.battle.weapon.WeaponReelSuite
+com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite
