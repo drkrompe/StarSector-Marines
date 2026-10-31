@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-21 — squad definitions, mission flow and battle UI migrated; markup guards added
+Updated: 2026-10-31 — Simplified Chinese translation mod started (opening dialogue); overlay parity guard
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
@@ -54,6 +54,45 @@ briefing, pre-battle muster, stationing, results, debrief and salvage; mission
 objective names, steps, measures and blockers; battle HUD, order, mech, power,
 air and squad overlays, battlefield markers, order cursors and battle comms.
 Debug launchers, debug drawers and debug panels are deliberately English.
+
+## Translations
+
+Each language is its own mod under `translations/<locale>/`: `mod_info.json`
+depending on `starsector_marines` (so it loads after it), a partial
+`data/strings/strings.json` merged over the English `marineOps` keys, and
+`data/config/settings.json` setting `localeOverride` (and `cjkMode` for
+Chinese, Japanese and Korean). It sits outside `mod/`, so `deployMod`,
+`packageRelease` and the jar never carry it. `TranslationOverlayTest` holds
+every override to a key the English catalog has, with the same argument
+indexes and formats, printf specifiers, `@key` references and doubled
+apostrophes. Shared terms live in the language's `glossary.md`; proper names
+stay as the story docs spell them.
+
+Simplified Chinese (`zh_CN`, owner's first language) has these slices:
+
+- [x] Opening dialogue: prologue, Nessa's yard, Castle's preparation guide,
+  Morgan's induction, the Cerberus start and hand-off, the first-lift lesson
+  (`openingCompanyPrologue*`, `openingCompanyYard*`,
+  `openingCompanyPreparation*`, `openingOfficerInduction*`,
+  `openingCerberusCompany*`, `openingYard*Dialogue/NextStep`, `lessonFirstLift*`).
+- [ ] Mission board: `missionSelect*`, contract board, `wayline*` offers.
+- [ ] Briefing and muster: `briefingUi*`, `briefingVm*`, `waylineBriefing*`,
+  stationing.
+- [ ] Results, debrief and salvage: `resultsScreen*`, `debrief*`, loot.
+- [ ] Battle UI: `battleDirect*`, `battleComms*`, `battleWs*`, objective
+  names and markers, the Relief and Dust Ledger HUDs.
+- [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
+  ship transfer and refit (the bulk of the `opening*` keys).
+
+Blocking a live zh_CN pass:
+
+- **Font.** The retained UI draws the vanilla Orbitron and Insignia bitmap
+  faces, which have no CJK glyphs; a missing glyph measures 0 px and draws
+  nothing. Chinese needs replacement `.fnt` faces at the same paths (what
+  Starsector's Chinese packs ship). Until then the layout lint of Chinese copy
+  is vacuous, so translated layout is checked only by the +50% expanded copy.
+- The planet-menu option "Marine operations" and other `rules.csv` text are
+  outside the catalog and stay English.
 
 ## Remaining before the gate is green
 
