@@ -68,15 +68,16 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
-        float alphaMult = ctx.alphaMult;
-        // The convoy layer paints over the fog, so a hull the player cannot see is skipped here rather than covered.
+        float frameAlpha = ctx.alphaMult;
+        // The convoy layer paints over the fog, so a hull the player cannot see is faded here rather than covered.
         FogOfWarService fog = ctx.hostProfile.fogHidesUnits() ? ctx.sim.getFogOfWar() : null;
 
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible()) continue;
             boolean wrecked = v.state == VehicleState.WRECKED;
-            if (!wrecked && fog != null && !fog.isHullShown(convoy, id)) continue;
+            float alphaMult = wrecked || fog == null ? frameAlpha : frameAlpha * fog.hullAlpha(id);
+            if (alphaMult <= 0f) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
             UnitSpriteCache cache = sprites.convoySprites().get(type);
@@ -327,7 +328,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         }
 
         if (ctx.hostProfile.unitDecorationsVisible()) {
-            sweepDurabilityBars(ids, convoy, fog, cam, cellPx, alphaMult, out);
+            sweepDurabilityBars(ids, convoy, fog, cam, cellPx, frameAlpha, out);
         }
     }
 
@@ -469,7 +470,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible() || v.state == VehicleState.WRECKED) continue;
-            if (fog != null && !fog.isHullShown(convoy, id)) continue;
+            float seen = fog == null ? 1f : fog.hullAlpha(id);
+            if (seen <= 0f) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
             float bodyPx = Math.max(type.drawnLengthCells, type.visualWidthCells) * cellPx;
@@ -478,7 +480,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             DurabilityBarDecor.emit(out, RenderLayer.CONVOY,
                     Allegiance.of(convoy.faction(id)), cx, barY, bodyPx,
                     convoy.structure(id), convoy.maxStructure(id),
-                    convoy.armor(id), convoy.maxArmor(id), alphaMult);
+                    convoy.armor(id), convoy.maxArmor(id), alphaMult * seen);
         }
     }
 
