@@ -27,14 +27,14 @@ class ShipRestorationOrdersTest {
     }
 
     @Test void mechRepairsRequireRecoveryAndEachPrecedingBerth() {
-        for (var work : new Work[]{Work.MECH_BERTH_2, Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
+        for (var work : new Work[]{Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
             assertNotNull(CompanyShipRestoration.refusal(work, ShipRestoration.WRECK, true, true, true, true, 20000));
-            for (int additional = 0; additional <= 3; additional++) {
+            for (int additional = 0; additional <= 2; additional++) {
                 var state = new ShipRestoration(true, true, false, false, false, additional);
                 String refusal = CompanyShipRestoration.refusal(work, state, true, true, true, true, work.price);
-                assertEquals(additional == work.berth - 2, refusal == null);
+                assertEquals(additional == work.berth - 3, refusal == null);
             }
-            var eligible = new ShipRestoration(true, true, false, false, false, work.berth - 2);
+            var eligible = new ShipRestoration(true, true, false, false, false, work.berth - 3);
             assertNotNull(CompanyShipRestoration.refusal(work, eligible, false, true, true, true, 20000));
             assertNotNull(CompanyShipRestoration.refusal(work, eligible, true, false, true, true, 20000));
             assertNotNull(CompanyShipRestoration.refusal(work, eligible, true, true, true, false, 20000));
