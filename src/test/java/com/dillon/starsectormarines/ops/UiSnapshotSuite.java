@@ -3487,7 +3487,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
             viewModel.catalogRows().get().stream()
-                    .filter(row -> BoatFitting.REINFORCED_PLATING.id().equals(row.itemId()))
+                    .filter(row -> BoatFitting.STANDARD_PLATING.id().equals(row.itemId()))
                     .findFirst().orElseThrow().card().recycle().action().run();
         }
         if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
