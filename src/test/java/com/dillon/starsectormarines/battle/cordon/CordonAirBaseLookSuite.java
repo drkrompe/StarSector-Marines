@@ -17,9 +17,10 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.List;
 
 /**
- * The allies' air base behind the line ({@code cordon-nouns.md}, Air base), as the owner would see it: the Road
- * fixture's battle played once unrecorded to find the first sortie off the apron, then played again to just before it
- * and recorded through the look preset on the apron, as the aircraft lifts off its stand, and later comes home to it.
+ * The allies' airbase lot in the rear ({@code cordon-nouns.md}, Air base), as the owner would see it: the Road
+ * fixture's battle played once unrecorded to find the first sortie off the lot, then played again to just before it
+ * and recorded through the look preset over the lot, its aircraft in the sheds and on the berths, as one rolls out
+ * and away, and later comes home. A seed whose map laid no lot is refused rather than drawn on the fallback.
  *
  * <p>{@code -Dsnapshot.cordonAirBase.seed=7117}, {@code .density=rural} and {@code .ticks=600} choose the battle and the
  * length. Opt-in: it plays a battle twice before it draws.
@@ -35,7 +36,7 @@ public final class CordonAirBaseLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "cordon-airbase-look"; }
 
-    @Override public String label() { return "Cordon: the allies' air base, an aircraft lifting off its stand"; }
+    @Override public String label() { return "Cordon: the allies' airbase lot, its aircraft on their berths and a sortie leaving"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -47,6 +48,9 @@ public final class CordonAirBaseLookSuite implements SnapshotSuite {
         int ticks = Integer.parseInt(System.getProperty("snapshot.cordonAirBase.ticks", "600").trim());
         BattleSimulation probe = battle(seed, density);
         if (probe.getCordon().airBase() == null) throw new IllegalStateException("no air base on seed " + seed);
+        if (probe.getCordon().airBase().ground() != CordonAirBase.Ground.LOT) {
+            throw new IllegalStateException("seed " + seed + " laid no airbase lot: the wing stands on open ground");
+        }
         while (!launched(probe)) {
             if (probe.getSimTickIndex() >= BY) throw new IllegalStateException("no sortie off the apron by tick " + BY);
             probe.advance(BattleSimulation.TICK_DT);

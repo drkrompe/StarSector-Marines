@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the air wing flies off an allied air base in the rear, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
+Updated: 2026-10-31 — the air wing flies off the allies' own airbase lot, a field held in a rear corner, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -205,23 +205,28 @@ nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
 air; the columns, the street teams, the town's militia, the refugees and the
 company carry no radio onto the wing's net. Both variants, every density.
 
-**Air base** (`CordonAirBase`). Where the air wing lives: a row of four
-hardstands on open ground in the rear, sought some twenty-four cells behind the
-logistics base's machine door (behind the middle of the line where there is no
-base), on one level, clear of the corridor by eight cells, of the roads by four
-and of the company's pads and the base's apron by twelve, its stands six cells
-apart across the long axis, every nose toward the front. One stand for each
-airframe of the wing, bombers first (`AlliedAirWing.baseAt`), and the aircraft
-on them are the allies' own parked units: drawn, seen by the swarm and killable
-where they stand (`air-nouns.md`, A based pool). Every sortie the wing flies, an
-observer's call or the base's own, lifts off its stand and comes home to it to
-be rearmed and refuelled (about twenty-five seconds' turnaround, longer when it
-comes home shot up); one shot down is replaced on its stand after the wing's
-own time (a minute for a bomber, forty-five seconds for a fighter), and one
-burned where it stood leaves its hulk and the stand is out for the battle. A
-rear with no room for the row lays no base, and the wing flies in over the rear
-edge as before. Besides the observers' calls, the base's operations room tasks
-the wing's **own sorties**, allied command and never the player's: the first a
+**Air base** (`CordonAirBase`). Where the air wing lives: the allies' own
+airbase lot, a field (a strip, three berths and two sheds) the map holds in a
+rear corner from before anything grows (`cordon-map-intent.md`, The air base;
+`CordonPlan.airBase`), its strip along the edge toward the front. It is an
+allied lot: it publishes no compound for the swarm to take and no pad the
+company lands on. The wing is based on it as The Burn's is
+(`AlliedAirWing.baseOnLot`): one airframe in each shed, bombers first, rolling
+out and down the strip for every sortie and landing and taxiing home after; the
+rest on the apron's berths, lifting off them. The aircraft there are the allies'
+own parked units: drawn, seen by the swarm and killable where they stand
+(`air-nouns.md`, A based pool). The allies post four technicians on the apron
+out of the lot's sheds, who work every turnaround (about twenty-five seconds'
+servicing, longer when an airframe comes home shot up); where none can be posted
+the berths' abstract hands do it. One shot down is replaced on its berth after
+the wing's own time (a minute for a bomber, forty-five seconds for a
+fighter), and one burned where it stood leaves its hulk and the berth is out for the battle. A
+map that laid no lot falls back to a row of four hardstands on open ground some
+twenty-four cells behind the logistics base, clear of the corridor, the roads,
+the company's pads and the base's apron, every nose toward the front, and the
+log says so (`cordon: the map laid no airbase lot`); a rear with no room even
+for that lays no base, and the wing flies in over the rear edge. Besides the
+observers' calls, the base's operations room tasks the wing's **own sorties**, allied command and never the player's: the first a
 minute in, then one at most every twenty seconds, with one airframe of each
 kind left on the apron for the radio. It strikes only what the side can fairly
 know, most urgent first: the swarm massed on a redoubt calling for relief (the
