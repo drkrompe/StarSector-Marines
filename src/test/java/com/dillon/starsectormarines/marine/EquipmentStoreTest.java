@@ -119,6 +119,23 @@ class EquipmentStoreTest {
     }
 
     @Test
+    void takeEverythingTeachesEveryOfferableThingFreeAndOnlyOnce() {
+        BoatDeck deck = new BoatDeck();
+        MechBay bay = new MechBay();
+        Purse purse = new Purse(0, true);
+        EquipmentStore.Holdings held = new EquipmentStore.Holdings(new MarineArmory(), bay, deck);
+
+        assertTrue(EquipmentStore.takeEverything(held, purse) > 0);
+
+        for (String part : BoatParts.offerable()) assertTrue(deck.knowsPart(part), part);
+        for (MechPattern pattern : MechPattern.offerable()) assertTrue(EquipmentStore.known(
+                new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(), EquipmentStore.Shelf.LICENSE, 1), held),
+                pattern.id());
+        assertEquals(0, purse.credits, "a cheat charges nothing");
+        assertEquals(0, EquipmentStore.takeEverything(held, purse), "nothing is taught twice");
+    }
+
+    @Test
     void aBoatPartSaleTeachesTheDeckAndUnlocksTheWorkshop() {
         BoatDeck deck = new BoatDeck();
         String part = BoatParts.offerable().get(0);

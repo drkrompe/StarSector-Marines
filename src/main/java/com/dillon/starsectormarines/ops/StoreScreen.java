@@ -116,6 +116,7 @@ public final class StoreScreen implements Screen {
                 // The page already open is not a dead button.
                 viewModel::refresh);
         putFreeLicenses(props, Cheats.enabled(), Cheats.freeLicenses(), this::toggleFreeLicenses);
+        props.put("takeAllAction", (Runnable) this::takeEverything);
         return props;
     }
 
@@ -126,6 +127,16 @@ public final class StoreScreen implements Screen {
         props.put("freeKeyClasses", on ? "good-surface" : "");
         props.put("freeLabel", Strings.get("storeCheatFreeLicenses"));
         props.put("freeAction", toggle);
+        props.put("takeAllLabel", Strings.get("storeCheatTakeEverything"));
+        props.put("takeAllAction", (Runnable) () -> { });
+    }
+
+    /** "[Cheat] Take Everything": teaches every card, pattern and boat part any store may sell, free. */
+    private void takeEverything() {
+        EquipmentStore.takeEverything(holdings(), new CampaignFabricationResources());
+        viewModel.refresh();
+        installDocument();
+        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private void toggleFreeLicenses() {
