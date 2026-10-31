@@ -89,7 +89,7 @@ optional (reported, and the map stands).
   preferred, then a short track, then nearness to where it was wanted; its
   strip runs along x and faces whichever way puts the apron toward the way.
   Round it grows a hamlet (below), off the field, its access track, the ways,
-  the clearance, farmed ground, and the strip's rows for thirty cells past
+  the clearance, planted ground, and the strip's rows for thirty cells past
   either end; its lane may open onto the field's access track.
 - **Hamlet** (`HamletGrowth`, mission-neutral): a settlement grown round a
   placed structure. A three-cell lane of its own, opening at one end onto a
@@ -100,7 +100,9 @@ optional (reported, and the map stands).
   in that order while there is room. Of every lane that fits, the one seating
   the most buildings wins, a joined lane counting for a building and a half,
   then the nearest; so a hamlet stands on whichever side has the most open,
-  unfarmed ground, smaller where room is short, none where no yard fits. The
+  unplanted ground, smaller where room is short, none where no yard fits. Wild
+  ground and a fallow parcel are open to it; a planted crop (row crop, grain,
+  pasture) and a farm's yard are not (`HamletGrowth.unplanted`). The
   lane is laid as worked ground (**Worked**, a piece of worked earth by cells,
   laid in the phase of the deferred piece that resolved it).
 - **Placed by hand.** A layout may carry structures a person put down for one

@@ -202,7 +202,7 @@ public final class AirfieldSiting {
 
     /**
      * The hamlet round {@code field} ({@link HamletGrowth}): its lane and buildings, named {@code field.name() + ".<n>"},
-     * on cells {@code open} passes that nobody farms, off the ways and the column clearance, clear of the field and
+     * on cells {@code open} passes that nothing grows on ({@link HamletGrowth#unplanted}), off the ways and the column clearance, clear of the field and
      * its gap, its access track, and its strip's rows for {@link #RUN_UP} cells past either end. The lane joins a
      * way off the clearance or the field's access track. Smaller, or none, where the ground has no room.
      */
@@ -217,7 +217,7 @@ public final class AirfieldSiting {
         Set<Long> track = new HashSet<>();
         for (int[] c : access(ground, field).track()) track.add(key(c[0], c[1]));
         LineCourse.CellTest lane = (x, y) -> open.test(x, y) && !ground.isWay(x, y) && !ground.inColumnClearance(x, y)
-                && !ground.farmed(x, y) && !track.contains(key(x, y))
+                && HamletGrowth.unplanted(ground, x, y) && !track.contains(key(x, y))
                 && !(x >= field.x() - HAMLET_GAP && x < field.x() + fw + HAMLET_GAP
                 && y >= field.y() - HAMLET_GAP && y < field.y() + fh + HAMLET_GAP)
                 && !(x >= field.x() - RUN_UP && x < field.x() + fw + RUN_UP && y >= stripY0 && y <= stripY1);

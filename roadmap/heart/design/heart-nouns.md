@@ -232,7 +232,7 @@ the map's side, and each raised from its own draw. Round each grows a
 or the road out along the map's edge, with up to six fenced or hedged yards on
 it (crew quarters with a utility truck, a mess, a stores shed with drums and
 crates, a pump house with its tanks, a homestead, a radio hut), on whichever
-side of the base has the most open, unfarmed ground, so it reads as a place
+side of the base has the most open ground, wild or fallow but never a crop, so it reads as a place
 that grew beside the field; smaller where room is short. One is
 laid where only one flank has the ground, none where neither has (most city
 maps, where the farm tracks and the lanes' clearance leave no open strip 76
@@ -244,9 +244,9 @@ track; the east base on the sandy ground past the east lane's track at
 (483, 8), six cells clear of it and against the map's east edge. The
 clearance leaves no room on the bases' own side, so each hamlet stands across
 its lane's track: the west base's six round a lane running out to the map's
-west edge, on the open ground south of the pond; the east base's two on a lane
-off the map's south edge, in the 27-cell strip of wild ground between the farm
-track and the east lane's band, trees taking the rest of it. Each base is a common strip and
+west edge, on the open ground south of the pond; the east base's four on the
+fallow parcel west of the farm track at x 440, round a lane running north onto
+the farm track along the fields' foot. Each base is a common strip and
 eight bays: five hardstands and three sheds, holding three Daggers (the wing's
 bombers), three Talons and two Broadswords, and a crew of eight allied
 technicians, one to a bay, who refit and patch an aircraft that lands and

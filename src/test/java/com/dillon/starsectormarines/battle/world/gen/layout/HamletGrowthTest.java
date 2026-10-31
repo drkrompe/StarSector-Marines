@@ -1,8 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -64,5 +70,26 @@ class HamletGrowthTest {
         assertTrue(small >= 1 && small < HamletGrowth.MAX, "a strip one yard deep: " + small);
         assertTrue(HamletGrowth.grow("base", new int[]{0, 0, 80, 60}, 30, 8, (x, y) -> x > 0 && y < 5,
                 (x, y) -> false, WAY).buildings().isEmpty());
+    }
+
+    /** A fallow parcel and wild ground are open to a hamlet; a planted crop and a farm's yard are not. */
+    @Test
+    void aHamletMayTakeFallowGroundButNoCrop() {
+        int w = 60, h = 20;
+        GenContext ctx = new GenContext(new NavigationGrid(w, h), new CellTopology(w, h), new Random(1), w, h, 1L);
+        List<RuralLayout.Plot> plots = List.of(
+                new RuralLayout.Plot(0, 0, 9, 9, RuralLayout.Use.FALLOW, true, false),
+                new RuralLayout.Plot(10, 0, 19, 9, RuralLayout.Use.GRAIN, true, false),
+                new RuralLayout.Plot(20, 0, 29, 9, RuralLayout.Use.WILD, true, false),
+                new RuralLayout.Plot(30, 0, 39, 9, RuralLayout.Use.PASTURE, true, false));
+        List<RuralLayout.Farmstead> farms = List.of(new RuralLayout.Farmstead(40, 0, 49, 9, 41, 1, 45, 1, 0));
+        ctx.put(BspKeys.RURAL_LAYOUT, new RuralLayout(w, h, 2, 15, null, List.of(), plots, farms));
+        LayoutGround ground = new LayoutGround(ctx);
+        assertTrue(HamletGrowth.unplanted(ground, 5, 5), "fallow");
+        assertFalse(HamletGrowth.unplanted(ground, 15, 5), "grain");
+        assertTrue(HamletGrowth.unplanted(ground, 25, 5), "wild");
+        assertFalse(HamletGrowth.unplanted(ground, 35, 5), "pasture");
+        assertFalse(HamletGrowth.unplanted(ground, 45, 5), "a farm's yard");
+        assertTrue(HamletGrowth.unplanted(ground, 55, 15), "outside every plot");
     }
 }

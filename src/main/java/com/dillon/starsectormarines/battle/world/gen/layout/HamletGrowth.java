@@ -9,6 +9,8 @@ import java.util.List;
  * doors on the lane. Mission-neutral and pure: the caller says which cells a yard or the lane may take, which cells
  * the lane may join, and near what the hamlet belongs; the lane and the buildings come back as layout pieces to lay.
  *
+ * <p>A hamlet stands on wild ground or a fallow parcel, never on a planted crop ({@link #unplanted}).
+ *
  * <p>Of every lane that fits, the one that seats the most buildings wins, a lane that joins a way counting for a
  * building and a half, then the one nearest the structure. So a hamlet stands on whichever side of its structure has the most open ground, and is as
  * small as the ground makes it where room is short.
@@ -28,6 +30,14 @@ public final class HamletGrowth {
     static final float JOINED = 1500f;
 
     private HamletGrowth() {}
+
+    /**
+     * Whether a hamlet may take the cell as far as the farmland goes: anything but a planted crop. Wild ground and a
+     * fallow parcel, worked but unplanted, are open to a hamlet; a row crop, grain, pasture or a farm's yard is not.
+     */
+    public static boolean unplanted(LayoutGround ground, int x, int y) {
+        return !ground.planted(x, y);
+    }
 
     /** The hamlet's buildings, named {@code <prefix>.<n>}, and its lane's cells ({@code null} lane when none). */
     public record Hamlet(List<Structure> buildings, List<int[]> lane) {

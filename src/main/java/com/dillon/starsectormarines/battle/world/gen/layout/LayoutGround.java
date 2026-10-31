@@ -115,6 +115,18 @@ public final class LayoutGround {
         return ctx.get(BspKeys.RURAL_LAYOUT);
     }
 
+    /**
+     * Whether a crop stands on the cell: a plot planted with row crops, grain or pasture, or a farm's yard. A fallow
+     * plot is worked ground with nothing growing on it, and is not planted.
+     */
+    public boolean planted(int x, int y) {
+        RuralLayout rural = rural();
+        if (rural == null) return false;
+        RuralLayout.Plot plot = rural.plotAt(x, y);
+        return plot != null && plot.use() != RuralLayout.Use.WILD && plot.use() != RuralLayout.Use.FALLOW
+                || rural.farmsteadAt(x, y) != null;
+    }
+
     /** Whether the cell is worked ground: a plot somebody farms (not left wild), or a farm's yard. */
     public boolean farmed(int x, int y) {
         RuralLayout rural = rural();
