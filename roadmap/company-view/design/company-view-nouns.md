@@ -900,7 +900,7 @@ same kind of part wherever it is sold. A mech chassis and a vehicle hull are bot
 is the vehicle's take on the equipment a mech's internals give (capacitors, vents, loaders) and plating is
 the armor point both dolls carry; a shuttle has no chassis to sell, its yard builds the hull. A vehicle's
 engine core takes the same engines a mech runs, so an engine license teaches both; its gun card takes the
-mech weapons of its own type and size, so a weapon license teaches a hull the weapons its card accepts (`mechs-nouns.md`, vehicle gun card). Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, blue shuttle lander), carried down its slot rows as an accent strip so the grouping reads at a glance. Each slot row has a flat icon of its own, one per kind of part and shared across sections (`StoreSlot.symbol`: weapons, armor, engines, chassis, equipment, lift, cabin, emitter, power), never bricks. The shelf rows show each offer as the rest of the game shows it: a marine loadout as its faction's flag, a mech chassis or vehicle as its damage doll, and a part (weapon, engine, armor, equipment) as the Mech Lab draws hardware, and a shuttle part as the Boat Deck does, its bricks under its painted symbol (`StoreSymbolCanvas`), so the store draws nothing of its own. Selecting a chassis or vehicle hull draws the sockets of its doll in the selected item's details (`DollSchematicCanvas`: the Mech Lab's own empty doll, drawn by the lab's code, `MechLabDollCanvas.drawBareChassis` and `drawBareVehicle`, from the same doll definitions the lab reads, so the two never differ). Selecting a marine loadout prints its loadout card in the page's middle, the Armory's own card built by the same `FleetArmoryViewModel` builders. The list is an
+mech weapons of its own type and size, so a weapon license teaches a hull the weapons its card accepts (`mechs-nouns.md`, vehicle gun card). Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, the blue Hermes plan turned nose-right: every section icon is a damage-doll outline, the Hermes from the `air-hermes` plan the doll script writes alongside it), carried down its slot rows as an accent strip so the grouping reads at a glance. Each slot row has a flat icon of its own, one per kind of part and shared across sections (`StoreSlot.symbol`: weapons, armor, engines, chassis, equipment, lift, cabin, emitter, power), never bricks. The shelf rows show each offer as the rest of the game shows it: a marine loadout as its faction's flag, a mech chassis or vehicle as its damage doll, and a part (weapon, engine, armor, equipment) as the Mech Lab draws hardware, and a shuttle part as the Boat Deck does, its bricks under its painted symbol (`StoreSymbolCanvas`), so the store draws nothing of its own. Selecting a chassis or vehicle hull draws the sockets of its doll in the selected item's details (`DollSchematicCanvas`: the Mech Lab's own empty doll, drawn by the lab's code, `MechLabDollCanvas.drawBareChassis` and `drawBareVehicle`, from the same doll definitions the lab reads, so the two never differ). Selecting a marine loadout prints its loadout card in the page's middle, the Armory's own card built by the same `FleetArmoryViewModel` builders. The list is an
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
@@ -1018,7 +1018,10 @@ anchored callout with her portrait and name, plus a Company Guide resume action.
 She is pragmatic and matriarchal: warm, observant and firm as the moment needs,
 with occasional dry humor rather than a fixed dry tone. The guide highlights the
 next real preparation control and moves beside it; the callout is only as tall as
-her words, up to a cap past which they scroll. A dim backdrop leaves openings
+her words, up to a cap past which they scroll. Its set-aside (Not Now, Skip) sits
+in the heading corner. A lesson may dock the callout in a quiet corner of its room
+instead, as the gantry lesson does above the Mech Lab's slot graph, clear of stores
+and the hull. A dim backdrop leaves openings
 around the lesson's declared controls and readouts: formations with filters and
 paging, or the current resource order with its availability.
 Only those regions and the portrait callout accept pointer and keyboard input;
@@ -1976,8 +1979,8 @@ Barracks suspends its general management advice while campaign guidance is
 present, preserving the required founding induction's precedence.
 
 First Refit still requires its ordinary technology claim and actual equipment
-issue. The gantry lesson uses the existing once-only SRM and fit/remove/refit
-receipts, and **Skip** closes it for good while the spare stays in stores. Missing
+issue. The gantry lesson uses the existing once-only SRM and ends the moment it is
+fitted to a shoulder; **Skip** closes it for good while the spare stays in stores. Missing
 the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation

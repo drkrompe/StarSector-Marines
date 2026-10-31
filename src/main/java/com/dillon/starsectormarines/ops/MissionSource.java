@@ -24,6 +24,7 @@ package com.dillon.starsectormarines.ops;
  *       fought by a briefing-time selection rather than a contract.</li>
  *   <li>{@link #NEX_INVASION} — the player's own Nexerelin invasion, fought as a
  *       Conquest and settled through Nexerelin rather than a contract.</li>
+ *   <li>{@link #REPLAY} — a won campaign chapter flown again for credits only.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -53,7 +54,13 @@ public enum MissionSource {
      * Nexerelin ({@code nexerelin-nouns.md}). No contract, no MRB credibility.
      * Append-only: ordinals are persisted.
      */
-    NEX_INVASION;
+    NEX_INVASION,
+    /**
+     * A campaign chapter the company already won, flown again for its credits from the
+     * board's replay contact ({@code CompletedReplays}). Never settles the arc that owns
+     * the chapter. Append-only: ordinals are persisted.
+     */
+    REPLAY;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT

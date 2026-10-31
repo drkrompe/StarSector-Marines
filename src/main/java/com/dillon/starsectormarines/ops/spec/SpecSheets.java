@@ -408,7 +408,11 @@ public final class SpecSheets {
         return new SpecSheet(
                 CampaignVehicle.typeName(type),
                 joined(CampaignVehicle.className(type),
-                        Strings.get("openingMechLabWeightClass" + MechPattern.weightClass(type).name())),
+                        switch (MechPattern.weightClass(type)) {
+                            case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
+                            case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
+                            case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
+                        }),
                 null,
                 ACCENT_MECH,
                 stats,

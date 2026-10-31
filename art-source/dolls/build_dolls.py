@@ -31,6 +31,10 @@ with missile pods on its top corners, guns held at the chest, thick short legs).
 A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
 of the hull, as MWO's side torsos carry their weapons.
 
+The Hermes plan doubles as the Store's Shuttles section icon
+(``mod/graphics/ui/store/section-boats.svg``), drawn nose-right in the section's
+blue the way the Mechs / Vehicles icon draws the Bulwark and a tank.
+
 Run from the repository root:  python art-source/dolls/build_dolls.py
 """
 
@@ -38,6 +42,7 @@ from math import cos, radians, sin
 from pathlib import Path
 
 OUT = Path("mod/graphics/ui/dolls")
+STORE_OUT = Path("mod/graphics/ui/store")
 W, H = 240, 170
 FRONT_X, BACK_X = 60, 180
 GAP = 2.6            # between neighbouring panels, in viewBox units
@@ -494,6 +499,42 @@ def dagger():
                      [(-32, 146), (-14, 132), (-14, 156), (-30, 160)]])
 
 
+def hermes_doll():
+    """The company's first shuttle: a round cockpit, a narrow body between two round engine pods, a broad flared stern."""
+    d = Doll("air-hermes", width=AIR_W)
+    d.panel("HULL", [(-11, 15), (11, 15), (18, 22), (18, 33), (-18, 33), (-18, 22)], AIR_X)
+    d.panel("HULL", [(-20, 35), (20, 35), (22, 65), (-22, 65)], AIR_X)
+    d.panel("HULL", [(-22, 67), (22, 67), (22, 94), (-22, 94)], AIR_X)
+    d.panel("HULL", [(-26, 96), (26, 96), (44, 118), (44, 138), (28, 155), (-28, 155), (-44, 138), (-44, 118)], AIR_X)
+    d.pair("HULL", "HULL", octagon(-45, 50, -25, 84, 6), AIR_X)
+    d.detail("HULL", [((-12, 108), (12, 108)), ((-12, 108), (-12, 128)), ((12, 108), (12, 128)),
+                      ((-12, 128), (12, 128))], AIR_X)
+    return d
+
+
+def hermes():
+    d = hermes_doll()
+    name = d.write()
+    store_icon(d, "section-boats", "#72bde8")
+    return name
+
+
+def store_icon(doll, name, colour, inset_more=1.7, stroke=4):
+    """A Store section icon from a plan doll: its panels turned nose-right, in the section's colour."""
+    panels = [inset(points, inset_more) for points in doll.parts["HULL"]]
+    turned = [[(-y, x) for x, y in points] for points in panels]
+    xs = [x for points in turned for x, _ in points]
+    ys = [y for points in turned for _, y in points]
+    pad = stroke / 2 + 1
+    box = (min(xs) - pad, min(ys) - pad, max(xs) - min(xs) + 2 * pad, max(ys) - min(ys) + 2 * pad)
+    shapes = "".join(f'<polygon points="{svg_points(p)}"/>' for p in turned)
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{box[0]:.1f} {box[1]:.1f} {box[2]:.1f} {box[3]:.1f}">'
+           f'<g fill="{colour}" fill-opacity=".4" stroke="{colour}" stroke-width="{stroke}" stroke-linejoin="miter">'
+           f'{shapes}</g></svg>\n')
+    STORE_OUT.mkdir(parents=True, exist_ok=True)
+    (STORE_OUT / f"{name}.svg").write_text(svg, encoding="utf-8", newline="\n")
+
+
 def mudskipper():
     """A boxy gunship shuttle: a blunt cab, a deep body with turret pods, two engines astern."""
     return aircraft("air-mudskipper",
@@ -528,6 +569,7 @@ def main():
         longbow(),
         dagger(),
         mudskipper(),
+        hermes(),
     ]
     print("wrote", ", ".join(written))
 
