@@ -739,6 +739,8 @@ public final class CordonSetup {
         CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
                 timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
         convoys.setTownMilitia(militia);
+        // The townspeople stand behind the militia, so the militia's cells are taken first.
+        convoys.standTownspeople(sim, frontward);
         return convoys;
     }
 

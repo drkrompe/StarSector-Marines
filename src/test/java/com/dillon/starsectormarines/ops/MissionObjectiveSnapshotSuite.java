@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectivePro
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.SquadActivity;
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
@@ -116,6 +117,16 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             assertFalse(MissionObjectiveProjection.capture(sim).optional().isEmpty(), "the rolled beats are on the rail");
             for (int tick = 0; tick < 2700 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
             capture(context, artifacts, "cordon-road-convoy", sim, false);
+            // Then the first convoy at the town's gate, its townspeople walking out and boarding.
+            var convoys = sim.getCordon().convoys();
+            for (int tick = 0; tick < 18000 && !sim.isComplete() && !boarding(sim, convoys); tick++) {
+                sim.advance(BattleSimulation.TICK_DT);
+            }
+            assertTrue(boarding(sim, convoys), "the first convoy loads at the gate: " + convoys.describe(sim));
+            capture(context, artifacts, "cordon-road-boarding", sim, false);
+            int[] gate = convoys.corridor().get(convoys.corridor().size() - 1);
+            artifacts.add(new SnapshotArtifact("cordon-road-boarding-gate.png", BattleReviewFrameRenderer.look(
+                    context.modRoot(), 1920, 1080, gate[0] + .5f, gate[1] + .5f, 64f).render(sim, "")));
         }
         try (var sim = new RaidBattleFixture(141418L, manifest, false, OperationTier.ESTABLISHED,
                 RiskLevel.LOW, TargetProfile.NEUTRAL, List.of(), List.of(), null).build()) {
@@ -126,6 +137,12 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             capture(context, artifacts, "sabotage-initial", sim, false);
         }
         return artifacts;
+    }
+
+    /** Whether the Road's first convoy is loading with some of its townspeople aboard and more still to come. */
+    private static boolean boarding(BattleSimulation sim, CordonConvoys convoys) {
+        var first = convoys.readings(sim).get(0);
+        return first.phase() == CordonConvoys.Phase.LOADING && first.aboard() >= 4;
     }
 
     private void capture(SnapshotContext context, List<SnapshotArtifact> artifacts, String name,
