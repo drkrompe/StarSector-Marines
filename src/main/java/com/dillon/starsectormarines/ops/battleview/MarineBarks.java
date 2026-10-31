@@ -115,26 +115,25 @@ public final class MarineBarks {
      * One kind of bark: its priority (lower first), whether it is a voice (the squad's one channel) or an effort sound,
      * how long a line holds the squad's channel, a marine's own gap after it and its squad's before the same kind
      * again, and how many of it may sound at once. A line's length is its longest takes' less their trailing breath
-     * ({@code marine-barks/levels.json}); the kinds for people and machines are estimated from their words until
-     * their takes are recorded and measured.
+     * ({@code marine-barks/levels.json}).
      */
     enum Bark {
         GRABBED("grabbed", 0, true, 2.4f, 3f, 0f, 2),
         THROWN("thrown", 1, true, 1.9f, 3f, 0f, 2),
-        GRENADE("grenade", 2, true, 1.6f, 3f, 4f, 2),
+        GRENADE("grenade", 2, true, 1.9f, 3f, 4f, 2),
         MATRIARCH("matriarch", 3, true, 2.4f, 6f, 8f, 1),
         BRUTE("brute", 4, true, 2.1f, 6f, 6f, 1),
-        ARMOR("armor", 5, true, 2.2f, 6f, 20f, 1),
+        ARMOR("armor", 5, true, 2.4f, 6f, 20f, 1),
         MAN_DOWN("man_down", 6, true, 1.6f, 6f, 8f, 1),
         // Hurt by fire: the thrown takes, but held for the squad like any voice and spaced, or a firefight is all cries.
         HIT("thrown", 7, true, 1.9f, 4f, 5f, 1),
         STRAIN("strain", 8, true, 2.0f, 2.5f, 4f, 2),
-        TAKING_FIRE("taking_fire", 9, true, 1.8f, 6f, 15f, 1),
+        TAKING_FIRE("taking_fire", 9, true, 2.1f, 6f, 15f, 1),
         CONTACT("contact", 10, true, 1.8f, 6f, 15f, 2),
-        CONTACT_HOSTILE("contact_hostile", 10, true, 2.0f, 6f, 20f, 2),
+        CONTACT_HOSTILE("contact_hostile", 10, true, 2.3f, 6f, 20f, 2),
         TURRET("turret", 11, true, 2.4f, 6f, 20f, 1),
-        DRONES("drones", 11, true, 2.0f, 6f, 20f, 1),
-        FRAG_OUT("frag_out", 12, true, 1.4f, 4f, 6f, 1),
+        DRONES("drones", 11, true, 2.4f, 6f, 20f, 1),
+        FRAG_OUT("frag_out", 12, true, 1.8f, 4f, 6f, 1),
         BIG_KILL("big_kill", 13, true, 2.4f, 6f, 6f, 1),
         KILL("kill", 14, true, 1.3f, 6f, 7f, 1),
         RELOAD("reload", 15, true, 2.0f, 6f, 10f, 2),

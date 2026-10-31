@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -68,13 +69,16 @@ public final class ConvoyRenderSystem implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
+        // The convoy layer paints over the fog, so a hull the player cannot see is skipped here rather than covered.
+        FogOfWarService fog = ctx.hostProfile.fogHidesUnits() ? ctx.sim.getFogOfWar() : null;
 
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible()) continue;
+            boolean wrecked = v.state == VehicleState.WRECKED;
+            if (!wrecked && fog != null && !fog.isHullShown(convoy, id)) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
-            boolean wrecked = v.state == VehicleState.WRECKED;
             UnitSpriteCache cache = sprites.convoySprites().get(type);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
             if (type.spriteFrame < 0 || type.spriteFrame >= cache.frames.frames.length) continue;
@@ -323,7 +327,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         }
 
         if (ctx.hostProfile.unitDecorationsVisible()) {
-            sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
+            sweepDurabilityBars(ids, convoy, fog, cam, cellPx, alphaMult, out);
         }
     }
 
@@ -459,12 +463,13 @@ public final class ConvoyRenderSystem implements RenderSystem {
      * is measured by its longest side so the bar clears the sprite at every
      * heading instead of sinking into it broadside-on.
      */
-    private static void sweepDurabilityBars(long[] ids, ConvoyService convoy,
+    private static void sweepDurabilityBars(long[] ids, ConvoyService convoy, FogOfWarService fog,
                                             BattleCamera cam, float cellPx,
                                             float alphaMult, DrawList out) {
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible() || v.state == VehicleState.WRECKED) continue;
+            if (fog != null && !fog.isHullShown(convoy, id)) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
             float bodyPx = Math.max(type.drawnLengthCells, type.visualWidthCells) * cellPx;
