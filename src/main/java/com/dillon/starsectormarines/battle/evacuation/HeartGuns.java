@@ -42,6 +42,8 @@ public final class HeartGuns {
     public static final String DUMP = "dump";
     /** The place the vehicle park's flak stands. */
     public static final String PARK_FLAK = "park-flak";
+    /** The place the flak on the right wing of The Burn's airbase stands. */
+    public static final String AIRBASE_FLAK = "airbase-flak";
 
     private static final String ISSUER = "heart guns";
 

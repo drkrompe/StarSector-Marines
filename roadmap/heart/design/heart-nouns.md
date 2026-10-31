@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks; The Burn's forward line held by teams with guns of their own, and flak on its airbase's right wing
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -140,7 +140,10 @@ settlement, a street priced cheapest. The forward line is armed
 allied heavy machine gun in every nest it laid, every third a Hephaestus, and a
 flak emplacement three cells behind every other nest. They are the military's
 guns, never the company's, shoot whatever comes up to the line, and their flak
-meets the flier law as the base's does. Each beat's set piece is laid the
+meets the flier law as the base's does. On The Burn the line is held as well
+(owner, 2026-10-31): along every run, a militia team every forty cells with a
+heavy machine gun of its own on the trench beside it, manning that stretch
+(`HeartRidgeGuns.holdLine`). Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there
@@ -267,7 +270,9 @@ and opened the same way (Allied airbase, below; `air-nouns.md`, Airbase): its
 apron stands and its three sheds are the wing's bays, each holding the next
 airframe of the bases' list, every sortie taxiing to the strip and rolling,
 landing and taxiing home after, refitted and rebuilt by the field's crew. The
-Burn keeps no standing patrol. The swarm can reach the field and burn what
+Burn keeps no standing patrol. A flak position stands on its right wing, the
+lot's end toward the front, on the guns' stock as the logistics base's flak is
+(`HeartObjectives.airbaseFlak`). The swarm can reach the field and burn what
 stands on it. A map whose rear could not hold the lot flies the wing in over the
 start edge as before.
 
