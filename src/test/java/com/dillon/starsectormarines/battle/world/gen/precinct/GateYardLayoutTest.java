@@ -55,6 +55,36 @@ class GateYardLayoutTest {
     }
 
     @Test
+    void aOneWayYardOpensItsExitFurtherAlongTheSameWallAndRunsTheYardBetweenTheTwo() {
+        GateYard spec = new GateYard(Side.SOUTH, 9, 9, 13, 7).withExit(9);
+        GateYardLayout.Laid yard = GateYardLayout.lay(square(0), square(Fortification.GLACIS), WHO, W, H, spec,
+                Side.WEST, 5, 24);
+        assertNotNull(yard);
+        assertTrue(yard.loop());
+        assertArrayEquals(new int[]{8, 24}, yard.gate());
+        assertArrayEquals(new int[]{8, 13}, yard.exit(), "toward the yard's side, two cells of wall past the gate");
+        assertArrayEquals(new int[]{15, 24}, yard.turn(), "in to the lane, two short of the yard's depth");
+        assertArrayEquals(new int[]{15, 19}, yard.stop(), "on the lane between the gates");
+        Set<Long> cells = keys(yard.yard());
+        for (int y = 13; y <= 24; y++) assertTrue(cells.contains(key(15, y)), "the lane is whole between the gates");
+        for (int[] c : yard.staging()) {
+            assertTrue(c[0] >= 18 && c[1] >= 13 && c[1] <= 24, "behind the yard, between the gates");
+            assertFalse(cells.contains(key(c[0], c[1])));
+        }
+        Set<Long> apron = keys(yard.apron());
+        assertTrue(apron.contains(key(8, 13)) && apron.contains(key(5, 13)), "the exit is open across the glacis");
+    }
+
+    @Test
+    void whereTheWallHasNoRoomForAnExitTheYardKeepsItsOneGate() {
+        GateYard spec = new GateYard(Side.SOUTH, 9, 9, 13, 7).withExit(9);
+        GateYardLayout.Laid yard = GateYardLayout.lay(square(0), square(Fortification.GLACIS), WHO, W, H, spec,
+                Side.WEST, 5, 20);
+        assertNotNull(yard);
+        assertFalse(yard.loop(), "neither way along the wall has nine cells clear two past the gate");
+    }
+
+    @Test
     void aPosternOpensInTheMiddleOfItsSideAcrossTheGlacisWithClearGroundBehindIt() {
         GateYardLayout.Postern east = GateYardLayout.postern(square(0), square(Fortification.GLACIS), WHO, W, H,
                 Side.EAST, 3, 4);

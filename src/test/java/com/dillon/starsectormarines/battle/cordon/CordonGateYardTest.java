@@ -48,6 +48,37 @@ class CordonGateYardTest {
         for (int i = 1; i < out.size(); i++) assertTrue(out.get(i)[0] <= out.get(i - 1)[0], "never back into the yard");
     }
 
+    /**
+     * A one-way yard on the same west wall: in at (20, 10), out at (20, -1) further along it, the lane seven in at
+     * x 27, the truck's stop on it at (27, 4).
+     */
+    private static CordonGateYard oneWay() {
+        List<int[]> cells = new ArrayList<>();
+        for (int x = 21; x <= 29; x++) for (int y = -5; y <= 14; y++) cells.add(new int[]{x, y});
+        return new CordonGateYard(cells, List.of(), new int[]{20, 10}, new int[]{21, 10}, new int[]{27, 10},
+                new int[]{27, 4}, new int[]{20, -1});
+    }
+
+    @Test
+    void aOneWayYardRunsFromItsGateThroughTheStopAndOutOfADistinctExit() {
+        CordonGateYard yard = oneWay();
+        assertTrue(yard.oneWay());
+        assertTrue(yard.exit()[1] != yard.gateY(), "the exit is its own gate");
+        List<int[]> in = yard.loop(), out = yard.wayOut();
+        assertArrayEquals(new int[]{20, 10}, in.get(0), "in at the gate");
+        assertArrayEquals(new int[]{27, 4}, in.get(in.size() - 1), "to the stop");
+        assertArrayEquals(new int[]{27, 4}, out.get(0), "on from the stop");
+        assertArrayEquals(new int[]{20 - CordonGateYard.APPROACH, -1}, out.get(out.size() - 1),
+                "out of the exit and across the glacis");
+        boolean throughExit = false;
+        for (int i = 1; i < out.size(); i++) {
+            assertEquals(1, Math.abs(out.get(i)[0] - out.get(i - 1)[0]) + Math.abs(out.get(i)[1] - out.get(i - 1)[1]));
+            assertTrue(out.get(i)[1] <= 4, "never back toward the gate it came in by");
+            throughExit |= out.get(i)[0] == 20 && out.get(i)[1] == -1;
+        }
+        assertTrue(throughExit);
+    }
+
     @Test
     void theRoadIsCutWhereItPassesTheGateAndCarriedInThroughIt() {
         // A road along the row of the gate's axis running east past the line-up point and on into the compound.

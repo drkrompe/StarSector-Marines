@@ -112,12 +112,14 @@ public final class CordonPlan {
      * with seven cells of open ground beside it for the people waiting to board. Untuned.
      */
     static final int YARD_GATE = 9, YARD_DEPTH = 9, YARD_BREADTH = 13, YARD_STAGING = 7;
+    /** The yard's exit gate, further along the same wall: as wide as its entry (owner, 2026-10-31: a clean loop). */
+    static final int YARD_EXIT = YARD_GATE;
     /**
      * Ways into the Road's town compound: the trucks' rear gate, the gates its own roads leave by, and a postern each
      * in its east side and its front for people (owner, 2026-10-31: more doors for the swarm and more for the company
-     * to defend). Only the rear gate is the convoys'.
+     * to defend). Only the yard's two gates, in and out, are the convoys'.
      */
-    static final int TOWN_GATES = 5;
+    static final int TOWN_GATES = 6;
     /** The layout's name for the town built up round the compound ({@link CordonTownWarren}). */
     static final String TOWN_WARREN = "town-warren";
     private static final long SEED_SALT = 0x434F52444F4E504CL;
@@ -231,7 +233,7 @@ public final class CordonPlan {
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
                     new Fortification(TOWN_GATES, CivilDefenceCompound.WALL_HP).laidSquare()
                             .withYard(new Fortification.GateYard(rear, YARD_GATE, YARD_DEPTH, YARD_BREADTH,
-                                    YARD_STAGING).withPosterns(Side.EAST, rear.opposite()))));
+                                    YARD_STAGING).withPosterns(Side.EAST, rear.opposite()).withExit(YARD_EXIT))));
         }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
                 LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant, width, height, installationEast));

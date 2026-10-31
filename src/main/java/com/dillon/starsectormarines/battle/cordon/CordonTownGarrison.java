@@ -155,7 +155,12 @@ public final class CordonTownGarrison {
                 for (int[] g : gates(grid, left, top, right, bottom)) {
                     if (holds.size() >= GUARD_TEAMS - 1) break;
                     if (Math.max(Math.abs(g[0] - loading[0]), Math.abs(g[1] - loading[1])) <= g[2]) continue;
-                    holds.add(inside(g, left, top, right, bottom));
+                    // Nor the one-way yard's exit: the trucks' way out stays clear.
+                    int[] exit = truckYard == null ? null : truckYard.exit();
+                    if (exit != null && Math.max(Math.abs(g[0] - exit[0]), Math.abs(g[1] - exit[1])) <= g[2]) continue;
+                    int[] post = inside(g, left, top, right, bottom);
+                    if (truckYard != null && truckYard.contains(post[0], post[1])) continue;
+                    holds.add(post);
                 }
                 for (List<int[]> room : rooms) {
                     if (holds.size() >= GUARD_TEAMS) break;

@@ -127,7 +127,18 @@ public final class CordonReviewAnnotations {
                 Math.min(yard.gateY() - ly * lo, yard.gateY() + ly * hi),
                 Math.max(yard.gateX() - lx * lo, yard.gateX() + lx * hi),
                 Math.max(yard.gateY() - ly * lo, yard.gateY() + ly * hi),
-                "gate · " + (lo + hi + 1) + " wide", ReviewStyle.ROUTE);
+                (yard.oneWay() ? "way in · " : "gate · ") + (lo + hi + 1) + " wide", ReviewStyle.ROUTE);
+        // A one-way yard: its exit gate, and the truck's way through, in at the gate, past the stop and out.
+        if (yard.oneWay()) {
+            int[] exit = yard.exit();
+            marks.box(exit[0] - lx * 4, exit[1] - ly * 4, exit[0] + lx * 4, exit[1] + ly * 4, "way out",
+                    ReviewStyle.ROUTE);
+            List<ReviewAnnotation.Point> path = new ArrayList<>();
+            List<int[]> way = new ArrayList<>(yard.loop());
+            way.addAll(yard.wayOut().subList(1, yard.wayOut().size()));
+            for (int[] c : way) path.add(new ReviewAnnotation.Point(c[0] + 0.5f, c[1] + 0.5f));
+            marks.polyline(path, "trucks: in, load, out", ReviewStyle.OBJECTIVE);
+        }
     }
 
     public static ReviewAnnotations forBattle(BattleSimulation sim) {

@@ -180,7 +180,9 @@ public final class PrecinctWardStage implements GenStage {
                         InstallationGround.pave(ctx, bare, GroundKind.STREET, Material.ASPHALT);
                     }
                     yards.add(new Laid(GateYardLayout.pieceName(precinct.name()), Laid.Kind.YARD, Laid.Status.LAID,
-                            "", false, yard.yard(), List.of(yard.gate(), yard.entry(), yard.turn(), yard.stop()),
+                            "", false, yard.yard(), yard.loop()
+                                    ? List.of(yard.gate(), yard.entry(), yard.turn(), yard.stop(), yard.exit())
+                                    : List.of(yard.gate(), yard.entry(), yard.turn(), yard.stop()),
                             yard.staging()));
                 }
                 // An open-field landing is farmland outside the town, not a

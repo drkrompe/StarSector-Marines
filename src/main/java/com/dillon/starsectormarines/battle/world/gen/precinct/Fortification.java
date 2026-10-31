@@ -319,7 +319,8 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
      * middle of the side, across the glacis and through the wall, with a short way in kept clear behind it. Opened
      * whether or not a road comes to that side, so the place has its other doors on every map.
      */
-    public record GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth, List<Side> posterns) {
+    public record GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth, List<Side> posterns,
+                           int exitWidth) {
 
         /** The widest gate a yard asks for: wider, the wall reading takes the gap for no gate at all. */
         public static final int MAX_GATE_WIDTH = 10;
@@ -330,11 +331,20 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
 
         /** A yard with no posterns. */
         public GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth) {
-            this(side, gateWidth, depth, breadth, stagingWidth, List.of());
+            this(side, gateWidth, depth, breadth, stagingWidth, List.of(), 0);
+        }
+
+        /** A yard with posterns and no exit gate. */
+        public GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth, List<Side> posterns) {
+            this(side, gateWidth, depth, breadth, stagingWidth, posterns, 0);
         }
 
         public GateYard {
             posterns = List.copyOf(posterns);
+            if (exitWidth != 0 && (exitWidth < PrecinctBoundary.DRIVABLE_GATE_WIDTH || exitWidth > MAX_GATE_WIDTH)) {
+                throw new IllegalArgumentException("a yard's exit of " + exitWidth + " cells is outside "
+                        + PrecinctBoundary.DRIVABLE_GATE_WIDTH + ".." + MAX_GATE_WIDTH);
+            }
             if (side == null) throw new IllegalArgumentException("a gate yard states the side its gate is on");
             if (gateWidth < PrecinctBoundary.DRIVABLE_GATE_WIDTH || gateWidth > MAX_GATE_WIDTH) {
                 throw new IllegalArgumentException("a yard's gate of " + gateWidth + " cells is outside "
@@ -348,7 +358,16 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
 
         /** The same yard with a postern on each of {@code sides}. */
         public GateYard withPosterns(Side... sides) {
-            return new GateYard(side, gateWidth, depth, breadth, stagingWidth, List.of(sides));
+            return new GateYard(side, gateWidth, depth, breadth, stagingWidth, List.of(sides), exitWidth);
+        }
+
+        /**
+         * The same yard made one-way: a second gate {@code width} cells wide in the same wall, further toward
+         * {@link #side}, the yard run between the two as a loop (in by the first, round past the stop, out by the
+         * second; owner, 2026-10-31). Where the wall has no room for it the yard keeps its one gate.
+         */
+        public GateYard withExit(int width) {
+            return new GateYard(side, gateWidth, depth, breadth, stagingWidth, posterns, width);
         }
     }
 }
