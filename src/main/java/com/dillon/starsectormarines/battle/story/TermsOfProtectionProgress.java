@@ -61,6 +61,10 @@ public final class TermsOfProtectionProgress {
         return Phase.DEFENCE;
     }
 
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() {
+        return new Report(route, true, true, true, true, true, true, true, false, 0, 0, 0, 0, 0);
+    }
     public Report report(boolean carrierLost, int representativesLost, int techniciansLost, int fittersLost,
                          int guardsLost, int constablesLost, boolean assaultsResolved) {
         return new Report(route, delivered, signed, dispatchSecured, commissioned, assaultsResolved, ratified, companyPresent,

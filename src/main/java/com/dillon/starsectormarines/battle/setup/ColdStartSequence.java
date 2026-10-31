@@ -85,7 +85,9 @@ public final class ColdStartSequence implements Objective {
     public Set<Long> turretEntityIds() { return Set.copyOf(turretIds); }
     public int buildX() { return BUILD_X; }
     public int buildY() { return BUILD_Y; }
-    public ColdStartProgress.Report report(BattleSimulation sim) { return progress.report(2 - sim.squadMemberCount(engineers)); }
+    public ColdStartProgress.Report report(BattleSimulation sim) {
+        return sim.isForcedVictory() ? progress.wonReport() : progress.report(2 - sim.squadMemberCount(engineers));
+    }
     public int targetX() { return switch (progress.phase()) {
         case ESCORT -> escortX; case POWER -> PUMP_X; case CONSTRUCTION -> BUILD_X; default -> BAY_X;
     }; }

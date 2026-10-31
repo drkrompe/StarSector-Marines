@@ -99,6 +99,7 @@ public final class DistrictEscortSequence implements Objective {
     public int ambushY() { return LowQuay.CROSS_Y; }
 
     public DistrictEscortProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport();
         return progress.report(DistrictEscortProgress.PARTY - sim.squadMemberCount(party),
                 DistrictEscortProgress.CONSTABLES - sim.squadMemberCount(constables));
     }

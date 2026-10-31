@@ -17,6 +17,8 @@ public final class LimitedWarrantProgress {
     public boolean safeWork() { return safeWork; }
     public boolean recordsRecovered() { return records; }
     public boolean terminal() { return phase == Phase.COMPLETE || phase == Phase.FAILED; }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, true, true, true, false, 0, 0); }
     public Report report(int techniciansLost, int constablesLost) {
         return new Report(records, kit, returned, companyReturned, cargoLost, techniciansLost, constablesLost);
     }
