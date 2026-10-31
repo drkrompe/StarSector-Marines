@@ -9,7 +9,7 @@ built: the company's (`CordonRadio`, `CordonCompanyRules`, behind
 base as a producer), and the company's lift (rule 10).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
+Updated: 2026-10-31 — the producer replaces a redoubt's lost teams by need on the Road. Earlier, 2026-10-24: a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
 
 Step 4 of the owner's plan for the Cordon: how the AI commanders use the
 allied forces and their tools. `cordon-nouns.md` is the model (*The allies
@@ -219,6 +219,19 @@ rule in `CordonAlliedRules`:
   city trucks that sat at their start all battle); a redoubt with no such way is never sent a truck (one sent anyway
   stood where its way ran out), and evidence names each redoubt's way (road,
   streets or none).
+
+- **Replacements** (`replacement`, the Road only, `replacesLosses`): a
+  redoubt a whole team's worth of men short of its setup garrison, counting
+  squads already coming, asks for replacement squads (`AlliedTool.COLUMN`), one
+  call at a time to the redoubt most short, at most two squads a call and two
+  on their way at once, a call at most every forty-five seconds, out of a pool
+  of two that refills one every three minutes
+  (`CordonAlliedTable.REPLACEMENTS`). Each is a team called onto the rear edge
+  (`AlliedColumns.call`) that musters at the base and is carried to the redoubt
+  that asked (`CordonLogistics.columnOrders(bound)`), or walks there where no
+  carrier goes forward; a fallen or given-up redoubt asks for none. While they
+  are on their way the redoubt has *Help coming*. Model:
+  `cordon-nouns.md`, Replacements.
 
 A request with none in stock, or while the swarm is on the apron, is refused
 and asked again ten seconds later. The reserve (`CordonAlliedTable.Reserve`)

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — on the Road, bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -319,21 +319,44 @@ through the ordinary bore seam as a fissure that grows as any bore does. On
 Ain Tafrant (seed 7) the four scheduled sites stand before redoubt 1, before
 redoubt 4, between 1 and 2 and between 3 and 4; the surge's before redoubts 2
 and 3 and between them, beside the gap (`cordon-line-bores` snapshots).
+The surge also has two **town sites** (owner, 2026-10-31): one on the town's
+far side, further into the front, and one on its far flank from the road (east
+on seed 7), each thirty to fifty-four cells off the town's wall and within ten
+past its extent along it, on ground the line sites' other rules allow.
 
 **The final surge (the Road)** (`CordonBoreEscalation.surges`). The swarm
 going at the line once the town no longer needs the company, so the fall-back
-is a fighting retreat. It comes at once when the town is abandoned; otherwise
-once no truck is left loading at the town's gate and either the town is empty,
-or the briefing's number is out and the company is falling back (no Marine
-within twenty cells of the town's wall and half the company on the ground
-behind the line); and at twenty-five minutes whatever the town is doing. It
-calls a tide on every living bore, stirs the sites left (at most four, nearest
-the gap first, five seconds apart, each opening eight seconds after it stirs),
+is a fighting retreat. It comes at once when the player orders the pull-out
+(*The pull-out*) or the town is abandoned; once the town is empty and its last
+truck has left the gate; and at twenty-five minutes whatever the town is
+doing. It calls a tide on every living bore, stirs the sites left (at most six:
+the town's first, then the line's nearest the gap, five seconds apart, each
+opening eight seconds after it stirs),
 calls every bore again once they are open, and holds the swarm at the tide's
 strength for two minutes, then at a floor of two fifths (UNTUNED). It changes
 no end rule: it opens bores only in front of the line and off the road, so the
-company can always walk back behind it, and the garrisons, picket teams and
-armour on the line cover it as it comes.
+company can always walk back behind it. The allies hold their posts through
+it and do nothing more (owner, 2026-10-31).
+
+**The pull-out (the Road)** (`CordonPullOut`; owner, 2026-10-31). The player's
+choice to leave once the company has done enough. Pulling out is **offered**
+once at least the briefing's number of townspeople are out and no truck is
+loading at the town's gate (`done_enough`): the fall-back row tells the player
+"You've done enough: pull back before the line is overrun" and beacons the
+**pull-out zone**, the walkable ground within eight cells of the logistics
+base's muster yard (round the rally point where the map has no base or the
+yard is not wholly behind the line). The **order** is any of the player's own
+squad orders, the command layer's ordinary move or hold, whose target cell is
+in the zone; it counts only while pulling out is offered (`pull_out`), starts
+the fall-back (`fall_back`) and brings the final surge. The company's
+autonomous commander never gives it: it falls back only once the town is
+finished, and then to the zone. The zone is the **trigger point**: the company
+has **withdrawn** (`company_withdrawn`) once it is falling back, no Marine on
+the ground is ahead of the line (four rows behind its mean row) and at least
+one stands in the zone. After a pull-out no convoy holds up the end: one still
+on the road is left to come home or not, and only the people already out
+count. On Ain Tafrant (seed 7) the zone is the goods yard's open apron at
+(300, 120), behind the middle of the line between redoubts 2 and 3.
 
 **Timetable.** What the briefing holds the battle to: when the tides come and
 how long each runs, the ordinary and tide pressures, when bores erupt, the
@@ -363,7 +386,8 @@ two minutes before a tide. Where the base has carriers forward (rural and town
 country) a column walks to the base's muster yard and is carried up from there
 (*Logistics base*); in a city it walks the whole way, in its two teams, to the
 redoubt that needs it most, a calling one first and then the one with the
-fewest standing. The column is scripted (`AlliedColumns`, which is
+fewest standing. On the Road the line also calls squads up by need
+(*Replacements*). The column is scripted (`AlliedColumns`, which is
 mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
@@ -426,7 +450,8 @@ drives its supply road and refills every gun tower, picket nest and mortar
 tube that redoubt holds. Each redoubt's guns spend rounds from that one stock;
 a gun with none left fires rationed, at a quarter of its rate. A request while
 the swarm is on the apron, or with nothing in stock, is refused, and asked
-again a little later (`cordon-allied-command.md`, The producer). Outside a city the base opens with one carrier. **Supply roads** run from the
+again a little later (`cordon-allied-command.md`, The producer). On the Road
+it also holds the line's **replacements** (below). Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it, laid wherever it
 reaches the redoubt's ground even with no other road near it; across a town's or a
@@ -466,6 +491,32 @@ out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
 straight onto a slot. Two carriers sent to
 one redoubt set down side by side, not on one spot.
+
+**Replacements (the Road)** (`CordonLineCommand`, `CordonAlliedRules.replacement`;
+owner, 2026-10-31). Infantry the line asks the base for by need, on top of the
+timetable's columns: the timetable feeds the line before each tide, and
+replacements make good what a redoubt has lost, through the long Road after the
+last column (the timetable's columns stop at minute ten; the Road runs to
+twenty-five and more). A redoubt whose garrison is a whole team's worth of men
+short of what it was manned with at setup (four of twelve), counting squads
+already on their way to it, asks for that many squads, at most two a call; the
+line makes one call at a time, to the redoubt most teams short (a calling one
+breaking a tie), at most one every forty-five seconds, with at most two
+replacement squads on their way at once. They come out of a small **pool** at
+the base: two squads, one more every three minutes, never more than two. A
+request with the pool empty, or with the swarm on the base's apron, is refused
+and asked again ten seconds later, as the producer's are. Each squad is one
+allied team walking in off the rear edge where the timetable's columns do (the
+entry nearest the muster yard) to the muster yard, where a carrier takes it to
+the redoubt that called for it (with no carrier forward, a city's, it walks to
+the redoubt itself) and it joins the garrison. A fallen or given-up redoubt is
+never refilled: it asks for nothing, and a replacement bound for one that falls
+on the way goes to the redoubt that needs it most. While replacements are on
+their way to a redoubt it has *Help coming*. The pool is small on purpose, so
+the allies hold the ordinary pressure and still sag in the tides and fall to the
+final surge. The Line keeps its timetable alone until the owner says otherwise
+(`CordonAlliedRules.replacesLosses`). UNTUNED throughout
+(`CordonAlliedTable.REPLACEMENTS`).
 
 **Allied armour.** The allies' cars and technicals behind the line, under the
 allies' own command (`allied-command.md`), not the player's. Each has a
@@ -916,14 +967,17 @@ a gap that closes stops the convoys, which costs people, not the battle.
    break out along the line (*Line bores*). The two redoubts either
    side of the gap call; if both fall the gap is closed (`gap_closed`, told,
    not an end: the convoys stop at it).
-6. **The town is finished.** Everyone is out or dead (`town_empty`), or its
-   staging area is overrun and the town abandoned (`town_abandoned`, the rest
-   die). The fall-back starts (`fall_back`), and once no truck is left at the
-   gate the swarm surges at the line (*The final surge*).
+6. **The town is finished, or the company pulls out.** Everyone is out or
+   dead (`town_empty`), or its staging area is overrun and the town abandoned
+   (`town_abandoned`, the rest die); or, once enough are out, the player is
+   told the company has done enough (`done_enough`) and orders a squad to the
+   pull-out zone (`pull_out`, *The pull-out*). The fall-back starts
+   (`fall_back`), and the swarm surges at the line (*The final surge*; after
+   `town_empty`, once no truck is left at the gate).
 7. **The end.** The company falls back behind the redoubt line, every Marine
-   on the ground four rows or more behind its mean row, to a rally point a
-   reserve's depth behind where the corridor crosses it (`company_withdrawn`).
-   Once it is behind the line and no convoy is still on the road, the Road ends:
+   on the ground four rows or more behind its mean row, and holds the pull-out
+   zone with at least one of them (`company_withdrawn`). Once it has, and (unless
+   it pulled out) no convoy is still on the road, the Road ends:
    won (`cordon_held`) when at least the briefing's number of townspeople came
    out, else lost (`people_short`). A wiped company loses first
    (`company_lost`). No window ends the Road; a hard cap of thirty minutes
@@ -978,8 +1032,11 @@ number, and saying which convoy is held and why (no escort near its trucks
 past the gap, or the swarm on the road ahead); its focus is a held convoy,
 then one on the road, the gate while one loads, and the gap while the next is
 still to come; complete once enough are out, failed once too few are left
-alive. Once the town is finished the third, **Fall back behind the line**, is
-beaconed at the rally point until the company is behind the line. The Road
+alive. Once pulling out is offered the third row is **You've done enough**,
+the warning, beaconed at the pull-out zone (its cells the footprint) and telling
+the player to order a squad there; once the company is falling back it is
+**Fall back behind the line**, beaconed there until the company is behind the
+line and holding the zone. The Road
 has no row for the line itself; from the first line bore stirring it has a
 row **Bores along the line**, beaconed at each stirring site with the time
 until it opens and at each open line bore, its focus the site opening soonest,
@@ -1037,8 +1094,9 @@ with the same keys.
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
-| `column_entered_N` | the Line | OBSERVER_ONLY | The Nth allied column comes on at the rear edge |
-| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches the logistics base (or, with no base, its redoubt) |
+| `column_entered_N` | both | OBSERVER_ONLY | The Nth allied column on the timetable comes on at the rear edge |
+| `column_arrived_N` | both | PLAYER | The Nth allied column, a replacement squad among them, reaches the logistics base (or, with no base, its redoubt) |
+| `reinforcements_N_K` | the Road | PLAYER | Redoubt N's Kth call for replacements: they set out from the rear edge ("Reinforcements marching to redoubt N") |
 | `carried_N` | both | PLAYER | The Nth squad a carrier took up from the base joins a redoubt |
 | `air_sortie_N` | both | OBSERVER_ONLY | The air base sends the Nth sortie of its own tasking (not an observer's call) |
 | `refugees_moving_N` | the Line | OBSERVER_ONLY | Refugee group N leaves its village |
@@ -1058,8 +1116,10 @@ with the same keys.
 | `staging_overrun` | the Road | PLAYER | The swarm has been inside the compound with no defender or Marine in it for ten seconds |
 | `town_empty` | the Road | PLAYER | Nobody is left trapped in the town: the town is finished |
 | `town_abandoned` | the Road | PLAYER | The compound is overrun: the town is abandoned and everyone still in it dies |
-| `fall_back` | the Road | PLAYER | The town is finished: the company falls back behind the line |
-| `company_withdrawn` | the Road | PLAYER | After the town is finished, every company Marine on the ground is behind the line |
+| `done_enough` | the Road | PLAYER | Enough townspeople are out and no truck is loading: the company may pull out |
+| `pull_out` | the Road | PLAYER | The player ordered a squad to the pull-out zone: the company pulls out |
+| `fall_back` | the Road | PLAYER | The town is finished or the company pulled out: it falls back behind the line |
+| `company_withdrawn` | the Road | PLAYER | Falling back, every company Marine on the ground is behind the line and one holds the pull-out zone |
 | `people_short` | the Road | PLAYER | The Road is lost: it ended with fewer townspeople out than the briefing's number |
 | `gap_closed` | the Road | PLAYER | Both redoubts beside the gap have fallen (told; not an end on the Road) |
 | `line_broken` | the Line | PLAYER | More redoubts have fallen than the briefing allows |
