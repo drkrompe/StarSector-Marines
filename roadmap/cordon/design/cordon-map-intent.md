@@ -61,10 +61,11 @@ A line drawn across country by someone who has had weeks to choose:
 - **Supply roads.** A road from the logistics base to the rear gate of each
   redoubt (beat L2). The base stands on the main road behind the middle, as it
   does now.
-- **The safe camp (the Road).** A small allied encampment on the corridor
-  where the convoys set out, seventy corridor cells behind the line's crossing,
-  raised at setup rather than laid as a map piece:
-  a square round a corridor cell cleared of its trees, ringed with sandbags,
+- **The safe camp (the Road).** A small allied encampment where the convoys
+  set out, beside the logistics base on its west side across a ten-cell apron,
+  with its own road out to the corridor (behind the line's crossing where the
+  base has no room), raised at setup rather than laid as a map piece:
+  a square cleared of its trees, ringed with sandbags,
   a gun on each corner, clear of the landing field, the base's berths and the
   air base (`cordon-nouns.md`, Camp).
 - **The air base.** The allies' airbase lot (`mapgen-nouns.md`, airbase lot),

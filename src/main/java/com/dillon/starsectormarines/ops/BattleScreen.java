@@ -2053,6 +2053,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             linePreview = null;
             return;
         }
+        // A civilian takes no line: a right button let go over a company force rallies its group there.
+        if (selection.hasCivilianSelection()) {
+            linePreview = null;
+            if (released) requestSelectedTacticalOrder(x, y);
+            return;
+        }
         float cellX0 = camera.screenToCellX(startX);
         float cellY0 = camera.screenToCellY(startY);
         float cellX1 = camera.screenToCellX(x);
@@ -2146,10 +2152,28 @@ public class BattleScreen implements Screen, BattleUiContext {
         BattleSimulation sim = getSim();
         if (sim == null || camera == null || sim.directControl().active()) return;
         if (battleChromeBlocksWorldPointer(screenX, screenY)) return;
+        if (selection.hasCivilianSelection()) {
+            rallySelectedCivilian(sim, camera.screenToCellX(screenX), camera.screenToCellY(screenY));
+            return;
+        }
         int cellX = (int) Math.floor(camera.screenToCellX(screenX));
         int cellY = (int) Math.floor(camera.screenToCellY(screenY));
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
         SelectionOrders.requestMove(sim, selection, cellX, cellY);
+    }
+
+    /**
+     * A right click with a civilian selected: its walking group follows the company squad, mech or vehicle under the
+     * pointer from now on. The player never moves the people, so a click on open ground does nothing.
+     */
+    private void rallySelectedCivilian(BattleSimulation sim, float worldX, float worldY) {
+        long civilian = selection.getSelectedCivilianId();
+        if (sim.civilianRallyGroup(civilian).isEmpty()) {
+            selection.clear();
+            return;
+        }
+        long escort = WorldPicker.companyForceAt(sim, worldX, worldY);
+        if (escort != 0L) sim.rallyCivilians(civilian, escort);
     }
 
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {

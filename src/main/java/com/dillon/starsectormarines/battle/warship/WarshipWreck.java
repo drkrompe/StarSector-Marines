@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,8 +25,13 @@ import java.util.List;
  *
  * <p>Whatever its size, a hull goes up and comes down as a field of explosions over its whole footprint, not one
  * blast at its centre ({@link #blastsBetween}): a burst field as it is lost, a larger one rippling out from the strike,
- * and fire along the keel as it falls ({@link #fallFireKeel}). How many and how large scales with the footprint, so a
- * frigate lands like a building dropped from the sky and a capital like a city block. Presentation only.
+ * and fire shed from the hull as it falls ({@link #fallFireSpot}). Every point is on the hull's own shape, its armour
+ * grid's hull cells ({@link WarshipPlating}), spread evenly over it rather than heaped: how many scales with the
+ * footprint, so a frigate lands like a building dropped from the sky and a capital like a city block. Presentation
+ * only.
+ *
+ * <p>Points on the hull are in its sprite frame, as the armour grid's are: {@code u} across from the port edge and
+ * {@code v} along from the nose, each 0 to 1 ({@link #hullPoint}).
  *
  * <p>The motion is closed-form from the moment of the burst and every choice in it is a hash of the hull's serial,
  * so a wreck falls the same way on every play. The simulation reads only where it strikes and skids; how high it
@@ -47,12 +53,19 @@ public final class WarshipWreck {
     static final float BURST_FIELD_SECONDS = 0.4f;
     /** Seconds over which the strike field ripples out from the strike. */
     static final float STRIKE_FIELD_SECONDS = 0.8f;
-    /** Landed footprint, in square cells, each blast of the strike field covers. */
-    static final float CELLS_PER_BLAST = 5f;
-    /** The fewest and most blasts a strike field has; the burst field has half as many. */
-    static final int MIN_BLASTS = 10, MAX_BLASTS = 48;
+    /** Landed hull area, in square cells, each blast of the strike field covers. */
+    static final float CELLS_PER_BLAST = 22f;
+    /** The fewest and most blasts a strike field has; the burst field has a third as many. */
+    static final int MIN_BLASTS = 5, MAX_BLASTS = 16;
     /** The smallest blast radius in a field, in cells: a frigate's still dwarfs a shell's. */
-    static final float MIN_BLAST_RADIUS = 2.2f;
+    static final float MIN_BLAST_RADIUS = 1.6f;
+    /**
+     * A field's blast radius against its spacing: a rolling blast grows to about twice its radius, so neighbours just
+     * touch and the hull shows between them.
+     */
+    static final float RADIUS_PER_SPACING = 0.35f;
+    /** Lattice a hull without an armour grid is sampled on, across and along, inside the ellipse its box holds. */
+    private static final int FALLBACK_COLS = 8, FALLBACK_ROWS = 16;
 
     /**
      * How hard a wreck of one hull size comes down. Draft tuning: the frigate's figures are the aircraft crash's
@@ -84,17 +97,13 @@ public final class WarshipWreck {
     }
 
     /**
-     * One secondary blast: where along the keel it goes off ({@code keel}, 0 at the bow to 1 at the stern) and whether
-     * the hull is on the ground, so it hurts what is there.
+     * One secondary blast: where on the hull it goes off ({@code u}, {@code v}) and whether the hull is on the ground,
+     * so it hurts what is there.
      */
-    public record Secondary(float keel, boolean grounded) {}
+    public record Secondary(float u, float v, boolean grounded) {}
 
-    /**
-     * One blast of a burst or strike field: where on the hull ({@code along} the keel and {@code across} the beam, each
-     * -0.5 to 0.5 of the hull's drawn extent), how far it throws out from the hull's centre ({@code across} and
-     * {@code along} read as a direction), and its radius in cells at the hull's ground size.
-     */
-    public record Blast(float along, float across, float radius) {}
+    /** One blast of a burst or strike field: where on the hull ({@code u}, {@code v}) and its radius in cells. */
+    public record Blast(float u, float v, float radius) {}
 
     public enum Phase { FALLING, SKIDDING, DOWN }
 
@@ -110,6 +119,10 @@ public final class WarshipWreck {
     private final float spin;
     private final long seed;
     private final Weight weight;
+    /** The hull's shape as points in its sprite frame, {u, v} each: its armour grid's hull cells. */
+    private final float[][] spots;
+    /** The share of the sprite's box the hull covers. */
+    private final float fill;
     private final Blast[] burstField;
     private final Blast[] strikeField;
     private float struckX = Float.NaN;
@@ -135,10 +148,12 @@ public final class WarshipWreck {
         this.vy = ship.velocityY;
         this.seed = WarshipAirRules.roundSeed(ship.hullId, ship.serial(), key, ship.faction.ordinal());
         this.weight = Weight.of(ship.shipClass().size());
-        int blasts = blastCount(ship.lengthCells * groundBody, ship.widthCells * groundBody);
-        this.strikeField = field(blasts, ship.lengthCells * groundBody, ship.widthCells * groundBody, 20);
-        this.burstField = field(Math.max(MIN_BLASTS / 2, blasts / 2), ship.lengthCells * burstBody,
-                ship.widthCells * burstBody, 20 + 4 * MAX_BLASTS);
+        this.spots = spots(ship.plating());
+        this.fill = fill(ship.plating());
+        float boxArea = ship.lengthCells * ship.widthCells;
+        int blasts = blastCount(boxArea * fill * groundBody * groundBody);
+        this.strikeField = field(blasts, groundBody, 20);
+        this.burstField = field(Math.max(2, blasts / 3), burstBody, 20 + 4 * MAX_BLASTS);
         float speed = (float) Math.hypot(vx, vy);
         // A hull already moving keeps going that way; one that was hovering slides off to a side its hash chooses.
         double direction = speed > 0.5f ? Math.atan2(vy, vx)
@@ -189,27 +204,44 @@ public final class WarshipWreck {
         return weight;
     }
 
-    /** The point {@code keel} of the way from bow (0) to stern (1) along the hull as it is drawn now, in cells. */
+    /** The point on the hull's centre line {@code keel} of the way from the nose (0) to the stern (1), on the hull. */
     public float[] keelPoint(float keel) {
+        float[] spot = nearestSpot(0.5f, keel);
+        return hullPoint(spot[0], spot[1]);
+    }
+
+    /**
+     * The world point at {@code (u, v)} in the hull's sprite frame as it is drawn now: about the sprite's centre (the
+     * centre of gravity plus the authored pivot), the frame rotated by its facing with the nose along +y, at the
+     * wreck's body scale. The same frame the renderer draws it in and the armour grid is laid on.
+     */
+    public float[] hullPoint(float u, float v) {
         double r = Math.toRadians(ship.facingDegrees);
-        float along = (0.5f - keel) * ship.lengthCells * bodyScale();
-        return new float[]{ship.x + along * (float) Math.cos(r), ship.y + along * (float) Math.sin(r)};
+        float c = (float) Math.cos(r), s = (float) Math.sin(r);
+        float body = bodyScale();
+        float cx = ship.x + body * (ship.pivotX * c - ship.pivotY * s);
+        float cy = ship.y + body * (ship.pivotX * s + ship.pivotY * c);
+        float lx = (u - 0.5f) * ship.widthCells * body;
+        float ly = (0.5f - v) * ship.lengthCells * body;
+        return new float[]{cx + lx * c - ly * s, cy + lx * s + ly * c};
     }
 
     /**
      * The secondary blasts due after {@code before} and up to {@code after} seconds from the burst: the fall's spread
-     * evenly over it, then the ground's rippling down the keel one {@link #SECONDARY_GAP_SECONDS} apart from the
-     * strike. Where along the keel each goes is a hash of the hull, so a wreck blows up the same way on every play.
+     * evenly over it, then the ground's one {@link #SECONDARY_GAP_SECONDS} apart from the strike. Where on the hull
+     * each goes is a hash of the hull, so a wreck blows up the same way on every play.
      */
     public List<Secondary> secondariesBetween(float before, float after) {
         List<Secondary> due = new ArrayList<>();
         for (int i = 0; i < weight.fallSecondaries; i++) {
             float at = FALL_SECONDS * (i + 1) / (weight.fallSecondaries + 1);
-            if (at > before && at <= after) due.add(new Secondary(keelFor(i), false));
+            float[] spot = spot(2 + i);
+            if (at > before && at <= after) due.add(new Secondary(spot[0], spot[1], false));
         }
         for (int i = 0; i < weight.secondaries; i++) {
             float at = FALL_SECONDS + SECONDARY_GAP_SECONDS * (i + 1);
-            if (at > before && at <= after) due.add(new Secondary(keelFor(weight.fallSecondaries + i), true));
+            float[] spot = spot(2 + weight.fallSecondaries + i);
+            if (at > before && at <= after) due.add(new Secondary(spot[0], spot[1], true));
         }
         return due;
     }
@@ -219,26 +251,49 @@ public final class WarshipWreck {
         return seconds >= FALL_SECONDS + Math.max(SECONDARY_GAP_SECONDS * weight.secondaries, STRIKE_FIELD_SECONDS);
     }
 
-    /** How many blasts a strike field over a landed hull {@code length} by {@code width} cells has. */
-    static int blastCount(float length, float width) {
-        return Math.max(MIN_BLASTS, Math.min(MAX_BLASTS, Math.round(length * width / CELLS_PER_BLAST)));
+    /** How many blasts a strike field over {@code area} square cells of landed hull has. */
+    static int blastCount(float area) {
+        return Math.max(MIN_BLASTS, Math.min(MAX_BLASTS, Math.round(area / CELLS_PER_BLAST)));
     }
 
     /**
-     * {@code count} blasts spread over an ellipse inscribed in a {@code length} by {@code width} hull, sized so together
-     * they cover it, each a little larger or smaller by its hash. {@code salt} keeps two fields of one hull apart.
+     * Up to {@code count} blasts on the hull's own shape at body scale {@code body}, spread evenly: the hull's points are
+     * taken in an order its hash chooses, and one is kept only if it is at least the field's spacing from every one
+     * kept before it, so the blasts tile the hull rather than heap. The spacing is the side of a square holding one
+     * blast's share of the hull's area, and each blast's radius {@link #RADIUS_PER_SPACING} of it, a little larger or
+     * smaller by its hash. {@code salt} keeps two fields of one hull apart.
      */
-    private Blast[] field(int count, float length, float width, int salt) {
-        float radius = Math.max(MIN_BLAST_RADIUS, (float) Math.sqrt(length * width / count) * 0.9f);
-        Blast[] out = new Blast[count];
-        for (int i = 0; i < count; i++) {
-            // Uniform over the disc (square-root radius), squashed to the hull's ellipse.
-            double angle = WarshipAirRules.unit(seed, salt + 2 * i) * Math.PI * 2.0;
-            float r = (float) Math.sqrt(WarshipAirRules.unit(seed, salt + 2 * i + 1));
-            float size = radius * (0.75f + 0.5f * WarshipAirRules.unit(seed, salt + 3 * MAX_BLASTS + i));
-            out[i] = new Blast(0.5f * r * (float) Math.cos(angle), 0.5f * r * (float) Math.sin(angle), size);
+    private Blast[] field(int count, float body, int salt) {
+        float width = ship.widthCells * body, length = ship.lengthCells * body;
+        float spacing = (float) Math.sqrt(width * length * fill / count);
+        float radius = Math.max(MIN_BLAST_RADIUS, spacing * RADIUS_PER_SPACING);
+        Integer[] order = new Integer[spots.length];
+        float[] key = new float[spots.length];
+        for (int i = 0; i < order.length; i++) {
+            order[i] = i;
+            key[i] = WarshipAirRules.unit(seed, salt + 7919 * (i + 1));
         }
-        return out;
+        Arrays.sort(order, (a, b) -> Float.compare(key[a], key[b]));
+        List<Blast> kept = new ArrayList<>();
+        // Pass by pass, relaxing the spacing, until the field is full or the hull has no more room.
+        for (float keep = 1f; keep >= 0.5f && kept.size() < count; keep -= 0.25f) {
+            float min = spacing * keep;
+            for (int i : order) {
+                if (kept.size() >= count) break;
+                float[] p = spots[i];
+                boolean clear = true;
+                for (Blast b : kept) {
+                    if (Math.hypot((p[0] - b.u()) * width, (p[1] - b.v()) * length) < min) {
+                        clear = false;
+                        break;
+                    }
+                }
+                if (!clear) continue;
+                float size = radius * (0.85f + 0.3f * WarshipAirRules.unit(seed, salt + 3 * MAX_BLASTS + kept.size()));
+                kept.add(new Blast(p[0], p[1], size));
+            }
+        }
+        return kept.toArray(new Blast[0]);
     }
 
     /**
@@ -254,37 +309,77 @@ public final class WarshipWreck {
             if (at > before && at <= after) due.add(burstField[i]);
         }
         for (Blast blast : strikeField) {
-            float reach = 2f * (float) Math.hypot(blast.along(), blast.across());
-            float at = FALL_SECONDS + STRIKE_FIELD_SECONDS * Math.min(1f, reach);
+            float at = FALL_SECONDS + STRIKE_FIELD_SECONDS * Math.min(1f, reach(blast));
             if (at > before && at <= after) due.add(blast);
         }
         return due;
     }
 
-    /** The point {@code along} the keel and {@code across} the beam (each -0.5 to 0.5) of the hull as drawn now. */
-    public float[] hullPoint(float along, float across) {
-        double r = Math.toRadians(ship.facingDegrees);
-        float scale = bodyScale();
-        float a = along * ship.lengthCells * scale;
-        float c = across * ship.widthCells * scale;
-        float cos = (float) Math.cos(r), sin = (float) Math.sin(r);
-        return new float[]{ship.x + a * cos - c * sin, ship.y + a * sin + c * cos};
+    /** How far out from the sprite's centre a blast is, 0 at the centre and 1 at the box's inscribed edge. */
+    static float reach(Blast blast) {
+        return 2f * (float) Math.hypot(blast.u() - 0.5f, blast.v() - 0.5f);
     }
 
     /**
-     * How many fires a falling hull sheds each fire period: one for every six cells of its drawn length, at least two.
+     * How many fires a falling hull sheds each fire period: one for every fourteen cells of its drawn length, at least one.
      */
     public int fallFires() {
-        return Math.max(2, Math.round(ship.lengthCells * bodyScale() / 6f));
+        return Math.max(1, Math.round(ship.lengthCells * bodyScale() / 14f));
     }
 
-    /** Where along the keel (0 bow to 1 stern) the {@code i}th fire of fire period {@code period} is shed. */
-    public float fallFireKeel(int period, int i) {
-        return WarshipAirRules.unit(seed, 1000 + period * 16 + i);
+    /** Where on the hull, {u, v}, the {@code i}th fire of fire period {@code period} is shed. */
+    public float[] fallFireSpot(int period, int i) {
+        return spot(1000 + period * 16 + i);
     }
 
-    private float keelFor(int i) {
-        return 0.1f + 0.8f * WarshipAirRules.unit(seed, 2 + i);
+    /** A point of the hull's shape its hash picks for {@code salt}. */
+    private float[] spot(int salt) {
+        return spots[Math.min(spots.length - 1, (int) (WarshipAirRules.unit(seed, salt) * spots.length))];
+    }
+
+    /** The point of the hull's shape nearest {@code (u, v)}, in cells, so a long hull's along-axis is not squashed. */
+    private float[] nearestSpot(float u, float v) {
+        float[] best = spots[0];
+        double bestD = Double.MAX_VALUE;
+        for (float[] p : spots) {
+            double d = Math.hypot((p[0] - u) * ship.widthCells, (p[1] - v) * ship.lengthCells);
+            if (d < bestD) {
+                bestD = d;
+                best = p;
+            }
+        }
+        return best;
+    }
+
+    /** The hull's shape as {u, v} points: its armour grid's hull cells, or a lattice in the box's ellipse without one. */
+    static float[][] spots(WarshipPlating plating) {
+        List<float[]> out = new ArrayList<>();
+        if (plating != null) {
+            for (int row = 0; row < plating.rows; row++) {
+                for (int col = 0; col < plating.cols; col++) {
+                    if (plating.isHull(col, row)) {
+                        out.add(new float[]{(col + 0.5f) / plating.cols, (row + 0.5f) / plating.rows});
+                    }
+                }
+            }
+        }
+        if (out.isEmpty()) {
+            for (int row = 0; row < FALLBACK_ROWS; row++) {
+                for (int col = 0; col < FALLBACK_COLS; col++) {
+                    float u = (col + 0.5f) / FALLBACK_COLS, v = (row + 0.5f) / FALLBACK_ROWS;
+                    if (Math.hypot(u - 0.5f, v - 0.5f) <= 0.5f) out.add(new float[]{u, v});
+                }
+            }
+        }
+        return out.toArray(new float[0][]);
+    }
+
+    /** The share of the sprite's box the hull covers: its grid's hull cells over all of them, or the ellipse's. */
+    static float fill(WarshipPlating plating) {
+        if (plating != null && plating.hullCellCount() > 0) {
+            return (float) plating.hullCellCount() / (plating.cols * plating.rows);
+        }
+        return (float) (Math.PI / 4.0);
     }
 
     /** Where the hull burst. */

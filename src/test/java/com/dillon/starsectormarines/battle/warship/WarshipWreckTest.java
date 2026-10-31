@@ -114,7 +114,7 @@ class WarshipWreckTest {
             float before = wreck.seconds();
             wreck.advance(DT);
             for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
-                assertTrue(blast.keel() >= 0f && blast.keel() <= 1f, "keel " + blast.keel());
+                assertTrue(onHull(ship, blast.u(), blast.v()), "on the hull at " + blast.u() + "," + blast.v());
                 assertEquals(before >= WarshipWreck.FALL_SECONDS || wreck.seconds() > WarshipWreck.FALL_SECONDS,
                         blast.grounded(), "a blast is grounded exactly when the hull has struck");
                 if (blast.grounded()) onGround++;
@@ -127,42 +127,54 @@ class WarshipWreckTest {
     }
 
     @Test
-    void theKeelRunsFromBowToSternAlongTheFacing() throws Exception {
+    void theKeelRunsFromTheNoseAlongTheFacingAsTheHullIsDrawn() throws Exception {
         Warship ship = hound(0f, 0f);
-        ship.facingDegrees = 90f;
         WarshipWreck wreck = new WarshipWreck(ship, -6L);
-        float[] bow = wreck.keelPoint(0f);
-        float[] stern = wreck.keelPoint(1f);
-        assertEquals(ship.x, bow[0], 1e-3f);
-        assertEquals(ship.lengthCells * wreck.bodyScale(), bow[1] - stern[1], 1e-3f);
+        // Facing 0 draws the nose toward +y, as the renderer rotates the sprite.
+        assertTrue(wreck.keelPoint(0f)[1] > wreck.keelPoint(1f)[1] + ship.lengthCells * 0.5f);
+        ship.facingDegrees = 90f;
+        assertTrue(wreck.keelPoint(0f)[0] < wreck.keelPoint(1f)[0] - ship.lengthCells * 0.5f);
     }
 
     @Test
-    void aLargerFootprintGoesUpInMoreBlastsWithinTheBounds() {
-        assertEquals(WarshipWreck.MIN_BLASTS, WarshipWreck.blastCount(1f, 1f));
-        assertEquals(WarshipWreck.MAX_BLASTS, WarshipWreck.blastCount(400f, 400f));
-        assertTrue(WarshipWreck.blastCount(30f, 20f) > WarshipWreck.blastCount(12f, 8f));
+    void aLargerHullGoesUpInMoreBlastsWithinTheBounds() {
+        assertEquals(WarshipWreck.MIN_BLASTS, WarshipWreck.blastCount(1f));
+        assertEquals(WarshipWreck.MAX_BLASTS, WarshipWreck.blastCount(100_000f));
+        assertTrue(WarshipWreck.blastCount(600f) > WarshipWreck.blastCount(100f));
     }
 
     @Test
-    void theBlastFieldsGoOffOnceEachOverTheHullAndTheStrikeRollsOutward() throws Exception {
-        WarshipWreck wreck = new WarshipWreck(hound(0f, 0f), -7L);
+    void theBlastFieldsLieOnTheHullsShapeSpreadOverItAndTheStrikeRollsOutward() throws Exception {
+        Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, 50f, 50f, 0f);
+        ship.serial(7);
+        WarshipWreck wreck = new WarshipWreck(ship, -7L);
         List<WarshipWreck.Blast> burst = wreck.blastsBetween(0f, WarshipWreck.BURST_FIELD_SECONDS);
         List<WarshipWreck.Blast> strike = wreck.blastsBetween(WarshipWreck.FALL_SECONDS,
                 WarshipWreck.FALL_SECONDS + WarshipWreck.STRIKE_FIELD_SECONDS);
-        assertTrue(burst.size() >= WarshipWreck.MIN_BLASTS / 2, "burst " + burst.size());
+        assertTrue(burst.size() >= 2, "burst " + burst.size());
         assertTrue(strike.size() >= WarshipWreck.MIN_BLASTS, "strike " + strike.size());
         assertTrue(wreck.blastsBetween(WarshipWreck.BURST_FIELD_SECONDS, WarshipWreck.FALL_SECONDS).isEmpty());
+        int[] quarters = new int[4];
         for (WarshipWreck.Blast blast : strike) {
-            assertTrue(Math.hypot(blast.along(), blast.across()) <= 0.5 + 1e-6, "on the hull");
-            assertTrue(blast.radius() >= WarshipWreck.MIN_BLAST_RADIUS * 0.75f - 1e-6f, "radius " + blast.radius());
+            assertTrue(onHull(ship, blast.u(), blast.v()), "on the hull at " + blast.u() + "," + blast.v());
+            assertTrue(blast.radius() >= WarshipWreck.MIN_BLAST_RADIUS * 0.85f - 1e-6f, "radius " + blast.radius());
+            quarters[(blast.u() < 0.5f ? 0 : 1) + (blast.v() < 0.5f ? 0 : 2)]++;
         }
-        // The first slice of the strike field is nearer the centre than the last.
+        // Spread over the hull, not heaped in a line: every quarter of the sprite's box has some.
+        for (int q = 0; q < 4; q++) assertTrue(quarters[q] > 0, "quarter " + q + " of " + strike.size());
         float mid = WarshipWreck.FALL_SECONDS + WarshipWreck.STRIKE_FIELD_SECONDS * 0.5f;
         for (WarshipWreck.Blast inner : wreck.blastsBetween(WarshipWreck.FALL_SECONDS, mid)) {
             for (WarshipWreck.Blast outer : wreck.blastsBetween(mid, WarshipWreck.FALL_SECONDS + 1f)) {
-                assertTrue(Math.hypot(inner.along(), inner.across()) <= Math.hypot(outer.along(), outer.across()) + 1e-6);
+                assertTrue(WarshipWreck.reach(inner) <= WarshipWreck.reach(outer) + 1e-6f);
             }
         }
+    }
+
+    /** Whether {@code (u, v)} is one of the hull's armour-grid cells (or inside its box, for a hull without a grid). */
+    private static boolean onHull(Warship ship, float u, float v) {
+        WarshipPlating plating = ship.plating();
+        if (plating == null) return u >= 0f && u <= 1f && v >= 0f && v <= 1f;
+        int cell = plating.cellAt(u, v);
+        return cell >= 0 && plating.isHull(cell % plating.cols, cell / plating.cols);
     }
 }

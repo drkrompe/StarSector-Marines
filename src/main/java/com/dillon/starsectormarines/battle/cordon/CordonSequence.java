@@ -465,7 +465,7 @@ public final class CordonSequence implements Objective {
         if (outerPicket != null) outerPicket.advance(sim, tick, beat -> emit(tick, beat));
         if (strikes != null) for (String beat : strikes.drainBeats()) emit(tick, beat);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
-        if (line != null) line.advance(sim);
+        if (line != null) line.advance(sim, beat -> emit(tick, beat));
         if (airBase != null) airBase.advance(sim, redoubts, beat ->
                 log.emitOnce(tick, "cordon." + beat, StoryBeatLog.Audience.OBSERVER_ONLY));
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
