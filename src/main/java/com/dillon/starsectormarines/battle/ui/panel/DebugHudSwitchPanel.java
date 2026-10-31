@@ -21,8 +21,8 @@ import java.util.function.BooleanSupplier;
  * plan readout and ship diagnostics together. The state itself belongs to the
  * {@link BattleUiContext}; this panel only flips it.
  *
- * <p>In a player build it is the CHEAT switch: given cheats, turning it on opens their buttons
- * in a row directly to its left, the first nearest, instead of the developer panels.
+ * <p>Given cheats, turning it on opens their buttons in a row directly to its left, the first
+ * nearest. In a player build it is the CHEAT switch, and the cheats are all it opens.
  */
 @DebugOnly
 public final class DebugHudSwitchPanel implements HudPanel {
@@ -41,7 +41,7 @@ public final class DebugHudSwitchPanel implements HudPanel {
 
     private final BattleUiContext ctx;
     private final BitmapFont font = Fonts.ORBITRON_12_BOLD;
-    /** The player build's cheats; empty in a dev build, whose cheats live in the developer panel. */
+    /** The cheat buttons it opens beside itself. */
     private final List<Cheat> cheats;
     private boolean hover;
     private int hoverCheat = -1;

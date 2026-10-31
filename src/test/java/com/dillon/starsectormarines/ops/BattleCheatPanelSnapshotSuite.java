@@ -55,7 +55,7 @@ import static org.lwjgl.opengl.GL11.*;
  * scale, with the legacy GL panels painted between the two on a real driver, in the order {@code BattleScreen} paints
  * them. The panels' bounds come from the same retained surfaces the screen measures. Frames: the player build's switch
  * off; on, with Win and Add Onslaught open beside it; Add Onslaught hovered; after it, the Onslaught on the power bar
- * and its button gone; and the developer build's panel for comparison. The switch label
+ * and its button gone; and a developer build, the same buttons beside its switch and its diagnostic panel open. The switch label
  * follows this JVM's {@code marines.dev}, so the developer frame still reads CHEAT unless the run passes it.
  */
 public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
@@ -95,10 +95,10 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                 frames.add(frame(context, sim, selection, "01-switch-off", false, false, false));
                 frames.add(frame(context, sim, selection, "02-switch-on-cheats", true, false, false));
                 frames.add(frame(context, sim, selection, "03-onslaught-hover", true, true, false));
+                frames.add(frame(context, sim, selection, "05-dev-build-expanded", true, true, true));
                 // Add Onslaught clicked: the power is on the bar and its button is gone.
                 sim.getCommandPowerService().register(new SpawnInOnslaught());
                 frames.add(frame(context, sim, selection, "04-onslaught-added", true, false, false));
-                frames.add(frame(context, sim, selection, "05-dev-build-expanded", true, true, true));
             }
         } finally {
             Global.setSettings(original);
@@ -111,9 +111,9 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
         BufferedImage image = HudCompositionSnapshotSuite.compose(context, sim, selection, name, false, null,
                 (scene, retained) -> {
                     Context ui = new Context(sim, selection, retained);
-                    // As BattleScreen builds them: a dev build's switch and panel, or a player's switch carrying Win.
-                    DebugHudSwitchPanel hudSwitch = devRows ? new DebugHudSwitchPanel(ui)
-                            : new DebugHudSwitchPanel(ui, List.of(
+                    // As BattleScreen builds them: either build's switch carries Win and Add Onslaught; a dev build
+                    // adds its panel of diagnostic rows.
+                    DebugHudSwitchPanel hudSwitch = new DebugHudSwitchPanel(ui, List.of(
                                     new DebugHudSwitchPanel.Cheat(Strings.get("cheatsWin"), () -> { }, () -> true),
                                     new DebugHudSwitchPanel.Cheat(Strings.get("cheatsOnslaught"), () -> { },
                                             () -> sim.getCommandPowerService().getPower(SpawnInOnslaught.ID) == null)));
@@ -121,7 +121,6 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                     if (devRows) {
                         tools = new DebugTogglesPanel(ui);
                         ui.tools = tools;
-                        tools.addAction(Strings.get("cheatsWin"), () -> { });
                         addDiagnosticRows(tools);
                     }
                     ui.debugHud = switchOn;
