@@ -802,9 +802,10 @@ public final class CordonSetup {
         // In through the compound's wide gate to its truck yard, where they turn and load beside the staging area.
         CordonGateYard yard = CordonGateYard.of(cordon.map().layout);
         if (yard != null) convoys.driveInto(yard, sim.getGrid());
-        // The townspeople are trapped in the staging area, stood after the defenders so the defenders' cells are taken first.
+        // The townspeople are trapped in groups, the first truckload in the staging area by the yard and the rest in the
+        // compound's rooms, stood after the defenders so the defenders' cells are taken first.
         CordonStagingArea staging = town.staging();
-        if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, staging.cells());
+        if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, town.groups(), town.counts());
         else convoys.standTownspeople(sim, frontward);
         return convoys;
     }

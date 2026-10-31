@@ -98,6 +98,20 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                                 FRAME_H, yard.turnX() + 0.5f, yard.turnY() + 0.5f, PLAY_ZOOM_CELLS);
                         out.add(new SnapshotArtifact("look/" + tag + "town-yard-play-zoom.png", plain.render(sim, "")));
                     }
+                    CordonTown town = sequence == null ? null : sequence.town();
+                    if (town != null) {
+                        // The whole compound: its rooms and their people, its teams, the yard and the staging area.
+                        float across = Math.max(PLAY_ZOOM_CELLS, 1.25f * Math.max(town.right() - town.left() + 1,
+                                (town.bottom() - town.top() + 1) * FRAME_W / (float) FRAME_H));
+                        near.refocus(town.centreX() + 0.5f, town.centreY() + 0.5f, across);
+                        out.add(new SnapshotArtifact(tag + "10-town-compound.png",
+                                near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
+                                        + ", Ain Tafrant's compound at setup: rooms, teams, yard",
+                                        CordonReviewAnnotations.townYard(sim))));
+                        BattleReviewFrameRenderer plain = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, across);
+                        out.add(new SnapshotArtifact("look/" + tag + "town-compound.png", plain.render(sim, "")));
+                    }
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim))));
                     List<Precinct> redoubts = CordonPlan.redoubts(plan);

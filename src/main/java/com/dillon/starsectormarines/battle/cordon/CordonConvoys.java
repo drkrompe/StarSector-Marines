@@ -337,6 +337,14 @@ public final class CordonConvoys {
     }
 
     /**
+     * Stands the compound's people in groups: {@code counts[i]} in {@code groups.get(i)}, the staging area by the
+     * yard and the rooms round the compound; at setup, after the defenders are seated.
+     */
+    public void standTownspeople(BattleSimulation sim, List<List<int[]>> groups, int[] counts) {
+        town = CordonTownspeople.stand(sim, groups, counts, town.left());
+    }
+
+    /**
      * Each convoy's boarding as {aboard, seats} on its live trucks, in departure order, read-only: for a convoy
      * status such as "boarding 5/12" ({@link Reading#aboard()} and {@link Reading#seats()} carry the same).
      */

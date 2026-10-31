@@ -2,28 +2,32 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The Road's cut-off town, Ain Tafrant, as the battle keeps it ({@code cordon-nouns.md}, Cut-off town): the ground
- * inside its compound's wall, the staging area inside its loading gate, the defenders who hold it (the town's militia
- * and guard, allied, under garrison authority, never the player's), the guns in its gate towers, and how the staging
- * area stands. Holding the staging area is the Road's first objective; the compound's breach and its defenders' losses
- * are radio, as a redoubt's are, so the company hears the town call without seeing it.
+ * inside its compound's wall, the staging area beside its truck yard and the rooms its people wait in, the defenders
+ * who hold it (the town's militia and guard, allied, under garrison authority, never the player's), the guns in its
+ * gate towers, and how the compound stands. Holding the compound is the Road's first objective; its breach and its
+ * defenders' losses are radio, as a redoubt's are, so the company hears the town call without seeing it.
+ *
+ * <p>With its people spread over several rooms, no one room is the town: it is held while anyone holds the ground
+ * inside the wall, and overrun only once the swarm is inside with no defender or Marine left in it.
  */
 public final class CordonTown {
 
     /**
-     * How the staging area stands. {@code PRESSED}: the swarm is in it and someone still holds it. {@code OVERRUN}: the
-     * swarm has been in it with nobody holding it for {@link #OVERRUN_SECONDS}; final.
+     * How the compound stands. {@code PRESSED}: the swarm is inside its wall and someone still holds it.
+     * {@code OVERRUN}: the swarm has been inside with no defender or Marine in it for {@link #OVERRUN_SECONDS}; final.
      */
     public enum State { HOLDING, PRESSED, OVERRUN }
 
-    /** Seconds the swarm must stand in the staging area with nobody holding it before it is overrun. UNTUNED. */
+    /** Seconds the swarm must be inside the wall with nobody holding the compound before it is overrun. UNTUNED. */
     public static final int OVERRUN_SECONDS = 10;
     static final int OVERRUN_TICKS = Math.round(OVERRUN_SECONDS / BattleSimulation.TICK_DT);
-    /** Cells round the staging area a defender or Marine holds it from: they stand round it, not on it. */
-    public static final int HOLD_MARGIN = 4;
+    /** Cells outside the wall a defender or Marine still holds the compound from: at a gate, on its glacis. */
+    public static final int HOLD_MARGIN = 2;
 
     private final int left, top, right, bottom;
     private final int gateX, gateY;
@@ -31,6 +35,9 @@ public final class CordonTown {
     private final List<Integer> teams;
     private final List<Long> guns;
     private final int garrison;
+    /** The rooms the trapped wait in, largest first. */
+    private List<List<int[]>> rooms = List.of();
+    private int[] waiting = new int[0];
     private State state = State.HOLDING;
     private int swarmInside, swarmStaging;
     private boolean held = true;
@@ -68,8 +75,21 @@ public final class CordonTown {
     public int centreY() { return (top + bottom) / 2; }
     public int gateX() { return gateX; }
     public int gateY() { return gateY; }
-    /** The staging area inside the loading gate. */
+    /** The staging area beside the truck yard. */
     public CordonStagingArea staging() { return staging; }
+    /** The rooms the trapped wait in, largest first; empty where none was found. */
+    public List<List<int[]>> rooms() { return rooms; }
+
+    /** How many of the trapped were set to wait in each: the staging area first, then each room. */
+    public int[] waiting() { return waiting.clone(); }
+
+    /** Gives the town the rooms its people wait in and how many wait where; at setup. */
+    void attachRooms(List<List<int[]>> rooms, int[] waiting) {
+        List<List<int[]>> copy = new ArrayList<>();
+        for (List<int[]> room : rooms) copy.add(List.copyOf(room));
+        this.rooms = List.copyOf(copy);
+        this.waiting = waiting.clone();
+    }
     /** The defenders' squads. */
     public List<Integer> teams() { return teams; }
     /** The gate towers' emplacements. */
@@ -77,13 +97,13 @@ public final class CordonTown {
     /** How many the defenders stood up with. */
     public int garrison() { return garrison; }
     public State state() { return state; }
-    /** Whether the staging area is still held: not overrun. */
+    /** Whether the compound is still held: not overrun. */
     public boolean holds() { return state != State.OVERRUN; }
     /** Swarm bodies inside the compound's wall at the last look. */
     public int swarmInside() { return swarmInside; }
     /** Swarm bodies in the staging area at the last look. */
     public int swarmStaging() { return swarmStaging; }
-    /** Whether a defender or a Marine stood in or round the staging area at the last look. */
+    /** Whether a defender or a Marine stood inside the compound at the last look. */
     public boolean held() { return held; }
     /** Ticks at {@code tick} since a swarm body was last inside the wall; very large for never. */
     public int quietTicks(int tick) { return tick - lastBreachTick; }
@@ -101,36 +121,36 @@ public final class CordonTown {
         return x >= left - margin && x <= right + margin && y >= top - margin && y <= bottom + margin;
     }
 
-    /** Whether a defender or Marine standing on this cell holds the staging area. */
+    /** Whether a defender or Marine standing on this cell holds the compound: inside its wall, or at it. */
     public boolean holdsFrom(int x, int y) {
-        return staging.near(x, y, HOLD_MARGIN);
+        return contains(x, y, HOLD_MARGIN);
     }
 
     /**
-     * The sequence's look this tick: swarm bodies inside the wall and in the staging area, and whether anyone holds it.
-     * Returns the state it was in before, so the caller can tell a change.
+     * The sequence's look this tick: swarm bodies inside the wall and in the staging area, and whether anyone holds the
+     * compound. Returns the state it was in before, so the caller can tell a change.
      */
     State observe(int inside, int inStaging, boolean holders, int tick) {
         swarmInside = inside;
         swarmStaging = inStaging;
         held = holders;
         if (inside > 0) lastBreachTick = tick;
-        if (inStaging > 0 && !holders) {
+        if (inside > 0 && !holders) {
             if (unheldSince < 0) unheldSince = tick;
         } else {
             unheldSince = -1;
         }
         State before = state;
-        state = next(state, inStaging > 0, holders, unheldSince < 0 ? 0 : tick - unheldSince);
+        state = next(state, inside > 0, holders, unheldSince < 0 ? 0 : tick - unheldSince);
         return before;
     }
 
     /**
-     * The staging area's next state ({@code cordon-nouns.md}, Cut-off town): holding while no swarm body is in it,
-     * pressed while one is and a defender or Marine still holds it (or has not been gone for long), overrun once the
-     * swarm has stood in it with nobody holding it for {@link #OVERRUN_TICKS}. Overrun is final.
+     * The compound's next state ({@code cordon-nouns.md}, Cut-off town): holding while no swarm body is inside its
+     * wall, pressed while one is and a defender or Marine still holds it (or has not been gone for long), overrun once
+     * the swarm has been inside with nobody holding it for {@link #OVERRUN_TICKS}. Overrun is final.
      *
-     * @param unheldTicks ticks the swarm has been in it with nobody holding it
+     * @param unheldTicks ticks the swarm has been inside with nobody holding the compound
      */
     static State next(State now, boolean swarmIn, boolean held, int unheldTicks) {
         if (now == State.OVERRUN) return now;

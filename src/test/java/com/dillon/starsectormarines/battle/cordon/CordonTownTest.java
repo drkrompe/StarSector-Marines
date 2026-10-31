@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,8 +45,29 @@ class CordonTownTest {
         town.observe(3, 2, false, 100 + 2 * CordonTown.OVERRUN_TICKS);
         assertEquals(State.OVERRUN, town.state());
         assertFalse(town.holds());
-        assertTrue(town.holdsFrom(5, 10 - CordonStagingArea.REACH - CordonTown.HOLD_MARGIN));
-        assertFalse(town.holdsFrom(5, 10 - CordonStagingArea.REACH - CordonTown.HOLD_MARGIN - 1));
+        // Anyone in the compound holds it, whichever room they are in: the whole ground inside the wall, or at it.
+        assertTrue(town.holdsFrom(0, 0));
+        assertTrue(town.holdsFrom(10 + CordonTown.HOLD_MARGIN, 5));
+        assertFalse(town.holdsFrom(10 + CordonTown.HOLD_MARGIN + 1, 5));
+    }
+
+    @Test
+    void theSwarmInsideTheWallPressesTheCompoundWhereverItIsNotOnlyInTheStagingArea() {
+        CordonStagingArea staging = CordonStagingArea.of((x, y) -> true, 0, 0, 10, 10, 5, 11);
+        CordonTown town = new CordonTown(0, 0, 10, 10, 5, 11, staging, List.of(), List.of(), 16);
+        town.observe(2, 0, true, 10);
+        assertEquals(State.PRESSED, town.state(), "in a room, not the staging area: the town is pressed");
+        town.observe(2, 0, false, 10 + CordonTown.OVERRUN_TICKS + 20);
+        town.observe(2, 0, false, 10 + 2 * CordonTown.OVERRUN_TICKS + 40);
+        assertEquals(State.OVERRUN, town.state(), "nobody left inside: abandoned");
+    }
+
+    @Test
+    void theTrappedAreSpreadTheFirstTruckloadByTheYardAndTheRestEvenlyOverTheRooms() {
+        assertArrayEquals(new int[]{12, 9, 9, 9, 9}, CordonTownGarrison.split(48, new int[]{30, 20, 12, 9}, 12));
+        // A room with no room for its share sends the rest to the yard.
+        assertArrayEquals(new int[]{16, 12, 12, 8}, CordonTownGarrison.split(48, new int[]{40, 30, 8}, 12));
+        assertArrayEquals(new int[]{48}, CordonTownGarrison.split(48, new int[0], 12), "no rooms: all by the yard");
     }
 
     @Test

@@ -97,6 +97,33 @@ final class CordonTownspeople {
     }
 
     /**
+     * Stands the town's people in groups, {@code counts[i]} huddled in {@code groups.get(i)} (the staging area by the
+     * yard and the compound's rooms), each group as one crowd; any a group's cells have no room for stay a count and
+     * board from it ({@code cordon-nouns.md}, Cut-off town).
+     */
+    static CordonTownspeople stand(BattleSimulation sim, List<List<int[]>> groups, int[] counts, int people) {
+        CordonTownspeople town = new CordonTownspeople(Math.max(0, people));
+        byte[] occupancy = sim.getOccupancyMap();
+        int n = 0;
+        for (int g = 0; g < groups.size() && g < counts.length; g++) {
+            List<int[]> open = new ArrayList<>();
+            for (int[] c : groups.get(g)) {
+                if (sim.getGrid().inBounds(c[0], c[1]) && sim.getGrid().isWalkable(c[0], c[1])
+                        && !sim.getGrid().isDoorway(c[0], c[1]) && (occupancy[sim.getGrid().index(c[0], c[1])] & 0xFF) == 0) {
+                    open.add(c);
+                }
+            }
+            for (int[] cell : huddle(open, Math.min(counts[g], town.counted - town.people.size()))) {
+                long id = sim.spawn(new EntitySpec("Townsperson " + (++n), Faction.CIVILIAN, UnitType.CIVILIAN,
+                        cell[0], cell[1]).role(UnitRole.VIP));
+                town.people.add(new Person(id, cell[0], cell[1]));
+            }
+        }
+        town.counted -= town.people.size();
+        return town;
+    }
+
+    /**
      * Up to {@code count} of {@code cells}, nearest their middle first: where a crowd huddles in its staging area.
      */
     static List<int[]> huddle(List<int[]> cells, int count) {

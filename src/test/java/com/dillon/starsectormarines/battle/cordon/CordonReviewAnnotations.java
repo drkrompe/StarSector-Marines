@@ -64,7 +64,43 @@ public final class CordonReviewAnnotations {
             marks.box(l, t, r, b, "STAGING AREA · " + staging.cells().size() + " cells", ReviewStyle.KEEP);
         }
         addYard(marks, sim, cordon.yard());
+        addRooms(marks, sim, cordon.town());
         return marks.build();
+    }
+
+    /** The rooms the trapped wait in, each with its count, and each of the town's teams where it stands. */
+    private static void addRooms(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonTown town) {
+        if (town == null) return;
+        int[] waiting = town.waiting();
+        for (int i = 0; i < town.rooms().size(); i++) {
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+            for (int[] c : town.rooms().get(i)) {
+                l = Math.min(l, c[0]);
+                t = Math.min(t, c[1]);
+                r = Math.max(r, c[0]);
+                b = Math.max(b, c[1]);
+            }
+            int people = i + 1 < waiting.length ? waiting[i + 1] : 0;
+            marks.box(l, t, r, b, "ROOM " + (i + 1) + " · " + people + " townspeople", ReviewStyle.KEEP);
+        }
+        for (int k = 0; k < town.teams().size(); k++) {
+            int squad = town.teams().get(k);
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE, n = 0;
+            for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                long id = sim.squadMemberAt(squad, i);
+                if (id == 0L || !sim.world().isAlive(id) || !sim.world().hasPosition(id)) continue;
+                int x = sim.world().cellX(id), y = sim.world().cellY(id);
+                l = Math.min(l, x);
+                t = Math.min(t, y);
+                r = Math.max(r, x);
+                b = Math.max(b, y);
+                n++;
+            }
+            if (n == 0) continue;
+            boolean militia = k < 2;
+            marks.box(l, t, r, b, (militia ? "MILITIA " + (k + 1) + " · wall" : "GUARD " + (k - 1) + " · inside"),
+                    ReviewStyle.ALLY);
+        }
     }
 
     /** The truck yard boxed, where a truck stops to load, and the gate's open run along the wall's line. */

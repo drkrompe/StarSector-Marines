@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -499,8 +499,14 @@ second truck drawn up behind round the yard; loaded, they drive forward out of
 the gate (the corridor is carried on into the yard, `CordonGateYard.extend`).
 No defender stands in the yard. Untuned: the yard's size and the gate's width.
 
-The **townspeople** are trapped civilians huddled in the staging area (with
-none found, in the compound behind the militia, fourteen cells past the gate).
+The **townspeople** are trapped civilians waiting in **groups** (owner,
+2026-10-31: one bunch looks wrong, and spread they make the player choose what
+to hold): the first truckload (twelve) in the staging area by the yard, the
+rest shared evenly over the compound's largest rooms (up to four buildings with
+six open cells or more, `CordonTownGarrison.rooms`), what a room has no room
+for back by the yard (with no staging area found, all in the compound behind
+the militia, fourteen cells past the gate). The nearest walk out first, so the
+groups by the yard board first and the far rooms last.
 They never walk off or flee on their own: one jostled off its place walks back
 to it. While a convoy loads they walk out to its trucks and **board** one at a
 time, each boarding taking one off the field and putting one more aboard that
@@ -511,11 +517,13 @@ stand up stay a count and board from it at the same pace.
 The compound is held as a redoubt is (`CordonTownGarrison`): its wall dressed
 as the colony's compound's (`CivilDefenceCompound.dress`: a gun tower with a
 heavy machine gun beside each gate, slits along the runs, floodlights), and its
-**defenders** at the posts behind the slits, the side facing the front first,
-then the open ground, never in the truck yard, on the staging area or beside
-it, nor within three cells of where the corridor meets the town: what is left of the town militia (two teams of
-four, the ones beat R4 rides out) and the town guard (three more), interleaved
-so each team holds the whole front wall, allied, under garrison authority,
+**defenders**: what is left of the town militia (two teams of four, the ones
+beat R4 rides out) at the posts behind the slits, the side facing the front
+first, interleaved so each team holds the whole front wall, and the town guard
+(three more) inside, a team with each of the three largest rooms of people
+(the staging area where there are fewer), each told to hold the ground round
+it; never in the truck yard, on the staging area or beside it, nor within three
+cells of where the corridor meets the town. Allied, under garrison authority,
 never in the player's command pool. A wall the dressing cannot read is still
 manned, its teams in the yard; a compound with no wall found at all has its
 staging area round the road's end and its teams past it. Twenty rifles and two
@@ -523,15 +531,16 @@ guns hold the opening and the first convoy's loading; nobody reinforces the
 town, so the tides bleed it, and the company has to come up and hold the
 staging area as it goes (owner's call on its strength).
 
-**Town states.** The staging area is **held** while no swarm body is in it,
-**pressed** while one is and a defender or a Marine stands in it or within four
-cells of it (they hold it from round it), and **overrun** once the swarm has
-stood in it with nobody holding it for ten seconds (untuned); overrun is
-final, and it **abandons** the town (`town_abandoned`): every townsperson still
-trapped dies, no more convoys set out and a convoy on the road turns home. An
-overrun staging area is also how the company **pulls out**: nobody but the
-company and the defenders can hold it, so a company that leaves the town to
-the swarm has abandoned it (owner's question: whether an explicit pull-out
+**Town states.** With its people in several rooms no one room is the town,
+so the **compound** is what is held: **held** while no swarm body is inside
+its wall, **pressed** while one is and a defender or a Marine stands inside it
+(or within two cells of its wall), and **overrun** once the swarm has been
+inside with nobody holding it for ten seconds (untuned); overrun is final, and
+it **abandons** the town (`town_abandoned`): every townsperson still trapped
+dies, no more convoys set out and a convoy on the road turns home. A room the
+swarm reaches before then loses its group, one by one. An overrun compound is
+also how the company **pulls out**: nobody but the company and the defenders
+can hold it, so a company that leaves the town to the swarm has abandoned it (owner's question: whether an explicit pull-out
 order is wanted as well). The town is also finished when nobody is left in it
 (`town_empty`). Apart
 from that the town **calls** over the radio as a redoubt does, once a swarm
@@ -997,10 +1006,10 @@ with the same keys.
 | `convoy_lost_N` | the Road | PLAYER | Convoy N's last truck is destroyed |
 | `town_contact` | the Road | PLAYER | First swarm body within twenty cells of the town's wall |
 | `town_calling` | the Road | PLAYER | The town first calls for help (swarm inside its wall, or half its defenders down) |
-| `staging_pressed` | the Road | PLAYER | The swarm is first in the staging area |
-| `staging_overrun` | the Road | PLAYER | The swarm has held the staging area with nobody holding it for ten seconds |
+| `staging_pressed` | the Road | PLAYER | The swarm is first inside the compound's wall (the id is kept from when the staging area was the town) |
+| `staging_overrun` | the Road | PLAYER | The swarm has been inside the compound with no defender or Marine in it for ten seconds |
 | `town_empty` | the Road | PLAYER | Nobody is left trapped in the town: the town is finished |
-| `town_abandoned` | the Road | PLAYER | The staging area is overrun: the town is abandoned and everyone still in it dies |
+| `town_abandoned` | the Road | PLAYER | The compound is overrun: the town is abandoned and everyone still in it dies |
 | `fall_back` | the Road | PLAYER | The town is finished: the company falls back behind the line |
 | `company_withdrawn` | the Road | PLAYER | After the town is finished, every company Marine on the ground is behind the line |
 | `people_short` | the Road | PLAYER | The Road is lost: it ended with fewer townspeople out than the briefing's number |
