@@ -1283,7 +1283,7 @@ work restarts; a destroyed gun is not rebuilt. These are employer field supplies
 not player inventory grants or missile-defense pods converted into anti-infantry
 weapons. Both mounts must have walkable connected approach cells.
 
-The first load moves to the Dispatch stop; all remaining loads join it at the
+All loads move up together as one column, to the Dispatch stop and then the
 East stop, keeping separation behind the leader. Armor moves to the next road stop after each
 defensive window, closing behind the company before Outbound Gate capture
 releases its final breakthrough. The tank takes the forward center position,

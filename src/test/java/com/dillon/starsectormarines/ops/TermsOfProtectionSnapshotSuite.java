@@ -45,7 +45,6 @@ import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
-import com.fs.starfarer.api.campaign.SpecialItemData;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -276,16 +275,11 @@ public final class TermsOfProtectionSnapshotSuite implements SnapshotSuite {
             assertEquals(result, outcome.termsOfProtection);
             report.append("  casualties=").append(outcome.marinesLost).append('/').append(outcome.marinesEngaged)
                     .append(" rounds=").append(outcome.soldierTelemetry.values().stream().mapToInt(row -> row.roundsFired()).sum()).append('\n');
-            var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
-            int payment = AgreusArcCampaign.settleTerms(campaign, outcome, cargo, Set.of());
+            int payment = AgreusArcCampaign.settleTerms(campaign, outcome);
             assertEquals(outcome.victory ? 32000 : 0, payment);
-            assertEquals(-1, AgreusArcCampaign.settleTerms(campaign, outcome, cargo, Set.of()), "a duplicate receipt writes nothing");
-            assertTrue(cards.isEmpty(), "no Boarding Jack card can become cargo while its presentation is pending");
+            assertEquals(-1, AgreusArcCampaign.settleTerms(campaign, outcome), "a duplicate receipt writes nothing");
             assertEquals(outcome.victory, campaign.agreementRatified());
-            assertEquals(outcome.victory, campaign.boardingJackEntitled());
-            report.append("  ledger accepted once / payment=").append(payment).append(" ratified=").append(campaign.agreementRatified())
-                    .append(" entitlement=").append(campaign.boardingJackEntitled()).append(" deferred=").append(campaign.boardingJackDeferred())
-                    .append(" cardsPlaced=").append(cards.size()).append('\n');
+            report.append("  ledger accepted once / payment=").append(payment).append(" ratified=").append(campaign.agreementRatified()).append('\n');
             int route = fixture.route().ordinal();
             if (outcome.victory && !debriefed[route]) { debriefed[route] = true; addDebrief(context, frames, outcome, fixture.route()); }
             return outcome.victory;

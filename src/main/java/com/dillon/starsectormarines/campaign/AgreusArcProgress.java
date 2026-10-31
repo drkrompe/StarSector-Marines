@@ -10,6 +10,7 @@ public final class AgreusArcProgress implements Serializable {
     public static final String SITE = "north-weir";
     public static final String WARRANT_PREFIX = "agreus_limited_warrant_v1_";
     public static final int WARRANT_PAYMENT = 30000;
+    /** The recovered Specter section the warrant's work concerns; the store sells it once the arc settles. */
     public static final String SPECTER_CARD = "loadout-card:sheet:armor:corporate-specter-section";
     private int attempt = 1, techniciansLost, militiaLost, repairLoadsLost;
     private String activeId, activePlanetId, activePlanetName, activeSite;
@@ -18,6 +19,7 @@ public final class AgreusArcProgress implements Serializable {
     private boolean warrantCompleted, recordsRecovered;
     public static final String YARD_PREFIX = "agreus_yard_owners_v1_";
     public static final int YARD_PAYMENT = 36000;
+    /** The recovered Arbalest mixed section the inspection concerns; no story beat hands it over. */
     public static final String ARBALEST_CARD = "loadout-card:sheet:armor:salvage-assisted";
     private int yardAttempt, yardTechniciansLost, yardConstablesLost, toolingLost;
     private boolean yardCompleted;
@@ -147,16 +149,17 @@ public final class AgreusArcProgress implements Serializable {
     public static final String TERMS_PREFIX = "agreus_terms_of_protection_v1_";
     public static final int TERMS_PAYMENT = 32000;
     public static final String TERMS_SITE = "latchkey-handover";
-    /** The Boarding Jack section card the commissioning work produces, on either route. */
+    /** The Boarding Jack section the commissioning work refurbishes; the store sells it once the arc settles. */
     public static final String BOARDING_JACK_CARD = "loadout-card:sheet:armor:boarding-jack-section";
     private int termsAttempt, termsRepresentativesLost, termsTechniciansLost, termsEmployerLost, recordsCarriersLost;
     private boolean termsCompleted;
     /** The agreement the active Chapter 4 mobilization launched under; frozen at begin. */
     private AgreusYardAgreement activeAgreement;
     /**
-     * Once-only Boarding Jack entitlement from a Terms of Protection victory, recorded independently
-     * of delivery. Delivery waits on the pattern's declared presentation and happens at most once.
+     * The retired Boarding Jack cargo award, kept only so saves that recorded it still load.
+     * Nothing reads or writes them; the store sells the section instead.
      */
+    @SuppressWarnings("unused")
     private boolean boardingJackEntitled, boardingJackDelivered;
 
     public static boolean termsOfProtection(String id) { return id != null && id.startsWith(TERMS_PREFIX); }
@@ -167,15 +170,11 @@ public final class AgreusArcProgress implements Serializable {
     public int termsEmployerLost() { return termsEmployerLost; }
     public int recordsCarriersLost() { return recordsCarriersLost; }
     public AgreusYardAgreement activeAgreement() { return activeAgreement; }
-    public boolean boardingJackEntitled() { return boardingJackEntitled; }
-    public boolean boardingJackDelivered() { return boardingJackDelivered; }
-    /** Recorded but not yet in cargo: the pattern's presentation is still pending. */
-    public boolean boardingJackDeferred() { return boardingJackEntitled && !boardingJackDelivered; }
 
     /**
      * Chapter 4 settlement. Accepts only the active Terms of Protection mobilization, under the
-     * agreement it froze at launch, with its complete physical receipt. Victory pays once,
-     * ratifies that agreement and records the Boarding Jack entitlement; defeat or withdrawal
+     * agreement it froze at launch, with its complete physical receipt. Victory pays once and
+     * ratifies that agreement; defeat or withdrawal
      * records confirmed losses and leaves the signed route standing for a new mobilization.
      */
     public int settleTerms(String id, String planetId, boolean victory, int payment, AgreusYardAgreement route,
@@ -197,22 +196,10 @@ public final class AgreusArcProgress implements Serializable {
         if (victory) {
             if (!ratifyAgreement(route)) return -1;
             termsCompleted = true;
-            boardingJackEntitled = true;
         }
         activeId = null; activePlanetId = null; activePlanetName = null; activeSite = null; activeAgreement = null;
         termsAttempt = Math.max(1, termsAttempt) + 1;
         return payment;
-    }
-
-    /**
-     * Claims the recorded Boarding Jack delivery once its presentation is declared. Returns true
-     * exactly once, on the call that should place the card; an already learned or carried card
-     * still consumes the delivery so a later sale never renews it.
-     */
-    public boolean claimBoardingJackDelivery(boolean presentationReady) {
-        if (!boardingJackEntitled || boardingJackDelivered || !presentationReady) return false;
-        boardingJackDelivered = true;
-        return true;
     }
 
     public boolean yardCompleted() { return yardCompleted; }

@@ -41,12 +41,11 @@ class TermsOfProtectionLedgerTest {
         assertEquals(-1, p.settleTerms(id, "agreus", false, 0, AgreusYardAgreement.HOUSE_CUSTODY, true, false, true, false, false, true, false, 0, 0, 0),
                 "commissioning without a signature is contradictory");
         assertFalse(p.agreementRatified());
-        assertFalse(p.boardingJackEntitled());
         assertEquals(32000, win(p, id, AgreusYardAgreement.HOUSE_CUSTODY), "technicians lost after the work is done do not void it");
         assertEquals(-1, win(p, id, AgreusYardAgreement.HOUSE_CUSTODY), "a duplicate receipt pays nothing");
     }
 
-    @Test void victoryRatifiesTheLaunchedRouteAndRecordsOneEntitlementOnEitherRoute() {
+    @Test void victoryRatifiesTheLaunchedRouteOnEitherRoute() {
         for (var route : AgreusYardAgreement.values()) {
             var p = signed(route); String id = p.nextMissionId();
             assertTrue(p.begin(id, "agreus", "Agreus"));
@@ -54,8 +53,6 @@ class TermsOfProtectionLedgerTest {
             assertEquals(HandoverStage.RATIFIED, p.handoverStage());
             assertTrue(p.agreementRatified());
             assertTrue(p.termsCompleted());
-            assertTrue(p.boardingJackEntitled(), route + " still earns the Boarding Jack");
-            assertTrue(p.boardingJackDeferred());
             assertNull(p.activeAgreement());
             assertFalse(p.ratifyAgreement(route), "ratification happens once");
             assertEquals(route == AgreusYardAgreement.HOUSE_CUSTODY ? 12000 : 0, p.custodyPremiumDue());
@@ -68,7 +65,6 @@ class TermsOfProtectionLedgerTest {
         assertEquals(0, p.settleTerms(first, "agreus", false, 0, AgreusYardAgreement.YARD_COMPACT,
                 true, true, false, false, false, true, true, 1, 2, 3));
         assertEquals(HandoverStage.SIGNED, p.handoverStage(), "defeat leaves the signed route standing");
-        assertFalse(p.boardingJackEntitled());
         String retry = p.nextMissionId(); assertNotEquals(first, retry);
         assertFalse(p.signAgreement(AgreusYardAgreement.HOUSE_CUSTODY), "defeat never lets the other route be signed");
         assertTrue(p.begin(retry, "agreus", "Agreus"));
@@ -79,19 +75,6 @@ class TermsOfProtectionLedgerTest {
         assertEquals(2, p.termsRepresentativesLost()); assertEquals(4, p.termsTechniciansLost());
         assertEquals(5, p.termsEmployerLost()); assertEquals(1, p.recordsCarriersLost());
         assertTrue(p.agreementRatified());
-    }
-
-    @Test void theEntitlementDeliversOnceWhenItsPresentationIsReady() throws Exception {
-        var p = signed(AgreusYardAgreement.HOUSE_CUSTODY); String id = p.nextMissionId();
-        assertFalse(p.claimBoardingJackDelivery(true), "nothing is owed before victory");
-        assertTrue(p.begin(id, "agreus", "Agreus"));
-        assertEquals(32000, win(p, id, AgreusYardAgreement.HOUSE_CUSTODY));
-        assertFalse(p.claimBoardingJackDelivery(false), "pending art delivers nothing");
-        p = reload(p);
-        assertTrue(p.boardingJackDeferred(), "the recorded entitlement survives reload");
-        assertTrue(p.claimBoardingJackDelivery(true));
-        assertFalse(p.claimBoardingJackDelivery(true), "delivery is once-only; sale or discard never renews it");
-        assertFalse(p.boardingJackDeferred());
     }
 
     private static int win(AgreusArcProgress p, String id, AgreusYardAgreement route) {

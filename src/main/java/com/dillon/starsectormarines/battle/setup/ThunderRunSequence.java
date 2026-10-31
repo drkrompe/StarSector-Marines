@@ -116,7 +116,7 @@ public final class ThunderRunSequence {
     public List<Integer> cargoIdentities() { return attempt.cargo(); }
     public List<String> cargoStates() {
         return attempt.cargo().stream().map(i -> delivered.contains(i) ? "DELIVERED" : lost.contains(i) ? "LOST"
-                : phase >= 2 || attempt.cargo().indexOf(i) < phase || releasedCargo.contains(i) ? "IN_TRANSIT" : "WAITING").toList();
+                : phase >= 1 ? "IN_TRANSIT" : "WAITING").toList();
     }
     public int deliveredCount() { return delivered.size(); }
     public int lostCount() { return lost.size(); }
@@ -209,10 +209,8 @@ public final class ThunderRunSequence {
             phaseTick = currentTick;
             beat(sim, phase == 1 ? "column_released" : phase == 2 ? "crossing_secured" : "final_run");
             if (phase < 3) {
-                int ordinal = 0;
-                for (long id : cargo.values()) {
-                    if (ordinal++ == 0 || phase == 2) order(sim, id);
-                }
+                // The haulers move up as one column, keeping their spacing behind the leader.
+                for (long id : cargo.values()) order(sim, id);
                 order(sim, advanceHauler);
                 // The armor goes up with the freight it guards, to stand over the site through its hold.
                 for (long id : escorts) order(sim, id);

@@ -15,7 +15,7 @@ Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fir
 Updated: 2026-10-30 — the Kit Ladder and the built-in cards are data files.
 
 Updated: 2026-10-30 — the Kit Ladder paces the store: each card and machine pattern goes on sale after its station's mission; victory milestones retired.
-Updated: 2026-10-31 — the Junction no longer hands over Trench-Clearing Issue; the store sells it.
+Updated: 2026-10-31 — no story battle hands a card into cargo: the Junction and Agreus awards retired for the store.
 
 ## Purpose
 
@@ -848,19 +848,17 @@ permanently ineligible source.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and an
 acquisition owner, and the catalog audit preserves that coverage as content is
-added. Recovered Specter is a guaranteed cargo-card reward for Limited Warrant
-on Agreus after the Shepherd actually joins the fleet and North Weir is restored.
-Learning it exposes its matching heavy fitting sheet; reward settlement never
-changes issued equipment. Recovered Arbalest is the guaranteed cargo-card reward for The Yard's Owners.
-Learning both recovered roles exposes Salvage-assisted Section, with eight regular,
-two powered assault and two powered support billets. Explicit fitting preserves
-the named squad and ordinary lift seats. Development test controls remain available. Neither A Cold Account completion nor the grounded
-Shepherd's repair automatically learns either pattern.
+added. The recovered Specter and Arbalest sections and the Boarding Jack Section
+are sold in the company store once *A Small War* settles, the Kit Ladder station
+they share; no Agreus chapter hands one over, and a save keeps any already carried
+or learned. Salvage-assisted Section (eight regular, two powered assault and two
+powered support billets) is placed at *none* and is never sold: *A Small War* is cut from alpha. Explicit fitting preserves the named
+squad and ordinary lift seats. Neither A Cold Account completion nor the grounded
+Shepherd's repair learns any of them.
 The pirate Boarding Jack is the third recovered-rung assault suit, worn by two
 assault billets in the Boarding Jack Section card. Its template is story-only
-(`storySource` names *A Small War*), so no market, patron, licence, recovery or
-milestone route can reach it, and no card carrying it is awarded until its
-presentation is declared.
+(`storySource` names *A Small War*), so no market, patron, licence or recovery
+pool offers it; only the store's ladder-paced shelf does.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage

@@ -4,6 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
+Updated: 2026-10-31 — no chapter hands over a section card; the store sells the Agreus sections once the arc settles.
 Updated: 2026-10-19 — the Greyhook refitted with a Harpoon and a Sabot rack in place of her fixed PD lasers; the duel ends in her run for the south edge (escape or crash) and the battle waits for it.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
@@ -125,9 +126,9 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 | Chapter | Place and tactical promise | Recommended company | Credit fee | Equipment / lasting result |
 | --- | --- | --- | ---: | --- |
 | 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Dormer's sponsorship and the warrant offer; no powered card |
-| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Tri-Tachyon Specter Section card: two recovered Specter breachers in twelve |
-| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Salvage-assisted Section card: two Specter breachers and two Arbalest gunners in twelve |
-| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | A Boarding Jack section card, regardless of the chosen yard agreement; agreement ratified only on victory |
+| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Fee only; the Tri-Tachyon Specter Section (two recovered Specter breachers in twelve) goes on sale in the company store once the arc settles |
+| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Fee only; no section card is handed over |
+| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | Fee only, on either agreement; agreement ratified only on victory; the Boarding Jack Section goes on sale in the company store once the arc settles |
 | 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads; Hound optional; no tender | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
 
 Base completion fees total **168,000 credits** across the arc. House Custody can
@@ -523,20 +524,16 @@ section. There is no learning a suit. Outfitting all twelve marines in powered
 armour is simply not something an ordinary contractor in this sector can do
 without a licence that says so, and the company does not have one yet.
 
-The Agreus rewards are section cards built around two recovered suits a tier below
+The Agreus sections are built around two recovered suits a tier below
 their military patterns: the Tri-Tachyon Specter Section (two powered breachers
 among ten regular marines) and the Salvage-assisted Section (two breachers and two
 support gunners among eight). A new pirate suit follows the same shape. The
-Boarding Jack arrives inside its own light section card, and its complete pattern
-and presentation must be declared before the card can be awarded.
+Boarding Jack arrives inside its own light section card.
 
-Each award delivers its validated loadout card through ordinary cargo learning.
-Learning is explicit and permanent; fitting is an explicit free Armory transaction.
-Already learned or already-carried cards satisfy the award without creating a
-duplicate or resetting the chapter. Award entitlement is recorded once independently
-of later learning. A deliberately discarded or sold card is not regranted by
-reopening a debrief. Spec inspection and Fit Squad advice remain available without
-granting another card or silently changing named kit.
+No chapter hands a card over: each pays its fee, and the Kit Ladder puts the
+sections on sale in the company store once *A Small War* settles
+(`progression-nouns.md`, Kit and armory). Learning is explicit and permanent;
+fitting is an explicit free Armory transaction.
 
 **A loadout card prescribes the whole squad.** The player chooses one weapon card
 and one armor card per squad of twelve, and each card fixes what every billet
@@ -617,7 +614,7 @@ battle. No phase restores dead company marines, lost boats or lost tenders.
 
 Capture, physical delivery, safe inspection and handover are different facts.
 An outcome must freeze the facts required by that chapter before the once-only
-settlement of fee, card entitlement, personnel, assets, agreement and next offer.
+settlement of fee, personnel, assets, agreement and next offer.
 Stale, duplicate or foreign outcomes cannot perform any of those writes. A saved
 choice survives retries; opening a briefing, preview or course plot commits nothing.
 
@@ -693,19 +690,17 @@ military equipment to compensate for a harder map.
    arbitrary house alias, ownership change or silent relocation. Accept airless
    presentation, the actual build-site guidance and loss-aware replacement attempts.
 3. Live-test Limited Warrant's readable terms, named roster/fitted boats, physical
-   recovery and first card. Verify leaving the offer, retreat, replacement
+   recovery. Verify leaving the offer, retreat, replacement
    mobilization, duplicate result and save/reload, including an existing completed
-   North Weir save. Learn the cargo card, explicitly fit the Tri-Tachyon Specter
-   Section, then deploy those same named people. Detached battle and reward
+   North Weir save. Detached battle and settlement
    checks do not substitute for live host persistence acceptance.
-4. Live-test The Yard's Owners and its once-only Arbalest card, including losses,
-   replacement attempts and save/reload. Learn the card and explicitly fit the
-   Salvage-assisted Section to surviving named marines. Detached regular, Specter and earned
+4. Live-test The Yard's Owners, including losses,
+   replacement attempts and save/reload. Detached regular, Specter and earned
    mixed-roster replays cover inspection and fitting; live host acceptance remains.
    Preserve ordinary lift costs and the unsigned custody agreement.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system
    behavior, then Chapters 4-5, both agreements and the separate recurring escort job.
-   Keep route benefits out of hidden combat buffs and guarantee core cards on both routes.
+   Keep route benefits out of hidden combat buffs.
 6. Run a full named-company campaign with losses across all five chapters and both
    agreements. Verify current/previously acquired cards, late learning, duplicate
    cargo, abandonment, restarted attempts, careers, officers and tender losses.
@@ -736,11 +731,10 @@ Still open inside this story:
   paints) is exported from retained Codex ImageGen raws under
   `art-source/marine-modular-topdown/boarding-jack/` and reviewed by
   `createSnapshots -Psnapshot=boarding-jack-layers`. The pattern no longer
-  declares its presentation pending, so Chapter 4 places the card in fleet cargo
-  on settlement, and an entitlement recorded by a save from before the art
-  shipped is delivered once on the next load. Greyhook's enemy rigs draw the
+  declares its presentation pending, so the store can sell its section once the
+  arc settles. Greyhook's enemy rigs draw the
   same rig in Greyhook's own paint (soot, battle-worn, crude red markings); the
-  company's issue stays rust-orange. Still to observe: the rigs and the card in the live game.
+  company's issue stays rust-orange. Still to observe: the rigs and the section in the live game.
 - **The duel ends in the Greyhook's run** (owner, 2026-10-19; `warship-behaviours.md`,
   the Greyhook runs for her edge). Over the five ordinary fixtures the first hull fire
   comes 64 seconds after Voss's order, the run 132 to 147; she gets away across the
