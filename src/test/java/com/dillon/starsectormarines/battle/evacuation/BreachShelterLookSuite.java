@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
@@ -27,6 +28,8 @@ public final class BreachShelterLookSuite implements SnapshotSuite {
 
     private static final float PLAY_CELLS = 60f;
     private static final float WIDE_CELLS = 120f;
+    /** Close on a rallied group, so its rings read. */
+    private static final float RALLY_CELLS = 30f;
 
     @Override public String id() { return "breach-shelter-look"; }
 
@@ -71,10 +74,63 @@ public final class BreachShelterLookSuite implements SnapshotSuite {
                                 sim.getColonyBreach() != null && sim.getColonyBreach().heldBattery() != 0L
                                         ? "holding fire" : "firing or absent");
                     }
+                    out.addAll(rally(context, sim, seed));
                 }
             }
             return out;
         }
+    }
+
+    /**
+     * The rally's selection, as a plain click on a walking civilian shows it: the colony played on to
+     * {@code -Dsnapshot.breachShelter.rallyLimit} (default 9000) until a group of two or more is walking in the open, then
+     * that group drawn with the selection's yellow rings, close ({@code rally-close}, 30 cells) and at play zoom
+     * ({@code rally-play}). None when no group walks out in time.
+     */
+    private static List<SnapshotArtifact> rally(SnapshotContext context, BattleSimulation sim, long seed)
+            throws Exception {
+        int limit = Integer.getInteger("snapshot.breachShelter.rallyLimit", 9000);
+        CivilianEvacuationTracker tracker = sim.getCivilianEvacuationTracker();
+        long picked = 0L;
+        List<Long> group = List.of();
+        while (picked == 0L && !sim.isComplete() && sim.getSimTickIndex() < limit) {
+            for (int i = 0, n = tracker.registeredCount(); i < n && picked == 0L; i++) {
+                List<Long> walking = sim.civilianRallyGroup(tracker.entityIdAt(i));
+                boolean outdoors = walking.size() >= 2;
+                for (long id : walking) {
+                    outdoors &= sim.getTopology().getBuildingId(sim.world().cellX(id), sim.world().cellY(id)) == 0;
+                }
+                if (outdoors) {
+                    picked = walking.get(0);
+                    group = walking;
+                }
+            }
+            if (picked == 0L) sim.advance(BattleSimulation.TICK_DT);
+        }
+        if (picked == 0L) {
+            System.out.printf("    [breach-shelter/s%d] no group walked out by tick %d%n", seed, sim.getSimTickIndex());
+            return List.of();
+        }
+        float x = 0f, y = 0f;
+        for (long id : group) {
+            x += sim.world().x(id);
+            y += sim.world().y(id);
+        }
+        x /= group.size();
+        y /= group.size();
+        Selection selection = new Selection();
+        selection.selectCivilian(picked);
+        System.out.printf("    [breach-shelter/s%d] a group of %d walking at tick %d, selected%n",
+                seed, group.size(), sim.getSimTickIndex());
+        String tag = String.format(Locale.ROOT, "s%d-t%d-rally", seed, sim.getSimTickIndex());
+        List<SnapshotArtifact> out = new ArrayList<>();
+        for (float cells : new float[]{RALLY_CELLS, PLAY_CELLS}) {
+            BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), LookReview.WIDTH,
+                    LookReview.HEIGHT, x, y, cells).selecting(selection).ringingSelection();
+            out.add(new SnapshotArtifact(tag + (cells == RALLY_CELLS ? "-close.png" : "-play.png"),
+                    look.renderMarked(sim, ReviewAnnotations.builder().build())));
+        }
+        return out;
     }
 
     private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, float x, float y, float cells,

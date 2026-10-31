@@ -26,7 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TranslationOverlayTest {
     private static final Path TRANSLATIONS = Path.of("translations");
     private static final Pattern ARGUMENT = Pattern.compile("\\{(\\d+)");
-    private static final Pattern PRINTF = Pattern.compile("%[-#+ 0,(]*\\d*(?:\\.\\d+)?[a-zA-Z%]");
+    /** A printf specifier; MessageFormat patterns never take them, and their "{0}% cash" is not one. */
+    private static final Pattern PRINTF = Pattern.compile("%[-#+0,(]*\\d*(?:\\.\\d+)?[a-zA-Z%]");
 
     private static JSONObject json(Path file) throws Exception {
         return new JSONObject(Files.readString(file).lines().filter(line -> !line.stripLeading().startsWith("#"))
@@ -85,7 +86,7 @@ class TranslationOverlayTest {
                     problems.add(locale + " " + key + ": takes arguments the English does not");
                 if ((pattern || source.contains("''")) && loneApostrophe(text))
                     problems.add(locale + " " + key + ": undoubled apostrophe");
-                if (!printf(source).equals(printf(text)))
+                if (!pattern && !printf(source).equals(printf(text)))
                     problems.add(locale + " " + key + ": printf " + printf(text) + ", English " + printf(source));
                 if (source.startsWith("@") != text.startsWith("@"))
                     problems.add(locale + " " + key + ": @key reference differs from the English");

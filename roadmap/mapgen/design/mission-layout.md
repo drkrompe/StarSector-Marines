@@ -64,7 +64,14 @@ optional (reported, and the map stands).
   middle). Its whole footprint must be open ground nobody built on, or it is
   refused rather than squeezed; buildings come from their authored plans, so
   they are buildings like any other. The square's marker stands in for a bell
-  until there is bell art.
+  until there is bell art. A town building (a corner home, court house,
+  corner shop, market hall, workshop or depot) is one authored plan with no
+  yard.
+- **Paving.** Street ground laid by hand over cells the mission chose, in the
+  structures phase: each open cell becomes street, which the city's road
+  finish dresses as any street; a cell that is not open keeps what it is. For
+  streets through ground no road network reaches (another place's claim, or
+  country the places never grew into).
 - **Block.** Cells closed or fortified by hand: a barricade (hedgehogs and
   crates, which fire breaks and a dozer blade pushes), a wreck across a road
   (closed to vehicles until a dozer clears it; laid as crate stacks until
