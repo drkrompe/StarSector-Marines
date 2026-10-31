@@ -6,12 +6,13 @@ import com.fs.starfarer.api.Global;
 import java.util.Map;
 
 /**
- * The mission board's Debug key: the alpha's cheats, open to every player. While it is on, the
+ * The mission board's CHEAT key: the alpha's cheats, open to every player. While it is on, the
  * board lists the debug missions (every mission, with sandbox forces, loadouts and settings that
- * never touch the company), Company HQ shows its debug button, and a battle's debug panel offers
- * Win, which ends any battle as an outright company victory: every story record reports each
+ * never touch the company), Company HQ shows its debug button, and a battle's CHEAT panel offers
+ * only Win, which ends any battle as an outright company victory: every story record reports each
  * objective met and nobody lost ({@code BattleSimulation#isForcedVictory}), so the arc settles it
- * as a full success. Saved with the game; a dev build starts with it on.
+ * as a full success. The battle's diagnostic rows stay behind {@code DevConfig.DEV_MODE}. Saved
+ * with the game; a dev build starts with it on.
  */
 public final class Cheats {
     private static final String KEY = "marines_cheats", FREE_LICENSES_KEY = "marines_cheat_free_licenses";
