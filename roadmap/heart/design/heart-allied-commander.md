@@ -3,7 +3,7 @@
 Status: SHIPPED. The owner's list is built: all four tools, chosen by need. The gunship is risked as the owner answered: flown when called, the known anti-air shelled first.
 
 Written: 2026-10-23
-Updated: 2026-10-31 — combined arms: every leg from the foot a formation, split by country; a bounded hold for coming armour.
+Updated: 2026-10-31 — combined arms on both forms, The Burn's held by the barrage; The Burn's battlegroups call armour by need.
 
 The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
@@ -35,7 +35,12 @@ on Broad Front).
   leaves behind (`allied-command.md`, The slowest sets the pace).
 - **A broken screen** hands the lead to the main.
 
-Behind `battle.heart.laneFormation` and `battle.heart.broadCombinedArms`: a lane forms only once it has armour, and
+On The Burn the battlegroups advance by the same rule, each formation's limit
+the barrage's hold (`heart-nouns.md`, Combined arms on Broad Front), and they
+call their armour from the park by need as below; the gunship and the
+re-aimed waves stay Broad Front's.
+
+Behind `battle.heart.laneFormation`, `battle.heart.broadCombinedArms` and `battle.heart.burnCombinedArms`: a lane forms only once it has armour, and
 the bore assault takes it once it has rallied.
 
 **How a lane attacks its bore.** On The Burn once the guns allow it, and on

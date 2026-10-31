@@ -54,6 +54,21 @@ public record BarrageScreen(boolean advancesAlongY, int sign, int[] lineAlong, i
         return hold != Integer.MIN_VALUE && sign * (along - hold) > 0;
     }
 
+    /**
+     * How far along the straight route from {@code (fromX, fromY)} to {@code (toX, toY)} a formation's anchor may come
+     * at {@code tick} so that its front, {@code front} cells further along, stays at or short of the hold: unbounded
+     * once nothing holds it, or for a route that runs no nearer the guns; 0 for a route already past the hold.
+     */
+    public float routeLimit(int tick, float fromX, float fromY, float toX, float toY, float front) {
+        int hold = holdAlong(tick);
+        if (hold == Integer.MIN_VALUE) return Float.POSITIVE_INFINITY;
+        float length = (float) Math.hypot(toX - fromX, toY - fromY);
+        float room = sign * (hold - (advancesAlongY ? fromY : fromX));
+        float gain = length < 1e-3f ? 0f : sign * (advancesAlongY ? toY - fromY : toX - fromX) / length;
+        if (gain <= 1e-3f) return room >= 0f ? Float.POSITIVE_INFINITY : 0f;
+        return Math.max(0f, room / gain - front);
+    }
+
     /** A cell's coordinate along the advance. */
     public int along(int x, int y) {
         return advancesAlongY ? y : x;

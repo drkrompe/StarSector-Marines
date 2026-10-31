@@ -107,7 +107,23 @@ public final class TurretBehavior implements UnitBehavior {
             if (mission != 0L) s.target = mission;
         }
 
+        // A support emplacement fires for its side on a sighted mass, never danger close (SupportFire); with none it
+        // acquires nothing of its own, so the band is closed to the aim loop's own search.
+        boolean support = tube == null && sim.supportFire().enrolled(id);
+        if (support) {
+            s.target = sim.supportFire().target(sim, id, s.target, s.faction, s.originX, s.originY, s.minRange,
+                    s.attackRange, weapon);
+            if (s.target == 0L) s.attackRange = 0f;
+        }
+
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
+
+        if (support && s.fireThisTick
+                && sim.supportFire().dangerClose(sim, id, s.target, s.faction, s.originX, s.originY, weapon)) {
+            s.fireThisTick = false;
+            s.cooldownTimer = FRIENDLY_HOLD_SECONDS;
+            s.target = 0L;
+        }
 
         if (tube != null) {
             if (s.target != 0L) tube.noteTarget();

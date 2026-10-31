@@ -672,10 +672,22 @@ public final class FieldMortarService {
      * the crew's: they will not call a round onto their own.
      */
     public boolean friendlyUnderRound(Tube tube, long target, BattleView sim) {
-        WeaponDef weapon = tube.structure.mount.weapon;
+        return friendlyUnder(tube.structure.mount.weapon, tube.faction, tube.cellX + 0.5f, tube.cellY + 0.5f,
+                tube.entityId, target, sim);
+    }
+
+    /**
+     * The danger-close veto for any indirect round (a tube's, a support emplacement's,
+     * `TurretBehavior`): whether a friendly of {@code faction} stands within the
+     * warhead's radius, its scatter at this range and {@link #FRIENDLY_MARGIN_CELLS} of
+     * where a round of {@code weapon} fired from {@code (originX, originY)} at
+     * {@code target} lands, led for its flight. {@code self} is the gun, never counted.
+     */
+    public boolean friendlyUnder(WeaponDef weapon, Faction faction, float originX, float originY, long self,
+                                 long target, BattleView sim) {
         float targetX = sim.world().x(target);
         float targetY = sim.world().y(target);
-        float range = (float) Math.hypot(targetX - (tube.cellX + 0.5f), targetY - (tube.cellY + 0.5f));
+        float range = (float) Math.hypot(targetX - originX, targetY - originY);
         // The round is led, so the ground to keep clear is where the target
         // will be when it lands, not where it stands now.
         float speed = weapon.projectileCellsPerSec();
@@ -689,8 +701,8 @@ public final class FieldMortarService {
         float radiusSq = radius * radius;
         for (int i = 0, n = bucket.size; i < n; i++) {
             long id = bucket.ids[i];
-            if (id == tube.entityId || !sim.world().isAlive(id)) continue;
-            if (!tube.faction.friendlyTo(sim.identity().faction(id))) continue;
+            if (id == self || !sim.world().isAlive(id)) continue;
+            if (!faction.friendlyTo(sim.identity().faction(id))) continue;
             if (sim.identity().type(id).isTurret()) continue;
             float dx = sim.world().x(id) - x;
             float dy = sim.world().y(id) - y;

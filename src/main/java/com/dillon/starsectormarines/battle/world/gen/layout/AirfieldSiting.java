@@ -211,16 +211,10 @@ public final class AirfieldSiting {
         int[] region = {Math.max(1, field.x() - HAMLET_REACH), Math.max(1, field.y() - HAMLET_DEEP),
                 Math.min(ground.width() - 2, field.x() + fw - 1 + HAMLET_REACH),
                 Math.min(ground.height() - 2, field.y() + fh - 1 + HAMLET_DEEP)};
-        int step = apronStep(field);
-        int stripY0 = step > 0 ? field.y() : field.y() + fh - STRIP_BAND;
-        int stripY1 = step > 0 ? field.y() + STRIP_BAND - 1 : field.y() + fh - 1;
         Set<Long> track = new HashSet<>();
         for (int[] c : access(ground, field).track()) track.add(key(c[0], c[1]));
         LineCourse.CellTest lane = (x, y) -> open.test(x, y) && !ground.isWay(x, y) && !ground.inColumnClearance(x, y)
-                && HamletGrowth.unplanted(ground, x, y) && !track.contains(key(x, y))
-                && !(x >= field.x() - HAMLET_GAP && x < field.x() + fw + HAMLET_GAP
-                && y >= field.y() - HAMLET_GAP && y < field.y() + fh + HAMLET_GAP)
-                && !(x >= field.x() - RUN_UP && x < field.x() + fw + RUN_UP && y >= stripY0 && y <= stripY1);
+                && HamletGrowth.unplanted(ground, x, y) && !track.contains(key(x, y)) && !keepsClear(field, x, y);
         // A yard keeps a cell off the access track, so the field's own track is never fenced in.
         LineCourse.CellTest yard = (x, y) -> {
             if (!lane.test(x, y)) return false;
@@ -234,6 +228,21 @@ public final class AirfieldSiting {
         LineCourse.CellTest join = (x, y) -> track.contains(key(x, y))
                 || ground.isWay(x, y) && !ground.inColumnClearance(x, y);
         return HamletGrowth.grow(field.name(), region, field.x() + fw / 2, field.y() + fh / 2, lane, yard, join);
+    }
+
+    /**
+     * Whether {@code field} keeps the cell clear of anything built beside it: the field and the
+     * {@link #HAMLET_GAP} round it, and its strip's rows for {@link #RUN_UP} cells past either end (the run-up and
+     * approach). A hamlet keeps off it, and so does any work a mission sets beside the field.
+     */
+    public static boolean keepsClear(Structure field, int x, int y) {
+        int fw = field.width(), fh = field.height();
+        int step = apronStep(field);
+        int stripY0 = step > 0 ? field.y() : field.y() + fh - STRIP_BAND;
+        int stripY1 = step > 0 ? field.y() + STRIP_BAND - 1 : field.y() + fh - 1;
+        return x >= field.x() - HAMLET_GAP && x < field.x() + fw + HAMLET_GAP
+                && y >= field.y() - HAMLET_GAP && y < field.y() + fh + HAMLET_GAP
+                || x >= field.x() - RUN_UP && x < field.x() + fw + RUN_UP && y >= stripY0 && y <= stripY1;
     }
 
     private static long key(int x, int y) {

@@ -21,6 +21,16 @@ class BarrageScreenTest {
     }
 
     @Test
+    void aFormationsFrontComesUpNoFurtherThanTheHold() {
+        // Straight east from x=40: the hold at 112, a front six ahead of the anchor stops it at 66 along.
+        assertEquals(66f, screen.routeLimit(0, 40, 50, 200, 50, 6f), 1e-3f);
+        // On a diagonal the route runs further for the same ground gained toward the guns.
+        assertEquals(72f * (float) Math.sqrt(2) - 6f, screen.routeLimit(0, 40, 50, 140, 150, 6f), 1e-3f);
+        assertEquals(0f, screen.routeLimit(0, 120, 50, 200, 50, 6f), "a formation already at the hold stays");
+        assertEquals(Float.POSITIVE_INFINITY, screen.routeLimit(3900, 40, 50, 200, 50, 6f), "the guns done, no limit");
+    }
+
+    @Test
     void groundPastTheHoldIsTheGunsUntilTheyAreDone() {
         assertTrue(screen.beyond(150, 1500));
         assertFalse(screen.beyond(100, 1500));

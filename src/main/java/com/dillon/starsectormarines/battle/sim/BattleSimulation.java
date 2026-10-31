@@ -183,6 +183,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
+import com.dillon.starsectormarines.battle.turret.SupportFire;
 import com.dillon.starsectormarines.battle.vehicle.SoftBrush;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -478,6 +479,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
     private final PointDefenseService pointDefense;
     private final FieldMortarService fieldMortars = new FieldMortarService();
+    /** Indirect-fire emplacements a mission enrolled to fire for the side, on sighted masses, never danger close. */
+    private final SupportFire supportFire = new SupportFire();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
@@ -1887,8 +1890,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
-        groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, hullSightings,
-                (side, x, y) -> commsSees(side, x, y), swarmHarvest::holdsStill));
+        SideObservers observers = new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, hullSightings,
+                (side, x, y) -> commsSees(side, x, y), swarmHarvest::holdsStill);
+        groundSystem.setSpotting(observers);
+        supportFire.setSpotting(observers);
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             if (applyingInitialDamage) return;
@@ -1977,6 +1982,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
     @Override public FieldMortarService fieldMortars() { return fieldMortars; }
+
+    /** The battle's support emplacements ({@link SupportFire}). */
+    public SupportFire supportFire() { return supportFire; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }

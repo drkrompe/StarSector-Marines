@@ -141,4 +141,17 @@ class AirfieldSitingTest {
             }
         }
     }
+
+    @Test
+    void aFieldKeepsItsGapAndItsStripsRunUpClear() {
+        Structure field = new Structure("airbase-1", StructureKind.AIRFIELD, 100, 20, 0, false);
+        int stripY0 = AirfieldSiting.apronStep(field) > 0 ? field.y() : field.y() + field.height() - AirfieldSiting.STRIP_BAND;
+        int apronY = AirfieldSiting.apronStep(field) > 0 ? field.y() + field.height() - 1 : field.y();
+        int pastEnd = field.x() + field.width() + AirfieldSiting.RUN_UP - 1;
+        assertTrue(AirfieldSiting.keepsClear(field, field.x() + 3, field.y() + 3), "the field itself");
+        assertTrue(AirfieldSiting.keepsClear(field, pastEnd, stripY0), "the strip's rows past its end: the run-up");
+        assertFalse(AirfieldSiting.keepsClear(field, pastEnd + 1, stripY0), "past the run-up");
+        assertFalse(AirfieldSiting.keepsClear(field, field.x() + field.width() + AirfieldSiting.RUN_UP / 3, apronY),
+                "off the field's end on its apron half: where a pit may stand");
+    }
 }

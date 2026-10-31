@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -162,7 +162,16 @@ the road for good (F6). The gunship is not road-borne.
 - On Broad Front it holds all four of the owner's tools: armour pairs (one per
   lane, at the old wave pace), mech lances in town and city, one gunship gated
   on open air, and one ammunition truck.
-- On The Burn, which has no lanes, it holds ammunition trucks alone.
+- On The Burn it holds armour pairs for the battlegroups (mech lances in town
+  and city) and ammunition trucks, the battlegroups calling by need as Broad
+  Front's lanes do (`-Dbattle.heart.burnParity=false`: trucks alone).
+- On both it mans its **Locust pits**, two behind the vehicle park, and on
+  Broad Front two beside each airbase, laid clear of the park, the strips'
+  run-up rows, the ways and the columns' clearance (`HeartLayout.LOCUST_PIT`).
+  Each is a support gun (`SupportFire`): it fires on the biggest swarm mass in
+  its band that somebody of the side has in sight, never danger close, and its
+  salvos are rounds on hand (`HeartBaseGuns`; `-Dbattle.heart.baseLocusts=false`
+  is the control).
 Every truck in the heart comes from it, the B5 beat's included.
 The base digs **flak** at its first ammunition dump and its vehicle park, and on
 The Burn among the battery (`HeartObjectives.airDefence`), each on the guns'
@@ -343,7 +352,10 @@ to a new aim. A fresh tank and technical come up
 eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
 Broad Front those waves are the logistics base's stock, called up by need
 (Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).
-Broad Front's lanes go further: they advance as combined-arms teams (below).
+That leash is now the fallback: a battlegroup with no armour to form with,
+and the control (`-Dbattle.heart.burnCombinedArms=false`). Otherwise The
+Burn's battlegroups advance as combined-arms teams by Broad Front's rule
+(below).
 
 **Combined arms on Broad Front.** A lane's militia and its armour go forward
 together, every leg of the way, as one screened advance (`allied-command.md`,
@@ -370,6 +382,13 @@ Screened advance; `HeartLanes.COMBINED_ARMS`):
   minute, and then goes on without it. With nothing coming it goes on at once:
   no lane freezes waiting on a base the swarm has cut off.
 
+**On The Burn** the same rule holds, adapted to the barrage: a battlegroup's
+formation is aimed at its bore, not at the hold, and the barrage's hold is its
+**limit** (`allied-command.md`, Scripted per mission): its screen comes up no
+further than the hold, a safe distance short of the line firing, and moves up
+as each line lifts (`BarrageScreen.routeLimit`). A battlegroup with no armour
+to form with walks up behind the guns as before.
+
 `-Dbattle.heart.broadCombinedArms=false` is the control: the first wave
 marches to its satellite alone while the armour drives onto the satellite's
 ring, a leg is a bore with its screen picked once for the whole way, and a lane
@@ -381,16 +400,21 @@ committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
 and vehicles"). Its infantry comes in **waves**: the first steps off at the
 opening, one more as each of the barrage's first lines lifts, and more at a
 steady cadence once the barrage has ended, feeding the push on the mothers. A
-wave marches to wherever its lane is aimed now and joins the lane there. On
-Broad Front a lane that already stands has its next wave march to the lane
-itself, where its militia stand, and go on with it, rather than past it to the
-bore. A column held short of its bore by the fight on its own lane's ground has
+wave marches to wherever its lane is aimed now and joins the lane there. A
+lane that already stands has its next wave march to the lane itself, where its
+militia stand, and go on with it, rather than past it to the bore. At Broad
+Front's strength (`-Dbattle.heart.burnParity`) a wave also steps off every
+minute through the walk, between the early lifts and the barrage's end, so the
+front is fed throughout as Broad Front's lanes are. A column held short of its bore by the fight on its own lane's ground has
 **reached the front** and joins there (`cordon-nouns.md`, Allied column): a bore
 spawns its own defenders, so the 12 cells of its mouth are ground no column
 reaches except by winning. Its
 armour is a convoy-escort APC, two technicals, two breakthrough tanks and a Hound
-pair, with a fresh tank and technical coming up every two minutes once the
-barrage has ended. It follows the barrage on its own line across the front, armour stepping with
+pair; at Broad Front's strength its fresh pairs are called from the vehicle park by
+need from the opening (uncovered, broken or stalled), and the company's sector
+gets Broad Front's company armour, a breakthrough tank and a Hound pair. The
+control has a fresh tank and technical coming up every two minutes once the
+barrage has ended, and no armour in the company's sector. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
 the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the

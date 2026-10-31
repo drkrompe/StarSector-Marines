@@ -134,6 +134,8 @@ public final class HeartLanes {
         int armourWaitTick = -1;
         /** Whether {@code lane_arrived_N} has gone out: raised once, as the lane's first assault begins. */
         boolean arrivedRaised;
+        /** Where a Burn lane following the guns without a formation was last sent; {@code null} once it forms. */
+        int[] goingTo;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -170,7 +172,7 @@ public final class HeartLanes {
             }
             // A lane that stands is where its next wave goes: the wave joins it and goes on with it, rather than
             // marching past it into the swarm on its own.
-            int[] standing = screen == null ? standing(sim) : null;
+            int[] standing = screen == null || combinedArms() ? standing(sim) : null;
             if (standing != null) return standing;
             // A lane assaulting its bore takes its waves on its support line, behind its machines.
             if (assault != null) return new int[]{assault.supportX, assault.supportY};
@@ -184,12 +186,12 @@ public final class HeartLanes {
         @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
             int[] gap = gapToClose();
             if (gap != null && near(gap, x, y)) return true;
-            if (screen == null) {
+            if (screen == null || combinedArms()) {
                 int[] standing = standing(sim);
                 if (standing != null) return Math.max(Math.abs(standing[0] - x), Math.abs(standing[1] - y)) <= ARRIVE_CELLS;
                 int[] withArmour = assault == null ? withArmour(sim) : null;
                 if (withArmour != null) return Math.max(Math.abs(withArmour[0] - x), Math.abs(withArmour[1] - y)) <= ARRIVE_CELLS;
-                return livingBoreAt(sim, x, y);
+                if (screen == null) return livingBoreAt(sim, x, y);
             }
             // Following the guns, a column marches to where its lane is aimed now: the hold moves up as each
             // line lifts, and the bore it was sent for may have fallen.
@@ -454,8 +456,11 @@ public final class HeartLanes {
             shed.advance(sim);
             if (tick % RETARGET_TICKS == 0) {
                 for (Lane lane : lanes) callArmour(sim, lane, beats);
-                gunship.call(sim, shed, this, beats);
-                reaim(sim, beats);
+                // The gunship and the re-aimed waves are Broad Front's commander's; The Burn's fire support is its guns.
+                if (screen == null) {
+                    gunship.call(sim, shed, this, beats);
+                    reaim(sim, beats);
+                }
             }
         }
         if (tick % RETARGET_TICKS == 0) {
@@ -491,6 +496,17 @@ public final class HeartLanes {
             KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
             if (next == null) continue;
             int[] aim = aim(sim, lane.ground, next);
+            if (combinedArms() && screen != null) {
+                // A Burn lane following the guns without a formation (no armour to form with): it keeps the bore it
+                // was sent for as its target and walks up behind the guns, ordered again only as the hold moves.
+                if (lane.goingTo != null && lane.goingTo[0] == aim[0] && lane.goingTo[1] == aim[1]) continue;
+                lane.goingTo = aim;
+                for (int squad : lane.squads) {
+                    sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, aim[0], aim[1]),
+                            CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " follows the guns to " + next.key());
+                }
+                continue;
+            }
             if (aim[0] == lane.targetX && aim[1] == lane.targetY) continue;
             lane.targetX = aim[0];
             lane.targetY = aim[1];
@@ -1049,6 +1065,7 @@ public final class HeartLanes {
         if (side == Faction.MARINE) return sim.identity().type(attacker).isTurret() ? "company emplacements" : "marines";
         if (side != Faction.ALLY) return null;
         for (Lane lane : lanes) if (lane.mechs.contains(attacker)) return "mech lances";
+        if (sim.supportFire().enrolled(attacker)) return "base locusts";
         Squad squad = sim.squadOf(attacker);
         for (Lane lane : lanes) {
             if (squad == null) break;
@@ -1098,7 +1115,7 @@ public final class HeartLanes {
      * on the bore, the lane attacks it as before.
      */
     private boolean formation(BattleSimulation sim, Lane lane, int tick) {
-        if (!LANE_FORMATION || screen != null) return false;
+        if (!LANE_FORMATION || screen != null && !combinedArms()) return false;
         // Holding for its armour, the lane keeps the ground between its once-a-second looks.
         if (lane.advance == null && lane.armourWaitTick >= 0 && tick % RETARGET_TICKS != 0) return true;
         if (tick % RETARGET_TICKS == 0 && (lane.advance == null || !lane.advance.active())
@@ -1106,7 +1123,8 @@ public final class HeartLanes {
             KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
             if (next == null) lane.nextLeg = false;
             if (next != null) {
-                int[] aim = aim(sim, lane.ground, next);
+                // The bore itself: on The Burn the formation's limit, not its aim, keeps it behind the guns.
+                int[] aim = {next.x(), next.y()};
                 if (lane.nextLeg || aim[0] != lane.targetX || aim[1] != lane.targetY) {
                     if (holdsForArmour(sim, lane, tick)) return true;
                     lane.targetX = aim[0];
@@ -1192,8 +1210,16 @@ public final class HeartLanes {
         ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
         List<Long> section = new ArrayList<>();
         for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) section.add(hull);
+        lane.goingTo = null;
+        // Following a barrage, the formation's screen comes up no further than the guns' hold.
+        BarrageScreen guns = screen;
+        int[] start = from, end = rally;
+        ScreenedAdvance.Limit limit = guns == null ? ScreenedAdvance.Limit.NONE
+                : s -> guns.routeLimit(s.getSimTickIndex(), start[0], start[1], end[0], end[1],
+                        ScreenedAdvance.DEFAULT_SCREEN_AHEAD);
         return ScreenedAdvance.builder("lane-" + lane.number, ISSUER, allied,
                         AdvanceRoute.straight(from[0], from[1], rally[0], rally[1]))
+                .limitedBy(limit)
                 .screen(lane.armourLeads ? armour : infantry)
                 .main(lane.armourLeads ? infantry : armour)
                 .support(new ScreenedAdvance.Element().hulls(section).squads(mortars), SECTION_BEHIND)
@@ -1278,8 +1304,17 @@ public final class HeartLanes {
     static final float ARMOUR_WAIT_SECONDS = 60f;
 
     private boolean combinedArms() {
-        return COMBINED_ARMS && LANE_FORMATION && screen == null;
+        return LANE_FORMATION && (screen == null ? COMBINED_ARMS : BURN_COMBINED_ARMS);
     }
+
+    /**
+     * Whether The Burn's battlegroups advance as combined-arms teams by the same rule as Broad Front's lanes
+     * ({@link #COMBINED_ARMS}), each formation held behind the guns by the barrage's hold ({@link BarrageScreen#routeLimit})
+     * rather than re-aimed at each lift. Removal condition: the owner has seen The Burn with it and the pool's evidence
+     * has been read against the control; {@code false} is the control, the Burn's armour leashed ahead of militia that
+     * march to the hold ({@link #screenedAlong}).
+     */
+    static final boolean BURN_COMBINED_ARMS = Boolean.parseBoolean(System.getProperty("battle.heart.burnCombinedArms", "true"));
 
     /** A Broad Front lane whose first wave has not yet joined it: its armour waits at the foot to step off with it. */
     private boolean waitsAtFoot(Lane lane) {
