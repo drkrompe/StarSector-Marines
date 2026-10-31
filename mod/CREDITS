@@ -87,9 +87,6 @@ Small Arms
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
            https://creativecommons.org/licenses/by-sa/3.0/
 
-Rook rifle shot (marines_rook_rifle_fire): generated with ElevenLabs Sound
-Effects; see "Generated audio" below.
-
 Voice Lines
 -----------
 "Hurt & Death Sound Effect for Character" by Badre-Eddine
@@ -108,54 +105,20 @@ Explosions
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
            https://creativecommons.org/licenses/by-sa/3.0/
 
-Wayline narration
------------------
-Zoey Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
-(voice YHcCpa6SBWnKDaCPZJQR), model eleven_v4, October 2026.
-Dialogue written for Starsector Marines. Source takes and production metadata
-are retained in asset-pipeline/src/tool/resources/audio/wayline/.
-
-Additional infantry radio voices
---------------------------------
-Jackal (voice YHOEWmZLDoCD6QyvyJKr), Ox (voice YUvgK8Ap5BSxIwdo4Uvr),
-and Rivet (voice fGdXUaoUKa9laV1tzoOT): original ElevenLabs Voice Design
-characters, with dialogue generated using eleven_v4, October 2026.
-Dialogue written for Starsector Marines. Clean source takes, casting selections,
-and production receipts are retained in
-asset-pipeline/src/tool/resources/audio/operation-radio/.
-The shared radio effect is applied separately during the audio build.
-
 Wayline portrait
 ----------------
 Zoey Venn portrait generated with built-in imagegen, October 2026.
 The original master, exact prompt and whole-frame downsample script are retained
 in art-source/portraits/. Runtime portrait is a 256x256 PNG.
 
-Mech footfalls
---------------
-Heavy ground impacts and separate pneumatic strokes generated with ElevenLabs
-Sound Effects v2 (eleven_text_to_sound_v2), October 2026. Edited as individual
-one-shots for Starsector Marines; layered at runtime by per-foot gait events.
-Prompts, original takes, generation receipts and offline mix recipe are retained
-in asset-pipeline/src/tool/resources/audio/mech-footsteps/ and tools/.
-
 Generated audio (ElevenLabs)
 ----------------------------
-Every voice in the mod was generated with ElevenLabs on a paid Creator plan,
-2026, for Starsector Marines, as were the generated sound effects and the
-Jangala arrival score. Voices are original Voice Design characters or
-ElevenLabs library voices; no game or real person's recording was uploaded or
-cloned. All dialogue was written for this mod. Beyond the entries named above,
-this covers:
-  - Company officer responses (Company Officer B - British Matriarch)
-  - Colony Breach speech and sound effects
-  - Jangala arrival: hails, Castle's lines, background effects and the score
-  - The battle music's quiet beds: Briefing drive, Sequencer pulse, Frontier
-    twang and Night ops (generated music; prompts describe the style only)
-  - Morgan and the Shepherd story voices
-  - The Rook rifle shot
-Prompts, voice ids, source takes and generation receipts are retained beside
-each clip under asset-pipeline/src/tool/resources/audio/ and art-source/.
+Every voice, generated sound effect and piece of generated music in the mod
+not credited above was made with ElevenLabs (paid Creator plan, 2026) for
+Starsector Marines. Voices are original Voice Design characters or ElevenLabs
+library voices; no game or real person's recording was uploaded or cloned. All
+dialogue was written for this mod. Prompts and generation receipts are kept in
+the mod's source repository.
 
 Original synthesized audio
 --------------------------
