@@ -704,7 +704,9 @@ same size it lifts with. A socket, the selected-mount card and the spot it names
 the boat are one selection.
 
 **Fitting is drag-only, and parts are kept as the Mech Lab keeps them.** The stores
-list every part the boat can take, narrowed by a filter strip of her socket kinds
+list every part the boat can take that she wears, the company has learned or holds a
+spare of (an unlearned part with none in stores is absent, as in the Mech Lab; the
+company store sells its pattern), narrowed by a filter strip of her socket kinds
 (selecting a socket sets it); a card carries its tier, spare count, effect and
 footprint. A card with no spare is greyed with its price and a BUY that buys one
 into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
