@@ -19,7 +19,6 @@ import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
-import com.fs.starfarer.api.campaign.SpecialItemData;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -160,21 +159,19 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
             boolean victory = outcome.victory;
             int payment = outcome.payoutEarned;
             if (fixture.equals("ordinary-15303")) addDebrief(context, frames, outcome);
-            var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
-            assertEquals(payment,AgreusArcCampaign.settleYard(campaign,outcome,cargo,Set.of()));
-            assertEquals(-1,AgreusArcCampaign.settleYard(campaign,outcome,cargo,Set.of()));
-            assertEquals(victory ? 1 : 0,cards.size());
+            assertEquals(payment,AgreusArcCampaign.settleYard(campaign,outcome));
+            assertEquals(-1,AgreusArcCampaign.settleYard(campaign,outcome));
             report.append(" ledger accepted once / payment=").append(payment).append("\n");
-            if (fixture.equals("ordinary-15303")) {
-                assertEquals(AgreusArcProgress.ARBALEST_CARD,cards.get(0).getData());
-                LoadoutCardLearning.learn(roster.armory(),cards.get(0).getData());
+            if (fixture.equals("ordinary-15303") && victory) {
+                // The store sells the section; the follow-on fixture holds it as if bought.
+                LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.ARBALEST_CARD);
                 roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome),10f,12f,outcome.soldierTelemetry,outcome.victory);
                 var bytes = new ByteArrayOutputStream();
                 try (var out = new ObjectOutputStream(bytes)) { out.writeObject(roster); }
                 try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) { earnedRoster=(MarineRoster)in.readObject(); }
                 assertTrue(earnedRoster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
                 for (String person : scheduled) assertNotNull(earnedRoster.soldierById(person));
-                report.append("Actual victory card learned; personnel settled and roster serialized for mixed follow-on.\n");
+                report.append("Section learned; personnel settled and roster serialized for mixed follow-on.\n");
             }
         }
     }

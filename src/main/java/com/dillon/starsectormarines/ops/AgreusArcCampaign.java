@@ -13,10 +13,6 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
-import com.fs.starfarer.api.campaign.CargoAPI;
-import com.dillon.starsectormarines.marine.LoadoutCardInventory;
-import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
-import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import java.util.List;
@@ -187,18 +183,15 @@ public final class AgreusArcCampaign {
         }
         if (AgreusArcProgress.yardOwners(o.missionId)) {
             if (o.yardOwners == null || MarineRosterScript.getInstance() == null) return -1;
-            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
-            return settleYard(p,o,Global.getSector().getPlayerFleet().getCargo(),unavailable);
+            return settleYard(p, o);
         }
         if (AgreusArcProgress.termsOfProtection(o.missionId)) {
             if (o.termsOfProtection == null || MarineRosterScript.getInstance() == null) return -1;
-            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
-            return settleTerms(p, o, Global.getSector().getPlayerFleet().getCargo(), unavailable);
+            return settleTerms(p, o);
         }
         if (AgreusArcProgress.limitedWarrant(o.missionId)) {
             if (o.limitedWarrant == null || MarineRosterScript.getInstance() == null) return -1;
-            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
-            return settleWarrant(p, o, Global.getSector().getPlayerFleet().getCargo(), unavailable);
+            return settleWarrant(p, o);
         }
         if (o.waterUnderSeal == null) return -1;
         var r = o.waterUnderSeal;
@@ -206,18 +199,15 @@ public final class AgreusArcCampaign {
                 r.southRoomReconnected(), r.turretConstructed(), r.attackResolved(), r.companySurvived(),
                 r.techniciansLost(), r.militiaLost(), r.cargoLost());
     }
-    static int settleWarrant(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
-        if (p == null || o == null || cargo == null || unavailable == null || o.limitedWarrant == null
+    /** Settles Limited Warrant; the fee is its whole reward, and its suit pattern is sold in the store. */
+    static int settleWarrant(AgreusArcProgress p, MissionOutcome o) {
+        if (p == null || o == null || o.limitedWarrant == null
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.limitedWarrant(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
-        // Validate catalog and cargo before consuming the attempt; ownership is never learned here.
-        var card = LoadoutCardItemPlugin.itemData(AgreusArcProgress.SPECTER_CARD);
         var r = o.limitedWarrant;
-        int payment = p.settleWarrant(o.missionId, "agreus", o.victory, o.payoutEarned,
+        return p.settleWarrant(o.missionId, "agreus", o.victory, o.payoutEarned,
                 r.recordsRecovered(), r.kitRecovered(), r.kitReturned(), r.companyReturned(),
                 r.cargoLost(), r.techniciansLost(), r.constablesLost());
-        if (payment > 0 && !unavailable.contains(AgreusArcProgress.SPECTER_CARD)) cargo.addSpecial(card, 1);
-        return payment;
     }
     /**
      * Chapter 5's once-only settlement. The ordinary resolver credits the 44,000 fee from the
@@ -234,16 +224,14 @@ public final class AgreusArcCampaign {
         if (total > o.payoutEarned) premium.accept(total - o.payoutEarned);
         return total;
     }
-    static int settleYard(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
-        if (p == null || o == null || cargo == null || unavailable == null || o.yardOwners == null
+    /** Settles The Yard's Owners; the fee is its whole reward, and its suit pattern is sold in the store. */
+    static int settleYard(AgreusArcProgress p, MissionOutcome o) {
+        if (p == null || o == null || o.yardOwners == null
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.yardOwners(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
-        var card = LoadoutCardItemPlugin.itemData(AgreusArcProgress.ARBALEST_CARD);
         var result = o.yardOwners;
-        int payment = p.settleYard(o.missionId,"agreus",o.victory,o.payoutEarned,result.dispatchHeld(),result.toolingHeld(),
+        return p.settleYard(o.missionId,"agreus",o.victory,o.payoutEarned,result.dispatchHeld(),result.toolingHeld(),
                 result.entranceHeld(),result.inspected(),result.companyPresent(),result.toolingLost(),result.techniciansLost(),result.constablesLost());
-        if (payment > 0 && !unavailable.contains(AgreusArcProgress.ARBALEST_CARD)) cargo.addSpecial(card,1);
-        return payment;
     }
 
     // ---- Chapter 4: Terms of Protection ----
@@ -298,38 +286,14 @@ public final class AgreusArcCampaign {
         return route == TermsOfProtectionProgress.Route.HOUSE_CUSTODY ? AgreusYardAgreement.HOUSE_CUSTODY : AgreusYardAgreement.YARD_COMPACT;
     }
 
-    static int settleTerms(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
-        if (p == null || o == null || cargo == null || unavailable == null || o.termsOfProtection == null
+    /** Settles Terms of Protection; the fee is its whole reward, and the Boarding Jack section is sold in the store. */
+    static int settleTerms(AgreusArcProgress p, MissionOutcome o) {
+        if (p == null || o == null || o.termsOfProtection == null
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.termsOfProtection(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
         var r = o.termsOfProtection;
-        int payment = p.settleTerms(o.missionId, "agreus", o.victory, o.payoutEarned, agreement(r.route()),
+        return p.settleTerms(o.missionId, "agreus", o.victory, o.payoutEarned, agreement(r.route()),
                 r.delivered(), r.signed(), r.commissioned(), r.assaultsResolved(), r.ratified(), r.companyPresent(), r.carrierLost(),
                 r.representativesLost(), r.techniciansLost(), r.fittersLost() + r.guardsLost() + r.constablesLost());
-        if (payment > 0) deliverBoardingJack(p, cargo, unavailable);
-        return payment;
-    }
-
-    /**
-     * Places the recorded Boarding Jack card once its presentation is declared. While the pattern
-     * is still pending, nothing is placed and the entitlement waits; an already learned or carried
-     * card satisfies it without a duplicate. Returns whether a card went into cargo.
-     */
-    static boolean deliverBoardingJack(AgreusArcProgress p, CargoAPI cargo, Set<String> unavailable) {
-        if (p == null || cargo == null || unavailable == null) return false;
-        var card = LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD);
-        boolean ready = card != null && card.presentationDeclared();
-        if (!p.claimBoardingJackDelivery(ready)) return false;
-        if (unavailable.contains(AgreusArcProgress.BOARDING_JACK_CARD)) return false;
-        cargo.addSpecial(LoadoutCardItemPlugin.itemData(AgreusArcProgress.BOARDING_JACK_CARD), 1);
-        return true;
-    }
-
-    /** Game-load hook: a deferred Boarding Jack entitlement is delivered on the first load after its art ships. */
-    public static boolean deliverPendingBoardingJack() {
-        var p = current();
-        if (p == null || !p.boardingJackDeferred() || Global.getSector().getPlayerFleet() == null) return false;
-        var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
-        return deliverBoardingJack(p, Global.getSector().getPlayerFleet().getCargo(), unavailable);
     }
 }

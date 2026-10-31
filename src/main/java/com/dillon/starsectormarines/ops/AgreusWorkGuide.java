@@ -49,8 +49,7 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
             case RATIFIED -> (progress.smallWarSettled()
                     ? Strings.format("agreusGuidePaySettled", AgreusDistrictEscortProgress.PAYMENT, agreementName(progress.signedAgreement()),
                     progress.smallWarPremiumPaid() > 0 ? Strings.get("agreusGuidePremiumPaid") : "")
-                    : Strings.format("agreusGuidePayRatified", agreementName(progress.signedAgreement()), premiumSuffix()))
-                    + (progress.boardingJackDeferred() ? Strings.get("agreusGuideJackDeferred") : "");
+                    : Strings.format("agreusGuidePayRatified", agreementName(progress.signedAgreement()), premiumSuffix()));
             default -> Strings.get("agreusGuidePayDefault");
         };
     }
