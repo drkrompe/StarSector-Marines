@@ -1979,8 +1979,8 @@ Barracks suspends its general management advice while campaign guidance is
 present, preserving the required founding induction's precedence.
 
 First Refit still requires its ordinary technology claim and actual equipment
-issue. The gantry lesson uses the existing once-only SRM and fit/remove/refit
-receipts, and **Skip** closes it for good while the spare stays in stores. Missing
+issue. The gantry lesson uses the existing once-only SRM and ends the moment it is
+fitted to a shoulder; **Skip** closes it for good while the spare stays in stores. Missing
 the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation
