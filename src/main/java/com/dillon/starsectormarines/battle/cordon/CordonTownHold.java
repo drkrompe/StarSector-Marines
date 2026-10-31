@@ -16,18 +16,18 @@ import java.util.function.IntPredicate;
  * <p>The ground is the box round the warren's buildings and the compound, {@link #MARGIN} cells wider, with a ragged
  * edge: a cell is held once it lies deeper inside the box than a seeded threshold of up to {@link #EDGE_BAND} cells,
  * so the creep reaches in in fingers and tongues rather than stopping at a ruled line. Ground within
- * {@link #BORE_KEEP} cells of a standing bore is never held: a bore keeps the creep round its mouth.
+ * a seeded 0.6 to 1.4 times {@link #BORE_KEEP} cells of a standing bore is never held: a bore keeps the creep round its mouth.
  */
 final class CordonTownHold {
 
     /** Cells past the warren's outermost buildings the held ground reaches. UNTUNED. */
     static final int MARGIN = 6;
     /** Deepest the ragged edge lets the creep in from the box's side, in cells. UNTUNED. */
-    static final int EDGE_BAND = 16;
+    static final int EDGE_BAND = 22;
     /** Cells round a standing bore's mouth never held. UNTUNED. */
     static final int BORE_KEEP = 12;
     /** Cells between the edge noise's lattice points: the width of a finger of creep. */
-    static final int GRAIN = 7;
+    static final int GRAIN = 9;
     private static final long SALT = 0x544F574E484F4C44L;
 
     private CordonTownHold() {}
@@ -67,9 +67,11 @@ final class CordonTownHold {
         int depth = Math.min(Math.min(x - box[0], box[2] - x), Math.min(y - box[1], box[3] - y));
         if (depth < 0) return false;
         if (depth < EDGE_BAND && depth < EDGE_BAND * edge(x, y, seed)) return false;
+        // A bore's keep is ragged too: from a little over half its radius to half again, by the same noise.
+        double keep = BORE_KEEP * (0.6 + 0.8 * edge(x, y, seed ^ 0x4B454550L));
         for (int[] bore : bores) {
             long dx = bore[0] - x, dy = bore[1] - y;
-            if (dx * dx + dy * dy <= (long) BORE_KEEP * BORE_KEEP) return false;
+            if (dx * dx + dy * dy <= keep * keep) return false;
         }
         return true;
     }
@@ -83,7 +85,9 @@ final class CordonTownHold {
         double a = hash01(gx, gy, seed), b = hash01(gx + 1, gy, seed);
         double c = hash01(gx, gy + 1, seed), d = hash01(gx + 1, gy + 1, seed);
         double smooth = (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
-        return 0.8 * smooth + 0.2 * hash01(x * 31 + 7, y * 17 + 3, seed ^ 0x5EEDL);
+        // Stretched about the middle so the edge runs from right at the box's side to deep in, not hovering half way.
+        double stretched = Math.max(0, Math.min(1, (smooth - 0.5) * 2.2 + 0.5));
+        return 0.85 * stretched + 0.15 * hash01(x * 31 + 7, y * 17 + 3, seed ^ 0x5EEDL);
     }
 
     private static double hash01(int x, int y, long seed) {

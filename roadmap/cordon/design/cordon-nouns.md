@@ -929,8 +929,8 @@ die. On a town world the Road's town is **held ground** (CordonTownHold;
 owner, 2026-10-31: the streets show early and the town is visibly
 swallowed): the box round the warren's buildings and the compound, six cells
 wider, kept clear of the matured creep, its edge ragged (a cell is held once
-it lies deeper in than a seeded depth of up to sixteen cells, so the creep
-reaches in in fingers) and the ground within twelve cells of a standing
+it lies deeper in than a seeded depth of up to twenty-two cells, so the creep
+reaches in in fingers) and the ground within a seeded seven to seventeen cells of a standing
 bore's mouth never held. A bore matured round held ground hands each held
 cell it meets to its **regrowth**, a second search from its mouth that walks
 on over held ground at a quarter of the bore's pace, half again while the
