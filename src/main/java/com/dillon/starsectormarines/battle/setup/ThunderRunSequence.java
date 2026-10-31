@@ -38,7 +38,7 @@ public final class ThunderRunSequence {
     private final List<Integer> delivered = new ArrayList<>(), lost = new ArrayList<>();
     private final List<EntitySpec> reserve;
     private int phase;
-    private boolean freightReleased, escortExitOrdered, advanceReleased;
+    private boolean freightReleased, armorExitOrdered, advanceReleased;
     private final ThunderRunPacing pacing = new ThunderRunPacing();
     private final ThunderRunColumnDriver driver = new ThunderRunColumnDriver();
     private final List<Integer> releasedCargo = new ArrayList<>();
@@ -53,7 +53,6 @@ public final class ThunderRunSequence {
     private int finalRunTick;
     private final long heavyLead;
     private final long technical;
-    private boolean heavyExitOrdered;
     private FreightRunProgress.Outcome outcome;
     private ThunderRunPressure pressure;
     /** The checkpoint's reinforcement at the final run: a technical down the outbound road to the gun line. */
@@ -64,10 +63,14 @@ public final class ThunderRunSequence {
     /** The reinforcement's two rifle sections stand beside the exit guns. */
     static final int[][] CHECKPOINT_POSTS = {{302, 62}, {302, 88}};
     static final int CHECKPOINT_SECTION = 4;
-    /** On the final run the APCs and the tank push up to the exit gun line to fight it, rather than waiting short of it. */
-    static final float ESCORT_ASSAULT_X = 292, HEAVY_ASSAULT_X = 298;
-    /** The tank pulls away once the lead hauler is this many cells behind it, so the column never queues on it. */
-    static final float HEAVY_PULL_AWAY_GAP = 30;
+    /**
+     * On the final run the armor pushes up to the exit gun line to fight it, on the road's flanks so the haulers' centre
+     * lane stays open: the north escort at the north shoulder, the tank on the south one with the south escort behind it.
+     */
+    static final float NORTH_ESCORT_ASSAULT_X = 292, SOUTH_ESCORT_ASSAULT_X = 288, HEAVY_ASSAULT_X = 298,
+            HEAVY_ASSAULT_LANE = 79.6f;
+    /** A hauler past this x is through the gate, beyond the exit guns and the abutments. */
+    static final float THROUGH_X = 312;
 
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
                               List<EntitySpec> reserve, StoryBeatLog log) {
@@ -192,27 +195,18 @@ public final class ThunderRunSequence {
                 advanceReleased = true;
                 order(sim, advanceHauler);
             }
-            if (!heavyExitOrdered && freightReleased) {
-                // The tank leads the run out rather than waiting for a hauler on its bumper: wherever it stands
-                // when the first hauler closes, it pulls away ahead of the column instead of stopping it.
-                float tankX = stranded(sim, heavyLead) ? Float.MAX_VALUE : sim.convoy().body(heavyLead).x;
-                List<Long> haulers = new ArrayList<>(cargo.values());
-                haulers.add(advanceHauler);
-                boolean leadApproaching = haulers.stream().anyMatch(id -> !stranded(sim, id)
-                        && sim.convoy().body(id).x >= Math.min(280, tankX - HEAVY_PULL_AWAY_GAP));
-                if (leadApproaching) {
-                    // The escorts go out with it, outrunning the haulers on the flanks, so no armor is left
-                    // standing in the gun line for the column to queue behind.
-                    heavyExitOrdered = true;
-                    escortExitOrdered = true;
-                    order(sim, heavyLead);
-                    for (long id : escorts) order(sim, id);
-                    beat(sim, "heavy_lead_advancing");
-                }
-            }
+            if (freightReleased && cargo.values().stream().anyMatch(id -> !stranded(sim, id)
+                    && sim.convoy().body(id).x >= 280)) beat(sim, "heavy_lead_advancing");
             boolean rearPassed = releasedCargo.size() == cargo.size();
             for (long id : cargo.values()) if (!stranded(sim, id) && sim.convoy().body(id).x < 282) rearPassed = false;
             if (rearPassed) beat(sim, "rear_clear");
+            // The armor holds the gun line on the road's flanks, fighting it, until every surviving hauler is through
+            // the gate; only then does it leave. The haulers drive past it down the open centre of the road.
+            if (freightReleased && !armorExitOrdered && haulersThrough(sim)) {
+                armorExitOrdered = true;
+                order(sim, heavyLead);
+                for (long id : escorts) order(sim, id);
+            }
         }
         // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road, and a
         // hull still on its last leg is simply sent on to the next goal rather than waited for.
@@ -237,6 +231,13 @@ public final class ThunderRunSequence {
                 order(sim, heavyLead);
             }
         }
+    }
+    /** True once no hauler still on the road (the freight and the earlier load) is short of the gate. */
+    private boolean haulersThrough(BattleSimulation sim) {
+        List<Long> haulers = new ArrayList<>(cargo.values());
+        haulers.add(advanceHauler);
+        for (long id : haulers) if (!stranded(sim, id) && sim.convoy().body(id).x < THROUGH_X) return false;
+        return true;
     }
     /** The x of the leading hauler still on the road, or -1 for none. */
     private float leadCargoX(BattleSimulation sim) {
@@ -300,9 +301,15 @@ public final class ThunderRunSequence {
             driver.order(sim, id, stop.x(), stop.y(), VehicleLeg.MOVE_ORDER);
             return;
         }
-        if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = ESCORT_ASSAULT_X;
-        if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = HEAVY_ASSAULT_X;
-        boolean departing = id == heavyLead ? heavyExitOrdered : !escorts.contains(id) || escortExitOrdered;
+        boolean armor = id == heavyLead || escorts.contains(id);
+        if (phase == 3 && armor && !armorExitOrdered) {
+            float assault = id == heavyLead ? HEAVY_ASSAULT_X
+                    : escorts.indexOf(id) == 0 ? NORTH_ESCORT_ASSAULT_X : SOUTH_ESCORT_ASSAULT_X;
+            if (id == heavyLead) driver.order(sim, id, assault, HEAVY_ASSAULT_LANE, VehicleLeg.MOVE_ORDER);
+            else driver.order(sim, id, assault, VehicleLeg.MOVE_ORDER);
+            return;
+        }
+        boolean departing = !armor || armorExitOrdered;
         driver.order(sim, id, goal, phase == 3 && departing ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER);
     }
     private void releaseBatches(BattleSimulation sim) {

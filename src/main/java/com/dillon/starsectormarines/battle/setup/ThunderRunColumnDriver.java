@@ -74,6 +74,8 @@ final class ThunderRunColumnDriver {
     static final float BLOCKER_LOOKAHEAD = 36f;
     /** Side clearance a lane keeps from a wreck or parked hull, in cells. */
     static final float LANE_MARGIN = .25f;
+    /** A hull slower than this, in cells per second, is one a hauler drives round rather than follows. */
+    static final float SLOW_HULL = 1.2f;
     /** Slowest moving speed a driver asks for; below this it waits instead. */
     static final float CRAWL = .55f;
 
@@ -176,9 +178,10 @@ final class ThunderRunColumnDriver {
 
     private static float wantedLane(BattleSimulation sim, long id, Plan plan, GroundBody body, VehicleType type) {
         if (plan.role == Role.TECHNICAL) return plan.baseLane;
-        float lane = plan.baseLane + plan.threatShift;
-        lane = plan.role == Role.ESCORT ? clampBand(lane, type) : clamp(lane, INNER_TOP, INNER_BOTTOM);
-        float cleared = clearLane(sim, id, body, type, lane);
+        // A hull sent to a shoulder holds it as an escort does, leaving the centre to the haulers.
+        boolean flank = plan.role == Role.ESCORT || plan.baseLane < INNER_TOP || plan.baseLane > INNER_BOTTOM;
+        float lane = flank ? clampBand(plan.baseLane, type) : clamp(plan.baseLane + plan.threatShift, INNER_TOP, INNER_BOTTOM);
+        float cleared = clearLane(sim, id, body, type, lane, plan.role == Role.CARGO);
         plan.avoiding = Math.abs(cleared - lane) > 1e-3f;
         return cleared;
     }
@@ -210,15 +213,18 @@ final class ThunderRunColumnDriver {
     /**
      * The lane nearest {@code preferred} that clears every wreck and parked hull
      * from alongside to {@link #BLOCKER_LOOKAHEAD} cells ahead, searched across
-     * the whole band. Where nothing clears, the lane with the most room.
+     * the whole band. Where nothing clears, the lane with the most room. A
+     * hauler ({@code cargo}) also clears any slow hull that is not another
+     * hauler: armor fighting in the road is driven round, never queued behind.
      */
-    static float clearLane(BattleSimulation sim, long self, GroundBody body, VehicleType type, float preferred) {
+    static float clearLane(BattleSimulation sim, long self, GroundBody body, VehicleType type, float preferred,
+                           boolean cargo) {
         ConvoyService convoy = sim.convoy();
         float half = type.visualWidthCells * .5f;
         int count = 0;
         float[] ys = new float[convoy.vehicleCount()], reach = new float[ys.length];
         for (long other : convoy.entityIds()) {
-            if (other == self || !blocker(convoy, other)) continue;
+            if (other == self || !obstacle(convoy, other, cargo)) continue;
             GroundBody o = convoy.body(other);
             VehicleType ot = convoy.vehicleType(other);
             float ahead = o.x - body.x;
@@ -249,6 +255,16 @@ final class ThunderRunColumnDriver {
                 || mission.isVisible() && mission.authoredRouteX == null && Math.abs(convoy.body(id).speed) < .2f;
     }
 
+    /**
+     * Something {@code self} steers round rather than follows: a {@link #blocker}, or, for a hauler, any other hull
+     * below {@link #SLOW_HULL} that is not a hauler itself. Haulers keep their column order behind one another.
+     */
+    private static boolean obstacle(ConvoyService convoy, long other, boolean cargo) {
+        if (blocker(convoy, other)) return true;
+        return cargo && convoy.mission(other).isVisible() && convoy.vehicleType(other) != VehicleType.CARGO_CARRIER
+                && Math.abs(convoy.body(other).speed) < SLOW_HULL;
+    }
+
     /** Speed cap and hold from station keeping, people in the road, and incoming fire. */
     private void pace(BattleSimulation sim, long id, Plan plan, GroundBody body, VehicleType type,
                       VehicleMission mission, int tick) {
@@ -272,8 +288,8 @@ final class ThunderRunColumnDriver {
             float g = along - halfL - ot.visualLengthCells * .5f;
             if (g < gap) {
                 gap = g;
-                // Queue behind a column member that has paused; a blocker is driven around instead.
-                aheadStopped = !blocker(convoy, other) && Math.abs(o.speed) < .2f;
+                // Queue behind a column member that has paused; an obstacle is driven around instead.
+                aheadStopped = !obstacle(convoy, other, plan.role == Role.CARGO) && Math.abs(o.speed) < .2f;
             }
         }
         if (gap < Float.MAX_VALUE) {
