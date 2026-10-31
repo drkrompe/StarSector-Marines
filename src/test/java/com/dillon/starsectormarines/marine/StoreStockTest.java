@@ -29,7 +29,7 @@ class StoreStockTest {
     }
 
     private static EquipmentAcquisitionEligibility.Progress progress(Set<UnlockStation> reached) {
-        return new EquipmentAcquisitionEligibility.Progress(0, reached);
+        return new EquipmentAcquisitionEligibility.Progress(reached);
     }
 
     @Test

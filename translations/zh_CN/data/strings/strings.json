@@ -3811,7 +3811,7 @@
 		"equipmentTemplateAccessRestrictedRouteFmt": "{0} 军用配发。只通过 {0} 的许可和赞助人渠道提供，且只提供给持有 {0} 军事授权的连队。仅凭声誉和胜利永远无法解锁。",
 		"equipmentTemplateAccessRestrictedHeldFmt": "{0} 军用配发。你的连队持有 {0} 军事授权，因此 {0} 的许可和赞助人渠道可能会提供。",
 		"equipmentTemplateAccessCommonRoute": "普通模板可通过不受限的派系市场流通。",
-		"equipmentTemplateAccessGatedRouteFmt": "许可和赞助人渠道需要 MRB +{0}；高风险回收需要连队获得 {1} 次胜利。许可库存还需要与出售派系关系为友好。",
+		"equipmentTemplateAccessGatedRoute": "战役通过其卡片的装备阶梯任务后，公司商店即开始出售。",
 		# --- Debrief: speakers and titles ---
 		"debriefSpeakerCastle": "CASTLE / 连队行动",
 		"debriefSpeakerCastleShort": "CASTLE",

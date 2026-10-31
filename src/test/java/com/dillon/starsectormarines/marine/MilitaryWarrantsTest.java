@@ -40,8 +40,8 @@ class MilitaryWarrantsTest {
         UnlockStation station = KitLadder.station(XIV_SHEET);
         Set<UnlockStation> before = new HashSet<>();
         for (UnlockStation reached : UnlockStation.all()) if (reached.compareTo(station) < 0) before.add(reached);
-        EquipmentAcquisitionEligibility.Progress early = new EquipmentAcquisitionEligibility.Progress(0, before);
-        EquipmentAcquisitionEligibility.Progress late = new EquipmentAcquisitionEligibility.Progress(0);
+        EquipmentAcquisitionEligibility.Progress early = new EquipmentAcquisitionEligibility.Progress(before);
+        EquipmentAcquisitionEligibility.Progress late = EquipmentAcquisitionEligibility.Progress.complete();
         assertFalse(StoreStock.cards(Set.of(), early).allCardIds().contains(XIV_SHEET), "not before its station");
         assertTrue(StoreStock.cards(Set.of(), late).marketCardIds().contains(XIV_SHEET),
                 "no warrant, standing or faction asked: the station is the gate");

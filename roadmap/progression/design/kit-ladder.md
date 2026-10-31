@@ -317,9 +317,7 @@ artifact.
   sale at Relief, before any vehicle hull is sold; a mech can fit them now, so they are
   no longer stranded there (`carrier`).
 - The Boarding Jack is story-reserved.
-- `EquipmentCollectionCurve` skips cards at `none` but still grants placed cards
-  ahead of their station, and `FactionEquipmentCatalog.validateReachability` still
-  uses the old tier rules (`gap`).
+- `FactionEquipmentCatalog.validateReachability` still uses the old tier rules (`gap`).
 - A submod's cards have no row, so they read as never sold.
 - The page has no way to mark a card edit accepted or declined; the owner says so
   in chat and `apply_ladder.py --cards` takes the accepted ids.

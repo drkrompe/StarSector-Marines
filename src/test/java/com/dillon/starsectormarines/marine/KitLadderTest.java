@@ -64,19 +64,19 @@ class KitLadderTest {
     void noChannelHandsOutAPatternBeforeItsStationOrOneAtNone() {
         UnlockStation relief = UnlockStation.byId("relief");
         Set<UnlockStation> early = Set.of(UnlockStation.START, relief);
-        var progress = new EquipmentAcquisitionEligibility.Progress(0, early);
+        var progress = new EquipmentAcquisitionEligibility.Progress(early);
         List<String> drawn = StoreStock.patterns(Set.of(), progress);
         assertFalse(drawn.isEmpty());
         for (String id : drawn) assertEquals(relief, KitLadder.station(id), id);
         List<String> late = StoreStock.patterns(Set.of(),
-                new EquipmentAcquisitionEligibility.Progress(0, UnlockStation.all()));
+                EquipmentAcquisitionEligibility.Progress.complete());
         for (String id : late) assertNotEquals(UnlockStation.NONE, KitLadder.station(id), id);
         String neverSold = KitLadder.stations().entrySet().stream()
                 .filter(row -> row.getValue().equals(UnlockStation.NONE) && MechPattern.parse(row.getKey()) != null)
                 .map(Map.Entry::getKey).findFirst().orElseThrow();
         for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
             assertFalse(MechPatternPicker.pick("independent", source, 500, 3L, Set.of(),
-                    new EquipmentAcquisitionEligibility.Progress(99)).contains(neverSold),
+                    EquipmentAcquisitionEligibility.Progress.complete()).contains(neverSold),
                     source + " never hands out what the ladder never sells");
         }
         assertEquals(UnlockStation.NONE, KitLadder.station("loadout-card:weapon:weapons:retired"),

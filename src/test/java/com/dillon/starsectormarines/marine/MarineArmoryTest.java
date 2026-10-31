@@ -149,7 +149,6 @@ class MarineArmoryTest {
             assertTrue(baseline.contains(EquipmentTemplateCatalog.armorId(soldier.armorId())));
         }
         MarineArmory loaded = roundTrip(roster).armory();
-        loaded.repairCollectionProgression(Set.of());
         loaded.recordVictory(false);
         assertEquals(baseline, loaded.ownedEquipmentTemplateIds());
         loaded.unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE);

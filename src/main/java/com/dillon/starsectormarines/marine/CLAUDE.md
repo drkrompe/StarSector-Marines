@@ -72,8 +72,8 @@ and the fields that held it survive only so old saves load, and the roster's
 company's collection, and a squad may be given only cards in it
 (`knowsWeaponCard`, `knowsArmorPlan`). Learning a card records the equipment it
 names beneath it, but owning equipment opens nothing on its own: owning every suit of
-a sheet does not teach the sheet. Victory milestones (`VictoryMilestones`, paid once)
-and the safety net (`EquipmentCollectionCurve`) grant cards, never equipment.
+a sheet does not teach the sheet. Winning grants nothing: a card unlocks only at its
+Kit Ladder station (or Relief's free pick).
 **The player never authors a card, and nothing should add a designer back.**
 `MarineArmory.customWeaponDoctrines` holds only developer-registered weapon cards
 under fixed ids (`ensureWeaponDoctrine`: the Wayline paths, migration, debug) and

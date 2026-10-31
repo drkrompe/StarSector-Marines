@@ -5645,7 +5645,7 @@
 		"arcIssueListedBlindWatch": "Stocked at Hegemony markets after Blind Watch.",
 		"arcIssueListedWorkingPassage": "Stocked at Asharu after the Morrow's Working Passage.",
 		"equipmentTemplateAccessCommonRoute": "Common templates may circulate through unrestricted faction markets.",
-		"equipmentTemplateAccessGatedRouteFmt": "Store, patron and recovery offers wait on the campaign reaching its Kit Ladder station; high-risk recovery also requires {0} company victories.",
+		"equipmentTemplateAccessGatedRoute": "The company store sells it once the campaign passes its card's Kit Ladder mission.",
 		"nexInvadeForkText": "How will this invasion be fought? Marine Operations lands the company and fights it out now, on the ground, and the result stands when the battle ends: no time for fleets to intervene. Nexerelin fights its own ground battle over several days.",
 		"nexInvadeForkMarine": "Fight it with Marine Operations",
 		"nexInvadeForkNexerelin": "Leave it to Nexerelin's ground battle",

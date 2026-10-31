@@ -99,9 +99,7 @@ public final class FactionEquipmentCatalog {
      */
     public void validateReachability(Collection<String> starterTemplateIds) {
         Set<String> reachable = new HashSet<>(starterTemplateIds);
-        EquipmentAcquisitionEligibility.Progress maximumProgress =
-                new EquipmentAcquisitionEligibility.Progress(
-                        EquipmentAcquisitionEligibility.PRESTIGE_RECOVERY_VICTORIES);
+        EquipmentAcquisitionEligibility.Progress maximumProgress = EquipmentAcquisitionEligibility.Progress.complete();
         for (MutablePool pool : pools.values()) {
             for (MutableOffer offer : pool.offers.values()) {
                 if (EquipmentTemplateCatalog.installed().storySource(offer.template.id()) != null)

@@ -53,7 +53,6 @@ import com.dillon.starsectormarines.campaign.systems.PolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.RaidEnder;
 import com.dillon.starsectormarines.campaign.systems.VanillaPolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
-import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CasualtyFate;
@@ -779,11 +778,7 @@ public final class MissionResolver {
         roster.applySoldierOutcome(
                 resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()), day, wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
-        if (outcome.victory) {
-            Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
-            roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH,
-                    carriedCards != null ? carriedCards : Set.of());
-        }
+        if (outcome.victory) roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH);
         return roster;
     }
 

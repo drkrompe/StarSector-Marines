@@ -10,7 +10,7 @@ Updated: 2026-10-24 — warrant obligations ask loyalty only; service and servic
 
 Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
-Updated: 2026-10-31 — the Kit Ladder is the only equipment gate: boat parts join it, every machine must be placed, and MRB, standing, warrants and faction pools gate nothing.
+Updated: 2026-10-31 — the Kit Ladder is the only equipment gate: boat parts join it, every machine must be placed, and MRB, standing, warrants and faction pools gate nothing. An item is never sold, held from the start, or unlocked after one named mission (owner); recovery asks no victories, a story listing waits on its card's station, and the collection safety net is retired.
 
 Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fired without lowering the primary; no suit carries it as an integral system.
 
@@ -203,8 +203,7 @@ legibility.
   reward path, and never grants technology by itself.
 - **Equipment access tier** — a card's authored Common, Advanced, Prestige or
   Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity. It sets a
-  store price and, for high-risk recovery only, the victories asked; it gates nothing
-  else. Restricted labels approved military issue and is priced dearest; a Restricted
+  store price; it gates nothing. Restricted labels approved military issue and is priced dearest; a Restricted
   card is otherwise acquired like any other.
 - **Military warrant** — a named, persistent authorisation from one tradition
   over the Restricted **loadout cards** it lists. It no longer gates acquiring
@@ -237,8 +236,8 @@ legibility.
   `kit-ladder.md`.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
-  carries it. Authored stock the company store shows at that market, not a fifth
-  channel.
+  carries it. Authored stock the company store shows first at that market, once
+  the campaign has passed its card's station; not an acquisition channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -576,16 +575,14 @@ after the opening is Relief's pick of one Wayline path with its sheet; everythin
 else the Kit Ladder places is bought in the store after its station (the victory
 milestones that once paid three cards were retired for it; a save keeps what they
 taught). Story copy may call a story reward access to military
-equipment; what the company receives is the card. A deterministic **safety
-net** keeps the collection at or above a floor of cards beyond the starter pair: one
-after two victories, three after five, six after fifteen, eight after thirty and
-nine after forty, topping up from an authored list of low-tier cards that leaves the
-Wayline refit sheets a choice and never includes a Restricted card. A new company
-holds only the starter pair (Dockside Issue and Watchman's Kit). Cards already
-learned or still carried in cargo count toward the floor, so faction-shaped
-acquisition advances the same curve instead of being duplicated by it; the net never
-revokes a card, never learns a carried card implicitly, and stops well short of the
-whole collection. A save from before the card ledger knows exactly the cards it
+equipment; what the company receives is the card. **Every item is in exactly one of
+three states** (owner, 2026-10-31): never sold (on *none*, or not placed), held from
+the start, or unlocked after one named mission, its Kit Ladder station. Nothing else
+unlocks anything: not victories, tier, reputation, standing, a warrant or a story
+listing. Relief's free pick is the one special case, the choice of one of its four
+cards at no price. The collection safety net that once topped a winning company up to
+a floor of cards by victories is retired. A new company holds only what the ladder
+places on *start*. A save from before the card ledger knows exactly the cards it
 could already field, once.
 
 Faction source pools author which cards may enter through patron and recovery
@@ -598,8 +595,7 @@ slot count, licence shelf or faction-pool filter, and nothing placed at *none* i
 ever sold. The tier only sets the price (tier times the market's tariff); a
 Restricted card is sold like any other. Patron rewards and high-risk recovery hand
 out only what the store would sell, an item whose station the campaign has passed;
-reputation (MRB) admits nothing. Recovery alone keeps a second gate, operational
-history: Advanced after 5 company victories, Prestige and Restricted after 15.
+nothing else admits an item: not reputation (MRB), victories or tier.
 Already-owned or carried cards are omitted.
 Each completed patron contract also issues one
 weighted card from that patron faction's pool through the immutable engagement
@@ -611,17 +607,14 @@ card enters the frozen manifest and competes inside the player's existing salvag
 budget; settlement creates the same parameterized cargo item exactly once. Learned
 and already-carried cards are excluded before the manifest freezes, low-risk work
 does not roll this channel, unknown faction ids use the Independent fallback, and
-explicitly excluded factions remain empty. The safety net guarantees breadth,
-while source channels still decide most collection identity and pace.
+explicitly excluded factions remain empty.
 
 The Fleet Armory landing view is the player-facing summary of this policy. It
 shows only acquired card counts, including only access tiers represented in the
 player's collection. Undiscovered cards leave no placeholder, catalog total,
 identity, source, or per-card acquisition hint. The store's shelves follow the Kit
 Ladder. A physical template-card tooltip repeats that acquired item's authored tier,
-that the store, patrons and recovery wait on its card's station, and the recovery
-victories, reading the threshold from the same policy used by candidate filtering
-rather than maintaining presentation-only numbers.
+and that the store sells it once the campaign passes its card's station.
 
 The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
@@ -708,7 +701,7 @@ the tradition that builds that equipment. No channel offers Restricted equipment
 its own, only inside a card. A Restricted card is acquired exactly like any other
 (owner, 2026-10-31): once its Kit Ladder station is passed it is sold at every
 store, with no warrant, standing or faction pool asked; the tier is its label and
-its price. The collection safety net never grants a Restricted card. Polity release
+its price. Polity release
 never lists Restricted kit.
 
 A warrant may name many cards, and a later grant from the same tradition adds cards
@@ -794,8 +787,8 @@ tooltip and spec sheet name the tradition that issues it.
 **Market listings are how a story stocks a shelf.** A story beat records a listing
 rather than dropping a card into a market's cargo, and the store shows listed cards
 on a shelf of their own, first, before what the Kit Ladder opens; a listed card is
-never offered a second time. A listing bypasses the Kit Ladder station, because the
-story is the permission, but a card placed at *none* or not placed is never listed.
+never offered a second time. A listing waits on its card's Kit Ladder station like
+everything else, and a card placed at *none* or not placed is never listed.
 A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
 The store reads its shelf when the page opens, so a new listing is on the shelf at once

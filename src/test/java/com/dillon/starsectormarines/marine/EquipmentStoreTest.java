@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EquipmentStoreTest {
 
     private static final EquipmentAcquisitionEligibility.Progress FULL_ACCESS =
-            new EquipmentAcquisitionEligibility.Progress(15);
+            EquipmentAcquisitionEligibility.Progress.complete();
 
     @Test
     void priceScalesWithTheAccessTierAndTheMarketTariff() {

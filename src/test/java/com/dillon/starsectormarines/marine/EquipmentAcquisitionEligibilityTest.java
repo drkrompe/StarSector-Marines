@@ -19,7 +19,7 @@ class EquipmentAcquisitionEligibilityTest {
 
     @Test
     void openMarketsNeverSellAdvancedCapability() {
-        EquipmentAcquisitionEligibility.Progress veteran = progress(100);
+        EquipmentAcquisitionEligibility.Progress veteran = progress();
 
         assertTrue(allows(common, FactionEquipmentSource.MARKET, veteran));
         assertFalse(allows(advanced, FactionEquipmentSource.MARKET, veteran));
@@ -30,23 +30,14 @@ class EquipmentAcquisitionEligibilityTest {
     void licencesAndPatronRewardsAskNoReputationOfAnyTier() {
         for (FactionEquipmentSource source : new FactionEquipmentSource[]{
                 FactionEquipmentSource.LICENSE, FactionEquipmentSource.PATRON}) {
-            assertTrue(allows(common, source, progress(0)));
-            assertTrue(allows(advanced, source, progress(0)));
-            assertTrue(allows(prestige, source, progress(0)));
+            assertTrue(allows(common, source, progress()));
+            assertTrue(allows(advanced, source, progress()));
+            assertTrue(allows(prestige, source, progress()));
         }
     }
 
-    @Test
-    void recoveryUsesOperationalHistory() {
-        assertFalse(allows(advanced, FactionEquipmentSource.RECOVERY, progress(4)));
-        assertTrue(allows(advanced, FactionEquipmentSource.RECOVERY, progress(5)));
-        assertFalse(allows(prestige, FactionEquipmentSource.RECOVERY, progress(14)));
-        assertTrue(allows(prestige, FactionEquipmentSource.RECOVERY, progress(15)));
-        assertEquals(15, EquipmentAcquisitionEligibility.requiredRecoveryVictories(EquipmentAccessTier.PRESTIGE));
-    }
-
-    private static EquipmentAcquisitionEligibility.Progress progress(int victories) {
-        return new EquipmentAcquisitionEligibility.Progress(victories);
+    private static EquipmentAcquisitionEligibility.Progress progress() {
+        return EquipmentAcquisitionEligibility.Progress.complete();
     }
 
     private static boolean allows(EquipmentTemplateCard card,

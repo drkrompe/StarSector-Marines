@@ -64,30 +64,11 @@ class EquipmentTemplateRecoveryCatalogTest {
                 candidates(request, Set.of()).get(0).itemId);
     }
 
-    @Test
-    void recoveryOpensAdvancedAndPrestigeBandsWithCompanyVictories() {
-        LootRollRequest hegemony = request("hegemony", RiskLevel.HIGH);
-        LootRollRequest tritachyon = request("tritachyon", RiskLevel.HIGH);
-
-        assertTrue(candidates(hegemony, Set.of(), 4).isEmpty());
-        assertEquals(1, candidates(hegemony, Set.of(), 5).size());
-        assertTrue(candidates(tritachyon, Set.of(), 4).isEmpty());
-        assertEquals(1, candidates(tritachyon, Set.of(), 5).size());
-        assertTrue(LoadoutCard.parse(candidates(tritachyon, Set.of(), 14).get(0).itemId)
-                .accessTier() != EquipmentAccessTier.PRESTIGE);
-    }
-
     private static List<LootCandidate> candidates(LootRollRequest request,
                                                    Set<String> unavailable) {
-        return candidates(request, unavailable, 15);
-    }
-
-    private static List<LootCandidate> candidates(LootRollRequest request,
-                                                   Set<String> unavailable,
-                                                   int victories) {
         return EquipmentTemplateRecoveryCatalog.candidates(
                 request, unavailable, 5_000, 1f, "template.png",
-                new EquipmentAcquisitionEligibility.Progress(victories));
+                EquipmentAcquisitionEligibility.Progress.complete());
     }
 
     private static LootRollRequest request(String factionId, RiskLevel risk) {

@@ -80,10 +80,7 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
         } else if (template.accessTier() == EquipmentAccessTier.COMMON) {
             tooltip.addPara(Strings.get("equipmentTemplateAccessCommonRoute"), pad);
         } else {
-            tooltip.addPara(MessageFormat.format(
-                    Strings.get("equipmentTemplateAccessGatedRouteFmt"),
-                    EquipmentAcquisitionEligibility.requiredRecoveryVictories(
-                            template.accessTier())), pad);
+            tooltip.addPara(Strings.get("equipmentTemplateAccessGatedRoute"), pad);
         }
         tooltip.addPara(Strings.get("equipmentTemplateShipBoundary"), pad);
         addCostLabel(tooltip, pad, transferHandler, stackSource);

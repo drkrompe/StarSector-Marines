@@ -339,21 +339,10 @@ public final class MarineArmory implements Serializable {
         acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armorId));
     }
 
-    /** Counts a won operation and pays any victory milestone it reaches. */
+    /** Counts a won operation; winning teaches no card (cards unlock only at their Kit Ladder station). */
     public void recordVictory(boolean highRisk) {
-        recordVictory(highRisk, Set.of());
-    }
-
-    /** Cards held in cargo count toward the safety net's floor without being learned. */
-    public void recordVictory(boolean highRisk, Set<String> carriedCardIds) {
         victories++;
         if (highRisk) highRiskVictories++;
-        repairCollectionProgression(carriedCardIds);
-    }
-
-    /** Idempotent save-load and mission-resolution bridge for the collection safety net. */
-    public void repairCollectionProgression(Set<String> carriedCardIds) {
-        EquipmentCollectionCurve.repair(this, victories, carriedCardIds);
     }
 
     /**

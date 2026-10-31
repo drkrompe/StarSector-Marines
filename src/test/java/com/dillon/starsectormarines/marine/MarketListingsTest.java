@@ -15,15 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** A story beat keeps a named card on a named shelf until the company has it. */
 class MarketListingsTest {
 
-    /** Advanced kit, placed at Counterattack: a listing shows it to a company that has not reached it. */
+    /** Placed at Counterattack: listed, it is shown first once the campaign has passed Counterattack, and not before. */
     private static final String TRENCH = "loadout-card:weapon:weapons:trench-clearing";
 
     @Test
     void aListingHasAShelfOfItsOwnAndIsNeverOfferedTwice() {
         StoreStock.StockPlan with = plan(List.of(TRENCH), Set.of());
 
-        assertEquals(List.of(TRENCH), with.listedCardIds(),
-                "the story is the permission: a fresh company sees the issue it was promised");
+        assertEquals(List.of(TRENCH), with.listedCardIds());
         assertFalse(with.marketCardIds().contains(TRENCH), "never offered a second time");
         assertEquals(TRENCH, with.allCardIds().get(0));
     }
@@ -49,10 +48,16 @@ class MarketListingsTest {
     }
 
     @Test
+    void aListingWaitsOnItsCardsStation() {
+        assertTrue(StoreStock.cards(Set.of(), EquipmentAcquisitionEligibility.Progress.OPENING, List.of(TRENCH))
+                .allCardIds().stream().noneMatch(TRENCH::equals));
+    }
+
+    @Test
     void aListingNeverShowsACardTheLadderLeavesOnNone() {
         String none = "loadout-card:weapon:weapons:assault";
         assertEquals(UnlockStation.NONE, KitLadder.station(none));
-        assertTrue(StoreStock.cards(Set.of(), new EquipmentAcquisitionEligibility.Progress(0), List.of(none))
+        assertTrue(StoreStock.cards(Set.of(), EquipmentAcquisitionEligibility.Progress.complete(), List.of(none))
                 .allCardIds().stream().noneMatch(none::equals));
     }
 
@@ -73,7 +78,7 @@ class MarketListingsTest {
     }
 
     private static StoreStock.StockPlan plan(List<String> listed, Set<String> unavailable) {
-        return StoreStock.cards(unavailable, EquipmentAcquisitionEligibility.Progress.OPENING, listed);
+        return StoreStock.cards(unavailable, EquipmentAcquisitionEligibility.Progress.complete(), listed);
     }
 
     private static void readResolve(CampaignState state) throws Exception {

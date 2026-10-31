@@ -187,8 +187,7 @@ def check(page=None, reel=None):
                  % (names.get(item), tiers.get(item, "?").title(), where))
 
     # Known gaps that clear themselves once the code consults the ladder.
-    for cls, what in (("EquipmentCollectionCurve", "grants cards by its own curve, regardless of stations"),
-                      ("FactionEquipmentCatalog", "validateReachability still uses the tier rules, not the ladder")):
+    for cls, what in (("FactionEquipmentCatalog", "validateReachability still uses the tier rules, not the ladder"),):
         path = next(ladder.JAVA.rglob(cls + ".java"), None)
         if path and not re.search(r"\b(KitLadder|UnlockStation)\b", path.read_text(encoding="utf-8")):
             rep.warn("gap", cls, what)

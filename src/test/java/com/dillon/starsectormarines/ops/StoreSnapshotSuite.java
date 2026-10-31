@@ -93,7 +93,7 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
         MarineArmory armory = new MarineArmory();
         return EquipmentStore.shelf(new EquipmentStore.Place(0.3f),
                 Set.copyOf(armory.knownLoadoutCardIds()), Set.copyOf(new MechBay().knownPatternIds()),
-                Set.copyOf(BoatParts.starterIds()), new EquipmentAcquisitionEligibility.Progress(0, reached),
+                Set.copyOf(BoatParts.starterIds()), new EquipmentAcquisitionEligibility.Progress(reached),
                 List.of());
     }
 

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FirstRefitTest {
     /** Relief settled: the path not picked is on the Kit Ladder's shelf. */
     private static EquipmentAcquisitionEligibility.Progress afterRelief() {
-        return new EquipmentAcquisitionEligibility.Progress(0, Set.of(UnlockStation.START, UnlockStation.byId("relief")));
+        return new EquipmentAcquisitionEligibility.Progress(Set.of(UnlockStation.START, UnlockStation.byId("relief")));
     }
 
     @Test void reliefRewardIsExplicitAndIdempotentAndNeverIssuesKit() {

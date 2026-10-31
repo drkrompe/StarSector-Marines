@@ -42,7 +42,6 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
     interface RewardAccess {
         /** Null means cargo is temporarily unavailable and processing must retry. */
         Set<String> unavailableTemplateIds();
-        int victories();
         /** The Kit Ladder stations the campaign has passed ({@link UnlockStation#reached}). */
         Set<UnlockStation> stations(CampaignState state);
         boolean grant(String templateId);
@@ -112,7 +111,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         int granted = 0;
         while (cursor < state.patronEngagementCount) {
             Reward reward = rewardFor(state, cursor, workingUnavailable,
-                    workingPatterns, fieldsMechs, access.victories(), stations);
+                    workingPatterns, fieldsMechs, stations);
             if (reward != null && !(reward.pattern()
                     ? access.grantPattern(reward.id()) : access.grant(reward.id()))) {
                 break;
@@ -144,8 +143,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
 
     private static Reward rewardFor(CampaignState state, int row,
                                     Set<String> unavailable, Set<String> unavailablePatterns,
-                                    boolean fieldsMechs, int victories,
-                                    Set<UnlockStation> stations) {
+                                    boolean fieldsMechs, Set<UnlockStation> stations) {
         ContractType contractType = safeContractType(
                 state.patronEngagementContractType[row]);
         if (state.patronEngagementId[row] <= 0L
@@ -164,7 +162,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
                 state.patronEngagementSourceContractId[row],
                 state.patronEngagementHouseId[row]);
         EquipmentAcquisitionEligibility.Progress progress =
-                new EquipmentAcquisitionEligibility.Progress(victories, stations);
+                new EquipmentAcquisitionEligibility.Progress(stations);
         if (unavailablePatterns != null && paysMechPattern(seed)) {
             List<String> pattern = MechPatternPicker.pick(factionId,
                     FactionEquipmentSource.PATRON, 1, seed, unavailablePatterns, progress,
@@ -219,12 +217,6 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         @Override
         public Set<String> unavailableTemplateIds() {
             return LoadoutCardInventory.playerUnavailableCardIds();
-        }
-
-        @Override
-        public int victories() {
-            MarineRosterScript script = MarineRosterScript.getInstance();
-            return script != null ? script.roster().armory().victories() : 0;
         }
 
         @Override

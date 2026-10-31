@@ -308,13 +308,9 @@ class LoadoutCardSheetEvidence {
     private static String unlockLine(EquipmentAccessTier tier) {
         return switch (tier) {
             case COMMON -> "common: market";
-            case ADVANCED -> "advanced: its station (store/patron), and "
-                    + EquipmentAcquisitionEligibility.requiredRecoveryVictories(tier)
-                    + " victories (recovery)";
-            case PRESTIGE -> "prestige: its station (store/patron), and "
-                    + EquipmentAcquisitionEligibility.requiredRecoveryVictories(tier)
-                    + " victories (recovery)";
-            case RESTRICTED -> "restricted: military warrant from its issuing tradition (issuer licence/patron only)";
+            case ADVANCED -> "advanced: its station";
+            case PRESTIGE -> "prestige: its station";
+            case RESTRICTED -> "restricted: its station";
         };
     }
 

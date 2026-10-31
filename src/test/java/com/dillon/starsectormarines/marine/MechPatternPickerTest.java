@@ -18,28 +18,14 @@ class MechPatternPickerTest {
     private static final EquipmentAcquisitionEligibility.Progress OPENING =
             EquipmentAcquisitionEligibility.Progress.OPENING;
     private static final EquipmentAcquisitionEligibility.Progress VETERAN =
-            new EquipmentAcquisitionEligibility.Progress(15);
+            EquipmentAcquisitionEligibility.Progress.complete();
 
     @Test
     void patronAsksOnlyTheStationOfAnyTier() {
         assertTrue(drawAll("hegemony", FactionEquipmentSource.PATRON, OPENING).isEmpty(),
                 "a new company's ladder opens no pattern it does not already hold");
         assertTrue(tiers(drawAll("hegemony", FactionEquipmentSource.PATRON,
-                new EquipmentAcquisitionEligibility.Progress(0)))
-                .contains(EquipmentAccessTier.PRESTIGE));
-    }
-
-    @Test
-    void recoveryOpensTiersByVictories() {
-        assertEquals(EnumSet.of(EquipmentAccessTier.COMMON),
-                tiers(drawAll("hegemony", FactionEquipmentSource.RECOVERY,
-                        new EquipmentAcquisitionEligibility.Progress(4))));
-        Set<EquipmentAccessTier> advanced = tiers(drawAll("hegemony",
-                FactionEquipmentSource.RECOVERY,
-                new EquipmentAcquisitionEligibility.Progress(5)));
-        assertTrue(advanced.contains(EquipmentAccessTier.ADVANCED));
-        assertFalse(advanced.contains(EquipmentAccessTier.PRESTIGE));
-        assertTrue(tiers(drawAll("hegemony", FactionEquipmentSource.RECOVERY, VETERAN))
+                EquipmentAcquisitionEligibility.Progress.complete()))
                 .contains(EquipmentAccessTier.PRESTIGE));
     }
 

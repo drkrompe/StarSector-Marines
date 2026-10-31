@@ -10,11 +10,8 @@ import java.util.List;
  * or at every open market of one faction, until the company knows or carries it
  * ({@code progression-nouns.md}, Kit and armory).
  *
- * <p>A listing is not a fifth acquisition channel. It is authored stock that the market
- * channel displays: it bypasses the reputation and victory thresholds because the story is
- * the permission, but it never bypasses the Restricted tier. Listing Restricted kit needs a
- * military warrant naming every Restricted template on the card, so a listing can never be
- * a back door around a warrant.
+ * <p>A listing is not an acquisition channel. It is authored stock that the market shows first; its card is still
+ * sold only once the campaign has passed the card's Kit Ladder station, like any other.
  *
  * <p>Settlement code owns once-only; {@link #list} is idempotent per card and scope so a
  * repeated call is harmless either way.

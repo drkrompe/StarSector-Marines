@@ -255,10 +255,6 @@ class PatronEquipmentRewardSystemTest {
             return cargoAvailable ? Set.copyOf(unavailable) : null;
         }
 
-        @Override
-        public int victories() {
-            return 15;
-        }
 
         @Override
         public boolean grant(String templateId) {

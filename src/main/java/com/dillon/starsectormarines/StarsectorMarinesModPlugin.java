@@ -53,7 +53,6 @@ import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
-import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.KitLadderCatalog;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -77,7 +76,6 @@ import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 public class StarsectorMarinesModPlugin extends BaseModPlugin {
 
@@ -196,7 +194,6 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCampaignState();
         rebuildPolityGroundRoster();
         ensureMarineRoster();
-        repairEquipmentCollectionProgression();
         deliverPendingPatronEquipmentRewards();
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
@@ -323,14 +320,6 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (granted > 0) {
             LOG.info("Starsector Marines: delivered " + granted
                     + " pending patron equipment reward(s)");
-        }
-    }
-
-    private static void repairEquipmentCollectionProgression() {
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
-        if (script != null && carriedCards != null) {
-            script.roster().armory().repairCollectionProgression(carriedCards);
         }
     }
 

@@ -14,9 +14,8 @@ import java.util.Set;
  *
  * <p>There are no faction locks: not the market's owner, the company's standing with it, a military warrant or a
  * faction's equipment pool. A Restricted card is sold like any other once its station is passed; its tier is a label
- * and a price. A market's story listings ({@link MarketListings}) stand on a shelf of their own, first: the story is
- * the permission, so a listing does not wait on its card's station, but a card on {@code none} or with no placement
- * is never listed.
+ * and a price. A market's story listings ({@link MarketListings}) stand on a shelf of their own, first, and wait on
+ * their card's station like everything else: a listing only says where a card is shown first.
  */
 final class StoreStock {
 
@@ -28,8 +27,8 @@ final class StoreStock {
 
     /**
      * Every loadout card on a store's shelf: the market's listed cards first, then every card the ladder opens. A
-     * listing the company already knows or carries is withdrawn, one on {@code none} is never shown, and a listed card
-     * is never offered twice.
+     * listing the company already knows or carries, or whose station the campaign has not passed, is withdrawn, and a
+     * listed card is never offered twice.
      */
     static StockPlan cards(Set<String> unavailableCardIds, EquipmentAcquisitionEligibility.Progress progress,
                            List<String> listedCardIds) {
@@ -38,7 +37,7 @@ final class StoreStock {
         for (String cardId : listedCardIds != null ? listedCardIds : List.<String>of()) {
             LoadoutCard card = LoadoutCard.parse(cardId);
             if (card == null || unavailable.contains(card.id()) || listed.contains(card.id())) continue;
-            if (!card.defined() || KitLadder.station(card.id()).equals(UnlockStation.NONE)) continue;
+            if (!EquipmentAcquisitionEligibility.allows(card, FactionEquipmentSource.MARKET, progress)) continue;
             listed.add(card.id());
         }
         unavailable.addAll(listed);
