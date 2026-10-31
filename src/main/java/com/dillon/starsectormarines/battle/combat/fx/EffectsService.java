@@ -233,6 +233,32 @@ public final class EffectsService {
         }
     }
 
+    /**
+     * One explosion of a wreck's blast field: a rolling blast of {@code radius} cells, uncapped, thrown at
+     * ({@code vx},{@code vy}) cells per second. No sound, so a field of them is heard as the one blast that leads it.
+     */
+    public void spawnHullBlast(float x, float y, float radius, float vx, float vy) {
+        rollingBlastsThisFrame.add(new RollingBlast(x, y, radius, vx, vy));
+    }
+
+    /**
+     * The ground thrown up as a hull strikes: a ring of dust bursts around {@code radius} cells and a sheet of dust
+     * rolling out from it, one burst every two cells or so of the ring.
+     */
+    public void spawnCrashShockwave(float x, float y, float radius) {
+        int points = Math.max(10, Math.min(48, Math.round((float) (2.0 * Math.PI * radius / 2.2))));
+        float scale = 1.4f + radius * 0.08f;
+        for (int i = 0; i < points; i++) {
+            double angle = (i + rng.nextFloat() * 0.6f) / points * Math.PI * 2.0;
+            float cos = (float) Math.cos(angle), sin = (float) Math.sin(angle);
+            float reach = radius * (0.85f + rng.nextFloat() * 0.3f);
+            wallDustsThisFrame.add(new float[]{x + cos * reach, y + sin * reach, scale * (0.8f + rng.nextFloat() * 0.4f)});
+            float speed = 6f + radius * 0.4f;
+            groundDustThisFrame.add(new float[]{x + cos * reach * 0.7f, y + sin * reach * 0.7f,
+                    cos * speed, sin * speed, scale * 1.2f, DUST_SKIRT});
+        }
+    }
+
     public List<RollingBlast> getRollingBlastsThisFrame() { return rollingBlastsThisFrame; }
     /** Live smoking wrecks. Read-only — callers iterate; mutation happens through {@link #spawnSmokingWreck} and {@link #tickWrecks(float)}. */
     public List<SmokingWreck> getSmokingWrecks() {

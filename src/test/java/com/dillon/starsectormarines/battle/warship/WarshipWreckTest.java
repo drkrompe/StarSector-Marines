@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -133,5 +135,34 @@ class WarshipWreckTest {
         float[] stern = wreck.keelPoint(1f);
         assertEquals(ship.x, bow[0], 1e-3f);
         assertEquals(ship.lengthCells * wreck.bodyScale(), bow[1] - stern[1], 1e-3f);
+    }
+
+    @Test
+    void aLargerFootprintGoesUpInMoreBlastsWithinTheBounds() {
+        assertEquals(WarshipWreck.MIN_BLASTS, WarshipWreck.blastCount(1f, 1f));
+        assertEquals(WarshipWreck.MAX_BLASTS, WarshipWreck.blastCount(400f, 400f));
+        assertTrue(WarshipWreck.blastCount(30f, 20f) > WarshipWreck.blastCount(12f, 8f));
+    }
+
+    @Test
+    void theBlastFieldsGoOffOnceEachOverTheHullAndTheStrikeRollsOutward() throws Exception {
+        WarshipWreck wreck = new WarshipWreck(hound(0f, 0f), -7L);
+        List<WarshipWreck.Blast> burst = wreck.blastsBetween(0f, WarshipWreck.BURST_FIELD_SECONDS);
+        List<WarshipWreck.Blast> strike = wreck.blastsBetween(WarshipWreck.FALL_SECONDS,
+                WarshipWreck.FALL_SECONDS + WarshipWreck.STRIKE_FIELD_SECONDS);
+        assertTrue(burst.size() >= WarshipWreck.MIN_BLASTS / 2, "burst " + burst.size());
+        assertTrue(strike.size() >= WarshipWreck.MIN_BLASTS, "strike " + strike.size());
+        assertTrue(wreck.blastsBetween(WarshipWreck.BURST_FIELD_SECONDS, WarshipWreck.FALL_SECONDS).isEmpty());
+        for (WarshipWreck.Blast blast : strike) {
+            assertTrue(Math.hypot(blast.along(), blast.across()) <= 0.5 + 1e-6, "on the hull");
+            assertTrue(blast.radius() >= WarshipWreck.MIN_BLAST_RADIUS * 0.75f - 1e-6f, "radius " + blast.radius());
+        }
+        // The first slice of the strike field is nearer the centre than the last.
+        float mid = WarshipWreck.FALL_SECONDS + WarshipWreck.STRIKE_FIELD_SECONDS * 0.5f;
+        for (WarshipWreck.Blast inner : wreck.blastsBetween(WarshipWreck.FALL_SECONDS, mid)) {
+            for (WarshipWreck.Blast outer : wreck.blastsBetween(mid, WarshipWreck.FALL_SECONDS + 1f)) {
+                assertTrue(Math.hypot(inner.along(), inner.across()) <= Math.hypot(outer.along(), outer.across()) + 1e-6);
+            }
+        }
     }
 }
