@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — sandbag lines on the approaches to the Road's compound for the player to occupy (*Town sandbags*); the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -624,6 +624,23 @@ and through the wall, four cells kept clear of buildings behind it; owner,
 cover). They are opened whether or not a road comes to that side, so every Road
 map has them, and are for people only: the convoys use the yard's gate alone.
 With the roads' own gates the compound keeps up to five ways in.
+
+**Town sandbags.** Outside the compound, unmanned sandbag lines stand on the
+swarm's approaches to its ways in, for the player's squads to occupy (owner,
+2026-10-31: "sandbag lines outside the base for the player to occupy on likely
+approaches"; `CordonTownSandbags`, laid with the works). Across the approach to
+each way in (`CordonTownGarrison.gates`, the posterns before the yard's gates),
+a line either side of the way itself, so its lane and a cell beside it stay
+open as the **pass gap**. Each line is four to seven cells of knee-high cover
+facing out down the approach, with a two-cell **return** at its outer end
+back toward the wall, making an L. A line is laid on the nearest row past the
+six-cell ring, seven to eleven cells out from the wall's line, where one fits.
+Where the town stands too close for that, it is laid back inside the ring,
+six to four cells out. It may start up to three cells past the pass gap, to clear
+a street wider than its way in. Lines keep off road and the cells beside it, so
+the convoys' road, the yard's way in and out and the town's streets stay
+clear, and stay two cells apart. There are six at most. A way in with no
+room on either side gets none.
 
 The **townspeople** are trapped civilians waiting in **groups** (owner,
 2026-10-31: one bunch looks wrong, and spread they make the player choose what
