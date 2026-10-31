@@ -35,9 +35,10 @@ public final class EquipmentStore {
     /**
      * What a Common card costs before the market's tariff. It is the base price the card items
      * carried on the open market ({@code special_items.csv}), so a Common card costs what the shelf
-     * charged; higher tiers are a multiple of it ({@link #tierMultiplier}).
+     * charged; higher tiers are a multiple of it ({@link #tierMultiplier}). It is set against a basic
+     * contract's pay of about 5,000: a Common card is half a job, an Advanced one about a whole job.
      */
-    public static final int BASE_PRICE = 5000;
+    public static final int BASE_PRICE = 2000;
 
     /** The standing with a market's faction at which its licensed shelf opens. */
     public static final RepLevel MIN_LICENSE_RELATIONSHIP = RepLevel.FAVORABLE;

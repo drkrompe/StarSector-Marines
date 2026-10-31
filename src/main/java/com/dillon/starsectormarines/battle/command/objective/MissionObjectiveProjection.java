@@ -83,6 +83,8 @@ public final class MissionObjectiveProjection {
                 for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));
             }
             else if (objective instanceof CordonSequence cordon) items.addAll(CordonChecklist.items(sim, cordon));
+            else if (objective instanceof BatteryObjective battery && sim.getHeart() != null
+                    && sim.getHeart().barrage() != null) items.add(HeartChecklist.barrage(sim, sim.getHeart(), battery));
             else if (objective instanceof WorkingPassageSequence passage)items.add(MissionObjectiveFamilies.workingPassage(passage));
             else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.lettered(MissionObjectiveFamilies.depot(depot), 0));
             else if (objective instanceof ColdAccountIntervention intervention) items.add(MissionObjectiveFamilies.coldAccount(intervention,
