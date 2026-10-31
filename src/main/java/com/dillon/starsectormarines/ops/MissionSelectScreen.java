@@ -591,7 +591,7 @@ public final class MissionSelectScreen implements Screen {
         return Strings.get("missionSelectTier" + tier.name());
     }
 
-    private static String typeClass(MissionType type) {
+    static String typeClass(MissionType type) {
         return "type-" + (type != null ? type.name().toLowerCase(Locale.ROOT) : "unknown");
     }
 

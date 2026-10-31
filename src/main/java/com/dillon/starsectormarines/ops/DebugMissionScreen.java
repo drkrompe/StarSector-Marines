@@ -108,7 +108,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             Map<String, Object> place = new LinkedHashMap<>();
             place.put("id", "debug-place-" + i);
             place.put("label", label);
-            place.put("classes", "debug-place" + (label.equals(location) ? " selected" : ""));
+            place.put("classes", "debug-place catalog-filter-pill" + (label.equals(location) ? " selected" : ""));
             place.put("action", (Runnable) () -> setLocation.accept(label));
             places.add(place::get);
         }
@@ -124,14 +124,18 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             row.put("id", "debug-card-" + i);
             row.put("groupId", "debug-card-group-" + i);
             row.put("titleId", "debug-card-title-" + i);
-            row.put("forceId", "debug-card-force-" + i); row.put("title", story == null ? m.name : Strings.join("separatorPath", story.sequence(), m.name));
+            row.put("forceId", "debug-card-force-" + i);
+            row.put("badgeId", "debug-card-badge-" + i);
+            row.put("copyId", "debug-card-copy-" + i);
+            row.put("title", m.name);
+            row.put("badge", story != null ? story.sequence() : m.type != null ? Character.toString(m.type.glyph) : "?");
             row.put("group", Strings.join("separatorPath", locationOf(m),
                     story != null ? story.group : DebugMissionCatalog.colonyBreach(m) ? DebugMissionCatalog.Scenario.CORDON_LINE.group
                     : Strings.get("missionSelectTier" + m.tier.name())));
             String force = Strings.format("debugMissionForce", preset.squads(), preset.squads() * 12);
             if (preset.mechs() > 0) force = Strings.format("debugMissionForceArmor", force);
             row.put("force", Strings.upper(force));
-            row.put("classes", "debug-card" + (selected != null && selected.id.equals(m.id) ? " selected" : ""));
+            row.put("classes", "debug-card " + MissionSelectScreen.typeClass(m.type) + (selected != null && selected.id.equals(m.id) ? " selected" : ""));
             row.put("action", (Runnable) () -> choose.accept(m));
             cards.add(row::get);
         }
@@ -139,7 +143,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         for (int i = 0; i < 3; i++) {
             int index = i;
             props.put("tab" + i, (Runnable) () -> filter.accept(index));
-            props.put("tabClass" + i, "debug-tab" + (group == i ? " selected" : ""));
+            props.put("tabClass" + i, "debug-tab console-toggle" + (group == i ? " selected" : ""));
         }
         props.put("pageLabel", Strings.format("debugMissionPageLabel", current + 1, pages, visible.size()));
         props.put("previous", (Runnable) () -> turn.accept(current - 1));
