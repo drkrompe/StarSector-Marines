@@ -22,6 +22,8 @@ public final class WaterUnderSealProgress {
     public float work() { return work; }
     public boolean terminal() { return phase == Phase.COMPLETE || phase == Phase.FAILED; }
     public void fail() { if (!terminal()) phase = Phase.FAILED; }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, true, true, true, true, true, 0, 0, false); }
     public Report report(boolean company, int techniciansLost, int militiaLost) {
         return new Report(delivered, north, south, constructed, resolved, company,
                 Math.max(0, Math.min(2, techniciansLost)), Math.max(0, Math.min(8, militiaLost)), cargoLost);

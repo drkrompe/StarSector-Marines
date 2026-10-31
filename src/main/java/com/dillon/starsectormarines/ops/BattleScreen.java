@@ -959,8 +959,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // render ordering match the rest of the debug panels.
         debugPanel = new DebugTogglesPanel(this);
         // The alpha's Win heads the list: the one row a player opens the panel for.
-        Mission skippable = ctx != null ? ctx.getSelectedMission() : null;
-        if (Cheats.canWin(skippable)) debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
+        debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
         debugPanel.addToggle("Auto spike dumps",
                 tickProfilePanel::isAutoDumpEnabled, tickProfilePanel::toggleAutoDump);
         debugPanel.addToggle("Docking paths",

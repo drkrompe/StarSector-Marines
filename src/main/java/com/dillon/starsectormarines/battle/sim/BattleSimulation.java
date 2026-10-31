@@ -1521,6 +1521,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private final BattleCompletion completion = new BattleCompletion(civilianEvacuation);
+    private boolean forcedVictory;
     private final DirectControlSession directControl;
     /** False for bounded non-mission hosts such as shipboard room previews. */
     private boolean missionCompletionEnabled = true;
@@ -2638,6 +2639,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return completion.isComplete(); }
     public Faction getWinner()             { return completion.winner(); }
+    /** Whether the Debug key's Win ended the battle; every story record then reports an outright win. */
+    public boolean isForcedVictory()       { return forcedVictory; }
     /** Whether the battle ended by Confirmed Retreat; the company's withdrawal has its own cost. */
     public boolean isRetreated()           { return completion.retreated(); }
 
@@ -2656,12 +2659,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     /**
-     * Ends an active operation as the company's victory at once: the Debug key's Win, which skips a
-     * mission the player does not want to fight. The story trackers freeze on what they saw, as on retreat.
+     * Ends an active operation as the company's outright victory at once: the Debug key's Win, which
+     * skips a mission the player does not want to fight. Every story record then reports each objective
+     * met and nobody lost, so its arc settles a full success; the trackers below freeze as on retreat.
      */
     public boolean forceCompanyVictory() {
         boolean accepted = completion.finish(Faction.MARINE);
         if (!accepted) return false;
+        forcedVictory = true;
         if (openingStory != null) openingStory.observe(this);
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);

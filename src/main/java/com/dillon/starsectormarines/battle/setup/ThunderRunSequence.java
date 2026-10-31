@@ -423,7 +423,10 @@ public final class ThunderRunSequence {
     public void freeze(BattleSimulation sim, boolean retreat) {
         if (outcome != null) return;
         boolean victory = !retreat && sim.isComplete() && sim.getWinner() == Faction.MARINE;
-        outcome = new FreightRunProgress.Outcome(attempt, delivered, lost, victory);
+        // The Debug key's Win delivers every haul still running; one already destroyed stays lost.
+        List<Integer> arrived = sim.isForcedVictory()
+                ? attempt.cargo().stream().filter(load -> !lost.contains(load)).toList() : delivered;
+        outcome = new FreightRunProgress.Outcome(attempt, arrived, lost, victory);
         beat(sim, retreat ? "retreat" : victory ? "victory" : "defeat");
     }
 }

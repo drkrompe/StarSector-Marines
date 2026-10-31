@@ -35,7 +35,8 @@ import java.util.TreeMap;
  * {@code -Dsnapshot.cordonMapgen.biome=arid} the world's ground (verdant by default). A seed the density's pool holds
  * for the biome is its pooled map, patch and all, as the campaign plays it. {@code -Dsnapshot.cordonMapgen.redoubts=1,2}
  * picks the redoubts framed at play zoom (redoubt 2 by default), each with its guns and wall teams named, and every
- * redoubt's garrison is printed: its guns' cells and each team's men.
+ * redoubt's garrison is printed: its guns' cells and each team's men. A Road map adds the town compound's gate,
+ * truck yard and staging area at play zoom, marked and through the look preset.
  */
 public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
 
@@ -82,6 +83,20 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                     if (look) {
                         out.addAll(look(context, sim, tag, framed));
                         continue;
+                    }
+                    CordonSequence sequence = sim.getCordon();
+                    CordonGateYard yard = sequence == null ? null : sequence.yard();
+                    if (yard != null) {
+                        // Between the gate and the yard's far side, so the road in, the yard and the staging area show.
+                        near.refocus(yard.turnX() + 0.5f, yard.turnY() + 0.5f, PLAY_ZOOM_CELLS);
+                        out.add(new SnapshotArtifact(tag + "09-play-zoom-town-yard.png",
+                                near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
+                                        + ", the town's gate, truck yard and staging area, play zoom",
+                                        CordonReviewAnnotations.townYard(sim))));
+                        // The same ground through the look preset, nothing drawn over it: for the owner.
+                        BattleReviewFrameRenderer plain = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                FRAME_H, yard.turnX() + 0.5f, yard.turnY() + 0.5f, PLAY_ZOOM_CELLS);
+                        out.add(new SnapshotArtifact("look/" + tag + "town-yard-play-zoom.png", plain.render(sim, "")));
                     }
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim))));

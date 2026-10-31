@@ -78,7 +78,9 @@ public final class WorkingPassageSequence implements Objective {
     public int targetY(){return switch(progress.phase()){case BEND,BEND_BUILD->BEND_Y;case NARROWS,NARROWS_BUILD->NARROWS_Y;default->LIFT_Y;};}
     public int buildX(){return progress.phase()==Phase.BEND || progress.phase()==Phase.BEND_BUILD?BEND_X:NARROWS_X;}
     public int buildY(){return progress.phase()==Phase.BEND || progress.phase()==Phase.BEND_BUILD?BEND_Y:NARROWS_Y;}
-    public WorkingPassageProgress.Report report(BattleSimulation sim){return progress.report(8-militia.stream().mapToInt(sim::squadMemberCount).sum());}
+    public WorkingPassageProgress.Report report(BattleSimulation sim){
+        return sim.isForcedVictory()?progress.wonReport():progress.report(8-militia.stream().mapToInt(sim::squadMemberCount).sum());
+    }
     public void advance(BattleSimulation sim){
         if(sim.isComplete() || progress.terminal())return;
         if(!ObjectiveFactionPresence.anyInPlay(sim,Faction.MARINE,id->isCompany(sim,id))){progress.fail(false);emit(sim,"company_lost");return;}
