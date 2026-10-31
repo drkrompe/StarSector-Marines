@@ -1452,6 +1452,50 @@ tasks.register('packageRelease', Zip) {
     }
 }
 
+// A translation is its own mod (translations/<locale>/, roadmap alpha-localization.md): a partial
+// strings.json, a settings.json with localeOverride/cjkMode, and for CJK the font faces baked by
+// :asset-pipeline:generateCjkFonts beside their tracked OFL licence. It never enters the mod's jar
+// or release zip; these two tasks deploy and package it on its own. -Plocale picks it (zh_CN).
+def translationLocale = providers.gradleProperty('locale').getOrElse('zh_CN')
+def translationDir = file("translations/$translationLocale")
+def translationModName = "$modName-$translationLocale"
+def translationFontTasks = [zh_CN: ':asset-pipeline:generateCjkFonts']
+
+def checkTranslation = {
+    if (!new File(translationDir, 'mod_info.json').isFile()) {
+        throw new GradleException("No translation mod at $translationDir")
+    }
+    def fonts = new File(translationDir, 'graphics/fonts')
+    if (translationFontTasks[translationLocale] && !(fonts.listFiles()?.any { it.name.endsWith('.fnt') })) {
+        throw new GradleException("No baked font faces in $fonts; run ${translationFontTasks[translationLocale]}")
+    }
+}
+
+tasks.register('deployTranslation', Sync) {
+    group = 'starsector'
+    description = "Copy translations/<locale> (-Plocale, default zh_CN) into $starsectorModsDir as its own mod"
+    if (translationFontTasks[translationLocale]) dependsOn translationFontTasks[translationLocale]
+    from(translationDir) { exclude '**/*.md', '**/.gitkeep' }
+    into new File(starsectorModsDir, translationModName)
+    doFirst checkTranslation
+}
+
+tasks.register('packageTranslation', Zip) {
+    group = 'starsector'
+    description = 'Zip translations/<locale> (-Plocale, default zh_CN) into build/release/StarsectorMarines-<locale>-<version>.zip'
+    if (translationFontTasks[translationLocale]) dependsOn translationFontTasks[translationLocale]
+    def manifest = new File(translationDir, 'mod_info.json')
+    def translationVersion = manifest.isFile()
+            ? ((manifest.text =~ /"version"\s*:\s*"([^"]+)"/).with { it.find() ? it.group(1) : project.version })
+            : project.version
+    archiveFileName = "$translationModName-${translationVersion}.zip"
+    destinationDirectory = layout.buildDirectory.dir('release')
+    into(translationModName) {
+        from(translationDir) { exclude '**/*.md', '**/.gitkeep' }
+    }
+    doFirst checkTranslation
+}
+
 tasks.register('undeployMod', Delete) {
     group = 'starsector'
     description = "Remove the deployed mod from $starsectorModsDir"
