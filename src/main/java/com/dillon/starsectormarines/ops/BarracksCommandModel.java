@@ -342,18 +342,20 @@ public final class BarracksCommandModel {
         MarineCaptain officer = selectedOfficer();
         if (officer == null) return List.of();
         List<Map<String, Object>> rows = new ArrayList<>();
-        OfficerSpecialty[] paths = OfficerSpecialty.values();
+        List<OfficerSpecialty> paths = OfficerSpecialty.offered();
         for (OfficerSpecialty specialty : paths) {
             int level = officer.career().level(specialty);
             String id = "officer-specialty-" + specialty.name();
             // One crossbar under the root: each branch draws its half either side of
             // its drop, and the outermost halves are left open so the bar ends at a branch.
-            boolean first = specialty.ordinal() == 0;
-            boolean last = specialty.ordinal() == paths.length - 1;
+            boolean first = paths.indexOf(specialty) == 0;
+            boolean last = paths.indexOf(specialty) == paths.size() - 1;
             Map<String, Object> row = row("id", id, "titleId", id + "-title", "iconId", id + "-icon",
                     "headerId", id + "-header", "linkId", id + "-link", "specialty", specialty,
                     "icon", specialtyEmblem(specialty), "title", specialty.label(),
-                    "link", "graphics/ui/officers/specialty-link-" + (level >= OfficerCareer.MAX_LEVEL ? "on" : "off") + ".svg",
+                    "link", "graphics/ui/officers/specialty-link-" + (level >= 2 ? "on" : "off") + ".svg",
+                    "link2Id", id + "-link-2",
+                    "link2", "graphics/ui/officers/specialty-link-" + (level >= 3 ? "on" : "off") + ".svg",
                     "barId", id + "-bar", "barLeftId", id + "-bar-left", "barRightId", id + "-bar-right",
                     "dropId", id + "-drop",
                     "barLeftStyle", "background-color: " + (first ? "transparent" : TREE_LINE) + ";",
@@ -418,7 +420,7 @@ public final class BarracksCommandModel {
         List<String> notes = new ArrayList<>();
         notes.add(specialty.effect(rank));
         if (node == SpecialtyNode.AVAILABLE) notes.add(Strings.get("openingBarracksCommandSpecialtyClickToTrain"));
-        return new SpecSheet(Strings.format("openingBarracksCommandSpecialtyRankTitle", specialty.label(), rank == 1 ? "I" : "II"),
+        return new SpecSheet(Strings.format("openingBarracksCommandSpecialtyRankTitle", specialty.label(), OfficerSpecialty.numeral(rank)),
                 state, specialtyEmblem(specialty), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandSpecialtyRankStat"),
                                 Strings.format("openingBarracksCommandSpecialtyRankOf", rank, OfficerCareer.MAX_LEVEL)),

@@ -4585,8 +4585,6 @@
     "openingCompanyFoundingIntelDepotLost": "The port holding our prepaid stores is closed to us now. Castle has had them sent on; they will be held at the next working yard we dock at:",
     "openingCompanyFoundingIntelShuttlePartsAndFirstSquadStoresAre": "The shuttle's yard credit and the first squad's marines and stores credit are separately earmarked. Other workshop jobs cannot draw them.",
     "openingOfficerSpecialtyIncomingAccuracyForThisOfficerSDeployed": "Incoming accuracy -{0}% for this officer''s deployed marines.",
-    "openingOfficerSpecialtyWoundedRecoveryTimeForThisOfficerS": "Wounded recovery time -{0}% for this officer''s deployed marines.",
-    "openingOfficerSpecialtyVictorySalvageRecoveryPercentagePointsStrongestParticipating": "Victory salvage recovery +{0} percentage points. Strongest participating specialist only.",
     "openingOfficerSpecialtySquadMedicTreatments": "One medic per squad, made better by every medical kit in the squad, healing {2} health and {3} armor a second from {0} points of medical supplies that refill in {1}s.",
 
     "refitOrderChanged": "The squad or its equipment changed. Review the updated order before issuing.",
