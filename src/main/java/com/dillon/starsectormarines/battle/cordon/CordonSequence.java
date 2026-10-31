@@ -12,15 +12,20 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The Cordon's story ({@code cordon-nouns.md}, Flow and Beats): the line's
  * redoubts moving through their states, the tides on the timetable, the beats
  * the battle is told in, and the end the company is held to.
  *
- * <p>The company's objective. It is won when the window closes with no more
- * redoubts fallen than the briefing allows, and lost the moment the line
- * breaks, the company is wiped out, or, on the Road, the gap closes. Read-only against the battle except
+ * <p>The company's objective. The Line is won when the window closes with no
+ * more redoubts fallen than the briefing allows, and lost the moment the line
+ * breaks or the company is wiped out. The Road is decided on people, not the
+ * line: the company holds Ain Tafrant while the convoys bring its townspeople
+ * out; once the town is finished (everyone out, or abandoned when its staging
+ * area is overrun) the company falls back behind the line, and the Road ends
+ * there, won if enough townspeople came out. Read-only against the battle except
  * for the tide, which brings every living bore's surge forward and lets the
  * swarm out at the tide's strength until it ebbs, and the eruption, which
  * opens a new bore in front of the line.
@@ -94,6 +99,20 @@ public final class CordonSequence implements Objective {
     private CordonLogistics logistics;
     private CordonAirBase airBase;
     private CordonConvoys convoys;
+    /** The Road's cut-off town, or {@code null}. */
+    private CordonTown town;
+    private boolean townContact, townCalled;
+    /** The townspeople the town started with, and how many must come out for the Road to be won. */
+    private int population, peopleNeeded;
+    /** Why the town is finished ({@code town_empty}, {@code town_abandoned}), or {@code null} while it is held. */
+    private String townFinished;
+    /** Where the company falls back to once the town is finished, and the line it falls back behind. */
+    private int rallyX, rallyY;
+    private float lineY;
+    private int frontward;
+    private boolean fallBackSet, withdrawn;
+    /** What abandoning the town does to the convoys and townspeople; a seam until {@code CordonConvoys} carries it. */
+    private Consumer<BattleSimulation> abandonTown = sim -> { };
     /** The Road's staging area inside the town's gate, or {@code null}. */
     private CordonStagingArea staging;
     private CordonLineCommand line;
@@ -174,6 +193,59 @@ public final class CordonSequence implements Objective {
     /** Gives the Road its relief convoys; at setup, before the first tick. */
     public void attachConvoys(CordonConvoys convoys) {
         this.convoys = convoys;
+        population = convoys.town();
+        peopleNeeded = peopleNeeded(population);
+    }
+
+    /** The Road's cut-off town, or {@code null}. */
+    public CordonTown town() { return town; }
+
+    /** The townspeople the town started with. */
+    public int population() { return population; }
+
+    /** How many townspeople must come out for the Road to be won: the briefing's number. */
+    public int peopleNeeded() { return peopleNeeded; }
+
+    /**
+     * The briefing's number for a town of {@code population}: half of them, rounded up (owner's call). The town needs
+     * more than three trips to empty, so half asks for two full convoys and part of a third.
+     */
+    static int peopleNeeded(int population) {
+        return Math.max(1, (population + 1) / 2);
+    }
+
+    /** Why the town is finished ({@code town_empty}, {@code town_abandoned}), or {@code null} while it is held. */
+    public String townFinished() { return townFinished; }
+
+    /** Whether the company is falling back behind the line to end the Road: the town is finished. */
+    public boolean fallingBack() { return townFinished != null; }
+
+    /** Where the company falls back to, {x, y}; {@code null} where none was set. */
+    public int[] rally() { return fallBackSet ? new int[]{rallyX, rallyY} : null; }
+
+    /** Whether the company is behind the line after the town was finished. */
+    public boolean withdrawn() { return withdrawn; }
+
+    /**
+     * Where the company falls back to once the town is finished, and the line it must be behind ({@code lineY}, the
+     * front at +{@code frontward}); at setup.
+     */
+    public void attachFallBack(int rallyX, int rallyY, float lineY, int frontward) {
+        this.rallyX = rallyX;
+        this.rallyY = rallyY;
+        this.lineY = lineY;
+        this.frontward = frontward;
+        fallBackSet = true;
+    }
+
+    /** What abandoning the town does (every townsperson still trapped dies, no more convoys set out); at setup. */
+    public void onAbandonTown(Consumer<BattleSimulation> abandon) {
+        this.abandonTown = abandon;
+    }
+
+    /** Gives the Road its cut-off town; at setup, before the first tick. */
+    public void attachTown(CordonTown town) {
+        this.town = town;
     }
 
     /** The Road's staging area inside the town's gate, where the trapped townspeople wait and the trucks load; or {@code null}. */
@@ -251,6 +323,8 @@ public final class CordonSequence implements Objective {
         int tick = sim.getSimTickIndex();
         int[] swarmInside = new int[redoubts.size()];
         boolean[] relief = new boolean[redoubts.size()];
+        int townInside = 0, stagingInside = 0, companyAhead = 0, companyBehind = 0;
+        boolean townHeld = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (!sim.world().hasPosition(unit) || sim.isRiding(unit)) continue;
@@ -264,6 +338,19 @@ public final class CordonSequence implements Objective {
                 emit(tick, "landfall");
             }
             if (!swarm && !company) continue;
+            if (company && fallBackSet) {
+                if (behindLine(y, lineY, frontward)) companyBehind++;
+                else companyAhead++;
+            }
+            if (town != null) {
+                if (swarm && town.contains(x, y, 0)) townInside++;
+                if (swarm && town.staging().contains(x, y)) stagingInside++;
+                if (swarm && !townContact && town.contains(x, y, CONTACT_RANGE)) {
+                    townContact = true;
+                    emit(tick, "town_contact");
+                }
+                if (company && town.holdsFrom(x, y)) townHeld = true;
+            }
             for (int r = 0; r < redoubts.size(); r++) {
                 CordonRedoubt redoubt = redoubts.get(r);
                 if (swarm) {
@@ -278,6 +365,21 @@ public final class CordonSequence implements Objective {
             }
         }
         for (int r = 0; r < redoubts.size(); r++) step(sim, tick, redoubts.get(r), swarmInside[r], relief[r]);
+        if (town != null) stepTown(sim, tick, townInside, stagingInside, townHeld);
+        if (variant == CordonVariant.ROAD && convoys != null && townFinished == null) {
+            String finished = townFinished(population, convoys.town(), town != null && !town.holds());
+            if (finished != null) {
+                townFinished = finished;
+                if (finished.equals("town_abandoned")) abandonTown.accept(sim);
+                emit(tick, finished);
+                emit(tick, "fall_back");
+            }
+        }
+        if (townFinished != null && !withdrawn && companyBehind > 0 && companyAhead == 0) {
+            withdrawn = true;
+            emit(tick, "company_withdrawn");
+        }
+        if (variant == CordonVariant.ROAD && gapClosed()) emit(tick, "gap_closed");
         while (tides < timetable.tideSeconds().size()
                 && tick >= ticks(timetable.tideSeconds().get(tides))) {
             tides++;
@@ -330,10 +432,10 @@ public final class CordonSequence implements Objective {
         if (outcome != Outcome.RUNNING) return;
         int tick = view.getSimTickIndex();
         boolean company = ObjectiveFactionPresence.anyInPlay(view, Faction.MARINE, unit -> true);
-        Ending end = ending(company, fallen(), timetable.allowedFallen(), variant == CordonVariant.ROAD && gapClosed(),
-                convoys != null, convoys != null ? convoys.convoys() - convoys.lost() : 0,
-                convoys != null ? convoys.out() : 0, timetable.convoysNeeded(),
-                tick >= ticks(timetable.windowSeconds()));
+        Ending end = variant == CordonVariant.ROAD
+                ? roadEnding(company, townFinished != null, withdrawn, convoysMoving(),
+                        convoys != null ? convoys.peopleOut() : 0, peopleNeeded, tick >= ticks(ROAD_CAP_SECONDS))
+                : ending(company, fallen(), timetable.allowedFallen(), tick >= ticks(timetable.windowSeconds()));
         if (end == null) return;
         outcome = end.outcome();
         endBeat = end.beat();
@@ -345,20 +447,62 @@ public final class CordonSequence implements Objective {
     public record Ending(Outcome outcome, String beat) { }
 
     /**
-     * The Cordon's end rules ({@code cordon-nouns.md}, Flow, the end), first match wins, or
-     * {@code null} while it runs. A wiped company loses before anything else is read: nobody is left
-     * to hold the line the window would otherwise call held. A given-up redoubt (beat L3) is neither
-     * fallen nor manned, so it counts against no rule.
+     * The Line's end rules ({@code cordon-nouns.md}, Flow, the end), first match wins, or {@code null} while it runs.
+     * A wiped company loses before anything else is read: nobody is left to hold the line the window would otherwise
+     * call held. A given-up redoubt (beat L3) is neither fallen nor manned, so it counts against no rule.
      */
-    static Ending ending(boolean companyInPlay, int fallen, int allowedFallen, boolean gapClosed,
-                         boolean hasConvoys, int convoysLeft, int convoysOut, int convoysNeeded, boolean windowOver) {
+    static Ending ending(boolean companyInPlay, int fallen, int allowedFallen, boolean windowOver) {
         if (!companyInPlay) return new Ending(Outcome.BROKEN, "company_lost");
         if (fallen > allowedFallen) return new Ending(Outcome.BROKEN, "line_broken");
-        if (gapClosed) return new Ending(Outcome.BROKEN, "gap_closed");
-        if (hasConvoys && convoysLeft < convoysNeeded) return new Ending(Outcome.BROKEN, "convoys_lost");
-        if (hasConvoys && windowOver && convoysOut < convoysNeeded) return new Ending(Outcome.BROKEN, "convoys_short");
         if (windowOver) return new Ending(Outcome.HELD, "cordon_held");
         return null;
+    }
+
+    /** The Road's hard cap: no window ends it, but a battle cannot run forever. Generous and untuned. */
+    public static final int ROAD_CAP_SECONDS = 1800;
+    /** Rows behind the line's mean row a Marine must stand to be behind the line. */
+    static final int BEHIND_LINE = 4;
+
+    /**
+     * Whether the town is finished, and why ({@code cordon-nouns.md}, Cut-off town): {@code town_empty} once nobody
+     * is left trapped in a town that had people, {@code town_abandoned} once its staging area is overrun (the company
+     * has pulled out of it, or never held it, and its defenders are gone from round it); {@code null} while it is held.
+     */
+    static String townFinished(int population, int trapped, boolean stagingOverrun) {
+        if (population > 0 && trapped <= 0) return "town_empty";
+        if (stagingOverrun) return "town_abandoned";
+        return null;
+    }
+
+    /** Whether a cell's row is behind the line: {@link #BEHIND_LINE} rows rearward of its mean row. */
+    static boolean behindLine(int y, float lineY, int frontward) {
+        return (y - lineY) * frontward <= -BEHIND_LINE;
+    }
+
+    /**
+     * The Road's end rules ({@code cordon-nouns.md}, Flow, the end), first match wins, or {@code null} while it runs.
+     * The win is people: a wiped company loses first; otherwise the Road ends once the town is finished, the company
+     * is back behind the line and no convoy is still on the road with people aboard (or at the hard cap), and it is
+     * won when at least {@code needed} townspeople came out ({@code cordon_held}), else lost ({@code people_short}).
+     * The line, the gap and lost convoys decide nothing by themselves.
+     */
+    static Ending roadEnding(boolean companyInPlay, boolean townFinished, boolean withdrawn, boolean convoysMoving,
+                             int peopleOut, int needed, boolean capReached) {
+        if (!companyInPlay) return new Ending(Outcome.BROKEN, "company_lost");
+        if (townFinished && withdrawn && !convoysMoving || capReached) {
+            return peopleOut >= needed ? new Ending(Outcome.HELD, "cordon_held") : new Ending(Outcome.BROKEN, "people_short");
+        }
+        return null;
+    }
+
+    /** Whether a convoy is on its way to the town, loading there or driving out. */
+    private boolean convoysMoving() {
+        if (convoys == null) return false;
+        for (int c = 1; c <= convoys.convoys(); c++) {
+            String phase = convoys.phase(c);
+            if ("inbound".equals(phase) || "loading".equals(phase) || "outbound".equals(phase)) return true;
+        }
+        return false;
     }
 
     /** The beat the Cordon ended on ({@code company_lost}, {@code line_broken}, ...), or {@code null} while it runs. */
@@ -446,9 +590,39 @@ public final class CordonSequence implements Objective {
     }
 
     static int standing(BattleSimulation sim, CordonRedoubt redoubt) {
+        return standing(sim, redoubt.teams());
+    }
+
+    static int standing(BattleSimulation sim, List<Integer> teams) {
         int standing = 0;
-        for (int squad : redoubt.teams()) standing += sim.squadMemberCount(squad);
+        for (int squad : teams) standing += sim.squadMemberCount(squad);
         return standing;
+    }
+
+    /**
+     * The town for this tick ({@code cordon-nouns.md}, Cut-off town): its staging area held by a Marine round it
+     * ({@code marines}) or a defender standing round it, told as beats when it is first pressed or overrun, and the
+     * town's call heard once the swarm is inside its wall or half its defenders are down.
+     */
+    private void stepTown(BattleSimulation sim, int tick, int inside, int inStaging, boolean marines) {
+        boolean held = marines;
+        int standing = 0;
+        for (int squad : town.teams()) {
+            for (int i = 0, n = sim.squadMemberCount(squad); i < n; i++) {
+                long m = sim.squadMemberAt(squad, i);
+                if (m == 0L || !sim.world().isAlive(m) || !sim.world().hasPosition(m)) continue;
+                standing++;
+                if (!held && town.holdsFrom(sim.world().cellX(m), sim.world().cellY(m))) held = true;
+            }
+        }
+        if (!townCalled && (inside > 0 || town.garrison() > 0 && standing * 2 <= town.garrison())) {
+            townCalled = true;
+            emit(tick, "town_calling");
+        }
+        CordonTown.State before = town.observe(inside, inStaging, held, tick);
+        if (town.state() == before) return;
+        if (town.state() == CordonTown.State.PRESSED) emit(tick, "staging_pressed");
+        if (town.state() == CordonTown.State.OVERRUN) emit(tick, "staging_overrun");
     }
 
     private boolean gapClosed() {
@@ -474,7 +648,7 @@ public final class CordonSequence implements Objective {
     @Override public boolean isFailed() { return outcome == Outcome.BROKEN; }
     @Override public String displayName() {
         return switch (outcome) {
-            case RUNNING -> Strings.get(variant == CordonVariant.ROAD ? "cordonHoldGap" : "cordonHoldLine");
+            case RUNNING -> Strings.get(variant == CordonVariant.ROAD ? "cordonHoldTown" : "cordonHoldLine");
             case HELD -> Strings.get("cordonHeld");
             case BROKEN -> Strings.get("cordonBroken");
         };

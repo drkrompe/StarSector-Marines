@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.power.AirStrikePower;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -44,7 +44,7 @@ class SpecSheetsTest {
         assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Supplies / use", "5")));
         assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Uses per battle", "1")));
         assertTrue(barrage.notes().get(0).contains("friendly"));
-        assertTrue(SpecSheets.commandPower(new SpawnInOnslaught()).stats()
+        assertTrue(SpecSheets.commandPower(new AirStrikePower()).stats()
                 .contains(SpecSheet.Stat.of("Uses per battle", "Unlimited")));
     }
 

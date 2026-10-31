@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonTown;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
@@ -137,7 +138,7 @@ class CordonCommandEvidenceTest {
                     first.outcome(), first.winner() != null ? first.winner() : "—",
                     first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen(),
                     first.allies(), first.objectives().isEmpty() ? "—" : first.objectives(), first.line()));
-            broken.addAll(mechanics(selected.id(), first));
+            broken.addAll(mechanics(selected.id(), variant, first));
         }
         if (pool) {
             Files.writeString(output.resolve("summary.json"), new JSONObject().put("schemaVersion", 1)
@@ -149,18 +150,20 @@ class CordonCommandEvidenceTest {
     }
 
     /** Mechanics, not outcomes (behavior-scenes.md, Writing a scene): what one run broke, if anything. */
-    private static List<String> mechanics(String id, RunResult run) {
+    private static List<String> mechanics(String id, CordonVariant variant, RunResult run) {
         List<String> broken = new ArrayList<>();
         if (!run.beatIds().contains("cordon.landfall")) broken.add(id + ": the company never came down");
         for (int t = 0; t < run.tidesDue(); t++) {
             if (!run.beatIds().contains("cordon.tide_" + (t + 1))) broken.add(id + ": tide " + (t + 1) + " never came");
         }
-        if ("HELD".equals(run.outcome()) && run.fallen() > CordonSequence.Timetable.STANDARD.allowedFallen()) {
+        // The Road is held to its town and convoys, not the line: only the Line counts its fallen redoubts.
+        if (variant == CordonVariant.LINE && "HELD".equals(run.outcome())
+                && run.fallen() > CordonSequence.Timetable.STANDARD.allowedFallen()) {
             broken.add(id + ": a held line lost more than allowed");
         }
         if ("BROKEN".equals(run.outcome()) && !(run.beatIds().contains("cordon.line_broken")
-                || run.beatIds().contains("cordon.gap_closed") || run.beatIds().contains("cordon.convoys_lost")
-                || run.beatIds().contains("cordon.convoys_short") || run.beatIds().contains("cordon.company_lost"))) {
+                || run.beatIds().contains("cordon.convoys_lost") || run.beatIds().contains("cordon.convoys_short")
+                || run.beatIds().contains("cordon.company_lost") || run.beatIds().contains("cordon.people_short"))) {
             broken.add(id + ": a broken cordon does not say how");
         }
         if (run.complete() && "RUNNING".equals(run.outcome())) {
@@ -303,6 +306,7 @@ class CordonCommandEvidenceTest {
                 .put("built", cordon.logistics() == null ? 0 : cordon.logistics().built())
                 .put("redoubts", redoubts)
                 .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim))
+                .put("town", town(sim, cordon.town()))
                 .put("objectives", cordon.beats() == null ? new JSONArray() : new JSONArray(cordon.beats().describe(sim)));
     }
 
@@ -317,7 +321,23 @@ class CordonCommandEvidenceTest {
             line.append(' ').append(r.getString("state").toLowerCase(Locale.ROOT)).append(' ')
                     .append(r.getInt("standing")).append('/').append(r.getInt("garrison")).append(" |");
         }
-        return line.append(' ').append(row.getString("convoys")).append(" |\n").toString();
+        line.append(' ').append(row.getString("convoys")).append(" |");
+        if (!row.getString("town").equals("-")) line.append(' ').append(row.getString("town")).append(" |");
+        return line.append('\n').toString();
+    }
+
+    /**
+     * The cut-off town as a minute row reads it: how its staging area stands, whether it calls, and its defenders
+     * standing of those it stood up with.
+     */
+    private static String town(BattleSimulation sim, CordonTown town) {
+        if (town == null) return "-";
+        int standing = 0;
+        for (int squad : town.teams()) standing += sim.squadMemberCount(squad);
+        return town.state().name().toLowerCase(Locale.ROOT) + (town.calling(standing) ? " calling" : "") + " "
+                + standing + "/" + town.garrison()
+                + (town.swarmInside() > 0 ? ", " + town.swarmInside() + " swarm inside" : "")
+                + (town.swarmStaging() > 0 ? ", " + town.swarmStaging() + " in the staging area" : "");
     }
 
     private static String report(String runId, BattleSimulation sim, CordonSequence cordon, String winner,
@@ -367,6 +387,10 @@ class CordonCommandEvidenceTest {
                         truck, body.x, body.y, sim.world().hp(truck), sim.world().maxHp(truck),
                         sim.convoy().mission(truck).authoredRoutePaused ? ", held" : "", NL));
             }
+        }
+        if (cordon.town() != null) {
+            out.append("- Town: ").append(town(sim, cordon.town())).append(", ").append(cordon.town().guns().size())
+                    .append(" gun towers").append(NL);
         }
         if (cordon.logistics() != null) {
             out.append("- Logistics base: ").append(cordon.logistics().built()).append(" machines built, ")
@@ -426,8 +450,8 @@ class CordonCommandEvidenceTest {
                 .append(", and why it is held. Hounds: allied mechs alive. Built: machines off the base's shed so far.")
                 .append("\n\n| min | marines | allies | swarm | bores | armour | Hounds | built |");
         for (CordonRedoubt r : cordon.redoubts()) out.append(" redoubt ").append(r.number()).append(" |");
-        out.append(" convoys |\n|---|---|---|---|---|---|---|---|");
-        for (int i = 0; i <= cordon.redoubts().size(); i++) out.append("---|");
+        out.append(" convoys |").append(cordon.town() == null ? "" : " town |").append("\n|---|---|---|---|---|---|---|---|");
+        for (int i = 0; i <= cordon.redoubts().size() + (cordon.town() == null ? 0 : 1); i++) out.append("---|");
         return out.append('\n').append(table).toString();
     }
 

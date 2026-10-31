@@ -25,6 +25,15 @@ class RedoubtWorksTest {
     }
 
     @Test
+    void cornerGunsGoDiagonalFromTheGateThenToTheFarSidesOtherCorner() {
+        // The gate near the west end of the south side: the north-east corner is diagonal from it, then the north-west.
+        var corners = RedoubtWorks.cornersFromGate(L, T, R, B, L + 2, B);
+        assertArrayEquals(new int[]{R, T}, corners.get(0));
+        assertArrayEquals(new int[]{L, T}, corners.get(1));
+        assertEquals(4, corners.size());
+    }
+
+    @Test
     void aStreetCrossingASideLeavesItWhereItIs() {
         // A street three wide running north from the building's middle: the works cross it, as a truck closes it.
         RedoubtWorks.Roadway crossing = (x, y) -> x >= 12 && x <= 14 && y < T;

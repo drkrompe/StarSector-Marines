@@ -6,11 +6,29 @@
  "height": 1080,
  "frames": 192,
  "duration": 8.0,
- "captions": [],
+ "captions": [
+  {
+   "t_in": 0.2,
+   "t_out": 6.8,
+   "speaker": "caravel",
+   "key": "asharuRadioS11_1"
+  },
+  {
+   "t_in": 7.0,
+   "t_out": 9.54,
+   "speaker": "morrow",
+   "key": "asharuRadioS11_2"
+  }
+ ],
  "cues": [
   {
    "t": 0.0,
    "sound": "asharu_film_engines_s11",
+   "volume": 1.0
+  },
+  {
+   "t": 0.2,
+   "sound": "asharu_film_d44",
    "volume": 1.0
   },
   {
@@ -22,7 +40,23 @@
    "t": 6.4,
    "sound": "asharu_film_s11_signal_breaks",
    "volume": 1.0
+  },
+  {
+   "t": 7.0,
+   "sound": "asharu_film_d45",
+   "volume": 1.0
   }
  ],
- "speakers": {}
+ "speakers": {
+  "caravel": {
+   "label_key": "asharuRadioSpeakerCaravel",
+   "color": "player",
+   "role_key": "asharuRadioRoleCaravel"
+  },
+  "morrow": {
+   "label_key": "asharuRadioSpeakerMorrow",
+   "color": "player",
+   "role_key": "asharuRadioRoleMorrow"
+  }
+ }
 }

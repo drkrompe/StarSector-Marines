@@ -56,14 +56,16 @@ SCREEN_CHANNELS = ['CARAVEL', 'WARDEN LEAD', 'WARDEN TWO', 'MORROW', 'WARDEN FIV
 
 # The whole recording, timed in sequence seconds (the shot doc's "Shot list"): (shot, callsign, t0, t1,
 # line, placeholder). This is the voiced draft on the Battle Cut page (its captions_draft lines that are
-# on, at the times the owner set against the takes), so the terminal captions what the radio says. A line
-# marked placeholder only holds a gap's timing and is not dialogue to keep; none is, now that every line
-# has a take. Lines overlap where the radio talks over itself. The pirates are not heard (BARON and the
+# on, at the times the owner set against the takes), so the terminal captions what the radio says. The
+# page's placeholder mark is the owner's note on a line, not a cut: only "off" leaves a line out, so a
+# line the page marks placeholder plays here like any other. Lines overlap where the radio talks over itself. The pirates are not heard (BARON and the
 # rest keep their handles for captions), and S3 stays silent.
 TRAFFIC = [
     ('S1', 'CARAVEL', 1.8, 7.92, 'All escorts, Caravel. Window opens in forty. Enjoy the view before deep '
                                  'space.', False),
     ('S1a', 'WARDEN LEAD', 10.0, 12.66, 'Nothing but void and the odd picket from here.', False),
+    ('S1', 'WARDEN TWO', 16.0, 21.43, 'Ha more picket "ping" to drive me crazy. Guess they keep us honest.',
+     False),
     ('S2', 'MORROW', 24.6, 30.17, 'Caravel, Morrow. Standing off your starboard quarter. Long ride even to '
                                   'the jump point.', False),
     ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No identification.', False),
@@ -93,6 +95,9 @@ TRAFFIC = [
     ('S9b', 'WARDEN LEAD', 104.91, 107.6, "Her shield's down! Keep on her, make them back off — I'm —", False),
     ('S10', 'CARAVEL', 112.4, 117.27, "We're losing thrust, we're in the well, we're going down. Morrow, "
                                       'break off.', False),
+    ('S11', 'CARAVEL', 118.2, 124.8, "Hull temperature's climbing — helm, hold forty degrees angle of attack, "
+                                     "belly to the burn! Don't let her nose —", False),
+    ('S11', 'MORROW', 125.0, 127.54, 'Come again Caravel losing your signal in the —', False),
     ('S12', 'THYSVILLE', 130.0, 137.11, 'All ships this is Thysville. Regroup on me, we need to tighten '
                                         "formation. Helm what's the pirates heading?", False),
     ('S13', 'WARDEN THREE', 137.4, 139.6, "This is Three. We're scattered, ships going down. Do we go back "

@@ -322,6 +322,7 @@ com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAirBaseLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonCampLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite

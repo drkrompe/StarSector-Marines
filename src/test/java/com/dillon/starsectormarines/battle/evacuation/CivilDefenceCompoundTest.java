@@ -6,9 +6,13 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The dressing of a walled place finds its gates and stands a gun tower by them
@@ -53,6 +57,24 @@ class CivilDefenceCompoundTest {
     }
 
     @Test
+    void anArmedCompoundMountsAGunInEachCornerTowerAndAnUnarmedOneNone() {
+        BattleSimulation sim = walled();
+        open(sim, 14, T, 16, T);
+
+        CivilDefenceCompound.Plan armed = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20, true);
+        CivilDefenceCompound.Plan plain = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20);
+
+        assertNotNull(armed, "a closed wall with a gate was not read as one");
+        assertEquals(4, armed.corners().size(), "an armed compound mounted " + armed.corners().size() + " corner guns");
+        for (int[] gun : armed.corners()) {
+            assertTrue((gun[0] == L || gun[0] == R) && (gun[1] == T || gun[1] == B),
+                    "a corner gun stood at " + gun[0] + "," + gun[1] + ", off the wall's corners");
+            assertEquals(CivilDefenceCompound.Kind.GUN, armed.cells().get(CivilDefenceCompound.key(gun[0], gun[1])));
+        }
+        assertEquals(0, plain.corners().size(), "an unarmed wall's corner towers mounted guns");
+    }
+
+    @Test
     void noWallPostStandsOnTheWallsItLays() {
         BattleSimulation sim = walled();
         open(sim, 14, T, 16, T);
@@ -64,6 +86,30 @@ class CivilDefenceCompoundTest {
             assertFalse(plan.cells().containsKey(CivilDefenceCompound.key(post.x(), post.y())),
                     "a wall post at " + post.x() + "," + post.y() + " is a cell the dressing builds on");
         }
+    }
+
+    @Test
+    void theFenceStandsOnTheThreeSidesAwayFromTheMainGateAndKeepsEveryWayInOpen() {
+        BattleSimulation sim = walled();
+        // The main gate on the north side, toward the lift; a back gate on the east side.
+        open(sim, 14, T, 16, T);
+        open(sim, R, 14, R, 16);
+        CivilDefenceCompound.Plan plan = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20);
+        assertNotNull(plan, "a closed wall with gates was not read as one");
+
+        int f = CivilDefenceCompound.FENCE_OFFSET, g = CivilDefenceCompound.FENCE_GATE_CLEARANCE;
+        List<RedoubtWorks.Piece> fence = CivilDefenceCompound.fence(sim.getGrid(), sim.getTopology(), List.of(), plan,
+                (x, y) -> sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y));
+
+        assertFalse(fence.isEmpty(), "no fence was planned");
+        for (RedoubtWorks.Piece p : fence) {
+            assertNotEquals(T - f, p.y(), "a fence piece stood on the main gate's side at " + p.x() + "," + p.y());
+            assertFalse(p.x() == R + f && p.y() >= 14 - g && p.y() <= 16 + g,
+                    "the fence shut the back gate at " + p.x() + "," + p.y());
+        }
+        assertTrue(fence.stream().anyMatch(p -> p.x() == L - f), "no fence on the west side");
+        assertTrue(fence.stream().anyMatch(p -> p.y() == B + f), "no fence on the south side");
+        assertTrue(fence.stream().anyMatch(p -> p.x() == R + f), "no fence on the east side");
     }
 
     /** Open ground with a perimeter wall round the square. */

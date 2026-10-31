@@ -43,6 +43,42 @@ class CordonConvoysRulesTest {
     }
 
     @Test
+    void aConvoyIsCalledWhilePeopleAreTrappedBeyondTheSeatsAlreadyComing() {
+        int max = CordonConvoys.MAX_CONVOYS;
+        assertFalse(CordonConvoys.setsOut(1, max, 99, 100, true, 48, 0, false), "the first waits for its tick");
+        assertTrue(CordonConvoys.setsOut(1, max, 100, 100, true, 48, 0, false));
+        assertFalse(CordonConvoys.setsOut(2, max, 500, 100, false, 48, 12, false), "the one before is short of the gap");
+        assertTrue(CordonConvoys.setsOut(2, max, 500, 100, true, 48, 12, false));
+        assertFalse(CordonConvoys.setsOut(4, max, 500, 100, true, 10, 12, false), "the seats coming hold everyone left");
+        assertTrue(CordonConvoys.setsOut(4, max, 500, 100, true, 13, 12, false));
+        assertFalse(CordonConvoys.setsOut(max + 1, max, 500, 100, true, 30, 0, false), "never past the fifth");
+        assertFalse(CordonConvoys.setsOut(3, max, 500, 100, true, 30, 0, true), "never to a town given up");
+        assertFalse(CordonConvoys.setsOut(3, max, 500, 100, true, 0, 0, false), "never to an empty town");
+    }
+
+    @Test
+    void theLastConvoyIsTheFifthOrOneWithSeatsForEveryoneLeft() {
+        assertTrue(CordonConvoys.last(5, 5, 30, 12));
+        assertTrue(CordonConvoys.last(3, 5, 12, 12));
+        assertFalse(CordonConvoys.last(3, 5, 13, 12));
+    }
+
+    @Test
+    void abandoningTheTownLosesEveryoneTrappedAndCallsNoMoreConvoys() {
+        CordonConvoys convoys = new CordonConvoys(List.of(new int[]{0, 0}, new int[]{0, 1}), 0, 1, 0,
+                CordonConvoys.MAX_CONVOYS, 48);
+        assertEquals(5, convoys.convoys());
+        convoys.abandonTown(null);
+        assertTrue(convoys.townAbandoned());
+        assertEquals(0, convoys.town());
+        assertEquals(48, convoys.peopleLost());
+        assertEquals(48, convoys.peopleTotal());
+        assertEquals(0, convoys.convoys(), "the convoys still waiting will never set out");
+        convoys.abandonTown(null);
+        assertEquals(48, convoys.peopleLost(), "abandoning twice loses nobody twice");
+    }
+
+    @Test
     void theRoadAheadCallsFirstThenTheSwarmOnATruck() {
         int[] ahead = {10, 20}, onTruck = {3, 4};
         assertArrayEquals(ahead, CordonConvoys.roadCall(ahead, onTruck));

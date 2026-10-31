@@ -44,7 +44,13 @@ public final class BreachShelterLookSuite implements SnapshotSuite {
                 long seed = Long.parseLong(seedAndBiome[0]);
                 String biome = seedAndBiome.length > 1 ? seedAndBiome[1].toUpperCase(Locale.ROOT) : null;
                 try (BattleSimulation sim = HeadlessBattles.fixture(EvacCordonLookSuite.colony(seed, biome))) {
-                    while (sim.getSimTickIndex() < tick && !sim.isComplete()) sim.advance(BattleSimulation.TICK_DT);
+                    int opened = -1;
+                    while (sim.getSimTickIndex() < tick && !sim.isComplete()) {
+                        sim.advance(BattleSimulation.TICK_DT);
+                        if (opened < 0 && sim.getColonyBreach() != null && sim.getColonyBreach().heldBattery() == 0L)
+                            opened = sim.getSimTickIndex();
+                    }
+                    if (opened >= 0) System.out.printf("    [breach-shelter/s%d] the Locust opened at tick %d%n", seed, opened);
                     ReviewAnnotations marks = marks(sim);
                     ReviewAnnotations none = ReviewAnnotations.builder().build();
                     String tag = String.format(Locale.ROOT, "s%d-t%d", seed, sim.getSimTickIndex());
@@ -59,9 +65,11 @@ public final class BreachShelterLookSuite implements SnapshotSuite {
                         if (!r.isMain()) continue;
                         out.add(still(context, sim, x, y, WIDE_CELLS, none, tag + "-shelter-wide.png"));
                         out.add(still(context, sim, x, y, WIDE_CELLS, marks, tag + "-shelter-wide-marked.png"));
-                        System.out.printf("    [breach-shelter/%s] shelter %d..%d x %d..%d, %d survivors registered%n",
-                                tag, r.left(), r.right(), r.bottom(), r.top(),
-                                sim.getCivilianEvacuationTracker().registeredCount());
+                        System.out.printf("    [breach-shelter/%s] shelter %d..%d x %d..%d, %d survivors registered, "
+                                        + "Locust %s%n", tag, r.left(), r.right(), r.bottom(), r.top(),
+                                sim.getCivilianEvacuationTracker().registeredCount(),
+                                sim.getColonyBreach() != null && sim.getColonyBreach().heldBattery() != 0L
+                                        ? "holding fire" : "firing or absent");
                     }
                 }
             }
