@@ -46,4 +46,34 @@ public final class AlliedAirWing {
         sim.setAirPool(service.observedFrom(observers).rovingFrom(teams).homeAt(Faction.ALLY, homeX, homeY));
         return observers;
     }
+
+    /**
+     * Bases the wing {@link #install} gave the allies on an air base of their own on the map
+     * ({@code cordon-nouns.md}, Air base): one hardstand for each airframe of the wing's establishment, bombers first,
+     * at {@code sites} in order (fewer sites lay fewer stands), every nose on {@code facingDegrees}. From then on the
+     * wing takes off from and lands on those stands, its stock is what stands ready there, and a loss is replaced on its
+     * stand after the wing's own regeneration time. Returns the base, or {@code null} when the battle has no wing or no
+     * site was given.
+     */
+    public static HardstandAirBase baseAt(BattleSimulation sim, List<int[]> sites, float facingDegrees) {
+        AirPoolService pool = sim.airPool();
+        if (pool == null || !pool.hasPool(Faction.ALLY) || sites == null || sites.isEmpty()) return null;
+        HardstandAirBase base = new HardstandAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
+        int next = 0;
+        for (AirPoolKind kind : AirPoolKind.values()) {
+            for (int i = 0; i < WING.stock(kind).cap() && next < sites.size(); i++, next++) {
+                int[] site = sites.get(next);
+                base.addStand(site[0], site[1], kind, facingDegrees);
+            }
+        }
+        pool.basedAt(Faction.ALLY, base);
+        return base;
+    }
+
+    /** Stands an air base for the wing lays: one for each airframe of its establishment. */
+    public static int stands() {
+        int n = 0;
+        for (AirPoolKind kind : AirPoolKind.values()) n += WING.stock(kind).cap();
+        return n;
+    }
 }

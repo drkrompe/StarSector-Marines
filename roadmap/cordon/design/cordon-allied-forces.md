@@ -34,7 +34,7 @@ sector beside the garrison is what changes with density.
 | Carriers forward | yes: lift, then stay on the flanks of a calling redoubt as support | yes, roadbound: set down outside the rear gate only, and wait there | no |
 | Ammunition | a truck up the supply road when a redoubt runs low (L2 empties one), escorted by a surplus hull that it keeps to | the same; where the road was not laid, or is cut off, through the town's streets | the same, through the city's streets to the rear gate (built), escorted on foot by a surplus Hound or a street mouth's rifle team (built); a redoubt the streets do not reach is sent none |
 | Reserve, asked by need | an armour pair of technicals for an uncovered sector | the same | a Hound pair walking up |
-| Air and guns | the allied air wing, called through a forward observer in each redoubt (built) | the same | the same; the yard's mortar team as well |
+| Air and guns | the allied air wing off its air base in the rear, called through a forward observer in each redoubt and tasking its own sorties (built) | the same | the same; the yard's mortar team as well |
 
 The pace, counts and lines are starting values to balance on `cordon-line`
 evidence at each density, not settled numbers. The table is one value per
@@ -64,9 +64,11 @@ base.
 
 ## Air and guns
 
-Air comes to the line from the military's air wing, not the base: each
+Air comes to the line from the military's air wing, off its own air base in the rear
+beside the logistics base (`cordon-nouns.md`, Air base): each
 redoubt's garrison carries a forward observer, and the wing strikes the masses
-those observers see (`cordon-nouns.md`, Forward observer). Whether the base
+those observers see (`cordon-nouns.md`, Forward observer), and the air base sends
+its own sorties at what the side can fairly know. Whether the base
 also calls a gunship sortie or brings a gun battery is the heart's answer
 (`heart-allied-forces.md`), not built for the Cordon.
 
