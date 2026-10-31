@@ -124,6 +124,8 @@ public final class CordonSequence implements Objective {
     private CordonBeats beats;
     /** Bores the beats opened (L4, R5), numbered after the timetable's eruptions. */
     private int beatBores;
+    /** The Road's line bores and final surge ({@code cordon-nouns.md}, Line bores), or {@code null}. */
+    private CordonBoreEscalation escalation;
     /** What the next tide's pressure is scaled by: below one after the granary burns (beat L6). */
     private float nextTideScale = 1f;
     private Outcome outcome = Outcome.RUNNING;
@@ -296,8 +298,21 @@ public final class CordonSequence implements Objective {
     /** The battle's optional objectives, or {@code null}. */
     public CordonBeats beats() { return beats; }
 
+    /** Gives the Road its line bores and final surge; at setup, before the first tick. */
+    public void attachEscalation(CordonBoreEscalation escalation) {
+        this.escalation = escalation;
+    }
+
+    /** The Road's line bores and final surge, or {@code null}. */
+    public CordonBoreEscalation escalation() { return escalation; }
+
+    /** The pressure the swarm is held at between tides: the timetable's ordinary, or the surge's floor once it comes. */
+    private float ordinaryShare() {
+        return Math.max(timetable.ordinaryPressure(), escalation == null ? 0f : escalation.pressureFloor());
+    }
+
     /**
-     * Opens a bore for a beat (L4, R5) through the ordinary seam, numbered after every eruption on the
+     * Opens a bore for a beat (L4, R5) or the line's escalation through the ordinary seam, numbered after every eruption on the
      * timetable so the two never share a number. Returns the number; the bore may open on a later tick
      * when its ground is not clear yet.
      */
@@ -396,7 +411,7 @@ public final class CordonSequence implements Objective {
                 && tick >= ticks(timetable.tideSeconds().get(tides))) {
             tides++;
             sim.swarmBores().tide(tick);
-            sim.setSwarmPressureShare(Math.max(timetable.ordinaryPressure(), timetable.tidePressure() * nextTideScale));
+            sim.setSwarmPressureShare(Math.max(ordinaryShare(), timetable.tidePressure() * nextTideScale));
             nextTideScale = 1f;
             ebb = tick + ticks(timetable.tideLengthSeconds());
             emit(tick, "tide_" + tides);
@@ -427,9 +442,10 @@ public final class CordonSequence implements Objective {
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
                         : StoryBeatLog.Audience.PLAYER));
         if (beats != null) beats.advance(sim, tick);
+        if (escalation != null) escalation.advance(sim, tick, this, beat -> emit(tick, beat));
         if (ebb >= 0 && tick >= ebb) {
             ebb = -1;
-            sim.setSwarmPressureShare(timetable.ordinaryPressure());
+            sim.setSwarmPressureShare(ordinaryShare());
         }
     }
 
@@ -643,7 +659,7 @@ public final class CordonSequence implements Objective {
         return true;
     }
 
-    private static boolean isCompany(UnitType type) {
+    static boolean isCompany(UnitType type) {
         return type == UnitType.MARINE || type == UnitType.MARINE_BLUE || type == UnitType.MARINE_RED;
     }
 

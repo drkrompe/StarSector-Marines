@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -85,6 +86,7 @@ final class StoreViewModel {
     private final ComputedSignal<List<CompanyResources.Row>> resourceStock;
     private final ComputedSignal<String> contextLabel;
 
+    private final BooleanSupplier free;
     private List<EquipmentStore.Offer> shelf = List.of();
     /** Slots some sellable item fills; a slot no store can ever stock is not listed. Read once, lazily. */
     private Set<StoreSlot> stockableSlots;
@@ -100,6 +102,14 @@ final class StoreViewModel {
     StoreViewModel(Reactor reactor, Supplier<List<EquipmentStore.Offer>> shelfSource,
                    Supplier<EquipmentStore.Holdings> holdings,
                    FabricationResources purse, Supplier<String> marketName) {
+        this(reactor, shelfSource, holdings, purse, marketName, () -> false);
+    }
+
+    /** {@code free} is the store's Free Licenses cheat: while it holds, every offer costs nothing. */
+    StoreViewModel(Reactor reactor, Supplier<List<EquipmentStore.Offer>> shelfSource,
+                   Supplier<EquipmentStore.Holdings> holdings,
+                   FabricationResources purse, Supplier<String> marketName, BooleanSupplier free) {
+        this.free = free;
         this.shelfSource = shelfSource;
         this.holdings = holdings;
         this.purse = purse;
@@ -172,6 +182,7 @@ final class StoreViewModel {
             revision.get();
             if (offer == null) return Strings.get("storeBuyNothing");
             if (owned(offer)) return Strings.get("storeBuyAcquired");
+            if (free.getAsBoolean()) return Strings.get("storeBuyFree");
             return Strings.format("storeBuyFmt", CompanyResources.creditAmount(offer.price()));
         });
         buyClasses = reactor.computed(() -> {
@@ -179,7 +190,7 @@ final class StoreViewModel {
             revision.get();
             // The shared command key: lit to buy, red when the purse is short, dimmed when there is nothing to buy.
             if (offer == null || owned(offer)) return "store-buy console-action current";
-            return purse.credits() < offer.price() ? "store-buy console-action danger-surface unaffordable"
+            return !free.getAsBoolean() && purse.credits() < offer.price() ? "store-buy console-action danger-surface unaffordable"
                     : "store-buy console-action good-surface";
         });
         resourceStock = reactor.computed(() -> {
@@ -333,11 +344,16 @@ final class StoreViewModel {
         verdictText.set("");
     }
 
+    /** Re-reads the Free Licenses cheat after its key is pressed: prices and the buy key follow it. */
+    void freeChanged() {
+        revision.set(revision.get() + 1);
+    }
+
     /** Buys the selected offer and says what happened. */
     EquipmentStore.Sale buySelected() {
         EquipmentStore.Offer offer = selected();
         if (offer == null) return EquipmentStore.Sale.UNAVAILABLE;
-        EquipmentStore.Sale sale = EquipmentStore.buy(offer, holdings.get(), purse);
+        EquipmentStore.Sale sale = EquipmentStore.buy(offer, holdings.get(), purse, free.getAsBoolean());
         if (sale == EquipmentStore.Sale.SOLD) acquired.add(key(offer));
         verdictText.set(switch (sale) {
             case SOLD -> Strings.format("storeSoldFmt", name(offer));
@@ -363,7 +379,8 @@ final class StoreViewModel {
             String classes = "store-row" + (key.equals(selected) ? " selected" : "")
                     + (owned ? " acquired" : "");
             out.add(new OfferRow(id, classes, name(offer), kind(offer) + " / " + shelfLabel(offer.shelf()),
-                    owned ? Strings.get("storeRowAcquired") : CompanyResources.creditAmount(offer.price()),
+                    owned ? Strings.get("storeRowAcquired") : free.getAsBoolean() ? Strings.get("storeRowFree")
+                            : CompanyResources.creditAmount(offer.price()),
                     offer, StoreSymbolCanvas.has(offer.kind(), offer.id()) ? "store-offer-icon" : "store-offer-icon none",
                     flag.isEmpty() ? NO_FLAG : flag, flag.isEmpty() ? "store-offer-flag none" : "store-offer-flag",
                     () -> select(key)));
@@ -428,7 +445,7 @@ final class StoreViewModel {
     }
 
     private String priceBill(EquipmentStore.Offer offer) {
-        if (owned(offer)) return "";
+        if (owned(offer) || free.getAsBoolean()) return "";
         return CompanyResources.creditBill(offer.price(), purse.credits());
     }
 

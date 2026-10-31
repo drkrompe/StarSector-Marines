@@ -82,6 +82,9 @@ campaign; Company HQ shows its debug button; and a battle's debug panel offers
 victory. Every story record reports each objective met and nobody lost, so the
 arc settles it as a full success (fee, chapter advance, rewards); the company's
 own losses and experience are what the battle had reached.
+The store's **[Cheat] Free Licenses** key, shown only while Debug is on and
+saved with the game, makes every store purchase (loadout cards, mech patterns,
+boat parts) free; the shelf and what it teaches are unchanged.
 
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's

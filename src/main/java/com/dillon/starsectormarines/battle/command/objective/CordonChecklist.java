@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
 import com.dillon.starsectormarines.battle.cordon.CordonBeats;
+import com.dillon.starsectormarines.battle.cordon.CordonBoreEscalation;
 import com.dillon.starsectormarines.battle.cordon.CordonCamp;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Hold;
@@ -64,6 +65,12 @@ public final class CordonChecklist {
                         corridor.get(corridor.size() - 1),
                         camp == null ? null : new Camp(camp.centreX(), camp.centreY(), convoys.sheltered(),
                                 convoys.unloading()), tick));
+            }
+            CordonBoreEscalation escalation = cordon.escalation();
+            if (escalation != null) {
+                Item bores = lineBores(cordon.outcome(), cordon.withdrawn(), escalation.surging(),
+                        escalation.readings(sim));
+                if (bores != null) items.add(bores);
             }
             int[] rally = cordon.rally();
             if (cordon.fallingBack() && rally != null) {
@@ -224,6 +231,63 @@ public final class CordonChecklist {
                 Strings.get("cordonHudFallBackSteps"), Strings.get("cordonHudFallBackInstruction"), "", -1,
                 state == State.ACTIVE ? Strings.get("cordonHudBlockerFallBack") : "", markers,
                 state == State.ACTIVE ? id : "");
+    }
+
+    /**
+     * The Road's line under pressure ({@code cordon-nouns.md}, Line bores): shown from the first site stirring, each
+     * stirring site beaconed with the time until it opens and each open line bore with its number; its focus is the
+     * site opening soonest. Once the final surge comes it says so and asks for the company back behind the line;
+     * complete once the company is behind it, failed with the Road. {@code null} while nothing has stirred.
+     */
+    static Item lineBores(CordonSequence.Outcome outcome, boolean withdrawn, boolean surging,
+                          List<CordonBoreEscalation.Reading> readings) {
+        List<Marker> markers = new ArrayList<>();
+        String focus = "";
+        int soonest = Integer.MAX_VALUE, open = 0;
+        boolean any = surging;
+        for (CordonBoreEscalation.Reading r : readings) {
+            CordonBoreEscalation.Site site = r.site();
+            String id = "cordon-line-bore-" + site.order();
+            String where = site.between() ? Strings.format("cordonHudLineBoreBetween", site.west(), site.east())
+                    : Strings.format("cordonHudLineBoreBefore", site.west());
+            switch (r.status()) {
+                case STIRRING -> {
+                    any = true;
+                    markers.add(new Marker(id, Strings.get("cordonHudLineBore"), site.x(), site.y(),
+                            Strings.format("cordonHudLineBoreStirring", where, clock(r.ticksLeft())), State.ACTIVE));
+                    if (r.ticksLeft() < soonest) {
+                        soonest = r.ticksLeft();
+                        focus = id;
+                    }
+                }
+                case OPEN -> {
+                    any = true;
+                    open++;
+                    markers.add(new Marker(id, Strings.get("cordonHudLineBore"), site.x(), site.y(),
+                            Strings.format("cordonHudLineBoreOpen", where), State.ACTIVE));
+                }
+                case COLLAPSED -> any = true;
+                case PLANNED -> { }
+            }
+        }
+        if (!any) return null;
+        State state = withdrawn && surging || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
+                : outcome == CordonSequence.Outcome.BROKEN ? State.FAILED : State.ACTIVE;
+        if (state != State.ACTIVE) {
+            markers.clear();
+            focus = "";
+        }
+        String wanted = focus;
+        String phase = state == State.COMPLETE ? Strings.get("cordonHudFallBackDone")
+                : state == State.FAILED ? Strings.get("cordonBroken")
+                : surging ? Strings.get("cordonHudLineBoresSurge")
+                : !wanted.isEmpty() ? markers.stream().filter(m -> m.id().equals(wanted)).findFirst()
+                        .map(Marker::status).orElse("")
+                : Strings.format("cordonHudLineBoresQuiet", open);
+        return new Item("cordon-2b-line-bores", Strings.get("cordonHudLineBoresName"), state, phase,
+                Strings.get("cordonHudLineBoresSteps"), Strings.get("cordonHudLineBoresInstruction"),
+                Strings.format("cordonHudLineBoresTally", open, readings.size()), -1,
+                state == State.ACTIVE && surging ? Strings.get("cordonHudBlockerSurge") : "", markers, focus);
     }
 
     /**

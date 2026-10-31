@@ -65,7 +65,7 @@ public final class StoreScreen implements Screen {
         viewport = MarineOpsUiViewport.from(position);
         if (viewModel == null) {
             viewModel = new StoreViewModel(reactor, StoreScreen::liveShelf, StoreScreen::holdings,
-                    new CampaignFabricationResources(), StoreScreen::marketName);
+                    new CampaignFabricationResources(), StoreScreen::marketName, Cheats::freeLicenses);
         } else {
             // Opened again: the market may be another one, and the month may have turned.
             viewModel.refresh();
@@ -114,7 +114,24 @@ public final class StoreScreen implements Screen {
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering,
                 // The page already open is not a dead button.
                 viewModel::refresh);
+        putFreeLicenses(props, Cheats.enabled(), Cheats.freeLicenses(), this::toggleFreeLicenses);
         return props;
+    }
+
+    /** The "[Cheat] Free Licenses" key, shown only while the mission board's Debug key is on. */
+    static void putFreeLicenses(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
+        props.put("freeRailClasses", "store-cheat-rail console-command-rail" + (available ? "" : " hidden"));
+        // A lit key, as the board's keys are: the theme lights a command key's lamp on its good surface.
+        props.put("freeKeyClasses", on ? "good-surface" : "");
+        props.put("freeLabel", Strings.get("storeCheatFreeLicenses"));
+        props.put("freeAction", toggle);
+    }
+
+    private void toggleFreeLicenses() {
+        Cheats.setFreeLicenses(!Cheats.freeLicenses());
+        viewModel.freeChanged();
+        installDocument();
+        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     /** The page's own properties, without the navigation shell; shared with the evidence suite. */
@@ -142,6 +159,7 @@ public final class StoreScreen implements Screen {
         props.put("buyClasses", viewModel.buyClasses());
         props.put("buyAction", (Runnable) viewModel::buySelected);
         props.put("verdict", viewModel.verdict());
+        putFreeLicenses(props, false, false, () -> { });
         return props;
     }
 
