@@ -3269,6 +3269,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 false, radius * 0.6f, true, false));
     }
 
+    /** One explosion of a wreck's blast field, {@code radius} cells, thrown at ({@code vx},{@code vy}); presentation only. */
+    public void wreckBlast(float x, float y, float radius, float vx, float vy) {
+        effects.spawnHullBlast(x, y, radius, vx, vy);
+    }
+
+    /** The dust a hull throws up as it strikes, ringing {@code radius} cells out; presentation only. */
+    public void wreckShockwave(float x, float y, float radius) {
+        effects.spawnCrashShockwave(x, y, radius);
+    }
+
     /** A length of a wreck at rest burning, with its smoke: presentation and the battle's fire, no damage. */
     public void wreckFire(float x, float y, float length, float width) {
         effects.spawnWreckFire(x, y, length, width);
