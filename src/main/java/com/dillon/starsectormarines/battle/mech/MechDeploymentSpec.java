@@ -175,6 +175,10 @@ public record MechDeploymentSpec(
         MechFrame deployed = deployedFrame();
         spec.mechVariant(variant);
         spec.armor(deployed.armorCapacity(), variant.armorRating).moveSpeed(deployed.moveSpeed());
+        // A spall liner's structure: the sections divide whatever the chassis lands with.
+        if (deployed.systems().structureFactor() != 1f) {
+            spec.health(variant.maxStructure * deployed.systems().structureFactor());
+        }
         return spec;
     }
 

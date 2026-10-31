@@ -71,10 +71,10 @@ class ReserveHangarTest {
 
         var vehicle = new CampaignVehicle("support_vehicle_09", "Mule 09", VehicleType.HEAVY_APC);
         bay.addVehicle(MechBay.STARTER_SQUAD_ID, vehicle);
-        bay.addKit(VehicleKit.SPALL_LINER.id, 1);
-        assertTrue(bay.fitKit(vehicle.id(), VehicleKit.SPALL_LINER));
+        bay.addKit(VehicleKit.SENSOR_PAIR.id, 1);
+        assertTrue(bay.fitKit(vehicle.id(), VehicleKit.SENSOR_PAIR));
         assertEquals(ReserveHangar.Status.STORED, hangar.storeMachine(bay, vehicle.id(), 2));
-        assertEquals(0, bay.availableKit(VehicleKit.SPALL_LINER.id), "a stored vehicle's kit is not a spare");
+        assertEquals(0, bay.availableKit(VehicleKit.SENSOR_PAIR.id), "a stored vehicle's kit is not a spare");
         var third = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         assertEquals(ReserveHangar.Status.HANGAR_FULL, hangar.storeMachine(bay, third.id(), 2), "mechs and vehicles share the room");
 
@@ -85,8 +85,8 @@ class ReserveHangarTest {
         for (MechWeaponComponent weapon : MechWeaponComponent.values())
             assertTrue(bay.ownedWeapon(weapon.id) >= bay.installedWeapon(weapon.id), weapon.id + ": owned again once fitted aboard");
         assertEquals(ReserveHangar.Status.RECALLED, hangar.recallMachine(bay, vehicle.id(), MechBay.STARTER_SQUAD_ID, 4));
-        assertEquals(1, bay.ownedKit(VehicleKit.SPALL_LINER.id));
-        assertEquals(0, bay.availableKit(VehicleKit.SPALL_LINER.id));
+        assertEquals(1, bay.ownedKit(VehicleKit.SENSOR_PAIR.id));
+        assertEquals(0, bay.availableKit(VehicleKit.SENSOR_PAIR.id));
     }
 
     @Test void aMachineComesBackOnlyToAWorkingVacantGantry() {

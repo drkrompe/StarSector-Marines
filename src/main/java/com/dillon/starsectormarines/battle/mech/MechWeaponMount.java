@@ -10,6 +10,11 @@ public final class MechWeaponMount {
     public final MechMountSlot slot;
     public final MechWeaponComponent component;
     public int ammo;
+    /**
+     * Trigger packs a full mount holds: its component's, or half again behind a ready rack ({@link #fitReadyRack});
+     * negative for a mount with no limit.
+     */
+    private int capacity;
     /** Mechanical loader/cycler time remaining; never the chassis flux reservoir. */
     public float cycleRemaining;
     public int burstRemaining;
@@ -49,8 +54,25 @@ public final class MechWeaponMount {
         }
         this.slot = slot;
         this.component = component;
-        this.ammo = component.ammoCapacity;
+        this.capacity = component.ammoCapacity;
+        this.ammo = capacity;
         this.rotary = component.rotary() != null ? new RotaryFeed(component.rotary()) : null;
+    }
+
+    /** Trigger packs this mount holds full; negative for a mount with no limit. */
+    public int capacity() { return capacity; }
+
+    /**
+     * Deepens this mount as the machine's compartment does ({@link MachineSystems#rounds}): a finite rack or magazine
+     * holds that many more packs and a rotary gun's belt that many more rounds, each full. A ready rack's effect, the
+     * same on a mech as on a vehicle's turret.
+     */
+    public void fitReadyRack(MachineSystems systems) {
+        if (capacity > 0) {
+            capacity = systems.rounds(component.ammoCapacity);
+            ammo = capacity;
+        }
+        if (rotary != null) rotary.fitBelt(systems.ammoFactor());
     }
 
     /** Whether this mount fires while its trigger is held, off a belt, rather than a pull at a time. */
@@ -78,7 +100,7 @@ public final class MechWeaponMount {
     public WeaponDef weaponDef() { return component.weaponDef(); }
 
     public boolean hasAmmo() {
-        return component.ammoCapacity < 0 || ammo > 0;
+        return capacity < 0 || ammo > 0;
     }
 
     /**
@@ -92,12 +114,12 @@ public final class MechWeaponMount {
     }
 
     public boolean needsSupply() {
-        return component.ammoCapacity >= 0 && ammo < component.ammoCapacity;
+        return capacity >= 0 && ammo < capacity;
     }
 
     /** True when every authored trigger slot on this mount is filled. */
     public boolean full() {
-        return component.ammoCapacity < 0 || ammo >= component.ammoCapacity;
+        return capacity < 0 || ammo >= capacity;
     }
 
     /**
@@ -117,7 +139,7 @@ public final class MechWeaponMount {
         }
         replenishmentProgressSeconds += Math.max(0f, dt);
         while (replenishmentProgressSeconds >= cadence && !full()) {
-            ammo = component.ammoCapacity;
+            ammo = capacity;
             replenishmentProgressSeconds -= cadence;
         }
         if (full()) replenishmentProgressSeconds = 0f;
@@ -211,6 +233,6 @@ public final class MechWeaponMount {
     }
 
     public void consumeTrigger() {
-        if (component.ammoCapacity >= 0) ammo--;
+        if (capacity >= 0) ammo--;
     }
 }

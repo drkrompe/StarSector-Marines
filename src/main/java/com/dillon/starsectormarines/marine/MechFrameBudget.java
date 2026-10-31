@@ -305,7 +305,8 @@ public final class MechFrameBudget {
         }
 
         public MechFrame frame() {
-            return new MechFrame(armorCapacity(), moveSpeed(), fluxCapacity(), dissipationPerSecond());
+            return new MechFrame(armorCapacity(), moveSpeed(), fluxCapacity(), dissipationPerSecond(),
+                    MechCompartment.systems(compartment));
         }
 
     }

@@ -38,9 +38,15 @@ public final class MechLoadoutComponent {
     /** Shared flux state survives control handback; the serial weapon pass owns dissipation. */
     public final MechFlux flux = new MechFlux();
 
-    /** Size the flux reservoir from a frozen deployment frame; before any flux is committed. */
+    /**
+     * Size the flux reservoir from a frozen deployment frame, and deepen every mount by its compartment's ready rack
+     * ({@link MechWeaponMount#fitReadyRack}); before any flux is committed or round fired.
+     */
     public void applyFrame(MechFrame frame) {
         flux.configure(frame.fluxCapacity(), frame.dissipationPerSecond());
+        if (frame.systems().ammoFactor() != 1f) {
+            for (MechWeaponMount mount : mounts) if (mount != null) mount.fitReadyRack(frame.systems());
+        }
     }
 
     /** Manual velocity survives the applied-velocity tick reset, but never handback. */

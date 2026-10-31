@@ -1,8 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.drone.DroneRole;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.EnumSet;
@@ -20,10 +19,6 @@ import java.util.Set;
  * something of the hull ({@link #suits}).</p>
  */
 public enum VehicleKit {
-    /** A fifth more structure. */
-    SPALL_LINER("kit.spall-liner", "@vehicleKitSpallLiner", 1f, 1.2f, 1f, 0f),
-    /** Half again the rounds aboard the turret at the drop: a deeper magazine, or a longer belt. Fed guns only. */
-    READY_RACK("kit.ready-rack", "@vehicleKitReadyRack", 1f, 1f, 1.5f, 0f),
     /**
      * A tethered pair of sensor drones the hull launches and flies ahead of its bow: sight past cover the hull
      * cannot see over, which is what an indirect-fire hull otherwise needs a spotter for. Hulls with no bay of
@@ -101,29 +96,16 @@ public enum VehicleKit {
     }
 
     /**
-     * Whether the hull has what this kit works on: a fed gun for the ready rack (a magazine, or a rotary gun's belt), no bay of its own for the sensor drones, an armed gun tank (the Onager and the laser
+     * Whether the hull has what this kit works on: no bay of its own for the sensor drones, an armed gun tank (the Onager and the laser
      * tank, not the dozer) for active protection, whose launchers stand on its rear flanks.
      */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
         return switch (this) {
-            case READY_RACK -> type.hasTurretWeapon() && fed(type);
             case SENSOR_PAIR -> type.droneBay().isEmpty();
-            case SPALL_LINER -> true;
             case ACTIVE_PROTECTION -> type.isTank() && type.weight() == VehicleType.Weight.HEAVY
                     && type.hasTurretWeapon();
         };
-    }
-
-    /** Whether the hull's own gun draws on ammunition: a magazine, or a rotary gun's belt (a beam has none). */
-    private static boolean fed(VehicleType type) {
-        MechWeaponComponent weapon = type.ownGun();
-        return weapon != null && weapon.rotary() != null && !weapon.rotary().beam() || ownGun(type).mount.ammoCapacity > 0;
-    }
-
-    /** The hull's own gun as it is set down: its turret, or the mech weapon its turret carries ({@link VehicleType#ownGun}). */
-    private static StructureDef ownGun(VehicleType type) {
-        return VehicleGun.fit(type, type.ownGun());
     }
 
     /**
@@ -173,6 +155,13 @@ public enum VehicleKit {
 
         public static Effect of(List<VehicleKit> kits) {
             return of(kits, VehiclePlating.FACTORY, null);
+        }
+
+        /** This effect with what the hull's compartment adds ({@link MachineSystems}): its liner's structure, its ready rack's rounds. */
+        public Effect with(MachineSystems systems) {
+            if (systems == null || systems.equals(MachineSystems.NONE)) return this;
+            return new Effect(armorFactor, structureFactor * systems.structureFactor(), ammoFactor * systems.ammoFactor(),
+                    armorRatingBonus);
         }
 
         /** As above, in the plating the hull wears: its armor factor and, on a tracked hull, its skirts. */

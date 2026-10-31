@@ -1,38 +1,35 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The vehicle kit rack's rules: slots, one of each, what suits a hull, the effect, and stores. */
+/** The vehicle kit rack's rules: slots, one of each, what suits a hull, and stores. */
 class VehicleKitsTest {
 
     @Test
-    void aRackHoldsOneKitPerSlotBesideItsStockBankOneOfEachAndOnlyWhatSuitsTheHull() {
+    void aRackHoldsOneKitPerSlotBesideItsCompartmentPartsOneOfEachAndOnlyWhatSuitsTheHull() {
         assertEquals(2, VehicleKit.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has two slots");
         assertEquals(3, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull three");
         assertEquals(4, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
 
-        assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK)));
-        assertFalse(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)),
-                "the stock bank and loader take two of the three slots");
-        assertTrue(VehicleKit.fits(VehicleType.SUPPLY_TRUCK, List.of(VehicleKit.SPALL_LINER, VehicleKit.SENSOR_PAIR)),
-                "an unarmed hull needs no bank");
+        assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.SENSOR_PAIR)));
+        List<MechInternal> lined = new ArrayList<>(VehicleRack.stockFit(VehicleType.FIRE_SUPPORT_APC));
+        lined.add(MechInternal.SPALL_LINER);
+        assertFalse(VehicleRack.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.SENSOR_PAIR), lined),
+                "the stock bank, loader and a liner take all three slots");
+        assertTrue(VehicleRack.fits(VehicleType.SUPPLY_TRUCK, List.of(VehicleKit.SENSOR_PAIR),
+                List.of(MechInternal.SPALL_LINER)), "an unarmed hull needs no bank");
         assertFalse(VehicleKit.fits(VehicleType.BREAKTHROUGH_TANK,
-                List.of(VehicleKit.SPALL_LINER, VehicleKit.SPALL_LINER)), "no kit twice");
-        assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
-        for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
-                VehicleType.DOZER_BREACHER)) {
-            assertTrue(VehicleKit.READY_RACK.suits(beltFed), "a belt-fed gun's belt deepens: " + beltFed);
-        }
+                List.of(VehicleKit.SENSOR_PAIR, VehicleKit.SENSOR_PAIR)), "no kit twice");
     }
 
     @Test
@@ -41,7 +38,7 @@ class VehicleKitsTest {
         assertFalse(VehicleKit.SENSOR_PAIR.suits(VehicleType.HOVER_SCOUT), "it has a sensor pair already");
         assertFalse(VehicleKit.SENSOR_PAIR.suits(VehicleType.DRONE_SKIMMER), "it has a bay");
         assertEquals(2, VehicleKit.SENSOR_PAIR.droneBay().size());
-        assertTrue(VehicleKit.SPALL_LINER.droneBay().isEmpty());
+        assertTrue(VehicleKit.ACTIVE_PROTECTION.droneBay().isEmpty());
     }
 
     @Test
@@ -53,24 +50,10 @@ class VehicleKitsTest {
             assertFalse(VehicleKit.ACTIVE_PROTECTION.suits(other), "not a gun tank: " + other);
         }
         assertEquals("structure.tank-aps", VehicleKit.activeProtectionStructureId(
-                List.of(VehicleKit.SPALL_LINER, VehicleKit.ACTIVE_PROTECTION)));
-        assertEquals(null, VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SPALL_LINER)));
+                List.of(VehicleKit.SENSOR_PAIR, VehicleKit.ACTIVE_PROTECTION)));
+        assertEquals(null, VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SENSOR_PAIR)));
         assertTrue(VehicleKit.speedFactor(List.of(VehicleKit.ACTIVE_PROTECTION)) < 1f, "the launchers cost speed");
-        assertEquals(1f, VehicleKit.speedFactor(List.of(VehicleKit.SPALL_LINER)), 0f);
-    }
-
-    @Test
-    void kitsChangeOnlyTheNumbersTheHullIsSetDownWith() {
-        VehicleKit.Effect effect = VehicleKit.Effect.of(List.of(VehicleKit.SPALL_LINER, VehicleKit.READY_RACK));
-        assertEquals(1f, effect.armorFactor(), 1e-6f, "armor is the armor point's, not the rack's");
-        assertEquals(1.2f, effect.structureFactor(), 1e-6f);
-        assertEquals(1.5f, effect.ammoFactor(), 1e-6f);
-        assertEquals(VehicleKit.Effect.NONE, VehicleKit.Effect.of(List.of()));
-
-        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        HullLocations bare = HullLocations.of(tank, null);
-        HullLocations lined = HullLocations.of(tank, null, VehicleKit.Effect.of(List.of(VehicleKit.SPALL_LINER)));
-        assertEquals(bare.maxDrive() * 1.2f, lined.maxDrive(), 1e-3f, "the drive's share of the larger structure");
+        assertEquals(1f, VehicleKit.speedFactor(List.of(VehicleKit.SENSOR_PAIR)), 0f);
     }
 
     @Test
@@ -80,24 +63,24 @@ class VehicleKitsTest {
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc));
         assertTrue(apc.kits().isEmpty(), "a bought hull comes with an empty rack");
 
-        assertFalse(bay.fitKit("v1", VehicleKit.SPALL_LINER), "nothing in stores");
-        bay.addKit(VehicleKit.SPALL_LINER.id, 2);
-        assertTrue(bay.fitKit("v1", VehicleKit.SPALL_LINER));
-        assertEquals(1, bay.availableKit(VehicleKit.SPALL_LINER.id));
-        assertEquals(List.of(VehicleKit.SPALL_LINER), apc.freezeForDeployment().kits(), "the drop carries the rack");
+        assertFalse(bay.fitKit("v1", VehicleKit.SENSOR_PAIR), "nothing in stores");
+        bay.addKit(VehicleKit.SENSOR_PAIR.id, 2);
+        assertTrue(bay.fitKit("v1", VehicleKit.SENSOR_PAIR));
+        assertEquals(1, bay.availableKit(VehicleKit.SENSOR_PAIR.id));
+        assertEquals(List.of(VehicleKit.SENSOR_PAIR), apc.freezeForDeployment().kits(), "the drop carries the rack");
 
-        assertTrue(bay.stripKit("v1", VehicleKit.SPALL_LINER));
-        assertEquals(2, bay.availableKit(VehicleKit.SPALL_LINER.id), "a stripped kit is a spare");
+        assertTrue(bay.stripKit("v1", VehicleKit.SENSOR_PAIR));
+        assertEquals(2, bay.availableKit(VehicleKit.SENSOR_PAIR.id), "a stripped kit is a spare");
 
-        assertTrue(bay.fitKit("v1", VehicleKit.SPALL_LINER));
+        assertTrue(bay.fitKit("v1", VehicleKit.SENSOR_PAIR));
         assertTrue(bay.scrapVehicle("v1"));
-        assertEquals(2, bay.availableKit(VehicleKit.SPALL_LINER.id), "a scrap spares the kit");
+        assertEquals(2, bay.availableKit(VehicleKit.SENSOR_PAIR.id), "a scrap spares the kit");
 
         CampaignVehicle lost = new CampaignVehicle("v2", "Lost", VehicleType.HEAVY_APC);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, lost));
-        assertTrue(bay.fitKit("v2", VehicleKit.SPALL_LINER));
+        assertTrue(bay.fitKit("v2", VehicleKit.SENSOR_PAIR));
         assertEquals(1, bay.loseVehicles(List.of("v2")));
-        assertEquals(1, bay.ownedKit(VehicleKit.SPALL_LINER.id), "a wrecked hull takes its kit with it");
+        assertEquals(1, bay.ownedKit(VehicleKit.SENSOR_PAIR.id), "a wrecked hull takes its kit with it");
     }
 
     @Test
@@ -107,11 +90,11 @@ class VehicleKitsTest {
         field.setAccessible(true);
         field.set(old, null);
         assertTrue(old.kits().isEmpty());
-        assertTrue(old.fit(VehicleKit.SPALL_LINER), "an old hull still takes a kit");
+        assertTrue(old.fit(VehicleKit.SENSOR_PAIR), "an old hull still takes a kit");
 
-        MechPattern pattern = MechPattern.of(VehicleKit.SPALL_LINER);
+        MechPattern pattern = MechPattern.of(VehicleKit.SENSOR_PAIR);
         assertEquals(pattern, MechPattern.parse(pattern.id()));
         assertEquals(MechPattern.Kind.KIT, pattern.kind());
-        assertTrue(MechFabricationCatalog.kit(VehicleKit.SPALL_LINER) != null);
+        assertTrue(MechFabricationCatalog.kit(VehicleKit.SENSOR_PAIR) != null);
     }
 }

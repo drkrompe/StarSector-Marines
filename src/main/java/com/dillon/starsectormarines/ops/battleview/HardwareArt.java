@@ -124,6 +124,9 @@ final class HardwareArt {
             case FACTORY_PLATING -> "plating-factory";
             case COMPOSITE_PLATING -> "plating-composite";
             case HEAVY_PLATING -> "plating-heavy";
+            // The vehicle kits' drawings, the same part on every machine.
+            case SPALL_LINER -> "kit-spall-liner";
+            case READY_RACK -> "kit-ready-rack";
         };
     }
 

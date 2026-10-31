@@ -3045,9 +3045,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
             for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
-            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
-            bay.addKit(VehicleKit.READY_RACK.id, 1);
-            bay.fitKit(tank.id(), VehicleKit.SPALL_LINER);
+            bay.learnPattern(MechPattern.of(MechInternal.SPALL_LINER).id());
+            bay.learnPattern(MechPattern.of(MechInternal.READY_RACK).id());
+            bay.addInternal(MechInternal.SPALL_LINER.id, 1);
+            bay.addInternal(MechInternal.READY_RACK.id, 1);
+            bay.fitRackPart(tank.id(), MechInternal.SPALL_LINER);
             bay.addInternal(MechInternal.AUXILIARY_VENT_ARRAY.id, 1);
             bay.fitRackPart(tank.id(), MechInternal.AUXILIARY_VENT_ARRAY);
             bay.addInternal(MechInternal.COMPOSITE_PLATING.id, 1);
@@ -3063,7 +3065,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         if (recycling) {
             String armed = "recycle-weapons".equals(materialHint)
-                    ? MechWeaponComponent.SRM_5.id : VehicleKit.READY_RACK.id;
+                    ? MechWeaponComponent.SRM_5.id : MechInternal.READY_RACK.id;
             viewModel.catalogRows().get().stream()
                     .filter(row -> row.card().id().equals("mech-catalog:" + armed))
                     .findFirst().orElseThrow().card().recycle().action().run();
@@ -3072,9 +3074,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if ("vehicle-apc".equals(materialHint)) {
             CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.HEAVY_APC);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc);
-            bay.learnPattern(MechPattern.of(VehicleKit.SPALL_LINER).id());
-            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
-            bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
+            bay.learnPattern(MechPattern.of(MechInternal.SPALL_LINER).id());
+            bay.addInternal(MechInternal.SPALL_LINER.id, 1);
+            bay.fitRackPart(apc.id(), MechInternal.SPALL_LINER);
             viewModel.gantryRows().get().get(3).select().run();
         }
         // A tank with an HC-20 fitted in its gun card and an HC-10 spare, the gun card selected:

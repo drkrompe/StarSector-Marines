@@ -33,13 +33,14 @@ class VehicleRackTest {
     @Test
     void aHeavyRackIsTwoBaysAndAFullOneSpillsIntoTheSecond() {
         VehicleType heavy = VehicleType.BREAKTHROUGH_TANK;
-        List<VehicleKit> kits = suiting(heavy, 3);
-        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, kits, List.of(MechInternal.FACTORY_CAPACITOR_BANK));
+        List<VehicleKit> kits = suiting(heavy, 2);
+        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, kits,
+                List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.SPALL_LINER));
         assertNotNull(placed);
         assertEquals(SocketId.AUXILIARY, placed.get(0).grid());
         assertTrue(placed.stream().anyMatch(p -> p.grid() == SocketId.AUXILIARY_2));
-        assertFalse(VehicleRack.fits(heavy, suiting(heavy, 3),
-                List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY)));
+        assertFalse(VehicleRack.fits(heavy, suiting(heavy, 2), List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+                MechInternal.AUXILIARY_VENT_ARRAY, MechInternal.SPALL_LINER)));
     }
 
     @Test

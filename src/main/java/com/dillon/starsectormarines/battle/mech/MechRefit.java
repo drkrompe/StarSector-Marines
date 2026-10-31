@@ -29,6 +29,6 @@ public record MechRefit(float accuracyMult, float dissipationMult, float armorMu
     public MechFrame over(MechFrame frame) {
         if (neutral()) return frame;
         return new MechFrame(frame.armorCapacity() * armorMult, frame.moveSpeed(),
-                frame.fluxCapacity(), frame.dissipationPerSecond() * dissipationMult);
+                frame.fluxCapacity(), frame.dissipationPerSecond() * dissipationMult, frame.systems());
     }
 }

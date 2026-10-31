@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.VehicleRack;
 
@@ -183,7 +184,7 @@ public final class ConvoyService implements BodyCarrier {
             flux = new HullReservoir.Frame(flux.capacity(), Math.max(0f, flux.dissipationPerSecond() + engine.dissipation()));
         }
         MissileReplenisherComponent loader = VehicleRack.loader(compartment);
-        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
+        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type).with(MechCompartment.systems(compartment));
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 

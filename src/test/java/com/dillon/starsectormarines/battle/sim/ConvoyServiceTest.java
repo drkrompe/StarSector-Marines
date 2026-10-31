@@ -79,7 +79,8 @@ public class ConvoyServiceTest {
         VehicleStockFit fit = VehicleStockFit.CONVOY_ESCORT;
         long bare = convoy.spawn(fit.type, Faction.ALLY, mission());
         long fitted = convoy.spawn(fit, Faction.ALLY, mission());
-        long same = convoy.spawn(fit.type, fit.kits, fit.plating, fit.engine, Faction.ALLY, mission());
+        long same = convoy.spawn(fit.type, fit.kits, fit.plating, fit.engine, fit.type.standardPart(), fit.compartment,
+                Faction.ALLY, mission());
 
         assertSame(fit.type, convoy.vehicleType(fitted));
         assertEquals(fit.engine.speedFactor(), convoy.body(fitted).speedFactor, 1e-6f);

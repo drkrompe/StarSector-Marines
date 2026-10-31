@@ -332,7 +332,7 @@ durability number with it. A tougher or faster APC is not a hull: it is the APC
 with plating and an engine at its armor point and engine core (`mechs-nouns.md`),
 fitted by a company or named as a **stock fit** a mission fields
 (`VehicleStockFit`). The convoy escort is the APC in heavy plating on a military
-engine with a spall liner (`VehicleStockFit.CONVOY_ESCORT`): 264
+engine with a spall liner in its compartment (`VehicleStockFit.CONVOY_ESCORT`): 264
 structure behind 224 armor at rating 18, a fifth faster than the bare hull, its reservoir
 shedding 5.5 flux a second against the factory bank's 6 for the hotter engine.
 

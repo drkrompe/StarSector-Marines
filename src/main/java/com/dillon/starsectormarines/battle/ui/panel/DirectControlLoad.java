@@ -82,7 +82,7 @@ public final class DirectControlLoad {
         // A beam has nothing to count: flux, read on its own gauge, is all that stops it.
         if (mount.isRotary() && mount.rotary.beam()) return new Load(1f, 0, 0, false);
         if (mount.isRotary()) return new Load(1f, mount.rotary.beltRounds(), mount.rotary.def().belt(), false);
-        int capacity = mount.component.ammoCapacity;
+        int capacity = mount.capacity();
         float recharge = capacity >= 0 && mount.ammo <= 0 ? mount.rechargeRemaining() : 0f;
         // An empty rack's clock is its recharge.
         float clock = recharge > 0f ? Load.clock(recharge, mount.rechargeSeconds)

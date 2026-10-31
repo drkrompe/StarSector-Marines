@@ -79,6 +79,18 @@ public final class RotaryFeed {
                 def.fluxPerRound());
     }
 
+    /**
+     * Deepens the belt as the machine's ready rack does: {@code beltFactor} times the authored belt, full, the hopper
+     * keeping its loader's rate. A beam has no belt.
+     */
+    public void fitBelt(float beltFactor) {
+        if (def.beam()) return;
+        def = new RotaryFeedDef(def.spinUpSeconds(), def.coastSeconds(), def.spinDownSeconds(), def.firstTurnRate(),
+                def.fullRate(), Math.max(1, Math.round(authored.belt() * beltFactor)), def.refillPerSecond(),
+                def.fluxPerRound());
+        belt = def.belt();
+    }
+
     /** The feed as this machine carries it: the hopper at its loader's rate, the belt its ready rack's size. */
     public RotaryFeedDef def() { return def; }
 

@@ -302,8 +302,9 @@ increasing an encounter's total armored threat.
   compartment-packed as a mech's compartment is (`VehicleRack`, owner 2026-10-30): a Light hull has
   one 2x2 bay (2 slots), a Medium one 2x3 bay (3), a Heavy two 2x2 bays (4)
   (`VehicleType.weight`). A slot is a two-column row; a kit takes one. The rack also takes the mech's
-  own **capacitor banks**, **vent arrays** and **loaders** at their mech footprints (factory and double bank
-  2x1, military bank 2x2, vent array and loaders 2x1), at most one bank and one loader: the bank and every vent
+  own **capacitor banks**, **vent arrays**, **loaders**, **spall liners** and **ready racks** at their mech
+  footprints (factory and double bank 2x1, military bank 2x2, every other part 2x1), at most one bank, one
+  loader, one liner and one ready rack: the bank and every vent
   array are the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the
   loader paces its guns (the loader, below). An
   **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
@@ -311,15 +312,12 @@ increasing an encounter's total armored threat.
   bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting another bank or
   loader returns the old one to stores. An unarmed hull takes no bank and is built with no loader. A
   vehicle carries at most one of each kit, and a kit may need something of the hull
-  (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
+  (no bay of its own, a gun tank's flanks). Kits are inventory parts exactly as internals are:
   learned as patterns, bought for their price into stores, dragged onto the rack and
   off it again, lost with the hull and spared by a scrap. A kit changes the
   vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
   bay one the battle already flies, so it adds no behaviour of its own and no
   balance surface beyond its own effect:
-  - **Spall liner** (Common): a fifth more structure.
-  - **Ready rack** (Common, hulls whose own gun is fed: a magazine or a rotary gun's belt): half again
-    the turret's magazine, or half again a rotary gun's belt.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
     over cover with no spotter (`convoy-nouns.md`, the missile carriers).
@@ -335,8 +333,23 @@ increasing an encounter's total armored threat.
   A bought hull comes with its bank and standard loader and an empty kit row; a hull saved before the
   rack held banks loads with none and stays off the drop until one is fitted. A hull saved while its
   loader was sealed in it carries the standard loader in its compartment (an accelerated-loader kit
-  on its rack becomes its loader instead); where that no longer packs, its kits and then its vent
-  arrays come off last-fitted first into stores, so nothing owned is lost.
+  on its rack becomes its loader instead); where that no longer packs, its kits and then its other
+  compartment parts (vent arrays, a liner or ready rack) come off last-fitted first into stores, so nothing
+  owned is lost.
+- **One machine, one part catalog** (owner, 2026-10-30). A mech and a vehicle fit the same internals
+  (`MechInternal`); whether a part goes on a machine is its own **requirements** against what the chassis
+  offers (`MechInternal.unmet`, `MachineCapabilities`), never whether it is a mech or a vehicle: a
+  capacitor bank or vent array needs a gun (an unarmed machine has no reservoir), a ready rack a fed weapon
+  (a finite rack or magazine, or a rotary gun's belt; a beam has none). What the auxiliary compartment's
+  parts make of the machine at the drop beyond its frame and loader is one record, `MachineSystems`, read
+  by a mech's frame and a vehicle's spawn alike:
+  - **Spall liner** (Common, any machine; once the vehicle's kit `kit.spall-liner`): a fifth more structure,
+    the mech's sections dividing the larger whole as a hull's locations do.
+  - **Ready rack** (Common, a machine with a fed weapon; once `kit.ready-rack`): half again the packs in every
+    finite missile rack and magazine and half again every rotary gun's belt, all full at the drop
+    (`MechWeaponMount.fitReadyRack`).
+  A save's retired kit ids, spares and learned kit patterns read as these internals
+  (`MechInternal.RETIRED_KITS`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): every hull
