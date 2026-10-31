@@ -33,9 +33,11 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     /** Half the side of the square drawn round a site, in cells. */
     private static final int MARK = 2;
+    /** Cells across the pull-out zone's close frame. */
+    private static final int ZONE_ACROSS = 140;
 
     @Override public String id() { return "cordon-line-bores"; }
-    @Override public String label() { return "Cordon Road: the bores planned along the line, in opening order"; }
+    @Override public String label() { return "Cordon Road: the bores planned along the line and by the town, in opening order, and the pull-out zone"; }
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
@@ -54,7 +56,7 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer whole = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H);
             out.add(new SnapshotArtifact(tag + "01-whole-map.png", whole.render(sim,
                     "Ain Tafrant, town road, arid seed " + seed + ": " + sites.size()
-                            + " line bores planned, numbered in opening order", marks)));
+                            + " bores planned (line and town), numbered in opening order, and the pull-out zone", marks)));
             float minX = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
             for (CordonRedoubt r : cordon.redoubts()) {
                 minX = Math.min(minX, r.left());
@@ -80,6 +82,28 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
                         near.render(sim, String.format("the line's %s half, %.0f cells across",
                                 h == 0 ? "west" : "east", span), marks)));
             }
+            CordonTown town = cordon.town();
+            if (town != null) {
+                float tx0 = town.left(), tx1 = town.right(), ty0 = town.top(), ty1 = town.bottom();
+                for (Site s : sites) {
+                    if (!s.town()) continue;
+                    tx0 = Math.min(tx0, s.x());
+                    tx1 = Math.max(tx1, s.x());
+                    ty0 = Math.min(ty0, s.y());
+                    ty1 = Math.max(ty1, s.y());
+                }
+                float span = Math.max(tx1 - tx0, (ty1 - ty0) * FRAME_W / FRAME_H) + 40f;
+                near.refocus((tx0 + tx1) / 2f + 0.5f, (ty0 + ty1) / 2f + 0.5f, span);
+                out.add(new SnapshotArtifact(tag + "04-town-bores.png", near.render(sim,
+                        String.format("the surge's bores by the town, %.0f cells across", span), marks)));
+            }
+            CordonPullOut zone = cordon.pullOut();
+            if (zone != null) {
+                near.refocus(zone.x() + 0.5f, zone.y() + 0.5f, ZONE_ACROSS);
+                out.add(new SnapshotArtifact(tag + "05-pull-out-zone.png", near.render(sim,
+                        String.format("the pull-out zone at (%d, %d), %d cells across: the trigger point behind the line",
+                                zone.x(), zone.y(), ZONE_ACROSS), marks)));
+            }
         }
         return out;
     }
@@ -97,6 +121,14 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
             if (convoys.camp() != null) {
                 marks.label(convoys.camp().centreX(), convoys.camp().centreY(), "SAFE CAMP", ReviewStyle.LANDING);
             }
+        }
+        CordonPullOut zone = cordon.pullOut();
+        if (zone != null) {
+            List<ReviewAnnotation.Cell> cells = new ArrayList<>();
+            for (int[] c : zone.cells()) cells.add(new ReviewAnnotation.Cell(c[0], c[1]));
+            marks.cells(cells, "", ReviewStyle.LANDING);
+            marks.label(zone.x(), zone.y() + CordonPullOut.RADIUS + 3,
+                    "PULL-OUT ZONE (order a squad here; hold it to finish)", ReviewStyle.LANDING);
         }
         for (CordonRedoubt r : cordon.redoubts()) {
             marks.label(r.centreX(), r.centreY(), "REDOUBT " + r.number()
@@ -119,9 +151,14 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
                 when = String.format("%d:%02d or convoy %d home or %d%% out", step.seconds() / 60, step.seconds() % 60,
                         step.tripsHome(), Math.round(step.peopleShare() * 100));
             }
-            String where = s.between() ? "R" + s.west() + "-R" + s.east() : "before R" + s.west();
+            String where = switch (s.kind()) {
+                case BETWEEN -> "R" + s.west() + "-R" + s.east();
+                case FRONT -> "before R" + s.west();
+                case TOWN_BEYOND -> "beyond the town";
+                case TOWN_FLANK -> "town's far flank";
+            };
             marks.cells(cells, "", s.surge() ? ReviewStyle.OBJECTIVE : ReviewStyle.KEEP);
-            marks.label(s.x(), s.y() - 4, "LINE BORE " + s.order() + " (" + where + "): " + when,
+            marks.label(s.x(), s.y() - 4, (s.town() ? "TOWN BORE " : "LINE BORE ") + s.order() + " (" + where + "): " + when,
                     s.surge() ? ReviewStyle.OBJECTIVE : ReviewStyle.KEEP);
         }
         return marks.build();
