@@ -1481,6 +1481,7 @@ public final class BattleSetup {
                     (kind == OpeningOperationKind.RELIEF ? RELIEF_LIFT_DELAY_SEC : 0f)
                             + i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
+            if (!localMilitia) equipDefaultTurrets(sim, shuttleId);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             if (groundStart && !localMilitia) {
                 // The company is already ashore; a committed boat waits in reserve with no inbound recipe.
@@ -1604,6 +1605,7 @@ public final class BattleSetup {
             float[] entry=shuttleEntryFor(x,y,map.grid.getWidth(),map.grid.getHeight(),pad.approach);
             long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
                     entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
+            equipDefaultTurrets(sim,air);
             var mission=sim.world().mission(air);
             mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
             mission.commandClaim=SquadCommandClaim.mission(SalvageRightsCommand.issuer(Faction.MARINE),"Company recovery lift");
@@ -2016,6 +2018,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(WaterUnderSealCommand.issuer(Faction.MARINE), "Company fitted weir lift");
@@ -2074,6 +2077,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(LimitedWarrantCommand.issuer(Faction.MARINE), "Company fitted recovery lift");
@@ -2137,6 +2141,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company fitted escort lift");
@@ -2195,6 +2200,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(YardOwnersCommand.issuer(Faction.MARINE), "Company fitted inspection lift");
@@ -2262,6 +2268,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(claim, "Company fitted handover lift");
@@ -2361,6 +2368,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission(SmallWarCommand.issuer(Faction.MARINE), "Company fitted Black Sluice lift");
@@ -2448,6 +2456,7 @@ public final class BattleSetup {
             float[] entry=shuttleEntryFor(x,y,map.grid.getWidth(),map.grid.getHeight(),pad.approach);
             long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
                     entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
+            equipDefaultTurrets(sim,air);
             var mission=sim.world().mission(air);
             mission.manifestOrdinal=i;
             // Committed fitted boats remain in reserve;
@@ -2517,6 +2526,7 @@ public final class BattleSetup {
             float[] entry=shuttleEntryFor(x,y,map.grid.getWidth(),map.grid.getHeight(),pad.approach);
             long air=sim.spawnShuttle(assignment.type,assignment.airframe,Faction.MARINE,x,y,
                     entry[0],entry[1],entry[2],entry[3],i*SHUTTLE_DROP_STAGGER_SEC,assignment.seatsPerSortie);
+            equipDefaultTurrets(sim,air);
             var mission=sim.world().mission(air);
             mission.totalCycles=assignment.cycles;mission.manifestOrdinal=i;
             mission.commandClaim=SquadCommandClaim.mission(WorkingPassageCommand.issuer(Faction.MARINE),"Company recovery lift");
@@ -2581,6 +2591,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, faction,
                     x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            if (faction == Faction.MARINE) equipDefaultTurrets(sim, air);
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i - 1;
@@ -2689,6 +2700,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, faction,
                     x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            if (faction == Faction.MARINE) equipDefaultTurrets(sim, air);
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i < 2 ? -1 : i - 2;
@@ -2743,6 +2755,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, faction,
                     x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            if (faction == Faction.MARINE) equipDefaultTurrets(sim, air);
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i < 2 ? -1 : i - 2;
@@ -2829,6 +2842,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(x, y, LastLiftCompound.WIDTH, LastLiftCompound.HEIGHT, pad.approach);
             long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE,
                     x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            equipDefaultTurrets(sim, air);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
             mission.commandClaim = SquadCommandClaim.mission("rescue-corridor", "Rill relief and escort");
