@@ -14,33 +14,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-/** Where the air base's apron is laid, and what its own sorties go at. */
+/** Where the air base's lot is reserved, and what its own sorties go at. */
 class CordonAirBaseTest {
-
-    @Test
-    void theApronIsTheRowOfStandsNearestWhereItIsSoughtOnFreeGround() {
-        // Free everywhere but a band through the anchor's rows: the row moves just clear of it.
-        CordonAirBase.CellTest free = (x, y) -> x >= 0 && y >= 0 && x < 100 && y < 100 && (y < 45 || y > 55);
-        List<int[]> row = CordonAirBase.site(free, 50, 50, 4, 6, 2, 30);
-        assertNotNull(row);
-        assertEquals(4, row.size());
-        int y = row.get(0)[1];
-        // A footprint two cells either side keeps the row's middle eight rows off the band's middle.
-        assertEquals(8, Math.abs(y - 50));
-        for (int i = 1; i < row.size(); i++) {
-            assertEquals(6, row.get(i)[0] - row.get(i - 1)[0]);
-            assertEquals(y, row.get(i)[1]);
-        }
-    }
-
-    @Test
-    void noApronWhereNoRowFits() {
-        CordonAirBase.CellTest narrow = (x, y) -> x >= 40 && x < 52;
-        assertNull(CordonAirBase.site(narrow, 45, 45, 4, 6, 2, 20));
-    }
 
     @Test
     void aCallingRedoubtsSwarmComesBeforeASeenMassAndABoreLast() {

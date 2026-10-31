@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
@@ -195,6 +197,7 @@ public final class BattleProbe {
         commands.put("ground", this::ground);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
+        commands.put("airbase", a -> airbase());
         commands.put("corridor", a -> {
             JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex());
             if (sim.getCordon() == null || sim.getCordon().convoys() == null) return out;
@@ -213,6 +216,21 @@ public final class BattleProbe {
      * The Cordon's line command: each redoubt's truck way (start, way length and end) and each truck sent (its id,
      * state, pace, escort and cell), the road hulls' escorts, and every beat's own description.
      */
+    /** The Cordon's air base: each bay's place, airframe and state, and the sorties the base has tasked itself. */
+    private JSONObject airbase() throws Exception {
+        JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex());
+        CordonAirBase air = sim.getCordon() == null ? null : sim.getCordon().airBase();
+        if (air == null) return out.put("airBase", JSONObject.NULL);
+        JSONArray bays = new JSONArray();
+        for (AirfieldService.Berth b : air.field().berths()) {
+            bays.put(new JSONObject().put("x", b.centerX).put("y", b.centerY).put("airframe", String.valueOf(b.airframe))
+                    .put("kind", String.valueOf(air.field().kindOf(b))).put("state", String.valueOf(b.state))
+                    .put("airworthy", b.airworthy()).put("berth", String.valueOf(b.kind)));
+        }
+        return out.put("bays", bays).put("sorties", air.sorties())
+                .put("strip", air.field().field().stripOf(air.field().berths().get(0)) != null);
+    }
+
     private JSONObject cordon() throws Exception {
         JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex());
         CordonSequence cordon = sim.getCordon();

@@ -35,10 +35,7 @@ public final class CordonAirBaseLookSuite implements SnapshotSuite {
         String density = System.getProperty("snapshot.cordonAirBase.density", "rural").trim();
         BattleSimulation probe = battle(seed, density);
         CordonAirBase air = probe.getCordon().airBase();
-        if (air == null) throw new IllegalStateException("no air base on seed " + seed);
-        if (air.ground() != CordonAirBase.Ground.LOT) {
-            throw new IllegalStateException("seed " + seed + " laid no airbase lot: the wing stands on open ground");
-        }
+        if (air == null) throw new IllegalStateException("seed " + seed + " laid no airbase lot with a strip: no air base");
         int[] lot = air.centre();
         // The field parks an airframe on each berth at its first tick: the still is that tick, one sixtieth of a second
         // in, before anything has moved.

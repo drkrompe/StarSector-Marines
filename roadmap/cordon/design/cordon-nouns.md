@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — sandbag lines across the posterns' street mouths with a clear field of fire, room from buildings and off the convoys' ground (*Town sandbags*); the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the air base is an ordinary laid airbase (*Air base*): its bays, three fighters and two bombers, are the wing, rebuilt by the field's crew, and a map with no lot or strip flies the wing in over the rear edge; sandbag lines across the posterns' street mouths with a clear field of fire, room from buildings and off the convoys' ground (*Town sandbags*); the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -216,7 +216,7 @@ stand; the company never commands it.
 call air: each redoubt's garrison carries one radio, in its front wall team
 (the first team behind the slits facing the front), on a soldier other than its
 leader (`air-nouns.md`, Forward observer). Through it the military's **air
-wing** (two bombers and two fighters, flying off the *Air base* below) strikes a swarm
+wing** (the air base's bays, two bombers and three fighters, flying off the *Air base* below) strikes a swarm
 mass that observer has in sight, never within ten cells of an allied or company
 soldier, and never a Harrier pack overhead. Its officer reads the anti-air from
 the colonies the side has seen, so a mass in front of a bore whose colonies
@@ -229,22 +229,20 @@ airbase lot, a field (a strip, three berths and two sheds) the map holds in a
 rear corner from before anything grows (`cordon-map-intent.md`, The air base;
 `CordonPlan.airBase`), its strip along the edge toward the front. It is an
 allied lot: it publishes no compound for the swarm to take and no pad the
-company lands on. The wing is based on it as The Burn's is
-(`AlliedAirWing.baseOnLot`): one airframe in each shed, bombers first, rolling
-out and down the strip for every sortie and landing and taxiing home after; the
-rest on the apron's berths, lifting off them. The aircraft there are the allies'
-own parked units: drawn, seen by the swarm and killable where they stand
-(`air-nouns.md`, A based pool). The allies post four technicians on the apron
-out of the lot's sheds, who work every turnaround (about twenty-five seconds'
-servicing, longer when an airframe comes home shot up); where none can be posted
-the berths' abstract hands do it. One shot down is replaced on its berth after
-the wing's own time (a minute for a bomber, forty-five seconds for a
-fighter), and one burned where it stood leaves its hulk and the berth is out for the battle. A
-map that laid no lot falls back to a row of four hardstands on open ground some
-twenty-four cells behind the logistics base, clear of the corridor, the roads,
-the company's pads and the base's apron, every nose toward the front, and the
-log says so (`cordon: the map laid no airbase lot`); a rear with no room even
-for that lays no base, and the wing flies in over the rear edge. Besides the
+company lands on. It is opened as an allied field with its own strip, as
+every laid airbase is (`WingAirbase`; `air-nouns.md`, Airbase; `heart-nouns.md`,
+Allied airbase): the three apron pads hold fighters and the two sheds bombers
+(`CordonSetup.CORDON_AIRFRAMES`), and those bays are the wing, so what it has to
+fly is what stands airworthy in them. Every sortie, the observers' calls and the
+base's own, rolls off its bay down the lot's strip and lands back on it. The
+aircraft there are the allies' own parked units: drawn, seen by the swarm and
+killable where they stand. The field's crew is stood out of the lot's sheds as
+every field's is (`BattleSetup.installAirfieldCrew`); they refit every aircraft
+that lands and rebuild one lost in the air on its bay, so with no crew nothing
+flies again. One burned where it stood leaves its hulk and the bay is out for
+the battle. A map that laid no lot, or a lot with no strip, gets no base, the
+log says so (`cordon: the map laid no airbase lot`), and the wing flies in over
+the rear edge. The base keeps no standing patrol. Besides the
 observers' calls, the base's operations room tasks the wing's **own sorties**, allied command and never the player's: the first a
 minute in, then one at most every twenty seconds, with one airframe of each
 kind left on the apron for the radio. It strikes only what the side can fairly

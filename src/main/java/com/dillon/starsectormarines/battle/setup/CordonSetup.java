@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.setup;
 
-import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.WingAirbase;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -24,8 +28,6 @@ import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
 import com.dillon.starsectormarines.battle.cordon.CordonCamp;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
-import com.dillon.starsectormarines.battle.air.AirfieldWork;
-import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
@@ -71,7 +73,6 @@ import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
-import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -483,46 +484,39 @@ public final class CordonSetup {
     }
 
     /**
-     * The allies' air base ({@code cordon-nouns.md}, Air base): the wing's stands laid behind the logistics base (behind
-     * the middle of the line where there is none), clear of the corridor, the roads, the company's pads and the base's
-     * apron; {@code null} where the rear has no room, and the wing then flies in over the rear edge.
+     * The airframes the Cordon's airbase opens with, cycled over its bays as {@link BattleSetup#installAirfield} lays
+     * them, the apron's pads first and the sheds after: the three pads fighters, the two sheds bombers. UNTUNED.
      */
-    private static CordonAirBase airBase(BattleSimulation sim, CordonMap cordon, CordonLogistics logistics,
-                                         List<LandingPad> pads) {
-        int frontward = CordonFront.frontward(cordon.plan());
-        int anchorX = logistics != null ? logistics.doorX() : WIDTH / 2;
-        int anchorY = logistics != null ? logistics.doorY() : Math.round(CordonFront.lineY(cordon.plan()));
-        List<int[]> roads = new ArrayList<>();
-        if (cordon.map().roadGraph != null) {
-            for (RoadGraph.Edge edge : cordon.map().roadGraph.edges()) {
-                for (int i = 0; i < edge.length(); i++) roads.add(new int[]{edge.cellsX[i], edge.cellsY[i]});
-            }
-        }
-        List<int[]> keepOff = new ArrayList<>();
-        for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
-        if (logistics != null) {
-            keepOff.addAll(logistics.slots());
-            keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
-        }
-        CordonAirBase air = CordonAirBase.base(sim, cordon.map(), anchorX, anchorY, frontward, cordon.corridor(), roads,
-                keepOff);
-        if (air != null && air.ground() == CordonAirBase.Ground.LOT) air.field().crewed(airCrew(sim, cordon.map()));
-        return air;
-    }
+    static final List<FighterProfile> CORDON_AIRFRAMES = List.of(FighterProfile.TALON, FighterProfile.BROADSWORD,
+            FighterProfile.TALON, FighterProfile.DAGGER, FighterProfile.DAGGER);
 
-    /** Technicians the allies post on the air base's apron, out of its sheds. UNTUNED. */
-    static final int AIR_CREW = 4;
+    private static final Logger LOG = Global.getLogger(CordonSetup.class);
 
-    /** Posts the allies' ground crew on the air base's apron, out of the lot's sheds; whether anyone was posted. */
-    private static boolean airCrew(BattleSimulation sim, MapResult map) {
-        AirfieldService airfield = sim.getAirfieldService();
-        List<FixtureTask> apron = AirfieldWork.onTheApron(airfield, map.grid);
-        if (apron.isEmpty()) return false;
-        airfield.installApronWork(apron);
+    /**
+     * The allies' air base ({@code cordon-nouns.md}, Air base): the airbase lot the map reserved in a rear corner
+     * ({@link CordonPlan#airBase}) opened as an allied field with its own strip, as every laid airbase is
+     * ({@link WingAirbase}), and its crew stood. {@code null}, logged, where the map laid no lot or the lot no strip:
+     * the wing then flies in over the rear edge.
+     */
+    private static CordonAirBase airBase(BattleSimulation sim, MapResult map) {
+        Laid lot = map.layout == null ? null : map.layout.find(CordonPlan.AIR_BASE_PLACE);
+        if (lot == null || !lot.isLaid() || lot.cells().size() < 2) {
+            LOG.warn("cordon: the map laid no airbase lot; the wing flies in over the rear edge");
+            return null;
+        }
+        int[] a = lot.cells().get(0), b = lot.cells().get(1);
+        int[] bounds = {Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
+        List<AirfieldService.Berth> berths = BattleSetup.installAirfield(sim, map, bounds, Faction.ALLY,
+                LandingPad.Purpose.ALLIED_AIRFIELD, true, CORDON_AIRFRAMES);
+        if (berths.isEmpty()) {
+            LOG.warn("cordon: the airbase lot has no strip or no bays; the wing flies in over the rear edge");
+            return null;
+        }
+        List<AirPoolKind> kinds = new ArrayList<>();
+        for (AirfieldService.Berth berth : berths) kinds.add(WingAirbase.kindOf((FighterProfile) berth.airframe));
         if (sim.getWorksCrews() == null) sim.setWorksCrews(new WorksCrewService(TraversalAxis.SOUTH_TO_NORTH));
-        List<RoomSite> rooms = RoomSite.findAll(map.topology, map.grid.getWidth(), map.grid.getHeight());
-        return !StructureWatch.man(sim, Faction.ALLY, rooms, apron, AirfieldWork.occupied(airfield),
-                EnumSet.of(RoomPurpose.HANGAR), AIR_CREW, sim.getWorksCrews()).isEmpty();
+        BattleSetup.installAirfieldCrew(sim, map);
+        return new CordonAirBase(new WingAirbase(sim.getAirfieldService(), bounds, berths, kinds));
     }
 
     private static final long BASE_SALT = 0x4C4F474953544943L;
@@ -626,13 +620,16 @@ public final class CordonSetup {
         sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts, CordonFront.frontward(cordon.plan()),
                 GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT), CordonOuterPicket.enabled(), map.layout,
                 new Random(cordon.battleSeed() ^ LINE_SALT)));
-        // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
+        // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`), its
+        // establishment the bays of the air base on the rear lot, laid first.
+        CordonAirBase air = airBase(sim, map);
         AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
-                redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
+                redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList(),
+                air == null ? List.of() : List.of(air.field()), List.of(), contested -> false);
         sequence.attachArmour(armour);
         CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts, table);
         if (logistics != null) sequence.attachLogistics(logistics);
-        sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
+        sequence.attachAirBase(air);
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
             CordonTownGarrison.Held town = town(sim, cordon);
             sequence.attachTown(town.town());
@@ -821,7 +818,7 @@ public final class CordonSetup {
 
     /**
      * What the safe camp keeps clear of: the company's pads, the logistics base's berths, door and muster yard, and the
-     * air base's stands.
+     * air base's bays.
      */
     static List<int[]> campKeepOff(CordonLogistics logistics, CordonAirBase air, List<LandingPad> pads) {
         List<int[]> keepOff = new ArrayList<>();
@@ -831,7 +828,7 @@ public final class CordonSetup {
             keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
             keepOff.add(new int[]{logistics.musterX(), logistics.musterY()});
         }
-        if (air != null) for (FieldAirBase.Stand stand : air.field().stands()) keepOff.add(new int[]{stand.x(), stand.y()});
+        if (air != null) for (AirfieldService.Berth b : air.field().berths()) keepOff.add(new int[]{b.centerX, b.centerY});
         return keepOff;
     }
 

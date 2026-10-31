@@ -230,7 +230,8 @@ public final class MechAttachmentSystem {
             }
         }
         long leader = sim.resolveUnit(anchor.leaderId);
-        if (leader != 0L) {
+        // A leader riding a lift or a carrier has given up its route with its movement: no direction from it.
+        if (leader != 0L && !sim.isRiding(leader)) {
             int[] path = sim.world().path(leader);
             if (!Paths.isEmpty(path)) {
                 return unit(Paths.destX(path) + .5f - cx, Paths.destY(path) + .5f - cy);
