@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Where Harrier packs come from in a battle (`colony-breach-nouns.md`, Brood spire and Harrier): the brood spires
@@ -160,6 +162,8 @@ public final class BroodSpires {
     private final List<Spire> spires = new ArrayList<>();
     private final List<Launch> launches = new ArrayList<>();
     private final List<Rising> rising = new ArrayList<>();
+    /** Bores that raise their spire on reaching maw, fed or not. */
+    private final Set<SwarmBore> grownForSpire = new HashSet<>();
     private boolean matured;
     private int cursor;
 
@@ -175,8 +179,24 @@ public final class BroodSpires {
      * {@link #FED_BIOMASS}, with no spire of its own yet, standing, dead or on its way.
      */
     public static boolean raises(boolean mother, BoreTier tier, float biomassFed, boolean hasSpire) {
-        return !mother && tier == BoreTier.MAW && biomassFed >= FED_BIOMASS && !hasSpire;
+        return raises(mother, tier, biomassFed, false, hasSpire);
     }
+
+    /**
+     * As {@link #raises(boolean, BoreTier, float, boolean)}, a bore {@code grownForSpire} ({@link #raiseAtMaw}) needing
+     * no feeding: reaching maw on its own clock is enough.
+     */
+    public static boolean raises(boolean mother, BoreTier tier, float biomassFed, boolean grownForSpire,
+                                 boolean hasSpire) {
+        return !mother && tier == BoreTier.MAW && (grownForSpire || biomassFed >= FED_BIOMASS) && !hasSpire;
+    }
+
+    /**
+     * Marks a bore to raise its spire once it reaches maw, fed or not: an old bloom's young bore (The Burn's,
+     * `heart-nouns.md`, Young bore), so one the company leaves to grow becomes a source of fliers (owner,
+     * 2026-10-31).
+     */
+    public void raiseAtMaw(SwarmBore bore) { grownForSpire.add(bore); }
     /**
      * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
      * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
@@ -291,7 +311,8 @@ public final class BroodSpires {
         CreepOutposts.Ground ground = null;
         for (SwarmBore bore : sim.swarmBores().bores()) {
             if (bore.collapsed() || !sim.world().isAlive(bore.entityId())
-                    || !raises(bore.mother(), bore.tier(), bore.biomassFed(), hasSpire(bore))) continue;
+                    || !raises(bore.mother(), bore.tier(), bore.biomassFed(), grownForSpire.contains(bore),
+                    hasSpire(bore))) continue;
             if (ground == null) ground = ground(sim);
             if (ground == null) return;
             int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed(), structures(sim));

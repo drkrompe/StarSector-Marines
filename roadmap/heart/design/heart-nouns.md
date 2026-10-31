@@ -69,13 +69,17 @@ along its one approach, and grows more ahead of the front as they fall (Bore gro
 surges and creep are gone, but it is never required.
 
 **Young bore** (The Burn). A satellite opened at setup as a fissure, unfed, on
-the route's first two quarters past the start: one on each flank and one in the
-middle of each, at least twenty-six cells from any other bore, so the advance
-is a clearing of bores from the first march on (owner, 2026-10-31). It grows on
-its own clock as any bore does, to a bore in about three minutes and a maw in
-about seven, so one the company leaves behind it is a maw at its back. One the
-map has no ground for is left out; the map is not re-rolled for it
-(`HeartBores.youngBands`).
+the route: one on each flank and one in the middle of each of the first two
+quarters past the start, one more in the north half of the second, and one in
+the north half of the last, short of the heart's own ground; each at least
+twenty-six cells from any other bore, so the advance is a clearing of bores
+from the first march on (owner, 2026-10-31). It grows on its own clock as any
+bore does, a maw within three to six minutes or so, and at maw it raises a
+brood spire without being fed, where the spire rule finds it ground clear of
+every other spire (`colony-breach-nouns.md`, Brood spire;
+`BroodSpires.raiseAtMaw`), so one the company leaves behind it is a maw
+at its back with Harriers over it. One the map has no ground for is left out;
+the map is not re-rolled for it (`HeartBores.youngBands`).
 
 **Heart country.** The map (`HeartCountry`): green country the bloom has held
 for weeks. Along the start edge, the **cordon's farmland**, the surveyed rural

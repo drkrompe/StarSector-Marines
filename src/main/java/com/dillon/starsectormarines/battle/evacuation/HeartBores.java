@@ -15,8 +15,9 @@ import java.util.SplittableRandom;
  * (`bloom-mission-arc.md`, the heart): two or three <b>mother bores</b> on one
  * reservoir round the old workings at the far edge, and <b>satellite bores</b>
  * between the heart and the start line, every one already at maw. The Burn adds
- * <b>young bores</b> along the route through its first two quarters: fissures,
- * unfed, that grow on their own clock into maws if the company leaves them.
+ * <b>young bores</b> along the route: fissures, unfed, that grow on their own
+ * clock into maws if the company leaves them, and raise a brood spire when they
+ * do.
  *
  * <p>Sites are chosen once, at setup, on ground that can be walked to from the
  * start line: the plan is the map's <b>reachability proof</b>. Trees are
@@ -167,17 +168,21 @@ public record HeartBores(List<Site> sites) {
     /**
      * Where each young bore may stand, as {depth from, depth to, across from, across to}: on The Burn, the south
      * flank, the middle and the north flank of the first quarter past the near ride and of the second, so the route
-     * is a clearing of bores from the first march on (owner, 2026-10-31). None on Broad Front.
+     * is a clearing of bores from the first march on, then one more in the north half of the second quarter and one
+     * in the north half of the last, short of the heart's own ground (owner, 2026-10-31). The later ones come last,
+     * so the first six stand where they stood without them. None on Broad Front.
      */
     static float[][] youngBands(Form form) {
         if (form != Form.THE_BURN) return new float[0][];
         float[][] depths = {{0.32f, 0.48f}, {0.50f, 0.72f}};
         float[][] acrosses = {{0.08f, 0.32f}, {0.36f, 0.64f}, {0.68f, 0.92f}};
-        float[][] bands = new float[depths.length * acrosses.length][];
+        float[][] north = {{0.50f, 0.72f, 0.52f, 0.92f}, {0.76f, 0.90f, 0.55f, 0.92f}};
+        float[][] bands = new float[depths.length * acrosses.length + north.length][];
         int i = 0;
         for (float[] depth : depths) {
             for (float[] across : acrosses) bands[i++] = new float[]{depth[0], depth[1], across[0], across[1]};
         }
+        for (float[] band : north) bands[i++] = band;
         return bands;
     }
 
@@ -236,13 +241,17 @@ public record HeartBores(List<Site> sites) {
         return nearest <= ROAD_REACH && nearest > SwarmBores.MOUTH_RADIUS + 2;
     }
 
-    /** Opens every site and feeds it to its starting growth: a young bore is left a fissure. Call at setup, tick zero. */
+    /**
+     * Opens every site and feeds it to its starting growth: a young bore is left a fissure, to raise its spire if it
+     * grows to maw. Call at setup, tick zero.
+     */
     public void open(BattleSimulation sim) {
         SwarmBores bores = sim.swarmBores();
         for (Site site : sites) {
             SwarmBore bore = bores.open(sim, site.number, site.mother, site.x, site.y);
             if (bore == null) throw new IllegalStateException("heart site " + site + " is not clear ground at setup");
-            if (!site.young) bores.feed(sim, bore, site.mother ? MOTHER_FEED : SATELLITE_FEED);
+            if (site.young) sim.broodSpires().raiseAtMaw(bore);
+            else bores.feed(sim, bore, site.mother ? MOTHER_FEED : SATELLITE_FEED);
         }
     }
 

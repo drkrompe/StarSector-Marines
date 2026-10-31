@@ -55,6 +55,20 @@ class GateYardLayoutTest {
     }
 
     @Test
+    void aPosternOpensInTheMiddleOfItsSideAcrossTheGlacisWithClearGroundBehindIt() {
+        GateYardLayout.Postern east = GateYardLayout.postern(square(0), square(Fortification.GLACIS), WHO, W, H,
+                Side.EAST, 3, 4);
+        assertNotNull(east);
+        assertArrayEquals(new int[]{31, 20}, east.gate(), "on the east wall's line, at its middle");
+        for (int[] c : east.apron()) {
+            assertTrue(c[0] >= 31 && c[0] <= 34 && Math.abs(c[1] - 20) <= 1, "out across the glacis, three wide");
+        }
+        assertEquals(3 * 4, east.apron().size());
+        for (int[] c : east.way()) assertTrue(c[0] >= 27 && c[0] <= 30, "the ground just inside");
+        assertEquals(3 * 4, east.way().size());
+    }
+
+    @Test
     void theWallLeavesTheYardsGateOpenItsFullWidth() {
         int[][] claim = square(0), own = square(Fortification.GLACIS);
         // A road five wide comes up from the south edge to the place, as the corridor's road does.

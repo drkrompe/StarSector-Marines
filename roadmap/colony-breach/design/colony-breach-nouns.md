@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-31 — the shelter's compound gains two yard flak and an outer fence on the three sides away from its main gate. Earlier: holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
+Updated: 2026-10-31 — the player rallies a civilian's group to a squad, mech or vehicle: click the civilian, right-click the force. Earlier: the shelter's compound gains two yard flak and an outer fence on the three sides away from its main gate. Earlier: holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
 
 Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
@@ -395,6 +395,17 @@ berth's reach and more off the berths (`CivilianEvacuationPlacement`,
 `CORDON_FIELD_CLEARANCE`); where no such site exists it falls back to the
 nearest clear site on the field, then to the farthest reachable site. Land in
 the fields, fight in to the redoubts, bring the survivors back out.
+
+**Rally** (owner, 2026-10-31: the player never moves the people, only says
+whom they follow). A plain click on a walking civilian selects it (a box never
+does) and rings its **group**: everyone following the same squad or vehicle,
+or, for one following nobody, the unattached people within six cells of it. A
+right click on one of the company's squads, mechs or vehicles then hands the
+whole group to it, pulling them off whatever squad or mech they were with. A
+rallied group keeps its escort at any distance while it lives, ahead of the
+commander's named escorts, walking to it across the map if need be; a
+vehicle's followers stand clear of its hull. A right click on open ground does
+nothing (`CivilianEvacuationSystem.rally`).
 
 **Evac cordon** (owner, 2026-10-28: "an allied evac cordon which the player
 needs to get the survivors back to"). The militia line and the mech standing
@@ -1175,8 +1186,9 @@ through, made into a thing on the map the company can find and kill.
   for one by the rule below, the spire's root digs out and thickens over ten
   seconds and the spire rises at its end in a burst of creep, as a colony does
   (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
-  every colonist kept from it is a spire that never grows. A bore raises one
-  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  every colonist kept from it is a spire that never grows. The Burn's young
+  bores raise theirs on reaching maw, fed or not (`heart-nouns.md`, Young bore).
+  A bore raises one spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
   look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and

@@ -35,8 +35,12 @@ public final class CordonCampLookSuite implements SnapshotSuite {
         CordonCamp camp = probe.getCordon().convoys() == null ? null : probe.getCordon().convoys().camp();
         if (camp == null) throw new IllegalStateException("no camp on seed " + seed);
         float x = camp.centreX() + 0.5f, y = camp.centreY() + 0.5f;
-        System.out.printf("    [look/camp] seed %d: camp at (%d, %d), corridor cell %d%n", seed, camp.centreX(),
-                camp.centreY(), camp.dropIndex());
+        CordonConvoys convoys = probe.getCordon().convoys();
+        int[] drop = convoys.corridor().get(convoys.entry());
+        System.out.printf("    [look/camp] seed %d: camp at (%d, %d), trucks stop at (%d, %d), corridor cell %d; gap at"
+                        + " cell %d: safe leg %d, drive %d road cells%n", seed, camp.centreX(), camp.centreY(), drop[0],
+                drop[1], convoys.entry(), convoys.gapIndex(), convoys.gapIndex() - convoys.entry(),
+                convoys.corridor().size() - 1 - convoys.entry());
         return LookReview.record(context.modRoot(), new LookReview.Shot("camp",
                 LookGround.of(SurfacePalette.ARID, seed), 40, 30, placement -> battle(seed), placement -> List.of(
                         LookReview.View.close("camp", x, y, 48f),

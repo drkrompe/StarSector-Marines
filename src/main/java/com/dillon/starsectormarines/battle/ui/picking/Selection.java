@@ -50,6 +50,11 @@ public final class Selection {
     private final Set<Long> selectedVehicles = new LinkedHashSet<>();
     /** Selected friendly warship; it has no entity id, so the hull itself is held. Exclusive with every other form. */
     private Warship selectedWarship;
+    /**
+     * A selected civilian of the rescue cohort, {@code 0L} == none: picked only by a plain click, never by a box, so
+     * a right click on one of the company's forces rallies its group to it. Exclusive with every other form.
+     */
+    private long selectedCivilianId = 0L;
 
     public int getSelectedSquadId() {
         return selectedSquadId;
@@ -79,7 +84,7 @@ public final class Selection {
      */
     public void selectGroup(Collection<Integer> squads, Collection<Long> vehicles,
                             int primary, long unit, long primaryVehicle, boolean additive) {
-        if (!additive || selectedWarship != null) clear();
+        if (!additive || selectedWarship != null || selectedCivilianId != 0L) clear();
         for (int id : squads) if (id != NONE) selectedSquads.add(id);
         for (long id : vehicles) if (id != 0L) selectedVehicles.add(id);
         if (!selectedSquads.isEmpty()) {
@@ -134,6 +139,7 @@ public final class Selection {
         this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;
         this.selectedWarship = null;
+        this.selectedCivilianId = 0L;
     }
 
     /** Selects a specific unit and its parent squad. Both ids must be in sync — pass the unit's own squadId, not a guessed one. {@code unitEntityId} is the world entity id ({@code 0L} = none). */
@@ -145,6 +151,7 @@ public final class Selection {
         this.selectedUnitEntityId = unitEntityId;
         this.selectedVehicleId = 0L;
         this.selectedWarship = null;
+        this.selectedCivilianId = 0L;
     }
 
     public long getSelectedVehicleId() { return selectedVehicleId; }
@@ -155,6 +162,7 @@ public final class Selection {
         if (vehicleId != 0L) selectedVehicles.add(vehicleId);
         this.selectedVehicleId = vehicleId;
         this.selectedWarship = null;
+        this.selectedCivilianId = 0L;
         this.selectedSquadId = NONE;
         this.selectedUnitEntityId = 0L;
     }
@@ -166,6 +174,7 @@ public final class Selection {
         this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;
         this.selectedWarship = null;
+        this.selectedCivilianId = 0L;
     }
 
     public boolean hasSquadSelection() {
@@ -174,6 +183,17 @@ public final class Selection {
 
     public boolean hasVehicleSelection() {
         return selectedVehicleId != 0L;
+    }
+
+    /** The selected civilian, or {@code 0L}. */
+    public long getSelectedCivilianId() { return selectedCivilianId; }
+
+    public boolean hasCivilianSelection() { return selectedCivilianId != 0L; }
+
+    /** Selects a civilian of the rescue cohort; exclusive with every other form. */
+    public void selectCivilian(long civilianId) {
+        clear();
+        this.selectedCivilianId = civilianId;
     }
 
     /** The selected friendly warship, or {@code null}. */
@@ -186,6 +206,7 @@ public final class Selection {
         selectedSquads.clear();
         selectedVehicles.clear();
         this.selectedWarship = ship;
+        this.selectedCivilianId = 0L;
         this.selectedSquadId = NONE;
         this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;

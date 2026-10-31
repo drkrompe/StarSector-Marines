@@ -57,6 +57,7 @@ import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.marine.BoatPartLearning;
 import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
@@ -3413,6 +3414,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<DeckGraph.Compartment> hangars = ship.rooms(RoomPurpose.HANGAR);
         BoatDeck deck = campaign[0];
         BoatWorkshop workshop = new BoatWorkshop(deck, snapshotMechResources());
+        // The workshop builds only starter parts and ones the company has learned; this room shows a yard that has learned them all.
+        for (BoatFitting fitting : BoatFitting.catalog()) BoatPartLearning.learn(deck, fitting.id());
+        for (BoatGun gun : BoatGun.catalog()) BoatPartLearning.learn(deck, gun.id());
         if (deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fabricatePart(BoatFitting.REINFORCED_PLATING.id());
             workshop.fit(deck.boats().get(0).id(), BoatFitting.REINFORCED_PLATING.id());
@@ -3483,7 +3487,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
             viewModel.catalogRows().get().stream()
-                    .filter(row -> BoatFitting.REINFORCED_PLATING.id().equals(row.itemId()))
+                    .filter(row -> BoatFitting.STANDARD_PLATING.id().equals(row.itemId()))
                     .findFirst().orElseThrow().card().recycle().action().run();
         }
         if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
