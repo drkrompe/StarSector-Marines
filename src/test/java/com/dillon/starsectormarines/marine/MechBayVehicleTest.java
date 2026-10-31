@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,6 +51,11 @@ class MechBayVehicleTest {
         assertEquals(VehicleType.HEAVY_APC, vehicle.type());
         assertEquals(vehicle, bay.vehicleById(vehicle.id()));
         assertEquals(before - MechFabricationCatalog.vehicle(VehicleType.HEAVY_APC).cost().credits(), resources.credits);
+        // Sold as a bare hull: its own plate, an empty engine core and compartment, so it stays in its gantry.
+        assertEquals(MechInternal.FACTORY_PLATING, vehicle.plating());
+        assertNull(vehicle.engine());
+        assertTrue(vehicle.rackInternals().isEmpty());
+        assertFalse(vehicle.complete());
     }
 
     @Test
@@ -67,9 +73,9 @@ class MechBayVehicleTest {
                 workshop.fabricateVehicle(SQUAD, VehicleType.BREAKTHROUGH_TANK).status());
         assertEquals(MechWorkshop.Status.LANCE_FULL,
                 workshop.fabricateChassis(SQUAD, MechVariant.HOUND).status());
-        // The bought Hound is a bare frame and stays in its gantry; the starter walker drops.
+        // The bought Hound and tanks are bare and stay in their gantries; the starter walker drops.
         assertEquals(1, bay.activeDeployment().size());
-        assertEquals(2, bay.activeVehicleDeployment().size());
+        assertEquals(0, bay.activeVehicleDeployment().size());
     }
 
     @Test

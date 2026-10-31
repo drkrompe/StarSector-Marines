@@ -380,8 +380,7 @@ public final class MechWorkshop {
 
     /**
      * What scrapping {@code vehicleId} would return, or null when it returns nothing: the
-     * machine shop's share of today's quote. A vehicle is bought whole with its stock compartment, so its
-     * whole price is hull.
+     * machine shop's share of today's quote of the bare hull's bill; its fitted parts go back to stores.
      */
     public FabricationCost vehicleSalvage(String vehicleId) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);

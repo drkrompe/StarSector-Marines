@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Also 2026-10-30 � a crippled mech's route owns its hips as on whole legs, so a disarmed one crawls out of contact instead of standing turned to the fight (Section loss). Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-31 — a vehicle is bought as a bare hull, as a chassis is a bare frame: its own gun and factory plating, its engine core and compartment empty, for its standard-fit bill less those parts; a previewed vehicle pattern shows its bare doll (Mech Lab). Also 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Also 2026-10-30 � a crippled mech's route owns its hips as on whole legs, so a disarmed one crawls out of contact instead of standing turned to the fight (Section loss). Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -303,8 +303,9 @@ increasing an encounter's total armored threat.
   part 2x1), at most one of each role but vent arrays: the bank and every vent array are the hull's flux
   reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the loader paces its guns
   (the loader, below). An **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a
-  mech is; every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest
-  the factory bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting
+  mech is; an armed hull's stock fit is a bank (the laser tank the double bank and two vent arrays, the rest
+  the factory bank) and the standard loader (`VehicleRack.stockFit`; the lab sells the hull bare), so a Light hull
+  is full with the two, as a Hound is; fitting
   another bank or loader returns the old one to stores. An unarmed hull takes no bank and is built with no
   loader. Every part is an inventory part: learned as a pattern, bought for its price into stores, dragged
   onto the compartment and off it again, lost with the hull and spared by a scrap. Anything that needs a
@@ -345,8 +346,8 @@ increasing an encounter's total armored threat.
   does not meet is listed disabled, its hint the unmet requirement's reason (`MechInternal.Requirement.reason`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
-  mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): every hull
-  is built with the industrial engine fitted, and an empty engine core is no engine, so the hull is
+  mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): a hull's stock
+  fit has the industrial engine, the lab sells it with an empty core, and an empty engine core is no engine, so the hull is
   incomplete and stays off the drop, as a mech is. An engine works by the mech's rule: its speed
   fraction along the chassis's speed band, which on a hull runs from its own top speed and
   acceleration to a fifth more (`VehicleType.REFIT_SPEED_FACTOR`), so the uprated engine (half the
@@ -491,7 +492,7 @@ increasing an encounter's total armored threat.
   with and never refills them, while its rotary guns keep their own hoppers;
   that is a choice, not a gap, so it does not hold the mech back. **Empty means
   nothing on every machine**: a vehicle's loader is the same part in its compartment
-  (`VehicleRack`), an armed hull is built with the standard one, and a hull without
+  (`VehicleRack`), an armed hull's stock fit has the standard one, and a hull without
   one never puts a missile pack back while its magazines of rounds keep their mount's
   own loader time. The vehicle's accelerated-loader kit was this part; an old kit id,
   spare or learned pattern reads as it (`MechInternal.RETIRED_KITS`).
@@ -1804,19 +1805,22 @@ support sortie, subject only to practical runtime resources.
   vehicle-pattern catalog, laid out like the parts list: each pattern is a row in the
   dark well with its bill and a BUY in the build strip. **Clicking the card is not
   buying:** it stands the pattern on the pad as a translucent preview at the scene's own
-  scale (a mech in its standard fit, a vehicle nose-up) and fills the PATTERN card in
+  scale (a mech in its standard fit, a vehicle facing down its pad as a parked hull does) and fills the PATTERN card in
   the right-hand column, where an occupied pad shows its specifications, with the
   maker's crest, name, procurement credit and kind, its figures as the specifications'
-  own bars, its lore and its bill. A previewed chassis's doll stands where a built mech's
-  does, on the left of the view: the fitting schematic as the frame is bought, read-only.
+  own bars, its lore and its bill. A previewed chassis's or vehicle's doll stands where a built
+  machine's does, on the left of the view: the fitting schematic as the frame or hull is bought, read-only.
 - **A chassis is bought as a bare frame.** Its plating and any factory-locked hardware
   are the frame; every other weapon, the engine and the capacitor bank are parts the
   player fits from stores, so a new walker stands INCOMPLETE in its gantry until it has
   an engine and a capacitor bank. Its bill is the standard-fit machine's less those
   parts' own prices (`MechFabricationCatalog`), and the pattern card's bars read the
   frame against the standard fit's marks. Nothing stripped from a new frame was ever in
-  stores, so building one makes no spares. A vehicle is still bought whole: it has no
-  sockets to fill. Only a BUY,
+  stores, so building one makes no spares. **A vehicle is bought as a bare hull** the same
+  way (`CampaignVehicle.hull`, owner 2026-10-31): its own gun and factory plating are the hull;
+  its engine and compartment parts are fitted from stores, so a new hull stands INCOMPLETE until
+  it has an engine and, if armed, a bank. Its bill is the standard-fit hull's less those parts'
+  prices, and the armor economy reads the standard fit (`MechFabricationCatalog.standardFitCost`). Only a BUY,
   on the row or the card's BUILD, spends anything. Every chassis and vehicle pattern is
   credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
   faction crest and a procurement line such as the Ordnance Board heavy schedule), and

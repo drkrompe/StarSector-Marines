@@ -229,12 +229,12 @@ public final class MechBay implements Serializable {
         return true;
     }
 
-    /** Builds one vehicle onto a vacant gantry in the selected lance. */
+    /** Builds one bare hull ({@link CampaignVehicle#hull}) onto a vacant gantry in the selected lance. */
     public CampaignVehicle fabricateVehicle(String squadId, VehicleType type) {
         if (type == null || !canAddMech(squadId)) return null;
         int serial = Math.max(1, nextVehicleSerial);
         String number = String.format(Locale.ROOT, "%02d", serial);
-        CampaignVehicle vehicle = new CampaignVehicle(vehicleId(serial),
+        CampaignVehicle vehicle = CampaignVehicle.hull(vehicleId(serial),
                 CampaignVehicle.className(type) + " " + String.format(Strings.locale(), "%02d", serial), type);
         if (!addVehicle(squadId, vehicle)) return null;
         nextVehicleSerial = serial + 1;

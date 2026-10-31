@@ -959,7 +959,7 @@ same two presses. `BoatWorkshop.scrap` checks the purse first, strips every fitt
 gun to stores through the ordinary strip, credits the hull, and leaves the berth
 vacant; a shop that cannot recycle still breaks her up, for her parts alone. A mech's
 hull is its chassis quote less the frame's plating and any factory-locked gun, which
-stay as spares; a vehicle is bought whole without kits, so its whole quote is hull.
+stay as spares; a vehicle is bought as a bare hull, so its whole quote is hull and its fitted parts go to stores.
 At the full rate, building a machine and breaking it up again is exactly free and
 never a profit.
 

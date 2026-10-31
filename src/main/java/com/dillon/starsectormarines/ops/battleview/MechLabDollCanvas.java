@@ -300,14 +300,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
             lastSocketTargets = List.of();
             Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
             if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
+            else if (preview instanceof VehicleType type) {
+                drawBareVehicle(context, type, width * SCHEMATIC_SHARE, height, elapsedSeconds.getAsDouble(), true);
+            }
         }
     }
 
     /**
      * A previewed pattern's doll, where a built mech's stands: the same schematic on the left of
      * the view, as the chassis is bought: a bare frame, its engine and capacitor sockets warning
-     * empty and only factory-locked hardware fitted. Read-only; a vehicle has no sockets and so
-     * draws none.
+     * empty and only factory-locked hardware fitted. Read-only; a vehicle pattern draws its bare
+     * hull's ({@link #drawBareVehicle}).
      */
     private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
         drawBareChassis(c, variant, width * SCHEMATIC_SHARE, height, assets.get(), elapsedSeconds.getAsDouble(), true);
@@ -337,10 +340,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /**
-     * A vehicle hull's doll with its auxiliary compartment empty, laid out as the lab lays out a selected vehicle's
-     * ({@link VehicleDoll}): every card sealed, the armor point showing the hull's own plate.
+     * A vehicle hull's doll as the hull is bought
+     * ({@link com.dillon.starsectormarines.marine.CampaignVehicle#hull}), laid out as the lab lays out a
+     * selected vehicle's ({@link VehicleDoll}): the engine core and auxiliary compartment empty, the armor point
+     * showing the hull's own plate. {@code warnMissing} marks what keeps the hull off the manifest, as on a chassis.
      */
-    static void drawBareVehicle(CanvasContext c, VehicleType type, float panelWidth, float height, double seconds) {
+    static void drawBareVehicle(CanvasContext c, VehicleType type, float panelWidth, float height, double seconds,
+                                boolean warnMissing) {
         List<SocketDef> sockets = VehicleDoll.sockets(type);
         drawSchematicPanel(c, panelWidth, height);
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, height);
@@ -349,13 +355,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = socketById(sockets, target.id());
             if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
                 MechSocketConsole.draw(c, target, socket, null, null,
-                        socket.id() == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : MechInternal.FACTORY_PLATING,
+                        socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null,
                         false, null, null, null,
-                        false, false, false, false, false, seconds);
+                        false, false, false, false, false, seconds, warnMissing);
                 continue;
             }
+            boolean bankless = warnMissing && socket.id().compartment() && type.hasTurretWeapon();
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
-                    VehicleDoll.art(type, socket.id()), List.of(), false, false, false, seconds);
+                    VehicleDoll.art(type, socket.id()), List.of(), bankless, false, false, seconds);
         }
     }
 

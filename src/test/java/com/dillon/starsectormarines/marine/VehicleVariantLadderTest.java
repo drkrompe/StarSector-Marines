@@ -139,7 +139,7 @@ class VehicleVariantLadderTest {
             MechVariant mech = mechOf(type.liftClass());
             // A walker that can fight: the frame and its standard parts.
             float mechCredits = MechFabricationCatalog.standardFitCost(mech).credits();
-            float vehicleCredits = MechFabricationCatalog.vehicle(type).cost().credits();
+            float vehicleCredits = MechFabricationCatalog.standardFitCost(type).credits();
             if (ROLE_HULLS.contains(type)) {
                 assertTrue(vehicleCredits < mechCredits, type + " costs " + vehicleCredits + " against " + mech);
                 continue;
