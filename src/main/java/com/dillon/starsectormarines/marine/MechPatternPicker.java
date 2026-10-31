@@ -16,7 +16,8 @@ import java.util.Set;
 
 /**
  * Deterministic weighted choice of mech pattern cards for one faction and channel, the
- * mech-bay counterpart of {@link LoadoutCardPicker}.
+ * mech-bay counterpart of {@link LoadoutCardPicker}, for patron rewards and recovery. The company store does not draw
+ * through it; the Kit Ladder alone stocks the store ({@link StoreStock}).
  *
  * <p>A pattern is on offer through a channel when the company's progress opens it there
  * ({@link EquipmentAcquisitionEligibility}): its Kit Ladder station on the store's channels, its

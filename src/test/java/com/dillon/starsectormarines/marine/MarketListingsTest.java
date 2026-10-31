@@ -20,14 +20,12 @@ class MarketListingsTest {
     private static final String XIV_SHEET = "loadout-card:sheet:armor:hegemony-shock";
 
     @Test
-    void aListingHasAShelfOfItsOwnAndNeverDisplacesTheRotation() {
-        FactionEquipmentMarketStockPlanner.StockPlan without = plan(List.of(), Set.of());
-        FactionEquipmentMarketStockPlanner.StockPlan with = plan(List.of(TRENCH), Set.of());
+    void aListingHasAShelfOfItsOwnAndIsNeverOfferedTwice() {
+        StoreStock.StockPlan with = plan(List.of(TRENCH), Set.of());
 
         assertEquals(List.of(TRENCH), with.listedCardIds(),
                 "the story is the permission: a fresh company sees Advanced issue it was promised");
-        assertEquals(without.marketCardIds().size(), with.marketCardIds().size());
-        assertFalse(with.marketCardIds().contains(TRENCH), "never drawn a second time");
+        assertFalse(with.marketCardIds().contains(TRENCH), "never offered a second time");
         assertEquals(TRENCH, with.allCardIds().get(0));
     }
 
@@ -60,10 +58,10 @@ class MarketListingsTest {
         MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(XIV_SHEET),
                 MilitaryWarrants.Reason.STORY, 0);
         assertTrue(MarketListings.list(state, XIV_SHEET, MarketListings.Scope.FACTION, "hegemony", "reason", 0));
-        assertTrue(FactionEquipmentMarketStockPlanner.plan("hegemony", "chicomoztoc", 6, 3L, false, Set.of(),
+        assertTrue(StoreStock.cards("hegemony", false, Set.of(),
                 new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV_SHEET)),
                 List.of(XIV_SHEET)).listedCardIds().contains(XIV_SHEET));
-        assertTrue(FactionEquipmentMarketStockPlanner.plan("hegemony", "chicomoztoc", 6, 3L, false, Set.of(),
+        assertTrue(StoreStock.cards("hegemony", false, Set.of(),
                 EquipmentAcquisitionEligibility.Progress.OPENING, List.of(XIV_SHEET)).listedCardIds().isEmpty(),
                 "a shelf never shows Restricted kit the company is not warranted for");
     }
@@ -84,9 +82,9 @@ class MarketListingsTest {
         assertTrue(MarketListings.list(legacy, TRENCH, MarketListings.Scope.MARKET, "jangala", "reason", 4));
     }
 
-    private static FactionEquipmentMarketStockPlanner.StockPlan plan(List<String> listed, Set<String> unavailable) {
-        return FactionEquipmentMarketStockPlanner.plan("independent", "jangala", 6, 12L, false,
-                unavailable, EquipmentAcquisitionEligibility.Progress.OPENING, listed);
+    private static StoreStock.StockPlan plan(List<String> listed, Set<String> unavailable) {
+        return StoreStock.cards("independent", false, unavailable, EquipmentAcquisitionEligibility.Progress.OPENING,
+                listed);
     }
 
     private static void readResolve(CampaignState state) throws Exception {
