@@ -24,7 +24,7 @@ import java.util.Locale;
  * Ain Tafrant's town swallowed ({@code cordon-nouns.md}, Cut-off town): the Cordon Road on the town pool's arid seed 7
  * played as the evidence plays it, the camera held through the look preset on the compound and its warren from
  * setup to {@code -Dsnapshot.townCreep.minutes} (14) as one time-lapse, {@code look/town-creep.mp4}, a frame every
- * {@link #EVERY} ticks at 30 fps (about 24 seconds). The town starts held clear of the front's creep, which retakes it
+ * {@link #EVERY} ticks at {@link #FPS} fps (about 23 seconds). The town starts held clear of the front's creep, which retakes it
  * as its bores are fed, and the town's own bores open on it (seven minutes and the final surge). Stills at each
  * minute in {@link #STILL_MINUTES} ({@code look/town-creep-mMM.png}); prints, each minute, the share of the warren's
  * open ground under living creep and the town bores' states. Opt-in: it plays fourteen minutes of battle.
@@ -32,7 +32,9 @@ import java.util.Locale;
 public final class CordonTownCreepLookSuite implements SnapshotSuite {
 
     /** Ticks between frames of the time-lapse. */
-    static final int EVERY = 36;
+    static final int EVERY = 75;
+    /** Frames a second of the time-lapse: fourteen minutes in about 23 seconds. */
+    static final int FPS = 15;
     static final int[] STILL_MINUTES = {0, 3, 5, 7, 9, 12, 14};
     static final int WIDTH = 1920;
     static final int HEIGHT = 1080;
@@ -48,6 +50,9 @@ public final class CordonTownCreepLookSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         long seed = Long.parseLong(System.getProperty("snapshot.townCreep.seed", "7").trim());
         int minutes = Integer.parseInt(System.getProperty("snapshot.townCreep.minutes", "14").trim());
+        // A wall-clock budget inside the 12-minute cap on played captures: past it the time-lapse ends where it is.
+        long budgetNanos = Long.parseLong(System.getProperty("snapshot.townCreep.wallSeconds", "600").trim()) * 1_000_000_000L;
+        long started = System.nanoTime();
         if (FfmpegVideo.executable() == null) throw new IllegalStateException("cordon-town-creep needs ffmpeg");
         Path scratch = context.projectRoot().resolve("build/tmp/town-creep");
         Files.createDirectories(scratch);
@@ -70,7 +75,7 @@ public final class CordonTownCreepLookSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             int end = Math.round(minutes * 60f / BattleSimulation.TICK_DT);
             int perMinute = Math.round(60f / BattleSimulation.TICK_DT);
-            try (FfmpegVideo encoder = FfmpegVideo.open(video, WIDTH, HEIGHT, "30/1")) {
+            try (FfmpegVideo encoder = FfmpegVideo.open(video, WIDTH, HEIGHT, FPS + "/1")) {
                 while (true) {
                     int tick = sim.getSimTickIndex();
                     boolean still = tick % perMinute == 0 && wanted(tick / perMinute);
@@ -84,6 +89,11 @@ public final class CordonTownCreepLookSuite implements SnapshotSuite {
                     }
                     if (tick % perMinute == 0) report(sim, box, tick / perMinute);
                     if (tick >= end) break;
+                    if (System.nanoTime() - started > budgetNanos) {
+                        System.out.printf(Locale.ROOT, "    [town-creep] wall-clock budget spent at tick %d (%.1f min);"
+                                + " ending the time-lapse there%n", tick, tick * BattleSimulation.TICK_DT / 60f);
+                        break;
+                    }
                     sim.advance(BattleSimulation.TICK_DT);
                     BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), BattleSimulation.TICK_DT);
                     fx.feed(sim);

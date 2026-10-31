@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -613,7 +613,7 @@ With the roads' own gates the compound keeps up to five ways in.
 
 The **townspeople** are trapped civilians waiting in **groups** (owner,
 2026-10-31: one bunch looks wrong, and spread they make the player choose what
-to hold): the first truckload (twelve) in the staging area by the yard, the
+to hold): the first truckload (eighteen) in the staging area by the yard, the
 rest shared evenly over the compound's largest rooms (up to four buildings with
 six open cells or more, `CordonTownGarrison.rooms`), what a room has no room
 for back by the yard (with no staging area found, all in the compound behind
@@ -650,12 +650,14 @@ to defend from fliers"): two to four anti-air flak positions (the redoubts'
 flak, `CordonTownGarrison.flakSites`), allied and under garrison authority
 like the gate towers, and the swarm can destroy them. They stand on open
 courtyard ground inside the wall, each open on all four sides and touching no
-building, so never in a room of people nor on a doorstep; never in the truck
+building or street, so never in a room of people, on a doorstep or on the paved
+way through the compound; never in the truck
 yard or the ground beside it (with a cell to spare), on the staging area or
 beside it, within three cells of where the corridor meets the town, in a gate
 or postern or the four cells in from it, nor beside a defender. They are
 spread to cover the whole compound: each next site the one that leaves the
-farthest cell inside the wall nearest a gun, at least a pair, then more until
+farthest cell inside the wall nearest a gun, at least a pair, then more while
+one brings that cell nearer, until
 every cell inside is within thirteen cells of one (untuned; well inside the
 gun's reach, so neighbouring arcs overlap over the rooms).
 
@@ -701,10 +703,11 @@ that breaks through (owner, 2026-10-31: "it would be fun if the enemy could
 break through"; untuned). A convoy home stops on the road through
 it and lets its people down one every two seconds: each steps off as a
 civilian, is **out** from that moment, and walks in to wait at the camp's rear
-for the rest of the battle. Its emptied trucks pull back down the road behind
-the camp and wait there; the next convoy called sets out in them (a new truck
-comes on only when none waits), so pick-ups and drop-offs are one road from the
-camp to the gate and back. The people waiting in the camp are civilians the
+for the rest of the battle. Its emptied trucks drive to the camp's **parking
+line** (a row of places six cells apart across the drop-off lane, from eight
+cells off the stop, on the side away from where the road leaves it, outside the
+camp's ring and its crops) and wait there; the next trip sets out in them, so
+pick-ups and drop-offs are one road from the camp to the gate and back. The people waiting in the camp are civilians the
 swarm can reach and kill. A townsperson the swarm kills in the camp stays
 **out** and is not lost: once they reach the drop-off the company's job is done
 (owner, 2026-10-31). R2's passengers walk to the camp and are out when they reach
@@ -723,18 +726,37 @@ while its seats last: a truck still on its way when the first arrives drives
 on to the gate and boards whoever is left when it gets there. The convoy turns
 for home when every truck is at the gate and full, or at once when the town has
 nobody left to board, or at the **loading cap** (a minute from the first truck
-at the gate) with whoever has boarded, a straggler that never came driving back
+at the gate, untuned: a minute and a half, since three trucks' people walk out
+from the rooms and two trucks took 52 s of the old minute in play) with whoever has boarded, a straggler that never came driving back
 with what it has, or empty. It does not fight its way through: it stops when the road ahead is
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
 swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
-destroyed; its passengers die with their truck. Convoys of two trucks, six
-seats each, are **called while people are trapped**: the first at minute one,
-each after it once the one before has passed the gap toward the town, so long
-as the town has more people than the seats already on their way, and never
-more than **five** in all. Forty-eight are trapped, so getting everyone out
-takes four full trips, the fifth there for seats lost to a truck or a short
-loading. No convoy sets out to an empty town or one given up. The **last
+destroyed; its passengers die with their truck.
+
+**Fleet.** The trucks are a fixed **fleet** that cycles (`CordonFleet`; owner,
+2026-10-31: "convoys of like 3-4 trucks that cycle"): two convoys of three
+trucks, six seats each, six trucks on the whole map, ever. The same trucks drive
+trip after trip; a truck comes on only while the fleet is short of its size, at
+the start and 45 s after one is destroyed (its replacement appears in the
+parking line and joins the next trip), so a lost truck is made good once and
+the fleet never grows. A **trip** is a convoy's round trip; trips are **called
+while people are trapped**: the first at minute one, each after it once the one
+before has passed the gap toward the town and three trucks wait at the camp or
+may come on, so long as the town has more people than the seats already on
+their way, and never more than **five** in all. Forty-eight are trapped, so
+getting everyone out takes three trips of eighteen, the other two there for
+seats lost to a truck or a short loading.
+
+**Convoy traffic.** The road's **tight stretches** are reservations
+(`CordonTraffic`): the town's truck yard and its mouth (from ten cells short of
+its gate), which takes one convoy at a time, and every run past the camp where
+the road is narrower than six cells, which convoys going the same way share.
+A convoy short of a stretch another holds waits fourteen cells short of it until
+it is clear, and holds it for all its trucks until the last is through, so it is
+never split; where convoys going opposite ways ask together the one going home
+goes first. Stretches closer than a convoy's length and two hold-backs are one,
+so a waiting convoy holds nothing and no two wait on each other. No convoy sets out to an empty town or one given up. The **last
 convoy** is the one that reaches the gate as the fifth or with seats for
 everyone left (R3 and R4 wait on it).
 

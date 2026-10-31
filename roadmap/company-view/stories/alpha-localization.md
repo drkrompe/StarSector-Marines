@@ -102,10 +102,25 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   transfer and condition, refit, workshop, Shuttle Deck and the yard.
   Company HQ, Fleet Armory, ship condition, the refit tracks and the
   workshop appear in no snapshot, so their zh_CN layout is unlinted.
-- [ ] Shared gear catalogs and spec sheets (`gearCatalog*`, `loadoutCard*`,
-  `gearStat*`, `equipmentTemplate*`), `vehicleType*`, and the story-arc work
-  guides on the HQ action board.
+- [x] Shared gear catalogs and spec sheets: armor, components, vehicles, mech
+  gear, weapons, specials and loadout cards (`gearCatalog*`, `loadoutCard*`,
+  `gearStat*`, `equipmentTemplate*`, `vehicleType*`). Designations and named
+  guns stay as printed. No snapshot shows an armor hover sheet, so the long
+  armor descriptions are unlinted.
+- [x] The rest of the campaign flow: arc lines and work guides, warrants,
+  lessons, the company store, captain discovery, the Second Wind buy-back,
+  the Jangala arrival, Nexerelin and the mission status lines. The store and
+  lesson snapshot suites render English whatever the translation flag says,
+  so those pages are unlinted.
 - [ ] Translation review: the glossary's open list, and a native read.
+
+What zh_CN leaves in English on purpose: names, callsigns, weapon codes,
+symbol-only patterns, debug rows and keys no code reads (about 260 of the
+catalog's 6,285).
+
+`gradlew deployTranslation -Plocale=zh_CN` bakes the fonts and installs the
+translation as `mods/StarsectorMarines-zh_CN`; `packageTranslation` zips the
+same layout into `build/release/`.
 
 Still English in zh_CN because code builds the text (catalog work, not
 translation): the Relief side objectives' names and descriptions
@@ -129,9 +144,10 @@ mod's copy and fonts in `opening-localization`, linted as `[zh_CN]` screens.
 
 Blocking a live zh_CN pass:
 
-- **Fonts in game.** The faces have not been seen in a running game: whether
-  vanilla's own text renderer, which reads the same replaced files, takes
-  20-55 pages per face, and how the mod is packaged with its generated fonts.
+- **Fonts in game.** `deployTranslation` installs the faces, but they have not
+  been seen in a running game: whether page 0 resolves to the game's own PNG
+  from the mod's copy of the `.fnt`, and whether vanilla's own text renderer,
+  which reads the same replaced files, takes 20-55 pages per face.
 - The planet-menu option "Marine operations" and other `rules.csv` text are
   outside the catalog and stay English.
 
