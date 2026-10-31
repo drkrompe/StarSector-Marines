@@ -285,7 +285,7 @@ public final class LayoutLint {
     /**
      * Marks pages drawn under a translation overlay (a localization suite's stretched strings, or a translation
      * mod), which are counted as their own screens, labelled {@code [label]}, so they never inflate or hide what
-     * the shipped strings do.
+     * the shipped strings do. An empty label marks the shipped strings again inside an overlay.
      */
     public static synchronized void translated(String label, boolean entering) {
         if (entering) overlays.add(label);
@@ -296,7 +296,8 @@ public final class LayoutLint {
         String label = segment(root);
         String screen = label == null ? "(root)" : label;
         synchronized (LayoutLint.class) {
-            if (!overlays.isEmpty()) screen += " [" + overlays.get(overlays.size() - 1) + "]";
+            String overlay = overlays.isEmpty() ? "" : overlays.get(overlays.size() - 1);
+            if (!overlay.isEmpty()) screen += " [" + overlay + "]";
         }
         if (policy != null && policy.uiScale() != 1f) {
             screen += String.format(Locale.ROOT, " @%.2gx", policy.uiScale());

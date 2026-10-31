@@ -430,6 +430,7 @@ public class BriefingScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         if (hints != null) hints.clear();
+        built.keepScrollFrom(document);
         document = built;
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
