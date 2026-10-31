@@ -4,13 +4,16 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.tender.TenderPilot;
+import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Mission-supplied grounded construction of one build option through the ordinary command-card target flow. The
- * builders fly out, so any seen, open ground off the hull is a site.
+ * builders fly out, so any seen, open ground off the hull is a site. The host's supply pays for it, and no more than
+ * {@link TenderPilot#MAX_SITES} sites may be in progress at once.
  */
 public final class YardConstruction extends CommandPower {
     /** The id prefix every yard power shares; the option's own id follows it. */
@@ -42,9 +45,21 @@ public final class YardConstruction extends CommandPower {
     @Override public boolean canTarget(int x, int y, BattleView battle) {
         if (!super.canTarget(x, y, battle) || !source.anchorAlive()) return false;
         if (source.metered() && source.stock() < option.cost()) return false;
+        if (TenderPilot.liveSites(source) >= TenderPilot.MAX_SITES) return false;
         if (!Tender.everyCell(option, x, y, (px, py) -> battle.getGrid().inBounds(px, py)
                 && battle.playerSeesCell(px, py))) return false;
         return source.siteOpen(option, x + 0.5f, y + 0.5f, battle.getGrid());
+    }
+
+    /** On supply, how many of this build the host can pay for now: the card reads spent at none. */
+    @Override public int availableCalls() {
+        return source.metered() ? source.stock() / Math.max(1, option.cost()) : -1;
+    }
+
+    /** On supply, the card names the build's cost against what the host holds, as {@code 3 of 5/8}. */
+    @Override public String cardLabel(int chargesRemaining) {
+        if (!source.metered()) return displayName;
+        return Strings.format("yardConstructionCard", displayName, option.cost(), source.stock(), source.supplyCap());
     }
 
     /** A staged build's plot, outlined under the cursor so a cramped spot shows before the click. */

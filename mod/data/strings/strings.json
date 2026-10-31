@@ -2840,6 +2840,8 @@
     "battlePowerStatusSupplyCost": "{0,number,integer} SUP",
     "battlePowerStatusCharges": "{0,number,integer}x",
     "battlePowerStatusReady": "READY",
+    "yardConstructionCard": "{0} · {1} of {2}/{3}",
+    "yardConstructionStatus": "{0} of {1}/{2}",
     "battlePowerCost": "{0} CP",
     "battleTargeting": "TARGETING · {0}",
     "battleTargetingPicked": "{0} · {1}",
