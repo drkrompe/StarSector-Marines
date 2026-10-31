@@ -3,7 +3,7 @@
     "name": "Starsector Marines - Simplified Chinese",
     "author": "Dillon",
     "version": "0.1.0-alpha",
-    "description": "Simplified Chinese copy for Starsector Marines. Partial: the opening tutorials, mission board, briefing and muster are translated; other text stays in English. Needs a Chinese font pack for the game's fonts.",
+    "description": "Simplified Chinese copy for Starsector Marines. Partial: the opening tutorials, mission board, briefing, muster, results and debrief are translated; other text stays in English. Needs a Chinese font pack for the game's fonts.",
     "gameVersion": "0.98a-RC8",
     "dependencies": [{"id": "starsector_marines", "name": "Starsector Marines"}],
     "totalConversion": false,

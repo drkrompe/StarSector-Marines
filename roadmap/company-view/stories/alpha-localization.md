@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-31 — Simplified Chinese translation mod: opening dialogue, mission board, briefing and muster; overlay parity guard
+Updated: 2026-10-31 — Simplified Chinese translation mod: opening dialogue, mission board, briefing, muster, results and debrief; overlay parity guard
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
@@ -83,7 +83,11 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   `SquadDeploymentScreen` read, with their markup. The debug drawer and
   placeholder-only keys (`{0} {1}`, separators) stay as they are.
 - [ ] Stationing and the story briefings' spoken lines (`waylineBriefing*`).
-- [ ] Results, debrief and salvage: `resultsScreen*`, `debrief*`, loot.
+- [x] Results, debrief and salvage: every key `ResultsScreen`,
+  `MissionDebriefConversation`, `OfficerMissionResult`, `LootScreen` and
+  `DebriefRewardPrompt` read, with their markup, including each arc's debrief
+  transcript. Not yet linted: `mission-flow-localization` fails at the salvage
+  picker before the results pages render.
 - [ ] Battle UI: `battleDirect*`, `battleComms*`, `battleWs*`, objective
   names and markers, the Relief and Dust Ledger HUDs.
 - [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
