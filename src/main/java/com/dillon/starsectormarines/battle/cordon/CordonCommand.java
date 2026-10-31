@@ -53,6 +53,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<int[]> escorts;
         /** On the Road, the compound's gate while a convoy is coming to it or loading at it; empty otherwise. */
         final List<int[]> gates;
+        /** On the Road, the cut-off town's radio; {@code null} otherwise. */
+        final CordonRadio town;
+        /** On the Road once the town is finished, where the company falls back to; {@code null} otherwise. */
+        final int[] fallBack;
         /** Where the battle's optional objectives want squads, {x, y, squads}; empty without any. */
         final List<int[]> beats;
         /** The base's apron while the swarm is on it, else {@code null}. */
@@ -66,13 +70,15 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<KnownBore> bores;
 
         Frame(CommandFrame base, List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> escorts,
-              List<int[]> gates, List<int[]> beats, int[] baseOverrun, boolean tide, List<CordonLogistics.Carrier> carriers,
-              Map<Integer, float[]> lifting, List<KnownBore> bores) {
+              List<int[]> gates, CordonRadio town, int[] fallBack, List<int[]> beats, int[] baseOverrun, boolean tide,
+              List<CordonLogistics.Carrier> carriers, Map<Integer, float[]> lifting, List<KnownBore> bores) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.radio = radio;
             this.roadBlocks = roadBlocks;
             this.escorts = escorts;
             this.gates = gates;
+            this.town = town;
+            this.fallBack = fallBack;
             this.beats = beats;
             this.baseOverrun = baseOverrun;
             this.tide = tide;
@@ -99,6 +105,12 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || sim == null ? List.of() : sequence.convoys().unguarded(sim);
             List<int[]> gates = sequence.convoys() == null ? List.of() : sequence.convoys().gates();
+            // The town calls over the radio as a redoubt does; nobody but the company comes for it. Its squads go to
+            // the staging area, the ground the Road is held to.
+            CordonTown t = sequence.town();
+            CordonRadio town = t == null ? null : CordonRadio.report(0, t.staging().centreX(), t.staging().centreY(),
+                    t.holds(), t.swarmInside(), sim == null ? t.garrison() : CordonSequence.standing(sim, t.teams()),
+                    t.garrison(), t.quietTicks(base.tick()), false, false);
             List<int[]> beats = sequence.beats() == null || sim == null ? List.of() : sequence.beats().calls(sim);
             CordonLogistics logistics = sequence.logistics();
             int[] overrun = logistics == null || sim == null || logistics.dispatchCell(sim) != null ? null
@@ -111,8 +123,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                     bores.add(new KnownBore(bore.beatKey(), bore.mother(), bore.x(), bore.y(), !bore.collapsed()));
                 }
             }
-            return new Frame(base, List.copyOf(radio), blocks, escorts, gates, beats, overrun, sequence.inTide(), carriers,
-                    lifting, bores);
+            int[] fallBack = sequence.fallingBack() ? sequence.rally() : null;
+            return new Frame(base, List.copyOf(radio), blocks, escorts, gates, town, fallBack, beats, overrun,
+                    sequence.inTide(),
+                    carriers, lifting, bores);
         };
     }
 
@@ -159,10 +173,11 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             else proposals.add(CommandProposal.retain(squad.squadId(), CommandAuthority.MISSION_COMMAND,
                     "EXTERNAL_OWNERSHIP_PRESERVED"));
         }
+        if (frame.fallBack != null) return fallBack(frame, owned, proposals);
         // The base feeds the line where its carriers and shed do; a city's walking columns do not need it saved.
         int[] base = density == CordonPlan.Density.URBAN ? null : frame.baseOverrun;
         List<Duty> duties = CordonCompanyRules.duties(frame.radio, frame.roadBlocks, frame.escorts, frame.gates,
-                frame.beats, base);
+                frame.town, frame.beats, base);
         List<Squad> squads = new ArrayList<>();
         Set<Integer> striking = strikes == null ? Set.of() : strikes.members();
         // A squad on strike is never drawn for a duty: the gate already counted what it leaves behind.
@@ -276,6 +291,28 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                 List.of(phase), proposals, phase);
     }
 
+    /**
+     * The town is finished: the whole company falls back to the rally place behind the line, in a row there, and the
+     * Road ends once it is behind it ({@code cordon-nouns.md}, Flow, the Road).
+     */
+    private CommandPlan<String> fallBack(Frame frame, List<CommandSquadState> owned, List<CommandProposal> proposals) {
+        if (strikes != null) strikes.update(frame.tick(), frame.bores, frame.radio, List.of(), owned, 0, false, frame.tide);
+        List<int[]> posts = CordonCompanyRules.rallyPosts(frame.fallBack[0], frame.fallBack[1], owned.size());
+        for (int i = 0; i < owned.size(); i++) {
+            CommandSquadState squad = owned.get(i);
+            int[] cell = ground(frame, squad, posts.get(i)[0], posts.get(i)[1]);
+            ObjectiveAssignment next = ObjectiveAssignment.defendArea(squad.squadId(), cell[0], cell[1], SNAP);
+            ObjectiveAssignment old = squad.directive() == null ? null : squad.directive().assignment();
+            boolean same = old != null && old.kind() == next.kind()
+                    && old.targetCellX() == next.targetCellX() && old.targetCellY() == next.targetCellY();
+            proposals.add(CommandProposal.assign(same ? old : next, CommandAuthority.MISSION_COMMAND, "CORDON_FALL_BACK",
+                    same ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
+        }
+        return new CommandPlan<>(faction(), strategyId(), "FALLING_BACK", frame.tick(),
+                frame.influence() == null ? -1 : frame.influence().updatedTick(), owned.size(), 0,
+                List.of("FALLING_BACK"), proposals, "FALLING_BACK");
+    }
+
     /** The free carrier nearest a squad that seats it whole, or {@code null}: a squad rides together or walks. */
     static CordonLogistics.Carrier nearest(List<CordonLogistics.Carrier> carriers, float x, float y, int members) {
         CordonLogistics.Carrier best = null;
@@ -299,6 +336,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return switch (top) {
             case ROAD_BLOCK -> "CLEARING_ROAD";
             case CONVOY, GATE -> "ESCORTING";
+            case TOWN -> "HOLDING_TOWN";
             case BREACHED, BLED -> "ANSWERING_CALLS";
             case UNCOVERED -> "COVERING";
             case BEAT -> "OBJECTIVES";

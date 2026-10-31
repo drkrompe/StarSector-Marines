@@ -88,7 +88,7 @@ ARID pool maps (`story-map-pools.md`). Winning a chapter unlocks the next.
 | # | Chapter | Mission | Story beat | Fee |
 | --- | --- | --- | --- | --- |
 | 1 | **The Khettara** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
-| 2 | **Ain Tafrant** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
+| 2 | **Ain Tafrant** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Its people are trapped in the town: hold Ain Tafrant's staging area inside the town gate while the convoys go in and bring them out, then fall back behind the line. The win is the people brought out. | 28,000 |
 | 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. Regional Command sends the district batteries and battalions, and the company, attached to the district brigade, burns in behind the barrage and collapses it. | 32,000 |
 | 4 | **The Heart of the Khettara** | Broad Front | With the channel root down and the line held, the columns Regional Command sends go in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
 
