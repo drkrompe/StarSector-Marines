@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-31 — a falling hull's crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, a pool may be based on a field of its own on the map, its stock what stands ready there, its losses replaced on their stands (A based pool). Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-31 — a falling hull goes up and comes down as a blast field over its whole footprint; its crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, a pool may be based on a field of its own on the map, its stock what stands ready there, its losses replaced on their stands (A based pool). Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2254,6 +2254,13 @@ structures. A destroyer or larger has **secondaries**: blasts along its keel as 
 since nothing is under them yet) and then a ripple down the keel after it strikes, each hurting and
 breaching whatever is beside it, either side. Once at rest it burns in lengths along its whole keel,
 not at its centre alone.
+Every hull, a frigate included, goes up and comes down as a **blast field** over its whole footprint
+rather than one blast at its centre (`WarshipWreck.blastsBetween`): a burst field as it is lost, a
+larger strike field rolling outward from its centre after it lands with a ring of thrown-up dust, and
+fires shed along its keel as it falls. The count and size scale with the footprint (a blast every five
+square cells, ten to forty-eight of them, none under 2.2 cells). They are rolling blasts, which are drawn
+at their own size, unlike a heavy impact's fireball, which stays small whatever its radius. Presentation only;
+what the crash hurts is unchanged.
 The fall is a pure function of the hull's own state, so it
 lands the same way every play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.

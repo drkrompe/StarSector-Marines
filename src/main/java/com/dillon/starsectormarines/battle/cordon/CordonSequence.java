@@ -24,8 +24,9 @@ import java.util.function.Consumer;
  * breaks or the company is wiped out. The Road is decided on people, not the
  * line: the company holds Ain Tafrant while the convoys bring its townspeople
  * out; once the town is finished (everyone out, or abandoned when its staging
- * area is overrun) the company falls back behind the line, and the Road ends
- * there, won if enough townspeople came out. Read-only against the battle except
+ * area is overrun), or once enough are out and the player orders the pull-out
+ * ({@link CordonPullOut}), the company falls back behind the line to the pull-out
+ * zone, and the Road ends there, won if enough townspeople came out. Read-only against the battle except
  * for the tide, which brings every living bore's surge forward and lets the
  * swarm out at the tide's strength until it ebbs, and the eruption, which
  * opens a new bore in front of the line.
@@ -111,6 +112,9 @@ public final class CordonSequence implements Objective {
     private float lineY;
     private int frontward;
     private boolean fallBackSet, withdrawn;
+    /** The Road's pull-out zone behind the line, or {@code null}; whether pulling out is offered, and ordered. */
+    private CordonPullOut pullOut;
+    private boolean pullOutOffered, pulledOut;
     /** What abandoning the town does to the convoys and townspeople; a seam until {@code CordonConvoys} carries it. */
     private Consumer<BattleSimulation> abandonTown = sim -> { };
     /** The Road's staging area inside the town's gate, or {@code null}. */
@@ -220,8 +224,24 @@ public final class CordonSequence implements Objective {
     /** Why the town is finished ({@code town_empty}, {@code town_abandoned}), or {@code null} while it is held. */
     public String townFinished() { return townFinished; }
 
-    /** Whether the company is falling back behind the line to end the Road: the town is finished. */
-    public boolean fallingBack() { return townFinished != null; }
+    /** Whether the company is falling back behind the line to end the Road: the town is finished, or it pulled out. */
+    public boolean fallingBack() { return townFinished != null || pulledOut; }
+
+    /** The Road's pull-out zone ({@code cordon-nouns.md}, The pull-out), or {@code null}. */
+    public CordonPullOut pullOut() { return pullOut; }
+
+    /** Whether the company has done enough and may pull out: the player is told so, and the order counts. */
+    public boolean pullOutOffered() { return pullOutOffered; }
+
+    /** Whether the player ordered the pull-out. */
+    public boolean pulledOut() { return pulledOut; }
+
+    /** Gives the Road its pull-out zone, which is also where it falls back to; at setup, after {@link #attachFallBack}. */
+    public void attachPullOut(CordonPullOut pullOut) {
+        this.pullOut = pullOut;
+        rallyX = pullOut.x();
+        rallyY = pullOut.y();
+    }
 
     /** Where the company falls back to, {x, y}; {@code null} where none was set. */
     public int[] rally() { return fallBackSet ? new int[]{rallyX, rallyY} : null; }
@@ -350,7 +370,7 @@ public final class CordonSequence implements Objective {
         int tick = sim.getSimTickIndex();
         int[] swarmInside = new int[redoubts.size()];
         boolean[] relief = new boolean[redoubts.size()];
-        int townInside = 0, stagingInside = 0, companyAhead = 0, companyBehind = 0;
+        int townInside = 0, stagingInside = 0, companyAhead = 0, companyBehind = 0, companyInZone = 0;
         boolean townHeld = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
@@ -368,6 +388,7 @@ public final class CordonSequence implements Objective {
             if (company && fallBackSet) {
                 if (behindLine(y, lineY, frontward)) companyBehind++;
                 else companyAhead++;
+                if (pullOut != null && pullOut.contains(x, y)) companyInZone++;
             }
             if (town != null) {
                 if (swarm && town.contains(x, y, 0)) townInside++;
@@ -402,7 +423,19 @@ public final class CordonSequence implements Objective {
                 emit(tick, "fall_back");
             }
         }
-        if (townFinished != null && !withdrawn && companyBehind > 0 && companyAhead == 0) {
+        if (variant == CordonVariant.ROAD && convoys != null && pullOut != null && !fallingBack()) {
+            if (!pullOutOffered && CordonPullOut.offered(convoys.peopleOut(), peopleNeeded, convoyLoading())) {
+                pullOutOffered = true;
+                emit(tick, "done_enough");
+            }
+            if (pullOutOffered && pullOut.ordered(CordonPullOut.playerTargets(sim.getSquads()))) {
+                pulledOut = true;
+                emit(tick, "pull_out");
+                emit(tick, "fall_back");
+            }
+        }
+        if (fallingBack() && !withdrawn && (pullOut == null ? companyBehind > 0 && companyAhead == 0
+                : CordonPullOut.withdrawn(companyBehind, companyAhead, companyInZone))) {
             withdrawn = true;
             emit(tick, "company_withdrawn");
         }
@@ -461,7 +494,7 @@ public final class CordonSequence implements Objective {
         int tick = view.getSimTickIndex();
         boolean company = ObjectiveFactionPresence.anyInPlay(view, Faction.MARINE, unit -> true);
         Ending end = variant == CordonVariant.ROAD
-                ? roadEnding(company, townFinished != null, withdrawn, convoysMoving(),
+                ? roadEnding(company, fallingBack(), withdrawn, !pulledOut && convoysMoving(),
                         convoys != null ? convoys.peopleOut() : 0, peopleNeeded, tick >= ticks(ROAD_CAP_SECONDS))
                 : ending(company, fallen(), timetable.allowedFallen(), tick >= ticks(timetable.windowSeconds()));
         if (end == null) return;
@@ -521,6 +554,13 @@ public final class CordonSequence implements Objective {
             return peopleOut >= needed ? new Ending(Outcome.HELD, "cordon_held") : new Ending(Outcome.BROKEN, "people_short");
         }
         return null;
+    }
+
+    /** Whether a convoy is loading at the town's gate. */
+    private boolean convoyLoading() {
+        if (convoys == null) return false;
+        for (int c = 1; c <= convoys.convoys(); c++) if ("loading".equals(convoys.phase(c))) return true;
+        return false;
     }
 
     /** Whether a convoy is on its way to the town, loading there or driving out. */
