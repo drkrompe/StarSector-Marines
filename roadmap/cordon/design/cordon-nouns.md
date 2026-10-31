@@ -644,6 +644,21 @@ guns hold the opening and the first convoy's loading; nobody reinforces the
 town, so the tides bleed it, and the company has to come up and hold the
 staging area as it goes (owner's call on its strength).
 
+**Town flak.** At town density the compound also stands **flak** against the
+swarm's fliers (owner, 2026-10-31: "put flak turrets in the central compound
+to defend from fliers"): two to four anti-air flak positions (the redoubts'
+flak, `CordonTownGarrison.flakSites`), allied and under garrison authority
+like the gate towers, and the swarm can destroy them. They stand on open
+courtyard ground inside the wall, each open on all four sides and touching no
+building, so never in a room of people nor on a doorstep; never in the truck
+yard or the ground beside it (with a cell to spare), on the staging area or
+beside it, within three cells of where the corridor meets the town, in a gate
+or postern or the four cells in from it, nor beside a defender. They are
+spread to cover the whole compound: each next site the one that leaves the
+farthest cell inside the wall nearest a gun, at least a pair, then more until
+every cell inside is within thirteen cells of one (untuned; well inside the
+gun's reach, so neighbouring arcs overlap over the rooms).
+
 **Town states.** With its people in several rooms no one room is the town,
 so the **compound** is what is held: **held** while no swarm body is inside
 its wall, **pressed** while one is and a defender or a Marine stands inside it

@@ -889,7 +889,7 @@ public final class CordonSetup {
         List<int[]> corridor = cordon.corridor();
         return CordonTownGarrison.man(sim, CordonCorridor.compound(cordon.plan()), corridor.get(corridor.size() - 1),
                 CordonGateYard.of(cordon.map().layout), CordonFront.frontward(cordon.plan()), GARRISON_RISK,
-                new Random(cordon.battleSeed() ^ TOWN_SALT));
+                new Random(cordon.battleSeed() ^ TOWN_SALT), cordon.density() == CordonPlan.Density.TOWN);
     }
 
     /**
