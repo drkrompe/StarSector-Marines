@@ -94,6 +94,8 @@ public final class CordonSequence implements Objective {
     private CordonLogistics logistics;
     private CordonAirBase airBase;
     private CordonConvoys convoys;
+    /** The Road's staging area inside the town's gate, or {@code null}. */
+    private CordonStagingArea staging;
     private CordonLineCommand line;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
@@ -172,6 +174,14 @@ public final class CordonSequence implements Objective {
     /** Gives the Road its relief convoys; at setup, before the first tick. */
     public void attachConvoys(CordonConvoys convoys) {
         this.convoys = convoys;
+    }
+
+    /** The Road's staging area inside the town's gate, where the trapped townspeople wait and the trucks load; or {@code null}. */
+    public CordonStagingArea staging() { return staging; }
+
+    /** Gives the Road its staging area; at setup, before the first tick. */
+    public void attachStaging(CordonStagingArea staging) {
+        this.staging = staging;
     }
 
     /** Gives the line its logistics base: columns then march to it and are carried forward from it. */

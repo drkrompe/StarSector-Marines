@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonPosture;
+import com.dillon.starsectormarines.battle.cordon.CordonStagingArea;
 import com.dillon.starsectormarines.battle.cordon.CordonStrikes;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
@@ -601,6 +602,9 @@ public final class CordonSetup {
         if (logistics != null) sequence.attachLogistics(logistics);
         sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
+            List<int[]> corridor = cordon.corridor();
+            sequence.attachStaging(CordonStagingArea.at(sim, CordonCorridor.compound(cordon.plan()),
+                    corridor.get(corridor.size() - 1)));
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);

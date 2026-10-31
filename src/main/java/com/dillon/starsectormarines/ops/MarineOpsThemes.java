@@ -138,6 +138,16 @@ final class MarineOpsThemes {
                 }
                 .mission-card:hover, .client-card:hover { background-color: #505b58; }
                 .mission-card:active, .client-card:active { background-color: #222c2a; }
+                /* Debug launcher cards: flat readout plates with a sunk badge, lit gold when chosen. */
+                .debug-card {
+                    background-color: #1f2826; border-color: #4f5d57; border-style: solid;
+                    background-image: linear-gradient(to bottom, #ffffff0a 0%, #ffffff00 35%, #00000020 100%);
+                }
+                .debug-card:hover { background-color: #2b3734; border-color: #8d9a92; }
+                .debug-card:active { background-color: #151c1a; border-style: solid; }
+                .debug-card.selected { background-color: #332e1e; border-color: #edc273; border-style: solid; color: #ffe1a0; }
+                .debug-card-badge { background-color: #0f1714; border-color: #5d6d63; border-style: inset; }
+                .debug-card.selected .debug-card-badge { background-color: #1d180b; border-color: #b99b63; }
                 .console-command-rail {
                     background-color: #101713; border-color: #697368; border-style: inset;
                     background-image: none;

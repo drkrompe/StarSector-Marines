@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.FoundingReserve;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
@@ -17,11 +18,14 @@ import com.fs.starfarer.api.campaign.CampaignUIAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.EconomyAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.rules.MemKeys;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.loading.IndustrySpecAPI;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -57,7 +61,7 @@ class CompanyPreparationResumeTest {
         var cargo = stub(CargoAPI.class, Map.of("getCommodityQuantity", 0f,
                 "removeCommodity", (Function<Object[], Object>) a -> { fail("Reserved orders must not spend empty cargo"); return null; }));
         var fleet = stub(CampaignFleetAPI.class, Map.of("getCargo", cargo));
-        var dialog = stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet));
+        var dialog = docked(planet);
         Object[] course = {null};
         int[] exits = {0};
         Map<String, Object> ui = new HashMap<>(Map.of("getCurrentInteractionDialog", dialog,
@@ -103,7 +107,7 @@ class CompanyPreparationResumeTest {
             roster = reload(saved, roster);
             assertEquals(original, CerberusCompanyStart.depot().stock());
             assertCaptured(roster, ScreenId.BARRACKS);
-            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
+            ui.put("getCurrentInteractionDialog", docked(planet));
             assertSame(normal, CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++));
             sabine = roster.officerInduction().officer(roster);
             var squad = new SquadFoundingWorkshop(roster, new CampaignSquadFoundingResources()).foundSquad().squad();
@@ -165,6 +169,14 @@ class CompanyPreparationResumeTest {
                 ScreenId.DEBUG_MISSIONS, ScreenId.UI_WORKBENCH, ScreenId.COMPANY_HQ))
             assertEquals(untouched, CompanyPreparationRoute.resolve(untouched, roster, false));
         assertEquals(ScreenId.BRIEFING, CompanyPreparationRoute.resolve(ScreenId.BRIEFING, roster, true));
+    }
+
+    /** A dialog docked at {@code target} whose market rules granted docking clearance, so the port trades. */
+    private static InteractionDialogAPI docked(Object target) {
+        var local = stub(MemoryAPI.class, Map.of("getString", (Function<Object[], Object>) a ->
+                CivilizedPort.TRADE_MODE.equals(a[0]) ? "OPEN" : null));
+        var plugin = stub(InteractionDialogPlugin.class, Map.of("getMemoryMap", Map.of(MemKeys.LOCAL, local)));
+        return stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", target, "getPlugin", plugin));
     }
 
     @SuppressWarnings("unchecked")
