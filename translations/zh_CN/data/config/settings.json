@@ -1,0 +1,5 @@
+{
+	# Read by Strings.locale() for case changes and number formats, and by the game for line wrapping.
+	"localeOverride":"zh_CN",
+	"cjkMode":true
+}
