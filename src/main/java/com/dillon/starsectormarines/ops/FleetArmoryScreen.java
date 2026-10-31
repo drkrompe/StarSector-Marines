@@ -175,6 +175,7 @@ public final class FleetArmoryScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         if (prepared != null) prepared.commit();
+        built.keepScrollFrom(document);
         document = built;
         if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,

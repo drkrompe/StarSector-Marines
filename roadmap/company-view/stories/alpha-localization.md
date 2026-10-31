@@ -92,8 +92,10 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   markers, comms, direct control, warship and tender panels, dolls and deck
   plans read (`ops/Battle*`, `ops/battleview`, `battle/ui`, the battle
   markup). Expanded-copy lint: seven clipped spots in the HUD overlay panel.
-- [ ] Mission objective picture: `objective*` names, steps, measures and
-  blockers (about 340 keys), and the Relief and Dust Ledger HUDs.
+- [x] Mission objective picture: every `objective*` name, phase, step,
+  timer, blocker, marker and squad task.
+- [ ] Mission HUDs with their own catalogs: Relief (`cordonHud*`) and Dust
+  Ledger (`dustLedger*`).
 - [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
   ship transfer and refit (the bulk of the `opening*` keys).
 
