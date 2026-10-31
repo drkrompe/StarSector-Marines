@@ -445,7 +445,7 @@
       "missionId": "story_wellhollow_the_burn",
       "event": "heart.barrage_sector_1",
       "textKey": "wellhollowBurnSector1",
-      "text": "The guns are on the first ride. Sector one is burning; walk in behind it.",
+      "text": "Guns are opening up. We start the burn of Sector One. Stay behind the barrage.",
       "priority": 20,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -453,15 +453,15 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[calm, confident, on the radio] The guns are on the first ride. Sector one is burning; walk in behind it.",
-      "durationSeconds": 4.32
+      "synthesisText": "[calm, confident, on the radio] Guns are opening up. We start the burn of Sector One. Stay behind the barrage.",
+      "durationSeconds": 4.64
     },
     {
       "id": "wellhollow_burn_sector_2",
       "missionId": "story_wellhollow_the_burn",
       "event": "heart.barrage_sector_2",
       "textKey": "wellhollowBurnSector2",
-      "text": "Lifting to sector two, on the second ride. Keep up with it.",
+      "text": "Guns are starting to open up on Sector Two. Finish off the stragglers and keep up.",
       "priority": 20,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -469,15 +469,15 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[calm, matter-of-fact, on the radio] Lifting to sector two, on the second ride. Keep up with it.",
-      "durationSeconds": 3.52
+      "synthesisText": "[calm, matter-of-fact, on the radio] Guns are starting to open up on Sector Two. Finish off the stragglers and keep up.",
+      "durationSeconds": 4.56
     },
     {
       "id": "wellhollow_burn_sector_3",
       "missionId": "story_wellhollow_the_burn",
       "event": "heart.barrage_sector_3",
       "textKey": "wellhollowBurnSector3",
-      "text": "Sector three, along the brook. Past it, the mothers are yours.",
+      "text": "We're starting barrage near max range. We've cleared ahead as far as we could. Finish off the main bores before they surge.",
       "priority": 20,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -485,8 +485,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[confident, on the radio] Sector three, along the brook. Past it, the mothers are yours.",
-      "durationSeconds": 4.08
+      "synthesisText": "[confident, on the radio] We're starting barrage near max range. We've cleared ahead as far as we could. Finish off the main bores before they surge.",
+      "durationSeconds": 6.48
     },
     {
       "id": "wellhollow_front_01",
