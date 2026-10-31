@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.function.IntPredicate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,6 +75,36 @@ class CreepFieldTest {
         refused[0] = false;
         run(field, 600, 800);
         assertTrue(field.isCreeped(14, 12), "the source fills it again once the refusal ends");
+    }
+
+    @Test
+    void heldGroundStartsClearAndIsRetakenSlowerThanAFreshSourceTakesIt() {
+        CreepGrowth wide = new CreepGrowth(6f, 24f);
+        IntPredicate held = idx -> idx % W >= 14;
+        CreepField matured = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        matured.putSource(1L, 8, 12, wide);
+        matured.mature(held);
+        assertTrue(matured.isCreeped(12, 12), "the creep matures up to the held ground");
+        assertEquals(0, creepedWhere(matured, held), "and grows none of it at setup");
+
+        CreepField fresh = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        fresh.mature(held);
+        fresh.putSource(1L, 8, 12, wide);
+        run(matured, 1, 150);
+        run(fresh, 1, 150);
+        int retaken = creepedWhere(matured, held), taken = creepedWhere(fresh, held);
+        assertTrue(retaken < taken, "a source matured round held ground retakes it slower than a later one takes it: "
+                + retaken + " vs " + taken);
+
+        CreepField unheld = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        unheld.putSource(1L, 8, 12, wide);
+        unheld.mature();
+        run(matured, 150, 4000);
+        assertTrue(creepedWhere(matured, held) > 0, "held ground is retaken");
+        assertEquals(creepedWhere(unheld, held), creepedWhere(matured, held), "as far as the source would have grown it");
+        matured.removeSource(1L);
+        run(matured, 4000, 9000);
+        assertEquals(0, covered(matured), "and withers with its source");
     }
 
     @Test
@@ -191,6 +223,12 @@ class CreepFieldTest {
     }
 
     private static int covered(CreepField field) { return field.snapshot().coveredCells(); }
+
+    private static int creepedWhere(CreepField field, IntPredicate cells) {
+        int n = 0;
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) if (cells.test(y * W + x) && field.isCreeped(x, y)) n++;
+        return n;
+    }
 
     private static int farthestCovered(CreepField field, int sx, int sy) {
         int best = -1, bestD = -1;
