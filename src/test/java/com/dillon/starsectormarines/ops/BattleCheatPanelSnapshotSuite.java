@@ -52,8 +52,8 @@ import static org.lwjgl.opengl.GL11.*;
 /**
  * The battle's CHEAT switch and panel as a player sees them: a real battle and its retained HUD at 1920x1080 and 100%
  * scale, with the legacy GL panels painted between the two on a real driver, in the order {@code BattleScreen} paints
- * them. The panels' bounds come from the same retained surfaces the screen measures. Frames: the switch off; on, with
- * the panel collapsed; expanded, showing Win alone; and the developer build's rows for comparison. The switch label
+ * them. The panels' bounds come from the same retained surfaces the screen measures. Frames: the player build's switch
+ * off; on, with Win open beside it; Win hovered; and the developer build's panel for comparison. The switch label
  * follows this JVM's {@code marines.dev}, so the developer frame still reads CHEAT unless the run passes it.
  */
 public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
@@ -91,8 +91,8 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                 sim.advance(BattleSimulation.TICK_DT);
                 Selection selection = new Selection();
                 frames.add(frame(context, sim, selection, "01-switch-off", false, false, false));
-                frames.add(frame(context, sim, selection, "02-switch-on-collapsed", true, false, false));
-                frames.add(frame(context, sim, selection, "03-expanded-win", true, true, false));
+                frames.add(frame(context, sim, selection, "02-switch-on-win", true, false, false));
+                frames.add(frame(context, sim, selection, "03-win-hover", true, true, false));
                 frames.add(frame(context, sim, selection, "04-dev-build-expanded", true, true, true));
             }
         } finally {
@@ -102,19 +102,23 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
-                                          String name, boolean switchOn, boolean expand, boolean devRows) throws Exception {
+                                          String name, boolean switchOn, boolean act, boolean devRows) throws Exception {
         BufferedImage image = HudCompositionSnapshotSuite.compose(context, sim, selection, name, false, null,
                 (scene, retained) -> {
                     Context ui = new Context(sim, selection, retained);
-                    DebugHudSwitchPanel hudSwitch = new DebugHudSwitchPanel(ui);
-                    DebugTogglesPanel tools = new DebugTogglesPanel(ui);
-                    ui.tools = tools;
-                    tools.addAction(Strings.get("cheatsWin"), () -> { });
-                    if (devRows) addDiagnosticRows(tools);
+                    // As BattleScreen builds them: a dev build's switch and panel, or a player's switch carrying Win.
+                    DebugHudSwitchPanel hudSwitch = devRows ? new DebugHudSwitchPanel(ui)
+                            : new DebugHudSwitchPanel(ui, () -> { });
+                    DebugTogglesPanel tools = null;
+                    if (devRows) {
+                        tools = new DebugTogglesPanel(ui);
+                        ui.tools = tools;
+                        tools.addAction(Strings.get("cheatsWin"), () -> { });
+                        addDiagnosticRows(tools);
+                    }
                     ui.debugHud = switchOn;
-                    if (expand) expand(ui, tools);
-                    System.out.printf("    [battle-cheat-panel] %s: top %.0f, bottom HUD under tools %.0f, tools visible %b%n",
-                            name, DebugHudLayout.top(ui), ui.bottomHudTop(W / 2f - 300f, 600f), tools.isVisible());
+                    if (act && tools != null) expand(ui, tools);
+                    if (act && tools == null) hoverWin(ui, hudSwitch);
                     return paint(scene, hudSwitch, tools);
                 });
         return new SnapshotArtifact("cheat-panel/" + name + "-1920x1080-ui100.png", image);
@@ -138,6 +142,13 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
         tools.addAction("Dump commander trace", () -> { });
         tools.addAction("Spawn mech family", () -> { });
         tools.addToggle("Turret author", () -> false, () -> { });
+    }
+
+    /** Moves the pointer over the player's Win button. */
+    private static void hoverWin(Context ui, DebugHudSwitchPanel hudSwitch) {
+        BattleLayout layout = ui.getLayout();
+        int x = Math.round(hudSwitch.winX(layout) + 10f), y = Math.round(DebugHudSwitchPanel.y(layout) + 8f);
+        hudSwitch.handleInput(List.of(move(x, y)));
     }
 
     /** Clicks the collapsed header, wherever it sits along its row. */
@@ -171,7 +182,7 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
         glEnd();
         glDeleteTextures(texture);
         if (hudSwitch.isVisible()) hudSwitch.render(1f);
-        if (tools.isVisible()) tools.render(1f);
+        if (tools != null && tools.isVisible()) tools.render(1f);
         glFinish();
         ByteBuffer pixels = BufferUtils.createByteBuffer(W * H * 4);
         glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -213,6 +224,15 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                         return tokens.token(path, file, image.getWidth(), image.getHeight());
                     }
                     return method.invoke(previous, args);
+                });
+    }
+
+    private static InputEventAPI move(int x, int y) {
+        return (InputEventAPI) Proxy.newProxyInstance(InputEventAPI.class.getClassLoader(), new Class<?>[]{InputEventAPI.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getX" -> x;
+                    case "getY" -> y;
+                    default -> method.getReturnType() == boolean.class ? method.getName().equals("isMouseMoveEvent") : null;
                 });
     }
 
