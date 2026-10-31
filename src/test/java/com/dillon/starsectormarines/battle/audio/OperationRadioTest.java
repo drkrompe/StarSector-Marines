@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static com.dillon.starsectormarines.battle.audio.OperationRadio.HERO_BARK_GAP_SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OperationRadioTest {
@@ -319,7 +320,25 @@ class OperationRadioTest {
             assertEquals(report, muted.current());
             muted.advance(0.3f, false, false, false);
             assertNull(muted.current());
+            muted.advance(HERO_BARK_GAP_SECONDS, false, false, false);
         }
+    }
+
+    @Test
+    void reportsAndExchangesShareOneHeroBarkGap() {
+        OperationRadio muted = new OperationRadio(catalog(), new Random(1), turn -> null);
+        assertNotNull(muted.report(Cue.ENEMY_DOWN));
+        muted.stop();
+        assertNull(muted.report(Cue.CHECK_FIRE), "A second report inside the gap is dropped");
+        muted.observe(List.of(order(1, 20)));
+        assertNull(muted.beginExchange(), "An order exchange waits on the same gap");
+        muted.advance(HERO_BARK_GAP_SECONDS - 0.5f, false, false, false);
+        assertNull(muted.report(Cue.ENEMY_DOWN));
+        muted.advance(0.5f, false, false, false);
+        muted.observe(List.of(order(1, 21)));
+        assertNotNull(muted.beginExchange());
+        muted.stop();
+        assertNull(muted.report(Cue.ENEMY_DOWN), "An exchange closes the gap for reports too");
     }
 
     @Test
@@ -339,6 +358,7 @@ class OperationRadioTest {
                     assertEquals(report.line().speaker(), report.speaker());
                     assertNull(varied.report(cue), "A busy channel must not consume another variant");
                     varied.stop(); // Story preemption preserves per-battle variety history.
+                    varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
                 }
             }
         }
@@ -355,16 +375,19 @@ class OperationRadioTest {
         OperationRadio varied = new OperationRadio(single, fixed, turn -> null);
         String first = varied.report(Cue.CONTACT).line().id();
         varied.stop();
+        varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
         assertNotEquals(first, varied.report(Cue.CONTACT).line().id());
         varied.reset();
         assertEquals(first, varied.report(Cue.CONTACT).line().id());
         varied.stop();
+        varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
         String previous = first;
         for (int i = 0; i < 10; i++) {
             String next = varied.report(Cue.CONTACT).line().id();
             assertNotEquals(previous, next);
             previous = next;
             varied.stop();
+            varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
         }
     }
 
@@ -392,6 +415,7 @@ class OperationRadioTest {
         String first = single.report(Cue.CONTACT).line().id();
         for (int i = 0; i < 3; i++) {
             single.stop();
+            single.advance(HERO_BARK_GAP_SECONDS, false, false, false);
             assertEquals(first, single.report(Cue.CONTACT).line().id());
         }
     }
