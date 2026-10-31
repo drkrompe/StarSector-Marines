@@ -45,7 +45,7 @@ public final class CordonRouteSnapshotSuite implements SnapshotSuite {
             CordonConvoys convoys = sim.getCordon().convoys();
             List<int[]> road = convoys.corridor();
             int from = Math.max(0, Math.min(convoys.entry(), road.size() - 1));
-            ReviewAnnotations marks = marks(convoys, road, from);
+            ReviewAnnotations marks = marks(convoys, road, from, sim.getCordon().escalation());
             BattleReviewFrameRenderer whole = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H);
             String tag = "town-road-arid-seed" + seed + "-";
             out.add(new SnapshotArtifact(tag + "01-whole-map.png", whole.render(sim,
@@ -69,12 +69,31 @@ public final class CordonRouteSnapshotSuite implements SnapshotSuite {
                         near.render(sim, String.format("the drive, stretch %d of %d (road cells %d to %d), %.0f cells across",
                                 i + 1, stretches, a - from, b - from, across), marks)));
             }
+            CordonTown town = sim.getCordon().town();
+            if (town != null) {
+                // The town round the compound: its far side and east flank, then the alleys at play zoom.
+                float front = sim.getCordon().town().centreY() > road.get(from)[1] ? 1f : -1f;
+                float cx = town.right() + 18f, cy = town.centreY() + front * 18f;
+                near.refocus(cx, cy, 170f);
+                out.add(new SnapshotArtifact(tag + "03-town-blocks.png", near.render(sim,
+                        "the cut-off town: the compound and the blocks past its far side and east flank, 170 cells across",
+                        marks)));
+                near.refocus(town.right() + 22f, town.centreY() + front * 22f, 64f);
+                out.add(new SnapshotArtifact(tag + "04-town-alleys.png", near.render(sim,
+                        "the alleys north-east of the compound at play zoom, 64 cells across", marks)));
+            }
         }
         return out;
     }
 
-    private static ReviewAnnotations marks(CordonConvoys convoys, List<int[]> road, int from) {
+    private static ReviewAnnotations marks(CordonConvoys convoys, List<int[]> road, int from,
+                                           CordonBoreEscalation escalation) {
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        if (escalation != null) {
+            for (CordonBoreEscalation.Site site : escalation.sites()) {
+                if (site.town()) marks.label(site.x(), site.y(), "TOWN BORE " + site.order(), ReviewStyle.OBJECTIVE);
+            }
+        }
         List<ReviewAnnotation.Point> points = new ArrayList<>();
         for (int c = from; c < road.size(); c++) points.add(new ReviewAnnotation.Point(road.get(c)[0] + .5f, road.get(c)[1] + .5f));
         marks.polyline(points, "convoy drive", ReviewStyle.APPROACH);
