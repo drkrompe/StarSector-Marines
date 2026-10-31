@@ -65,7 +65,6 @@
         </div>
         <div id="officer-dossier-scroll" class="officer-scroll">
           <div id="officer-biography" class="label wrap officer-copy">{command.officerBiography}</div>
-          <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
           <div id="officer-scope" class="label muted wrap officer-copy">{i18n.openingUiShipboardBarracksSpecialtiesFollowTheSquadsThisOfficerLeads}</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
           <div id="officer-specialty-list" class="specialty-tree console-readout">
