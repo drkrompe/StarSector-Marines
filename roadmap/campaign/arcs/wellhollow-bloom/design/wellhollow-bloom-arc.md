@@ -120,7 +120,13 @@ Every chapter won stays on Orens's board as a **replay** next to the
 current chapter. A replay:
 
 - plays the same mission with a fresh vetted map from the chapter's ARID pool
-  (attempt-indexed), so it is the same place on a different day;
+  (attempt-indexed), so it is the same place on a different day; chapter 1
+  instead owns one seed (`WellhollowBloomCampaign.COLONY_BREACH_SEED`, the
+  pool's patched ARID colony) that its first attempt, retries, replays and the
+  debug player all play, and chapter 2 likewise owns
+  `WellhollowBloomCampaign.AIN_TAFRANT_SEED` (the town pool's ARID seed 7), so
+  the convoys' road from the town to the safe camp is laid out once (owner,
+  2026-10-31);
 - pays half the chapter fee on victory and nothing on a loss;
 - carries no unlock, no completion and no one-time reward, and never rewrites
   the arc's progress;
@@ -129,7 +135,7 @@ current chapter. A replay:
 
 The debug mission player lists all four chapters under Asharu (WB1 to WB4,
 `DebugMissionCatalog.Scenario.wellhollow`), each on its pool's first vetted
-ARID map (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
+ARID map or its own seed (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
 every time. It briefs with the chapter's first exchange and sets up the
 challenge force: a Veteran Company of seven squads and four machines.
 

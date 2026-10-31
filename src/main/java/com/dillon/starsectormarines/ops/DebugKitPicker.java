@@ -244,7 +244,7 @@ final class DebugKitPicker {
         modal.put("pointsLabel", left + (left == 1 ? " POINT LEFT" : " POINTS LEFT"));
         if (!Kind.COMMANDER.equals(modal.get("kind"))) return;
         List<Map<String, Object>> tiles = new ArrayList<>();
-        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+        for (OfficerSpecialty specialty : OfficerSpecialty.offered()) {
             String id = "debug-kit-specialty-" + specialty.name();
             int level = commander.level(specialty);
             Map<String, Object> tile = new LinkedHashMap<>();
@@ -262,7 +262,7 @@ final class DebugKitPicker {
                 tile.put("rank" + rank + "ImageId", node + ":image");
                 tile.put("rank" + rank + "TextId", node + ":text");
                 tile.put("rank" + rank + "Icon", "graphics/ui/officers/specialty-node-" + rank + "-" + state + ".svg");
-                tile.put("rank" + rank + "Effect", (rank == 1 ? "I  " : "II  ") + specialty.effect(rank));
+                tile.put("rank" + rank + "Effect", OfficerSpecialty.numeral(rank) + "  " + specialty.effect(rank));
                 tile.put("rank" + rank + "Disabled", state.equals("locked"));
                 tile.put("rank" + rank, (Runnable) () -> press.accept(specialty, r));
             }

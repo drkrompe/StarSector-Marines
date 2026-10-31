@@ -89,11 +89,6 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
         }
     }
 
-    public static int salvageBonus(List<OfficerMissionResult> officers, boolean victory, int engaged) {
-        return victory && engaged > 0 ? officers.stream()
-                .mapToInt(o -> o.officer().salvage() * 10).max().orElse(0) : 0;
-    }
-
     public String summary() {
         String state = Strings.named("resultsScreenOfficerStatus", status.name());
         return promotedTo != null

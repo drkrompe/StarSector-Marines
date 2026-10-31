@@ -626,9 +626,10 @@ public final class CordonSetup {
         sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
             List<int[]> corridor = cordon.corridor();
-            sequence.attachStaging(CordonStagingArea.at(sim, CordonCorridor.compound(cordon.plan()),
-                    corridor.get(corridor.size() - 1)));
-            CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
+            CordonStagingArea staging = CordonStagingArea.at(sim, CordonCorridor.compound(cordon.plan()),
+                    corridor.get(corridor.size() - 1));
+            sequence.attachStaging(staging);
+            CordonConvoys convoys = convoys(sim, cordon, timetable, logistics, staging);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
             convoys.escortedBy(armour::convoyEscort);
@@ -771,7 +772,8 @@ public final class CordonSetup {
      * compound at the corridor's far end ({@code cordon-nouns.md}, Convoy, Cut-off town).
      */
     static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon,
-                                 CordonSequence.Timetable timetable, CordonLogistics base) {
+                                 CordonSequence.Timetable timetable, CordonLogistics base,
+                                 CordonStagingArea staging) {
         List<int[]> corridor = cordon.corridor();
         float line = CordonFront.lineY(cordon.plan());
         int frontward = CordonFront.frontward(cordon.plan());
@@ -794,6 +796,9 @@ public final class CordonSetup {
         CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
                 timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
         convoys.setTownMilitia(militia);
+        // The townspeople are trapped in the staging area, stood after the militia so the militia's cells are taken first.
+        if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, staging.cells());
+        else convoys.standTownspeople(sim, frontward);
         return convoys;
     }
 

@@ -244,15 +244,16 @@ the new company's baseline; *none* is never sold in the store. It
 ## Officer career
 
 Officers have a separate XP/rank ladder and permanent specialty training.
-Appointment grants one choice; each higher rank grants another. Each specialty
-has two ranks, so five lifetime points cannot master all four paths. Existing
+Appointment grants one choice; each higher rank grants another. Two
+specialties are offered, each with three ranks, so five lifetime points cannot
+master both. Existing
 saves receive rank-equivalent choice budgets without retroactive mission claims.
 The dossier shows exact effects, next ranks and affected home squads; deployed
 scope follows frozen command assignment, including borrowed squads.
 
-Tactical Cover improves incoming-accuracy protection by 5/10%; Recovery Planning
-shortens WIA time by 15/30%; Salvage Stewardship adds 10/20 recovery percentage
-points using the strongest participating officer only. Field Medicine gives
+Tactical Cover improves incoming-accuracy protection by 5/10/15%. Recovery
+Planning and Salvage Stewardship are retired, with their points refunded on
+load. Field Medicine gives
 each of the officer's squads one designated medic, without spending anybody's
 loadout: the first middle-team marine other than the leader, in roster order,
 replaced when they fall. That one billet rule is shared by the battle and the

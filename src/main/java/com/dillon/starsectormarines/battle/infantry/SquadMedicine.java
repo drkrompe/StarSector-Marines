@@ -52,7 +52,7 @@ public record SquadMedicine(float energyMax, float energyRegenPerSecond, float e
                             float heavyFirePressure) {
 
     /** Highest Field Medicine rank an officer can train. */
-    public static final int MAX_RANK = 2;
+    public static final int MAX_RANK = 3;
 
     /** The authored table, one entry per rank. */
     public static final String PATH = "data/marines/squad-medicine.json";

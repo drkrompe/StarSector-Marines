@@ -31,7 +31,7 @@ reason the squad cannot lose.
 ## Shape
 
 **The capability comes from the officer, not the loadout.** A fourth officer
-specialty, **Field Medicine** (two ranks, like the other three), designates one
+specialty, **Field Medicine** (three ranks, like Tactical Cover), designates one
 marine in each of the officer's home squads as the squad medic. The medic keeps
 their own primary, special and armor, so the player loses no loadout choice to
 get one. It is visible in the officer dossier and frozen with deployment. This
@@ -233,7 +233,7 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   treating the wounded needs no new concept and handling bodies does.
 - Defender medics. Officer specialties are a player-company concept. A defender
   equivalent would arrive as authored formation data, not this specialty.
-- Campaign-side medicine (the WIA clock). That is Recovery Planning's job.
+- Campaign-side medicine (the WIA clock).
 
 ## Open questions
 

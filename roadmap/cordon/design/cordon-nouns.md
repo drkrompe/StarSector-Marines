@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the air wing flies off the allies' own airbase lot, a field held in a rear corner, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
+Updated: 2026-10-31 — the townspeople are trapped in the town's staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -460,8 +460,14 @@ groups of six, two minutes apart, from the two rear villages in turn.
 **Cut-off town (the Road).** The colony's own town in the front, beyond the
 line, where the people Colony Breach left behind are still holding out in its
 civil-defence compound with what is left of the militia (two teams, seated
-inside the gate). Its people are the Road's score: a count the compound holds,
-which ride out as a count.
+inside the gate). Its people are the Road's score. The **townspeople** are trapped
+civilians huddled in the town's staging area, the open ground inside the gate (with none found, in the compound
+behind the militia, fourteen cells past the gate). They never walk off or flee
+on their own: one jostled off its place walks back to it. While a convoy loads they walk out to its trucks and **board** one at a time,
+each boarding taking one off the field and putting one more aboard that truck.
+They are prey: one the swarm kills before boarding is a townsperson lost, as
+one aboard a destroyed truck is. Any the compound has no room to stand up stay
+a count and board from it at the same pace.
 
 **Corridor.** The relief road from the rear edge through the line to the
 cut-off town's compound: the way the convoys drive (*The map*). Nothing is
@@ -471,10 +477,13 @@ in the way.
 **Convoy (the Road).** An allied column of trucks that sets out from the
 logistics base where the corridor passes it, drives the corridor to the town,
 waits at the compound's gate while the townspeople board, and drives back to
-the base. Only a truck at the gate takes people aboard: a truck still on its
-way when the first arrives drives on to the gate, and the convoy waits for it
-(a loading's length past its own, then turns for home without it, the
-straggler driving back empty). It does not fight its way through: it stops when the road ahead is
+the base. Only a truck at the gate takes people aboard, one every two seconds
+while its seats last: a truck still on its way when the first arrives drives
+on to the gate and boards whoever is left when it gets there. The convoy turns
+for home when every truck is at the gate and full, or at once when the town has
+nobody left to board, or at the **loading cap** (a minute from the first truck
+at the gate) with whoever has boarded, a straggler that never came driving back
+with what it has, or empty. It does not fight its way through: it stops when the road ahead is
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
 swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
@@ -734,8 +743,8 @@ map whole.
 3. **Ambush.** A surge reaches the road while a convoy is on it: the convoy
    halts and the company has to clear it on. A convoy whose road is not cleared
    is eaten where it stands.
-4. **The town.** A convoy at the compound's gate waits while its share of the
-   townspeople board, then turns for home. The town's own militia hold the
+4. **The town.** A convoy at the compound's gate waits while the townspeople
+   walk out and board it one by one, then turns for home full. The town's own militia hold the
    compound while it waits.
 5. **The tide.** As in the Line, at set minutes every bore surges at once; on
    the Road the tide falls on the gap and the town. The two redoubts either
@@ -888,7 +897,7 @@ with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 | L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
 | R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
 | R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap | Four are behind the line | Fewer than four can be |
-| R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate | It leaves loaded | It is lost first |
+| R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate, its people (the wounded) boarding slowly enough to fill its seats over that time | It leaves loaded | It is lost first |
 | R4 | `militia` | none | When the last convoy is at the gate the town militia go to the gap and hold it (allied, never the player's) | One reaches the gap | All die on the way (lapses when none is left to ride) |
 | R5 | `maw_on_road` | second road | At 5:30 a bore opens sixteen cells off the corridor past the gap, on the second road's side | Collapsed while a fissure | It grows: the convoys that set out after drive a corridor found again round it |
 | R6 | `gap_falls` | gap positions | When a gap redoubt falls (the battle's own fall, not scripted) the company holds the gap | No convoy lost since the fall, to the last convoy, or to the end of a won Road | A convoy lost since, the gap closed, or the Road lost (lapses if every convoy was already home) |

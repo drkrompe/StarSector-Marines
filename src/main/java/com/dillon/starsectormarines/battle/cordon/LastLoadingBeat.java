@@ -7,7 +7,8 @@ import java.util.List;
 
 /**
  * R3, The last loading ({@code cordon-nouns.md}, Optional objectives): the town's last people are its
- * wounded and board slowly, so the last convoy waits two minutes longer at the compound's gate while the
+ * wounded and board slowly, so the last convoy waits two minutes longer at the compound's gate, its people
+ * climbing aboard at a pace that fills its seats over that time ({@link CordonConvoys#boardTicks}), while the
  * company holds the streets round it. Succeeds when that convoy leaves the town loaded; fails when it is
  * lost first; lapses when it never reaches the town.
  */
