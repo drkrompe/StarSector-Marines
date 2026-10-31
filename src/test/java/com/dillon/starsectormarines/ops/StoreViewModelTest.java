@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.StoreSlot;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MechBay;
@@ -95,6 +96,17 @@ class StoreViewModelTest {
         assertEquals(100, credits[0]);
         assertFalse(armory.knowsLoadoutCard(id));
         assertFalse(model.verdict().get().isEmpty());
+    }
+
+    @Test
+    void theWaylinePathNotTakenIsShownAsItsCard() {
+        String id = new LoadoutCard(LoadoutCard.Kind.WEAPON, FirstRefit.Path.STEADY_LINE.weapons).id();
+        StoreViewModel model = new StoreViewModel(new Reactor(), () -> List.of(offer(id)),
+                () -> new EquipmentStore.Holdings(new MarineArmory(), new MechBay(), null), purse(new long[] {0}),
+                () -> "Jangala");
+
+        assertEquals(1, model.selectedCards().get().size());
+        assertEquals("store-offer-flag", model.rows().get().get(0).flagClasses());
     }
 
     private static EquipmentStore.Offer offer(String cardId) {

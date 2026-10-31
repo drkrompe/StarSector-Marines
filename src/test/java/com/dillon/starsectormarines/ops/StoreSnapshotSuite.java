@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.StoreSlot;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MarineArmory;
@@ -44,21 +45,24 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             DiskRegistries.install();
             HeadlessSvgAssets.install(context.modRoot());
             return List.of(
-                    new SnapshotArtifact("store-shelf.png", frame(context, false, null, false)),
-                    new SnapshotArtifact("store-after-purchase.png", frame(context, true, null, false)),
+                    new SnapshotArtifact("store-shelf.png", frame(context, false, null, false, null)),
+                    // A free-pick Wayline path: sold here as the path not taken, though no pool offers it.
+                    new SnapshotArtifact("store-wayline-card.png", frame(context, false, null, false,
+                            new LoadoutCard(LoadoutCard.Kind.WEAPON, FirstRefit.Path.STEADY_LINE.weapons).id())),
+                    new SnapshotArtifact("store-after-purchase.png", frame(context, true, null, false, null)),
                     new SnapshotArtifact("store-mechs-category.png",
-                            frame(context, false, "SECTION:MECHS", false)),
+                            frame(context, false, "SECTION:MECHS", false, null)),
                     new SnapshotArtifact("store-vehicle-chassis.png",
-                            frame(context, false, "SLOT:MECH_CHASSIS", true)),
+                            frame(context, false, "SLOT:MECH_CHASSIS", true, null)),
                     new SnapshotArtifact("store-boats-category.png",
-                            frame(context, false, "SECTION:BOATS", false)),
+                            frame(context, false, "SECTION:BOATS", false, null)),
                     new SnapshotArtifact("store-armor-slot.png",
-                            frame(context, false, "SLOT:ARMOR_LOADOUT", false)));
+                            frame(context, false, "SLOT:ARMOR_LOADOUT", false, null)));
         }
     }
 
     private static BufferedImage frame(SnapshotContext context, boolean afterPurchase, String filter,
-                                       boolean vehicleChassis)
+                                       boolean vehicleChassis, String extraCard)
             throws Exception {
         Reactor reactor = new Reactor();
         MarineArmory armory = new MarineArmory();
@@ -70,6 +74,9 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
         }
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, cards.get(3).id(),
                 EquipmentStore.Shelf.LICENSE, 6500));
+        if (extraCard != null) {
+            shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, extraCard, EquipmentStore.Shelf.MARKET, 6500));
+        }
         // One mech or vehicle pattern for every slot it can fill.
         Set<StoreSlot> seen = new HashSet<>();
         for (MechPattern pattern : MechPattern.offerable()) {
@@ -105,6 +112,7 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 purse, () -> "Jangala");
         if (afterPurchase) viewModel.buySelected();
         if (filter != null) viewModel.selectFilter(filter);
+        if (extraCard != null) viewModel.select("LOADOUT:" + extraCard);
 
         Map<String, Object> props = StoreScreen.props(viewModel);
         var saved = MarineOpsPageNav.storeOpen;
