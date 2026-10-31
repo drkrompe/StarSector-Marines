@@ -33,7 +33,6 @@ class SecondSquadPreparationTest {
                 roster::acknowledgeSecondSquadPreparation);
         assertNotNull(lesson);
         assertTrue(lesson.copy().contains("24 marines"));
-        assertTrue(lesson.copy().contains("four ready marines each"));
         assertTrue(lesson.copy().contains("marines · Cost 12 · Short by 12"));
         assertTrue(lesson.copy().contains(CompanyResources.creditBill(SquadFoundingCost.STANDARD.credits(), 0)),
                 "the squad's stores are one credit price");

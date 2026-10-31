@@ -53,7 +53,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         props.put("rewardValue", "12,000 credits");
         BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
         BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
-        props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Requires", "Two squads / at least four ready marines each", "")));
+        props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Requires", "Two squads recommended; any deployable squad may launch", "")));
         props.put("missionFlavor", "Zoey Venn: Wayline has its depot back, but both outlying roads are cut. Open the junction so we can put people and freight through again.");
         props.put("preparationClasses", "mission-preparation");
         boolean[] armory = {false}, barracks = {false}, replay = {false};

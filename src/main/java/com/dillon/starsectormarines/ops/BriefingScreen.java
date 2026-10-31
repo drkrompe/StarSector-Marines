@@ -1238,9 +1238,9 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = SupplyRouteCampaign.isBattle(mission)
-                ? SupplyRouteCampaign.forceDeployable(liveRoster(), ctx.getSelectedMarineSquadIds())
-                : !(CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        // The arcs' recommended force is advice; any deployable selection launches.
+        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission))
+                || SupplyRouteCampaign.forceDeployable(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;
@@ -1269,7 +1269,7 @@ public class BriefingScreen implements Screen {
         String label = canAccept ? Strings.upper(Strings.get("briefingAccept"))
                 : !transportOk ? Strings.upper(Strings.get("briefingAcceptBlocked"))
                 : !commandOk ? Strings.upper(Strings.get("briefingUiCheckCommandGroups"))
-                : !routeReady ? Strings.upper(Strings.get("briefingUiAssignTwoSquads"))
+                : !routeReady ? Strings.upper(Strings.get("briefingUiAssignSquad"))
                 : readiness != null && readiness.needsPersonnel()
                         ? canReinforce ? Strings.upper(Strings.format("briefingUiReinforceCargo", reinforcement, cargoCost))
                                 : fillable == 0 ? Strings.upper(Strings.format("briefingUiNeedSquad", shortfall))

@@ -33,7 +33,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             props.put("rewardValue", "12,000 credits");
             props.put("personnelSummary", "Two formations / 24 marines aboard");
             props.put("experienceSummary", "Company infantry / recovered Hound");
-            props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Launch minimum", "Two squads / four ready marines each", "")));
+            props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
             props.put("sourceRows", List.of());
             props.put("sourceEmpty", "Wayline / contracted heavy lift");
             props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-sabine", "choice-row selected",

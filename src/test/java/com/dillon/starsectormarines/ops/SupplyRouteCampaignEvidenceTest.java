@@ -55,7 +55,7 @@ class SupplyRouteCampaignEvidenceTest {
                 for(var soldier:List.copyOf(roster.squadMembers(first)).subList(4,8)) assertTrue(roster.transferSoldier(soldier.id(),second.id()));
             }
             var selected=roster.squads().stream().filter(squad->!squad.reserve()).map(squad->squad.id()).collect(Collectors.toSet());
-            assertTrue(SupplyRouteCampaign.forceReady(roster,selected));
+            assertTrue(SupplyRouteCampaign.forceDeployable(roster,selected));
             var deployment=CampaignMarineDeployment.freezeSelection(roster,selected,strength);
             var boats=List.of(new FittedBoat(ShuttleType.AEROSHUTTLE,BoatFitting.requireById("reinforced_plating"),BoatFitting.requireById("tuned_drive"),"campaign-alpha"),
                     new FittedBoat(liftCase.equals("paired-six") ? ShuttleType.AEROSHUTTLE : ShuttleType.VALKYRIE,BoatFitting.STANDARD_PLATING,BoatFitting.STANDARD_DRIVE,"campaign-bravo"));

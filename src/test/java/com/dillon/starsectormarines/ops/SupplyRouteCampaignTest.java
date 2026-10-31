@@ -76,9 +76,7 @@ class SupplyRouteCampaignTest {
         assertSame(one,manifest.get(0).airframe);assertSame(two,manifest.get(1).airframe);
         assertEquals(0,DetachmentResolver.employerPhysicalShipCount(mission));
         var roster=new MarineRoster();roster.ensureActiveSoldiers(24);
-        assertFalse(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id())));
-        assertTrue(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id(),roster.squads().get(1).id())));
-        assertFalse(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id(),roster.squads().get(1).id(),"unknown")));
+        assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of(roster.squads().get(0).id(),roster.squads().get(1).id(),"unknown")));
         assertTrue(SupplyRouteCampaign.forceDeployable(roster,Set.of(roster.squads().get(0).id())), "One squad is the player's choice");
         assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of()));
         assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of("unknown")));
