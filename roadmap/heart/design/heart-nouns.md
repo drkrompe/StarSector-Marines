@@ -314,7 +314,7 @@ into the map, with the second it opens and the seconds it fires before it
 current line. A round carries no danger marker, as a called strike does:
 nothing is drawn on the ground, and the battle announces the guns by the line,
 in its beats. How the walk should read beyond the rounds (ranging smoke, a
-marker) is open (`heart-barrage-read`). A line may fire incendiary shells, which light what they
+marker) is open (`heart-barrage-read`). The objectives rail reads the frozen timetable as a **barrage row** (`HeartChecklist`): it counts down to the opening shoot, then to each line's lift, says when the next incendiary line lights the burn, beacons the line firing and the battery, and fails with the battery. A line may fire incendiary shells, which light what they
 land on through fire's ignition seam. The plan ends at the **last line**, short
 of the heart: the batteries' reach, or the ammunition the briefing names. The
 Burn's plan follows **firebreaks hold** (the owner's pick): the fire stops at
