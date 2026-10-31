@@ -84,7 +84,10 @@ arc settles it as a full success (fee, chapter advance, rewards); the company's
 own losses and experience are what the battle had reached.
 The store's **[Cheat] Free Licenses** key, shown only while Debug is on and
 saved with the game, makes every store purchase (loadout cards, mech patterns,
-boat parts) free; the shelf and what it teaches are unchanged.
+boat parts) free; the shelf and what it teaches are unchanged. Beside it,
+**[Cheat] Unlock Everything** teaches at once, free, every loadout card, machine
+pattern and boat part any store may sell, whatever the Kit Ladder, licences or
+story progress have opened (`EquipmentStore.takeEverything`).
 
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's

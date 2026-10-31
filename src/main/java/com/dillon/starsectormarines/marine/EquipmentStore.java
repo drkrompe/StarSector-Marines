@@ -222,6 +222,29 @@ public final class EquipmentStore {
     }
 
     /**
+     * Every loadout card, machine pattern and boat part any store may sell, whatever the Kit Ladder, licence or
+     * rotation allows: the list the store's Unlock Everything cheat teaches. Priced as a licensed shelf without tariff.
+     */
+    public static List<Offer> everything() {
+        List<Offer> offers = new ArrayList<>();
+        for (LoadoutCard card : LoadoutCards.all()) offers.add(offer(Kind.LOADOUT, card.id(), Shelf.LICENSE, 0f));
+        for (MechPattern pattern : MechPattern.offerable()) {
+            offers.add(offer(Kind.MECH_PATTERN, pattern.id(), Shelf.LICENSE, 0f));
+        }
+        for (String id : BoatParts.offerable()) offers.add(offer(Kind.BOAT_PART, id, Shelf.LICENSE, 0f));
+        return List.copyOf(offers);
+    }
+
+    /** The store's Unlock Everything cheat: teaches every {@link #everything} offer the company lacks, free; how many. */
+    public static int takeEverything(Holdings held, FabricationResources purse) {
+        int taught = 0;
+        for (Offer offer : everything()) {
+            if (buy(offer, held, purse, true) == Sale.SOLD) taught++;
+        }
+        return taught;
+    }
+
+    /**
      * The shelf of {@code market} in the running campaign, or empty with no campaign. Cards the
      * company already knows or carries are not offered again.
      */
