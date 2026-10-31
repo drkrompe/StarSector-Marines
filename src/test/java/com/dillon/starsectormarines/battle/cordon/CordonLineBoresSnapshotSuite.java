@@ -101,8 +101,9 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
             if (zone != null) {
                 near.refocus(zone.x() + 0.5f, zone.y() + 0.5f, ZONE_ACROSS);
                 out.add(new SnapshotArtifact(tag + "05-pull-out-zone.png", near.render(sim,
-                        String.format("the pull-out zone at (%d, %d), %d cells across: the trigger point behind the line",
-                                zone.x(), zone.y(), ZONE_ACROSS), marks)));
+                        String.format("the pull-out zone, cells %d..%d x %d..%d (%d walkable), %d cells across: the trigger"
+                                        + " point behind the line", zone.box()[0], zone.box()[2], zone.box()[1],
+                                zone.box()[3], zone.cells().size(), ZONE_ACROSS), marks)));
             }
         }
         return out;
@@ -127,8 +128,8 @@ public final class CordonLineBoresSnapshotSuite implements SnapshotSuite {
             List<ReviewAnnotation.Cell> cells = new ArrayList<>();
             for (int[] c : zone.cells()) cells.add(new ReviewAnnotation.Cell(c[0], c[1]));
             marks.cells(cells, "", ReviewStyle.LANDING);
-            marks.label(zone.x(), zone.y() + CordonPullOut.RADIUS + 3,
-                    "PULL-OUT ZONE (order a squad here; hold it to finish)", ReviewStyle.LANDING);
+            marks.label(zone.x(), zone.box()[3] + 3, "PULL-OUT ZONE (order a squad here; hold it "
+                    + CordonPullOut.HOLD_SECONDS + " s to finish)", ReviewStyle.LANDING);
         }
         for (CordonRedoubt r : cordon.redoubts()) {
             marks.label(r.centreX(), r.centreY(), "REDOUBT " + r.number()

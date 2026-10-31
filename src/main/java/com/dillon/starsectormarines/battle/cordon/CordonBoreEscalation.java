@@ -81,14 +81,21 @@ public final class CordonBoreEscalation {
     public record Step(int seconds, int tripsHome, float peopleShare) { }
 
     /**
-     * Ain Tafrant's schedule over the fifteen-minute timetable: a bore stirring about a minute before each of the first
-     * three tides and one more in the last stretch, each brought forward when the convoys run ahead of the clock. UNTUNED.
+     * Ain Tafrant's schedule over the fifteen-minute timetable, for the scheduled sites in opening order: two line
+     * bores before the first two tides, the town's far-side bore in the middle of the evacuation, then two more line
+     * bores, each brought forward when the convoys run ahead of the clock, so the pressure grows across the mission
+     * (owner, 2026-10-31). UNTUNED.
      */
     public static final List<Step> STANDARD = List.of(
             new Step(180, 1, 0.25f),
             new Step(330, 2, 0.5f),
+            new Step(420, 3, 0.6f),
             new Step(510, 3, 0.75f),
             new Step(660, 4, 1f));
+    /** How many of the scheduled sites are the line's; the rest of {@link #STANDARD} is the town's far-side bore. */
+    static final int SCHEDULED_LINE = 4;
+    /** Where in the opening order the town's far-side bore is scheduled, from 0: after the second line bore. */
+    static final int TOWN_STEP = 2;
 
     /** A box of cells, inclusive. */
     public record Box(int left, int top, int right, int bottom) {
@@ -172,16 +179,17 @@ public final class CordonBoreEscalation {
         List<int[]> road = convoys.corridor();
         int[] crossing = road.get(Math.min(convoys.gapIndex(), road.size() - 1));
         Open ground = (x, y) -> open(grid, topology, x, y);
-        List<Site> sites = new ArrayList<>(plan(walls, frontward, road, crossing[0], keepOut, bores, ground,
-                grid.getWidth(), grid.getHeight(), STANDARD.size(), seed));
+        List<Site> line = plan(walls, frontward, road, crossing[0], keepOut, bores, ground,
+                grid.getWidth(), grid.getHeight(), SCHEDULED_LINE, seed);
+        List<Site> townSites = List.of();
         if (town != null) {
             List<int[]> taken = new ArrayList<>(bores);
-            for (Site s : sites) taken.add(new int[]{s.x(), s.y()});
-            sites.addAll(townSites(new Box(town.left(), town.top(), town.right(), town.bottom()), frontward,
+            for (Site s : line) taken.add(new int[]{s.x(), s.y()});
+            townSites = townSites(new Box(town.left(), town.top(), town.right(), town.bottom()), frontward,
                     flank(road, (town.left() + town.right()) / 2), walls, road, keepOut, taken, ground,
-                    grid.getWidth(), grid.getHeight(), sites.size(), seed));
+                    grid.getWidth(), grid.getHeight(), line.size(), seed);
         }
-        return new CordonBoreEscalation(sites, STANDARD, timetable, lineY, frontward);
+        return new CordonBoreEscalation(order(line, townSites), STANDARD, timetable, lineY, frontward);
     }
 
     /**
@@ -265,6 +273,28 @@ public final class CordonBoreEscalation {
             placed.add(c);
             out.add(new Site(before + out.size() + 1, c[0], c[1], 0, 0, true, kind));
         }
+        return out;
+    }
+
+    /**
+     * The opening order ({@code cordon-nouns.md}, Line bores): the line's scheduled sites with the town's far-side bore
+     * scheduled among them at {@link #TOWN_STEP}, then the surge's, the town's far-flank bore last so the surge opens it
+     * first. Renumbered from 1.
+     */
+    static List<Site> order(List<Site> line, List<Site> town) {
+        List<Site> scheduled = new ArrayList<>(), surge = new ArrayList<>();
+        for (Site s : line) (s.surge() ? surge : scheduled).add(s);
+        for (Site s : town) {
+            if (s.kind() == Kind.TOWN_BEYOND) {
+                scheduled.add(Math.min(TOWN_STEP, scheduled.size()),
+                        new Site(0, s.x(), s.y(), s.west(), s.east(), false, s.kind()));
+            } else {
+                surge.add(new Site(0, s.x(), s.y(), s.west(), s.east(), true, s.kind()));
+            }
+        }
+        List<Site> out = new ArrayList<>();
+        for (Site s : scheduled) out.add(new Site(out.size() + 1, s.x(), s.y(), s.west(), s.east(), false, s.kind()));
+        for (Site s : surge) out.add(new Site(out.size() + 1, s.x(), s.y(), s.west(), s.east(), true, s.kind()));
         return out;
     }
 
