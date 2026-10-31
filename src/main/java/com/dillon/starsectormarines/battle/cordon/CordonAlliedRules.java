@@ -203,15 +203,45 @@ public final class CordonAlliedRules {
         return variant == CordonVariant.ROAD;
     }
 
+    /** The allied defenses a replacement squad could be sent to ({@code cordon-nouns.md}, Replacements). */
+    enum Defense {
+        /** A redoubt's garrison. */
+        REDOUBT,
+        /** The safe camp's two guard teams. */
+        CAMP,
+        /**
+         * A picket line team: it falls back to a redoubt once half its team is down, before it is ever a team's worth
+         * short, and a stretch it left is given up.
+         */
+        PICKET_LINE,
+        /** The outer picket, out in front of the line to be lost. */
+        OUTER_PICKET,
+        /** The town compound outside the wire (owner: "Not for the outside the wire settlement though."). */
+        TOWN
+    }
+
     /**
-     * A redoubt as the replacement rule sees it: whether it is still manned, whether it is calling, the men it was
-     * manned with at setup, the men standing in its garrison now, and the squads already on their way to it.
+     * Whether a defense is re-garrisoned from the base's replacement pool: the posts behind the line that hold until
+     * they fall, the redoubts and the camp. Never the town compound outside the wire, and never a picket, which falls
+     * back rather than holding short.
+     */
+    static boolean regarrisoned(Defense defense) {
+        return defense == Defense.REDOUBT || defense == Defense.CAMP;
+    }
+
+    /** The camp's number in the replacement rule: the redoubts number from one. */
+    static final int CAMP = 0;
+
+    /**
+     * A post as the replacement rule sees it (a redoubt by its number, the camp as {@link #CAMP}): whether it is still
+     * manned, whether it is calling, the men it was manned with at setup, the men standing in its garrison now, and
+     * the squads already on their way to it.
      */
     record Garrison(int number, boolean manned, boolean calling, int establishment, int standing, int coming) { }
 
     /**
-     * Teams a redoubt is short: the whole teams' worth of men it has lost against its establishment, less the squads
-     * already coming to it. A fallen or given-up redoubt is short of nothing: it is a hole the next column cannot fill.
+     * Teams a post is short: the whole teams' worth of men it has lost against its establishment, less the squads
+     * already coming to it. A fallen or given-up post is short of nothing: it is a hole the next column cannot fill.
      */
     static int teamsShort(Garrison g, int teamSize) {
         if (!g.manned() || teamSize <= 0) return 0;
@@ -220,14 +250,10 @@ public final class CordonAlliedRules {
     }
 
     /**
-     * The one call for replacements the line makes now, {@code {redoubt, squads}}, or {@code null}: the manned redoubt
-     * most teams short (calling, then the lower number, breaking a tie), sent up to {@code perCall} squads and no more
-     * than the line still has room for in flight. Nothing while the last call's cooldown runs or the line already has
-     * {@code maxInFlight} squads on the way. The base's pool and the swarm on its apron are the producer's to refuse.
+     * The manned post most teams short, a calling one breaking a tie and then the earlier in {@code garrisons} (the
+     * redoubts west to east, then the camp); {@code null} when none is short.
      */
-    static int[] replacement(List<Garrison> garrisons, int teamSize, int perCall, int inFlight, int maxInFlight,
-                             boolean cooling) {
-        if (cooling || inFlight >= maxInFlight) return null;
+    static Garrison mostShort(List<Garrison> garrisons, int teamSize) {
         Garrison best = null;
         int bestShort = 0;
         for (Garrison g : garrisons) {
@@ -238,7 +264,21 @@ public final class CordonAlliedRules {
                 bestShort = s;
             }
         }
+        return best;
+    }
+
+    /**
+     * The one call for replacements the line makes now, {@code {post, squads}}, or {@code null}: the post most teams
+     * short ({@link #mostShort}), sent up to {@code perCall} squads and no more than the line still has room for in
+     * flight. Nothing while the last call's cooldown runs or the line already has {@code maxInFlight} squads on the
+     * way; the caps are the line's, shared by every post. The base's pool and the swarm on its apron are the
+     * producer's to refuse.
+     */
+    static int[] replacement(List<Garrison> garrisons, int teamSize, int perCall, int inFlight, int maxInFlight,
+                             boolean cooling) {
+        if (cooling || inFlight >= maxInFlight) return null;
+        Garrison best = mostShort(garrisons, teamSize);
         if (best == null) return null;
-        return new int[]{best.number(), Math.min(bestShort, Math.min(perCall, maxInFlight - inFlight))};
+        return new int[]{best.number(), Math.min(teamsShort(best, teamSize), Math.min(perCall, maxInFlight - inFlight))};
     }
 }
