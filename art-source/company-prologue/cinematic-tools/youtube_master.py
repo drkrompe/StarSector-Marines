@@ -12,8 +12,9 @@ writes build/youtube/<film>.mp4 and build/youtube/<film>.en.srt:
             (arrival_mix.sequence_mix, film_export.film_mix), scaled as a whole so its peak sits at
             -1 dBFS (never raised), AAC 384 kb/s at 48 kHz.
   captions  the shipped timelines' captions in English (strings.json), speaker first, as a sidecar
-            to upload, not burned in. What the game draws over the picture (the arrival's lock) is
-            not in the video.
+            to upload, not burned in. What else the game draws over the picture, the arrival's
+            lock, is drawn into its frames as the player draws it (game_overlay), and the picture
+            fades in and out over the player's FADE_IN and FADE_OUT.
 """
 import json
 import math
@@ -22,6 +23,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
+
+import game_overlay
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -30,6 +34,7 @@ OUT = ROOT / "build" / "youtube"
 FPS = 24
 CRF = 16
 HEADROOM_DB = -1.0
+FADE_IN, FADE_OUT = 0.5, 0.7      # CinematicScreen: the picture from and to black
 FILMS = {"jangala-arrival": HERE.parent / "second-wind-cinematic", "asharu-battle": HERE.parent / "asharu-battle"}
 
 
@@ -44,6 +49,29 @@ def timelines(film):
     return out
 
 
+def english():
+    lines = (MOD / "data" / "strings" / "strings.json").read_text(encoding="utf-8").splitlines()
+    return json.loads("\n".join(l for l in lines if not l.lstrip().startswith("#")))["marineOps"]   # # comment lines
+
+
+def with_locks(sid, tl, frames, work):
+    """The shot's frames with its locks drawn on, over the frames they show on (game_overlay)."""
+    window = game_overlay.lock_window(tl)
+    if window is None:
+        return frames
+    strings, out, drawn = english(), dict(frames), work / sid
+    drawn.mkdir(parents=True, exist_ok=True)
+    for i, src in frames.items():
+        if not window[0] <= i / FPS <= window[1]:
+            continue
+        frame = np.asarray(Image.open(src).convert("RGB"), np.float64) / 255
+        game_overlay.draw_locks(frame, tl, i / FPS, strings)
+        out[i] = drawn / ("%05d.png" % i)
+        Image.fromarray((np.clip(frame, 0, 1) * 255 + 0.5).astype(np.uint8)).save(out[i])
+    print("%s: lock drawn on %d frames" % (sid, sum(1 for i in frames if out[i] != frames[i])))
+    return out
+
+
 def jangala(work):
     import arrival_mix
     import cinematic_export
@@ -54,6 +82,7 @@ def jangala(work):
             frames.update(cinematic_export.final_frames(cinematic_export.DRIVE_BUILDS / folder))
         if sorted(frames) != list(range(tl["frames"])):
             raise SystemExit("%s: %d final frames, the timeline has %d" % (sid, len(frames), tl["frames"]))
+        frames = with_locks(sid, tl, frames, work)
         listing = work / (sid + ".ffconcat")
         listing.write_text("ffconcat version 1.0\n" + "".join(
             "file '%s'\nduration %r\n" % (frames[i].as_posix(), 1 / FPS) for i in range(len(frames))), encoding="utf-8")
@@ -77,8 +106,7 @@ def asharu(work):
 
 
 def srt(film, path):
-    lines = (MOD / "data" / "strings" / "strings.json").read_text(encoding="utf-8").splitlines()
-    flat = json.loads("\n".join(l for l in lines if not l.lstrip().startswith("#")))["marineOps"]   # # comment lines
+    flat = english()
     cues = []
     for _sid, tl, at in timelines(film):
         for c in tl["captions"]:
@@ -112,7 +140,8 @@ def main(argv):
     n = len(inputs)
     chain = "".join("[%d:v]fps=%d,scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setsar=1[v%d];" % (i, FPS, i)
                     for i in range(n))
-    chain += "".join("[v%d]" % i for i in range(n)) + "concat=n=%d:v=1:a=0[v]" % n
+    chain += "".join("[v%d]" % i for i in range(n)) + "concat=n=%d:v=1:a=0,fade=t=in:d=%r,fade=t=out:st=%r:d=%r[v]" % (
+        n, FADE_IN, frames / FPS - FADE_OUT, FADE_OUT)
     target = OUT / (film + ".mp4")
     subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-stats", "-y", *[a for i in inputs for a in i],
                     "-i", str(wav), "-filter_complex", chain, "-map", "[v]", "-map", "%d:a" % n,
