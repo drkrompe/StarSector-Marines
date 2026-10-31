@@ -46,6 +46,7 @@ public final class DebugMissionSnapshotSuite implements SnapshotSuite {
                     var document = new UiDocument(instance.root());
                     for (var style : instance.styles()) document.addStyleSheet(style);
                     document.theme(MarineOpsThemes.standard());
+                    DebugMissionScreen.bindGlobes(document, instance, DebugMissionScreen.placeLabels(missions, group));
                     frames.add(new SnapshotArtifact("0" + group + "-page-" + page + ".png", renderer.renderRelative(document, 1920, 1080, 1f,
                             MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
                     var launch = instance.requireElement("debug-launch");
