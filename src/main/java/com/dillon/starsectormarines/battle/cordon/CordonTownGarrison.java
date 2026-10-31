@@ -180,6 +180,7 @@ public final class CordonTownGarrison {
                     List<int[]> sites = flakSites((x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
                                     && !grid.isDoorway(x, y), (x, y) -> grid.inBounds(x, y)
                                     && topology.getBuildingId(x, y) != 0,
+                            (x, y) -> grid.inBounds(x, y) && topology.isStreet(x, y),
                             left, top, right, bottom, gates(grid, left, top, right, bottom), staging, truckYard, gate,
                             taken);
                     for (int i = 0; i < sites.size(); i++) {
@@ -327,26 +328,28 @@ public final class CordonTownGarrison {
     /**
      * Where the compound's flak stands: on open courtyard ground inside the wall ({@code left..right} by
      * {@code top..bottom}), each site open on all four sides and touching no building (so never in a room, nor on a
-     * doorstep), clear of the truck yard and the ground beside it by a cell, of the staging area and beside it, of
+     * doorstep) and no street (the paved way through the compound the trucks and people use), clear of the truck yard and the ground beside it by a cell, of the staging area and beside it, of
      * where the corridor meets the town ({@link #ROAD_CLEAR}), of every gate and postern and the {@link #GATE_CLEAR}
      * cells in from it, and of the defenders' cells by a cell. Sites are chosen to cover the whole inside: each next
-     * the candidate that leaves the farthest inside cell nearest a gun, at least {@link #FLAK_MIN} while there are
-     * candidates and then more until every inside cell is within {@link #FLAK_COVER}, at most {@link #FLAK_MAX}. Pure.
+     * the candidate that leaves the farthest inside cell nearest a gun (the inside's cells nearer on the whole between
+     * equals), at least {@link #FLAK_MIN} while there are candidates, then more while one brings the farthest cell
+     * nearer, until every inside cell is within {@link #FLAK_COVER}, at most {@link #FLAK_MAX}. Pure.
      *
      * @param open    where a cell is open ground a gun or a body could stand on
      * @param indoors where a cell is inside a building
+     * @param street  where a cell is street paving
      * @param gates   the compound's ways in, as {@link #gates} gives them: {x, y, width} at each one's middle
      * @param taken   the defenders' cells
      */
-    static List<int[]> flakSites(CordonStagingArea.Open open, CordonStagingArea.Open indoors, int left, int top,
-                                 int right, int bottom, List<int[]> gates, CordonStagingArea staging,
+    static List<int[]> flakSites(CordonStagingArea.Open open, CordonStagingArea.Open indoors,
+                                 CordonStagingArea.Open street, int left, int top, int right, int bottom, List<int[]> gates, CordonStagingArea staging,
                                  CordonGateYard truckYard, int[] corridorEnd, List<int[]> taken) {
         int width = right - left + 1, height = bottom - top + 1;
         if (width <= 0 || height <= 0) return List.of();
         List<int[]> candidates = new ArrayList<>();
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
-                if (flakSite(open, indoors, x, y, gates, staging, truckYard, corridorEnd, taken)) {
+                if (flakSite(open, indoors, street, x, y, gates, staging, truckYard, corridorEnd, taken)) {
                     candidates.add(new int[]{x, y});
                 }
             }
@@ -361,19 +364,24 @@ public final class CordonTownGarrison {
             if (sites.size() >= FLAK_MIN && worst <= FLAK_COVER) break;
             int[] best = null;
             float bestWorst = Float.MAX_VALUE;
+            double bestSum = Double.MAX_VALUE;
             for (int[] c : candidates) {
                 float w = 0f;
-                for (int y = 0; y < height && w < bestWorst; y++) {
+                double sum = 0;
+                for (int y = 0; y < height && w <= bestWorst; y++) {
                     for (int x = 0; x < width; x++) {
                         float d = Math.min(nearest[y * width + x], (float) Math.hypot(left + x - c[0], top + y - c[1]));
                         if (d > w) w = d;
+                        sum += d;
                     }
                 }
-                if (w < bestWorst) {
+                if (w < bestWorst || w == bestWorst && sum < bestSum) {
                     bestWorst = w;
+                    bestSum = sum;
                     best = c;
                 }
             }
+            if (sites.size() >= FLAK_MIN && bestWorst >= worst) break;
             sites.add(best);
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
@@ -388,14 +396,15 @@ public final class CordonTownGarrison {
     }
 
     /** Whether a gun may stand at {@code (x, y)}, by {@link #flakSites}' rules. */
-    private static boolean flakSite(CordonStagingArea.Open open, CordonStagingArea.Open indoors, int x, int y,
+    private static boolean flakSite(CordonStagingArea.Open open, CordonStagingArea.Open indoors,
+                                    CordonStagingArea.Open street, int x, int y,
                                     List<int[]> gates, CordonStagingArea staging, CordonGateYard truckYard,
                                     int[] corridorEnd, List<int[]> taken) {
         if (!open.at(x, y)) return false;
         for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) if (!open.at(x + d[0], y + d[1])) return false;
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                if (indoors.at(x + dx, y + dy)) return false;
+                if (indoors.at(x + dx, y + dy) || street.at(x + dx, y + dy)) return false;
                 if (truckYard != null && truckYard.contains(x + dx, y + dy)) return false;
             }
         }
