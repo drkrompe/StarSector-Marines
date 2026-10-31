@@ -416,6 +416,11 @@ public final class Tender implements DroneAnchor {
         return supplySeconds <= 0f || stock >= supplyCap ? 0f : supplyClock / supplySeconds;
     }
 
+    /** Seconds until the next point of supply, or 0 at the cap or when the stock earns nothing. */
+    public float secondsToNextSupply() {
+        return supplySeconds <= 0f || !metered() || stock >= supplyCap ? 0f : supplySeconds - supplyClock;
+    }
+
     /** Earns {@code dt} seconds of supply; called once a tick. */
     void earn(float dt) {
         if (supplySeconds <= 0f || !metered() || stock >= supplyCap) {
