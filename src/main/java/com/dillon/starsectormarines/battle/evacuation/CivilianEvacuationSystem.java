@@ -663,6 +663,13 @@ public final class CivilianEvacuationSystem {
         return group;
     }
 
+    /** The body {@code civilian} walks after now, a soldier, mech or vehicle; {@code 0L} when it follows no one. */
+    public long escortOf(long civilian, BattleSimulation sim) {
+        if (!walking(civilian, sim)) return 0L;
+        Leader leader = leaderOf.get(civilian);
+        return leader != null ? member(civilian, leader, sim) : 0L;
+    }
+
     /** Whether {@code id} is a member of the cohort out of its door and still walking. */
     private boolean walking(long id, BattleSimulation sim) {
         return configured && tracker.state(id) == CivilianEvacuationTracker.State.ACTIVE
