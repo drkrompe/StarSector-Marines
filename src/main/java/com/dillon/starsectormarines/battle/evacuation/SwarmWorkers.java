@@ -48,8 +48,8 @@ public final class SwarmWorkers {
      * Experiment switch for sharing out the haul: a bore sends at most {@link #haulersFor} of its skitterers to
      * bodies, fetches its own dead only from {@link #RAV_HAUL_REACH} of its work range, and leaves a body a
      * skitterer fled from for {@link #SHUN_SECONDS}. {@code false} is the control: every skitterer hauls first.
-     * Remove it with the losing arm once a Colony Breach {@code commanderEvidence} run with and without it reads
-     * budding, pulp and skitterer losses.
+     * The {@code swarm-workers} scene's {@code share} and {@code shun} loops read it against this control. Remove it
+     * with the losing arm once the owner accepts the shared-out haul in play.
      */
     public static final String HAUL_SHARE_PROPERTY = "battle.swarm.haulShare";
 
