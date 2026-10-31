@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.tender.Tender;
@@ -53,7 +54,8 @@ import static org.lwjgl.opengl.GL11.*;
  * The battle's CHEAT switch and panel as a player sees them: a real battle and its retained HUD at 1920x1080 and 100%
  * scale, with the legacy GL panels painted between the two on a real driver, in the order {@code BattleScreen} paints
  * them. The panels' bounds come from the same retained surfaces the screen measures. Frames: the player build's switch
- * off; on, with Win open beside it; Win hovered; and the developer build's panel for comparison. The switch label
+ * off; on, with Win and Add Onslaught open beside it; Add Onslaught hovered; after it, the Onslaught on the power bar
+ * and its button gone; and the developer build's panel for comparison. The switch label
  * follows this JVM's {@code marines.dev}, so the developer frame still reads CHEAT unless the run passes it.
  */
 public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
@@ -91,9 +93,12 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                 sim.advance(BattleSimulation.TICK_DT);
                 Selection selection = new Selection();
                 frames.add(frame(context, sim, selection, "01-switch-off", false, false, false));
-                frames.add(frame(context, sim, selection, "02-switch-on-win", true, false, false));
-                frames.add(frame(context, sim, selection, "03-win-hover", true, true, false));
-                frames.add(frame(context, sim, selection, "04-dev-build-expanded", true, true, true));
+                frames.add(frame(context, sim, selection, "02-switch-on-cheats", true, false, false));
+                frames.add(frame(context, sim, selection, "03-onslaught-hover", true, true, false));
+                // Add Onslaught clicked: the power is on the bar and its button is gone.
+                sim.getCommandPowerService().register(new SpawnInOnslaught());
+                frames.add(frame(context, sim, selection, "04-onslaught-added", true, false, false));
+                frames.add(frame(context, sim, selection, "05-dev-build-expanded", true, true, true));
             }
         } finally {
             Global.setSettings(original);
@@ -108,7 +113,10 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                     Context ui = new Context(sim, selection, retained);
                     // As BattleScreen builds them: a dev build's switch and panel, or a player's switch carrying Win.
                     DebugHudSwitchPanel hudSwitch = devRows ? new DebugHudSwitchPanel(ui)
-                            : new DebugHudSwitchPanel(ui, () -> { });
+                            : new DebugHudSwitchPanel(ui, List.of(
+                                    new DebugHudSwitchPanel.Cheat(Strings.get("cheatsWin"), () -> { }, () -> true),
+                                    new DebugHudSwitchPanel.Cheat(Strings.get("cheatsOnslaught"), () -> { },
+                                            () -> sim.getCommandPowerService().getPower(SpawnInOnslaught.ID) == null)));
                     DebugTogglesPanel tools = null;
                     if (devRows) {
                         tools = new DebugTogglesPanel(ui);
@@ -118,7 +126,7 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
                     }
                     ui.debugHud = switchOn;
                     if (act && tools != null) expand(ui, tools);
-                    if (act && tools == null) hoverWin(ui, hudSwitch);
+                    if (act && tools == null) hoverCheat(ui, hudSwitch, 1);
                     return paint(scene, hudSwitch, tools);
                 });
         return new SnapshotArtifact("cheat-panel/" + name + "-1920x1080-ui100.png", image);
@@ -144,10 +152,10 @@ public final class BattleCheatPanelSnapshotSuite implements SnapshotSuite {
         tools.addToggle("Turret author", () -> false, () -> { });
     }
 
-    /** Moves the pointer over the player's Win button. */
-    private static void hoverWin(Context ui, DebugHudSwitchPanel hudSwitch) {
+    /** Moves the pointer over the player's {@code index}th cheat button, counting leftward from the switch. */
+    private static void hoverCheat(Context ui, DebugHudSwitchPanel hudSwitch, int index) {
         BattleLayout layout = ui.getLayout();
-        int x = Math.round(hudSwitch.winX(layout) + 10f), y = Math.round(DebugHudSwitchPanel.y(layout) + 8f);
+        int x = Math.round(hudSwitch.cheatX(layout, index) + 10f), y = Math.round(DebugHudSwitchPanel.y(layout) + 8f);
         hudSwitch.handleInput(List.of(move(x, y)));
     }
 

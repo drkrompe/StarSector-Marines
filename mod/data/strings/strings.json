@@ -454,6 +454,7 @@
     "cheatsClientName": "Debug missions",
     "cheatsClientRole": "Every mission · sandbox forces and settings",
     "cheatsWin": "Win (skip mission)",
+    "cheatsOnslaught": "Add Onslaught",
     "replayCompletedContactName": "Company records",
     "replayCompletedContactRole": "Completed campaign missions",
     "replayCompletedSummary": "{0,choice,0#No completed missions|1#1 completed mission|1<{0,number,integer} completed missions}  ·  credits only, no story changes",
