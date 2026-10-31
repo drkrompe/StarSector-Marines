@@ -187,8 +187,9 @@ def sound_file(sound):
     return GAME_SOUNDS / rel, volume
 
 
-def preview():
-    """Every cue mixed onto the shipped video, on the sequence clock, as the player schedules them."""
+def film_mix():
+    """Every cue mixed on the sequence clock as the player schedules them: float stereo at SR, from
+    the film's first frame, unclipped."""
     total = SHOTS[-1][2] - SHOTS[0][1]
     mix = np.zeros((int(total * SR) + SR * 30, 2))
     for c in json.loads(CUES.read_text(encoding="utf-8"))["cues"]:
@@ -204,7 +205,12 @@ def preview():
                 x[-fo:] *= np.linspace(1, 0, fo)[:, None]
         i = int(round((c["t"] - SHOTS[0][1]) * SR))
         mix[i:i + len(x)] += x
-    mix = mix[:int(total * SR)]
+    return mix[:int(total * SR)]
+
+
+def preview():
+    """Every cue mixed onto the shipped video, on the sequence clock, as the player schedules them."""
+    mix = film_mix()
     PREVIEW.parent.mkdir(parents=True, exist_ok=True)
     wav = PREVIEW.with_suffix(".wav")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", "-", str(wav)],
