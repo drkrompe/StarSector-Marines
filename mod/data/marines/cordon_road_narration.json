@@ -22,9 +22,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 6
+      "synthesisText": "[brisk, on the radio] My trucks are already starting their runs. Move your squads up to the central bastion and move out to protect the compound.",
+      "durationSeconds": 5.84
     },
     {
       "id": "wellhollow_road_battle_convoy_at_town_1",
@@ -35,12 +36,13 @@
       "priority": 20,
       "expiresSeconds": 25,
       "supersedes": [],
-      "speaker": "@wellhollowSpeakerTownGuard",
-      "portrait": "",
-      "voiceId": "HuAfwy9ycsANuERZQHLU",
-      "voiced": false,
+      "speaker": "@wellhollowSpeakerWarden",
+      "portrait": "graphics/portraits/hollis-maro.png",
+      "voiceId": "UXrpoYalpW5MpGiFHq3z",
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 5
+      "synthesisText": "[urgent, on the radio] My first trucks have arrived and are starting to load civilians. Get your people ready to protect this area.",
+      "durationSeconds": 5.44
     },
     {
       "id": "wellhollow_road_battle_convoy_lost_n",
@@ -54,9 +56,10 @@
       "speaker": "@dialogueSpeakerCastle",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 5
+      "synthesisText": "[grim, on the radio] A convoy truck has been lost.",
+      "durationSeconds": 2.24
     },
     {
       "id": "wellhollow_road_battle_town_calling",
@@ -70,9 +73,10 @@
       "speaker": "@wellhollowSpeakerTownGuard",
       "portrait": "",
       "voiceId": "HuAfwy9ycsANuERZQHLU",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 5
+      "synthesisText": "[strained, urgent, on the radio] We're losing people. We need to stabilize the perimeter.",
+      "durationSeconds": 3.28
     },
     {
       "id": "wellhollow_road_battle_town_abandoned",
@@ -88,9 +92,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 6
+      "synthesisText": "[grim, on the radio] The compound radio has gone silent Commander. Get your company out of there. There's no one left to save.",
+      "durationSeconds": 6.0
     },
     {
       "id": "wellhollow_road_battle_tide_1",
@@ -104,9 +109,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 4
+      "synthesisText": "[tense, on the radio] We're picking up activity on sat imaging. They're coming.",
+      "durationSeconds": 3.28
     },
     {
       "id": "wellhollow_road_battle_tide_n",
@@ -120,9 +126,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 4
+      "synthesisText": "[tense, on the radio] Another big wave inbound on your location.",
+      "durationSeconds": 2.88
     },
     {
       "id": "wellhollow_road_battle_final_surge",
@@ -139,9 +146,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 6
+      "synthesisText": "[urgent, on the radio] This is a lot of activity. Commander prepare to pull your people back if you have to.",
+      "durationSeconds": 4.56
     },
     {
       "id": "wellhollow_road_battle_redoubt_calling_n",
@@ -155,9 +163,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 4
+      "synthesisText": "[clipped, on the radio] Copy, allocating reserves. Hold that redoubt.",
+      "durationSeconds": 3.04
     },
     {
       "id": "wellhollow_road_battle_redoubt_fell_n",
@@ -173,9 +182,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 5
+      "synthesisText": "[grim, urgent, on the radio] We've lost contact with defenders. Sending reinforcements.",
+      "durationSeconds": 3.28
     },
     {
       "id": "wellhollow_road_battle_done_enough",
@@ -189,9 +199,10 @@
       "speaker": "@dialogueSpeakerCastle",
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": false,
+      "voiced": true,
       "terminal": false,
-      "durationSeconds": 5
+      "synthesisText": "[measured, on the radio] Commander, we've got a lot of people out. We may have done enough here. We should consider pulling back.",
+      "durationSeconds": 6.0
     },
     {
       "id": "wellhollow_road_battle_company_withdrawn",
@@ -207,9 +218,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
-      "durationSeconds": 6
+      "synthesisText": "[relieved, on the radio] Thank you Commander. You got people out of there.",
+      "durationSeconds": 3.04
     },
     {
       "id": "wellhollow_road_battle_people_short",
@@ -223,9 +235,10 @@
       "speaker": "@wellhollowSpeakerWarden",
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": false,
+      "voiced": true,
       "terminal": true,
-      "durationSeconds": 6
+      "synthesisText": "[cold, disappointed, on the radio] We didn't get enough people out of there Commander. You could have done more.",
+      "durationSeconds": 4.0
     }
   ]
 }

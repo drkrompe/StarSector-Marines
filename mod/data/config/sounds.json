@@ -1679,4 +1679,18 @@
 	"wellhollow_burn_sector_1": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_1.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_burn_sector_2": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_2.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_burn_sector_3": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_3.ogg", "pitch": 1, "volume": 1.0}],
+	# ----- Khettara Bloom (tools/generate_wellhollow_audio.py) -----
+	"wellhollow_road_battle_landfall": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_landfall.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_convoy_at_town_1": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_convoy_at_town_1.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_convoy_lost_n": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_convoy_lost_n.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_town_calling": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_town_calling.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_town_abandoned": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_town_abandoned.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_tide_1": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_tide_1.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_tide_n": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_tide_n.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_final_surge": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_final_surge.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_redoubt_calling_n": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_redoubt_calling_n.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_redoubt_fell_n": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_redoubt_fell_n.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_done_enough": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_done_enough.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_company_withdrawn": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_company_withdrawn.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_road_battle_people_short": [{"file": "sounds/story/wellhollow/wellhollow_road_battle_people_short.ogg", "pitch": 1, "volume": 1.0}],
 }

@@ -1,9 +1,10 @@
-"""Khettara Bloom briefing voices. Dry-run by default; never invoked by Gradle.
+"""Khettara Bloom briefing and battle radio voices. Dry-run by default; never invoked by Gradle.
 
 python tools/generate_wellhollow_audio.py [--id ID] --generate [--replace]
 python tools/generate_wellhollow_audio.py --register     (audio.json + sounds.json entries, offline)
 
-Speech comes from mod/data/marines/wellhollow_narration.json: one direction tag plus the line's
+Speech comes from mod/data/marines/wellhollow_narration.json (briefings) and
+cordon_road_narration.json (the Cordon Road battle radio): one direction tag plus the line's
 current string, one voice per line. A line whose string no longer matches its synthesis text is
 refused before any request; refresh its synthesisText first. The replay line is shared by every
 chapter and recorded once. Sources and receipts land under
@@ -23,7 +24,8 @@ from generate_wayline_narration import credential
 ROOT = Path(__file__).resolve().parents[1]
 AUDIO = ROOT / "asset-pipeline/src/tool/resources/audio"
 SPEECH = AUDIO / "wellhollow/speech"
-CATALOG = ROOT / "mod/data/marines/wellhollow_narration.json"
+CATALOGS = [ROOT / "mod/data/marines/wellhollow_narration.json",
+            ROOT / "mod/data/marines/cordon_road_narration.json"]
 STRINGS = ROOT / "mod/data/strings/strings.json"
 SOUNDS = ROOT / "mod/data/config/sounds.json"
 OUT = "story/wellhollow"
@@ -35,11 +37,12 @@ def strings():
     return {k: json.loads(v) for k, v in re.findall(r'"(wellhollow\w+)"\s*:\s*("(?:[^"\\]|\\.)*")', text)}
 
 
-def plan(catalog):
-    """One request per sound ID, validated as a whole before credentials or any paid request."""
-    current = strings()
+def plan(catalogs, current=None):
+    """One request per sound ID across every catalog, validated as a whole before credentials or any
+    paid request. Each line speaks in its own voice, on its own catalog's model."""
+    current = strings() if current is None else current
     result, seen = [], {}
-    for line in catalog["lines"]:
+    for catalog, line in ((c, l) for c in catalogs for l in c["lines"]):
         if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
             raise SystemExit("Invalid sound ID; no request sent.")
         if TAG.sub("", line["synthesisText"]) != current.get(line["textKey"]):
@@ -89,8 +92,8 @@ def main():
     parser.add_argument("--register", action="store_true")
     parser.add_argument("--id", action="append", help="Only this sound ID (repeatable)")
     args = parser.parse_args()
-    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
-    items = plan(catalog)
+    catalogs = [json.loads(path.read_text(encoding="utf-8")) for path in CATALOGS]
+    items = plan(catalogs)
     if args.register:
         register(items)
         return
@@ -107,11 +110,12 @@ def main():
         duration = generate(item, key, args.replace)
         if duration is not None:
             durations[item["id"]] = duration
-    if durations:
-        for line in catalog["lines"]:
-            if line["id"] in durations:
-                line["durationSeconds"] = durations[line["id"]]
-        CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    for path, catalog in zip(CATALOGS, catalogs):
+        lines = [line for line in catalog["lines"] if line["id"] in durations]
+        for line in lines:
+            line["durationSeconds"] = durations[line["id"]]
+        if lines:
+            path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

@@ -1509,6 +1509,20 @@
     // Khettara Bloom (tools/generate_wellhollow_audio.py)
     {"id": "wellhollow_burn_sector_1", "source": "wellhollow/speech/wellhollow_burn_sector_1.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_burn_sector_2", "source": "wellhollow/speech/wellhollow_burn_sector_2.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
-    {"id": "wellhollow_burn_sector_3", "source": "wellhollow/speech/wellhollow_burn_sector_3.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"}
+    {"id": "wellhollow_burn_sector_3", "source": "wellhollow/speech/wellhollow_burn_sector_3.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    // Khettara Bloom (tools/generate_wellhollow_audio.py)
+    {"id": "wellhollow_road_battle_landfall", "source": "wellhollow/speech/wellhollow_road_battle_landfall.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_convoy_at_town_1", "source": "wellhollow/speech/wellhollow_road_battle_convoy_at_town_1.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_convoy_lost_n", "source": "wellhollow/speech/wellhollow_road_battle_convoy_lost_n.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_town_calling", "source": "wellhollow/speech/wellhollow_road_battle_town_calling.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_town_abandoned", "source": "wellhollow/speech/wellhollow_road_battle_town_abandoned.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_tide_1", "source": "wellhollow/speech/wellhollow_road_battle_tide_1.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_tide_n", "source": "wellhollow/speech/wellhollow_road_battle_tide_n.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_final_surge", "source": "wellhollow/speech/wellhollow_road_battle_final_surge.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_redoubt_calling_n", "source": "wellhollow/speech/wellhollow_road_battle_redoubt_calling_n.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_redoubt_fell_n", "source": "wellhollow/speech/wellhollow_road_battle_redoubt_fell_n.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_done_enough", "source": "wellhollow/speech/wellhollow_road_battle_done_enough.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_company_withdrawn", "source": "wellhollow/speech/wellhollow_road_battle_company_withdrawn.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_road_battle_people_short", "source": "wellhollow/speech/wellhollow_road_battle_people_short.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"}
   ]
 }
