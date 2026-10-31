@@ -115,6 +115,23 @@ final class CordonTownspeople {
         return out;
     }
 
+    /**
+     * The town is given up: everyone still trapped dies, taken off the field (a walker included) and counted lost,
+     * and the counted with them.
+     */
+    void abandon(BattleSimulation sim) {
+        for (Person p : people) {
+            if (sim.resolveUnit(p.id) != 0L && sim.world().isAlive(p.id)) {
+                sim.clearPath(p.id);
+                sim.takeOffTheField(p.id);
+            }
+            lost++;
+        }
+        people.clear();
+        lost += counted;
+        counted = 0;
+    }
+
     /** People still trapped in the town (alive, not boarded): standing, walking to a truck, or a count. */
     int left() { return people.size() + counted; }
     /** Killed before they boarded. */

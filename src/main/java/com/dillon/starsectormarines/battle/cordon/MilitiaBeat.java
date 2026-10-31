@@ -37,7 +37,9 @@ final class MilitiaBeat extends CordonBeat {
         CordonConvoys convoys = beats.sequence().convoys();
         if (convoys == null) return Status.LAPSED;
         if (squads == null) {
-            int last = convoys.convoys();
+            int last = convoys.lastConvoy();
+            // The last convoy is known when it reaches the gate; none will be once every convoy is home or lost.
+            if (last == 0) return convoys.out() + convoys.lost() >= convoys.convoys() ? Status.LAPSED : Status.ACTIVE;
             if (sim.getStoryBeatLog().has("cordon.convoy_lost_" + last)) return Status.LAPSED;
             if (!sim.getStoryBeatLog().has("cordon.convoy_at_town_" + last)) return Status.ACTIVE;
             squads = convoys.townMilitia();

@@ -761,8 +761,6 @@ public final class CordonSetup {
                 break;
             }
         }
-        List<Integer> departTicks = new ArrayList<>();
-        for (int seconds : timetable.convoySeconds()) departTicks.add(Math.round(seconds / BattleSimulation.TICK_DT));
         int[] gate = corridor.get(corridor.size() - 1);
         Random rng = new Random(cordon.battleSeed() ^ TOWN_SALT);
         List<Integer> militia = new ArrayList<>();
@@ -770,8 +768,10 @@ public final class CordonSetup {
             List<int[]> cells = CordonGround.clusterNear(sim, gate[0], gate[1] + frontward * (TOWN_DEPTH + team * 3), TOWN_TEAM_SIZE);
             if (!cells.isEmpty()) militia.add(ColonyMilitia.seatTeam(sim, cells, "Town militia " + (team + 1), GARRISON_RISK, rng));
         }
-        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
-                timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
+        // The first convoy on the timetable; the rest are called while people are still trapped.
+        int firstDepart = Math.round(timetable.convoySeconds().get(0) / BattleSimulation.TICK_DT);
+        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, firstDepart,
+                CordonConvoys.MAX_CONVOYS, CordonConvoys.TOWNSPEOPLE);
         convoys.setTownMilitia(militia);
         // The townspeople are trapped in the staging area, stood after the militia so the militia's cells are taken first.
         if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, staging.cells());
