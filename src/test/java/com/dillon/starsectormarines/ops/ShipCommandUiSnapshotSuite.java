@@ -325,6 +325,8 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
             heroes.flush(); actions.flush();
             heroDocument.layout(BattleShipCommandOverlay.heroWidth(state.ships().size()), BattleShipCommandOverlay.HERO_HEIGHT);
             actionDocument.layout(BattleShipCommandOverlay.actionWidth(state.actions().size()), BattleShipCommandOverlay.ACTION_HEIGHT);
+            // A still has no frames between updates: settle every transition (disabled fades) to its end state.
+            heroDocument.advance(1f); actionDocument.advance(1f);
         }
 
         void clickHero(String id) { click(heroes, heroDocument, "ship-hero-" + id); }
