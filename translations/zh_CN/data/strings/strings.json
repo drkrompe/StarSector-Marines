@@ -596,7 +596,6 @@
 		"companyHqNewsGarrisonDefenceHELD": "{0} 驻军守住了",
 		"companyHqNewsGarrisonDefenceHELD_WITH_LOSSES": "{0} 驻军付出伤亡后守住了",
 		"companyHqNewsGarrisonDefenceOVERRUN": "{0} 驻军被攻破",
-		"defenceReportUnknownPlace": "驻防哨所",
 		"companyHqClockRecovery": "受困分遣队",
 		"companyHqNewsDetachmentRecovered": "已从 {0} 救回分遣队",
 		"companyHqNewsDetachmentLost": "分遣队在 {0} 损失",
