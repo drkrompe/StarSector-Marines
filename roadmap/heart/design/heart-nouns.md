@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — The Burn's battlegroups carry observers too, on the wing from an airbase behind the start line
+Updated: 2026-10-31 — The Burn: an airbase lot behind the start line flying the wing, the guns dug in at the bases, and bores growing on the unburnt flanks
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
