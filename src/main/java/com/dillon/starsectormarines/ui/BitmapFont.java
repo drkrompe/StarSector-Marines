@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,15 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
  * BMFont .fnt loader + immediate-mode GL renderer. Parses the plain-text
- * .fnt manifest, loads the page texture atlas via Starsector's
+ * .fnt manifest, loads the page texture atlases via Starsector's
  * {@link SpriteAPI} (so it benefits from POT padding compensation), and
  * draws glyphs as textured quads with a color tint via the default
  * {@code GL_MODULATE} texture env.
+ *
+ * <p>A manifest may declare several pages (CJK faces need dozens). Each glyph
+ * names its page, every page shares the manifest's {@code scaleW x scaleH},
+ * and a draw makes one pass per page the text uses. The first page loads with
+ * the font; the others load the first time a draw needs them.
  *
  * <p>Coordinate convention: caller passes the top-left of the text bounding
  * box in Starsector UI coords (Y-up). Glyph yoffset is interpreted in BMFont
@@ -48,12 +54,16 @@ public class BitmapFont {
     public static class Glyph {
         public int x, y, w, h;
         public int xoffset, yoffset, xadvance;
+        public int page;
     }
 
     private final String fntPath;
     private final Map<Integer, Glyph> glyphs = new HashMap<>();
-    private SpriteAPI page;
-    private String pagePath;
+    /** Resource path of each page by id; null where the manifest declares no such id. */
+    private String[] pagePaths = new String[0];
+    private SpriteAPI[] pages = new SpriteAPI[0];
+    private boolean[] pagesFailed = new boolean[0];
+    private int firstPage;
     private int lineHeight;
     private int base;
     private int scaleW;
@@ -71,23 +81,31 @@ public class BitmapFont {
     public boolean ensureLoaded() {
         if (pageLoaded) return true;
         if (pageFailed || !ensureMetricsLoaded()) return false;
-        try {
-            ModTextures.loadTexture(pagePath);
-            page = ModTextures.sprite(pagePath);
-            if (page == null) {
-                LOG.error("BitmapFont: page sprite missing for " + fntPath + " (" + pagePath + ")");
-                pageFailed = true;
-                return false;
-            }
-            pageLoaded = true;
-            LOG.info("BitmapFont: loaded " + fntPath + " (" + glyphs.size()
-                    + " glyphs, lineHeight=" + lineHeight + ", base=" + base + ")");
-            return true;
-        } catch (Exception e) {
-            LOG.error("BitmapFont: failed to load " + fntPath, e);
+        if (page(firstPage) == null) {
             pageFailed = true;
             return false;
         }
+        pageLoaded = true;
+        LOG.info("BitmapFont: loaded " + fntPath + " (" + glyphs.size() + " glyphs, " + pagePaths.length
+                + " page(s), lineHeight=" + lineHeight + ", base=" + base + ")");
+        return true;
+    }
+
+    /** Page {@code id}'s sprite, loaded on first use; null if the manifest lacks it or it failed to load. */
+    private SpriteAPI page(int id) {
+        if (id < 0 || id >= pagePaths.length || pagePaths[id] == null || pagesFailed[id]) return null;
+        if (pages[id] != null) return pages[id];
+        try {
+            ModTextures.loadTexture(pagePaths[id]);
+            pages[id] = ModTextures.sprite(pagePaths[id]);
+            if (pages[id] == null) {
+                LOG.error("BitmapFont: page sprite missing for " + fntPath + " (" + pagePaths[id] + ")");
+            }
+        } catch (Exception e) {
+            LOG.error("BitmapFont: failed to load " + fntPath + " page " + id, e);
+        }
+        if (pages[id] == null) pagesFailed[id] = true;
+        return pages[id];
     }
 
     /** Loads only BMFont geometry, which is sufficient for layout and headless paint. */
@@ -107,13 +125,20 @@ public class BitmapFont {
     /** Installs a manifest supplied by tooling without consulting Starsector globals. */
     public void installMetrics(String manifest) {
         if (manifest == null) throw new IllegalArgumentException("font manifest is required");
-        String pageRelative = parse(manifest);
-        if (pageRelative.isBlank()) {
+        Map<Integer, String> files = parse(manifest);
+        if (files.isEmpty()) {
             throw new IllegalArgumentException("BMFont manifest has no page: " + fntPath);
         }
         int separator = fntPath.lastIndexOf('/');
         String dir = separator >= 0 ? fntPath.substring(0, separator + 1) : "";
-        pagePath = dir + pageRelative;
+        int count = Collections.max(files.keySet()) + 1;
+        pagePaths = new String[count];
+        files.forEach((id, file) -> pagePaths[id] = dir + file);
+        firstPage = Collections.min(files.keySet());
+        pages = new SpriteAPI[count];
+        pagesFailed = new boolean[count];
+        pageLoaded = false;
+        pageFailed = false;
         metricsLoaded = true;
         metricsFailed = false;
     }
@@ -122,9 +147,21 @@ public class BitmapFont {
         return fntPath;
     }
 
+    /** The first page's resource path: the only one a single-page font has. */
     public String pagePath() {
         if (!ensureMetricsLoaded()) return null;
-        return pagePath;
+        return pagePaths[firstPage];
+    }
+
+    /** Page {@code id}'s resource path, or null when the manifest declares no such page. */
+    public String pagePath(int id) {
+        if (!ensureMetricsLoaded() || id < 0 || id >= pagePaths.length) return null;
+        return pagePaths[id];
+    }
+
+    /** One past the highest page id the manifest declares. */
+    public int pageCount() {
+        return ensureMetricsLoaded() ? pagePaths.length : 0;
     }
 
     public Glyph glyph(int codePoint) {
@@ -156,9 +193,14 @@ public class BitmapFont {
         }
 
         beginTextDraw(color, alphaMult);
-        glBegin(GL_QUADS);
-        emitLineQuads(s, x, y, scaleX, scaleY);
-        glEnd();
+        for (int id = 0; id < pagePaths.length; id++) {
+            SpriteAPI page = pageFor(s, id);
+            if (page == null) continue;
+            page.bindTexture();
+            glBegin(GL_QUADS);
+            emitLineQuads(s, x, y, scaleX, scaleY, id, page);
+            glEnd();
+        }
         endTextDraw();
     }
 
@@ -176,12 +218,18 @@ public class BitmapFont {
         if (lines.isEmpty()) return 0f;
 
         beginTextDraw(color, alphaMult);
-        // Single glBegin/glEnd across every glyph on every line — cheaper than per-line.
-        glBegin(GL_QUADS);
-        for (int i = 0; i < lines.size(); i++) {
-            emitLineQuads(lines.get(i), x, y - lineHeight * i);
+        // One glBegin/glEnd per page across every line — cheaper than per-line.
+        String joined = String.join("", lines);
+        for (int id = 0; id < pagePaths.length; id++) {
+            SpriteAPI page = pageFor(joined, id);
+            if (page == null) continue;
+            page.bindTexture();
+            glBegin(GL_QUADS);
+            for (int i = 0; i < lines.size(); i++) {
+                emitLineQuads(lines.get(i), x, y - lineHeight * i, 1f, 1f, id, page);
+            }
+            glEnd();
         }
-        glEnd();
         endTextDraw();
 
         return lines.size() * (float) lineHeight;
@@ -238,13 +286,26 @@ public class BitmapFont {
 
     // ---- internal helpers -------------------------------------------------
 
-    /** Sets shader / blend / color / texture binding shared by all text draws. */
+    /**
+     * Page {@code id}'s sprite when {@code s} draws from it. A single-page font always draws its
+     * one page, as it did before fonts had pages; a multi-page font skips pages {@code s} has no
+     * visible glyph on, so they never load.
+     */
+    private SpriteAPI pageFor(String s, int id) {
+        if (pagePaths.length == 1) return page(id);
+        for (int i = 0; i < s.length(); i += Character.charCount(s.codePointAt(i))) {
+            Glyph g = glyphs.get(s.codePointAt(i));
+            if (g != null && g.page == id && g.w > 0 && g.h > 0) return page(id);
+        }
+        return null;
+    }
+
+    /** Sets shader / blend / color shared by all text draws; each page pass binds its own texture. */
     private void beginTextDraw(Color color, float alphaMult) {
         glUseProgram(0);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        page.bindTexture();
         glColor4f(
                 color.getRed()   / 255f,
                 color.getGreen() / 255f,
@@ -256,13 +317,12 @@ public class BitmapFont {
         glDisable(GL_TEXTURE_2D);
     }
 
-    /** Emits textured quads for one line. Caller must wrap with glBegin/glEnd(GL_QUADS). */
-    private void emitLineQuads(String s, float x, float y) {
-        emitLineQuads(s, x, y, 1f, 1f);
-    }
-
+    /**
+     * Emits textured quads for the glyphs of one line on page {@code pageId}, advancing past the
+     * others. Caller must bind {@code page} and wrap with glBegin/glEnd(GL_QUADS).
+     */
     private void emitLineQuads(String s, float x, float y, float drawScaleX,
-                               float drawScaleY) {
+                               float drawScaleY, int pageId, SpriteAPI page) {
         if (s == null || s.isEmpty()) return;
         float texU = page.getTextureWidth();
         float texV = page.getTextureHeight();
@@ -271,7 +331,7 @@ public class BitmapFont {
         for (int i = 0; i < s.length(); i += Character.charCount(s.codePointAt(i))) {
             Glyph g = glyphs.get(s.codePointAt(i));
             if (g == null) continue;
-            if (g.w > 0 && g.h > 0) {
+            if (g.w > 0 && g.h > 0 && g.page == pageId) {
                 float qx0 = x + (cursorX - x + g.xoffset) * drawScaleX;
                 float qy0 = y - g.yoffset * drawScaleY;
                 float qx1 = qx0 + g.w * drawScaleX;
@@ -416,10 +476,10 @@ public class BitmapFont {
         current.append(chunk);
     }
 
-    /** Returns the page file name from the manifest. */
-    private String parse(String text) {
+    /** Returns each page's file name by id. */
+    private Map<Integer, String> parse(String text) {
         glyphs.clear();
-        String pageFile = "";
+        Map<Integer, String> pageFiles = new HashMap<>();
         for (String line : text.split("\\r?\\n")) {
             line = line.trim();
             if (line.isEmpty()) continue;
@@ -435,7 +495,9 @@ public class BitmapFont {
                     scaleH = Integer.parseInt(kv.getOrDefault("scaleH", "1"));
                     break;
                 case "page":
-                    pageFile = stripQuotes(kv.getOrDefault("file", ""));
+                    String file = stripQuotes(kv.getOrDefault("file", ""));
+                    int pageId = Integer.parseInt(kv.getOrDefault("id", "0"));
+                    if (!file.isBlank() && pageId >= 0) pageFiles.put(pageId, file);
                     break;
                 case "char":
                     Glyph g = new Glyph();
@@ -447,6 +509,7 @@ public class BitmapFont {
                     g.xoffset  = Integer.parseInt(kv.getOrDefault("xoffset",  "0"));
                     g.yoffset  = Integer.parseInt(kv.getOrDefault("yoffset",  "0"));
                     g.xadvance = Integer.parseInt(kv.getOrDefault("xadvance", "0"));
+                    g.page     = Integer.parseInt(kv.getOrDefault("page",     "0"));
                     if (id >= 0) glyphs.put(id, g);
                     break;
                 default:
@@ -454,7 +517,7 @@ public class BitmapFont {
                     break;
             }
         }
-        return pageFile;
+        return pageFiles;
     }
 
     private static Map<String, String> parseKeyValues(String s) {

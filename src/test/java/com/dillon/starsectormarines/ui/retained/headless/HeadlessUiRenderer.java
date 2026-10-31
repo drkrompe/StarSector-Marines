@@ -794,14 +794,15 @@ public final class HeadlessUiRenderer {
             if (text == null || text.isEmpty()) return;
             installFontMetrics(font);
             int alpha = Math.round(255f * clampAlpha(color.getAlpha() / 255f * alphaMult));
-            TintKey key = new TintKey(font.pagePath(), color.getRGB() & 0x00FFFFFF, alpha);
-            BufferedImage atlas = tintedFonts.computeIfAbsent(key,
-                    ignored -> tint(image(font.pagePath()), color, alpha));
             float cursor = x;
-            for (int index = 0; index < text.length(); index++) {
-                BitmapFont.Glyph glyph = font.glyph(text.charAt(index));
+            for (int index = 0; index < text.length(); index += Character.charCount(text.codePointAt(index))) {
+                BitmapFont.Glyph glyph = font.glyph(text.codePointAt(index));
                 if (glyph == null) continue;
-                if (glyph.w > 0 && glyph.h > 0) {
+                String page = font.pagePath(glyph.page);
+                if (glyph.w > 0 && glyph.h > 0 && page != null) {
+                    BufferedImage atlas = tintedFonts.computeIfAbsent(
+                            new TintKey(page, color.getRGB() & 0x00FFFFFF, alpha),
+                            ignored -> tint(image(page), color, alpha));
                     int dx1 = Math.round(cursor + glyph.xoffset * scaleX);
                     int dy1 = Math.round(y + glyph.yoffset * scaleY);
                     int dx2 = Math.round(dx1 + glyph.w * scaleX);
