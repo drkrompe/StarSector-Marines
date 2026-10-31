@@ -75,9 +75,9 @@ the north half of the last, short of the heart's own ground; each at least
 twenty-six cells from any other bore, so the advance is a clearing of bores
 from the first march on (owner, 2026-10-31). It grows on its own clock as any
 bore does, a maw within three to six minutes or so, and at maw it raises a
-brood spire without being fed, where the spire rule finds it ground clear of
-every other spire (`colony-breach-nouns.md`, Brood spire;
-`BroodSpires.raiseAtMaw`), so one the company leaves behind it is a maw
+brood spire without being fed, thirty-two cells clear of every other spire
+rather than sixty-four, so each one left to grow puts up its own air
+(`colony-breach-nouns.md`, Brood spire; `BroodSpires.raiseAtMaw`), so one the company leaves behind it is a maw
 at its back with Harriers over it. One the map has no ground for is left out;
 the map is not re-rolled for it (`HeartBores.youngBands`).
 
