@@ -103,13 +103,17 @@ reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
 
 On a town world the Road's compound stands in its town, not in open bloom
 (owner, 2026-10-31: non-clear lines of sight are what make the ravs hard, and
-the player has to choose which alleys to cover). `CordonTownWarren` packs
-authored town buildings east of the compound (about sixty cells) and in front
-of it (about fifty), with alleys of two or three cells that all connect, so
-the swarm reaches the walls from the front and the east only through
-chokepoints. A six-cell ring round the wall stays open for the gates and
-posterns; nothing stands on road, held ground or the redoubts' line, and the
-town bores still find their sites in the warren's wider gaps. Open country
+the player has to choose which alleys to cover), and reads as a district,
+not a carpet of buildings round the objective (owner, the same day).
+`CordonTownWarren` paves a few streets out of the front and east posterns,
+jogging and meeting at Ts and offset crossings so none is a long firing lane,
+with a link west to the colony's streets; buildings front both sides of each
+street with gaps of one to three cells and now and then an empty lot, and
+the blocks behind are filled more thinly, with yards. The streets are the
+swarm's avenues, the alleys its side ways. A six-cell ring round the wall stays
+open for the gates and posterns; nothing stands on road, held ground or the
+redoubts' line, and each town bore's band keeps a small square open, where the
+bore finds its site. Open country
 and a city keep the ground they grew.
 
 ## The beats' set pieces

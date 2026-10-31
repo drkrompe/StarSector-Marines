@@ -15,7 +15,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Real opening controls and spotlight clicks, with expanded copy, at 1920x1080 / 100%. */
+/**
+ * Real opening controls and spotlight clicks, with expanded copy, at 1920x1080 / 100%; with
+ * {@code -Dsnapshot.translation=<locale>}, also in that translation mod's copy and fonts.
+ */
 public final class OpeningLocalizationSnapshotSuite implements SnapshotSuite {
     public String id() { return "opening-localization"; }
     public String label() { return "Opening localization / English and expanded copy"; }
@@ -30,15 +33,25 @@ public final class OpeningLocalizationSnapshotSuite implements SnapshotSuite {
         var result = new ArrayList<SnapshotArtifact>();
         for (boolean expanded : List.of(false, true)) {
             try (var strings = new HeadlessStrings(context.modRoot(), text -> expanded ? expand(text) : text)) {
-                var frames = new ArrayList<>(new CompanyPrologueSnapshotSuite().renderPages(context));
-                frames.addAll(UiSnapshotSuite.renderOfficerInduction(context, renderer, 1f));
-                frames.addAll(UiSnapshotSuite.renderCampaignGantries(context));
-                for (var frame : frames) {
-                    result.add(new SnapshotArtifact((expanded ? "expanded/" : "english/") + frame.relativePath(), frame.image()));
-                }
+                addFrames(result, expanded ? "expanded/" : "english/", context, renderer);
+            }
+        }
+        // -Dsnapshot.translation=zh_CN adds the translation mod's own copy and fonts.
+        String locale = System.getProperty(HeadlessStrings.TRANSLATION_PROPERTY, "");
+        if (!locale.isBlank()) {
+            try (var strings = HeadlessStrings.translation(context.modRoot(), locale)) {
+                addFrames(result, locale + "/", context, renderer);
             }
         }
         return result;
+    }
+
+    private static void addFrames(List<SnapshotArtifact> result, String prefix, SnapshotContext context,
+                                  HeadlessUiRenderer renderer) throws Exception {
+        var frames = new ArrayList<>(new CompanyPrologueSnapshotSuite().renderPages(context));
+        frames.addAll(UiSnapshotSuite.renderOfficerInduction(context, renderer, 1f));
+        frames.addAll(UiSnapshotSuite.renderCampaignGantries(context));
+        for (var frame : frames) result.add(new SnapshotArtifact(prefix + frame.relativePath(), frame.image()));
     }
 
     /** Add 50% length without touching numbered arguments, choice syntax or printf formats. */

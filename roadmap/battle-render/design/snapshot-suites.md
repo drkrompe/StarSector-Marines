@@ -74,9 +74,14 @@ workbench's Snapshots tab share one catalog.
   own size only at that size), checked for clipped text, boxes spilling a clipping ancestor and zero-size hides that
   still take a `gap` slot, and restored. It writes `layout-lint.md` (spots and patterns per screen, worst rows),
   `layout-lint.csv` and `marked/<screen>.png` (each screen's worst 1920x1080 frame, faults outlined) into `<dir>`.
-  Pages drawn under a `HeadlessStrings` translation overlay count as separate `[translated]` screens. Pass absolute
+  Pages drawn under a `HeadlessStrings` translation overlay count as separate screens, `[translated]` for expanded
+  copy and `[<locale>]` for a translation mod. Pass absolute
   paths, and leave out suites that play battles: they cost minutes and add no screens. It lints the page the suite
   built, so a suite that leaves out a sheet the game installs lints a different page.
+- **`-Dsnapshot.translation=<locale>` adds a translation mod** to suites that render translated copy
+  (`opening-localization`): `HeadlessStrings.translation` merges `translations/<locale>/` strings over the English
+  catalog, reads its `settings.json`, and resolves its files, fonts included, ahead of `mod/` and the game. A CJK
+  translation needs its fonts baked first (`gradlew :asset-pipeline:generateCjkFonts`).
 - A suite artifact is a PNG, an animated GIF for a suite whose evidence is a played battle, or an MP4 the suite
   has encoded to a scratch file under `build/tmp` (`SnapshotArtifact.video`). The runner writes or moves each into
   place; a suite never writes into the output tree itself. Animated review frames come from `BattleReviewFrameRenderer`, shared
