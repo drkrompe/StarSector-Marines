@@ -36,8 +36,8 @@ public final class DebugMissionSnapshotSuite implements SnapshotSuite {
         for (int group = 0; group < 3; group++) {
             final int filter = group;
             var filtered = DebugMissionScreen.visible(missions, group, "All locations");
-            for (int page = 0; page * 8 < filtered.size(); page++) {
-                var selected = filtered.get(page * 8);
+            for (int page = 0; page * DebugMissionScreen.PAGE_SIZE < filtered.size(); page++) {
+                var selected = filtered.get(page * DebugMissionScreen.PAGE_SIZE);
                 int[] clicked = {0};
                 var props = DebugMissionScreen.model(missions, selected, group, page, "All locations", place -> clicked[0]++, m -> clicked[0]++, i -> clicked[0]++, i -> clicked[0]++, () -> clicked[0]++, () -> clicked[0]++);
                 var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), DebugMissionScreen.COMPONENTS);
@@ -53,7 +53,7 @@ public final class DebugMissionSnapshotSuite implements SnapshotSuite {
                     assertTrue(launch.box().borderBox().bottom() < instance.root().box().borderBox().bottom());
                     click(document, launch);
                     click(document, instance.requireElement("debug-back"));
-                    click(document, instance.requireElement("debug-card-" + page * 8));
+                    click(document, instance.requireElement("debug-card-" + page * DebugMissionScreen.PAGE_SIZE));
                     click(document, instance.requireElement("debug-place-0"));
                     assertEquals(4, clicked[0], "Launch, back, card selection and planet filtering are wired");
                 }

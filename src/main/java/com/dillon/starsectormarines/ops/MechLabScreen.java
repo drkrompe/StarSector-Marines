@@ -207,6 +207,7 @@ public final class MechLabScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         markupInstance = candidate;
         specSheets = candidateSheets;

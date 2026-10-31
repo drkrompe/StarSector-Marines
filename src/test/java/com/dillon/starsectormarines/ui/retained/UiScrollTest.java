@@ -118,6 +118,21 @@ class UiScrollTest {
         assertNull(UiPainter.scrollThumbRect(hidden));
     }
 
+    @Test
+    void aRebuiltDocumentKeepsTheOffsetItsContentStillReaches() {
+        UiDocument previous = document(list(Overflow.SCROLL, 5));
+        previous.pointerScrolled(100f, 50f, 60f);
+
+        UiElement same = list(Overflow.SCROLL, 5);
+        document(same).keepScrollFrom(previous);
+        assertEquals(60f, same.scrollTop(), EPSILON);
+        assertEquals(ROW_HEIGHT * 0 - 60f, row(same, 0).box().borderBox().y(), EPSILON);
+
+        UiElement shorter = list(Overflow.SCROLL, 3);
+        document(shorter).keepScrollFrom(previous);
+        assertEquals(20f, shorter.scrollTop(), EPSILON);
+    }
+
     private static UiElement list(Overflow overflow, int rows) {
         UiElement list = new UiElement("list")
                 .layout(UiLayout.COLUMN)
