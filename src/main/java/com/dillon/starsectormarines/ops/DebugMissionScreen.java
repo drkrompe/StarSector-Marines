@@ -19,7 +19,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     private Mission selected;
     private int group, page;
     private String location = allLocations();
-    private static final int PAGE_SIZE = 8;
+    static final int PAGE_SIZE = 16;
     public DebugMissionScreen() { super(ROOT, COMPONENTS); }
     @Override protected void onAttach() {
         catalog = Cheats.enabled() ? DebugMissionCatalog.missions(context.planet) : List.of();

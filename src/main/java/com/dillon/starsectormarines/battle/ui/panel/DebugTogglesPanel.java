@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -249,7 +251,8 @@ public final class DebugTogglesPanel implements HudPanel {
         }
 
         // Text labels.
-        String headerText = "DEBUG " + (bodyVisible() ? "-" : "+");
+        // A player build reaches this panel through the CHEAT key, and its header says so.
+        String headerText = (DevConfig.DEV_MODE ? "DEBUG" : Strings.get("cheatsToggle")) + " " + (bodyVisible() ? "-" : "+");
         font.drawString(headerText, x + PADDING, y + totalH - 4f, HEADER_TEXT, alphaMult);
         if (bodyVisible()) {
             for (int i = 0; i < rows.size(); i++) {

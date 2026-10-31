@@ -77,3 +77,13 @@ established names (Hegemony as 霸主) is a translation-review question.
 | Captain (officer rank) | 上尉 | |
 | Yard Compact | 船坞公约 | |
 | Cold Start / Working Passage | 冷启动 / 工作航程 | mission titles |
+| LMB / RMB | 左键 / 右键 | WASD, Tab, Esc stay |
+| flux | 幅能 | |
+| point defence | 点防御 | |
+| lance (mech group) | 机甲小队 | |
+| fireteam | 火力组 | |
+| morale | 士气 | |
+| CP (command points) | CP | |
+| SUP (supply) | 补给 | |
+| A Cold Account | 一笔冷账 | mission title |
+| Thunder Run | 雷霆突击 | |

@@ -1116,6 +1116,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The walking group a rally of {@code civilian} would hand over, it first; empty when it is not walking. */
     public List<Long> civilianRallyGroup(long civilian) { return civilianEvacuationSystem.rallyGroup(civilian, this); }
+
+    /** The body a walking civilian follows now, {@code 0L} for none. */
+    public long civilianEscort(long civilian) { return civilianEvacuationSystem.escortOf(civilian, this); }
     public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
     public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
         if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null || relayNineStory != null)
