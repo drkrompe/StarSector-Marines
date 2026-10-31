@@ -107,13 +107,76 @@
             "[straining, through gritted teeth] Get... off!",
             "[grunts in pain] Ugh!"
           ]
+        },
+        {
+          "id": "contact_hostile",
+          "lufs": -26,
+          "lines": [
+            "[shouting] Contact front! Hostiles!",
+            "[shouting, urgent] Enemy infantry, moving up!",
+            "[shouting] Hostiles, close! Light 'em up!"
+          ]
+        },
+        {
+          "id": "taking_fire",
+          "lufs": -26,
+          "lines": [
+            "[shouting] Taking fire!",
+            "[shouting, urgent] Get down! Get down!",
+            "[shouting, frustrated] Where's that coming from?!"
+          ]
+        },
+        {
+          "id": "frag_out",
+          "lufs": -27,
+          "lines": [
+            "[shouting] Frag out!",
+            "[shouting] Grenade out!",
+            "[shouting] Fire in the hole!"
+          ]
+        },
+        {
+          "id": "grenade",
+          "lufs": -25,
+          "lines": [
+            "[shouting, alarmed] Grenade!",
+            "[shouting, urgent] Incoming! Move!",
+            "[shouting] Grenade! Scatter!"
+          ]
+        },
+        {
+          "id": "armor",
+          "lufs": -25,
+          "lines": [
+            "[shouting, alarmed] Armor! Get to cover!",
+            "[shouting] Heavy coming up! Watch it!",
+            "[shouting, urgent] Big one, moving in! Find cover!"
+          ]
+        },
+        {
+          "id": "turret",
+          "lufs": -26,
+          "lines": [
+            "[shouting] Turret! Stay low!",
+            "[shouting, urgent] Gun emplacement! Get behind something!",
+            "[shouting] Automated gun! Keep your heads down!"
+          ]
+        },
+        {
+          "id": "drones",
+          "lufs": -26,
+          "lines": [
+            "[shouting] Drones, overhead!",
+            "[shouting, alarmed] Drones inbound! Watch the sky!",
+            "[shouting] Eyes up! Drones!"
+          ]
         }
       ]
     },
     {
       "id": "militia",
       "prefix": "militia_",
-      "note": "Colony militia: ravs and bugs, grabbers and breakers; no name for the Matriarch.",
+      "note": "Colony militia: ravs and bugs, grabbers and breakers; no name for the Matriarch. Against people and machines, frightened civilians with rifles: no soldier's jargon.",
       "voices": {
         "a": "UXrpoYalpW5MpGiFHq3z",
         "b": "lh03wW2cCRf05ksqPizq",
@@ -209,6 +272,69 @@
             "[grunting with effort] Hngh!",
             "[straining, through gritted teeth] Get... off!",
             "[grunts in pain] Ugh!"
+          ]
+        },
+        {
+          "id": "contact_hostile",
+          "lufs": -26,
+          "lines": [
+            "[shouting, urgent] Movement! They're coming!",
+            "[shouting] Hold the line! Here they come!",
+            "[shouting, scared] There's more of them! Get ready!"
+          ]
+        },
+        {
+          "id": "taking_fire",
+          "lufs": -26,
+          "lines": [
+            "[shouting, scared] They're shooting at us!",
+            "[shouting] Get down! Heads down!",
+            "[shouting, panicked] Where are they?! I can't see them!"
+          ]
+        },
+        {
+          "id": "frag_out",
+          "lufs": -27,
+          "lines": [
+            "[shouting] Throwing! Get down!",
+            "[shouting] Throwing one! Heads down!",
+            "[shouting, fierce] Here, take this!"
+          ]
+        },
+        {
+          "id": "grenade",
+          "lufs": -25,
+          "lines": [
+            "[shouting, terrified] Grenade! Run!",
+            "[shouting, alarmed] Something's coming in! Move!",
+            "[shouting, panicked] Get away from it!"
+          ]
+        },
+        {
+          "id": "armor",
+          "lufs": -25,
+          "lines": [
+            "[shouting, terrified] Machine! Big one, coming at us!",
+            "[shouting, alarmed] What is that?! Get back!",
+            "[shouting, panicked] We can't stop that thing! Move!"
+          ]
+        },
+        {
+          "id": "turret",
+          "lufs": -26,
+          "lines": [
+            "[shouting] There's a gun up there! Stay down!",
+            "[shouting, alarmed] Auto-gun! Keep low!",
+            "[shouting, scared] That gun's got us pinned!"
+          ]
+        },
+        {
+          "id": "drones",
+          "lufs": -26,
+          "lines": [
+            "[shouting, alarmed] Drones! Up there!",
+            "[shouting, scared] They've got drones!",
+            "[shouting] Something in the sky! Get under cover!"
           ]
         }
       ]
