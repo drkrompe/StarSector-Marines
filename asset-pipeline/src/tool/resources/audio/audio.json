@@ -1505,6 +1505,10 @@
     {"id": "marines_bark_militia_drones_c_3", "source": "marine-barks/speech/marines_bark_militia_drones_c_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_militia_drones_d_1", "source": "marine-barks/speech/marines_bark_militia_drones_d_1.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_militia_drones_d_2", "source": "marine-barks/speech/marines_bark_militia_drones_d_2.mp3", "kind": "positional", "out": "battle/marine-barks"},
-    {"id": "marines_bark_militia_drones_d_3", "source": "marine-barks/speech/marines_bark_militia_drones_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"}
+    {"id": "marines_bark_militia_drones_d_3", "source": "marine-barks/speech/marines_bark_militia_drones_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
+    // Khettara Bloom (tools/generate_wellhollow_audio.py)
+    {"id": "wellhollow_burn_sector_1", "source": "wellhollow/speech/wellhollow_burn_sector_1.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_burn_sector_2", "source": "wellhollow/speech/wellhollow_burn_sector_2.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
+    {"id": "wellhollow_burn_sector_3", "source": "wellhollow/speech/wellhollow_burn_sector_3.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"}
   ]
 }

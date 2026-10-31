@@ -171,6 +171,9 @@ laws).
   hear the chapter's catalog (`narrationMissionId`). A changed string plays as
   text until it is re-recorded: the generator refuses a stale take until its
   synthesis text is refreshed. Debriefs on the results screen are unvoiced.
+  In The Channel Root's battle Orens calls each sector of the burn as its
+  incendiary line opens (`heart.barrage_sector_N`, `heart-nouns.md`), from
+  the same catalog and generator.
 
 ## Relation to the generic per-world arc
 

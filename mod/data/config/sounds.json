@@ -1675,4 +1675,8 @@
 	"marines_bark_militia_drones_d_1": [{"file": "sounds/battle/marine-barks/marines_bark_militia_drones_d_1.ogg", "pitch": 1.0, "volume": 0.339}],
 	"marines_bark_militia_drones_d_2": [{"file": "sounds/battle/marine-barks/marines_bark_militia_drones_d_2.ogg", "pitch": 1.0, "volume": 0.32}],
 	"marines_bark_militia_drones_d_3": [{"file": "sounds/battle/marine-barks/marines_bark_militia_drones_d_3.ogg", "pitch": 1.0, "volume": 0.403}],
+	# ----- Khettara Bloom (tools/generate_wellhollow_audio.py) -----
+	"wellhollow_burn_sector_1": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_1.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_burn_sector_2": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_2.ogg", "pitch": 1, "volume": 1.0}],
+	"wellhollow_burn_sector_3": [{"file": "sounds/story/wellhollow/wellhollow_burn_sector_3.ogg", "pitch": 1, "volume": 1.0}],
 }

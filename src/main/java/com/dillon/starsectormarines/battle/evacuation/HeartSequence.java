@@ -185,7 +185,11 @@ public final class HeartSequence {
             for (; barrageCursor < shoot.size(); barrageCursor++) {
                 WalkingBarrage.Event event = shoot.get(barrageCursor);
                 switch (event.kind()) {
-                    case OPENED -> emit(tick, "barrage_line_" + event.line());
+                    case OPENED -> {
+                        emit(tick, "barrage_line_" + event.line());
+                        int sector = sectorOpenedBy(barrage.plan(), event.line());
+                        if (sector > 0) emit(tick, "barrage_sector_" + sector);
+                    }
                     case LIFTED -> emit(tick, "barrage_lifted_" + event.line());
                     case ENDED -> emit(tick, "barrage_ended");
                 }
@@ -199,6 +203,19 @@ public final class HeartSequence {
             else if (barrage != null && barrage.overrun(sim)) emit(tick, "battery_overrun");
             else emit(tick, "company_broken");
         }
+    }
+
+    /**
+     * The sector of the burn that line {@code line} (from 1) opens, or 0 when it opens none: each incendiary line
+     * relights a firebreak and starts the barrage's walk through the stretch of forest past it, so the Nth incendiary
+     * line opens sector N. High-explosive lines between them, and lines an ammunition delivery adds, open none.
+     */
+    static int sectorOpenedBy(WalkingBarrage.Plan plan, int line) {
+        List<WalkingBarrage.Line> lines = plan.lines();
+        if (line < 1 || line > lines.size() || lines.get(line - 1).heat() <= 0) return 0;
+        int sector = 0;
+        for (int i = 0; i < line; i++) if (lines.get(i).heat() > 0) sector++;
+        return sector;
     }
 
     private static boolean marinesAshore(BattleSimulation sim) {

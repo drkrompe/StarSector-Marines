@@ -692,7 +692,11 @@ replace the scripting when they exist.
    it arrive as it lifts and meet a swarm the shells have stunned and thinned;
    infantry that lag meet it recovered. The barrage's shells hurt what they land
    on through ordinary damage: a bore on the line is worn, not collapsed. Beats
-   `barrage_line_N`, `barrage_lifted_N`.
+   `barrage_line_N`, `barrage_lifted_N`. The firebreaks divide the burn into
+   **sectors**: each incendiary line, relighting a firebreak, starts the walk
+   through the stretch of forest past it, so the Nth incendiary line opens
+   sector N (beat `barrage_sector_N`, Orens calling it on the radio); lines an
+   ammunition delivery adds open none.
 4. **The burn line goes in.** Fire takes the creep and the growths on it and
    leaves burnt ground the creep cannot re-take for minutes, so a satellite
    behind the line cannot claw back what the burn has passed. Brooks, rides
@@ -733,6 +737,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `gunship_called_N`, `gunship_lost_N` | Broad Front | the commander's Nth sortie is granted; the Nth sortie is shot down |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
+| `barrage_sector_N` | The Burn | the Nth incendiary line opens, starting the barrage's walk through sector N |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |
 | `bore_grown_N` | The Burn | bore growth opens satellite N on an unburnt flank (observer-only) |
 | `barrage_ended` | The Burn | the last line lifts; the guns are done |
