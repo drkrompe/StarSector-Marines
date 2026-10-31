@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the townspeople are trapped in the town's staging area and board the convoys one at a time; the air wing flies off an allied air base in the rear, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
+Updated: 2026-10-31 — a gun on each redoubt's corners and its wall teams on its front face; the picket line manned by allied teams. Also: the townspeople are trapped in the town's staging area and board the convoys one at a time; the air wing flies off an allied air base in the rear, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -58,9 +58,13 @@ place's side opens it only where a street leaves, and a square place no road
 grew into is given arms off the road past it). Its open yard is paved in the
 concrete of its aprons (`CordonConstructions`), so it reads as built ground
 inside a wall rather than the bare earth outside it. The garrison makes the rest of it at
-setup: a gun tower beside each gate, firing slits and wall posts along its
-runs, floodlights at its corners, and a flak position in its yard
-(`CordonGarrisons`; on the redoubt's ammunition with its guns). The flak is what
+setup: a gun tower beside each gate, a gun on each corner tower, firing slits
+and wall posts along its runs (every other panel along the run facing the
+front, a panel in three elsewhere), floodlights at its corners, and a flak
+position in its yard (`CordonGarrisons`; on the redoubt's ammunition with its
+guns). The gate towers stand where the roads cross the wall, so a redoubt whose
+roads come in at its flanks had no gun on its front (Ain Tafrant's redoubt 1);
+the corner guns, the line's heavy machine gun, cover both faces at each corner. The flak is what
 meets the flier law over the line: the front's brood spires launch Harrier packs
 with their bores' surges only while some of it stands (`colony-breach-nouns.md`,
 Brood spire), and the packs hunt what it does not cover. Its wall is field
@@ -145,9 +149,15 @@ the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
 prepared positions, never a wall: routes through always exist, and works that
 would seal the ground are not laid. A picket line is optional: one the town
-breaks is still a Cordon. A picket team
-mans its course under the same order a holdout's line team has, and falls back
-into the nearer redoubt when it breaks.
+breaks is still a Cordon. The garrison stands **picket teams** in each
+stretch's trench (`CordonOuterPicket`): one for every fifty cells of the course,
+wire and barricades counted, one to three (a hundred-odd cells between two
+redoubts holds two), each at the middle of its share on the trench's fighting
+positions nearest it, under the same order a holdout's line team has and
+garrison authority, never the player's. Pressed as the outer picket is (half
+down with the swarm on it, or outnumbered two to one), a team falls back along
+its trench into the nearer redoubt still manned and joins its garrison; it
+never calls, and nobody is sent for it. UNTUNED.
 
 **Outer picket** (`CordonOuterPicket`; owner, 2026-10-25). One allied team
 out in front of each redoubt, put there to be lost: the line's eyes while the
@@ -173,14 +183,23 @@ where the swarm is funnelled and where columns come up.
 
 **Garrison.** The allied troops in a redoubt (`ALLY`, under garrison
 authority, never in the player's command pool, as the colony militia are). A
-redoubt's garrison is three **wall teams** at the posts behind its slits, the
-wall facing the front first, and the guns in its gate towers. A compound's wall
+redoubt's garrison is three **wall teams** at the posts behind its slits and
+the guns in its gate towers and on its corners: the twelve posts nearest the
+front, two teams side by side along the front face, each holding its own
+stretch, and the third at the posts behind them (interleaved round the whole
+redoubt, three of redoubt 1's twelve stood on its front wall). A front slit that
+opens into a room built against the wall seats a post in the room. A compound's wall
 is dressed exactly as the colony's civil-defence compound is
 (`CivilDefenceCompound.dress`); a wall the dressing cannot read as closed is
 still manned, its teams inside it with no towers. Any other construction is
-manned from its record: a gun seated in each nest its builders laid, and its
-teams at its loopholes (the windows its buildings look out of) and its
-sandbags, the front first, the rest of the seats in its yard; each wall team
+manned from its record: a gun seated in each nest its builders laid and one at
+each corner of its ground (the open cell nearest the corner, never inside a
+building or where it would cut the ground in two), its face loopholed as a
+school's is, and its teams at its loopholes facing out (the windows its
+buildings look out of toward the front, or across a flank from its front half)
+and its sandbags in its front half, the front first, the rest of the seats in
+its yard (a farm's teams once stood at its farmhouse's back windows over its own
+yard and in the sandbag ring of its rear gun nest); each wall team
 holds its own stretch of those posts, side by side along the face, rather
 than the redoubt as a whole (told to hold the whole redoubt round its middle, a
 building's teams left their windows for the yard before the swarm came). Wherever the

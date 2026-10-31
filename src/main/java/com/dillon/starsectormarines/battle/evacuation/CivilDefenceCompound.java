@@ -66,12 +66,15 @@ public final class CivilDefenceCompound {
      * The dressing planned for one compound.
      *
      * @param cells what the dressing makes of each cell, keyed by packed cell
-     * @param guns  the gun towers' centre cells
-     * @param gateX the first cell of the gate nearest the lift
-     * @param gateY the first cell of the gate nearest the lift
+     * @param guns    the gun towers' centre cells
+     * @param corners the corner towers' gun cells, for a front-facing dressing ({@link #dress(BattleSimulation, int,
+     *                int, int, int, int, int, int, int)}); empty otherwise
+     * @param gateX   the first cell of the gate nearest the lift
+     * @param gateY   the first cell of the gate nearest the lift
      */
     record Plan(int left, int top, int right, int bottom, Map<Long, Kind> cells, List<int[]> guns,
-                List<RedoubtWorks.Bag> posts, List<NightLighting.Lamp> lamps, int gateX, int gateY) {}
+                List<RedoubtWorks.Bag> posts, List<NightLighting.Lamp> lamps, int gateX, int gateY,
+                List<int[]> corners) {}
 
     private CivilDefenceCompound() {}
 
@@ -181,7 +184,7 @@ public final class CivilDefenceCompound {
     static Plan plan(BattleSimulation sim, int sx, int sy, int insideX, int insideY, int towardX, int towardY,
                      int wallReach) {
         return plan(sim.getGrid(), sim.getTopology(), sim.getDoodads(), sx, sy, insideX, insideY, towardX, towardY,
-                wallReach);
+                wallReach, 0);
     }
 
     /**
@@ -191,12 +194,16 @@ public final class CivilDefenceCompound {
      */
     public static List<int[]> gunTowers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx,
                                         int sy, int insideX, int insideY, int towardX, int towardY, int reach) {
-        Plan plan = plan(grid, topology, doodads, sx, sy, insideX, insideY, towardX, towardY, reach);
+        Plan plan = plan(grid, topology, doodads, sx, sy, insideX, insideY, towardX, towardY, reach, 0);
         return plan == null ? List.of() : List.copyOf(plan.guns());
     }
 
+    /**
+     * @param front 0 for the colony's dressing; +1 (north, high y) or -1 (south) for a wall that faces a front: a gun
+     *              on each corner tower behind slits, and the run facing the front slit every other panel
+     */
     private static Plan plan(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx, int sy,
-                             int insideX, int insideY, int towardX, int towardY, int wallReach) {
+                             int insideX, int insideY, int towardX, int towardY, int wallReach, int front) {
         Set<Long> wall = new HashSet<>();
         for (int y = Math.max(0, sy - wallReach); y <= Math.min(grid.getHeight() - 1, sy + wallReach); y++) {
             for (int x = Math.max(0, sx - wallReach); x <= Math.min(grid.getWidth() - 1, sx + wallReach); x++) {
@@ -279,7 +286,8 @@ public final class CivilDefenceCompound {
             if (in != null) gunTower(crossing, in, wall, inside, open, standing, cells, guns, lamps);
         }
 
-        // A squat tower on each outer corner of the wall, the one furthest out each way.
+        // A squat tower on each outer corner of the wall, the one furthest out each way; facing a front, a gun on it.
+        List<int[]> corners = new ArrayList<>();
         for (int[] diagonal : new int[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) {
             long best = -1;
             int bestReach = Integer.MIN_VALUE;
@@ -297,28 +305,44 @@ public final class CivilDefenceCompound {
             }
             if (best < 0) continue;
             int cx = x(best), cy = y(best);
+            boolean armed = front != 0 && !cells.containsKey(best);
             for (int y = cy - 1; y <= cy + 1; y++) {
                 for (int x = cx - 1; x <= cx + 1; x++) {
                     long k = key(x, y);
                     if (inside.contains(k) || wall.contains(k) || cells.containsKey(k) || !open.at(x, y)) continue;
-                    cells.put(k, Kind.WALL);
+                    // An armed tower is slit all round, so its gun sees out over the ground at the corner.
+                    cells.put(k, armed ? Kind.SLIT : Kind.WALL);
                 }
+            }
+            if (armed) {
+                cells.put(best, Kind.GUN);
+                corners.add(new int[]{cx, cy});
             }
             int lx = cx - diagonal[0] * 3, ly = cy - diagonal[1] * 3;
             if (open.at(lx, ly) && inside.contains(key(lx, ly))) lamps.add(floodlight(lx, ly, diagonal[0], diagonal[1]));
         }
 
         // Firing slits along the straight runs, a panel in three.
+        Set<Long> frontSlits = new HashSet<>();
         for (long k : wall) {
             int x = x(k), y = y(k);
-            if (cells.containsKey(k) || near(cells, x, y, 2) || near(gate, x, y, 3)) continue;
+            if (cells.containsKey(k) || near(gate, x, y, 3)) continue;
             boolean horizontal = wall.contains(key(x - 1, y)) && wall.contains(key(x + 1, y));
             boolean vertical = wall.contains(key(x, y - 1)) && wall.contains(key(x, y + 1));
-            if (horizontal == vertical || (horizontal ? x : y) % 3 != 1) continue;
+            if (horizontal == vertical) continue;
+            // The run facing the front is slit every other panel (the yard behind it, open ground before it): it is
+            // where the swarm comes at the wall, and a panel in three seated a wall team's worth of rifles there.
+            boolean facesFront = horizontal && front != 0 && inside.contains(key(x, y - front))
+                    && !inside.contains(key(x, y + front));
+            if (near(cells, x, y, 2, facesFront ? frontSlits : Set.of())) continue;
+            if ((horizontal ? x : y) % (facesFront ? 2 : 3) != 1) continue;
             int px = horizontal ? 0 : 1, py = horizontal ? 1 : 0;
             boolean faces = inside.contains(key(x + px, y + py)) && grid.isWalkable(x - px, y - py)
                     || inside.contains(key(x - px, y - py)) && grid.isWalkable(x + px, y + py);
-            if (faces) cells.put(k, Kind.SLIT);
+            if (faces) {
+                cells.put(k, Kind.SLIT);
+                if (facesFront) frontSlits.add(k);
+            }
         }
 
         // Wall posts: the yard cell behind each slit. A wall is its own cover, so nothing is
@@ -331,12 +355,16 @@ public final class CivilDefenceCompound {
             for (int[] d : STEPS) {
                 int x = x(e.getKey()) + d[0], y = y(e.getKey()) + d[1];
                 long k = key(x, y);
-                if (!inside.contains(k) || keepOpen.contains(k) || cells.containsKey(k) || !open.at(x, y)) continue;
+                // A front slit may open into a room against the wall: its floor behind the slit is a post too.
+                boolean post = open.at(x, y) || frontSlits.contains(e.getKey()) && grid.isWalkable(x, y)
+                        && !grid.isDoorway(x, y) && !topology.isFixture(x, y) && !topology.isWall(x, y)
+                        && !dressed.contains(k) && !gate.contains(k);
+                if (!inside.contains(k) || keepOpen.contains(k) || cells.containsKey(k) || !post) continue;
                 if (posts.stream().noneMatch(p -> p.x() == x && p.y() == y)) posts.add(new RedoubtWorks.Bag(x, y, null));
             }
         }
         if (posts.isEmpty()) return null;
-        return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1]);
+        return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1], List.copyOf(corners));
     }
 
     /**
@@ -345,7 +373,7 @@ public final class CivilDefenceCompound {
      * and its main gate.
      */
     public record Dressed(int left, int top, int right, int bottom, List<int[]> guns, List<int[]> posts,
-                          int gateX, int gateY) { }
+                          int gateX, int gateY, List<int[]> corners) { }
 
     /**
      * Dresses the perimeter wall round {@code (sx, sy)} on the live map, the
@@ -356,13 +384,28 @@ public final class CivilDefenceCompound {
      */
     public static Dressed dress(BattleSimulation sim, int sx, int sy, int insideX, int insideY,
                                 int towardX, int towardY, int reach) {
-        Plan plan = plan(sim, sx, sy, insideX, insideY, towardX, towardY, reach);
+        return dress(sim, sx, sy, insideX, insideY, towardX, towardY, reach, 0);
+    }
+
+    /**
+     * As {@link #dress(BattleSimulation, int, int, int, int, int, int, int)}, for a wall that faces a front
+     * ({@code cordon-nouns.md}, Field redoubt): a gun cell on each corner tower, slit all round
+     * ({@link Dressed#corners()}, seated by the caller as the gun towers are), and the run facing {@code front} slit
+     * every other panel rather than one in three. The gun towers are the same cells either way, so
+     * {@link #gunTowers} reads them off the map without the front.
+     *
+     * @param front +1 where the front is north (high y), -1 where it is south, 0 for the colony's plain dressing
+     */
+    public static Dressed dress(BattleSimulation sim, int sx, int sy, int insideX, int insideY,
+                                int towardX, int towardY, int reach, int front) {
+        Plan plan = plan(sim.getGrid(), sim.getTopology(), sim.getDoodads(), sx, sy, insideX, insideY, towardX,
+                towardY, reach, front);
         if (plan == null) return null;
         lay(sim, plan);
         List<int[]> posts = new ArrayList<>();
         for (RedoubtWorks.Bag post : plan.posts()) posts.add(new int[]{post.x(), post.y()});
         return new Dressed(plan.left(), plan.top(), plan.right(), plan.bottom(), List.copyOf(plan.guns()),
-                List.copyOf(posts), plan.gateX(), plan.gateY());
+                List.copyOf(posts), plan.gateX(), plan.gateY(), plan.corners());
     }
 
     /**
@@ -556,6 +599,17 @@ public final class CivilDefenceCompound {
     private static int[] inward(int[] cell, Set<Long> inside) {
         for (int[] d : STEPS) if (inside.contains(key(cell[0] + d[0], cell[1] + d[1]))) return d;
         return null;
+    }
+
+    /** As {@link #near(Map, int, int, int)}, not counting the cells in {@code ignored}. */
+    private static boolean near(Map<Long, Kind> cells, int x, int y, int reach, Set<Long> ignored) {
+        for (int dy = -reach; dy <= reach; dy++) {
+            for (int dx = -reach; dx <= reach; dx++) {
+                long k = key(x + dx, y + dy);
+                if (cells.containsKey(k) && !ignored.contains(k)) return true;
+            }
+        }
+        return false;
     }
 
     private static boolean near(Map<Long, Kind> cells, int x, int y, int reach) {

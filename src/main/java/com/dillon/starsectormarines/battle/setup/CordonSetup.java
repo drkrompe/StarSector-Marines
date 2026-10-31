@@ -590,10 +590,11 @@ public final class CordonSetup {
             CordonHouseFronts.stand(sim, redoubts, CordonFront.frontward(cordon.plan()), GARRISON_RISK,
                     new Random(cordon.battleSeed() ^ HOUSE_SALT));
         }
-        if (CordonOuterPicket.enabled()) {
-            sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts,
-                    CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT)));
-        }
+        // The outer picket out in front (an experiment, behind its switch) and the picket line's teams in the trench
+        // between the redoubts (`cordon-nouns.md`, Picket line).
+        sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts, CordonFront.frontward(cordon.plan()),
+                GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT), CordonOuterPicket.enabled(), map.layout,
+                new Random(cordon.battleSeed() ^ LINE_SALT)));
         // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
         AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
                 redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
@@ -673,6 +674,7 @@ public final class CordonSetup {
     private static final int MOUTH_TEAM_HOLD = 4;
     private static final long MOUTH_SALT = 0x4D4F555448534C54L;
     private static final long PICKET_SALT = 0x5049434B4554534CL;
+    private static final long LINE_SALT = 0x4C494E4554454D53L;
     private static final long HOUSE_SALT = 0x484F555345534C54L;
 
     /**

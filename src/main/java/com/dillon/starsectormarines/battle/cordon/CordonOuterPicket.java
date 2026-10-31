@@ -8,21 +8,27 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.function.Consumer;
 
 /**
- * The outer picket ({@code cordon-nouns.md}, Outer picket): one allied team out in front of each redoubt on the road
- * the swarm comes down, put there to be lost. It is the line's eyes while the company is still landing and moving up:
- * what it sees the player sees (an allied body casts the side's fog like a Marine), and the battle hears it make
- * contact. It holds its post until it is pressed, then falls back down its road to its redoubt and joins the
- * garrison; most of it dies on the way. It never calls, and nobody is sent for it.
+ * The pickets: the outer picket ({@code cordon-nouns.md}, Outer picket), one allied team out in front of each redoubt
+ * on the road the swarm comes down, put there to be lost, and the picket line's teams ({@code cordon-nouns.md}, Picket
+ * line), a few allied teams in the trench between each pair of redoubts. The outer picket is the line's eyes while the
+ * company is still landing and moving up: what it sees the player sees (an allied body casts the side's fog like a
+ * Marine), and the battle hears it make contact. Every post holds until it is pressed, then falls back to a redoubt
+ * and joins the garrison: an outer post down its road to its own redoubt (most of it dies on the way), a line team
+ * along its trench to the nearer one still manned. None of them calls, and nobody is sent for them; all of them are
+ * under garrison authority, never in the player's command pool.
  */
 public final class CordonOuterPicket {
 
@@ -50,6 +56,12 @@ public final class CordonOuterPicket {
     static final int PRESSED = 8;
     /** Ticks between looks. */
     static final int LOOK_TICKS = 30;
+    /** Cells of picket course a line team holds: one team a stretch this long, rounded, at least one. UNTUNED. */
+    static final int LINE_SPAN = 50;
+    /** The most teams one stretch of picket line holds. */
+    static final int LINE_MAX = 3;
+    /** Cells round its post along the trench a line team holds. */
+    static final int LINE_HOLD = 6;
 
     /** A test on a cell. */
     interface CellTest {
@@ -58,25 +70,33 @@ public final class CordonOuterPicket {
 
     private static final class Post {
         final int number;
-        final CordonRedoubt redoubt;
+        /** The redoubt it falls back to: an outer post's own; a line team's, the nearer manned one when it goes. */
+        CordonRedoubt redoubt;
         final int x, y, squad, team;
+        /** The picket course a line team holds ({@code "1-2"}), or {@code null} for an outer post. */
+        final String course;
         int contactTick = -1, backTick = -1, lostTick = -1, joined;
         boolean fallingBack;
 
-        Post(int number, CordonRedoubt redoubt, int x, int y, int squad, int team) {
+        Post(int number, CordonRedoubt redoubt, int x, int y, int squad, int team, String course) {
             this.number = number;
             this.redoubt = redoubt;
             this.x = x;
             this.y = y;
             this.squad = squad;
             this.team = team;
+            this.course = course;
         }
+
+        boolean line() { return course != null; }
     }
 
     private final List<Post> posts;
+    private final List<CordonRedoubt> redoubts;
 
-    private CordonOuterPicket(List<Post> posts) {
+    private CordonOuterPicket(List<Post> posts, List<CordonRedoubt> redoubts) {
         this.posts = posts;
+        this.redoubts = List.copyOf(redoubts);
     }
 
     /** Whether the outer picket stands ({@link #PROPERTY}). */
@@ -85,12 +105,22 @@ public final class CordonOuterPicket {
     }
 
     /**
-     * Puts a team out in front of each redoubt, at the post {@link #postCell} finds from its first street mouth.
+     * Stands the pickets: the outer picket when {@code outer} ({@link #enabled}), and the picket line's teams in every
+     * laid picket course ({@link #standLine}).
      *
      * @param front +1 where the front is north (high y), -1 where it is south
      */
     public static CordonOuterPicket stand(BattleSimulation sim, CordonArmour armour, List<CordonRedoubt> redoubts,
-                                          int front, RiskLevel risk, Random rng) {
+                                          int front, RiskLevel risk, Random rng, boolean outer, LaidLayout layout,
+                                          Random lineRng) {
+        List<Post> posts = outer ? outerPosts(sim, armour, redoubts, front, risk, rng) : new ArrayList<>();
+        posts.addAll(standLine(sim, redoubts, layout, risk, lineRng));
+        return new CordonOuterPicket(posts, redoubts);
+    }
+
+    /** Puts a team out in front of each redoubt, at the post {@link #postCell} finds from its first street mouth. */
+    private static List<Post> outerPosts(BattleSimulation sim, CordonArmour armour, List<CordonRedoubt> redoubts,
+                                         int front, RiskLevel risk, Random rng) {
         List<int[]> bores = new ArrayList<>();
         for (SwarmBore bore : sim.getSwarmBores()) bores.add(new int[]{bore.x(), bore.y()});
         CellTest open = (x, y) -> sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y);
@@ -111,9 +141,103 @@ public final class CordonOuterPicket {
             int squad = ColonyMilitia.seatTeam(sim, cells, name, risk, rng);
             sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, at[0], at[1], HOLD),
                     CommandAuthority.GARRISON, ISSUER, name + " watches the road in front of redoubt " + r.number());
-            posts.add(new Post(number, r, at[0], at[1], squad, sim.squadMemberCount(squad)));
+            posts.add(new Post(number, r, at[0], at[1], squad, sim.squadMemberCount(squad), null));
         }
-        return new CordonOuterPicket(posts);
+        return posts;
+    }
+
+    /**
+     * The picket line's teams ({@code cordon-nouns.md}, Picket line): in each laid picket course, west to east,
+     * {@link #lineTeams} teams, each seated at an even share along the course ({@link #lineStops}) on the trench's
+     * fighting positions nearest that stop, ordered to man the trench's run there as a holdout's line team mans its
+     * step. The garrison's guns are already in the course's nests.
+     */
+    static List<Post> standLine(BattleSimulation sim, List<CordonRedoubt> redoubts, LaidLayout layout, RiskLevel risk,
+                                Random rng) {
+        List<Post> posts = new ArrayList<>();
+        if (layout == null || redoubts.isEmpty()) return posts;
+        NavigationGrid grid = sim.getGrid();
+        List<int[]> taken = new ArrayList<>();
+        for (Laid laid : layout.pieces()) {
+            if (laid.kind() != Laid.Kind.LINE || !laid.isLaid() || !laid.name().startsWith(CordonPlan.PICKET_LINE)) {
+                continue;
+            }
+            String course = laid.name().substring(CordonPlan.PICKET_LINE.length());
+            // Where a team can stand on the course: its trench and bags, a fighting position before bare ground.
+            List<int[]> standing = new ArrayList<>();
+            for (int[] c : laid.cells()) if (grid.inBounds(c[0], c[1]) && grid.isWalkable(c[0], c[1])) standing.add(c);
+            if (standing.size() < ColonyMilitia.POST_SIZE) continue;
+            // The stretch is the whole course, its wire and barricades too: a team's share of it, not of its trench.
+            int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+            for (int[] c : laid.cells()) {
+                minX = Math.min(minX, c[0]);
+                maxX = Math.max(maxX, c[0]);
+            }
+            int k = 0;
+            for (int stop : lineStops(minX, maxX, lineTeams(maxX - minX + 1))) {
+                List<int[]> cells = lineSeats(standing, stop, taken,
+                        (x, y) -> sim.fightingPositions().isFightingPositionCell(x, y), ColonyMilitia.POST_SIZE);
+                if (cells.size() < ColonyMilitia.POST_SIZE) continue;
+                taken.addAll(cells);
+                String name = "Picket " + course + " team " + (++k);
+                int squad = ColonyMilitia.seatTeam(sim, cells, name, risk, rng);
+                int[] at = cells.get(0);
+                int run = sim.fightingPositions().runIdAt(at[0], at[1]);
+                sim.assignSquadCommand(run >= 0 ? ObjectiveAssignment.defendRun(squad, at[0], at[1], LINE_HOLD, run)
+                                : ObjectiveAssignment.defendArea(squad, at[0], at[1], LINE_HOLD),
+                        CommandAuthority.GARRISON, ISSUER, name + " mans the picket line");
+                posts.add(new Post(k, nearest(redoubts, at[0], at[1]), at[0], at[1], squad,
+                        sim.squadMemberCount(squad), course));
+            }
+        }
+        return posts;
+    }
+
+    /** How many teams hold a stretch of picket course {@code length} cells long: one per {@link #LINE_SPAN}, 1 to {@link #LINE_MAX}. */
+    static int lineTeams(int length) {
+        return Math.max(1, Math.min(LINE_MAX, Math.round(length / (float) LINE_SPAN)));
+    }
+
+    /** Where along a course from {@code minX} to {@code maxX} each of {@code teams} stands: the middle of its even share. */
+    static int[] lineStops(int minX, int maxX, int teams) {
+        int[] out = new int[teams];
+        float span = (maxX - minX + 1) / (float) teams;
+        for (int i = 0; i < teams; i++) out[i] = minX + (int) Math.floor(span * (i + 0.5f));
+        return out;
+    }
+
+    /**
+     * A line team's seats: the {@code size} course cells nearest the column {@code stop} (along the course, then the
+     * cell's own row breaking a tie), fighting positions before bare ground, none already {@code taken}. Pure.
+     */
+    static List<int[]> lineSeats(List<int[]> course, int stop, List<int[]> taken, CellTest position, int size) {
+        List<int[]> free = new ArrayList<>();
+        for (int[] c : course) {
+            boolean used = false;
+            for (int[] t : taken) used |= t[0] == c[0] && t[1] == c[1];
+            if (!used) free.add(c);
+        }
+        free.sort(Comparator.<int[]>comparingInt(c -> position.test(c[0], c[1]) ? 0 : 1)
+                .thenComparingInt(c -> Math.abs(c[0] - stop)).thenComparingInt(c -> c[1]));
+        // Fighting positions first only within reach of the stop: a trench cell across the stretch is no seat.
+        List<int[]> near = new ArrayList<>();
+        for (int[] c : free) if (Math.abs(c[0] - stop) <= LINE_HOLD) near.add(c);
+        List<int[]> pool = near.size() >= size ? near : free;
+        pool.sort(Comparator.<int[]>comparingInt(c -> position.test(c[0], c[1]) ? 0 : 1)
+                .thenComparingInt(c -> Math.abs(c[0] - stop)).thenComparingInt(c -> c[1]));
+        return new ArrayList<>(pool.subList(0, Math.min(size, pool.size())));
+    }
+
+    /** The manned redoubt nearest {@code (x, y)}, or the nearest of all where none is manned. */
+    static CordonRedoubt nearest(List<CordonRedoubt> redoubts, int x, int y) {
+        CordonRedoubt best = null;
+        for (CordonRedoubt r : redoubts) {
+            boolean better = best == null || r.manned() && !best.manned()
+                    || r.manned() == best.manned() && Math.hypot(r.centreX() - x, r.centreY() - y)
+                    < Math.hypot(best.centreX() - x, best.centreY() - y);
+            if (better) best = r;
+        }
+        return best;
     }
 
     /**
@@ -149,7 +273,10 @@ public final class CordonOuterPicket {
         return standing * 2 <= team || pressing >= standing * 2;
     }
 
-    /** One tick: contact, the fall back when pressed, and the survivors into the garrison at their redoubt. */
+    /**
+     * One tick: contact, the fall back when pressed, and the survivors into the garrison at their redoubt; a line team
+     * falls back to the nearest redoubt still manned. Only the outer picket's posts publish beats.
+     */
     public void advance(BattleSimulation sim, int tick, Consumer<String> beat) {
         if (posts.isEmpty() || tick % LOOK_TICKS != 0) return;
         int[] contact = new int[posts.size()], pressing = new int[posts.size()];
@@ -170,13 +297,14 @@ public final class CordonOuterPicket {
             int standing = sim.squadMemberCount(post.squad);
             if (standing == 0) {
                 post.lostTick = tick;
-                beat.accept("picket_lost_" + post.number);
+                if (!post.line()) beat.accept("picket_lost_" + post.number);
                 continue;
             }
             if (post.contactTick < 0 && contact[p] > 0) {
                 post.contactTick = tick;
-                beat.accept("picket_contact_" + post.number);
+                if (!post.line()) beat.accept("picket_contact_" + post.number);
             }
+            if (post.line() && !post.fallingBack) post.redoubt = nearest(redoubts, post.x, post.y);
             CordonRedoubt home = post.redoubt;
             if (!post.fallingBack && home.manned() && fallsBack(standing, post.team, pressing[p])) {
                 post.fallingBack = true;
@@ -184,13 +312,13 @@ public final class CordonOuterPicket {
                 int[] to = fallBackCell((x, y) -> grid.isWalkable(x, y)
                         && grid.arePathConnected(post.x, post.y, x, y, GridPathfinder.USE_CARDINAL_NAVIGATION), home);
                 sim.assignSquadCommand(ObjectiveAssignment.withdraw(post.squad, to[0], to[1]),
-                        CommandAuthority.GARRISON, ISSUER, "Outer picket " + post.number + " falls back");
+                        CommandAuthority.GARRISON, ISSUER, label(post) + " falls back");
             }
             if (post.fallingBack && home.manned() && inside(sim, post.squad, home)) {
                 post.backTick = tick;
                 post.joined = standing;
                 CordonSequence.join(sim, home, List.of(post.squad));
-                beat.accept("picket_back_" + post.number);
+                if (!post.line()) beat.accept("picket_back_" + post.number);
             }
         }
     }
@@ -216,6 +344,10 @@ public final class CordonOuterPicket {
         return new int[]{cx, cy};
     }
 
+    private static String label(Post post) {
+        return post.line() ? "Picket " + post.course + " team " + post.number : "Outer picket " + post.number;
+    }
+
     private static boolean inside(BattleSimulation sim, int squad, CordonRedoubt r) {
         long leader = sim.getSquad(squad) == null ? 0L : sim.getSquad(squad).leaderId;
         if (leader == 0L || sim.resolveUnit(leader) == 0L || !sim.world().hasPosition(leader)) return false;
@@ -228,7 +360,8 @@ public final class CordonOuterPicket {
         StringBuilder out = new StringBuilder();
         for (Post p : posts) {
             if (out.length() > 0) out.append("; ");
-            out.append(String.format(Locale.ROOT, "%d (r%d, %d,%d)", p.number, p.redoubt.number(), p.x, p.y));
+            out.append(String.format(Locale.ROOT, "%s (r%d, %d,%d)",
+                    p.line() ? "line " + p.course + " " + p.number : String.valueOf(p.number), p.redoubt.number(), p.x, p.y));
             out.append(p.contactTick < 0 ? " no contact" : String.format(Locale.ROOT, " contact %.1f", p.contactTick * BattleSimulation.TICK_DT / 60f));
             if (p.backTick >= 0) out.append(String.format(Locale.ROOT, ", back %.1f with %d of %d", p.backTick * BattleSimulation.TICK_DT / 60f, p.joined, p.team));
             else if (p.lostTick >= 0) out.append(String.format(Locale.ROOT, ", lost %.1f", p.lostTick * BattleSimulation.TICK_DT / 60f));
