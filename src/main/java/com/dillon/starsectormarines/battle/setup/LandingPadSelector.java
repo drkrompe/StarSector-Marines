@@ -28,6 +28,8 @@ final class LandingPadSelector {
 
         for (LandingPad pad : authored) {
             if (selected.size() >= count) break;
+            // The allies' hardstands are their wing's, never a lift's landing.
+            if (pad.purpose == LandingPad.Purpose.ALLIED_AIRFIELD) continue;
             if (!pad.isClear(map.grid, map.topology)) continue;
             if (farEnough(pad.centerX, pad.centerY, selected, minSeparation)) selected.add(pad);
         }

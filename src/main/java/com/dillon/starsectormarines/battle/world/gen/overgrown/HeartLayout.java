@@ -81,6 +81,12 @@ public final class HeartLayout {
     public static final String GUN_FLANK = "gun-flank-";
     /** The company's ford over the brook (B4). */
     public static final String COMPANY_FORD = "company-ford";
+    /** The allies' airbase on the farmland behind the line, toward a flank, where the air wing flies from (Broad Front). */
+    public static final String AIRBASE = "airbase";
+    /** Where the airbase is wanted, as shares across (tried in order) and depth, and the cells round that searched. */
+    static final float[] AIRBASE_ACROSS = {0.245f, 0.755f};
+    static final float AIRBASE_DEPTH = 0.13f;
+    static final int AIRBASE_SEARCH = 24, AIRBASE_SLIDE = 10;
 
     /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
     static final int LANE_GAP = 6;
@@ -139,6 +145,7 @@ public final class HeartLayout {
         if (form == Form.BROAD_FRONT) {
             pieces.add(new Deferred(HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, HOLDOUT, true, density), false));
+            pieces.add(new Deferred(AIRBASE, Phase.STRUCTURES, ground -> airbase(ground, form), false));
         } else {
             pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, VILLAGE_HOLDOUT, false, density), false));
@@ -439,6 +446,29 @@ public final class HeartLayout {
             if (at != null) out.add(new Structure(AMMO_DUMP + (i + 1), StructureKind.AMMO_DUMP, at[0], at[1], 0, false));
         }
         return out;
+    }
+
+    /**
+     * The allies' airbase: an airfield on open farmland behind the line, between the outer lanes and the company's
+     * road on one flank and then the other, clear of the logistics base and the landing; its strip on the side toward
+     * the heart. None where neither flank has the ground.
+     */
+    static List<Piece> airbase(LayoutGround ground, Form form) {
+        int turns = form.advancesAlongY() ? 0 : 1;
+        int w = (turns & 1) == 0 ? StructureKind.AIRFIELD.along : StructureKind.AIRFIELD.deep;
+        int h = (turns & 1) == 0 ? StructureKind.AIRFIELD.deep : StructureKind.AIRFIELD.along;
+        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y);
+        for (float across : AIRBASE_ACROSS) {
+            int[] middle = form.cellAt(AIRBASE_DEPTH, across);
+            // Searched deep and back freely, across only a little: either side stand a lane's foot and the road.
+            int halfX = w / 2 + (form.advancesAlongY() ? AIRBASE_SLIDE : AIRBASE_SEARCH);
+            int halfY = h / 2 + (form.advancesAlongY() ? AIRBASE_SEARCH : AIRBASE_SLIDE);
+            int[] region = {Math.max(1, middle[0] - halfX), Math.max(1, middle[1] - halfY),
+                    Math.min(ground.width() - 2, middle[0] + halfX), Math.min(ground.height() - 2, middle[1] + halfY)};
+            int[] at = StructureFit.nearest(open, region, w, h, middle[0] - w / 2, middle[1] - h / 2, 2);
+            if (at != null) return List.of(new Structure(AIRBASE, StructureKind.AIRFIELD, at[0], at[1], turns, false));
+        }
+        return List.of();
     }
 
     /** The vehicle park between the dumps: open ground the armour waves form up on. */

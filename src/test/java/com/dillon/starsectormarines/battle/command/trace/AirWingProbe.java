@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.airsupport.AirMission;
+import com.dillon.starsectormarines.battle.airsupport.StandingPatrol;
+import com.dillon.starsectormarines.battle.airsupport.WingAirbase;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.airsupport.CommsKit;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
@@ -69,6 +72,23 @@ final class AirWingProbe {
                     .put("knownColoniesWithin30", known));
         }
         json.put("losses", losses);
+        // The airbase it flies from, where it has one: what rolled off it, what stands on it now, the standing patrol.
+        WingAirbase base = pool.base(Faction.ALLY);
+        if (base != null) {
+            JSONObject berths = new JSONObject();
+            int wrecks = 0;
+            for (AirfieldService.Berth berth : base.berths()) {
+                String state = berth.state.name().toLowerCase(Locale.ROOT);
+                berths.put(state, berths.optInt(state) + 1);
+                if (berth.wreckOnPad) wrecks++;
+            }
+            int patrols = 0;
+            for (StandingPatrol patrol : pool.patrols(Faction.ALLY)) patrols += patrol.launched();
+            json.put("airbase", new JSONObject().put("basedLaunches", pool.basedLaunches(Faction.ALLY))
+                    .put("berths", berths).put("wrecksOnPads", wrecks).put("patrolsLaunched", patrols));
+        }
+        json.put("airToAir", new JSONObject().put("roundsFired", sim.airToAir().roundsFired())
+                .put("roundsHit", sim.airToAir().roundsHit()).put("flierHits", sim.airToAir().flierHits()));
         System.out.println("[air-wing] " + run + " " + json);
     }
 }

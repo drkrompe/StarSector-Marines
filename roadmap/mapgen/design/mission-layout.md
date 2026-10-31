@@ -61,7 +61,9 @@ optional (reported, and the map stands).
   farmstead (a farmhouse and a barn on a yard), a granary (a long store on a
   yard), an ammo dump (a sandbag ring round stacked crates), an observation
   post (a small sandbag ring), a square (open paving with a marker in the
-  middle). Its whole footprint must be open ground nobody built on, or it is
+  middle), an airfield (an allied airbase lot and its verge, its strip on the
+  side its turn names, its hardstands an allied field's and no node to take;
+  laid from its own draw). Its whole footprint must be open ground nobody built on, or it is
   refused rather than squeezed; buildings come from their authored plans, so
   they are buildings like any other. The square's marker stands in for a bell
   until there is bell art.

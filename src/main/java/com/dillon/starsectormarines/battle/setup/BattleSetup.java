@@ -4427,9 +4427,49 @@ public final class BattleSetup {
 
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
-        StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
+        // Worked by whoever holds the field: a garrison's by the garrison, an allied base by its allies.
+        StructureWatch.man(sim, field.owner(), rooms, apron,
                 AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH,
                 sim.getWorksCrews());
+    }
+
+    /**
+     * Stands the allies' airbase a mission laid inside {@code bounds} ({x0, y0, x1, y1}, inclusive) up as the
+     * battle's field: owned by {@link Faction#ALLY}, an aircraft from {@code airframes} on each of its hardstands and
+     * in each of its sheds (pads first, then sheds, cycling the list), its strip, and an allied ground crew on the
+     * apron to turn them round. Returns the berths it registered, in that order; none when the battle already has a
+     * field or the bounds hold no strip.
+     */
+    static List<AirfieldService.Berth> installAlliedAirfield(BattleSimulation sim, MapResult map, int[] bounds,
+                                                            List<? extends Airframe> airframes) {
+        AirfieldService field = sim.getAirfieldService();
+        if (!field.berths().isEmpty() || airframes.isEmpty()) return List.of();
+        Runway strip = null;
+        for (Runway runway : map.runways) {
+            if (inside(bounds, runway.centreX(), runway.centreY())) {
+                strip = runway;
+                break;
+            }
+        }
+        if (strip == null) return List.of();
+        field.setOwner(Faction.ALLY);
+        field.installRunway(strip);
+        List<AirfieldService.Berth> berths = new ArrayList<>();
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose != LandingPad.Purpose.ALLIED_AIRFIELD || !inside(bounds, pad.centerX, pad.centerY)) continue;
+            berths.add(field.addBerth(pad, airframes.get(berths.size() % airframes.size()),
+                    AirBody.facingToward(pad.approach.dx, pad.approach.dy)));
+        }
+        for (Gantry shed : map.shelters) {
+            if (!inside(bounds, shed.centerX, shed.centerY)) continue;
+            berths.add(field.addShelterBerth(shed, airframes.get(berths.size() % airframes.size())));
+        }
+        installAirfieldCrew(sim, map);
+        return berths;
+    }
+
+    private static boolean inside(int[] bounds, float x, float y) {
+        return x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3];
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -9,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Raises a layout's {@link Structure}s in the structures phase, before the map
@@ -62,9 +65,28 @@ final class LayoutStructures {
             }
             case OBSERVATION_POST -> ring(ctx, x0, y0, x1, y1, s.turns());
             case BELL_SQUARE -> square(ctx, x0, y0, x1, y1);
+            case AIRFIELD -> airfield(ctx, ground, s, x0, y0, x1, y1);
         }
         return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, "", s.required(),
                 List.of(new int[]{x0, y0}, new int[]{x1, y1}), List.of(), List.of());
+    }
+
+    /**
+     * An allied airbase over the footprint: the lot inside its verge, its strip on the side {@code turns} names
+     * (0 north, 1 east, 2 south, 3 west), its hardstands published as {@link LandingPad.Purpose#ALLIED_AIRFIELD}, so
+     * it is no garrison's field and puts up no node to take. Laid from its own draw, so the map's shared stream reads
+     * the same whether or not a base was laid.
+     */
+    private static void airfield(GenContext ctx, LayoutGround ground, Structure s, int x0, int y0, int x1, int y1) {
+        int verge = StructureFit.AIRFIELD_VERGE;
+        AirbaseLot.Facing facing = switch (s.turns()) {
+            case 0 -> AirbaseLot.Facing.NORTH;
+            case 1 -> AirbaseLot.Facing.EAST;
+            case 2 -> AirbaseLot.Facing.SOUTH;
+            default -> AirbaseLot.Facing.WEST;
+        };
+        new AirbaseLot(x0 + verge, y0 + verge, x1 - verge, y1 - verge, facing, StructureFit.AIRFIELD_SIZE,
+                LandingPad.Purpose.ALLIED_AIRFIELD, verge).author(ctx, new Random(ground.seed(s.name())));
     }
 
     /** Worked earth over the footprint: a farm's or a store's yard. */

@@ -578,6 +578,24 @@ public final class AirfieldService {
         return Collections.unmodifiableList(groundWrecks);
     }
 
+    /**
+     * Puts a replacement aircraft, whole, on a berth whose own was lost over the battle, and answers whether it did.
+     *
+     * <p>Only a stand left empty: a berth whose aircraft burned where it stood still has the hulk on it and is gone for
+     * the battle, which is what makes reaching a field and burning it a cost a ferry flight does not undo. A field
+     * whose owner replaces airframes at all is told so by whoever holds that establishment (an allied wing's pool);
+     * a garrison's never is.
+     */
+    public boolean restock(Berth berth) {
+        if (berth.state != BerthState.DESTROYED || berth.wreckOnPad) return false;
+        berth.state = BerthState.PARKED;
+        berth.hullHp = berth.airframe.maxHp();
+        berth.refitTarget = 0f;
+        berth.refitWork = 0f;
+        berth.airframeId = 0L;
+        return true;
+    }
+
     /** The berth holding a given live parked airframe, or null. */
     public Berth berthOf(long airframeId) {
         if (airframeId == 0L) return null;

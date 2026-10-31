@@ -14,7 +14,12 @@ public enum StructureKind {
     /** A small sandbag ring a lookout stands in. */
     OBSERVATION_POST(StructureFit.POST_SIDE, StructureFit.POST_SIDE),
     /** An open paved square with a marker in its middle, where people gather. */
-    BELL_SQUARE(StructureFit.SQUARE_SIDE, StructureFit.SQUARE_SIDE);
+    BELL_SQUARE(StructureFit.SQUARE_SIDE, StructureFit.SQUARE_SIDE),
+    /**
+     * An allied airbase: an {@code AirbaseLot} field (strip, hardstands, sheds, tower and fence) and the verge kept
+     * round its fence. Unturned its strip runs along x on the footprint's north edge, toward a bloom to the north.
+     */
+    AIRFIELD(StructureFit.AIRFIELD_ALONG, StructureFit.AIRFIELD_DEEP);
 
     public final int along, deep;
 

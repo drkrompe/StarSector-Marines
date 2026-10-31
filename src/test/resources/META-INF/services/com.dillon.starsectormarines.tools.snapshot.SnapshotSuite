@@ -311,6 +311,7 @@ com.dillon.starsectormarines.battle.evacuation.HeartAlliesLookSuite
 com.dillon.starsectormarines.battle.evacuation.HeartCommanderLookSuite
 com.dillon.starsectormarines.battle.evacuation.HeartRidgeLookSuite
 com.dillon.starsectormarines.battle.evacuation.HeartCompanyLookSuite
+com.dillon.starsectormarines.battle.evacuation.HeartAirbaseLookSuite
 com.dillon.starsectormarines.battle.command.allied.HeartLaneFormationLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite

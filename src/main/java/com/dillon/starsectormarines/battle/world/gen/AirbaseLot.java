@@ -664,7 +664,8 @@ public final class AirbaseLot {
     /** Whether this footprint would stand on any berth already marked out. */
     private boolean onABerth(GenContext ctx, int x, int y, int spanX, int spanY) {
         for (LandingPad pad : ctx.landingPads) {
-            if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD) continue;
+            if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD
+                    && pad.purpose != LandingPad.Purpose.ALLIED_AIRFIELD) continue;
             if (x + spanX - 1 < pad.left() || x > pad.right()) continue;
             if (y + spanY - 1 < pad.bottom() || y > pad.top()) continue;
             return true;
@@ -734,9 +735,11 @@ public final class AirbaseLot {
 
     /** One berth, published for whatever this lot is for. */
     private LandingPad berth(int cx, int cy) {
-        return purpose == LandingPad.Purpose.GARRISON_AIRFIELD
-                ? LandingPad.garrison(cx, cy, approach)
-                : LandingPad.civilian(cx, cy, approach);
+        return switch (purpose) {
+            case GARRISON_AIRFIELD -> LandingPad.garrison(cx, cy, approach);
+            case ALLIED_AIRFIELD -> LandingPad.allied(cx, cy, approach);
+            default -> LandingPad.civilian(cx, cy, approach);
+        };
     }
 
     /** Paint one berth so a stand reads as a stand from across the lot. */
