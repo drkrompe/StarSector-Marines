@@ -46,7 +46,9 @@ enum StoryScene {
 
     static StoryScene forRecord(String id, MissionSource source) {
         if (id == null || source == null) return null;
+        // A replay shows its chapter's art, as the debug run of that chapter does.
         var debug = DebugMissionCatalog.scenario(id, source);
+        if (debug == null) debug = CompletedReplays.scenario(id, source);
         if (debug != null) return switch (debug) {
             case MISSILE_AA, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN, WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT -> null;
             case RELIEF, MILITIA_RELIEF -> RELIEF;
