@@ -50,6 +50,11 @@ class BroodSpiresTest {
     @Test
     void neverGrowsNearAnotherSpire() {
         assertNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{120.5f, 100.5f}), List.of()));
+        int[] near = BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{120.5f, 100.5f}), List.of(),
+                BroodSpires.GROWN_SPACING);
+        assertNotNull(near, "a bore grown for its spire stands it nearer another");
+        float dx = near[0] + 0.5f - 120.5f, dy = near[1] + 0.5f - 100.5f;
+        assertTrue(dx * dx + dy * dy >= BroodSpires.GROWN_SPACING * BroodSpires.GROWN_SPACING, "but no nearer than that");
         assertNotNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{100.5f - BroodSpires.SPACING
                 - BroodSpires.STANDOFF_MAX, 100.5f}), List.of()));
     }
