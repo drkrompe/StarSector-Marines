@@ -14,7 +14,10 @@ import java.util.SplittableRandom;
  * Where the heart's bores stand and how grown they are when the battle opens
  * (`bloom-mission-arc.md`, the heart): two or three <b>mother bores</b> on one
  * reservoir round the old workings at the far edge, and <b>satellite bores</b>
- * between the heart and the start line, every one already at maw.
+ * between the heart and the start line, every one already at maw. The Burn adds
+ * <b>young bores</b> along the route: fissures, unfed, that grow on their own
+ * clock into maws if the company leaves them, and raise a brood spire when they
+ * do.
  *
  * <p>Sites are chosen once, at setup, on ground that can be walked to from the
  * start line: the plan is the map's <b>reachability proof</b>. Trees are
@@ -33,8 +36,13 @@ import java.util.SplittableRandom;
  */
 public record HeartBores(List<Site> sites) {
 
-    /** One bore: {@code number} counts mothers and satellites separately from 1. */
-    public record Site(int number, boolean mother, int x, int y) { }
+    /**
+     * One bore: {@code number} counts mothers and satellites separately from 1; a {@code young} satellite opens a
+     * fissure, unfed.
+     */
+    public record Site(int number, boolean mother, int x, int y, boolean young) {
+        public Site(int number, boolean mother, int x, int y) { this(number, mother, x, y, false); }
+    }
 
     /** Bodies fed into each mother before the battle: maw, and an elder Matriarch. */
     public static final float MOTHER_FEED = 16f;
@@ -57,6 +65,8 @@ public record HeartBores(List<Site> sites) {
     static final float INNER_DEPTH_FROM = 0.72f, INNER_DEPTH_TO = 0.84f;
     /** Share of the front's width either side of a lane's line that its inner satellite may stand in. */
     static final float INNER_HALF_ACROSS = 0.06f;
+    /** A young bore stands at least this far from every other bore: nearer than a grown one, it holds less ground. */
+    static final int YOUNG_SPACING = 26;
     /** No bore nearer the map edge than this. */
     static final int EDGE_MARGIN = 10;
     /** Random picks tried per site before the plan gives up on it. */
@@ -136,6 +146,16 @@ public record HeartBores(List<Site> sites) {
                     Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]), null);
             if (cell != null) sites.add(new Site(bands.length + s + 1, false, cell[0], cell[1]));
         }
+        // The young bores come last, so the mothers and satellites stand where they stood before them; one the
+        // map has no ground for is left out rather than re-rolling the map.
+        float[][] young = youngBands(form);
+        int number = bands.length + inner.length;
+        for (float[] band : young) {
+            int[] a = form.cellAt(band[0], band[2]), b = form.cellAt(band[1], band[3]);
+            int[] cell = pick(grid, topology, reachable, sites, rng, YOUNG_SPACING,
+                    Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]), null);
+            if (cell != null) sites.add(new Site(++number, false, cell[0], cell[1], true));
+        }
         sites.sort((p, q) -> p.mother != q.mother ? (p.mother ? -1 : 1) : Integer.compare(p.number, q.number));
         return new HeartBores(List.copyOf(sites));
     }
@@ -172,6 +192,27 @@ public record HeartBores(List<Site> sites) {
         for (int i = 0; i < lines.length; i++) {
             bands[i] = new float[]{INNER_DEPTH_FROM, INNER_DEPTH_TO, lines[i] - INNER_HALF_ACROSS, lines[i] + INNER_HALF_ACROSS};
         }
+        return bands;
+    }
+
+    /**
+     * Where each young bore may stand, as {depth from, depth to, across from, across to}: on The Burn, the south
+     * flank, the middle and the north flank of the first quarter past the near ride and of the second, so the route
+     * is a clearing of bores from the first march on, then one more in the north half of the second quarter and one
+     * in the north half of the last, short of the heart's own ground (owner, 2026-10-31). The later ones come last,
+     * so the first six stand where they stood without them. None on Broad Front.
+     */
+    static float[][] youngBands(Form form) {
+        if (form != Form.THE_BURN) return new float[0][];
+        float[][] depths = {{0.32f, 0.48f}, {0.50f, 0.72f}};
+        float[][] acrosses = {{0.08f, 0.32f}, {0.36f, 0.64f}, {0.68f, 0.92f}};
+        float[][] north = {{0.50f, 0.72f, 0.52f, 0.92f}, {0.76f, 0.90f, 0.55f, 0.92f}};
+        float[][] bands = new float[depths.length * acrosses.length + north.length][];
+        int i = 0;
+        for (float[] depth : depths) {
+            for (float[] across : acrosses) bands[i++] = new float[]{depth[0], depth[1], across[0], across[1]};
+        }
+        for (float[] band : north) bands[i++] = band;
         return bands;
     }
 
@@ -230,13 +271,17 @@ public record HeartBores(List<Site> sites) {
         return nearest <= ROAD_REACH && nearest > SwarmBores.MOUTH_RADIUS + 2;
     }
 
-    /** Opens every site and feeds it to its starting growth. Call at setup, tick zero. */
+    /**
+     * Opens every site and feeds it to its starting growth: a young bore is left a fissure, to raise its spire if it
+     * grows to maw. Call at setup, tick zero.
+     */
     public void open(BattleSimulation sim) {
         SwarmBores bores = sim.swarmBores();
         for (Site site : sites) {
             SwarmBore bore = bores.open(sim, site.number, site.mother, site.x, site.y);
             if (bore == null) throw new IllegalStateException("heart site " + site + " is not clear ground at setup");
-            bores.feed(sim, bore, site.mother ? MOTHER_FEED : SATELLITE_FEED);
+            if (site.young) sim.broodSpires().raiseAtMaw(bore);
+            else bores.feed(sim, bore, site.mother ? MOTHER_FEED : SATELLITE_FEED);
         }
     }
 

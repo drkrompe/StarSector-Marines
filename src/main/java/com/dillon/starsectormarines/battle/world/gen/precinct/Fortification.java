@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -48,9 +49,12 @@ import java.util.Map;
  * <p>{@link #square} is how the place was laid out rather than how hard it is:
  * a wall drawn on a square claim, for a place somebody surveyed and pegged out
  * before building, where the ordinary claim pools organically round its seed.
+ *
+ * <p>{@link #yard} is opt-in and only for a square place: a wider gate on one side with a truck yard inside it
+ * ({@link GateYard}); {@code null}, as every place but the Road's town compound has it, changes nothing.
  */
 public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts,
-                            boolean square) {
+                            boolean square, GateYard yard) {
 
     /**
      * Which emplacements are placed first when the ground runs out.
@@ -68,6 +72,11 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     /** A place whose claim pools round its seed, as every garrison's does. */
     public Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts) {
         this(gates, wallHp, posts, false);
+    }
+
+    /** A place with no gate yard. */
+    public Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts, boolean square) {
+        this(gates, wallHp, posts, square, null);
     }
 
     public Fortification {
@@ -88,6 +97,9 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
             if (entry.getValue() > 0) copy.put(entry.getKey(), entry.getValue());
         }
         posts = Collections.unmodifiableMap(copy);
+        if (yard != null && !square) {
+            throw new IllegalArgumentException("a gate yard is laid inside a square place's wall");
+        }
     }
 
     /** A wall with nothing on it. Rarely what a mission wants; useful as a control. */
@@ -231,7 +243,7 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     }
 
     public Fortification withGates(int count) {
-        return new Fortification(count, wallHp, posts, square);
+        return new Fortification(count, wallHp, posts, square, yard);
     }
 
     /**
@@ -251,20 +263,34 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
      */
     public static final int SQUARE_GATE_WIDTH = 7;
 
+    /**
+     * The widest gate this place's wall leaves open: {@link #SQUARE_GATE_WIDTH} for a square place, its yard's gate
+     * where that is wider, and no limit for a place whose claim pooled round its seed.
+     */
+    public int gateWidth() {
+        if (!square) return Integer.MAX_VALUE;
+        return yard == null ? SQUARE_GATE_WIDTH : Math.max(SQUARE_GATE_WIDTH, yard.gateWidth());
+    }
+
     /** The same wall drawn on a square claim, with a glacis of open ground outside it. */
     public Fortification laidSquare() {
-        return new Fortification(gates, wallHp, posts, true);
+        return new Fortification(gates, wallHp, posts, true, yard);
+    }
+
+    /** The same square place with a truck yard inside its gate on one side. */
+    public Fortification withYard(GateYard gateYard) {
+        return new Fortification(gates, wallHp, posts, square, gateYard);
     }
 
     public Fortification withWallHp(int hp) {
-        return new Fortification(gates, hp, posts, square);
+        return new Fortification(gates, hp, posts, square, yard);
     }
 
     /** The same place asked to hold {@code count} of one kind of emplacement. */
     public Fortification withPosts(DefensePostKind kind, int count) {
         EnumMap<DefensePostKind, Integer> next = new EnumMap<>(posts);
         next.put(kind, count);
-        return new Fortification(gates, wallHp, next, square);
+        return new Fortification(gates, wallHp, next, square, yard);
     }
 
     /** How many of one kind this asks for. */
@@ -277,5 +303,52 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
         int total = 0;
         for (int count : posts.values()) total += count;
         return total;
+    }
+
+    /**
+     * A truck yard inside a square place's gate ({@code cordon-nouns.md}, Cut-off town): its gate furthest toward
+     * {@link #side} (a road may come in at the side of a place rather than its back) widened to {@link #gateWidth} cells, open paved ground {@link #breadth} cells along the wall by {@link #depth}
+     * cells in from it where a truck drives in, turns and stops to load, and beside it, on whichever hand has more
+     * room, {@link #stagingWidth} cells of open ground as deep as the yard kept for the people waiting to board.
+     * Laid before the place packs, so its buildings stand round it ({@link GateYardLayout}).
+     *
+     * <p>The gate stays no wider than {@link #MAX_GATE_WIDTH}: the town's wall reading
+     * ({@code CivilDefenceCompound}) takes a wider gap for no gate at all, and dresses no tower beside it.
+     *
+     * <p>{@link #posterns}: the sides that also get a way in for people, {@link #POSTERN_WIDTH} cells wide in the
+     * middle of the side, across the glacis and through the wall, with a short way in kept clear behind it. Opened
+     * whether or not a road comes to that side, so the place has its other doors on every map.
+     */
+    public record GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth, List<Side> posterns) {
+
+        /** The widest gate a yard asks for: wider, the wall reading takes the gap for no gate at all. */
+        public static final int MAX_GATE_WIDTH = 10;
+        /** A postern's width: a street for people, too narrow for a truck. */
+        public static final int POSTERN_WIDTH = 3;
+        /** How far in behind a postern the ground is kept clear of buildings. */
+        public static final int POSTERN_DEPTH = 4;
+
+        /** A yard with no posterns. */
+        public GateYard(Side side, int gateWidth, int depth, int breadth, int stagingWidth) {
+            this(side, gateWidth, depth, breadth, stagingWidth, List.of());
+        }
+
+        public GateYard {
+            posterns = List.copyOf(posterns);
+            if (side == null) throw new IllegalArgumentException("a gate yard states the side its gate is on");
+            if (gateWidth < PrecinctBoundary.DRIVABLE_GATE_WIDTH || gateWidth > MAX_GATE_WIDTH) {
+                throw new IllegalArgumentException("a yard's gate of " + gateWidth + " cells is outside "
+                        + PrecinctBoundary.DRIVABLE_GATE_WIDTH + ".." + MAX_GATE_WIDTH);
+            }
+            if (depth < 1 || breadth < gateWidth || stagingWidth < 0) {
+                throw new IllegalArgumentException("a yard " + breadth + " by " + depth
+                        + " with staging " + stagingWidth + " cannot take its gate of " + gateWidth);
+            }
+        }
+
+        /** The same yard with a postern on each of {@code sides}. */
+        public GateYard withPosterns(Side... sides) {
+            return new GateYard(side, gateWidth, depth, breadth, stagingWidth, List.of(sides));
+        }
     }
 }

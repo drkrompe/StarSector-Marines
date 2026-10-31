@@ -122,6 +122,7 @@ public final class TermsOfProtectionSequence implements Objective {
     }
 
     public TermsOfProtectionProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport();
         boolean carrierLost = !carrierAlive(sim);
         return progress.report(carrierLost,
                 TermsOfProtectionProgress.REPRESENTATIVES - sim.squadMemberCount(parties.representatives()),

@@ -11,7 +11,8 @@ import java.util.List;
 
 /**
  * The allied bases' rocket artillery (`heart-nouns.md`, Logistics base): a Locust emplacement in every pit the layout
- * laid at a base ({@link HeartLayout#LOCUST_PIT}), the logistics base's on both forms and each airbase's on Broad Front.
+ * laid at a base ({@link HeartLayout#LOCUST_PIT}), Broad Front's logistics base's and each of its airbases' (The Burn's
+ * bases carry its battery instead, `BurnBattery`).
  * Each is a support gun ({@code SupportFire}): it fires for the side on a swarm mass somebody of the side has in
  * sight, never danger close. A base's guns are one place on the heart's stock ({@link HeartGuns}), so a base running
  * low calls an ammunition truck as the flak does. The guns are the military's ({@code ALLY}) and never end the battle.

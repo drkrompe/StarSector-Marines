@@ -88,7 +88,7 @@ ARID pool maps (`story-map-pools.md`). Winning a chapter unlocks the next.
 | # | Chapter | Mission | Story beat | Fee |
 | --- | --- | --- | --- | --- |
 | 1 | **The Khettara** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
-| 2 | **Ain Tafrant** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
+| 2 | **Ain Tafrant** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Its people are trapped in the town: hold Ain Tafrant's staging area inside the town gate while the convoys go in and bring them out, then fall back behind the line. The win is the people brought out. | 28,000 |
 | 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. Regional Command sends the district batteries and battalions, and the company, attached to the district brigade, burns in behind the barrage and collapses it. | 32,000 |
 | 4 | **The Heart of the Khettara** | Broad Front | With the channel root down and the line held, the columns Regional Command sends go in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
 
@@ -120,7 +120,13 @@ Every chapter won stays on Orens's board as a **replay** next to the
 current chapter. A replay:
 
 - plays the same mission with a fresh vetted map from the chapter's ARID pool
-  (attempt-indexed), so it is the same place on a different day;
+  (attempt-indexed), so it is the same place on a different day; chapter 1
+  instead owns one seed (`WellhollowBloomCampaign.COLONY_BREACH_SEED`, the
+  pool's patched ARID colony) that its first attempt, retries, replays and the
+  debug player all play, and chapter 2 likewise owns
+  `WellhollowBloomCampaign.AIN_TAFRANT_SEED` (the town pool's ARID seed 7), so
+  the convoys' road from the town to the safe camp is laid out once (owner,
+  2026-10-31);
 - pays half the chapter fee on victory and nothing on a loss;
 - carries no unlock, no completion and no one-time reward, and never rewrites
   the arc's progress;
@@ -129,7 +135,7 @@ current chapter. A replay:
 
 The debug mission player lists all four chapters under Asharu (WB1 to WB4,
 `DebugMissionCatalog.Scenario.wellhollow`), each on its pool's first vetted
-ARID map (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
+ARID map or its own seed (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
 every time. It briefs with the chapter's first exchange and sets up the
 challenge force: a Veteran Company of seven squads and four machines.
 

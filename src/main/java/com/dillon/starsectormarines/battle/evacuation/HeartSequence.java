@@ -58,6 +58,8 @@ public final class HeartSequence {
     private final HeartLanes lanes;
     /** The guns and their trucks, or {@code null} when the heart has none stocked. */
     private HeartGuns guns;
+    /** The Burn's bore growth, or {@code null} when no bores grow in the battle. */
+    private HeartBoreGrowth growth;
     private final LaidLayout places;
 
     /**
@@ -84,6 +86,12 @@ public final class HeartSequence {
 
     /** The guns and their trucks, or {@code null}. */
     public HeartGuns guns() { return guns; }
+
+    /** Grows new bores in the battle from now on (The Burn, `heart-nouns.md`, Bore growth). */
+    public void growBores(HeartBoreGrowth growth) { this.growth = growth; }
+
+    /** The battle's bore growth, or {@code null}. */
+    public HeartBoreGrowth boreGrowth() { return growth; }
 
     /** The walking barrage, or {@code null} when the heart has none. */
     public WalkingBarrage barrage() { return barrage; }
@@ -114,6 +122,10 @@ public final class HeartSequence {
             }
         }
         if (form == Form.THE_BURN) hurtSurges(sim, bores, tick);
+        if (growth != null) {
+            int grown = growth.tick(sim, barrage);
+            if (grown > 0) pending.add("bore_grown_" + grown);
+        }
         if (barrage != null) barrage.tick(sim);
         if (lanes != null) lanes.tick(sim, pending);
         if (guns != null) guns.tick(sim, pending);
@@ -154,7 +166,7 @@ public final class HeartSequence {
         if (!started) { started = true; emit(tick, "start"); }
         if (!landed && marinesAshore(sim)) { landed = true; emit(tick, "landfall"); }
         for (String key : pending) {
-            if (key.startsWith("breakout_")) log.emit(tick, BEAT_PREFIX + key, Audience.OBSERVER_ONLY);
+            if (key.startsWith("breakout_") || key.startsWith("bore_grown_")) log.emit(tick, BEAT_PREFIX + key, Audience.OBSERVER_ONLY);
             else emit(tick, key);
         }
         pending.clear();

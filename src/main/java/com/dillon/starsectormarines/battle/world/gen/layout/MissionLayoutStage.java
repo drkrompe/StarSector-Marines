@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -163,7 +164,11 @@ public final class MissionLayoutStage implements GenStage {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
                 continue;
             }
-            if (piece instanceof Structure structure) {
+            if (piece instanceof Paving paving) {
+                out.add(phase == Phase.STRUCTURES ? LayoutPaving.lay(ctx, paving)
+                        : Laid.refused(paving.name(), Laid.Kind.ROAD, paving.required(),
+                        "paving is laid in the structures phase"));
+            } else if (piece instanceof Structure structure) {
                 if (phase != Phase.STRUCTURES) {
                     out.add(Laid.refused(structure.name(), Laid.Kind.STRUCTURE, structure.required(),
                             "a structure is raised in the structures phase"));
@@ -206,6 +211,9 @@ public final class MissionLayoutStage implements GenStage {
                 Laid laid = layProps(ctx, props);
                 out.add(laid);
                 closed |= laid.isLaid();
+            } else if (piece instanceof Airfield airfield) {
+                out.add(layAirfield(ctx, airfield));
+                closed = true;
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -225,6 +233,9 @@ public final class MissionLayoutStage implements GenStage {
         if (closed && ctx.get(BspKeys.TACTICAL_REGIONS) != null) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
+        // The gate yards the precinct ward laid inside walled places, reported with the rest.
+        List<Laid> yards = ctx.get(BspKeys.GATE_YARDS);
+        if (yards != null) out.addAll(yards);
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out, onWays(ground, out)));
     }
 
@@ -261,6 +272,22 @@ public final class MissionLayoutStage implements GenStage {
 
     /** How the reading names the farmland's own farms: this plus their number. */
     static final String FARMLAND_FARMSTEAD = "farmland-farmstead-";
+
+    /**
+     * The airbase lot authored on its held ground ({@link AirbaseLot#author}), reported by the lot's corners; refused
+     * when its reservation runs off the map.
+     */
+    static Laid layAirfield(GenContext ctx, Airfield airfield) {
+        Site held = airfield.reservation();
+        if (held.x0() < 0 || held.y0() < 0 || held.x1() >= ctx.width || held.y1() >= ctx.height) {
+            return Laid.refused(airfield.name(), Laid.Kind.SITE, airfield.required(), "off the map");
+        }
+        int[] lot = airfield.lot();
+        new AirbaseLot(lot[0], lot[1], lot[2], lot[3], airfield.facing(), airfield.size(), airfield.purpose())
+                .author(ctx, ctx.rng);
+        return new Laid(airfield.name(), Laid.Kind.SITE, Laid.Status.LAID, airfield.size().name(), airfield.required(),
+                List.of(new int[]{lot[0], lot[1]}, new int[]{lot[2], lot[3]}), List.of(), List.of());
+    }
 
     /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */
     private static List<KnollGround.Resolved> knolls(GenContext ctx, PrecinctPlan plan) {

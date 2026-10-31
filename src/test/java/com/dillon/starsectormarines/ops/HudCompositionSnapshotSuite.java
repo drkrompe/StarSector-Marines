@@ -171,6 +171,25 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim,
                                           Selection selection, String name, boolean confirm,
                                           CommandPowerTargetingPanel picker) throws Exception {
+        return new SnapshotArtifact(name + "-1920x1080-ui100.png",
+                compose(context, sim, selection, name, confirm, picker, (scene, retained) -> scene));
+    }
+
+    /** One painted retained surface's screen bounds, y up, as {@code BattleScreen} reads them for the legacy HUD. */
+    public record SurfaceBounds(String name, float x, float y, float width, float height) { }
+
+    /** Paints over the battle scene and under the retained chrome, where {@code BattleScreen} draws its legacy HUD. */
+    public interface UnderRetained {
+        BufferedImage paint(BufferedImage scene, List<SurfaceBounds> retained) throws Exception;
+    }
+
+    /**
+     * The battle and its retained HUD at 1920x1080 and 100% scale, with {@code under} painted between them.
+     * A caller sets up the catalogs and settings this suite's {@link #render} does.
+     */
+    public static BufferedImage compose(SnapshotContext context, BattleSimulation sim, Selection selection,
+                                        String name, boolean confirm, CommandPowerTargetingPanel picker,
+                                        UnderRetained under) throws Exception {
         PositionAPI position = position();
         BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         camera.setViewport(0, 0, 1920, 1080, 1920f / (sim.getColdStart() == null ? 85 : 120));
@@ -294,6 +313,13 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
             }
             @Override public void draw(CanvasHostViewport viewport, float alpha) { throw new IllegalStateException("Headless only"); }
         }, 1920, 1080);
+        List<SurfaceBounds> bounds = new ArrayList<>();
+        for (NamedSurface named : surfaces) {
+            UiViewport viewport = named.surface().viewport();
+            bounds.add(new SurfaceBounds(named.name(), viewport.screenX(), viewport.screenY(),
+                    viewport.width(), viewport.height()));
+        }
+        image = under.paint(image, bounds);
         Graphics2D graphics = image.createGraphics();
         try {
             for (NamedSurface named : surfaces) {
@@ -311,7 +337,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
             graphics.dispose(); subtitle.detach();
             require(!subtitle.blocksWorldPointer(messageX, messageY), "Hidden subtitles capture no world pointer");
         }
-        return new SnapshotArtifact(name + "-1920x1080-ui100.png", image);
+        return image;
     }
 
     private record NamedSurface(String name, BattleHudSurface surface) { }
@@ -335,7 +361,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                     default -> throw new AssertionError("Unexpected position query " + method.getName());
                 });
     }
-    private static SettingsAPI settings(SnapshotContext context, SettingsAPI previous) {
+    static SettingsAPI settings(SnapshotContext context, SettingsAPI previous) {
         return (SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(), new Class<?>[]{SettingsAPI.class},
                 (proxy, method, args) -> {
                     if (method.getName().equals("getScreenScaleMult")) return 1f;

@@ -50,6 +50,11 @@ class BroodSpiresTest {
     @Test
     void neverGrowsNearAnotherSpire() {
         assertNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{120.5f, 100.5f}), List.of()));
+        int[] near = BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{120.5f, 100.5f}), List.of(),
+                BroodSpires.GROWN_SPACING);
+        assertNotNull(near, "a bore grown for its spire stands it nearer another");
+        float dx = near[0] + 0.5f - 120.5f, dy = near[1] + 0.5f - 100.5f;
+        assertTrue(dx * dx + dy * dy >= BroodSpires.GROWN_SPACING * BroodSpires.GROWN_SPACING, "but no nearer than that");
         assertNotNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{100.5f - BroodSpires.SPACING
                 - BroodSpires.STANDOFF_MAX, 100.5f}), List.of()));
     }
@@ -109,6 +114,9 @@ class BroodSpiresTest {
         assertFalse(BroodSpires.raises(false, BoreTier.BORE, fed * 3, false), "fed but not yet maw");
         assertFalse(BroodSpires.raises(true, BoreTier.MAW, fed, false), "a mother's air is her brood");
         assertFalse(BroodSpires.raises(false, BoreTier.MAW, fed, true), "one spire a bore, never regrown");
+        assertTrue(BroodSpires.raises(false, BoreTier.MAW, 0f, true, false), "a bore grown for a spire needs no feeding");
+        assertFalse(BroodSpires.raises(false, BoreTier.BORE, 0f, true, false), "but it must reach maw");
+        assertFalse(BroodSpires.raises(false, BoreTier.MAW, 0f, true, true), "and raises one only");
     }
 
     @Test

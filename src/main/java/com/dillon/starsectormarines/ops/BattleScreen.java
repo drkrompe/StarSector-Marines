@@ -940,10 +940,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         hud.addPanel(orderIntentCursor);
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
-        hud.addPanel(new SquadPlanDebugPanel(this));
+        if (DevConfig.DEV_MODE) hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        // A player build has no developer HUD at all (DevConfig.DEV_MODE).
+        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on, and it opens
+        // Win beside itself.
         if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
+        else if (Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, this::cheatWin));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -957,7 +959,24 @@ public class BattleScreen implements Screen, BattleUiContext {
         // the prior DebugTogglesWidget which was attached to the screen's
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.
-        debugPanel = new DebugTogglesPanel(this);
+        turretAuthor = new TurretAuthorPanel(this);
+        // A dev build's panel: Win, then the diagnostic rows. A player's Win is the CHEAT switch's.
+        if (DevConfig.DEV_MODE) {
+            debugPanel = new DebugTogglesPanel(this);
+            debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
+            addDiagnosticRows();
+            hud.addPanel(debugPanel);
+        }
+        hud.addPanel(turretAuthor);
+        // Player-facing battle dispatch surface. Added last so urgent comms
+        // plates and the counterattack signpost paint above ordinary HUD
+        // chrome; its opaque notice owns pointer input without exposing controls.
+        battleComms = new BattleCommsPanel(this);
+        hud.addPanel(battleComms);
+    }
+
+    /** The debug panel's developer rows: render tuning, influence and commander pictures, traces and authoring. */
+    private void addDiagnosticRows() {
         debugPanel.addToggle("Auto spike dumps",
                 tickProfilePanel::isAutoDumpEnabled, tickProfilePanel::toggleAutoDump);
         debugPanel.addToggle("Docking paths",
@@ -1029,7 +1048,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         debugPanel.addAction("Dump commander trace",
                 () -> CommanderTraceDumper.dump(getSim()));
         debugPanel.addAction("Spawn mech family", () -> MechFamilyDebugSpawner.spawn(getSim()));
-        turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
                 () -> turretAuthor.active,
                 () -> {
@@ -1041,13 +1059,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                     }
                     syncAuthoringChrome();
                 });
-        hud.addPanel(debugPanel);
-        hud.addPanel(turretAuthor);
-        // Player-facing battle dispatch surface. Added last so urgent comms
-        // plates and the counterattack signpost paint above ordinary HUD
-        // chrome; its opaque notice owns pointer input without exposing controls.
-        battleComms = new BattleCommsPanel(this);
-        hud.addPanel(battleComms);
     }
 
     /** Installs or relayouts the retained overlay without rebuilding its reactive tree. */
@@ -1179,6 +1190,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                 fixture != null ? fixture.kind() : null);
     }
 
+    /** The Debug key's Win: ends the battle as a company victory, settled like any other. */
+    private void cheatWin() {
+        BattleSimulation sim = getSim();
+        if (sim != null) sim.forceCompanyVictory();
+    }
+
     /**
      * Debug action: post a defender {@link ReinforcementRequest} to the
      * service so the active means picks it up on its next slow-tick.
@@ -1245,7 +1262,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
 
-    @Override public boolean debugHudVisible() { return DevConfig.DEV_MODE && debugHudVisible; }
+    @Override public boolean debugHudVisible() { return (DevConfig.DEV_MODE || Cheats.enabled()) && debugHudVisible; }
 
     @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 
@@ -2039,6 +2056,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             linePreview = null;
             return;
         }
+        // A civilian takes no line: a right button let go over a company force rallies its group there.
+        if (selection.hasCivilianSelection()) {
+            linePreview = null;
+            if (released) requestSelectedTacticalOrder(x, y);
+            return;
+        }
         float cellX0 = camera.screenToCellX(startX);
         float cellY0 = camera.screenToCellY(startY);
         float cellX1 = camera.screenToCellX(x);
@@ -2132,10 +2155,28 @@ public class BattleScreen implements Screen, BattleUiContext {
         BattleSimulation sim = getSim();
         if (sim == null || camera == null || sim.directControl().active()) return;
         if (battleChromeBlocksWorldPointer(screenX, screenY)) return;
+        if (selection.hasCivilianSelection()) {
+            rallySelectedCivilian(sim, camera.screenToCellX(screenX), camera.screenToCellY(screenY));
+            return;
+        }
         int cellX = (int) Math.floor(camera.screenToCellX(screenX));
         int cellY = (int) Math.floor(camera.screenToCellY(screenY));
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
         SelectionOrders.requestMove(sim, selection, cellX, cellY);
+    }
+
+    /**
+     * A right click with a civilian selected: its walking group follows the company squad, mech or vehicle under the
+     * pointer from now on. The player never moves the people, so a click on open ground does nothing.
+     */
+    private void rallySelectedCivilian(BattleSimulation sim, float worldX, float worldY) {
+        long civilian = selection.getSelectedCivilianId();
+        if (sim.civilianRallyGroup(civilian).isEmpty()) {
+            selection.clear();
+            return;
+        }
+        long escort = WorldPicker.companyForceAt(sim, worldX, worldY);
+        if (escort != 0L) sim.rallyCivilians(civilian, escort);
     }
 
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {

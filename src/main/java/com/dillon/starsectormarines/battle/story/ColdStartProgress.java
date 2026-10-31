@@ -30,6 +30,8 @@ public final class ColdStartProgress {
     public float work() { return work; }
     public boolean contested() { return contested; }
     public void fail() { if (!terminal()) phase = Phase.FAILED; }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, true, true, true, 0); }
     public Report report(int crewLost) {
         return new Report(delivered, powered, constructed, phase == Phase.COMPLETE, Math.max(0, Math.min(2, crewLost)));
     }

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.marine.HegemonyAuxiliaryWarrant;
 import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -94,8 +93,8 @@ public final class CompanyHqScreen implements Screen {
                 this::onClose,
                 this::responseAction, this::plotCourse, auxiliary.row().get(), handover.row().get());
         Map<String, Object> props = viewModel.props();
-        props.put("debugAction", (Runnable) () -> { if (DevConfig.DEBUG_CLIENT) context.goTo(ScreenId.DEBUG_MISSIONS); });
-        props.put("debugClasses", DevConfig.DEBUG_CLIENT ? "hq-debug console-action" : "hq-debug-hidden");
+        props.put("debugAction", (Runnable) () -> { if (Cheats.enabled()) context.goTo(ScreenId.DEBUG_MISSIONS); });
+        props.put("debugClasses", Cheats.enabled() ? "hq-debug console-action" : "hq-debug-hidden");
         newsDesk.put(props);
         actionDesk.put(props);
         auxiliary.put(props);
@@ -122,6 +121,7 @@ public final class CompanyHqScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        built.keepScrollFrom(document);
         document = built;
         preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(
                 CompanyPreparationGuide.roster(), CompanyPreparationGuide.headquarters(context), this::onClose), this::onClose);

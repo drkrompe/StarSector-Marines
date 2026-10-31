@@ -20,8 +20,9 @@ public final class LandingPad {
         /** A hardstand on the defender garrison's own airfield, inside its ward. */
         GARRISON_AIRFIELD,
         /**
-         * A hardstand on an allied airbase a mission laid (the heart's, `heart-nouns.md`): the allies' air wing flies
-         * from it, no lift lands on it, and it is no garrison's, so nothing that reads a garrison field reads it.
+         * A hardstand on an allied side's own airbase, one a mission laid (the heart's, `heart-nouns.md`; the cordon's):
+         * the allies' air wing flies from it, no lift or company lands on it, and it is no garrison's, so nothing that
+         * reads a garrison field reads it.
          */
         ALLIED_AIRFIELD,
         FALLBACK

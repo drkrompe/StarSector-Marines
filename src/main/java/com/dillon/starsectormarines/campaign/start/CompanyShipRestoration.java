@@ -13,11 +13,14 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.Map;
 
-/** Hull repairs own payment; mission two supplies Mech Lab restoration with the Hound's transfer. */
+/**
+ * Hull repairs own payment; mission two supplies Mech Lab restoration, two berths, with the Hound's
+ * transfer. A save's receipt for the old second-berth order is no longer read.
+ */
 public final class CompanyShipRestoration {
     public enum Work {
         BILLETS(4_000), POWER(3_000), MESS_HALL(2_500),
-        MECH_BERTH_2(5_000, 2), MECH_BERTH_3(5_000, 3), MECH_BERTH_4(5_000, 4);
+        MECH_BERTH_3(5_000, 3), MECH_BERTH_4(5_000, 4);
         public final int price;
         public final int berth;
         Work(int price) { this(price, 0); }
@@ -50,7 +53,7 @@ public final class CompanyShipRestoration {
     /** Contiguous repair receipts survive reload and remain attached to the original hull. */
     static int paidMechBerths(Map<String, Object> data, String shipId) {
         int count = 0;
-        for (Work work : new Work[]{Work.MECH_BERTH_2, Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
+        for (Work work : new Work[]{Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
             if (!Boolean.TRUE.equals(data.get(KEY + shipId + work))) break;
             count++;
         }

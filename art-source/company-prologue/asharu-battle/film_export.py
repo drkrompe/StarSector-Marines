@@ -107,7 +107,7 @@ def lines():
     keyed = {(ln[1], round(ln[2], 2)): ln for ln in radio_log.LINES}
     out = []
     for d in final["lines"].values():
-        if d.get("off") or d.get("placeholder"):
+        if d.get("off"):
             continue
         ln = keyed[(d["speaker"], round(d["t0"], 2))]
         out.append((ln[0], d["speaker"], d["t0"], d["t1"], d["text"]))

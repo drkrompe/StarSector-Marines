@@ -121,6 +121,10 @@ class HeartEvidenceTest {
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
                 if (run == 0) AirWingProbe.print(fixtureId, sim);
+                if (run == 0 && sim.getHeart().boreGrowth() != null) {
+                    System.out.println("[bore-growth] " + fixtureId + " grown=" + sim.getHeart().boreGrowth().grown()
+                            + " " + sim.getHeart().boreGrowth().refusals());
+                }
                 // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
                 ObjectiveBoard board = sim.getOptionalObjectives();
                 if (board != null) board.end(sim.getSimTickIndex());

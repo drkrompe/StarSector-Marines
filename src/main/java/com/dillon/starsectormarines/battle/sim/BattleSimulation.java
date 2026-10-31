@@ -86,6 +86,7 @@ import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
@@ -379,6 +380,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.IntPredicate;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
@@ -1019,11 +1021,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * under have caved in. Setup only
      * ({@code cordon-nouns.md}, The map).
      */
-    public void matureCreep() {
+    public void matureCreep() { matureCreep(null); }
+
+    /**
+     * As {@link #matureCreep()}, keeping {@code held} ground (cell indices) clear: the creep round it retakes it
+     * over the battle ({@link CreepField#mature(IntPredicate)}; {@code cordon-nouns.md}, Cut-off town). Null holds
+     * nothing.
+     */
+    public void matureCreep(IntPredicate held) {
         if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
         boreCreep.sync(this);
         if (creep == null) return;
-        creep.mature();
+        creep.mature(held);
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
@@ -1104,6 +1113,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
     public LastLiftSequence getLastLiftSequence() { return lastLiftSequence; }
     public CivilianEvacuationSystem.Progress getCivilianEvacuationProgress() { return civilianEvacuationSystem.progress(); }
+
+    /**
+     * The player's rally ({@code CivilianEvacuationSystem#rally}): {@code civilian}'s walking group attaches to
+     * {@code escort}, a company soldier, mech or vehicle. Returns how many changed hands.
+     */
+    public int rallyCivilians(long civilian, long escort) { return civilianEvacuationSystem.rally(civilian, escort, this); }
+
+    /** The walking group a rally of {@code civilian} would hand over, it first; empty when it is not walking. */
+    public List<Long> civilianRallyGroup(long civilian) { return civilianEvacuationSystem.rallyGroup(civilian, this); }
+
+    /** The body a walking civilian follows now, {@code 0L} for none. */
+    public long civilianEscort(long civilian) { return civilianEvacuationSystem.escortOf(civilian, this); }
     public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
     public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
         if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null || relayNineStory != null)
@@ -1527,6 +1548,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private final BattleCompletion completion = new BattleCompletion(civilianEvacuation);
+    private boolean forcedVictory;
     private final DirectControlSession directControl;
     /** False for bounded non-mission hosts such as shipboard room previews. */
     private boolean missionCompletionEnabled = true;
@@ -2652,6 +2674,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return completion.isComplete(); }
     public Faction getWinner()             { return completion.winner(); }
+    /** Whether the Debug key's Win ended the battle; every story record then reports an outright win. */
+    public boolean isForcedVictory()       { return forcedVictory; }
     /** Whether the battle ended by Confirmed Retreat; the company's withdrawal has its own cost. */
     public boolean isRetreated()           { return completion.retreated(); }
 
@@ -2667,6 +2691,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             lastLiftSequence.finish(simTickIndex, "retreat");
         }
         return accepted;
+    }
+
+    /**
+     * Ends an active operation as the company's outright victory at once: the Debug key's Win, which
+     * skips a mission the player does not want to fight. Every story record then reports each objective
+     * met and nobody lost, so its arc settles a full success; the trackers below freeze as on retreat.
+     */
+    public boolean forceCompanyVictory() {
+        boolean accepted = completion.finish(Faction.MARINE);
+        if (!accepted) return false;
+        forcedVictory = true;
+        if (openingStory != null) openingStory.observe(this);
+        if (junctionStory != null) junctionStory.observe(this);
+        if (relayNineStory != null) relayNineStory.observe(this);
+        if (thunderRun != null) thunderRun.freeze(this, false);
+        if (lastLiftAttempt != null) {
+            lastLiftAttempt.freeze(this);
+            lastLiftSequence.finish(simTickIndex, "victory");
+        }
+        return true;
     }
 
     /**
@@ -3236,11 +3280,42 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * A falling warship strikes the ground at true landed scale: the crash's crush over {@code crushRadius}, the
      * drawn wreck's own extent rather than an aircraft's capped one, then a skid sweeping {@code skidRadius} (its
-     * drawn beam). {@code key} identifies the wreck to the crash machinery.
+     * drawn beam), each as hard as its hull's {@code weight}. {@code key} identifies the wreck to the crash machinery.
      */
     public void crashHullWreck(long key, float x, float y, Faction faction, float crushRadius, float skidRadius,
-                               float vx, float vy) {
-        airframeCookOff.crashHull(key, x, y, faction, crushRadius, skidRadius, vx, vy);
+                               float vx, float vy, WarshipWreck.Weight weight) {
+        airframeCookOff.crashHull(key, x, y, faction, crushRadius, skidRadius, vx, vy,
+                weight.crush(), weight.skid(), weight.penetration(), weight.structure(), weight.skidStructure());
+        effects.spawnBurningSmokePlume(x, y);
+    }
+
+    /**
+     * A wreck's magazine or reactor going up. In the air ({@code grounded} false) it is a blast and nothing else; on
+     * the ground it hurts and breaches whatever is within {@code radius}, whichever side, as hard as {@code weight}.
+     */
+    public void wreckSecondary(float x, float y, Faction faction, float radius, boolean grounded,
+                               WarshipWreck.Weight weight) {
+        effects.spawnHeavyImpact(x, y, radius);
+        if (!grounded) return;
+        effects.spawnBurningSmokePlume(x, y);
+        detonations.detonateNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y, 0f, radius,
+                weight.secondaryDamage(), weight.penetration(), weight.secondaryStructure(), faction,
+                false, radius * 0.6f, true, false));
+    }
+
+    /** One explosion of a wreck's blast field, {@code radius} cells, thrown at ({@code vx},{@code vy}); presentation only. */
+    public void wreckBlast(float x, float y, float radius, float vx, float vy) {
+        effects.spawnHullBlast(x, y, radius, vx, vy);
+    }
+
+    /** The dust a hull throws up as it strikes, ringing {@code radius} cells out; presentation only. */
+    public void wreckShockwave(float x, float y, float radius) {
+        effects.spawnCrashShockwave(x, y, radius);
+    }
+
+    /** A length of a wreck at rest burning, with its smoke: presentation and the battle's fire, no damage. */
+    public void wreckFire(float x, float y, float length, float width) {
+        effects.spawnWreckFire(x, y, length, width);
         effects.spawnBurningSmokePlume(x, y);
     }
 

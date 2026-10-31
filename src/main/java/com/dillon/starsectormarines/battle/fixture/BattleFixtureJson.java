@@ -662,7 +662,7 @@ public final class BattleFixtureJson {
                         JSONObject officerProfile = new JSONObject();
                         officerProfile.put("rank", p.rank().name()); officerProfile.put("xp", p.xp());
                         officerProfile.put("status", p.status().name()); officerProfile.put("naturalLeader", p.naturalLeader());
-                        officerProfile.put("cover", p.cover()); officerProfile.put("recovery", p.recovery()); officerProfile.put("salvage", p.salvage()); officerProfile.put("medicine", p.medicine());
+                        officerProfile.put("cover", p.cover()); officerProfile.put("medicine", p.medicine());
                         if (p.founding()) officerProfile.put("founding", true);
                         group.put("profile", officerProfile);
                     }
@@ -700,7 +700,7 @@ public final class BattleFixtureJson {
         return p == null ? null : new OfficerCommandProfile(group.getString("officerId"),
                 group.getString("label"), Rank.valueOf(p.getString("rank")), p.getInt("xp"),
                 Status.valueOf(p.getString("status")), p.getBoolean("naturalLeader"),
-                p.getInt("cover"), p.getInt("recovery"), p.getInt("salvage"), p.optInt("medicine", 0),
+                p.getInt("cover"), p.optInt("medicine", 0),
                 p.optBoolean("founding", false));
     }
 

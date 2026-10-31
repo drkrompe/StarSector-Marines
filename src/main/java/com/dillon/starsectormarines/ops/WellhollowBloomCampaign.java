@@ -43,6 +43,18 @@ public final class WellhollowBloomCampaign {
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
     /**
+     * The Khettara's own map: chapter 1, its retries, its replays and the debug player all play this one seed, never a
+     * pick from the colony pool. It is the pool's ARID entry, so the owner's patch (lift, bores, holdouts) and the
+     * regeneration check still come with it.
+     */
+    static final long COLONY_BREACH_SEED = 38L;
+    /**
+     * Ain Tafrant's own map: chapter 2, its retries, its replays and the debug player all play this one seed, the
+     * town pool's ARID seed 7, so the convoys' route from the town to the safe camp is one laid-out road rather than a
+     * different map each attempt (owner, 2026-10-31; built on the recommended pick, the picks page asks which seed).
+     */
+    static final long AIN_TAFRANT_SEED = 7L;
+    /**
      * Each chapter's first-briefing lines by number: Orens speaks the odd ones, Castle the even. Colony Breach
      * has nine (Orens naming the staging post, owner 2026-10-28); The Burn opens on Castle's question and Broad
      * Front ends on the spearhead lane (owner cuts, 2026-10-30). A cut number stays out so every recording keeps its id.
@@ -184,14 +196,16 @@ public final class WellhollowBloomCampaign {
     private static HeartCountry.Density heartDensity() { return HeartCountry.Density.RURAL; }
 
     /**
-     * A vetted ARID map for this attempt: the chapter's story map on every attempt where its pool names one
-     * ({@code story-map-pools.md}, Story map), the controlled experience its patch is authored for; otherwise cycling
-     * the chapter's pool so a replay is the same place on a different day. Colony Breach picks its own pooled map from
-     * the roll at launch.
+     * A vetted ARID map for this attempt: Colony Breach always plays {@link #COLONY_BREACH_SEED}, Ain Tafrant
+     * {@link #AIN_TAFRANT_SEED}; any other chapter its story map on every attempt where its pool names one
+     * ({@code story-map-pools.md}, Story map), the controlled experience its patch is authored for, otherwise cycling the
+     * chapter's pool so a replay is the same place on a different day.
      */
     static long seed(Chapter chapter, int attempt) {
+        if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
+        if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long roll = SEED_BASE + 7919L * chapter.ordinal() + attempt;
-        if (chapter == Chapter.COLONY_BREACH || !StoryMapPools.installed()) return roll;
+        if (!StoryMapPools.installed()) return roll;
         StoryMapPool pool = StoryMapPools.pool(storyMap(chapter));
         StoryMapPool.Entry story = pool.story(SurfacePalette.ARID);
         if (story != null) return story.seed();
@@ -232,10 +246,12 @@ public final class WellhollowBloomCampaign {
         };
     }
     /**
-     * The one map the debug player always plays: the chapter's ARID story map where its pool names one, else the
-     * first vetted ARID map of its pool.
+     * The one map the debug player always plays: a chapter's own seed where it pins one, else its ARID story map where
+     * its pool names one, else the first vetted ARID map of its pool.
      */
     static long fixedSeed(Chapter chapter) {
+        if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
+        if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long fallback = SEED_BASE + 7919L * chapter.ordinal();
         if (!StoryMapPools.installed()) return fallback;
         StoryMapPool pool = StoryMapPools.pool(storyMap(chapter));

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -15,8 +16,16 @@ import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.cordon.CordonBoreEscalation;
+import com.dillon.starsectormarines.battle.cordon.CordonPullOut;
+import com.dillon.starsectormarines.battle.cordon.CordonGateYard;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
+import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
+import com.dillon.starsectormarines.battle.cordon.CordonCamp;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.AirfieldWork;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
@@ -31,7 +40,9 @@ import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonPosture;
+import com.dillon.starsectormarines.battle.cordon.CordonStagingArea;
 import com.dillon.starsectormarines.battle.cordon.CordonStrikes;
+import com.dillon.starsectormarines.battle.cordon.CordonTownGarrison;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -60,6 +71,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -302,6 +314,7 @@ public final class CordonSetup {
                                          boolean mixed, SurfacePalette biome) {
         MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed, biome.inlandGround());
         // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
+        // The allies' airbase lot is laid as a garrison field; it is no compound for the swarm to hold.
         return CordonGapNests.lay(built, plan, density, battleSeed);
     }
 
@@ -469,6 +482,49 @@ public final class CordonSetup {
         return logistics;
     }
 
+    /**
+     * The allies' air base ({@code cordon-nouns.md}, Air base): the wing's stands laid behind the logistics base (behind
+     * the middle of the line where there is none), clear of the corridor, the roads, the company's pads and the base's
+     * apron; {@code null} where the rear has no room, and the wing then flies in over the rear edge.
+     */
+    private static CordonAirBase airBase(BattleSimulation sim, CordonMap cordon, CordonLogistics logistics,
+                                         List<LandingPad> pads) {
+        int frontward = CordonFront.frontward(cordon.plan());
+        int anchorX = logistics != null ? logistics.doorX() : WIDTH / 2;
+        int anchorY = logistics != null ? logistics.doorY() : Math.round(CordonFront.lineY(cordon.plan()));
+        List<int[]> roads = new ArrayList<>();
+        if (cordon.map().roadGraph != null) {
+            for (RoadGraph.Edge edge : cordon.map().roadGraph.edges()) {
+                for (int i = 0; i < edge.length(); i++) roads.add(new int[]{edge.cellsX[i], edge.cellsY[i]});
+            }
+        }
+        List<int[]> keepOff = new ArrayList<>();
+        for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
+        if (logistics != null) {
+            keepOff.addAll(logistics.slots());
+            keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
+        }
+        CordonAirBase air = CordonAirBase.base(sim, cordon.map(), anchorX, anchorY, frontward, cordon.corridor(), roads,
+                keepOff);
+        if (air != null && air.ground() == CordonAirBase.Ground.LOT) air.field().crewed(airCrew(sim, cordon.map()));
+        return air;
+    }
+
+    /** Technicians the allies post on the air base's apron, out of its sheds. UNTUNED. */
+    static final int AIR_CREW = 4;
+
+    /** Posts the allies' ground crew on the air base's apron, out of the lot's sheds; whether anyone was posted. */
+    private static boolean airCrew(BattleSimulation sim, MapResult map) {
+        AirfieldService airfield = sim.getAirfieldService();
+        List<FixtureTask> apron = AirfieldWork.onTheApron(airfield, map.grid);
+        if (apron.isEmpty()) return false;
+        airfield.installApronWork(apron);
+        if (sim.getWorksCrews() == null) sim.setWorksCrews(new WorksCrewService(TraversalAxis.SOUTH_TO_NORTH));
+        List<RoomSite> rooms = RoomSite.findAll(map.topology, map.grid.getWidth(), map.grid.getHeight());
+        return !StructureWatch.man(sim, Faction.ALLY, rooms, apron, AirfieldWork.occupied(airfield),
+                EnumSet.of(RoomPurpose.HANGAR), AIR_CREW, sim.getWorksCrews()).isEmpty();
+    }
+
     private static final long BASE_SALT = 0x4C4F474953544943L;
     /** Technicians posted to the base's shed. */
     static final int BASE_CREW = 3;
@@ -513,6 +569,7 @@ public final class CordonSetup {
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
         int shuttles = manifest == null || manifest.isEmpty() ? 4 : manifest.size();
+        // The company never comes down on the allies' air base.
         List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION);
         BattleSimulation sim = BattleSetup.buildMap(map, vehicles, Collections.emptyList(),
                 Collections.emptyList(), cordon.battleSeed()).sim();
@@ -532,7 +589,9 @@ public final class CordonSetup {
                     Math.max(a[0], b[0]) + 1, Math.max(a[1], b[1]) + 1);
         }
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
-        CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
+        // The Road's town starts clear of the front's creep, which retakes it over the battle (owner, 2026-10-31).
+        CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed(),
+                variant == CordonVariant.ROAD ? map.layout : null);
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");
         }
@@ -562,19 +621,43 @@ public final class CordonSetup {
             CordonHouseFronts.stand(sim, redoubts, CordonFront.frontward(cordon.plan()), GARRISON_RISK,
                     new Random(cordon.battleSeed() ^ HOUSE_SALT));
         }
-        if (CordonOuterPicket.enabled()) {
-            sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts,
-                    CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT)));
-        }
+        // The outer picket out in front (an experiment, behind its switch) and the picket line's teams in the trench
+        // between the redoubts (`cordon-nouns.md`, Picket line).
+        sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts, CordonFront.frontward(cordon.plan()),
+                GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT), CordonOuterPicket.enabled(), map.layout,
+                new Random(cordon.battleSeed() ^ LINE_SALT)));
         // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
         AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
                 redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
         sequence.attachArmour(armour);
         CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts, table);
         if (logistics != null) sequence.attachLogistics(logistics);
+        sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
-            CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
+            CordonTownGarrison.Held town = town(sim, cordon);
+            sequence.attachTown(town.town());
+            sequence.attachStaging(town.staging());
+            sequence.attachYard(CordonGateYard.of(cordon.map().layout));
+            // The safe camp beside the logistics base, with its own road onto the corridor where it has one.
+            List<int[]> campKeepOff = campKeepOff(logistics, sequence.airBase(), pads);
+            CordonCamp.Beside beside = besideBase(sim, cordon, logistics, campKeepOff);
+            CordonConvoys convoys = convoys(sim, cordon, beside != null ? beside.corridor() : cordon.corridor(), town,
+                    timetable, logistics);
             sequence.attachConvoys(convoys);
+            sequence.onAbandonTown(convoys::abandonTown);
+            convoys.shelterAt(beside != null
+                    ? CordonCamp.raise(sim, beside.plan(), GARRISON_RISK, new Random(cordon.battleSeed() ^ CAMP_SALT))
+                    : camp(sim, cordon, convoys, campKeepOff));
+            int[] rally = rally(sim, cordon, convoys.corridor(), convoys.gapIndex());
+            sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
+                    CordonFront.frontward(cordon.plan()));
+            // The pull-out zone at the base's muster yard is where the company falls back to and must hold to finish.
+            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics == null ? null : baseFence(cordon),
+                    logistics == null ? null : new int[]{logistics.musterX(), logistics.musterY()}, rally,
+                    CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan())));
+            // Bores break out along the line as the evacuation goes on, and the swarm surges at the fall-back.
+            sequence.attachEscalation(CordonBoreEscalation.plan(sim, redoubts, convoys, town.town(), timetable,
+                    CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan()), cordon.battleSeed()));
             armour.escortConvoys(convoys::guardPosts);
             convoys.escortedBy(armour::convoyEscort);
         }
@@ -640,6 +723,7 @@ public final class CordonSetup {
     private static final int MOUTH_TEAM_HOLD = 4;
     private static final long MOUTH_SALT = 0x4D4F555448534C54L;
     private static final long PICKET_SALT = 0x5049434B4554534CL;
+    private static final long LINE_SALT = 0x4C494E4554454D53L;
     private static final long HOUSE_SALT = 0x484F555345534C54L;
 
     /**
@@ -712,34 +796,123 @@ public final class CordonSetup {
     private static final int CORRIDOR_MARGIN = 3;
 
     /**
-     * The Road's relief convoys on the corridor, and the cut-off town's people and militia in its
-     * compound at the corridor's far end ({@code cordon-nouns.md}, Convoy, Cut-off town).
+     * The Road's relief convoys on the corridor to the cut-off town's compound at its far end, the town's people
+     * waiting there and its militia among the defenders {@code town} seated ({@code cordon-nouns.md}, Convoy).
      */
-    static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon,
-                                 CordonSequence.Timetable timetable, CordonLogistics base) {
+    static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon, List<int[]> corridor,
+                                 CordonTownGarrison.Held town, CordonSequence.Timetable timetable, CordonLogistics base) {
+        int frontward = CordonFront.frontward(cordon.plan());
+        int gapIndex = gapIndex(cordon, corridor);
+        // The first convoy on the timetable; the rest are called while people are still trapped.
+        int firstDepart = Math.round(timetable.convoySeconds().get(0) / BattleSimulation.TICK_DT);
+        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, firstDepart,
+                CordonConvoys.MAX_CONVOYS, CordonConvoys.TOWNSPEOPLE);
+        convoys.setTownMilitia(town.militia());
+        // In through the compound's wide gate to its truck yard, where they turn and load beside the staging area.
+        CordonGateYard yard = CordonGateYard.of(cordon.map().layout);
+        if (yard != null) convoys.driveInto(yard, sim.getGrid());
+        // The townspeople are trapped in groups, the first truckload in the staging area by the yard and the rest in the
+        // compound's rooms, stood after the defenders so the defenders' cells are taken first.
+        CordonStagingArea staging = town.staging();
+        if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, town.groups(), town.counts());
+        else convoys.standTownspeople(sim, frontward);
+        return convoys;
+    }
+
+    /**
+     * What the safe camp keeps clear of: the company's pads, the logistics base's berths, door and muster yard, and the
+     * air base's stands.
+     */
+    static List<int[]> campKeepOff(CordonLogistics logistics, CordonAirBase air, List<LandingPad> pads) {
+        List<int[]> keepOff = new ArrayList<>();
+        for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
+        if (logistics != null) {
+            keepOff.addAll(logistics.slots());
+            keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
+            keepOff.add(new int[]{logistics.musterX(), logistics.musterY()});
+        }
+        if (air != null) for (FieldAirBase.Stand stand : air.field().stands()) keepOff.add(new int[]{stand.x(), stand.y()});
+        return keepOff;
+    }
+
+    /**
+     * The Road's safe camp beside the logistics base ({@code cordon-nouns.md}, Camp; {@link CordonCamp#beside}): its
+     * plan and the convoys' corridor out of it, or {@code null} where the map has no base or no room and way beside it.
+     */
+    static CordonCamp.Beside besideBase(BattleSimulation sim, CordonMap cordon, CordonLogistics logistics,
+                                        List<int[]> keepOff) {
+        if (logistics == null) return null;
+        Precinct base = null;
+        for (Precinct p : cordon.plan().precincts()) if (p.name().equals(CordonPlan.BASE_PLACE)) base = p;
+        if (base == null) return null;
+        CellTopology topology = sim.getTopology();
+        int[] footprint = CordonCamp.footprint((x, y) -> topology.inBounds(x, y) && topology.getBuildingId(x, y) != 0,
+                base.seedX(), base.seedY());
         List<int[]> corridor = cordon.corridor();
+        return CordonCamp.beside(sim.getGrid(), CordonCamp.road(topology), corridor, gapIndex(cordon, corridor),
+                CordonFront.frontward(cordon.plan()), footprint, CordonCamp.open(sim), keepOff);
+    }
+
+    /**
+     * The Road's safe camp behind the line where there is none beside the base ({@code cordon-nouns.md}, Camp), round
+     * where the convoys set out, clear of {@code keepOff}; {@code null} where the rear has no ground for it, and the
+     * convoys then bring the people back to the entry as before.
+     */
+    static CordonCamp camp(BattleSimulation sim, CordonMap cordon, CordonConvoys convoys, List<int[]> keepOff) {
+        CordonCamp.Plan plan = CordonCamp.plan(convoys.corridor(), convoys.entry(), convoys.gapIndex(),
+                CordonFront.frontward(cordon.plan()), sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                CordonCamp.open(sim), keepOff);
+        return CordonCamp.raise(sim, plan, GARRISON_RISK, new Random(cordon.battleSeed() ^ CAMP_SALT));
+    }
+
+    /** The first cell of {@code corridor} on the line or past it: where it crosses the line (its last where none is). */
+    static int gapIndex(CordonMap cordon, List<int[]> corridor) {
         float line = CordonFront.lineY(cordon.plan());
         int frontward = CordonFront.frontward(cordon.plan());
-        int gapIndex = corridor.size() - 1;
-        for (int i = 0; i < corridor.size(); i++) {
-            if ((corridor.get(i)[1] - line) * frontward >= 0) {
-                gapIndex = i;
-                break;
+        for (int i = 0; i < corridor.size(); i++) if ((corridor.get(i)[1] - line) * frontward >= 0) return i;
+        return corridor.size() - 1;
+    }
+
+    private static final long CAMP_SALT = 0x43414D50L;
+
+    /** The logistics base's fence as the map's layout records it, {@code [minX, minY, maxX, maxY]}, or {@code null}. */
+    static int[] baseFence(CordonMap cordon) {
+        Laid works = cordon.map().layout == null ? null : cordon.map().layout.find(CordonConstructions.BASE_WORKS);
+        if (works == null || works.cells().size() != 2) return null;
+        int[] a = works.cells().get(0), b = works.cells().get(1);
+        return new int[]{Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
+    }
+
+    /**
+     * The cut-off town held ({@code cordon-nouns.md}, Cut-off town): its compound's wall dressed as a redoubt's, and
+     * its militia and guard at the posts behind the slits, the ground inside the loading gate left clear.
+     */
+    static CordonTownGarrison.Held town(BattleSimulation sim, CordonMap cordon) {
+        List<int[]> corridor = cordon.corridor();
+        return CordonTownGarrison.man(sim, CordonCorridor.compound(cordon.plan()), corridor.get(corridor.size() - 1),
+                CordonGateYard.of(cordon.map().layout), CordonFront.frontward(cordon.plan()), GARRISON_RISK,
+                new Random(cordon.battleSeed() ^ TOWN_SALT), cordon.density() == CordonPlan.Density.TOWN);
+    }
+
+    /**
+     * Where the Road's company falls back to once the town is finished ({@code cordon-nouns.md}, Flow, the Road): the
+     * open cell nearest the corridor a reserve's depth behind where it crosses the line, so the way back is the road
+     * the convoys drove.
+     */
+    static int[] rally(BattleSimulation sim, CordonMap cordon, List<int[]> corridor, int gapIndex) {
+        int[] crossing = corridor.get(Math.min(gapIndex, corridor.size() - 1));
+        int x = crossing[0], y = crossing[1] - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH;
+        for (int r = 0; r < WIDTH; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if (sim.getGrid().inBounds(x + dx, y + dy) && sim.getGrid().isWalkable(x + dx, y + dy)) {
+                        return new int[]{x + dx, y + dy};
+                    }
+                }
             }
         }
-        List<Integer> departTicks = new ArrayList<>();
-        for (int seconds : timetable.convoySeconds()) departTicks.add(Math.round(seconds / BattleSimulation.TICK_DT));
-        int[] gate = corridor.get(corridor.size() - 1);
-        Random rng = new Random(cordon.battleSeed() ^ TOWN_SALT);
-        List<Integer> militia = new ArrayList<>();
-        for (int team = 0; team < TOWN_TEAMS; team++) {
-            List<int[]> cells = CordonGround.clusterNear(sim, gate[0], gate[1] + frontward * (TOWN_DEPTH + team * 3), TOWN_TEAM_SIZE);
-            if (!cells.isEmpty()) militia.add(ColonyMilitia.seatTeam(sim, cells, "Town militia " + (team + 1), GARRISON_RISK, rng));
-        }
-        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
-                timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
-        convoys.setTownMilitia(militia);
-        return convoys;
+        return crossing;
     }
 
     /** Cells from the base's muster yard the corridor must pass for the convoys to set out from the base. */
@@ -765,11 +938,6 @@ public final class CordonSetup {
         return bestD <= (long) BASE_ROAD_REACH * BASE_ROAD_REACH ? best : CordonConvoys.ENTRY;
     }
 
-    /** The town militia still holding the compound when the convoys come. */
-    private static final int TOWN_TEAMS = 2;
-    private static final int TOWN_TEAM_SIZE = 6;
-    /** Cells into the compound past the gate the town's militia stand. */
-    private static final int TOWN_DEPTH = 6;
     private static final long TOWN_SALT = 0x544F574E4D494CL;
 
     /**

@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.airsupport;
 
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldService.Berth;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -26,7 +28,7 @@ import java.util.Set;
  * and the field's crew builds a replacement on it, which takes their work ({@code AirfieldService.beginRebuild}); one
  * burned where it stands leaves its hulk and the bay is gone for the battle ({@link #newlyBurned}).
  */
-public final class WingAirbase {
+public final class WingAirbase implements AirBase {
 
     /** Cells past the base's bounds within which an enemy still counts as on it. */
     static final float OVERRUN_MARGIN = 4f;
@@ -64,6 +66,7 @@ public final class WingAirbase {
     }
 
     /** The base's bounds, {x0, y0, x1, y1} inclusive. */
+    @Override
     public int[] bounds() {
         return bounds.clone();
     }
@@ -109,6 +112,53 @@ public final class WingAirbase {
         return exact != null ? exact : any;
     }
 
+    @Override
+    public int ready(AirPoolKind kind) {
+        return airworthy(kind);
+    }
+
+    @Override
+    public float reach(BattleSimulation sim, AirPoolKind kind, FighterProfile wanted, float x, float y) {
+        Berth b = berthFor(kind, wanted, x, y);
+        if (b == null || overrun(sim)) return Float.MAX_VALUE;
+        return (b.centerX - x) * (b.centerX - x) + (b.centerY - y) * (b.centerY - y);
+    }
+
+    @Override
+    public FighterProfile airframeFor(AirPoolKind kind, FighterProfile wanted, float x, float y) {
+        Berth b = berthFor(kind, wanted, x, y);
+        return b == null ? wanted : (FighterProfile) b.airframe;
+    }
+
+    /**
+     * Puts the bay's aircraft in the air for a call at {@code (x, y)}: the hull that was on the stand, damage and all,
+     * taxiing out to the strip and owed back to that stand, as a garrison's shed sortie is ({@code AirStrikeSystem}).
+     * Nothing goes while the enemy stands on the base.
+     */
+    @Override
+    public long launch(BattleSimulation sim, AirPoolKind kind, FighterProfile airframe, float x, float y) {
+        if (overrun(sim)) return 0L;
+        Berth berth = berthFor(kind, airframe, x, y);
+        if (berth == null) return 0L;
+        FighterProfile flown = (FighterProfile) berth.airframe;
+        Runway strip = field.stripOf(berth);
+        float standX = berth.centerX + 0.5f;
+        float standY = berth.centerY + 0.5f;
+        long craft = sim.spawnSortie(flown, side(), x, y, standX, standY, standX, standY, 0f);
+        ShuttleMission mission = sim.world().mission(craft);
+        sim.world().setHp(craft, field.launch(berth));
+        mission.homeBerth = berth;
+        sim.world().kinematics(craft).teleport(standX, standY, berth.facingDegrees);
+        mission.departFromRunway(strip, standX, standY, x, y);
+        return craft;
+    }
+
+    /** A bay's loss is made good by the field's crew rebuilding it, never on a clock. */
+    @Override
+    public float nextReplacementSeconds(AirPoolKind kind) {
+        return -1f;
+    }
+
     /** Whether a live combatant hostile to the base's side stands on it, within {@link #OVERRUN_MARGIN} of its bounds. */
     public boolean overrun(BattleSimulation sim) {
         Faction side = side();
@@ -127,6 +177,7 @@ public final class WingAirbase {
     }
 
     /** The kinds of the aircraft burned on their bays since the last call, one entry each. */
+    @Override
     public List<AirPoolKind> newlyBurned() {
         List<AirPoolKind> out = new ArrayList<>();
         for (Berth berth : berths) {

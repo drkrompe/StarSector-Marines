@@ -23,6 +23,8 @@ public final class YardOwnersProgress {
         for (int i = 0; i < 3; i++) if (!held(i)) return Phase.values()[i];
         return Phase.INSPECTION;
     }
+    /** An outright win, every objective met and nobody lost: what the Debug key's Win reports. */
+    public Report wonReport() { return new Report(true, true, true, true, true, false, 0, 0); }
     public Report report(int techniciansLost, int constablesLost) {
         return new Report(held(0), held(1), held(2), complete, companyPresent, toolingLost, techniciansLost, constablesLost);
     }

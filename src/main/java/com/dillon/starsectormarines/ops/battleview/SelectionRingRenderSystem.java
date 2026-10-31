@@ -88,6 +88,29 @@ public final class SelectionRingRenderSystem implements RenderSystem {
                         vehicle == selection.getSelectedVehicleId(), true, ctx.alphaMult * 0.9f);
             }
         }
+        // A selected civilian rings the whole group a right click would rally, in the neutral yellow, itself bolder,
+        // each tethered to the body it follows.
+        if (selection.hasCivilianSelection()) {
+            long picked = selection.getSelectedCivilianId();
+            for (long civilian : sim.civilianRallyGroup(picked)) {
+                float x = sim.world().renderX(civilian), y = sim.world().renderY(civilian);
+                float radius = Math.max(0.46f, sim.getRoster().radius(civilian) + 0.12f);
+                long escort = sim.civilianEscort(civilian);
+                if (escort != 0L) {
+                    float ex = sim.world().renderX(escort), ey = sim.world().renderY(escort);
+                    if (view.visible(x, y, 2f) || view.visible(ex, ey, 2f)) {
+                        SelectionMarks.tether(out, camera.cellToScreenX(x), camera.cellToScreenY(y),
+                                camera.cellToScreenX(ex), camera.cellToScreenY(ey), SelectionMarks.NEUTRAL_R,
+                                SelectionMarks.NEUTRAL_G, SelectionMarks.NEUTRAL_B, ctx.alphaMult * 0.7f);
+                    }
+                }
+                if (!view.visible(x, y, radius * 2f)) continue;
+                boolean primary = civilian == picked;
+                SelectionMarks.ring(out, camera.cellToScreenX(x), camera.cellToScreenY(y),
+                        radius * camera.cellPxSize(), primary ? 2.2f : 1.5f, SelectionMarks.NEUTRAL_R,
+                        SelectionMarks.NEUTRAL_G, SelectionMarks.NEUTRAL_B, ctx.alphaMult * (primary ? 0.95f : 0.7f));
+            }
+        }
         if (attachments.hasAttachments()) tethers(ctx, attachments, view, out);
     }
 
@@ -97,7 +120,7 @@ public final class SelectionRingRenderSystem implements RenderSystem {
     /** Ring radius of a group-selected vehicle, in cells; its click pick radius. */
     private static final float VEHICLE_RING_CELLS = 1.5f;
 
-    /** A faint line from each attached mech to its squad's centre, while either end is selected or hovered. */
+    /** A dotted green line from each attached mech to its squad's centre, while either end is selected or hovered. */
     private static void tethers(RenderContext ctx, MechAttachmentService attachments, ViewCull view, DrawList out) {
         Selection selection = ctx.selection;
         var sim = ctx.sim;
@@ -118,8 +141,9 @@ public final class SelectionRingRenderSystem implements RenderSystem {
                 float mx = sim.world().renderX(mech);
                 float my = sim.world().renderY(mech);
                 if (!view.visible(mx, my, 2f) && !view.visible(anchor.centroidX, anchor.centroidY, 2f)) continue;
-                out.addLine(RenderLayer.HIGHLIGHTS, camera.cellToScreenX(mx), camera.cellToScreenY(my), ax, ay,
-                        1f, 0.5f, 1f, 0.5f, ctx.alphaMult * 0.35f);
+                SelectionMarks.tether(out, camera.cellToScreenX(mx), camera.cellToScreenY(my), ax, ay,
+                        SelectionMarks.COMPANY_R, SelectionMarks.COMPANY_G, SelectionMarks.COMPANY_B,
+                        ctx.alphaMult * 0.6f);
             }
         }
     }
@@ -129,13 +153,6 @@ public final class SelectionRingRenderSystem implements RenderSystem {
         float r = primary ? 1f : selected ? 0.5f : 0.7f;
         float g = primary ? 0.83f : 1f;
         float b = primary ? 0.39f : selected ? 0.5f : 1f;
-        for (int i = 0; i < 32; i++) {
-            double a = i * Math.PI * 2 / 32;
-            double next = (i + 1) * Math.PI * 2 / 32;
-            out.addLine(RenderLayer.HIGHLIGHTS,
-                    x + radius * (float) Math.cos(a), y + radius * (float) Math.sin(a),
-                    x + radius * (float) Math.cos(next), y + radius * (float) Math.sin(next),
-                    selected ? 1.8f : 1.2f, r, g, b, alpha);
-        }
+        SelectionMarks.ring(out, x, y, radius, selected ? 1.8f : 1.2f, r, g, b, alpha);
     }
 }

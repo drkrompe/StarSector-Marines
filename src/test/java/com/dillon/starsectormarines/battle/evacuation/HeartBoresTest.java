@@ -58,4 +58,16 @@ class HeartBoresTest {
         }
         return grid;
     }
+
+    @Test
+    void theBurnsYoungBoresLineTheRouteFromTheFirstQuarterPastTheStart() {
+        float[][] bands = HeartBores.youngBands(Form.THE_BURN);
+        int first = 0, second = 0;
+        for (float[] band : bands) {
+            assertTrue(band[0] >= 0.25f && band[1] < 0.95f, "past the start, short of the far edge: " + band[0] + ".." + band[1]);
+            if (band[1] <= 0.5f) first++; else if (band[0] >= 0.5f && band[1] <= 0.75f) second++;
+        }
+        assertTrue(first > 0 && second > 0, "the first two quarters past the start each have some");
+        assertEquals(0, HeartBores.youngBands(Form.BROAD_FRONT).length);
+    }
 }

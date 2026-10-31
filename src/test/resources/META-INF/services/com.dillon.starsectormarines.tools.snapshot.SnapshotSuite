@@ -150,6 +150,7 @@ com.dillon.starsectormarines.ops.battleview.ShieldDomeLookSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ArmoryRangeSnapshotSuite
 com.dillon.starsectormarines.ops.ShipCommandUiSnapshotSuite
 com.dillon.starsectormarines.ops.HudCompositionSnapshotSuite
+com.dillon.starsectormarines.ops.BattleCheatPanelSnapshotSuite
 com.dillon.starsectormarines.ops.BoatRecoverySnapshotSuite
 com.dillon.starsectormarines.battle.fort.BatteryFortSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.ShieldFortSceneSnapshotSuite
@@ -253,6 +254,7 @@ com.dillon.starsectormarines.battle.evacuation.SwarmSpitterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BombardSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSoundLookSuite
+com.dillon.starsectormarines.ops.battleview.NonRavSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite
@@ -280,6 +282,8 @@ com.dillon.starsectormarines.battle.world.RoofLookSuite
 com.dillon.starsectormarines.battle.fire.FireBuildingsSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
 com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
+com.dillon.starsectormarines.battle.cordon.CordonRouteSnapshotSuite
+com.dillon.starsectormarines.battle.cordon.CordonLineBoresSnapshotSuite
 com.dillon.starsectormarines.battle.unit.BodyPileSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ElevationSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ElevationOptionsSnapshotSuite
@@ -320,8 +324,12 @@ com.dillon.starsectormarines.battle.cordon.CordonStrikeLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonClearRoadLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGateLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonConvoyRunLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonTownCreepLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonAirBaseLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonCampLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
@@ -337,10 +345,11 @@ com.dillon.starsectormarines.battle.evacuation.HarrierSurvivorRaidLookSuite
 com.dillon.starsectormarines.battle.evacuation.BloomOutskirtsLookSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyBreachPressureLookSuite
 com.dillon.starsectormarines.battle.evacuation.EvacCordonLookSuite
+com.dillon.starsectormarines.battle.evacuation.BreachShelterLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidLookSuite
-com.dillon.starsectormarines.battle.airsupport.BurnObserversLookSuite
+com.dillon.starsectormarines.battle.airsupport.BurnAirLookSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerLookSuite
 com.dillon.starsectormarines.battle.evacuation.SpireSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmEmergenceLookSuite
@@ -384,6 +393,8 @@ com.dillon.starsectormarines.ops.StoreSnapshotSuite
 com.dillon.starsectormarines.ops.SideObjectivePromptSuite
 com.dillon.starsectormarines.ops.MechLaserLineupSnapshotSuite
 com.dillon.starsectormarines.battle.power.WolfStrikeLookSuite
+com.dillon.starsectormarines.battle.warship.WarshipCrashLookSuite
 com.dillon.starsectormarines.battle.tender.MorrowLookSuite
 com.dillon.starsectormarines.battle.tender.LocustFireBaseMockSuite
 com.dillon.starsectormarines.battle.weapon.WeaponReelSuite
+com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite

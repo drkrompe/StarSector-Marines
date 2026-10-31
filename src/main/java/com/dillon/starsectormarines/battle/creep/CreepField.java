@@ -28,6 +28,16 @@ import java.util.function.IntPredicate;
  * grove is overgrown from its edge in. Nothing blocks creep except the walls
  * the ground itself respects.
  *
+ * <p>Ground may be <em>held</em> at setup ({@link #mature(IntPredicate)}): kept
+ * clear of the creep that matured round it, as a town keeps its streets. A
+ * source matured then grows no cell of held ground at once; it hands each held
+ * cell it meets to its <em>regrowth</em>, a second search from the same mouth
+ * that walks on across held ground at {@link #HELD_PACE} of the source's pace,
+ * fed as the source is fed, and stops at the source's reach. So held ground is
+ * retaken over the battle, faster the more the bores that grew the creep are
+ * fed, and never past where they would have grown it. A source declared after
+ * setup grows over held ground at its own pace.
+ *
  * <p>Each cell carries three bytes: <em>coverage</em> (how much growth stands
  * there), <em>vitality</em> (living 255 down to dead 0) and <em>pulse</em> (its
  * path distance in cells from the source that reached it first, for a pulse
@@ -76,6 +86,12 @@ public final class CreepField {
     /** Path cost of growing over a cell of natural growth, against the ground's. */
     static final int OVERGROW_COST = 3;
     /**
+     * Share of its source's pace at which a regrowth walks back over held ground ({@link #mature(IntPredicate)}):
+     * a maw's front about 0.08 cells a second, a bore's 0.06, half again while fed. UNTUNED (2026-10-31, Ain
+     * Tafrant's town: its streets read for the first minutes and are under the creep by the final surge).
+     */
+    static final float HELD_PACE = 0.25f;
+    /**
      * Multiplies every source's reach rate, fed or not: how fast the front walks
      * out, never how far it goes or how fast a claimed cell fills.
      * {@code -Dbattle.creep.spreadScale=1} restores the pre-2026-10-23 rate; the default, 0.5, is the owner's pick.
@@ -85,7 +101,11 @@ public final class CreepField {
     static final float SPREAD_SCALE = 0.5f;
 
     private static final int COST_SCALE = 10;
-    private static final int RING = 64;
+    /**
+     * Buckets in a source's cost ring: more than any reach plus one step costs, so no live entry shares a bucket with
+     * another cost, even in a regrowth seeded with held cells from its mouth to its reach.
+     */
+    private static final int RING = 1024;
     private static final char UNVISITED = Character.MAX_VALUE;
 
     private static final byte NONE = 0, GROWING = 1, STEADY = 2, PENDING = 3, WITHERING = 4;
@@ -111,6 +131,8 @@ public final class CreepField {
     private final float feedMultiplier = nonNegative(FEED_MULTIPLIER_PROPERTY, FEED_MULTIPLIER);
     /** Cells the creep is held off (`fire-nouns.md`, Firebreak); null while nothing refuses. */
     private IntPredicate refusal;
+    /** Ground held clear at setup, which the sources matured then retake at {@link #HELD_PACE}; null when none. */
+    private IntPredicate held;
 
     public CreepField(NavigationGrid grid, CellTopology topology, long seed) {
         this.grid = grid;
@@ -144,6 +166,7 @@ public final class CreepField {
         Source existing = sources.get(id);
         if (existing != null) {
             existing.growth = growth;
+            if (existing.regrowth != null) existing.regrowth.growth = growth;
             return;
         }
         Source source = new Source(id, x, y, growth, rateVariance(id));
@@ -156,11 +179,18 @@ public final class CreepField {
     public void removeSource(long id) {
         Source source = sources.remove(id);
         if (source == null) return;
+        Source regrowth = source.regrowth;
+        int reachCells = Math.max(source.farthestCost, regrowth == null ? 0 : regrowth.farthestCost) / COST_SCALE;
+        witherBack(source, reachCells);
+        if (regrowth != null) witherBack(regrowth, reachCells);
+    }
+
+    /** Queues what a removed source's search alone held to wither from its farthest edge back toward the hole. */
+    private void witherBack(Source source, int reachCells) {
         int n = source.claimedSize;
         int[] queued = new int[n];
         int[] at = new int[n];
         int count = 0;
-        int reachCells = source.farthestCost / COST_SCALE;
         for (int i = 0; i < n; i++) {
             int idx = source.claimed[i];
             int left = (supporters[idx] & 0xFF) - 1;
@@ -217,7 +247,11 @@ public final class CreepField {
     /** Advances the field to a simulation tick. */
     public void tick(int tick) {
         now = tick;
-        for (Source source : sources.values()) grow(source);
+        for (Source source : sources.values()) {
+            boolean fed = source.boostSeconds > 0f;
+            grow(source, fed, 1f);
+            if (source.regrowth != null) grow(source.regrowth, fed, HELD_PACE);
+        }
         for (int q = withers.size() - 1; q >= 0; q--) {
             if (withers.get(q).release()) withers.remove(q);
         }
@@ -234,13 +268,22 @@ public final class CreepField {
      * ({@code cordon-nouns.md}, The map). For setup, before the first tick;
      * what it grows is what the sources would have grown, only sooner.
      */
-    public void mature() {
+    public void mature() { mature(null); }
+
+    /**
+     * As {@link #mature()}, with {@code held} ground (cell indices) kept clear: no source grows a held cell now, and
+     * each source matured here retakes held ground over the battle through its regrowth, at {@link #HELD_PACE}
+     * ({@code cordon-nouns.md}, Cut-off town). Null holds nothing.
+     */
+    public void mature(IntPredicate held) {
+        this.held = held;
         for (Source source : sources.values()) {
             source.reach = Math.max(source.reach, source.growth.maxReachCells());
             int limit = (int) (source.reach * COST_SCALE);
             while (source.queued > 0) {
                 int idx = source.popUpTo(limit);
                 if (idx < 0) break;
+                if (handedOn(source, idx, source.cur, true)) continue;
                 settle(source, idx, source.cur);
             }
         }
@@ -263,11 +306,28 @@ public final class CreepField {
         }
     }
 
-    private void grow(Source source) {
-        float rate = source.growth.cellsPerSecond() * source.variance * spreadScale;
-        if (source.boostSeconds > 0f) {
+    /**
+     * Hands a held cell a source has reached to the source's regrowth instead of growing it now; true when it did.
+     * Only a source matured over held ground has a regrowth (made while maturing, {@code create}); a regrowth's own
+     * cells, and every source declared later, grow as any other.
+     */
+    private boolean handedOn(Source source, int idx, int cost, boolean create) {
+        if (held == null || source.parent != null || !held.test(idx)) return false;
+        if (source.regrowth == null) {
+            if (!create) return false;
+            source.regrowth = new Source(source, cost);
+        }
+        // Never behind the regrowth's front, where its ring would not come back for it.
+        int at = Math.max(cost, source.regrowth.cur);
+        if (at < source.regrowth.dist[idx]) source.regrowth.push(idx, at);
+        return true;
+    }
+
+    private void grow(Source source, boolean fed, float pace) {
+        float rate = source.growth.cellsPerSecond() * source.variance * spreadScale * pace;
+        if (fed) {
             rate *= feedMultiplier;
-            source.boostSeconds = Math.max(0f, source.boostSeconds - TICK_SECONDS);
+            if (source.parent == null) source.boostSeconds = Math.max(0f, source.boostSeconds - TICK_SECONDS);
         }
         float max = source.growth.maxReachCells();
         source.reach = Math.min(Math.max(source.reach, 0f) + rate * TICK_SECONDS, Math.max(max, source.reach));
@@ -277,6 +337,7 @@ public final class CreepField {
             int idx = source.popUpTo(limit);
             if (idx < 0) break;
             settles++;
+            if (handedOn(source, idx, source.cur, false)) continue;
             settle(source, idx, source.cur);
         }
     }
@@ -291,7 +352,7 @@ public final class CreepField {
             int nx = x + dir.dx, ny = y + dir.dy;
             if (!grid.inBounds(nx, ny)) continue;
             int n = ny * width + nx;
-            if (source.isSettled(n)) continue;
+            if (source.done(n)) continue;
             if (grid.isWalkableAt(n)) {
                 // Off a tree onto open ground again: the far side of a crown is reached over it.
                 if (overgrowing) {
@@ -314,7 +375,7 @@ public final class CreepField {
         for (Direction dir : Direction.ALL) {
             if (!grid.canTraverseCellStep(x, y, dir)) continue;
             int n = (y + dir.dy) * width + (x + dir.dx);
-            if (source.isSettled(n)) continue;
+            if (source.done(n)) continue;
             int step = stepCost[n] & 0xFF;
             int next = cost + (dir.isDiagonal() ? (step * 14 + 5) / 10 : step);
             if (next < source.dist[n]) source.push(n, next);
@@ -444,7 +505,7 @@ public final class CreepField {
         List<CreepSnapshot.SourceView> views = new ArrayList<>(sources.size());
         for (Source s : sources.values()) {
             views.add(new CreepSnapshot.SourceView(s.id, s.x, s.y, s.reach, s.growth.maxReachCells(),
-                    s.claimedSize, s.boostSeconds > 0f));
+                    s.claimedSize + (s.regrowth == null ? 0 : s.regrowth.claimedSize), s.boostSeconds > 0f));
         }
         return new CreepSnapshot(now, covered, dying, views);
     }
@@ -529,11 +590,18 @@ public final class CreepField {
 
     // ---- Internals -----------------------------------------------------
 
-    /** One declared source: its growth, its reach, and its own path-cost search out across the map. */
+    /**
+     * One declared source: its growth, its reach, and its own path-cost search out across the map; or a source's
+     * regrowth over held ground ({@link #parent} set), searching on from the held cells the source handed it.
+     */
     private final class Source {
         final long id;
         final int x, y;
         final float variance;
+        /** The source this is the regrowth of, or null for a declared source. */
+        final Source parent;
+        /** This source's regrowth over held ground, or null while it has met none at setup. */
+        Source regrowth;
         CreepGrowth growth;
         float reach;
         float boostSeconds;
@@ -553,6 +621,19 @@ public final class CreepField {
             this.y = y;
             this.growth = growth;
             this.variance = variance;
+            this.parent = null;
+            Arrays.fill(dist, UNVISITED);
+        }
+
+        /** A regrowth of {@code parent} from its mouth, its reach standing where the parent first met held ground. */
+        Source(Source parent, int cost) {
+            this.id = parent.id;
+            this.x = parent.x;
+            this.y = parent.y;
+            this.growth = parent.growth;
+            this.variance = parent.variance;
+            this.parent = parent;
+            this.reach = cost / (float) COST_SCALE;
             Arrays.fill(dist, UNVISITED);
         }
 
@@ -577,13 +658,20 @@ public final class CreepField {
                 }
                 int idx = ring[b][ringHead[b]++];
                 queued--;
-                if (dist[idx] != cur || isSettled(idx)) continue;
+                if (dist[idx] != cur || done(idx)) continue;
                 return idx;
             }
             return -1;
         }
 
         boolean isSettled(int idx) { return (settled[idx >>> 6] & (1L << idx)) != 0; }
+
+        /** Settled by this search or by its partner (its parent, or its regrowth): one claim per source and cell. */
+        boolean done(int idx) {
+            if (isSettled(idx)) return true;
+            Source partner = parent != null ? parent : regrowth;
+            return partner != null && partner.isSettled(idx);
+        }
         void markSettled(int idx) { settled[idx >>> 6] |= 1L << idx; }
 
         void addClaimed(int idx) {

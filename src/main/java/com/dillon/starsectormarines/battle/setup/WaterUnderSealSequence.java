@@ -82,6 +82,7 @@ public final class WaterUnderSealSequence implements Objective {
         case ESCORT -> escortY; case NORTH_ROOM -> NorthWeir.NORTH_Y; case SOUTH_ROOM -> NorthWeir.SOUTH_Y; default -> buildY();
     }; }
     public WaterUnderSealProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport();
         return progress.report(companyAlive(sim), 2 - sim.squadMemberCount(technicians),
                 8 - militia.stream().mapToInt(sim::squadMemberCount).sum());
     }

@@ -1,0 +1,11 @@
+{
+    "id": "starsector_marines_zh_CN",
+    "name": "Starsector Marines - Simplified Chinese",
+    "author": "Dillon",
+    "version": "0.1.0-alpha",
+    "description": "Simplified Chinese copy for Starsector Marines. Partial: the Alpha campaign route is translated; the shared gear catalogs and spec sheets stay in English. Carries Noto Sans SC faces (SIL OFL 1.1) for the game's fonts, baked by the mod's font generator.",
+    "gameVersion": "0.98a-RC8",
+    "dependencies": [{"id": "starsector_marines", "name": "Starsector Marines"}],
+    "totalConversion": false,
+    "utility": true
+}

@@ -850,6 +850,9 @@ public class MarineOpsContext {
             generated = Collections.unmodifiableList(polityDefenceMissions());
         } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
             generated = WellhollowBloomCampaign.offers(planet);
+        } else if (CompletedReplays.isClient(client)) {
+            MarineRosterScript rosterScript = MarineRosterScript.getInstance();
+            generated = CompletedReplays.offers(rosterScript == null ? null : rosterScript.roster(), planet);
         } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null
@@ -889,17 +892,8 @@ public class MarineOpsContext {
                 ? Global.getSector().getPlayerFaction()
                 : null;
 
-        // 0. Debug client — synthetic entry exposing every eligible
-        //    MissionType × OperationTier pairing at medium risk for playtesting.
-        //    Gated by DevConfig.DEBUG_CLIENT.
-        if (com.dillon.starsectormarines.DevConfig.DEBUG_CLIENT && market != null) {
-            out.add(new Client(DEBUG_CLIENT_FACTION_ID,
-                    "DEBUG — All Missions",
-                    null,                       // no crest sprite; ClientRowWidget falls back
-                    RepLevel.NEUTRAL,
-                    false, null));
-            seen.add(DEBUG_CLIENT_FACTION_ID);
-        }
+        // 0. The debug client is not resolved here: the mission board lists it while the
+        //    player's Debug key is on (Cheats), which can change while the board is open.
 
         // 0b. A committed rescue is visible only at its frozen local market.
         // The synthetic client is always open: the player already paid the

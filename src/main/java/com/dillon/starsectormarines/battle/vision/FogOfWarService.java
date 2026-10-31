@@ -3,13 +3,19 @@ package com.dillon.starsectormarines.battle.vision;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import it.unimi.dsi.fastutil.longs.Long2DoubleMap;
+import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -101,6 +107,14 @@ public final class FogOfWarService {
     private byte[] unitVisibility;
     private float[] fadeAlpha;
     private int unitCapacity;
+
+    /**
+     * Hulls keep no unit slot, so their sight is kept by entity id: the hulls the
+     * player sees this vision tick, and the alpha of each that has slipped out of
+     * sight and is still fading. A hull in neither is hidden.
+     */
+    private final LongOpenHashSet hullsInSight = new LongOpenHashSet();
+    private final Long2DoubleOpenHashMap hullFade = new Long2DoubleOpenHashMap();
 
     private final FogCohort[] cohorts = new FogCohort[COHORT_COUNT];
     private int cohortCursor = 0;
@@ -243,6 +257,28 @@ public final class FogOfWarService {
     }
 
     /**
+     * How much of a convoy hull the player's picture shows, as a unit's {@link #getFadeAlpha}:
+     * 1 in sight, falling to 0 as it slips out of sight, 0 hidden.
+     */
+    public float hullAlpha(long id) {
+        if (!initialized || hullsInSight.contains(id)) return 1f;
+        return (float) hullFade.get(id);
+    }
+
+    /**
+     * Whether a convoy hull is in the player's sight, on a unit's terms: a contributor
+     * side's hull always, any other while a revealed cell lies under its body.
+     */
+    private boolean isHullInSight(ConvoyService convoy, long id) {
+        if (!initialized || visionState.isContributor(convoy.faction(id))) return true;
+        GroundBody body = convoy.body(id);
+        if (isCellRevealed((int) Math.floor(body.x), (int) Math.floor(body.y))) return true;
+        if (bodyReveal() == BodyReveal.CENTRE) return false;
+        VehicleType type = convoy.vehicleType(id);
+        return anyCellRevealed(body.x, body.y, Math.max(type.drawnLengthCells, type.visualWidthCells) * 0.5f);
+    }
+
+    /**
      * Register a contributor unit (player-faction) so it begins casting vision
      * on the fog bitmap. Assigned to the smallest cohort. Runs an immediate
      * shadowcast so the unit's surroundings reveal on the spawn frame.
@@ -270,7 +306,7 @@ public final class FogOfWarService {
         entry.lastCellX = world.cellX(u);
         entry.lastCellY = world.cellY(u);
 
-        int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(u));
+        int range = sightCells(roster, u);
         entry.lastRange = range;
         entry.lastAirLosRadius = vision.airLosRadius(u);
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
@@ -309,6 +345,30 @@ public final class FogOfWarService {
         GroundBody body = convoy.body(id);
         recast(entry, (int) Math.floor(body.x), (int) Math.floor(body.y), hullRange(convoy, id), 0f);
         changes.seal();
+    }
+
+    /**
+     * How far a unit contributor reveals, in cells: its own sight, except for a gun emplacement, which carries
+     * none (its archetype has no eyes and its spawn seeds only the weapon), so its crew's sight stands in
+     * ({@link #emplacementSight}).
+     */
+    private static int sightCells(UnitRosterService roster, long u) {
+        float sight = roster.vision().visionRange(u);
+        if (sight <= 0f && roster.identity().type(u).isTurret() && roster.role().role(u) == UnitRole.TURRET
+                && roster.turretState().structureId(u) != null) {
+            sight = emplacementSight(roster.turretState().weapon(u));
+        }
+        return Math.min(MAX_VISION_RANGE, (int) sight);
+    }
+
+    /**
+     * A gun post's sight: a marine's, out to the reach of a gun it lays by eye. A gun that lobs its rounds over
+     * walls reaches further than anybody at the post can see, so its crew's eyes are all it gets.
+     */
+    static float emplacementSight(WeaponDef weapon) {
+        float crew = UnitType.MARINE.visionRange;
+        boolean laidByEye = !weapon.indirectFire && weapon.arcHeight <= 0f;
+        return laidByEye ? Math.max(crew, weapon.range) : crew;
     }
 
     private static int hullRange(ConvoyService convoy, long id) {
@@ -384,6 +444,7 @@ public final class FogOfWarService {
             tickEphemeralSources();
             rebuildClearAirReveal(roster);
             sweepUnitVisibility(roster);
+            sweepHullVisibility(roster.convoy());
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
             // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
             if (!buildings.isEmpty()) {
@@ -411,6 +472,12 @@ public final class FogOfWarService {
                     unitVisibility[i] = VIS_HIDDEN;
                 }
             }
+        }
+        for (var it = hullFade.long2DoubleEntrySet().fastIterator(); it.hasNext(); ) {
+            Long2DoubleMap.Entry e = it.next();
+            double alpha = e.getDoubleValue() - decay;
+            if (alpha <= 0d) it.remove();
+            else e.setValue(alpha);
         }
     }
 
@@ -538,8 +605,7 @@ public final class FogOfWarService {
             if (!forceRecast && cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
-            recast(e, cx, cy, Math.min(MAX_VISION_RANGE, (int) vision.visionRange(e.unitId)),
-                    vision.airLosRadius(e.unitId));
+            recast(e, cx, cy, sightCells(roster, e.unitId), vision.airLosRadius(e.unitId));
         }
     }
 
@@ -753,6 +819,21 @@ public final class FogOfWarService {
                 unitVisibility[i] = VIS_HIDDEN;
             }
         }
+    }
+
+    /** A hull that leaves sight starts its fade at full alpha; one that is gone from the convoy is forgotten. */
+    private void sweepHullVisibility(ConvoyService convoy) {
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long id = convoy.vehicleAt(i);
+            if (convoy.isPresent(id) && isHullInSight(convoy, id)) {
+                hullsInSight.add(id);
+                hullFade.remove(id);
+            } else if (hullsInSight.remove(id)) {
+                hullFade.put(id, 1d);
+            }
+        }
+        hullsInSight.removeIf(id -> !convoy.isVehicle(id));
+        hullFade.keySet().removeIf(id -> !convoy.isVehicle(id));
     }
 
     /** How far from its position a body's revealing part reaches, in cells, under {@code reveal}. */

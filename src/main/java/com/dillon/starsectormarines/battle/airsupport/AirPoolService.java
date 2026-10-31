@@ -3,12 +3,10 @@ package com.dillon.starsectormarines.battle.airsupport;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
-import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.CoverDuty;
 import com.dillon.starsectormarines.battle.air.GunshipOrbit;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
-import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -44,11 +42,12 @@ import java.util.function.LongPredicate;
  * their pass with the same ordnance and flight code every aircraft uses, and leave. Nothing here forks flight or
  * damage. The call surface is serial ({@link #request}, {@link #advance}); the reads only read.
  *
- * <p>A side with airbases on the map ({@link WingAirbase}) flies every call off them instead: the airframe rolls off
- * its bay down its base's strip and lands back on it. For such a side the bays are the ledger: what it has available
- * of a kind is the airworthy bays of that kind less the calls already reserved against them, nothing regenerates by
- * the clock, and an airframe lost comes back only when a bay's crew has rebuilt it ({@code AirfieldService.beginRebuild}).
- * A side with no base keeps the counted pool and flies in over the edge.
+ * <p>A side with fields of its own on the map ({@link #basedAt}, {@link AirBase}; an airbase a mission laid is a
+ * {@link WingAirbase}) flies every call off the nearest one with an airframe of the kind ready, and home to it. For
+ * such a side the fields are the ledger: what it has available of a kind is what stands ready on them less the calls
+ * already reserved against them, nothing regenerates by the pool's clock, and an airframe lost comes back only by the
+ * field's own law (a bay's crew rebuilding it, {@code AirfieldService.beginRebuild}, or a field's replacement timer). A
+ * side with no field keeps the counted pool and flies in over the edge.
  */
 public final class AirPoolService {
 
@@ -156,7 +155,10 @@ public final class AirPoolService {
         return !allowance(side).isNone();
     }
 
-    /** Airframes of {@code kind} {@code side} could task right now. */
+    /**
+     * Airframes of {@code kind} {@code side} could task right now: the ledger's count, or for a side flying from a field
+     * of its own ({@link #basedAt}) what stands ready on it less what calls already have reserved.
+     */
     public int available(Faction side, AirPoolKind kind) {
         Ledger l = ledger(side, kind);
         return l == null ? 0 : avail(side, kind, l);
@@ -230,7 +232,8 @@ public final class AirPoolService {
             Ledger l = ledger(side, stock.getKey());
             AirPoolStock declared = stock.getValue();
             int held = avail(side, stock.getKey(), l) + l.outFlying + l.reserved;
-            float next = !based(side) && declared.regenSeconds() > 0f && held < declared.cap()
+            float next = based(side) ? nextReplacement(side, stock.getKey())
+                    : declared.regenSeconds() > 0f && held < declared.cap()
                     ? Math.max(0f, declared.regenSeconds() - l.regenProgress) : -1f;
             rows.add(new AirPoolView.KindRow(stock.getKey(), avail(side, stock.getKey(), l), l.outFlying + l.reserved,
                     declared.cap(), l.lost, next));
@@ -313,35 +316,62 @@ public final class AirPoolService {
     }
 
     private final List<RovingObservers> roving = new ArrayList<>();
-    private final Map<Faction, List<WingAirbase>> bases = new EnumMap<>(Faction.class);
+    private final Map<Faction, List<AirBase>> bases = new EnumMap<>(Faction.class);
     private final List<StandingPatrol> patrols = new ArrayList<>();
     private final Map<Faction, Integer> basedLaunches = new EnumMap<>(Faction.class);
 
-    /** Bases {@code base}'s side's sorties on it, beside any other base of the side's. */
-    public AirPoolService basedAt(WingAirbase base) {
-        bases.computeIfAbsent(base.side(), s -> new ArrayList<>()).add(base);
+    /**
+     * Gives {@code side}'s pool a field on the map to fly from, beside any other it has: its sorties take off from the
+     * field's stands and come home to them, its stock is what stands ready on its fields, and the field, not the pool,
+     * replaces what is lost ({@link AirBase}). Called at setup.
+     */
+    public AirPoolService basedAt(Faction side, AirBase base) {
+        if (base != null) bases.computeIfAbsent(side, s -> new ArrayList<>()).add(base);
         return this;
     }
 
-    /** The airbases {@code side}'s pool flies from; empty when it flies in over the edge. */
-    public List<WingAirbase> bases(Faction side) {
-        return Collections.unmodifiableList(bases.getOrDefault(side, List.of()));
+    /** Bases {@code base}'s side's sorties on it, beside any other base of the side's. */
+    public AirPoolService basedAt(WingAirbase base) {
+        return basedAt(base.side(), base);
     }
 
-    /** Whether {@code side} flies from bases on the map, whose bays are then its ledger. */
+    /** The first field {@code side} flies from, or {@code null} for a side whose sorties come in over the map edge. */
+    public AirBase base(Faction side) {
+        List<AirBase> of = bases.get(side);
+        return of == null || of.isEmpty() ? null : of.get(0);
+    }
+
+    /** The laid airbases {@code side}'s pool flies from; empty when it flies from none. */
+    public List<WingAirbase> bases(Faction side) {
+        List<WingAirbase> out = new ArrayList<>();
+        for (AirBase base : bases.getOrDefault(side, List.of())) if (base instanceof WingAirbase wing) out.add(wing);
+        return Collections.unmodifiableList(out);
+    }
+
+    /** Whether {@code side} flies from fields on the map, which are then its ledger. */
     public boolean based(Faction side) {
         return !bases.getOrDefault(side, List.of()).isEmpty();
     }
 
     /**
-     * What {@code side} has of {@code kind} to task now: the counted stock, or for a based side its airworthy bays of
-     * the kind less the calls already reserved against them.
+     * What {@code side} has of {@code kind} to task now: the counted stock, or for a based side what stands ready of
+     * the kind on its fields less the calls already reserved against them.
      */
     private int avail(Faction side, AirPoolKind kind, Ledger l) {
         if (!based(side)) return l.available;
-        int bays = 0;
-        for (WingAirbase base : bases.get(side)) bays += base.airworthy(kind);
-        return Math.max(0, bays - l.reserved);
+        int ready = 0;
+        for (AirBase base : bases.get(side)) ready += base.ready(kind);
+        return Math.max(0, ready - l.reserved);
+    }
+
+    /** Seconds until any of a based side's fields next replaces an airframe of {@code kind}, or negative for none. */
+    private float nextReplacement(Faction side, AirPoolKind kind) {
+        float next = -1f;
+        for (AirBase base : bases.get(side)) {
+            float in = base.nextReplacementSeconds(kind);
+            if (in >= 0f && (next < 0f || in < next)) next = in;
+        }
+        return next;
     }
 
     /** Sorties of {@code side}'s that rolled off its airbase rather than crossing the edge, for evidence. */
@@ -479,6 +509,26 @@ public final class AirPoolService {
         return Outcome.CALLING;
     }
 
+    /**
+     * Sends one airframe of {@code kind} at {@code (x, y)} on the side's own tasking, with no operator on the net: a
+     * field's operations room putting its own aircraft over ground the side already knows ({@code cordon-nouns.md}, Air
+     * base). It goes at once, from stock like any call, and the caller answers for what it is entitled to know of the
+     * point. {@link Outcome#NO_AIRFRAME} when nothing of that kind is ready or it could not get into the air.
+     */
+    public Outcome dispatch(BattleSimulation sim, Faction side, AirPoolKind kind, float x, float y) {
+        Ledger ledger = ledger(side, kind);
+        if (ledger == null || avail(side, kind, ledger) <= 0) return Outcome.NO_AIRFRAME;
+        PendingCall call = new PendingCall(side, kind, AirMission.strikeOf(kind), 0L, x, y, sim.getSimTickIndex(), null);
+        events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALLED, x, y));
+        tallyOf(side, call.job).called++;
+        if (!launch(sim, call, ledger)) {
+            events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALL_DROPPED, x, y));
+            return Outcome.NO_AIRFRAME;
+        }
+        if (!based(side)) ledger.available--;
+        return Outcome.CALLING;
+    }
+
     private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
                          float x, float y, int ready, AirOrdnance ordnance) {
         Ledger ledger = ledger(side, kind);
@@ -534,7 +584,7 @@ public final class AirPoolService {
     private void regenerate(BattleSimulation sim) {
         float dt = BattleSimulation.TICK_DT;
         for (Map.Entry<Faction, Map<AirPoolKind, Ledger>> side : ledgers.entrySet()) {
-            // A based side's replacements are its bays' crews' work, not the clock's.
+            // A based side's replacements are its fields' own work (a bay's crew, a field's timer), not the pool's clock.
             if (based(side.getKey())) continue;
             AirPoolAllowance allowance = allowance(side.getKey());
             for (Map.Entry<AirPoolKind, Ledger> e : side.getValue().entrySet()) {
@@ -578,23 +628,20 @@ public final class AirPoolService {
         FighterProfile airframe = call.job == AirMission.COVER ? call.kind.coverProfile() : call.kind.profile();
         long craft;
         if (based(call.side)) {
-            // Off the nearest base with a bay of the kind ready that the enemy is not standing on; none, no sortie.
-            WingAirbase from = null;
-            AirfieldService.Berth berth = null;
+            // Off the nearest field with an airframe of the kind ready that the enemy is not standing on; none, no sortie.
+            AirBase from = null;
             float best = Float.MAX_VALUE;
-            for (WingAirbase base : bases.get(call.side)) {
-                AirfieldService.Berth b = base.berthFor(call.kind, airframe, call.x, call.y);
-                if (b == null || base.overrun(sim)) continue;
-                float d = (b.centerX - call.x) * (b.centerX - call.x) + (b.centerY - call.y) * (b.centerY - call.y);
+            for (AirBase base : bases.get(call.side)) {
+                float d = base.reach(sim, call.kind, airframe, call.x, call.y);
                 if (d < best) {
                     best = d;
                     from = base;
-                    berth = b;
                 }
             }
-            if (berth == null) return false;
-            airframe = (FighterProfile) berth.airframe;
-            craft = rollOff(sim, from, berth, airframe, call.side, call.x, call.y);
+            if (from == null) return false;
+            airframe = from.airframeFor(call.kind, airframe, call.x, call.y);
+            craft = from.launch(sim, call.kind, airframe, call.x, call.y);
+            if (craft == 0L) return false;
             basedLaunches.merge(call.side, 1, Integer::sum);
         } else {
             float[] home = homes.get(call.side);
@@ -625,36 +672,18 @@ public final class AirPoolService {
     }
 
     /**
-     * Puts {@code berth}'s aircraft in the air for a call at {@code (x, y)}: the hull that was on the stand, damage and
-     * all, taxiing out to the strip and owed back to that stand, as a garrison's shed sortie is ({@code AirStrikeSystem}).
-     */
-    private static long rollOff(BattleSimulation sim, WingAirbase base, AirfieldService.Berth berth,
-                                FighterProfile airframe, Faction side, float x, float y) {
-        AirfieldService field = base.field();
-        Runway strip = field.stripOf(berth);
-        float standX = berth.centerX + 0.5f;
-        float standY = berth.centerY + 0.5f;
-        long craft = sim.spawnSortie(airframe, side, x, y, standX, standY, standX, standY, 0f);
-        ShuttleMission mission = sim.world().mission(craft);
-        sim.world().setHp(craft, field.launch(berth));
-        mission.homeBerth = berth;
-        sim.world().kinematics(craft).teleport(standX, standY, berth.facingDegrees);
-        mission.departFromRunway(strip, standX, standY, x, y);
-        return craft;
-    }
-
-    /**
      * Records what burned on the side's bases as lost: an aircraft burned where it stood is lost as surely as one shot
      * down, and its bay, with the hulk on it, is gone for the battle. The bays are the ledger, so nothing else moves.
      */
     private void writeOffBurned(BattleSimulation sim) {
-        for (List<WingAirbase> sideBases : bases.values()) for (WingAirbase base : sideBases) {
+        for (Map.Entry<Faction, List<AirBase>> side : bases.entrySet()) for (AirBase base : side.getValue()) {
             for (AirPoolKind kind : base.newlyBurned()) {
-                Ledger ledger = ledger(base.side(), kind);
+                Ledger ledger = ledger(side.getKey(), kind);
                 if (ledger == null) continue;
                 ledger.lost++;
-                events.add(new Event(sim.getSimTickIndex(), base.side(), kind, EventType.LOST,
-                        base.bounds()[0], base.bounds()[1]));
+                int[] at = base.bounds();
+                events.add(new Event(sim.getSimTickIndex(), side.getKey(), kind, EventType.LOST,
+                        at == null ? 0f : at[0], at == null ? 0f : at[1]));
             }
         }
     }

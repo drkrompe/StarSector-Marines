@@ -9,7 +9,7 @@ built: the company's (`CordonRadio`, `CordonCompanyRules`, behind
 base as a producer), and the company's lift (rule 10).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
+Updated: 2026-10-31 — the producer replaces a redoubt's lost teams by need on the Road. Earlier, 2026-10-24: a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
 
 Step 4 of the owner's plan for the Cordon: how the AI commanders use the
 allied forces and their tools. `cordon-nouns.md` is the model (*The allies
@@ -102,6 +102,7 @@ allies say what they are already doing about it:
 | **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
+| **Town calling** (the Road) | a swarm body is inside the cut-off town's wall, or half its defenders are down (nobody but the company comes for it) | none is inside for the settle window while more than half its defenders stand (a bled town calls for the rest of the battle: nobody reinforces it); or it is overrun |
 | **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells; a convoy: the armour gave it a hull for every post, and one is alongside) | none is, or a convoy's escort went short |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
@@ -219,6 +220,19 @@ rule in `CordonAlliedRules`:
   stood where its way ran out), and evidence names each redoubt's way (road,
   streets or none).
 
+- **Replacements** (`replacement`, the Road only, `replacesLosses`): a
+  redoubt a whole team's worth of men short of its setup garrison, counting
+  squads already coming, asks for replacement squads (`AlliedTool.COLUMN`), one
+  call at a time to the redoubt most short, at most two squads a call and two
+  on their way at once, a call at most every forty-five seconds, out of a pool
+  of two that refills one every three minutes
+  (`CordonAlliedTable.REPLACEMENTS`). Each is a team called onto the rear edge
+  (`AlliedColumns.call`) that musters at the base and is carried to the redoubt
+  that asked (`CordonLogistics.columnOrders(bound)`), or walks there where no
+  carrier goes forward; a fallen or given-up redoubt asks for none. While they
+  are on their way the redoubt has *Help coming*. Model:
+  `cordon-nouns.md`, Replacements.
+
 A request with none in stock, or while the swarm is on the apron, is refused
 and asked again ten seconds later. The reserve (`CordonAlliedTable.Reserve`)
 is sized so an ordinary battle barely notices it: one cover in stock and one
@@ -248,6 +262,11 @@ its place (a duty keeps its nearest squads first).
    are not". Two squads hold the compound's gate from the moment a convoy
    enters the road until it turns for home, so the town's end is held when the
    trucks load there rather than walked to after the swarm reaches them.
+   After the gate, two squads go to the town's staging area while it is *Town
+   calling*, not held to the reserve's floor: holding it is the Road's first
+   objective, and its defenders are never reinforced. Once the town is finished
+   (empty or abandoned) every squad falls back to the rally point behind the
+   line, in a row across it, and nothing else is asked of the company.
 3. **A breached redoubt: a relief detachment.** The two nearest free squads
    go at once and fight in behind the rear wall. They **hold until the
    redoubt is settled**: holding, nothing inside its wall and nothing in their

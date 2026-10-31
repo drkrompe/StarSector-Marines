@@ -5,13 +5,17 @@ import com.dillon.starsectormarines.battle.evacuation.BoreTier;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
+import java.util.function.IntPredicate;
 
 /**
  * The front as the company finds it ({@code cordon-nouns.md}, The map): the
@@ -46,6 +50,7 @@ public final class CordonFront {
     /** Candidate cells are looked at on this pitch. */
     private static final int PITCH = 3;
     private static final long SEED_SALT = 0x46524F4E54424F52L;
+    private static final Logger LOG = Global.getLogger(CordonFront.class);
     private static final long ERUPTION_SALT = 0x45525550544E4557L;
     /** Cells either side of a redoubt an eruption in front of it may open. */
     static final int ERUPTION_SPREAD = 40;
@@ -67,6 +72,16 @@ public final class CordonFront {
      */
     public static List<SwarmBore> grow(BattleSimulation sim, PrecinctPlan plan, List<int[]> corridor,
                                        List<BoreTier> tiers, long seed) {
+        return grow(sim, plan, corridor, tiers, seed, null);
+    }
+
+    /**
+     * As above, the cut-off town's ground kept clear when {@code town} carries its warren ({@link CordonTownHold}):
+     * the Road's town starts with its streets showing and the front's creep retakes it over the battle. A
+     * {@code null} layout, or one with no warren, holds nothing.
+     */
+    public static List<SwarmBore> grow(BattleSimulation sim, PrecinctPlan plan, List<int[]> corridor,
+                                       List<BoreTier> tiers, long seed, LaidLayout town) {
         int[][] sites = sites(sim.getGrid(), sim.getTopology(), plan, corridor, tiers, seed);
         List<SwarmBore> opened = new ArrayList<>();
         for (int i = 0; i < sites.length; i++) {
@@ -80,8 +95,27 @@ public final class CordonFront {
             }
             opened.add(bore);
         }
-        sim.matureCreep();
+        sim.matureCreep(townHold(sim, plan, town, seed));
         return opened;
+    }
+
+    /** The town's held ground on this battle's map, or {@code null} when there is no warren to hold. */
+    private static IntPredicate townHold(BattleSimulation sim, PrecinctPlan plan, LaidLayout town, long seed) {
+        Precinct compound = town == null ? null : CordonCorridor.compound(plan);
+        if (compound == null) return null;
+        int[] box = CordonTownHold.extent(town, compound.seedX(), compound.seedY());
+        if (box == null) return null;
+        List<int[]> mouths = new ArrayList<>();
+        for (SwarmBore b : sim.swarmBores().bores()) if (!b.collapsed()) mouths.add(new int[]{b.x(), b.y()});
+        int width = sim.getGrid().getWidth();
+        IntPredicate held = CordonTownHold.held(width, box, mouths, seed);
+        int count = 0;
+        for (int y = Math.max(0, box[1]); y <= Math.min(sim.getGrid().getHeight() - 1, box[3]); y++) {
+            for (int x = Math.max(0, box[0]); x <= Math.min(width - 1, box[2]); x++) if (held.test(y * width + x)) count++;
+        }
+        LOG.info("Cordon town held clear of creep: box " + box[0] + "," + box[1] + " to " + box[2] + "," + box[3]
+                + ", " + count + " cells held, " + mouths.size() + " bores standing");
+        return held;
     }
 
     /** The y of the line: the redoubts' mean seed row. */

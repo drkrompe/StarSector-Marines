@@ -60,6 +60,32 @@ and as Restart inside Retreat's confirmation. One retry is free per visit to
 mission select; each further one spends a Starsector story point. Only story
 operations retry; contracts and recurring work settle every attempt.
 
+A **replay** re-flies a story chapter the company has already won. The mission
+board's "Replay Story Missions" lamp key (off by default, saved with the game) shows a
+**Company records** contact listing one replay per chapter won on that planet
+(the opening at the broker's office port such as Jangala, the supply route at its
+site, Working Ship on Asharu, Agreus on Agreus, each Corvus chapter on its own
+world); a chapter launches only from its own planet. The Khettara Bloom keeps
+its own replays and is not listed. A replay builds the chapter's
+battle off the arc's state, is flown by the company as it stands now, and on
+victory pays the chapter's credits (Working Passage, which paid none, pays Cold
+Start's). Personnel, losses and loot settle as for any operation; the arc's
+progress, story completion, awards, campaign marks and debriefs are untouched,
+and a replay does not retry.
+
+**Cheats** are the alpha's Debug key on the mission board, beside Replay Story
+Missions: off by default for players (on in a dev build) and saved with the
+game. While it is on, the board lists **Debug missions**, every mission with
+sandbox forces, loadouts and settings that never touch the company or the
+campaign; Company HQ shows its debug button; and a battle's debug panel offers
+**Win**, a general "I win": it ends any battle as the company's outright
+victory. Every story record reports each objective met and nobody lost, so the
+arc settles it as a full success (fee, chapter advance, rewards); the company's
+own losses and experience are what the battle had reached.
+The store's **[Cheat] Free Licenses** key, shown only while Debug is on and
+saved with the game, makes every store purchase (loadout cards, mech patterns,
+boat parts) free; the shelf and what it teaches are unchanged.
+
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's
 campaign settlement is claimed once before writeback, so repeated exit input

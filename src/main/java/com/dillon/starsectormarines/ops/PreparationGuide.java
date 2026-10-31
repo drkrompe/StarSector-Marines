@@ -21,10 +21,15 @@ final class PreparationGuide {
     /**
      * {@code later} is an optional set-aside for guidance that must not hold the player behind work they cannot yet
      * afford; {@code laterLabel} names it, "Not now" when null. {@code height} is the most the callout may take: it
-     * shrinks to its words.
+     * shrinks to its words. {@code dock} names an element whose empty top-left corner the callout sits in, when the
+     * room has a quiet spot better than any clear of the lesson's controls; null searches for one.
      */
     record Lesson(int milestone, String title, String copy, List<String> targets,
-                  String actionLabel, Runnable action, int height, Runnable later, String laterLabel) {
+                  String actionLabel, Runnable action, int height, Runnable later, String laterLabel, String dock) {
+        Lesson(int milestone, String title, String copy, List<String> targets,
+               String actionLabel, Runnable action, int height, Runnable later, String laterLabel) {
+            this(milestone, title, copy, targets, actionLabel, action, height, later, laterLabel, null);
+        }
         Lesson(int milestone, String title, String copy, List<String> targets,
                String actionLabel, Runnable action, int height, Runnable later) {
             this(milestone, title, copy, targets, actionLabel, action, height, later, null);
@@ -110,9 +115,8 @@ final class PreparationGuide {
         UiElement later = markup.requireElement("preparation-later");
         later.text(current.laterLabel() == null ? LessonCopy.text("lessonLater") : current.laterLabel());
         later.classed("preparation-hidden", current.later() == null);
-        // A lesson with nothing to press gives the row's height to its words.
-        markup.requireElement("preparation-actions").classed("preparation-hidden",
-                current.action() == null && current.later() == null);
+        // A lesson with nothing to press gives the row's height to its words; set-aside sits in the heading corner.
+        markup.requireElement("preparation-actions").classed("preparation-hidden", current.action() == null);
         List<UiElement> targets = targets();
         UiElement target = targets.isEmpty() ? null : targets.get(0);
         if (target != null && (!target.id().equals(previousTarget) || !document.viewport().equals(previousViewport))) {
@@ -131,9 +135,13 @@ final class PreparationGuide {
         Rect anchor = target == null ? Rect.EMPTY : UiSpotlight.visibleBounds(document, target);
         float width = Math.min(528, view.width() - 16);
         float height = fittedHeight(callout, width, Math.min(current.height(), view.height() - 16));
-        Rect place = BarracksGuideCallout.place(anchor, holes, view, width, height);
+        UiElement dock = current.dock() == null ? null : find(document.root(), current.dock());
+        Rect corner = dock == null ? Rect.EMPTY : UiSpotlight.visibleBounds(document, dock);
+        boolean docked = corner.width() >= width + 24 && corner.height() >= height + 16;
+        Rect place = docked ? new Rect(corner.x() + 12, corner.y() + 8, width, height)
+                : BarracksGuideCallout.place(anchor, holes, view, width, height);
         UiElement navigation = find(document.root(), "marine-ops-page-nav");
-        if (navigation != null) {
+        if (navigation != null && !docked) {
             float top = UiSpotlight.visibleBounds(document, navigation).bottom() + 8;
             if (top + place.height() <= view.height() - 8 && place.y() < top)
                 place = new Rect(place.x(), top, place.width(), place.height());

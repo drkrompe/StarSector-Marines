@@ -225,7 +225,7 @@ public final class MissionLaunch {
                                 m.source.isDebug() ? List.of() : committedPowerSources);
         if (debugMechs != null)
             det = debugMechs.applyTo(det, committedShuttles, PowerCatalog.providesHeavyLift(m));
-        if (m.source.isDebug()) det = DebugMechRoster.withEasterEggs(det);
+        if (m.source.isDebug() || Cheats.enabled()) det = DebugMechRoster.withEasterEggs(det);
         det = CommandDeck.apply(det, selectedPowerIds);
         if (DetachmentResolver.usesSelectedPersonnel(m)) {
             int selectedPersonnel = m.source.isDebug()
@@ -236,6 +236,19 @@ public final class MissionLaunch {
                     DetachmentResolver.buildShuttleManifestForPersonnel(
                             m, committedShuttles, selectedPersonnel),
                     det.marineWings, det.powers);
+        }
+
+        // A replay flies the real company into the chapter's battle as the debug catalogue builds it,
+        // off the arc's own state, so a won chapter needs no live progress to stand up again.
+        DebugMissionCatalog.Scenario replay = CompletedReplays.scenario(m);
+        if (replay != null) {
+            if (ctx != null && !CompletedReplays.at(replay, ctx.planet))
+                throw new IllegalStateException("Travel to the planet this chapter was fought on before replaying it.");
+            Detachment frozen = det;
+            return new ScenarioPlan(Arrays.asList(m.id, seed, frozen.shuttleManifest), frozen,
+                    DetachmentResolver.employerPhysicalShipCount(m), null,
+                    () -> DebugMissionCatalog.build(replay, seed, frozen.shuttleManifest), "pirates",
+                    HostileShipReport.UNDEFENDED);
         }
 
         // Heavy-armaments availability on the target world drives whether the
@@ -345,8 +358,9 @@ public final class MissionLaunch {
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
-            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md).
-            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest)
+            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md);
+            // the Khettara's chapter already carries its own pooled seed.
+            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest) && !WellhollowBloomCampaign.isBattle(m)
                     ? BattleSetup.colonyBreachSeed(profile == null ? null : profile.surface(), seed) : seed;
             CivilianRescueBattleFixture rescueFixture =
                     CivilianRescueBattleFixture.fromFactoryInputs(rescueSeed,
@@ -592,6 +606,7 @@ public final class MissionLaunch {
                 if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
+            if (debugScenario == null) debugScenario = CompletedReplays.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
                     && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario.wellhollow() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
@@ -658,7 +673,7 @@ public final class MissionLaunch {
     }
 
     private static boolean debugShipIsSource(Mission m, DebugWarship.Spec spec) {
-        return DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+        return (DevConfig.DEBUG_WARSHIP_PICKER || Cheats.enabled()) && m.source.isDebug() && spec != null && spec.active()
                 && spec.side() == Faction.MARINE;
     }
 
@@ -671,7 +686,7 @@ public final class MissionLaunch {
      */
     private static void installHostileShip(Mission m, DebugWarship.Spec spec, ShipSupportSource worldShip,
                                            BattleSimulation sim) {
-        boolean debugPick = DevConfig.DEBUG_WARSHIP_PICKER && m.source.isDebug() && spec != null && spec.active()
+        boolean debugPick = (DevConfig.DEBUG_WARSHIP_PICKER || Cheats.enabled()) && m.source.isDebug() && spec != null && spec.active()
                 && spec.side() == Faction.DEFENDER;
         ShipSupportSource source = debugPick ? spec.hull().source() : worldShip;
         if (source == null) return;

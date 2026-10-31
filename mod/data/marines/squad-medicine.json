@@ -32,6 +32,22 @@
       "treatBelowHealth": 0.7,
       "treatBelowArmor": 0.5,
       "heavyFirePressure": 2
+    },
+    {
+      "rank": 3,
+      "energyMax": 50,
+      "energyRegenPerSecond": 0.4,
+      "energyPerPoint": 1,
+      "minStartEnergy": 12.5,
+      "woundFloorFraction": 0.05,
+      "healthPerSecond": 3.5,
+      "armorPerSecond": 2,
+      "reachCells": 1.5,
+      "approachSeconds": 8,
+      "retrySeconds": 3,
+      "treatBelowHealth": 0.7,
+      "treatBelowArmor": 0.5,
+      "heavyFirePressure": 2
     }
   ],
   "kits": [

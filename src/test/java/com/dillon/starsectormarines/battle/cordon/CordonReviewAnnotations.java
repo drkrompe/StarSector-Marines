@@ -44,6 +44,92 @@ public final class CordonReviewAnnotations {
 
     private CordonReviewAnnotations() { }
 
+    /**
+     * The town's gate, truck yard and staging area alone, for a close frame of them: the yard and the staging area
+     * boxed, where a truck stops, and the gate's open width as the wall left it.
+     */
+    public static ReviewAnnotations townYard(BattleSimulation sim) {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null) return marks.build();
+        CordonStagingArea staging = cordon.staging();
+        if (staging != null && !staging.isEmpty()) {
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+            for (int[] c : staging.cells()) {
+                l = Math.min(l, c[0]);
+                t = Math.min(t, c[1]);
+                r = Math.max(r, c[0]);
+                b = Math.max(b, c[1]);
+            }
+            marks.box(l, t, r, b, "STAGING AREA · " + staging.cells().size() + " cells", ReviewStyle.KEEP);
+        }
+        addYard(marks, sim, cordon.yard());
+        addRooms(marks, sim, cordon.town());
+        return marks.build();
+    }
+
+    /** The rooms the trapped wait in, each with its count, and each of the town's teams where it stands. */
+    private static void addRooms(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonTown town) {
+        if (town == null) return;
+        int[] waiting = town.waiting();
+        for (int i = 0; i < town.rooms().size(); i++) {
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+            for (int[] c : town.rooms().get(i)) {
+                l = Math.min(l, c[0]);
+                t = Math.min(t, c[1]);
+                r = Math.max(r, c[0]);
+                b = Math.max(b, c[1]);
+            }
+            int people = i + 1 < waiting.length ? waiting[i + 1] : 0;
+            marks.box(l, t, r, b, "ROOM " + (i + 1) + " · " + people + " townspeople", ReviewStyle.KEEP);
+        }
+        for (int k = 0; k < town.teams().size(); k++) {
+            int squad = town.teams().get(k);
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE, n = 0;
+            for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                long id = sim.squadMemberAt(squad, i);
+                if (id == 0L || !sim.world().isAlive(id) || !sim.world().hasPosition(id)) continue;
+                int x = sim.world().cellX(id), y = sim.world().cellY(id);
+                l = Math.min(l, x);
+                t = Math.min(t, y);
+                r = Math.max(r, x);
+                b = Math.max(b, y);
+                n++;
+            }
+            if (n == 0) continue;
+            boolean militia = k < 2;
+            marks.box(l, t, r, b, (militia ? "MILITIA " + (k + 1) + " · wall" : "GUARD " + (k - 1) + " · inside"),
+                    ReviewStyle.ALLY);
+        }
+    }
+
+    /** The truck yard boxed, where a truck stops to load, and the gate's open run along the wall's line. */
+    private static void addYard(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonGateYard yard) {
+        if (yard == null) return;
+        int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+        for (int[] c : yard.cells()) {
+            l = Math.min(l, c[0]);
+            t = Math.min(t, c[1]);
+            r = Math.max(r, c[0]);
+            b = Math.max(b, c[1]);
+        }
+        marks.box(l, t, r, b, "TRUCK YARD", ReviewStyle.OBJECTIVE);
+        marks.box(yard.stopX() - 1, yard.stopY() - 1, yard.stopX() + 1, yard.stopY() + 1, "truck stops to load",
+                ReviewStyle.NOTE);
+        // The gate as the wall left it: its open run along the wall's line.
+        int lx = Math.abs(yard.inwardY()), ly = Math.abs(yard.inwardX());
+        int lo = 0, hi = 0;
+        while (sim.getGrid().inBounds(yard.gateX() - lx * (lo + 1), yard.gateY() - ly * (lo + 1))
+                && sim.getGrid().isWalkable(yard.gateX() - lx * (lo + 1), yard.gateY() - ly * (lo + 1)) && lo < 20) lo++;
+        while (sim.getGrid().inBounds(yard.gateX() + lx * (hi + 1), yard.gateY() + ly * (hi + 1))
+                && sim.getGrid().isWalkable(yard.gateX() + lx * (hi + 1), yard.gateY() + ly * (hi + 1)) && hi < 20) hi++;
+        marks.box(Math.min(yard.gateX() - lx * lo, yard.gateX() + lx * hi),
+                Math.min(yard.gateY() - ly * lo, yard.gateY() + ly * hi),
+                Math.max(yard.gateX() - lx * lo, yard.gateX() + lx * hi),
+                Math.max(yard.gateY() - ly * lo, yard.gateY() + ly * hi),
+                "gate · " + (lo + hi + 1) + " wide", ReviewStyle.ROUTE);
+    }
+
     public static ReviewAnnotations forBattle(BattleSimulation sim) {
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         add(marks, sim);
@@ -75,6 +161,26 @@ public final class CordonReviewAnnotations {
                     "REDOUBT " + r.number() + " · " + stateWord(r.state()) + gap + lineWords(sim, cordon, r),
                     redoubtStyle(r.state()));
         }
+        CordonTown town = cordon.town();
+        if (town != null) {
+            int standing = 0;
+            for (int squad : town.teams()) standing += sim.squadMemberCount(squad);
+            marks.box(town.left(), town.top(), town.right(), town.bottom(), "AIN TAFRANT · " + standing + "/"
+                    + town.garrison() + " defenders" + (town.calling(standing) ? " · calling" : ""),
+                    town.holds() ? ReviewStyle.KEEP : ReviewStyle.NOTE);
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+            for (int[] c : town.staging().cells()) {
+                l = Math.min(l, c[0]);
+                t = Math.min(t, c[1]);
+                r = Math.max(r, c[0]);
+                b = Math.max(b, c[1]);
+            }
+            if (!town.staging().isEmpty()) {
+                marks.box(l, t, r, b, "STAGING AREA · " + town.state().name().toLowerCase(Locale.ROOT),
+                        ReviewStyle.ROUTE);
+            }
+        }
+        addYard(marks, sim, cordon.yard());
         CordonLogistics base = cordon.logistics();
         if (base != null) {
             marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door", ReviewStyle.ROUTE);
@@ -193,7 +299,8 @@ public final class CordonReviewAnnotations {
     /** Every laid piece, boxed and named, with the objective it stages when one was rolled on it. */
     private static void addLayout(ReviewAnnotations.Builder marks, CordonBeats beats, Map<String, ObjectiveResult> objectives) {
         for (Laid laid : beats.laid().pieces()) {
-            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            // The town's truck yard is marked with the town, not as a layout piece.
+            if (!laid.isLaid() || laid.cells().isEmpty() || laid.kind() == Laid.Kind.YARD) continue;
             String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase(Locale.ROOT) + ")";
             ObjectiveResult objective = objectives.get(laid.name());
             String text = laid.name() + state + (objective == null ? "" : " · " + objective.title() + ", " + statusWord(objective.status()));

@@ -49,7 +49,8 @@ public final class CordonCompanyRules {
      * infantry go before any machine, which keeps to the roads and cannot lead people out.
      */
     enum Kind {
-        ROAD_BLOCK(false, false), CONVOY(false, true), GATE(false, true), BREACHED(true, false), UNCOVERED(true, false),
+        ROAD_BLOCK(false, false), CONVOY(false, true), GATE(false, true), TOWN(false, true), BREACHED(true, false),
+        UNCOVERED(true, false),
         BLED(true, false), BEAT(true, true), BASE(true, false);
 
         final boolean floorBound;
@@ -145,6 +146,19 @@ public final class CordonCompanyRules {
      */
     static List<Duty> duties(List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> convoys,
                              List<int[]> gates, List<int[]> beats, int[] base) {
+        return duties(radio, roadBlocks, convoys, gates, null, beats, base);
+    }
+
+    /**
+     * As {@link #duties(List, List, List, List, List, int[])}, with the Road's cut-off town after the gate (rule 2):
+     * {@link #DETACHMENT} squads to the compound while it calls (the swarm inside its wall or not long gone, or half
+     * its defenders down, since nobody else is coming for it). The town is the Road's score, so it is not held to the
+     * reserve's floor.
+     *
+     * @param town the town's radio, or {@code null} where there is none
+     */
+    static List<Duty> duties(List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> convoys,
+                             List<int[]> gates, CordonRadio town, List<int[]> beats, int[] base) {
         List<Duty> out = new ArrayList<>();
         for (int i = 0; i < roadBlocks.size(); i++) {
             int[] b = roadBlocks.get(i);
@@ -158,6 +172,7 @@ public final class CordonCompanyRules {
             int[] g = gates.get(i);
             out.add(new Duty("gate-" + i, Kind.GATE, g[0], g[1], DETACHMENT));
         }
+        if (town != null && town.wantsRelief()) out.add(new Duty("town", Kind.TOWN, town.x(), town.y(), DETACHMENT));
         for (CordonRadio r : radio) {
             if (r.manned() && r.unsettled()) out.add(new Duty("relieve-" + r.number(), Kind.BREACHED, r.x(), r.y(), DETACHMENT));
         }
@@ -254,6 +269,13 @@ public final class CordonCompanyRules {
             return out;
         }
         row(out, reserveX, reserveY, count);
+        return out;
+    }
+
+    /** Where {@code count} squads stand at the Road's rally place once the town is finished: a row across it. */
+    static List<int[]> rallyPosts(int x, int y, int count) {
+        List<int[]> out = new ArrayList<>();
+        row(out, x, y, count);
         return out;
     }
 

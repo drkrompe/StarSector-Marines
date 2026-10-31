@@ -56,6 +56,9 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     // A purse too thin for the selected offer: the buy key turns red.
                     new SnapshotArtifact("store-short-of-credits.png",
                             frame(context, junctionShelf(), null, false, null, 1_200)),
+                    // The same thin purse with the Debug key's Free Licenses cheat on: every price reads free.
+                    new SnapshotArtifact("store-free-licenses.png",
+                            frame(context, junctionShelf(), null, false, null, 1_200, true)),
                     new SnapshotArtifact("store-mechs-category.png",
                             frame(context, false, "SECTION:MECHS", false, null)),
                     new SnapshotArtifact("store-vehicle-chassis.png",
@@ -140,6 +143,12 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
                                        boolean afterPurchase, String extraCard, long startCredits) throws Exception {
+        return frame(context, shelf, filter, afterPurchase, extraCard, startCredits, false);
+    }
+
+    private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
+                                       boolean afterPurchase, String extraCard, long startCredits,
+                                       boolean free) throws Exception {
         Reactor reactor = new Reactor();
         MarineArmory armory = new MarineArmory();
         long[] credits = {startCredits};
@@ -152,12 +161,13 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             }
         };
         StoreViewModel viewModel = new StoreViewModel(reactor, () -> shelf, () -> new EquipmentStore.Holdings(armory, new MechBay(), null),
-                purse, () -> "Jangala");
+                purse, () -> "Jangala", () -> free);
         if (afterPurchase) viewModel.buySelected();
         if (filter != null) viewModel.selectFilter(filter);
         if (extraCard != null) viewModel.select("LOADOUT:" + extraCard);
 
         Map<String, Object> props = StoreScreen.props(viewModel);
+        if (free) StoreScreen.putFreeLicenses(props, true, true, () -> { });
         var saved = MarineOpsPageNav.storeOpen;
         MarineOpsPageNav.storeOpen = () -> true;
         try {

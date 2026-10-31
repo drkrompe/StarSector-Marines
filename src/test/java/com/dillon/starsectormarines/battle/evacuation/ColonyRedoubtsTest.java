@@ -18,6 +18,14 @@ class ColonyRedoubtsTest {
     }
 
     @Test
+    void theHeavyHoldoutIsTheOneNearestABore() {
+        List<int[]> centres = List.of(new int[]{0, 0}, new int[]{200, 0}, new int[]{400, 0});
+        assertEquals(1, ColonyRedoubts.heavyHoldout(centres, List.of(site(500, 300), site(210, 90))));
+        assertEquals(0, ColonyRedoubts.heavyHoldout(centres, List.of()), "no bores: the first holdout");
+        assertEquals(-1, ColonyRedoubts.heavyHoldout(List.of(), List.of(site(1, 1))), "no holdouts: none");
+    }
+
+    @Test
     void aHoldoutStandsTheClearanceFromEveryBoreSite() {
         int r = ColonyRedoubts.BREACH_CLEARANCE;
         List<ColonyEruptionPlan.Site> sites = List.of(site(100, 100), site(300, 100));

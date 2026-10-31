@@ -1,28 +1,38 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.Global;
 import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * The background voice of the people in a fight with the Rav (`colony-breach-nouns.md`, Sound): shouts, cries and
+ * The background voice of the people in a fight (`colony-breach-nouns.md`, Sound): shouts, cries and
  * grunts heard in the mix under the fire, never hero lines, so nothing is shown and nothing waits on them. Three
  * {@link Cast casts} speak, each in its own voices and words: the marines (the player's and allied company infantry),
  * the colony militia, and the colonists, who make no soldier's calls, only fear, pain and grief. Read off what the
@@ -36,6 +46,19 @@ import java.util.WeakHashMap;
  *   <li>Relief when a Rav dies near the line (<b>kill</b>, or <b>big kill</b> for a Brute or the Matriarch), and a
  *       curse from a squadmate when a marine dies with Rav near (<b>man down</b>).</li>
  *   <li>A <b>strain</b> grunt and a <b>scuffle</b> of boots and gear when a marine is hurt with a Rav at arm's length.</li>
+ * </ul>
+ * Against people and machines (the enemy's own fighters, seen by the player), the same voices call:
+ * <ul>
+ *   <li>A <b>contact</b> of its own ({@code contact_hostile}) when enemy infantry close on a squad that was clear of
+ *       them, and <b>drones</b> the same way.</li>
+ *   <li><b>Taking fire</b> when enemy rounds land on a squad after a quiet spell, and a <b>turret</b> warning when an
+ *       emplacement fired them.</li>
+ *   <li><b>Frag out</b> from a marine throwing a grenade, and <b>grenade</b> from the one nearest where an enemy's
+ *       will land.</li>
+ *   <li><b>Armor</b> from the one nearest a mech, machine frame or vehicle the first time it is seen near them.</li>
+ *   <li>A pained <b>hit</b> (the thrown takes) when one is hurt with no Rav at hand; reload and man down with the
+ *       enemy near as with the Rav; and a <b>kill</b> from a marine (not the militia, whose kill lines are for bugs)
+ *       when an enemy fighter dies near the line.</li>
  * </ul>
  * Each speaker keeps one of its cast's voices for the battle, dealt round its squad so squadmates differ, and a
  * little pitched from anyone sharing it; the lines of a kind take turns, so the same line is not heard twice running.
@@ -69,6 +92,26 @@ public final class MarineBarks {
     static final float HURT_THRESHOLD = 1f;
     /** Contact is looked for every this many ticks. */
     static final int CONTACT_EVERY = 6;
+    /** Enemy infantry this close to a squad that was clear is contact; it is clear again past the second. Rifle range, not claw range. */
+    static final float HOSTILE_CONTACT_CELLS = 24f;
+    static final float HOSTILE_CLEAR_CELLS = 32f;
+    /** An enemy fighter this close is in the fight: a reload, a death or a kill near it is worth a word. Rifle range. */
+    static final float HOSTILE_NEAR_CELLS = 24f;
+    /** Enemy drones this close to a squad that was clear are called; it is clear of them again past the second. */
+    static final float DRONE_CONTACT_CELLS = 10f;
+    static final float DRONE_CLEAR_CELLS = 16f;
+    /** An enemy round ending this close to a speaker was fired at them. */
+    static final float FIRE_CELLS = 2f;
+    /** A squad not fired on for this long is taking fire again when the next round lands. */
+    static final float QUIET_SECONDS = 8f;
+    /** An enemy machine first seen this close to a speaker is warned of. */
+    static final float ARMOR_CELLS = 30f;
+    /** A grenade leaving this close to a speaker is theirs to call. */
+    static final float THROWER_CELLS = 1.5f;
+    /** A speaker this far beyond an enemy grenade's blast is still close enough to shout it. */
+    static final float GRENADE_MARGIN_CELLS = 2f;
+    /** An enemy this close makes a speaker's wound a hit by fire worth a cry. */
+    static final float HIT_RANGE_CELLS = 30f;
 
     /**
      * One kind of bark: its priority (lower first), whether it is a voice (the squad's one channel) or an effort sound,
@@ -79,16 +122,25 @@ public final class MarineBarks {
     enum Bark {
         GRABBED("grabbed", 0, true, 2.4f, 3f, 0f, 2),
         THROWN("thrown", 1, true, 1.9f, 3f, 0f, 2),
-        MATRIARCH("matriarch", 2, true, 2.4f, 6f, 8f, 1),
-        BRUTE("brute", 3, true, 2.1f, 6f, 6f, 1),
-        MAN_DOWN("man_down", 4, true, 1.6f, 6f, 8f, 1),
-        STRAIN("strain", 5, true, 2.0f, 2.5f, 4f, 2),
-        CONTACT("contact", 6, true, 1.8f, 6f, 15f, 2),
-        BIG_KILL("big_kill", 7, true, 2.4f, 6f, 6f, 1),
-        KILL("kill", 8, true, 1.3f, 6f, 7f, 1),
-        RELOAD("reload", 9, true, 2.0f, 6f, 10f, 2),
+        GRENADE("grenade", 2, true, 1.9f, 3f, 4f, 2),
+        MATRIARCH("matriarch", 3, true, 2.4f, 6f, 8f, 1),
+        BRUTE("brute", 4, true, 2.1f, 6f, 6f, 1),
+        ARMOR("armor", 5, true, 2.4f, 6f, 20f, 1),
+        MAN_DOWN("man_down", 6, true, 1.6f, 6f, 8f, 1),
+        // Hurt by fire: the thrown takes, but held for the squad like any voice and spaced, or a firefight is all cries.
+        HIT("thrown", 7, true, 1.9f, 4f, 10f, 1),
+        STRAIN("strain", 8, true, 2.0f, 2.5f, 4f, 2),
+        TAKING_FIRE("taking_fire", 9, true, 2.1f, 6f, 15f, 1),
+        CONTACT("contact", 10, true, 1.8f, 6f, 15f, 2),
+        CONTACT_HOSTILE("contact_hostile", 10, true, 2.3f, 6f, 20f, 2),
+        TURRET("turret", 11, true, 2.4f, 6f, 20f, 1),
+        DRONES("drones", 11, true, 2.4f, 6f, 20f, 1),
+        FRAG_OUT("frag_out", 12, true, 1.8f, 4f, 6f, 1),
+        BIG_KILL("big_kill", 13, true, 2.4f, 6f, 6f, 1),
+        KILL("kill", 14, true, 1.3f, 6f, 7f, 1),
+        RELOAD("reload", 15, true, 2.0f, 6f, 10f, 2),
         // An effort sound holds no channel; its length here spaces the scuffles across the whole fight.
-        SCUFFLE("scuffle", 10, false, 2.5f, 4f, 0f, 1);
+        SCUFFLE("scuffle", 16, false, 2.5f, 4f, 0f, 1);
 
         final String clip;
         final int priority;
@@ -114,11 +166,11 @@ public final class MarineBarks {
     enum Cast {
         /** The operation radio's cast heard dry: the player's marines and allied company infantry. */
         MARINE("", EnumSet.allOf(Bark.class), "kestrel", "hammer", "viper", "jackal", "ox", "rivet"),
-        /** The colony militia: ravs and bugs, grabbers and breakers. */
+        /** The colony militia: ravs and bugs, grabbers and breakers; against people, frightened civilians with rifles. */
         MILITIA("militia_", EnumSet.allOf(Bark.class), "a", "b", "c", "d"),
         /** Colonists: no calls of their own to make, only fear, pain and grief. */
-        CIVILIAN("civilian_", EnumSet.of(Bark.CONTACT, Bark.GRABBED, Bark.THROWN, Bark.MAN_DOWN, Bark.STRAIN,
-                Bark.SCUFFLE), "a", "b", "c", "d");
+        CIVILIAN("civilian_", EnumSet.of(Bark.CONTACT, Bark.GRABBED, Bark.THROWN, Bark.HIT, Bark.MAN_DOWN,
+                Bark.STRAIN, Bark.SCUFFLE), "a", "b", "c", "d");
 
         final String prefix;
         final Set<Bark> barks;
@@ -195,8 +247,16 @@ public final class MarineBarks {
         private final EnumMap<Bark, Integer> turns = new EnumMap<>(Bark.class);
         private final Long2DoubleOpenHashMap health = new Long2DoubleOpenHashMap();
         private final Long2DoubleOpenHashMap reload = new Long2DoubleOpenHashMap();
-        /** Squads in contact, by channel; absent is clear. */
+        /** Squads in contact with the Rav, with enemy infantry and with enemy drones, by channel; absent is clear. */
         private final Long2IntOpenHashMap contact = new Long2IntOpenHashMap();
+        private final Long2IntOpenHashMap hostileContact = new Long2IntOpenHashMap();
+        private final Long2IntOpenHashMap droneContact = new Long2IntOpenHashMap();
+        /** When each channel was last fired on, in simulation seconds. */
+        private final Long2DoubleOpenHashMap firedOnAt = new Long2DoubleOpenHashMap();
+        /** Enemy machines already warned of. */
+        private final LongOpenHashSet announcedArmor = new LongOpenHashSet();
+        /** Rounds in flight last tick, so a grenade is called once, as it leaves. */
+        private Set<Projectile> projectiles = Collections.newSetFromMap(new IdentityHashMap<>());
         /** Each speaker's voice, as an index into its cast's, once it has spoken; how many each squad has dealt. */
         private final Long2IntOpenHashMap voiceOf = new Long2IntOpenHashMap();
         private final Long2IntOpenHashMap dealt = new Long2IntOpenHashMap();
@@ -227,7 +287,15 @@ public final class MarineBarks {
             cues(sim, field, fresh);
             deaths(sim, field, fresh);
             marines(sim, field, fresh);
-            if (now % CONTACT_EVERY == 0) contacts(field, fresh);
+            shots(sim, field, fresh, now * BattleSimulation.TICK_DT);
+            grenades(sim, field, fresh);
+            armor(field, fresh);
+            if (now % CONTACT_EVERY == 0) {
+                contacts(field, field.ravs, contact, Bark.CONTACT, CONTACT_CELLS, CLEAR_CELLS, fresh);
+                contacts(field, field.infantry, hostileContact, Bark.CONTACT_HOSTILE,
+                        HOSTILE_CONTACT_CELLS, HOSTILE_CLEAR_CELLS, fresh);
+                contacts(field, field.drones, droneContact, Bark.DRONES, DRONE_CONTACT_CELLS, DRONE_CLEAR_CELLS, fresh);
+            }
             List<Offer> offers = new ArrayList<>();
             for (VoicePool.Held<Bark, Spot> h : voices.due(now)) offers.add(new Offer(h.payload(), h.heldFor()));
             for (Spot spot : fresh) offers.add(new Offer(spot, 0));
@@ -285,7 +353,10 @@ public final class MarineBarks {
                 if (type.isSwarm()) {
                     int by = field.nearest(x, y, NEAR_CELLS, kill(type), null);
                     if (by >= 0) offers.add(field.spot(kill(type), by));
-                } else if (Field.cast(sim, body) != null && field.nearestRav(x, y) <= NEAR_CELLS) {
+                } else if (Field.hostile(sim.identity().faction(body)) && type.combatant) {
+                    int by = field.nearest(x, y, HOSTILE_NEAR_CELLS, Bark.KILL, Cast.MARINE);
+                    if (by >= 0) offers.add(field.spot(Bark.KILL, by));
+                } else if (Field.cast(sim, body) != null && field.inFight(x, y)) {
                     int mate = field.nearestSquadmate(sim, body, x, y, NEAR_CELLS);
                     if (mate >= 0) offers.add(field.spot(Bark.MAN_DOWN, mate));
                 }
@@ -304,14 +375,17 @@ public final class MarineBarks {
                 float timer = sim.combat().has(marine) ? sim.combat().reloadTimer(marine) : 0f;
                 float priorTimer = (float) reload.getOrDefault(marine, timer);
                 seenReload.put(marine, timer);
-                // The Rav are looked for only round a marine something happened to.
+                // The enemy is looked for only round a marine something happened to.
                 if (hp >= prior && timer <= priorTimer) continue;
-                float rav = field.nearestRav(field.x[i], field.y[i]);
+                float rav = field.ravs.nearest(field.x[i], field.y[i]);
+                float enemy = field.hostiles.nearest(field.x[i], field.y[i]);
                 if (hurt(prior, hp, rav)) {
                     offers.add(field.spot(Bark.STRAIN, i));
                     offers.add(field.spot(Bark.SCUFFLE, i));
+                } else if (hit(prior, hp, enemy)) {
+                    offers.add(field.spot(Bark.HIT, i));
                 }
-                if (reloading(priorTimer, timer, rav)) offers.add(field.spot(Bark.RELOAD, i));
+                if (reloading(priorTimer, timer, rav) || reloading(priorTimer, timer, enemy, HOSTILE_NEAR_CELLS)) offers.add(field.spot(Bark.RELOAD, i));
             }
             health.clear();
             health.putAll(seenHealth);
@@ -319,24 +393,75 @@ public final class MarineBarks {
             reload.putAll(seenReload);
         }
 
-        /** Each channel's contact edge: the one of it nearest the Rav calls it as they close. */
-        private void contacts(Field field, List<Spot> offers) {
+        /**
+         * Each channel's contact edge against {@code foes}: the one of it nearest them calls {@code bark} as they close
+         * inside {@code close}, and the channel is clear of them again past {@code clear}.
+         */
+        private void contacts(Field field, Points foes, Long2IntOpenHashMap state, Bark bark, float close, float clear,
+                              List<Spot> offers) {
             Long2IntOpenHashMap nearestBySquad = new Long2IntOpenHashMap();
             nearestBySquad.defaultReturnValue(-1);
             float[] distance = new float[field.speakers.size()];
             for (int i = 0; i < field.speakers.size(); i++) {
-                distance[i] = field.nearestRav(field.x[i], field.y[i]);
+                distance[i] = foes.nearest(field.x[i], field.y[i]);
                 int best = nearestBySquad.get(field.squad[i]);
                 if (best < 0 || distance[i] < distance[best]) nearestBySquad.put(field.squad[i], i);
             }
             for (Long2IntOpenHashMap.Entry e : nearestBySquad.long2IntEntrySet()) {
                 long squad = e.getLongKey();
                 int i = e.getIntValue();
-                boolean was = contact.containsKey(squad);
-                boolean is = inContact(was, distance[i]);
-                if (is && !was) offers.add(field.spot(Bark.CONTACT, i));
-                if (is) contact.put(squad, 1);
-                else contact.remove(squad);
+                boolean was = state.containsKey(squad);
+                boolean is = inContact(was, distance[i], close, clear);
+                if (is && !was) offers.add(field.spot(bark, i));
+                if (is) state.put(squad, 1);
+                else state.remove(squad);
+            }
+        }
+
+        /**
+         * Enemy rounds landing on the line: the speaker nearest where one ended calls taking fire if its squad had a
+         * quiet spell first, and a turret warning if an emplacement fired it.
+         */
+        private void shots(BattleSimulation sim, Field field, List<Spot> offers, float seconds) {
+            for (ShotEvent shot : sim.getShotsThisFrame()) {
+                if (!Field.hostile(shot.shooterFaction)) continue;
+                int i = field.nearest(shot.toX, shot.toY, FIRE_CELLS, null, null);
+                if (i < 0) continue;
+                if (shot.turretStructureDef != null) offers.add(field.spot(Bark.TURRET, i));
+                long squad = field.squad[i];
+                if (takingFire(firedOnAt.getOrDefault(squad, Double.NEGATIVE_INFINITY), seconds))
+                    offers.add(field.spot(Bark.TAKING_FIRE, i));
+                firedOnAt.put(squad, seconds);
+            }
+        }
+
+        /** Grenades as they leave: frag out from the friendly thrower, a warning from the one nearest an enemy's landing. */
+        private void grenades(BattleSimulation sim, Field field, List<Spot> offers) {
+            Set<Projectile> now = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (Projectile p : sim.snapshotActiveProjectiles()) {
+                now.add(p);
+                if (projectiles.contains(p) || !thrownGrenade(p.sourceWeaponId)) continue;
+                if (Field.hostile(p.shooterFaction)) {
+                    float reach = (p.onArrival != null ? p.onArrival.aoeRadius : 0f) + GRENADE_MARGIN_CELLS;
+                    int i = field.nearest(p.toX, p.toY, reach, Bark.GRENADE, null);
+                    if (i >= 0) offers.add(field.spot(Bark.GRENADE, i));
+                } else {
+                    int i = field.nearest(p.fromX, p.fromY, THROWER_CELLS, Bark.FRAG_OUT, null);
+                    if (i >= 0) offers.add(field.spot(Bark.FRAG_OUT, i));
+                }
+            }
+            projectiles = now;
+        }
+
+        /** Each enemy machine, once: the speaker nearest it the first time it is seen near the line. */
+        private void armor(Field field, List<Spot> offers) {
+            for (int m = 0; m < field.armorIds.size(); m++) {
+                long machine = field.armorIds.getLong(m);
+                if (announcedArmor.contains(machine)) continue;
+                int i = field.nearest(field.armor.x[m], field.armor.y[m], ARMOR_CELLS, Bark.ARMOR, null);
+                if (i < 0) continue;
+                offers.add(field.spot(Bark.ARMOR, i));
+                announcedArmor.add(machine);
             }
         }
 
@@ -346,38 +471,96 @@ public final class MarineBarks {
             health.clear();
             reload.clear();
             contact.clear();
+            hostileContact.clear();
+            droneContact.clear();
+            firedOnAt.clear();
+            announcedArmor.clear();
+            projectiles.clear();
             voiceOf.clear();
             dealt.clear();
         }
     }
 
+    /** Points on the ground, and the distance to the nearest of them. */
+    static final class Points {
+        float[] x = new float[16], y = new float[16];
+        int size;
+
+        void add(float px, float py) {
+            if (size == x.length) {
+                x = Arrays.copyOf(x, size * 2);
+                y = Arrays.copyOf(y, size * 2);
+            }
+            x[size] = px;
+            y[size++] = py;
+        }
+
+        /** Cells from {@code (px, py)} to the nearest point, or infinity. */
+        float nearest(float px, float py) {
+            float best = Float.POSITIVE_INFINITY;
+            for (int i = 0; i < size; i++) {
+                float dx = x[i] - px, dy = y[i] - py;
+                best = Math.min(best, dx * dx + dy * dy);
+            }
+            return (float) Math.sqrt(best);
+        }
+    }
+
     /**
-     * This tick's speakers and the Rav they face, gathered once: positions, casts and channels, and the nearest-Rav
-     * lookups the triggers share.
+     * This tick's speakers and the enemy they face, gathered once: positions, casts and channels; the Rav; and the
+     * enemy's people and machines the player can see, by the call each draws.
      */
     private static final class Field {
         final LongArrayList speakers = new LongArrayList();
         float[] x = new float[16], y = new float[16];
         long[] squad = new long[16];
         Cast[] cast = new Cast[16];
-        float[] ravX = new float[16], ravY = new float[16];
-        int ravs;
+        final Points ravs = new Points();
+        /** Every seen enemy fighter that is not a Rav, and its infantry, drones and machines apart. */
+        final Points hostiles = new Points();
+        final Points infantry = new Points();
+        final Points drones = new Points();
+        final Points armor = new Points();
+        final LongArrayList armorIds = new LongArrayList();
 
         static Field of(BattleSimulation sim) {
             Field f = new Field();
+            FogOfWarService fog = sim.getFogOfWar();
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long unit = sim.liveUnitAt(i);
                 if (!sim.world().isAlive(unit)) continue;
                 UnitType type = sim.identity().type(unit);
                 float ux = sim.world().renderX(unit), uy = sim.world().renderY(unit);
                 if (type.isSwarm()) {
-                    f.rav(ux, uy);
+                    f.ravs.add(ux, uy);
+                    continue;
+                }
+                if (hostile(sim.identity().faction(unit))) {
+                    if (type.combatant && fog.getUnitVisibility(i) == FogOfWarService.VIS_VISIBLE) f.hostile(unit, type, ux, uy);
                     continue;
                 }
                 Cast c = cast(sim, unit);
                 if (c != null) f.speaker(unit, c, channel(sim, unit, c), ux, uy);
             }
             return f;
+        }
+
+        /** Whether {@code faction} is the enemy every speaker faces. */
+        static boolean hostile(Faction faction) {
+            return Faction.MARINE.hostileTo(faction);
+        }
+
+        private void hostile(long unit, UnitType type, float hx, float hy) {
+            hostiles.add(hx, hy);
+            switch (threat(type)) {
+                case INFANTRY -> infantry.add(hx, hy);
+                case DRONE -> drones.add(hx, hy);
+                case ARMOR -> {
+                    armor.add(hx, hy);
+                    armorIds.add(unit);
+                }
+                case OTHER -> { }
+            }
         }
 
         /** Who {@code unit} speaks as, or null for one with no voice. */
@@ -395,15 +578,6 @@ public final class MarineBarks {
             return patch(cast, sim.world().x(unit), sim.world().y(unit));
         }
 
-        private void rav(float rx, float ry) {
-            if (ravs == ravX.length) {
-                ravX = Arrays.copyOf(ravX, ravs * 2);
-                ravY = Arrays.copyOf(ravY, ravs * 2);
-            }
-            ravX[ravs] = rx;
-            ravY[ravs++] = ry;
-        }
-
         private void speaker(long unit, Cast c, long channel, float mx, float my) {
             int n = speakers.size();
             if (n == x.length) {
@@ -419,25 +593,20 @@ public final class MarineBarks {
             cast[n] = c;
         }
 
-        /** Cells from {@code (px, py)} to the nearest living Rav, or infinity. */
-        float nearestRav(float px, float py) {
-            float best = Float.POSITIVE_INFINITY;
-            for (int i = 0; i < ravs; i++) {
-                float dx = ravX[i] - px, dy = ravY[i] - py;
-                best = Math.min(best, dx * dx + dy * dy);
-            }
-            return (float) Math.sqrt(best);
+        /** Whether {@code (px, py)} is in the fight: a Rav near it, or a seen enemy fighter in rifle range of it. */
+        boolean inFight(float px, float py) {
+            return ravs.nearest(px, py) <= NEAR_CELLS || hostiles.nearest(px, py) <= HOSTILE_NEAR_CELLS;
         }
 
         /**
-         * The speaker nearest {@code (px, py)} within {@code range} whose cast has {@code bark}, and is {@code only}
-         * when that is not null, as an index, or -1.
+         * The speaker nearest {@code (px, py)} within {@code range} whose cast has {@code bark} (any speaker when that
+         * is null), and is {@code only} when that is not null, as an index, or -1.
          */
         int nearest(float px, float py, float range, Bark bark, Cast only) {
             int best = -1;
             float bestD2 = range * range;
             for (int i = 0; i < speakers.size(); i++) {
-                if (!cast[i].barks.contains(bark) || only != null && cast[i] != only) continue;
+                if (bark != null && !cast[i].barks.contains(bark) || only != null && cast[i] != only) continue;
                 float dx = x[i] - px, dy = y[i] - py, d2 = dx * dx + dy * dy;
                 if (d2 <= bestD2) {
                     bestD2 = d2;
@@ -480,10 +649,48 @@ public final class MarineBarks {
     /** Called every rendered frame; plays each tick's barks once. */
     public static void play(BattleSimulation sim) {
         for (Play p : MIXES.computeIfAbsent(sim, ignored -> new Mix()).hear(sim)) {
-            Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
-                    new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),
-                    new Vector2f(0f, 0f));
+            if (UNPLAYABLE.contains(p.soundId())) continue;
+            try {
+                Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
+                        new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),
+                        new Vector2f(0f, 0f));
+            } catch (RuntimeException e) {
+                // A take not yet recorded and registered: skip it for the session, and say so once.
+                UNPLAYABLE.add(p.soundId());
+                LOG.warn("Bark " + p.soundId() + " is not registered; skipped: " + e.getMessage());
+            }
         }
+    }
+
+    private static final Logger LOG = Global.getLogger(MarineBarks.class);
+    private static final Set<String> UNPLAYABLE = new HashSet<>();
+    /** The weapon ids of thrown grenades, read from the installed equipment registry when it changes. */
+    private static Set<String> grenadeWeapons = Set.of();
+    private static SpecialEquipmentRegistry grenadeRegistry;
+
+    /** Whether a round in flight was fired by a thrown grenade's weapon. */
+    static boolean thrownGrenade(String weaponId) {
+        SpecialEquipmentRegistry registry = SpecialEquipmentRegistry.installed();
+        if (weaponId == null || registry == null) return false;
+        if (registry != grenadeRegistry) {
+            Set<String> ids = new HashSet<>();
+            for (SpecialEquipmentDef def : registry.all()) {
+                if (def.isThrownGrenade() && def.weaponId() != null) ids.add(def.weaponId());
+            }
+            grenadeWeapons = ids;
+            grenadeRegistry = registry;
+        }
+        return grenadeWeapons.contains(weaponId);
+    }
+
+    /** The call a seen enemy fighter draws by its kind. */
+    enum Threat { INFANTRY, DRONE, ARMOR, OTHER }
+
+    static Threat threat(UnitType type) {
+        if (type.isDrone()) return Threat.DRONE;
+        if (type.isMech() || type.isMachineFrame() || type.isGroundVehicle()) return Threat.ARMOR;
+        if (type.drawnAsLayers() && !type.isStatic() && type != UnitType.ALIEN) return Threat.INFANTRY;
+        return Threat.OTHER;
     }
 
     /** A take's sound id: a voiced bark's line in one of its cast's voices, an effort sound's one pool for everyone. */
@@ -526,7 +733,22 @@ public final class MarineBarks {
 
     /** A squad's contact state from the Rav nearest it: it closes inside {@link #CONTACT_CELLS} and clears past {@link #CLEAR_CELLS}. */
     static boolean inContact(boolean was, float nearestRav) {
-        return was ? nearestRav <= CLEAR_CELLS : nearestRav <= CONTACT_CELLS;
+        return inContact(was, nearestRav, CONTACT_CELLS, CLEAR_CELLS);
+    }
+
+    /** A squad's contact state from the foe nearest it: it closes inside {@code close} and clears past {@code clear}. */
+    static boolean inContact(boolean was, float nearest, float close, float clear) {
+        return was ? nearest <= clear : nearest <= close;
+    }
+
+    /** Whether a round landing at {@code now} finds a squad last fired on at {@code lastFiredOn} after a quiet spell. */
+    static boolean takingFire(double lastFiredOn, float now) {
+        return now - lastFiredOn >= QUIET_SECONDS;
+    }
+
+    /** Whether one with no Rav at hand was hurt by fire: health lost past a graze, alive, an enemy in range. */
+    static boolean hit(float priorHp, float hp, float nearestEnemy) {
+        return hp > 0f && priorHp - hp >= HURT_THRESHOLD && nearestEnemy <= HIT_RANGE_CELLS;
     }
 
     /** Whether a marine was hurt hand to hand: health lost past a graze, alive, a Rav at arm's length. */
@@ -534,9 +756,14 @@ public final class MarineBarks {
         return hp > 0f && priorHp - hp >= HURT_THRESHOLD && nearestRav <= MELEE_CELLS;
     }
 
-    /** Whether a marine just began a reload with Rav near enough to call it. */
+    /** Whether a marine just began a reload with the enemy near enough to call it. */
     static boolean reloading(float priorTimer, float timer, float nearestRav) {
-        return priorTimer <= 0f && timer > 0f && nearestRav <= NEAR_CELLS;
+        return reloading(priorTimer, timer, nearestRav, NEAR_CELLS);
+    }
+
+    /** Whether a marine just began a reload with the foe nearest it inside {@code range}. */
+    static boolean reloading(float priorTimer, float timer, float nearest, float range) {
+        return priorTimer <= 0f && timer > 0f && nearest <= range;
     }
 
     /** Whether {@code bark} is a cry torn out of a body seized or thrown, which waits on no one. */

@@ -643,10 +643,8 @@ about her directly.
 > start.
 
 `openingOfficerInductionGuideSheHasOneTrainingPointCoverProtects`
-> She has one training point. Cover keeps her troops alive under fire; Recovery
-> Planning gets our wounded back on their feet; Salvage Stewardship brings more
-> home from the field. Read all three, then choose. It's permanent. Her next
-> promotion earns another.
+> She has one training point. Hover each specialty to read it, then choose one.
+> The choice is permanent; her next promotion earns another.
 
 `openingOfficerInductionGuideNowSheNeedsAFormationRaiseA`
 > Now her people need to be ours on paper. Raise a squad in the Armory, then come

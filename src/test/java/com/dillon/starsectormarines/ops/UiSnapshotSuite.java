@@ -57,6 +57,7 @@ import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.marine.BoatPartLearning;
 import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
@@ -2016,7 +2017,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (state.startsWith("dossier")) {
                 if (state.equals("dossier-trained")) {
                     captain.train(OfficerSpecialty.TACTICAL_COVER);
-                    captain.train(OfficerSpecialty.RECOVERY_PLANNING);
+                    captain.train(OfficerSpecialty.FIELD_MEDICINE);
                     captain.commendations().add("Day 98: Wayline / victory / +700 XP / ACTIVE.");
                     captain.career().record("snapshot-attempt", true, 700);
                     captain.addXp(700);
@@ -2145,8 +2146,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 document.advance(0f);
                 guide.update();
                 capture.accept("03-scroll-choice");
-                click.accept("officer-specialty-SALVAGE_STEWARDSHIP-rank-1");
-                if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
+                click.accept("officer-specialty-FIELD_MEDICINE-rank-1");
+                if (sabine.career().level(OfficerSpecialty.FIELD_MEDICINE) != 1) {
                     throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
@@ -2653,7 +2654,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         var frames = new ArrayList<SnapshotArtifact>();
-        for (int step = 1; step <= 4; step++) frames.add(new SnapshotArtifact("gantry-" + step + ".png",
+        for (int step = 1; step <= 2; step++) frames.add(new SnapshotArtifact("gantry-" + step + ".png",
                 renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-" + step)));
         return frames;
     }
@@ -2712,8 +2713,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("castle-lab-workspace.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-5")),
                 new SnapshotArtifact("castle-lab-introduction.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-1")),
                 new SnapshotArtifact("castle-lab-fit.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-2")),
-                new SnapshotArtifact("castle-lab-swap.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-3")),
-                new SnapshotArtifact("castle-lab-ready.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-4")),
                 new SnapshotArtifact("mech-welding-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f,
                                 false, false, false, false, null, null, true)),
@@ -2966,11 +2965,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
-            if (step >= 3) viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
-            if (step >= 4) {
-                viewModel.stripWeapon(SocketId.LEFT_SHOULDER);
-                viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
-            }
         }
         if ("lesson-5".equals(materialHint)) viewModel.dismissLabPrompt();
         if (machineName != null) {
@@ -3420,6 +3414,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<DeckGraph.Compartment> hangars = ship.rooms(RoomPurpose.HANGAR);
         BoatDeck deck = campaign[0];
         BoatWorkshop workshop = new BoatWorkshop(deck, snapshotMechResources());
+        // The workshop builds only starter parts and ones the company has learned; this room shows a yard that has learned them all.
+        for (BoatFitting fitting : BoatFitting.catalog()) BoatPartLearning.learn(deck, fitting.id());
+        for (BoatGun gun : BoatGun.catalog()) BoatPartLearning.learn(deck, gun.id());
         if (deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fabricatePart(BoatFitting.REINFORCED_PLATING.id());
             workshop.fit(deck.boats().get(0).id(), BoatFitting.REINFORCED_PLATING.id());
@@ -3490,7 +3487,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
             viewModel.catalogRows().get().stream()
-                    .filter(row -> BoatFitting.REINFORCED_PLATING.id().equals(row.itemId()))
+                    .filter(row -> BoatFitting.STANDARD_PLATING.id().equals(row.itemId()))
                     .findFirst().orElseThrow().card().recycle().action().run();
         }
         if (departure == AT_OPENING) seekHangarDeparture(ship, bay);

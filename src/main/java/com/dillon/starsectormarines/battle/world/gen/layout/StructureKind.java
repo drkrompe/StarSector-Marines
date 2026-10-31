@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
+
 /**
  * What a {@link Structure} raises, and the ground it takes (its footprint, a
  * yard or margin included, along x and y unturned).
@@ -31,13 +33,29 @@ public enum StructureKind {
     /** A one-room hut on a fenced yard with a dish: a radio hut. */
     RADIO_HUT(StructureFit.HUT_ALONG, StructureFit.HUT_DEEP),
     /** A farmhouse alone on a hedged yard: the family that was farming here before the field came. */
-    HOMESTEAD(StructureFit.HOMESTEAD_ALONG, StructureFit.HOMESTEAD_DEEP);
+    HOMESTEAD(StructureFit.HOMESTEAD_ALONG, StructureFit.HOMESTEAD_DEEP),
+    /** A town's buildings, one authored plan each, with no yard: the blocks of a built-up street. */
+    TOWN_HOUSE(BuildingStamp.CORNER_HOME),
+    TOWN_COURT(BuildingStamp.COURT_HOUSE),
+    TOWN_SHOP(BuildingStamp.CORNER_SHOP),
+    TOWN_HALL(BuildingStamp.MARKET_HALL),
+    TOWN_WORKSHOP(BuildingStamp.T_WORKSHOP),
+    TOWN_DEPOT(BuildingStamp.OFFSET_DEPOT);
 
     public final int along, deep;
+    /** The one authored plan the structure is, or {@code null} for a structure raised its own way. */
+    public final BuildingStamp stamp;
 
     StructureKind(int along, int deep) {
         this.along = along;
         this.deep = deep;
+        this.stamp = null;
+    }
+
+    StructureKind(BuildingStamp stamp) {
+        this.along = stamp.footprintWidth(0);
+        this.deep = stamp.footprintHeight(0);
+        this.stamp = stamp;
     }
 
     /**

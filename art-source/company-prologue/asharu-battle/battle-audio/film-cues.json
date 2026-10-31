@@ -42,6 +42,11 @@
   },
   {
    "t": 16,
+   "sound": "asharu_film_d04",
+   "volume": 1.0
+  },
+  {
+   "t": 16,
    "sound": "asharu_film_engines_s1",
    "volume": 1.0
   },
@@ -414,12 +419,22 @@
   },
   {
    "t": 118.2,
+   "sound": "asharu_film_d44",
+   "volume": 1.0
+  },
+  {
+   "t": 118.2,
    "sound": "asharu_film_s11_shuttle_reentry",
    "volume": 1.0
   },
   {
    "t": 124.4,
    "sound": "asharu_film_s11_signal_breaks",
+   "volume": 1.0
+  },
+  {
+   "t": 125,
+   "sound": "asharu_film_d45",
    "volume": 1.0
   },
   {

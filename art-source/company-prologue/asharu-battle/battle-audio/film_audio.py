@@ -185,7 +185,7 @@ def main():
                                                             "  CLIPPED" if peak > 1 else ""))
 
     for lid, ln in sorted(final["lines"].items()):
-        if ln.get("off") or ln.get("placeholder") or not ln.get("voice"):
+        if ln.get("off") or not ln.get("voice"):
             continue
         take = read(HERE / ln["voice"])
         seconds = min(ln["t1"] - ln["t0"], len(take) / SR)

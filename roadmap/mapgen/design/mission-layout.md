@@ -76,7 +76,14 @@ optional (reported, and the map stands).
   its hamlet's own kinds also keep out of the column clearance (Laws, the
   ways' keeping). Buildings come from their authored plans, so
   they are buildings like any other. The square's marker stands in for a bell
-  until there is bell art.
+  until there is bell art. A town building (a corner home, court house,
+  corner shop, market hall, workshop or depot) is one authored plan with no
+  yard.
+- **Paving.** Street ground laid by hand over cells the mission chose, in the
+  structures phase: each open cell becomes street, which the city's road
+  finish dresses as any street; a cell that is not open keeps what it is. For
+  streets through ground no road network reaches (another place's claim, or
+  country the places never grew into).
 - **Airfield siting** (`AirfieldSiting`, mission-neutral). A mission that
   wants an airfield names the ground and what to keep clear; the field is
   sited on it never on or across a way nor in the column clearance, beside a

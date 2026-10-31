@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ShipConditionStageTest {
     @Test void individualBerthsLoseCapacityAndWorkWithoutClosingTheirSharedLane() {
-        for (var pose : RoomPose.all()) for (int working = 1; working <= 4; working++) {
+        for (var pose : RoomPose.all()) for (int working = 2; working <= 4; working++) {
             var room = new DeckGraph.Compartment(1, RoomShape.rectangle(24, 16).posed(pose), 4, 4,
                     pose, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.VEHICLE_BAY, List.of());
             var ctx = new GenContext(new NavigationGrid(40, 40), new CellTopology(40, 40), new Random(7), 40, 40, 7);
@@ -43,7 +43,7 @@ class ShipConditionStageTest {
             var boat = new Gantry(35, 35, 1, 1, Gantry.Facing.NORTH, Gantry.Holds.BOAT);
             ctx.gantries.add(boat);
             ctx.fixtureTasks.add(FixtureTask.servingBerth(35, 35, 4, 35, 35));
-            var state = new ShipRestoration(true, true, false, false, false, working - 1);
+            var state = new ShipRestoration(true, true, false, false, false, working - 2);
             new ShipConditionStage(state).run(ctx);
             ShipConditionStage.restrictAccess(ctx, state);
             assertEquals(original.subList(0, working), ctx.gantries.subList(0, working));

@@ -186,6 +186,11 @@ public final class EquipmentStore {
      * is never charged.
      */
     public static Sale buy(Offer offer, Holdings held, FabricationResources purse) {
+        return buy(offer, held, purse, false);
+    }
+
+    /** As {@link #buy(Offer, Holdings, FabricationResources)}; a {@code free} sale (the store's cheat) charges nothing. */
+    public static Sale buy(Offer offer, Holdings held, FabricationResources purse, boolean free) {
         if (offer == null || purse == null) return Sale.UNAVAILABLE;
         if (!purse.atMarket()) return Sale.NOT_AT_MARKET;
         switch (offer.kind()) {
@@ -206,7 +211,7 @@ public final class EquipmentStore {
             }
         }
         FabricationCost cost = FabricationCost.of(offer.price());
-        if (!purse.canAfford(cost) || !purse.spend(cost)) return Sale.CANNOT_AFFORD;
+        if (!free && (!purse.canAfford(cost) || !purse.spend(cost))) return Sale.CANNOT_AFFORD;
         boolean learned = switch (offer.kind()) {
             case LOADOUT -> LoadoutCardLearning.learn(held.armory(), offer.id())
                     == LoadoutCardLearning.Result.LEARNED;
@@ -216,7 +221,7 @@ public final class EquipmentStore {
                     == BoatPartLearning.Result.LEARNED;
         };
         if (!learned) {
-            purse.credit(cost);
+            if (!free) purse.credit(cost);
             return Sale.UNAVAILABLE;
         }
         return Sale.SOLD;

@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Where Harrier packs come from in a battle (`colony-breach-nouns.md`, Brood spire and Harrier): the brood spires
@@ -73,6 +75,11 @@ public final class BroodSpires {
     public static final float STANDOFF_MIN = 16f, STANDOFF_MAX = 28f;
     /** Two spires never stand nearer each other than this, in cells. */
     public static final float SPACING = 64f;
+    /**
+     * The nearer spacing a bore grown for its spire ({@link #raiseAtMaw}) keeps from every other spire: The Burn's
+     * young bores line the route close together, and each left to grow is to put up its own air (owner, 2026-10-31).
+     */
+    public static final float GROWN_SPACING = 32f;
     /** A spire stands at least this far from any bore or spore colony, in cells. */
     static final float CLEARANCE = 5f;
     /** Directions tried on each ring. */
@@ -160,6 +167,8 @@ public final class BroodSpires {
     private final List<Spire> spires = new ArrayList<>();
     private final List<Launch> launches = new ArrayList<>();
     private final List<Rising> rising = new ArrayList<>();
+    /** Bores that raise their spire on reaching maw, fed or not. */
+    private final Set<SwarmBore> grownForSpire = new HashSet<>();
     private boolean matured;
     private int cursor;
 
@@ -175,8 +184,24 @@ public final class BroodSpires {
      * {@link #FED_BIOMASS}, with no spire of its own yet, standing, dead or on its way.
      */
     public static boolean raises(boolean mother, BoreTier tier, float biomassFed, boolean hasSpire) {
-        return !mother && tier == BoreTier.MAW && biomassFed >= FED_BIOMASS && !hasSpire;
+        return raises(mother, tier, biomassFed, false, hasSpire);
     }
+
+    /**
+     * As {@link #raises(boolean, BoreTier, float, boolean)}, a bore {@code grownForSpire} ({@link #raiseAtMaw}) needing
+     * no feeding: reaching maw on its own clock is enough.
+     */
+    public static boolean raises(boolean mother, BoreTier tier, float biomassFed, boolean grownForSpire,
+                                 boolean hasSpire) {
+        return !mother && tier == BoreTier.MAW && (grownForSpire || biomassFed >= FED_BIOMASS) && !hasSpire;
+    }
+
+    /**
+     * Marks a bore to raise its spire once it reaches maw, fed or not: an old bloom's young bore (The Burn's,
+     * `heart-nouns.md`, Young bore), so one the company leaves to grow becomes a source of fliers (owner,
+     * 2026-10-31).
+     */
+    public void raiseAtMaw(SwarmBore bore) { grownForSpire.add(bore); }
     /**
      * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
      * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
@@ -291,10 +316,12 @@ public final class BroodSpires {
         CreepOutposts.Ground ground = null;
         for (SwarmBore bore : sim.swarmBores().bores()) {
             if (bore.collapsed() || !sim.world().isAlive(bore.entityId())
-                    || !raises(bore.mother(), bore.tier(), bore.biomassFed(), hasSpire(bore))) continue;
+                    || !raises(bore.mother(), bore.tier(), bore.biomassFed(), grownForSpire.contains(bore),
+                    hasSpire(bore))) continue;
             if (ground == null) ground = ground(sim);
             if (ground == null) return;
-            int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed(), structures(sim));
+            float spacing = grownForSpire.contains(bore) ? GROWN_SPACING : SPACING;
+            int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed(), structures(sim), spacing);
             if (cell == null) continue;
             rising.add(new Rising(bore, cell[0], cell[1], tick, Math.round(RISE_SECONDS / BattleSimulation.TICK_DT)));
         }
@@ -344,16 +371,23 @@ public final class BroodSpires {
      */
     public static int[] choose(CreepOutposts.Ground ground, int boreX, int boreY, float turn, List<float[]> spires,
                                List<float[]> structures) {
+        return choose(ground, boreX, boreY, turn, spires, structures, SPACING);
+    }
+
+    /** As {@link #choose(CreepOutposts.Ground, int, int, float, List, List)}, {@code spacing} from every spire. */
+    public static int[] choose(CreepOutposts.Ground ground, int boreX, int boreY, float turn, List<float[]> spires,
+                               List<float[]> structures, float spacing) {
+        float reach = Math.max(0f, spacing - STANDOFF_MAX);
         for (float[] s : spires) {
             float dx = s[0] - (boreX + 0.5f), dy = s[1] - (boreY + 0.5f);
-            if (dx * dx + dy * dy < (SPACING - STANDOFF_MAX) * (SPACING - STANDOFF_MAX)) return null;
+            if (dx * dx + dy * dy < reach * reach) return null;
         }
         for (float r = STANDOFF_MIN; r <= STANDOFF_MAX; r += 1f) {
             for (int k = 0; k < DIRECTIONS; k++) {
                 double angle = 2.0 * Math.PI * (turn + k / (double) DIRECTIONS);
                 int x = (int) Math.floor(boreX + 0.5 + Math.cos(angle) * r);
                 int y = (int) Math.floor(boreY + 0.5 + Math.sin(angle) * r);
-                if (CreepOutposts.good(ground, x, y, CLEARANCE, structures) && apart(x, y, spires)) {
+                if (CreepOutposts.good(ground, x, y, CLEARANCE, structures) && apart(x, y, spires, spacing)) {
                     return new int[]{x, y};
                 }
             }
@@ -361,10 +395,10 @@ public final class BroodSpires {
         return null;
     }
 
-    private static boolean apart(int x, int y, List<float[]> spires) {
+    private static boolean apart(int x, int y, List<float[]> spires, float spacing) {
         for (float[] s : spires) {
             float dx = s[0] - (x + 0.5f), dy = s[1] - (y + 0.5f);
-            if (dx * dx + dy * dy < SPACING * SPACING) return false;
+            if (dx * dx + dy * dy < spacing * spacing) return false;
         }
         return true;
     }

@@ -79,6 +79,7 @@ final class LayoutStructures {
             case MESS_HALL -> hamletBuilding(ctx, BuildingStamp.PREFAB_MODULE, s, x0, y0, x1, y1);
             case RADIO_HUT -> hamletBuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
             case HOMESTEAD -> hamletBuilding(ctx, BuildingStamp.FARMHOUSE, s, x0, y0, x1, y1);
+            default -> s.kind().stamp.place(ctx, x0, y0, s.turns());
         }
         return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, s.kind().takesRoad() ? PAVING_REASON : "",
                 s.required(),

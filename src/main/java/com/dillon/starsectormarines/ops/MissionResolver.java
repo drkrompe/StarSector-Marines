@@ -403,7 +403,6 @@ public final class MissionResolver {
             xpGained = officer.xpGained(); promotedTo = officer.promotedTo();
             injuredUntilDay = officer.injuredUntilDay();
         }
-        int specialtyRecovery = OfficerMissionResult.salvageBonus(officers, victory, marinesEngaged);
 
         return MissionOutcome.builder()
                 .workingPassage(sim.getWorkingPassage()==null?null:sim.getWorkingPassage().report(sim))
@@ -443,7 +442,7 @@ public final class MissionResolver {
                 .evacuationReport(evacuationRepresentatives, representativesEvacuated)
                 .colonyArchiveOutcome(colonyArchiveOutcome)
                 .salvageEntitlement(salvageEntitlement)
-                .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct + specialtyRecovery)
+                .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct)
                 .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
                 .boatDamage(sim.boatDamage().settlementId(), sim.boatDamage().damage())
                 .boatsLost(boatsLost)
@@ -741,7 +740,8 @@ public final class MissionResolver {
      * Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
      */
     static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
-        if (marks == null || outcome == null) return;
+        // A replay re-fights a chapter the campaign has already recorded; it marks nothing new.
+        if (marks == null || outcome == null || outcome.missionSource == MissionSource.REPLAY) return;
         for (SideObjectiveResult side : outcome.sideObjectives) if (side.marked()) marks.write(side.mark());
         if (outcome.blindWatch != null && outcome.blindWatch.garnirWarned()) marks.write(BlindWatchProgress.GARNIR_WARNED);
     }
@@ -779,23 +779,12 @@ public final class MissionResolver {
         roster.applySoldierOutcome(
                 resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()), day, wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
-        applyRecoverySpecialties(roster, outcome, day, wiaDays);
         if (outcome.victory) {
             Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
             roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH,
                     carriedCards != null ? carriedCards : Set.of());
         }
         return roster;
-    }
-
-    static void applyRecoverySpecialties(MarineRoster roster, MissionOutcome outcome, float day, float wiaDays) {
-        for (OfficerMissionResult officer : outcome.officers) for (String id : officer.soldierIds()) {
-            MarineSoldier soldier = roster.soldierById(id);
-            if (soldier != null && soldier.status() == MarineSoldierStatus.WIA) {
-                roster.shortenWoundedRecovery(id, day + Math.max(1f,
-                        wiaDays * officer.officer().recoveryMultiplier()));
-            }
-        }
     }
 
     /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */

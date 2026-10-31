@@ -209,7 +209,7 @@ public final class SquadMedicScene implements BehaviorScene {
         squad.leaderId = members[0];
         squad.commandGroupIdentity = new CommandGroupIdentity("scene-officer", "scene-officer",
                 "Lt. Scene", true, new OfficerCommandProfile("scene-officer", "Lt. Scene",
-                        Rank.LIEUTENANT, 0, Status.ACTIVE, false, 0, 0, 0, rank));
+                        Rank.LIEUTENANT, 0, Status.ACTIVE, false, 0, rank));
         BattleSimulation sim = world.sim();
         return world;
     }

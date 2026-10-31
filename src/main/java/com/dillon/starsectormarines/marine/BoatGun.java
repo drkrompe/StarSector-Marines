@@ -70,38 +70,38 @@ public record BoatGun(
 
     public static final BoatGun HEAVY_MG = new BoatGun(
             "door_heavy_mg", "@boatGunHeavyMg", TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1,
-            credits(800), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", Family.BALLISTIC, true);
+            credits(400), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", Family.BALLISTIC, true);
 
     public static final BoatGun ARBALEST = new BoatGun(
             "door_arbalest", "@boatGunArbalest", TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 2,
-            credits(2350), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", Family.BALLISTIC, false);
+            credits(1180), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", Family.BALLISTIC, false);
 
     public static final BoatGun GRENADE_LAUNCHER = new BoatGun(
             "door_grenade_launcher", "@boatGunGrenadeLauncher",
             TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID, 2,
-            credits(2700), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance",
+            credits(1350), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance",
             Family.BALLISTIC, true);
 
     public static final BoatGun HEPHAESTUS = new BoatGun(
             "door_hephaestus", "@boatGunHephaestus", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3,
-            credits(5400), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", Family.BALLISTIC, false);
+            credits(2700), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", Family.BALLISTIC, false);
 
     /** The hover scout's twin pulse emitter: energy bolts, not a laser ({@code mechs-nouns.md}, Weapon names). */
     public static final BoatGun TWIN_PE_1 = new BoatGun(
             "boat_twin_pe_1", "@boatGunTwinPe1", TurretCatalogRegistry.BOAT_PULSE_STRUCTURE_ID, 1,
-            credits(2050), "@boatGunTwinPe1Effect", "@boatGunTwinPe1Provenance", Family.ENERGY, true);
+            credits(1030), "@boatGunTwinPe1Effect", "@boatGunTwinPe1Provenance", Family.ENERGY, true);
 
     public static final BoatGun PL_3 = new BoatGun(
             "boat_pl_3", "@boatGunPl3", TurretCatalogRegistry.BOAT_PL_3_STRUCTURE_ID, 2,
-            credits(4450), "@boatGunPl3Effect", "@boatGunPl3Provenance", Family.ENERGY, false);
+            credits(2230), "@boatGunPl3Effect", "@boatGunPl3Provenance", Family.ENERGY, false);
 
     public static final BoatGun SRM_15 = new BoatGun(
             "boat_srm_15", "@boatGunSrm15", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
-            credits(2550), "@boatGunSrm15Effect", "@boatGunSrm15Provenance", Family.MISSILE, true);
+            credits(1280), "@boatGunSrm15Effect", "@boatGunSrm15Provenance", Family.MISSILE, true);
 
     public static final BoatGun LRM_10 = new BoatGun(
             "boat_lrm_10", "@boatGunLrm10", TurretCatalogRegistry.BOAT_LRM_STRUCTURE_ID, 3,
-            credits(4950), "@boatGunLrm10Effect", "@boatGunLrm10Provenance", Family.MISSILE, false);
+            credits(2480), "@boatGunLrm10Effect", "@boatGunLrm10Provenance", Family.MISSILE, false);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS,
             TWIN_PE_1, PL_3, SRM_15, LRM_10);

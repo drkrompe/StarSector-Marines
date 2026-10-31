@@ -3133,8 +3133,9 @@ public final class BattleSetup {
             if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
-            if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
-                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites(), patch.holdouts()) == null) {
+            ColonyMilitia.Installed militia = ColonyMilitia.install(sim, map, payload.placement, lzCells,
+                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites(), patch.holdouts());
+            if (militia == null) {
                 why = "the militia and holdouts do not seat";
                 continue;
             }
@@ -3172,6 +3173,8 @@ public final class BattleSetup {
                 if (colony) eruption = eruption.withoutPlacesNear(
                         ColonyRedoubts.holdoutCentres(sim.getCivilianRedoubts()), ColonyRedoubts.BREACH_CLEARANCE);
                 sim.installColonyBreach(eruption, colonists);
+                // The compound's Locust stays silent until a bore has grown.
+                if (militia.battery() != 0L) sim.getColonyBreach().holdBatteryUntilBoresGrow(militia.battery());
                 // The colony as a living field: homesteads, militia knots in the
                 // open, families walking out and stragglers, all the swarm's to find.
                 if (colony && ColonyLivingField.enabled()) {

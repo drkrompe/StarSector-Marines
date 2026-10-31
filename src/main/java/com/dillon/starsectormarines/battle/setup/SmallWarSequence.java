@@ -101,6 +101,7 @@ public final class SmallWarSequence implements Objective {
     }
 
     public SmallWarProgress.Report report(BattleSimulation sim) {
+        if (sim.isForcedVictory()) return progress.wonReport(withdrawn.size(), houseCustody);
         return progress.report(SmallWarProgress.CUSTODIANS - sim.squadMemberCount(custody),
                 SmallWarProgress.HOLDERS - holders.stream().mapToInt(sim::squadMemberCount).sum(), withdrawn.size(), houseCustody);
     }

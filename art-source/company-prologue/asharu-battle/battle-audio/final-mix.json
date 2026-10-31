@@ -80,7 +80,7 @@
    "take": 2,
    "takeNote": "Trying \"humor here\". Players would be used to pickets sending pings out when their fleet passes by.",
    "text": "Ha more picket \"ping\" to drive me crazy. Guess they keep us honest. ",
-   "voice": "voices/d04-t2.mp3"
+   "voice": "voice-takes/d04-t2.mp3"
   },
   "d05": {
    "note": "Your line.",
@@ -632,7 +632,7 @@
    "take": 2,
    "takeNote": "More stress - also I need help with this line. I'm trying to indicate that the Caravel captain is trying to maintain a pitch that doesn't burn up the hull (belly) but also doesn't go face on gaining too much speed.",
    "text": "Hull temperature's climbing — helm, hold forty degrees angle of attack, belly to the burn! Don't let her nose —",
-   "voice": "voices/d44-t2.mp3"
+   "voice": "voice-takes/d44-t2.mp3"
   },
   "d45": {
    "dur": 2.54,
@@ -645,7 +645,7 @@
    "t1": 127.54,
    "take": 2,
    "text": "Come again Caravel losing your signal in the —",
-   "voice": "voices/d45-t2.mp3"
+   "voice": "voice-takes/d45-t2.mp3"
   },
   "d46": {
    "dur": 7.111,

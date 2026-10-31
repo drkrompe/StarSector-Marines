@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -16,12 +18,17 @@ import java.util.List;
  * bottom-right button that shows or hides the tick profile, DEBUG tools, squad
  * plan readout and ship diagnostics together. The state itself belongs to the
  * {@link BattleUiContext}; this panel only flips it.
+ *
+ * <p>In a player build it is the CHEAT switch, and given a Win action it opens a Win button
+ * directly to its left instead of the developer panels.
  */
 @DebugOnly
 public final class DebugHudSwitchPanel implements HudPanel {
 
     static final float W = 76f;
     static final float H = 22f;
+    static final float WIN_GAP = 6f;
+    static final float WIN_PAD = 12f;
 
     private static final Color BG = new Color(0x10, 0x14, 0x1E, 0xCC);
     private static final Color BG_HOVER = new Color(0x24, 0x30, 0x44, 0xE6);
@@ -32,21 +39,47 @@ public final class DebugHudSwitchPanel implements HudPanel {
 
     private final BattleUiContext ctx;
     private final BitmapFont font = Fonts.ORBITRON_12_BOLD;
-    private boolean hover;
+    /** The player build's Win; null in a dev build, whose Win lives in the developer panel. */
+    private final Runnable win;
+    private boolean hover, winHover;
 
     public DebugHudSwitchPanel(BattleUiContext ctx) {
+        this(ctx, null);
+    }
+
+    public DebugHudSwitchPanel(BattleUiContext ctx, Runnable win) {
         this.ctx = ctx;
+        this.win = win;
     }
 
     static float x(BattleLayout layout) { return layout.gridX + layout.gridW - BattleLayout.PAD - W; }
 
-    static float y(BattleLayout layout) { return layout.gridY + BattleLayout.PAD; }
+    public static float y(BattleLayout layout) { return layout.gridY + BattleLayout.PAD; }
 
     private boolean inside(float px, float py) {
         BattleLayout layout = ctx.getLayout();
         if (layout == null) return false;
         float x = x(layout), y = y(layout);
         return px >= x && px < x + W && py >= y && py < y + H;
+    }
+
+    private boolean winShown() {
+        return win != null && ctx.debugHudVisible() && ctx.getLayout() != null;
+    }
+
+    float winWidth() {
+        return font.measureWidth(Strings.get("cheatsWin")) + 2f * WIN_PAD;
+    }
+
+    public float winX(BattleLayout layout) {
+        return x(layout) - WIN_GAP - winWidth();
+    }
+
+    private boolean insideWin(float px, float py) {
+        if (!winShown()) return false;
+        BattleLayout layout = ctx.getLayout();
+        float x = winX(layout), y = y(layout);
+        return px >= x && px < x + winWidth() && py >= y && py < y + H;
     }
 
     @Override
@@ -68,12 +101,17 @@ public final class DebugHudSwitchPanel implements HudPanel {
         HudDraw.filledRect(x, y, W, H, hover ? BG_HOVER : BG, alphaMult);
         HudDraw.borderRect(x, y, W, H, on ? BORDER_ON : BORDER_OFF, alphaMult);
         HudDraw.filledRect(x + 7f, y + H * .5f - 3f, 6f, 6f, on ? BORDER_ON : BORDER_OFF, alphaMult);
-        font.drawString("DEBUG", x + 19f, y + H - 5f, on ? TEXT_ON : TEXT_OFF, alphaMult);
+        font.drawString(DevConfig.DEV_MODE ? "DEBUG" : Strings.get("cheatsToggle"), x + 19f, y + H - 5f, on ? TEXT_ON : TEXT_OFF, alphaMult);
+        if (!winShown()) return;
+        float wx = winX(layout), ww = winWidth();
+        HudDraw.filledRect(wx, y, ww, H, winHover ? BG_HOVER : BG, alphaMult);
+        HudDraw.borderRect(wx, y, ww, H, BORDER_ON, alphaMult);
+        font.drawString(Strings.get("cheatsWin"), wx + WIN_PAD, y + H - 5f, TEXT_ON, alphaMult);
     }
 
     @Override
     public boolean blocksWorldPointer(float x, float y) {
-        return isVisible() && inside(x, y);
+        return isVisible() && (inside(x, y) || insideWin(x, y));
     }
 
     @Override
@@ -83,10 +121,16 @@ public final class DebugHudSwitchPanel implements HudPanel {
             if (e.isConsumed()) continue;
             if (e.isMouseMoveEvent()) {
                 hover = inside(e.getX(), e.getY());
+                winHover = insideWin(e.getX(), e.getY());
                 continue;
             }
             if (!(e.isLMBDownEvent() || e.isLMBUpEvent() || e.isRMBDownEvent()
                     || e.isRMBUpEvent() || e.isMouseScrollEvent())) continue;
+            if (insideWin(e.getX(), e.getY())) {
+                if (e.isLMBDownEvent()) win.run();
+                e.consume();
+                continue;
+            }
             if (!inside(e.getX(), e.getY())) continue;
             if (e.isLMBDownEvent()) ctx.setDebugHudVisible(!ctx.debugHudVisible());
             e.consume();

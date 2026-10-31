@@ -242,8 +242,8 @@ did. The lounge acts on the cargo marines who take a billet, whose fixed roll
 is read against a higher intake; recruits founded with a squad are untouched.
 
 Some rows wait on a system that does not exist yet, and stay unoffered rather
-than faked. A wound heals in one day, and Recovery Planning is already floored
-at a day, so a sick bay heal-time tier would change nothing; it waits on
+than faked. A wound heals in one day, and recovery is floored at a day, so a
+sick bay heal-time tier would change nothing; it waits on
 longer wounds, and the bay's tiers act on fate instead. Replacements cost cargo
 marines, not a fee, so the lounge's top tier raises the intake again rather
 than discounting a price.

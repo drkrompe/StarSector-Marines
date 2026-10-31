@@ -4,7 +4,7 @@ Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the l
 
 Written: 2026-10-23
 
-Updated: 2026-10-25 — a city's set pieces: the tenement, the posts in buildings, the cleared lot, the supply streets.
+Updated: 2026-10-31 — the allies' air base, a field lot held in a rear corner. Earlier, 2026-10-25: a city's set pieces: the tenement, the posts in buildings, the cleared lot, the supply streets.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -61,6 +61,23 @@ A line drawn across country by someone who has had weeks to choose:
 - **Supply roads.** A road from the logistics base to the rear gate of each
   redoubt (beat L2). The base stands on the main road behind the middle, as it
   does now.
+- **The safe camp (the Road).** A small allied encampment where the convoys
+  set out, beside the logistics base on its west side across a ten-cell apron,
+  with its own road out to the corridor (behind the line's crossing where the
+  base has no room), raised at setup rather than laid as a map piece:
+  a square cleared of its trees, ringed with sandbags,
+  a gun on each corner, clear of the landing field, the base's berths and the
+  air base (`cordon-nouns.md`, Camp).
+- **The air base.** The allies' airbase lot (`mapgen-nouns.md`, airbase lot),
+  a field: a strip, three berths and two sheds, room for the wing's four
+  airframes, where a station's sixty cells would crowd the rear hamlets. It is
+  an `Airfield` piece held from before the places grow, so nothing grows onto
+  it, in the rear corner on the side away from the front's installation, four
+  cells in from the rear edge and six from the side, clear across the rear
+  from the relief corridor and the landing field. Its strip lies along the edge
+  toward the front. It is allied (`LandingPad.Purpose.ALLIED_AIRFIELD`): no
+  compound for the swarm to take, and no pad the company lands on
+  (`cordon-nouns.md`, Air base).
 - **Observation.** A sandbagged post forward of the line on each side's high
   point; in a city, the biggest building in front of each flank redoubt.
 
@@ -81,6 +98,23 @@ reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
 | Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets, the boulevard before a back street |
 | Set pieces | Farmstead, posts in sandbag rings, eruption site in open ground | As rural | A tenement, posts in the biggest buildings, a cleared lot |
 | Base | A fenced yard on the main road | A fenced yard on the main road, or the town's goods yard | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
+
+### The cut-off town's warren
+
+On a town world the Road's compound stands in its town, not in open bloom
+(owner, 2026-10-31: non-clear lines of sight are what make the ravs hard, and
+the player has to choose which alleys to cover), and reads as a district,
+not a carpet of buildings round the objective (owner, the same day).
+`CordonTownWarren` paves a few streets out of the front and east posterns,
+jogging and meeting at Ts and offset crossings so none is a long firing lane,
+with a link west to the colony's streets; buildings front both sides of each
+street with gaps of one to three cells and now and then an empty lot, and
+the blocks behind are filled more thinly, with yards. The streets are the
+swarm's avenues, the alleys its side ways. A six-cell ring round the wall stays
+open for the gates and posterns; nothing stands on road, held ground or the
+redoubts' line, and each town bore's band keeps a small square open, where the
+bore finds its site. Open country
+and a city keep the ground they grew.
 
 ## The beats' set pieces
 

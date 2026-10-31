@@ -81,7 +81,10 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways way
      */
     public List<Site> planSites() {
         List<Site> out = new ArrayList<>();
-        for (Piece piece : pieces) if (piece instanceof Site site) out.add(site);
+        for (Piece piece : pieces) {
+            if (piece instanceof Site site) out.add(site);
+            else if (piece instanceof Airfield airfield) out.add(airfield.reservation());
+        }
         return out;
     }
 

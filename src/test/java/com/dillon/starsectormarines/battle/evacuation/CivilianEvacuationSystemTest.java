@@ -399,6 +399,46 @@ class CivilianEvacuationSystemTest {
                 "an overrun holdout's people leave the cohort");
     }
 
+    @Test
+    void aRallyHandsTheWholeGroupToAnotherEscortAndHoldsPastTheLeash() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 311L);
+        assertNotNull(payload);
+        long first = sim.spawn(new EntitySpec("first", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        // Two people beside the first escort, away from the lift; the second escort across the map, past the leash.
+        int[] far = farCorner(payload.placement);
+        int inward = far[0] < 13 ? 1 : -1;
+        long a = payload.entityId(0), b = payload.entityId(1);
+        sim.world().setCellPos(a, far[0], far[1]);
+        sim.world().setCellPos(b, far[0], far[1] + (far[1] < 11 ? 1 : -1));
+        sim.world().setCellPos(first, far[0] + inward, far[1]);
+        long second = sim.spawn(new EntitySpec("second", Faction.MARINE, UnitType.MARINE,
+                far[0] + inward * (CivilianEvacuationSystem.FOLLOW_LEASH + 4), far[1]));
+        long swarm = sim.spawn(new EntitySpec("rav", Faction.DEFENDER, UnitType.MARINE, 13, 1));
+        sim.clearPath(a);
+        sim.clearPath(b);
+        sim.advance(BattleSimulation.TICK_DT);
+        List<Long> group = sim.civilianRallyGroup(a);
+        assertTrue(group.contains(a) && group.contains(b), "both follow the first escort: " + group);
+
+        assertEquals(0, sim.rallyCivilians(a, swarm), "a rally is only to the company's own");
+        assertEquals(group.size(), sim.rallyCivilians(a, second));
+        sim.world().setCellPos(swarm, 13, 21);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        for (long civilian : new long[]{a, b}) {
+            int[] path = sim.movement().path(civilian);
+            assertFalse(Paths.isEmpty(path), "a rallied civilian walks to its new escort past the leash");
+            assertTrue(Math.abs(Paths.destX(path) - sim.world().cellX(second)) <= 1,
+                    "it walks to the new escort, not the one beside it");
+        }
+    }
+
     /** A cell in the grid corner farthest from the lift, clear of the shelter. */
     private static int[] farCorner(CivilianEvacuationPlacement placement) {
         return new int[]{placement.liftX < 13 ? 23 : 2, placement.liftY < 11 ? 19 : 2};

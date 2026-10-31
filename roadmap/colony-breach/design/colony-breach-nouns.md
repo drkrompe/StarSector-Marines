@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-31 — the player rallies a civilian's group to a squad, mech or vehicle: click the civilian, right-click the force. Earlier: the shelter's compound gains two yard flak and an outer fence on the three sides away from its main gate. Earlier: holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
+
 Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
@@ -301,8 +303,9 @@ map's short side, past which the seed decides), clear of the landing pads and
 with a walk to the lift. Each fireteam holds its building's held place under
 garrison authority, so it mans the building's windows and doors the way any
 held building is manned; a holdout with works adds a second team on its
-firing step (see *Redoubt*). The compound's guns stand beside its gates,
-and a holdout with works has its heavy gun just inside its gate; of the posts
+firing step (see *Redoubt*). The compound's guns stand beside its gates and in
+its corner towers, with a held Locust in its yard, and a holdout with works has
+its heavy gun just inside its gate and more in its corners; of the posts
 without, two keep a working
 heavy-machine-gun emplacement outside the door. Two posts have a parked militia
 technical. Placed hardware stands on open ground away from the cohort's walk to
@@ -392,6 +395,20 @@ berth's reach and more off the berths (`CivilianEvacuationPlacement`,
 `CORDON_FIELD_CLEARANCE`); where no such site exists it falls back to the
 nearest clear site on the field, then to the farthest reachable site. Land in
 the fields, fight in to the redoubts, bring the survivors back out.
+
+**Rally** (owner, 2026-10-31: the player never moves the people, only says
+whom they follow). A plain click on a walking civilian selects it (a box never
+does) and rings its **group** in yellow, a neutral selection apart from the
+company's green and amber, its own ring bolder, each member tethered by a
+yellow dotted line to the body it follows (an attached mech's tether to its
+squad is the same dotted line in green): everyone following the same squad or vehicle,
+or, for one following nobody, the unattached people within six cells of it. A
+right click on one of the company's squads, mechs or vehicles then hands the
+whole group to it, pulling them off whatever squad or mech they were with. A
+rallied group keeps its escort at any distance while it lives, ahead of the
+commander's named escorts, walking to it across the map if need be; a
+vehicle's followers stand clear of its hull. A right click on open ground does
+nothing (`CivilianEvacuationSystem.rally`).
 
 **Evac cordon** (owner, 2026-10-28: "an allied evac cordon which the player
 needs to get the survivors back to"). The militia line and the mech standing
@@ -487,7 +504,14 @@ drawn in to the kerb with no yard at all. The works are:
 - the **firing step**, one course of sandbag just inside the barricade all the
   way round, which is a fighting-position run;
 - one **gate**, on the side toward the lift, the way relief comes in and the
-  people walk out, with the post's heavy gun just inside it beside the lane.
+  people walk out, with the post's heavy gun just inside it beside the lane;
+- **corner guns** (owner, 2026-10-31): a heavy machine gun in a corner of the
+  firing step, in place of its bag, behind the barricade's corner. A **light**
+  holdout has one, in the corner diagonal from its gate, so with its gate gun
+  it has two guns. A **heavy** holdout has two, that corner and the far side's
+  other one, so three guns. The holdout nearest a planned bore is the heavy one
+  (`ColonyRedoubts.heavyHoldout`); the rest are light. A corner with no open
+  ground has no gun, and a holdout without works has none.
 
 The works are the ordinary pieces with their ordinary rules: fence, crates and
 sandbag are destructible cover props, so a charge, a shell, a dozer or a Brute
@@ -631,13 +655,36 @@ militia make the rest of it when the battle is set up:
 - a **gun tower** beside each gate: a heavy machine gun on the line of the
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
-  other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
-  answer Harriers and meet the flier law (*Laws*);
+  other flank, so it always has two. No layers and no bunkers. Its heavy
+  machine guns track fliers, so they answer Harriers and meet the flier law
+  (*Laws*);
+- a heavy machine gun in each **corner tower** (owner, 2026-10-31): the gun on
+  the wall's corner, the tower round it slit so it sees out along both faces.
+  Only the shelter's compound arms its corners; a Cordon field redoubt dressed
+  the same way keeps them solid;
+- the **held Locust** (owner, 2026-10-31), rocket artillery on the open yard
+  cell nearest the yard's middle with room round it. It holds fire until a
+  bore first grows a tier: by then the colony outside is going and the guns
+  open on the approaches (`ColonyBreachSequence.holdBatteryUntilBoresGrow`).
+  Its minimum range keeps it off the compound itself;
+- two **yard flak** (owner, 2026-10-31), the dual flak a tender builds, on the
+  next open yard cells with room round them, six cells from the Locust and
+  each other: they track Harriers and still fire on the ground;
+- the **outer fence** (owner, 2026-10-31: it buys time against Brutes
+  breaking through), industrial fence three cells out from the wall on the
+  three sides away from the main gate; the gate's side, the way relief comes
+  in, is left open. It stands only on open ground, never along a street's
+  asphalt, and leaves a gap two cells either side of any way in through the
+  wall, so no gate or door is shut. It is a barricade the swarm assaults and
+  works ground, as a holdout's barricade is (`CivilDefenceCompound.fence`);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
   sandbag step, which is what tells it apart from a holdout's works;
+- two **interior teams** (owner, 2026-10-31, so the compound holds longer): a
+  **yard team** holding the compound's ground round the Locust, and a **hall
+  team** holding the shelter hall and manning its windows. They stay when the
+  wall team falls back;
 - **floodlights** on tripods inside the corners and the gates, facing out.
 
 The ground the wall and its yard cover is the main redoubt's ground. The wall
@@ -1142,8 +1189,10 @@ through, made into a thing on the map the company can find and kill.
   for one by the rule below, the spire's root digs out and thickens over ten
   seconds and the spire rises at its end in a burst of creep, as a colony does
   (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
-  every colonist kept from it is a spire that never grows. A bore raises one
-  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  every colonist kept from it is a spire that never grows. The Burn's young
+  bores raise theirs on reaching maw, fed or not, and half as far from other
+  spires (`heart-nouns.md`, Young bore).
+  A bore raises one spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
   look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
@@ -1621,7 +1670,13 @@ not read in a soft shadow at play zoom.
        carrier's load does and counts the same (a Runner is recycled, a
        colonist delivered). So Runners stay in the fight and the dead in front
        of a nest still go home; killing haulers starves the bore. A skitterer
-       never seizes a kill (it makes none) and is never a scavenger.
+       never seizes a kill (it makes none) and is never a scavenger. The haul
+       is shared out, because bodies lie where the fighting is and haulers die
+       there: about a third of a bore's brood hauls at once (never none), and
+       the rest go on down this list; the swarm's own dead, worth little, are
+       fetched only from the nearer half of the range; and a body a skitterer
+       fled from is left for fifteen seconds, so a body in the open does not
+       draw the nest in one at a time (`battle.swarm.haulShare`).
     3. **Repair.** A structure of its nest below nine tenths of its structure:
        its bore, a spore colony or outpost of the bore, a ground colony the bore
        grew, or the bore's brood spire. It crawls onto the body and restores
@@ -1817,7 +1872,12 @@ against its own control in `renderEvidence`.
   trees under it die at once and the roofs it stands under cave in
   (`CreepRoofCollapse.matureOn`), as weeks under it would have brought them
   down. Nothing else about the field changes. The heart's country is grown this
-  way too (`heart-nouns.md`).
+  way too (`heart-nouns.md`). Ground may be **held** while it matures (the
+  Road's town, `cordon-nouns.md`, The map): no source grows it at setup, and
+  each source that met it retakes it through its **regrowth**, a second search
+  from its mouth over held ground at a quarter of its pace (`HELD_PACE`), fed
+  when it is fed and never past its own reach; a source declared later grows
+  over held ground as over any other.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -2457,6 +2517,19 @@ the things close, cry out when seized, thrown or hurt, and grieve when someone
 near them dies. Colonists outside any squad share one voice channel with the
 colonists on their patch of ground, so a fleeing crowd is a few screams, not one
 each. The enemy's soldiers do not bark.
+**Against people and machines too** (owner, 2026-10-31). The same voices bark in
+any battle, not only against the Rav, with calls of their own for the enemy's
+fighters the player can see: a contact of its own as enemy infantry close on a
+squad that was clear (at gunfire range, not claw range), drones called the same
+way, taking fire when enemy rounds land on a squad after a quiet spell, a turret
+warning when an emplacement fires them, frag out from a marine throwing a grenade
+and a shouted warning from the one nearest where an enemy's will land, and a
+warning the first time each mech, machine frame or vehicle is seen near the line.
+Reloads and man down count the enemy as they count the Rav; a wound by fire draws
+the thrown cries, held for the squad and spaced so a firefight is not all cries;
+an enemy fighter dying near the line draws a marine's kill, never the militia's,
+whose kill lines are for bugs. The militia speak as frightened civilians with
+rifles, with no soldier's jargon; colonists keep to fear and pain.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

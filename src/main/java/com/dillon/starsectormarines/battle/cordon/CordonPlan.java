@@ -1,12 +1,15 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
@@ -89,9 +92,34 @@ public final class CordonPlan {
     static final float BASE_X1 = 0.62f;
     static final float BASE_NEAR = 0.04f;
     static final float BASE_FAR = 0.26f;
+    /**
+     * The allies' air base's name ({@code cordon-nouns.md}, Air base): a field lot of its own in a corner of the rear,
+     * on the side away from the front's installation, its strip along the edge toward the front.
+     */
+    public static final String AIR_BASE_PLACE = "air-base";
+    /**
+     * Cells from the rear edge, and from the near side edge, to the air base's reservation: a rear corner, behind the
+     * hamlets' ground and far across from the relief corridor, which leaves the rear edge behind the logistics base.
+     */
+    static final int AIR_BASE_REAR = 4, AIR_BASE_SIDE = 6;
     /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
     private static final int BASE_GATES = 2;
     private static final int BASE_FENCE_HP = 60;
+    /**
+     * The town compound's truck yard on the Road ({@code cordon-nouns.md}, Cut-off town): its rear gate, where the
+     * corridor comes in, nine cells wide (at most ten, or the wall reading takes the gap for no gate), and inside it
+     * a yard thirteen along the wall by nine deep, room for a truck three wide to drive in, turn and stand to load,
+     * with seven cells of open ground beside it for the people waiting to board. Untuned.
+     */
+    static final int YARD_GATE = 9, YARD_DEPTH = 9, YARD_BREADTH = 13, YARD_STAGING = 7;
+    /**
+     * Ways into the Road's town compound: the trucks' rear gate, the gates its own roads leave by, and a postern each
+     * in its east side and its front for people (owner, 2026-10-31: more doors for the swarm and more for the company
+     * to defend). Only the rear gate is the convoys'.
+     */
+    static final int TOWN_GATES = 5;
+    /** The layout's name for the town built up round the compound ({@link CordonTownWarren}). */
+    static final String TOWN_WARREN = "town-warren";
     private static final long SEED_SALT = 0x434F52444F4E504CL;
     /** The rear's side, its own splittable draw (see {@code BattleSetup.colonyPlanFor}). */
     private static final long REAR_SIDE_SALT = 0x5245415253494445L;
@@ -196,13 +224,17 @@ public final class CordonPlan {
                 REDOUBT_GROWTH, FortressProgram.logisticsBase(),
                 new Fortification(BASE_GATES, BASE_FENCE_HP).laidSquare()));
         if (variant == CordonVariant.ROAD) {
-            // The colony's people are still in its compound, on the town's near side where the road comes in.
+            // The colony's people are still in its compound, on the town's near side where the road comes in; the
+            // convoys drive in through its rear gate to a yard inside it.
+            Side rear = south ? Side.SOUTH : Side.NORTH;
             places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE, band(south, 0.42f, 0.58f, 0.6f, 0.7f),
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
-                    new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
+                    new Fortification(TOWN_GATES, CivilDefenceCompound.WALL_HP).laidSquare()
+                            .withYard(new Fortification.GateYard(rear, YARD_GATE, YARD_DEPTH, YARD_BREADTH,
+                                    YARD_STAGING).withPosterns(Side.EAST, rear.opposite()))));
         }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
-                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant));
+                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant, width, height, installationEast));
         if (!density.ridge) return plan;
         List<int[]> seeds = new ArrayList<>();
         for (Precinct r : redoubts(plan)) seeds.add(new int[]{r.seedX(), r.seedY(), r.seedX(), r.seedY()});
@@ -213,6 +245,21 @@ public final class CordonPlan {
         Landscape landscape = density == Density.RURAL ? plan.landscape().withHeld(held)
                 : plan.landscape().withUnploughed(held);
         return plan.withLandscape(landscape.withKept(crestGround(seeds)));
+    }
+
+    /**
+     * The allies' air base ({@code cordon-nouns.md}, Air base): an allied {@link AirbaseLot.Size#FIELD} lot (a strip,
+     * three berths, two sheds: room for the wing's four airframes, where a station's sixty cells would crowd the rear
+     * hamlets), held from before the places grow, in the rear corner on the side away from the front's installation,
+     * its strip along the edge toward the front.
+     */
+    static Airfield airBase(boolean rearSouth, boolean installationEast, int width, int height) {
+        AirbaseLot.Facing facing = rearSouth ? AirbaseLot.Facing.NORTH : AirbaseLot.Facing.SOUTH;
+        AirbaseLot.Size size = AirbaseLot.Size.FIELD;
+        int spanX = AirbaseLot.reservedSpanX(size, facing), spanY = AirbaseLot.reservedSpanY(size, facing);
+        int x0 = installationEast ? AIR_BASE_SIDE : width - AIR_BASE_SIDE - spanX;
+        int y0 = rearSouth ? AIR_BASE_REAR : height - AIR_BASE_REAR - spanY;
+        return new Airfield(AIR_BASE_PLACE, x0, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
     }
 
     /**
@@ -374,10 +421,13 @@ public final class CordonPlan {
      * front, a switch line behind the middle, and the open ground a bore may
      * erupt on behind the line.
      */
-    static MissionLayout layout(boolean south, Density density, CordonVariant variant) {
+    static MissionLayout layout(boolean south, Density density, CordonVariant variant, int width, int height,
+                                boolean installationEast) {
         int[] front = {0, south ? 1 : -1};
         Side toward = south ? Side.NORTH : Side.SOUTH;
         List<Piece> pieces = new ArrayList<>();
+        // The allies' air base, held before anything grows.
+        pieces.add(airBase(south, installationEast, width, height));
         List<Piece> supply = new ArrayList<>();
         for (int n = 1; n <= REDOUBTS; n++) {
             supply.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),
@@ -407,6 +457,12 @@ public final class CordonPlan {
         pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south, city), false));
         if (variant == CordonVariant.ROAD) {
             pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
+        }
+        if (variant == CordonVariant.ROAD && density == Density.TOWN) {
+            // A town world's town round the compound's east side and front, built up so the swarm comes at it
+            // through alleys; open country and a city keep the ground they grew.
+            pieces.add(new Deferred(TOWN_WARREN, Phase.STRUCTURES, ground -> CordonTownWarren.structures(ground, front[1]),
+                    false));
         }
         if (density.ridge) pieces.add(new Deferred(RIDGE, Phase.WORKS, ground -> ridge(ground, front), false));
         pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));
