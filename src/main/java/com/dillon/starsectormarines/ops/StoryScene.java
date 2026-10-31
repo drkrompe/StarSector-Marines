@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
-import com.dillon.starsectormarines.ops.mission.story.VeteransJobStory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,7 +80,6 @@ enum StoryScene {
                 case THE_BURN, BROAD_FRONT -> WELLHOLLOW_HEART;
             };
             if(ShepherdRecoveryCampaign.owns(id))return ShepherdRecoveryProgress.workingPassage(id)?WORKING_PASSAGE:ShepherdRecoveryProgress.coldStart(id)?COLD_START:SALVAGE_RIGHTS;
-            if (VeteransJobStory.ID.equals(id)) return VETERANS_JOB;
             var corvus = CorvusWaylineProgress.forMission(id);
             if (corvus != null) return switch (corvus) {
                 case DUST_LEDGER -> DUST_LEDGER;

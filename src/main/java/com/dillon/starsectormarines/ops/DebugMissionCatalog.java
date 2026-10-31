@@ -67,7 +67,7 @@ public final class DebugMissionCatalog {
         DEPOT_CLEARANCE("Repeatable work", "Depot Clearance", "Clear the depot without the story Hound or warehouse counterattacks.", 1, false),
         CREW_RECOVERY("Shelved concepts", "Crew Recovery concept", "Detached rescue variation; no campaign posting.", 2, true),
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
-        VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
+        VETERANS_JOB("Shelved concepts", "Broker's Cache concept", "Raid the broker's cache and extract; no campaign posting.", 3, false),
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
         SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", WorkingShipCompany.SQUADS, false),
         COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", WorkingShipCompany.SQUADS, false),
@@ -212,7 +212,7 @@ public final class DebugMissionCatalog {
                 case COLD_ACCOUNT -> "Corvus Account 3 of 3 / After Warion 01";
                 case CREW_RECOVERY -> "Detached rescue variation / No campaign posting";
                 case MILITIA_RELIEF, DEPOT_CLEARANCE, ROUTE_SECURITY -> "Repeatable work / Outside the numbered story sequence";
-                case VETERANS_JOB -> "Standalone story / Location varies in campaign";
+                case VETERANS_JOB -> "Retired story raid / No campaign posting";
                 case SILENT_COLONY -> "Campaign event / Location varies in campaign";
                 case SALVAGE_RIGHTS -> "A Working Ship 1 of 3 / After Garnir 01";
                 case COLD_START -> "A Working Ship 2 of 3 / After Asharu 02";

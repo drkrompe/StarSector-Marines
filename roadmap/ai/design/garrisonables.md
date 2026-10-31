@@ -374,7 +374,7 @@ deliberate: a building is manned in answer to threat or by order, by the same
 law as a trench. Every story map publishes them through `HeldPlaces`: authored
 maps with a garrison layout keep their garrison nodes and add held places only
 for the buildings those nodes do not already stand on, fort maps included. Procedural cities add them at setup: Silent Colony and civilian rescue civilian-held, Assault, Sabotage,
-Raid (the Veteran's Job included) and Extraction defender-held, keeping their garrison nodes. A held place nobody is
+Raid (the Broker's Cache concept included) and Extraction defender-held, keeping their garrison nodes. A held place nobody is
 posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender allocation, the assault
 commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
 no buildings (Missile AA) has none. The first consumer is the player's occupy
@@ -464,7 +464,7 @@ fun of these missions is the target network holding out from its buildings.
   read as before. `-Dbattle.mission.reactiveDefence=false` is the control and
   plays the battle as it was.
 
-The Veteran's Job and Cold Account run these commanders and inherit it, and so
+The Broker's Cache concept and Cold Account run these commanders and inherit it, and so
 does Last Lift, whose defender is the Extraction commander. The bespoke story
 commanders come in through their own seam (story commanders, below).
 

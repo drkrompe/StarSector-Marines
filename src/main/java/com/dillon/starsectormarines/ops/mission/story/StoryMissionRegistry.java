@@ -29,8 +29,7 @@ public final class StoryMissionRegistry {
             new OpeningOperationStory(OpeningOperationKind.RELIEF),
             new OpeningOperationStory(OpeningOperationKind.COUNTERATTACK),
             new RecurringMilitiaWork(OpeningOperationKind.RELIEF),
-            new RecurringMilitiaWork(OpeningOperationKind.COUNTERATTACK),
-            new VeteransJobStory()
+            new RecurringMilitiaWork(OpeningOperationKind.COUNTERATTACK)
     );
 
     private StoryMissionRegistry() {}

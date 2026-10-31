@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
-import com.dillon.starsectormarines.ops.mission.story.VeteransJobStory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -14,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StorySceneTest {
     static Mission campaign(DebugMissionCatalog.Scenario scenario) {
-        if (scenario == DebugMissionCatalog.Scenario.LAST_LIFT || scenario == DebugMissionCatalog.Scenario.CREW_RECOVERY || scenario == DebugMissionCatalog.Scenario.MISSILE_AA)
+        if (scenario == DebugMissionCatalog.Scenario.LAST_LIFT || scenario == DebugMissionCatalog.Scenario.CREW_RECOVERY || scenario == DebugMissionCatalog.Scenario.MISSILE_AA
+                || scenario == DebugMissionCatalog.Scenario.VETERANS_JOB)
             return scenario.mission();
         String route = BrokenSupplyRouteProgress.PREFIX;
         String id = switch (scenario) {
@@ -32,7 +32,7 @@ class StorySceneTest {
             case DEPOT_CLEARANCE -> OpeningOperationKind.COUNTERATTACK.recurringId;
             case CREW_RECOVERY -> route + "2_4_3";
             case ROUTE_SECURITY -> route + "3_7_2";
-            case VETERANS_JOB -> VeteransJobStory.ID;
+            case VETERANS_JOB -> throw new IllegalArgumentException("Shelved concept; no campaign id");
             case SILENT_COLONY -> SilentColonyMissionKey.encode(42);
             case SALVAGE_RIGHTS -> "basin_salvage_v1_1";
             case COLD_START -> "basin_cold_start_v1_2";
