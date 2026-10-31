@@ -525,7 +525,7 @@ public final class VehicleControlSystem {
 
         float cdx = carrot.x - body.x, cdy = carrot.y - body.y;
         float carrotBearing = AirBody.facingToward(cdx, cdy);
-        float alpha = ((carrotBearing - body.facingDegrees + 540f) % 360f) - 180f;
+        float alpha = VehicleController.offNoseDegrees(carrotBearing, body.facingDegrees);
         if (Math.abs(alpha) > 90f) {
             targetSpeed = -targetSpeed * 0.5f;
         }
@@ -1214,6 +1214,8 @@ public final class VehicleControlSystem {
     private static void applyPose(GroundBody body, Pose pose) {
         body.x = pose.x;
         body.y = pose.y;
-        body.facingDegrees = pose.facingDeg;
+        // A Reeds-Shepp manoeuvre samples heading from its start and a sweep keeps its start's frame, so a published
+        // pose can carry a heading a whole turn or more out; folded, every reader's wrap of it stays right.
+        body.facingDegrees = GroundBody.foldFacing(pose.facingDeg);
     }
 }
