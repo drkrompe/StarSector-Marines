@@ -29,9 +29,16 @@ public final class LayoutGround {
     private final boolean[][] roads, roadCells;
     private final int[][] roadOwner, claim;
     private int[][] bounds;
+    /** The ways' keeping when stated outright (a unit's own ground); {@code null} to read the plan's layout. */
+    private final MissionLayout.Ways stated;
 
     public LayoutGround(GenContext ctx) {
+        this(ctx, null);
+    }
+
+    LayoutGround(GenContext ctx, MissionLayout.Ways ways) {
         this.ctx = ctx;
+        this.stated = ways;
         this.roads = ctx.get(BspKeys.ROAD_RESERVATION);
         this.roadCells = ctx.get(BspKeys.ROAD_CELLS);
         this.roadOwner = ctx.get(BspKeys.PRECINCT_ROAD);
@@ -128,6 +135,80 @@ public final class LayoutGround {
         if (plan == null) return false;
         for (Landscape.Track track : plan.landscape().tracks()) if (track.contains(x, y)) return true;
         return false;
+    }
+
+    /**
+     * Whether columns move on the cell: a road (not the map's own edge), a country or farm road of the surveyed
+     * farmland, or a landscape track (a lane's). A farm track between plots is a way but not a column's.
+     */
+    public boolean isColumnWay(int x, int y) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        boolean edge = x < EDGE || y < EDGE || x >= ctx.width - EDGE || y >= ctx.height - EDGE;
+        if (!edge && isRoad(x, y)) return true;
+        RuralLayout rural = rural();
+        if (rural != null && rural.carriesTraffic(x, y)) return true;
+        PrecinctPlan plan = plan();
+        if (plan == null) return false;
+        for (Landscape.Track track : plan.landscape().tracks()) if (track.contains(x, y)) return true;
+        return false;
+    }
+
+    /** Rows and columns at the map's edge whose road cells are the network's border, not a way anyone drives. */
+    static final int EDGE = 2;
+
+    /**
+     * Whether the cell lies within the layout's column band of a column way ({@link MissionLayout.Ways#columnBand},
+     * {@link #isColumnWay}), the way itself included: ground kept clear so a column forms up and drives past.
+     * Always false for a layout that keeps no band.
+     */
+    public boolean inColumnClearance(int x, int y) {
+        int band = ways().columnBand();
+        if (band <= 0 || x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        if (columnClear == null) columnClear = columnClearance(band);
+        return columnClear[x][y];
+    }
+
+    private boolean[][] columnClear;
+
+    private boolean[][] columnClearance(int band) {
+        int w = ctx.width, h = ctx.height;
+        boolean[][] way = new boolean[w][h];
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) way[x][y] = isColumnWay(x, y);
+        // Chebyshev dilation by the band, separably: along x, then along y.
+        boolean[][] across = new boolean[w][h];
+        for (int y = 0; y < h; y++) {
+            int last = Integer.MIN_VALUE / 2;
+            for (int x = 0; x < w; x++) {
+                if (way[x][y]) last = x;
+                if (x - last <= band) across[x][y] = true;
+            }
+            last = Integer.MAX_VALUE / 2;
+            for (int x = w - 1; x >= 0; x--) {
+                if (way[x][y]) last = x;
+                if (last - x <= band) across[x][y] = true;
+            }
+        }
+        boolean[][] out = new boolean[w][h];
+        for (int x = 0; x < w; x++) {
+            int last = Integer.MIN_VALUE / 2;
+            for (int y = 0; y < h; y++) {
+                if (across[x][y]) last = y;
+                if (y - last <= band) out[x][y] = true;
+            }
+            last = Integer.MAX_VALUE / 2;
+            for (int y = h - 1; y >= 0; y--) {
+                if (across[x][y]) last = y;
+                if (last - y <= band) out[x][y] = true;
+            }
+        }
+        return out;
+    }
+
+    /** How the layout keeps the map's ways ({@link MissionLayout.Ways}); {@link MissionLayout.Ways#NONE} without one. */
+    public MissionLayout.Ways ways() {
+        if (stated != null) return stated;
+        PrecinctPlan plan = plan();
+        return plan == null ? MissionLayout.Ways.NONE : plan.layout().ways();
     }
 
     /** The plan the map is laid out from (its places where they were pinned). */

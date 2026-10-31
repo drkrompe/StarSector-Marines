@@ -17,8 +17,20 @@ import java.util.Set;
  *
  * <p>{@code placed} are structures a person put down for one map (a story map's patch): a deferred piece that resolves
  * a structure of the same name takes the placed one instead of searching ({@link #placed(String)}).
+ *
+ * <p>{@code ways} is how the layout treats the map's ways ({@link Ways}).
  */
-public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
+public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways ways) {
+
+    /**
+     * How a layout keeps its ways clear. {@code columnBand}: cells either side of a column way (a road, a country or
+     * farm road, a landscape track: {@link LayoutGround#inColumnClearance}) that siting keeps every structure off,
+     * so columns form up and drive past; 0 for none. {@code worksBreakAtWays}: a line of works breaks at every way,
+     * the farmland's and landscape's tracks as well as roads, rather than at roads alone.
+     */
+    public record Ways(int columnBand, boolean worksBreakAtWays) {
+        public static final Ways NONE = new Ways(0, false);
+    }
 
     /** The layout of every map that states none. */
     public static final MissionLayout NONE = new MissionLayout(List.of());
@@ -26,6 +38,7 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
     public MissionLayout {
         pieces = pieces == null ? List.of() : List.copyOf(pieces);
         placed = placed == null ? List.of() : List.copyOf(placed);
+        ways = ways == null ? Ways.NONE : ways;
         Set<String> names = new HashSet<>();
         for (Piece piece : pieces) {
             if (!names.add(piece.name())) throw new IllegalArgumentException("layout piece named twice: " + piece.name());
@@ -37,7 +50,16 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
     }
 
     public MissionLayout(List<Piece> pieces) {
-        this(pieces, List.of());
+        this(pieces, List.of(), Ways.NONE);
+    }
+
+    public MissionLayout(List<Piece> pieces, List<Structure> placed) {
+        this(pieces, placed, Ways.NONE);
+    }
+
+    /** The same layout keeping its ways as {@code ways} says. */
+    public MissionLayout withWays(Ways ways) {
+        return new MissionLayout(pieces, placed, ways);
     }
 
     public boolean isEmpty() { return pieces.isEmpty(); }
@@ -50,7 +72,7 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
 
     /** The same layout with these structures placed by hand. */
     public MissionLayout withPlaced(List<Structure> structures) {
-        return new MissionLayout(pieces, structures);
+        return new MissionLayout(pieces, structures, ways);
     }
 
     /**
@@ -99,6 +121,6 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed) {
             }
         }
         if (!found) throw new IllegalArgumentException("the layout has no piece " + name);
-        return new MissionLayout(out, placed);
+        return new MissionLayout(out, placed, ways);
     }
 }

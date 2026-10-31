@@ -291,7 +291,7 @@ public final class CordonSetup {
         if (drop.isEmpty()) return map;
         List<Laid> laid = new ArrayList<>(map.layout.pieces());
         for (String name : drop) laid.add(Laid.refused(name, Laid.Kind.ROAD, false, "left out: with it, " + why));
-        return map.withLayout(new LaidLayout(laid));
+        return map.withLayout(new LaidLayout(laid, map.layout == null ? null : map.layout.onWays()));
     }
 
     /**

@@ -7,7 +7,7 @@ and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
+Updated: 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -144,7 +144,14 @@ cannot disagree:
   edge-aware clearance mask the convoys lay their routes on, so a fence or low
   wall along a cell edge that would stop a hull fails the map rather than
   jamming a carrier or a truck in play.
-- **Heart**: the bores seat (`HeartBores.plan`).
+- **Heart**: the bores seat (`HeartBores.plan`), and nothing the layout laid
+  stands on a way in the start-side third (`LaidLayout.onWays`, cells of
+  structures and works on a road, farm track or lane track, read off at depth
+  0.34, where the creep has not reached).
+
+Every Heart and Cordon row's detail carries that reading, `on roads N
+start-side [piece cells], M deeper [...]`; deeper cells, and every Cordon
+cell, are reported without failing the map.
 
 and the battle then stands up on it (the patch applied).
 

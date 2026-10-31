@@ -8,9 +8,11 @@ import java.util.List;
  * ({@code mission-layout.md}, Structure). Mission-neutral: a mission names the ground it wants a field on and what to
  * keep clear, and gets back the field and its hamlet as ordinary structures.
  *
- * <p>The rules. A field never stands on a way (a road or a farm track) and never cuts one. It stands beside one: the
- * gate in its fence on the apron side (the side away from its strip), or failing that on one of its short sides, opens
- * onto a way within {@link #ACCESS_REACH} cells, and a short access track joins them ({@link #access}). It stands on
+ * <p>The rules. A field never stands on a way (a road or a farm track) and never cuts one, and neither it nor its
+ * hamlet stands in the layout's column clearance ({@link LayoutGround#inColumnClearance}). It stands beside a way: the
+ * gate in its fence on the apron side (the side away from its strip), or failing that on one of its short sides or by
+ * a dogleg from the apron gate, opens onto a way off the clearance, and a short access track joins them
+ * ({@link #access}). It stands on
  * ground nobody farms where there is any, and as near the ground the mission wanted as those allow. Its strip runs
  * along x, so it suits a front across x; it may face either way along y, whichever puts its apron toward the way.
  *
@@ -64,15 +66,15 @@ public final class AirfieldSiting {
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
                 int i = (y - y0 + 1) * cw + (x - x0 + 1);
-                boolean way = ground.isWay(x, y);
+                boolean way = ground.isWay(x, y) || ground.inColumnClearance(x, y);
                 blocked[i] = (way || !open.test(x, y) ? 1 : 0) + blocked[i - 1] + blocked[i - cw] - blocked[i - cw - 1];
                 farmed[i] = (ground.farmed(x, y) ? 1 : 0) + farmed[i - 1] + farmed[i - cw] - farmed[i - cw - 1];
             }
         }
         Structure best = null;
         float bestCost = Float.MAX_VALUE;
-        for (int y = y0; y + h - 1 <= y1; y += 2) {
-            for (int x = x0; x + w - 1 <= x1; x += 2) {
+        for (int y = y0; y + h - 1 <= y1; y++) {
+            for (int x = x0; x + w - 1 <= x1; x++) {
                 if (sum(blocked, cw, x - x0, y - y0, w, h) > 0) continue;
                 float base = FARMED_COST * sum(farmed, cw, x - x0, y - y0, w, h)
                         + DISTANCE_COST * (float) Math.hypot(x + w / 2f - wantX, y + h / 2f - wantY);
@@ -95,19 +97,24 @@ public final class AirfieldSiting {
     }
 
     private static float accessCost(LayoutGround ground, Structure s) {
-        Access apron = gateAccess(ground, s, true);
+        Access apron = gateAccess(ground, s);
         if (apron.reaches()) return ACCESS_COST * apron.track().size() / 3f;
-        Access flank = flankAccess(ground, s);
-        if (flank.reaches()) return FLANK_COST + ACCESS_COST * flank.track().size() / 3f;
+        Access other = sideAccess(ground, s);
+        if (other.reaches()) return FLANK_COST + ACCESS_COST * other.track().size() / 3f;
         return NO_ACCESS_COST;
     }
 
-    /** How {@code field} is reached: its apron gate's track where a way is in reach, else a short side's, else none. */
+    /**
+     * How {@code field} is reached: its apron gate's track straight out where a way is in reach; else the shorter of
+     * a short side's track and a dogleg from the apron gate (out past the fence, along past the field's end, then on
+     * toward the strip's side); else none. No track enters the column clearance ({@link LayoutGround#inColumnClearance}):
+     * a field never joins a column's way where the column forms up, only a way off it.
+     */
     public static Access access(LayoutGround ground, Structure field) {
-        Access apron = gateAccess(ground, field, true);
+        Access apron = gateAccess(ground, field);
         if (apron.reaches()) return apron;
-        Access flank = flankAccess(ground, field);
-        return flank.reaches() ? flank : apron;
+        Access other = sideAccess(ground, field);
+        return other.reaches() ? other : apron;
     }
 
     /** +1 when the field's apron faces north (its strip on the south side), -1 when it faces south. */
@@ -115,41 +122,81 @@ public final class AirfieldSiting {
         return field.turns() == 2 ? 1 : -1;
     }
 
-    private static Access gateAccess(LayoutGround ground, Structure f, boolean apron) {
-        int gx = f.x() + f.width() / 2;
-        int step = apron ? apronStep(f) : -apronStep(f);
+    /** The apron gate's middle row: the fence line across the verge from the footprint's apron edge. */
+    private static int fenceY(Structure f) {
+        return apronStep(f) < 0 ? f.y() + StructureFit.AIRFIELD_VERGE : f.y() + f.height() - 1 - StructureFit.AIRFIELD_VERGE;
+    }
+
+    private static Access gateAccess(LayoutGround ground, Structure f) {
         // From the fence, across the verge, out to the way: the gate is three cells wide, and so is its track.
-        int fence = step < 0 ? f.y() + StructureFit.AIRFIELD_VERGE : f.y() + f.height() - 1 - StructureFit.AIRFIELD_VERGE;
-        return track(ground, gx, fence, 0, step);
-    }
-
-    private static Access flankAccess(LayoutGround ground, Structure f) {
-        // The short sides' gates stand at the field's middle across; only the apron's half of each is worth a track.
-        int gy = f.y() + f.height() / 2;
-        Access west = track(ground, f.x() + StructureFit.AIRFIELD_VERGE, gy, -1, 0);
-        Access east = track(ground, f.x() + f.width() - 1 - StructureFit.AIRFIELD_VERGE, gy, 1, 0);
-        if (!west.reaches()) return east;
-        if (!east.reaches()) return west;
-        return west.track().size() <= east.track().size() ? west : east;
-    }
-
-    /** The track from the gate at {@code (gx, gy)} heading {@code (dx, dy)}: empty when no way is within reach. */
-    private static Access track(LayoutGround ground, int gx, int gy, int dx, int dy) {
+        int gx = f.x() + f.width() / 2, gy = fenceY(f);
         List<int[]> cells = new ArrayList<>();
-        for (int k = 1; k <= ACCESS_REACH + StructureFit.AIRFIELD_VERGE; k++) {
-            int cx = gx + dx * k, cy = gy + dy * k;
+        return leg(ground, cells, gx, gy, 0, apronStep(f), ACCESS_REACH + StructureFit.AIRFIELD_VERGE) == Leg.REACHED
+                ? new Access(gx, gy, cells) : new Access(gx, gy, List.of());
+    }
+
+    /** The shortest of the short sides' straight tracks and the apron gate's two doglegs. */
+    private static Access sideAccess(LayoutGround ground, Structure f) {
+        List<Access> found = new ArrayList<>();
+        int verge = StructureFit.AIRFIELD_VERGE, gy = f.y() + f.height() / 2;
+        for (int side = -1; side <= 1; side += 2) {
+            // A short side's gate stands at the field's middle across.
+            int sx = side < 0 ? f.x() + verge : f.x() + f.width() - 1 - verge;
+            List<int[]> cells = new ArrayList<>();
+            if (leg(ground, cells, sx, gy, side, 0, ACCESS_REACH + verge) == Leg.REACHED) found.add(new Access(sx, gy, cells));
+            found.add(dogleg(ground, f, side));
+        }
+        Access best = new Access(f.x() + f.width() / 2, fenceY(f), List.of());
+        for (Access a : found) {
+            if (a.reaches() && (!best.reaches() || a.track().size() < best.track().size())) best = a;
+        }
+        return best;
+    }
+
+    /** Cells a dogleg runs clear of the footprint before it turns. */
+    static final int DOGLEG_CLEAR = 3;
+
+    /** Out of the apron gate past the footprint, along it toward {@code side} past its end, then back toward the strip. */
+    private static Access dogleg(LayoutGround ground, Structure f, int side) {
+        int step = apronStep(f), gx = f.x() + f.width() / 2, gy = fenceY(f);
+        int outY = step < 0 ? f.y() - 1 - DOGLEG_CLEAR : f.y() + f.height() + DOGLEG_CLEAR;
+        int endX = side < 0 ? f.x() - 1 - DOGLEG_CLEAR : f.x() + f.width() + DOGLEG_CLEAR;
+        List<int[]> cells = new ArrayList<>();
+        Access none = new Access(gx, gy, List.of());
+        Leg out = leg(ground, cells, gx, gy, 0, step, Math.abs(outY - gy));
+        if (out == Leg.REACHED) return new Access(gx, gy, cells);
+        if (out == Leg.BLOCKED) return none;
+        Leg along = leg(ground, cells, gx, outY, side, 0, Math.abs(endX - gx));
+        if (along == Leg.REACHED) return new Access(gx, gy, cells);
+        if (along == Leg.BLOCKED) return none;
+        Leg back = leg(ground, cells, endX, outY, 0, -step, f.height() + 2 * DOGLEG_CLEAR + ACCESS_REACH);
+        return back == Leg.REACHED ? new Access(gx, gy, cells) : none;
+    }
+
+    private enum Leg { REACHED, OPEN, BLOCKED }
+
+    /**
+     * One straight leg of a three-wide track from {@code (x, y)}, {@code n} cells heading {@code (dx, dy)}, its cells
+     * added to {@code cells}: {@code REACHED} at a way, {@code BLOCKED} at ground it cannot cross (unwalkable, or in
+     * the column clearance), else {@code OPEN} at its end.
+     */
+    private static Leg leg(LayoutGround ground, List<int[]> cells, int x, int y, int dx, int dy, int n) {
+        for (int k = 1; k <= n; k++) {
+            int cx = x + dx * k, cy = y + dy * k;
             boolean way = false, blocked = false;
             for (int o = -1; o <= 1; o++) {
-                int x = dx == 0 ? cx + o : cx, y = dx == 0 ? cy : cy + o;
-                if (ground.isWay(x, y)) way = true;
-                else if (!ground.walkable(x, y)) blocked = true;
+                int ox = dx == 0 ? cx + o : cx, oy = dx == 0 ? cy : cy + o;
+                if (ground.inColumnClearance(ox, oy)) blocked = true;
+                else if (ground.isWay(ox, oy)) way = true;
+                else if (!ground.walkable(ox, oy)) blocked = true;
             }
-            if (way) return new Access(gx, gy, cells);
-            if (blocked) break;
+            if (blocked) return Leg.BLOCKED;
+            if (way) return Leg.REACHED;
             for (int o = -1; o <= 1; o++) cells.add(dx == 0 ? new int[]{cx + o, cy} : new int[]{cx, cy + o});
         }
-        return new Access(gx, gy, List.of());
+        return Leg.OPEN;
     }
+
 
     /**
      * The hamlet round {@code field}: up to {@link #HAMLET}'s buildings, named {@code field.name() + ".<n>"}, on cells
@@ -174,7 +221,7 @@ public final class AirfieldSiting {
         for (int[] c : access(ground, field).track()) keep(kept, rx0, ry0, gw, gh, c[0] - 1, c[1] - 1, c[0] + 1, c[1] + 1);
         for (int y = ry0; y <= ry1; y++) {
             for (int x = rx0; x <= rx1; x++) {
-                if (!open.test(x, y) || ground.isWay(x, y) || ground.farmed(x, y)) kept[(y - ry0) * gw + (x - rx0)] = true;
+                if (!open.test(x, y) || ground.isWay(x, y) || ground.inColumnClearance(x, y) || ground.farmed(x, y)) kept[(y - ry0) * gw + (x - rx0)] = true;
                 else if (ground.isWay(x - 1, y) || ground.isWay(x + 1, y) || ground.isWay(x, y - 1) || ground.isWay(x, y + 1)) {
                     kept[(y - ry0) * gw + (x - rx0)] = true;
                 }

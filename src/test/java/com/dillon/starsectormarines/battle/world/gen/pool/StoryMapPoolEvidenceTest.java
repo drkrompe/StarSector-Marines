@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
@@ -31,7 +32,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -78,6 +81,7 @@ class StoryMapPoolEvidenceTest {
             pool.shutdownNow();
         }
     }
+
 
     private record Job(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry, boolean pooled) { }
 
@@ -126,6 +130,9 @@ class StoryMapPoolEvidenceTest {
             if (said && !laid.reason().isEmpty()) works.append(" (").append(laid.reason()).append(')');
         }
         detail += "; layout " + works;
+        boolean south = cordon.plan().attackerFrom().y0() == 0f;
+        int h = cordon.map().grid.getHeight();
+        detail += "; " + onRoads(cordon.map().layout, (x, y) -> south ? y / (float) (h - 1) : 1f - y / (float) (h - 1)).text();
         StringBuilder gaps = new StringBuilder();
         for (CordonGapLaw.Gap gap : CordonSetup.gaps(cordon.map(), cordon.plan())) {
             gaps.append(gaps.length() == 0 ? "" : " ").append(String.format(Locale.ROOT, "%d-%d %.0f%s (towers %.0f)",
@@ -183,6 +190,9 @@ class StoryMapPoolEvidenceTest {
             }
             StringBuilder missing = new StringBuilder();
             String dressing = "none";
+            Form form = BloomHeartSetup.formOf(map);
+            OnRoads roads = onRoads(built.map().layout, form::depth);
+            if (roads.start() > 0) throw new AssertionError("built on roads in the start-side third: " + roads.text());
             for (Laid piece : built.map().layout.pieces()) {
                 pieces++;
                 if (piece.name().equals(HeartLayout.ORIGIN_DRESSING) && piece.isLaid()) dressing = piece.reason();
@@ -199,8 +209,42 @@ class StoryMapPoolEvidenceTest {
                     + "; dressing " + dressing
                     + (BloomHeartSetup.formOf(map) == Form.BROAD_FRONT ? "; airbases " + airbases + " (hamlet buildings " + hamlet + ")" : "")
                     + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
-                    + (missing.length() == 0 ? "" : " (not " + missing + ")");
+                    + (missing.length() == 0 ? "" : " (not " + missing + ")")
+                    + "; " + roads.text();
         }
+    }
+
+    /** Depth from a map's start edge toward its far side, 0 to 1. */
+    private interface Depth {
+        float of(int x, int y);
+    }
+
+    /** Structure and works cells on roads, start-side third and deeper, with the offending pieces named. */
+    private record OnRoads(int start, int deeper, String text) { }
+
+    /** Where structures start being covered by creep and ruin rather than standing on clean ground: about a third in. */
+    static final float CLEAN_DEPTH = 0.34f;
+
+    /**
+     * The reading of "nothing is built on a road" ({@code LaidLayout.onWays}): cells of laid structures and lines of
+     * works on a road, farm track or landscape track, split at {@link #CLEAN_DEPTH}, offenders by piece name.
+     */
+    private static OnRoads onRoads(LaidLayout layout, Depth depth) {
+        int start = 0, deeper = 0;
+        List<String> startNames = new ArrayList<>(), deeperNames = new ArrayList<>();
+        for (Map.Entry<String, List<int[]>> e : new TreeMap<>(layout.onWays()).entrySet()) {
+            int s = 0, d = 0;
+            for (int[] c : e.getValue()) {
+                if (depth.of(c[0], c[1]) < CLEAN_DEPTH) s++;
+                else d++;
+            }
+            if (s > 0) startNames.add(e.getKey() + " " + s);
+            if (d > 0) deeperNames.add(e.getKey() + " " + d);
+            start += s;
+            deeper += d;
+        }
+        return new OnRoads(start, deeper, "on roads " + start + " start-side" + (startNames.isEmpty() ? "" : " " + startNames)
+                + ", " + deeper + " deeper" + (deeperNames.isEmpty() ? "" : " " + deeperNames));
     }
 
     /**

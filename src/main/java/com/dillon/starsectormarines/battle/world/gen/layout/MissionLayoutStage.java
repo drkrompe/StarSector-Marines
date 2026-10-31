@@ -220,7 +220,26 @@ public final class MissionLayoutStage implements GenStage {
         if (closed && ctx.get(BspKeys.TACTICAL_REGIONS) != null) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
-        ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+        ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out, onWays(ground, out)));
+    }
+
+    /** Each laid structure or line of works standing on a way, with the cells it covers there (LaidLayout.onWays). */
+    static Map<String, List<int[]>> onWays(LayoutGround ground, List<Laid> laid) {
+        Map<String, List<int[]>> out = new HashMap<>();
+        for (Laid piece : laid) {
+            if (!piece.isLaid() || piece.cells().isEmpty()) continue;
+            List<int[]> on = new ArrayList<>();
+            if (piece.kind() == Laid.Kind.STRUCTURE && !LayoutStructures.PAVING_REASON.equals(piece.reason())) {
+                int[] a = piece.cells().get(0), b = piece.cells().get(piece.cells().size() - 1);
+                for (int x = a[0]; x <= b[0]; x++) {
+                    for (int y = a[1]; y <= b[1]; y++) if (ground.isWay(x, y)) on.add(new int[]{x, y});
+                }
+            } else if (piece.kind() == Laid.Kind.LINE) {
+                for (int[] c : piece.cells()) if (ground.isWay(c[0], c[1])) on.add(c);
+            }
+            if (!on.isEmpty()) out.put(piece.name(), on);
+        }
+        return out;
     }
 
     /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */
@@ -298,7 +317,7 @@ public final class MissionLayoutStage implements GenStage {
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
         boolean dug = line.style().dug();
-        LineCourse.Course course = LineCourse.plan(line.path(), ground::isRoad, line.roadGap(), line.frontward(),
+        LineCourse.Course course = LineCourse.plan(line.path(), (x, y) -> breaks(ground, x, y), line.roadGap(), line.frontward(),
                 line.style() == LineStyle.TRENCH_WIRE ? line.funnelEvery() : 0,
                 dug ? line.depth() : 1, dug, line.nestEvery());
         int[] front = line.frontward();
@@ -309,7 +328,7 @@ public final class MissionLayoutStage implements GenStage {
             planned += run.size();
             for (int[] c : run) {
                 if (takes(ctx, ground, held, c)) works.add(c);
-                else if (!ground.isRoad(c[0], c[1])) blocked.add(c);
+                else if (!breaks(ground, c[0], c[1])) blocked.add(c);
             }
         }
         if (planned == 0) return Laid.refused(line.name(), Laid.Kind.LINE, line.required(), "no course between roads");
@@ -515,8 +534,16 @@ public final class MissionLayoutStage implements GenStage {
 
     /** Whether the cell may take a work: open ground that is not road, nor held by a site the layout states up front. */
     private static boolean takes(GenContext ctx, LayoutGround ground, boolean[][] held, int[] c) {
-        return PreparedGround.open(ctx, c[0], c[1]) && !ground.isRoad(c[0], c[1])
+        return PreparedGround.open(ctx, c[0], c[1]) && !breaks(ground, c[0], c[1])
                 && (held == null || !held[c[0]][c[1]]);
+    }
+
+    /**
+     * Whether a line of works breaks at the cell: at a road, and at every way when the layout says so
+     * ({@link MissionLayout.Ways#worksBreakAtWays}).
+     */
+    static boolean breaks(LayoutGround ground, int x, int y) {
+        return ground.isRoad(x, y) || ground.ways().worksBreakAtWays() && ground.isWay(x, y);
     }
 
     /**

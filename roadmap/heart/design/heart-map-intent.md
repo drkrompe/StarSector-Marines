@@ -177,10 +177,18 @@ vetted on:
 - **The supply road** (`supply-road`): a drivable road from the landing's
   farmland up to the settlement's near gate.
 - **The allied airbases** (Broad Front, `airbase-1` west and `airbase-2`
-  east, each with its hamlet `airbase-N.1` ...): fields beside a farm or
-  lane track on unfarmed ground behind the line (`heart-nouns.md`, Allied
-  airbase). The story map places both by hand in its patch; other pooled maps
-  site them.
+  east, each with its hamlet `airbase-N.1` ...): fields beside a way on
+  unfarmed ground behind the line, clear of the columns' roads
+  (`heart-nouns.md`, Allied airbase). The story map places both by hand in
+  its patch; other pooled maps site them.
+- **The columns' roads stay clear.** The heart's layout keeps a column band of
+  six cells either side of every column's way (the lanes' tracks, the
+  company's road, the farm road), which no airbase, hamlet or access track
+  enters and the posts and dumps keep out of where they can; nothing but
+  paving is built on any way, and the cordon's works break at the farm and
+  lane tracks as at a road (`mission-layout.md`, Laws). The pool check fails
+  a heart map with anything built on a way in its start-side third
+  (`story-map-pools.md`).
 
 ## The beats' set pieces
 

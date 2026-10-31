@@ -330,7 +330,7 @@ public final class CordonGapNests {
             else laid.add(out);
             changed = true;
         }
-        return changed ? map.withLayout(new LaidLayout(laid)) : map;
+        return changed ? map.withLayout(new LaidLayout(laid, map.layout == null ? null : map.layout.onWays())) : map;
     }
 
     /** The open floor of the finished map a nest may stand on, its streets and its sight. */

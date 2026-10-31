@@ -5,7 +5,7 @@ built.
 
 Written: 2026-10-23
 
-Updated: 2026-10-31 — an airfield is sited beside a way with a hamlet round it; a layout may carry structures placed by hand. Earlier, 2026-10-25: a road resolved with the works follows the standing streets.
+Updated: 2026-10-31 — nothing but paving stands on a way; a layout may keep a column clearance either side of the columns' ways and break its lines at tracks; an airfield is sited beside a way with a hamlet round it; a layout may carry structures placed by hand. Earlier, 2026-10-25: a road resolved with the works follows the standing streets.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -67,16 +67,21 @@ optional (reported, and the map stands).
   stands beside), crew quarters (a prefab bunkhouse on a yard), a store shed
   (a short prefab module on a yard) and a pump hut (a one-room hut on a yard).
   Its whole footprint must be open ground nobody built on, or it is
-  refused rather than squeezed; an airfield and its hamlet's own kinds also
-  keep off every way, the farmland's tracks and the landscape's lane tracks
-  included. Buildings come from their authored plans, so
+  refused rather than squeezed. Nothing but a square stands on a way, the
+  farmland's tracks and the landscape's lane tracks included; an airfield and
+  its hamlet's own kinds also keep out of the column clearance (Laws, the
+  ways' keeping). Buildings come from their authored plans, so
   they are buildings like any other. The square's marker stands in for a bell
   until there is bell art.
 - **Airfield siting** (`AirfieldSiting`, mission-neutral). A mission that
   wants an airfield names the ground and what to keep clear; the field is
-  sited on it never on or across a way, beside one: its gate (on the apron
-  side, away from the strip, else a short side) opens onto a road or track
-  within fourteen cells, joined by a short access track. Unfarmed ground is
+  sited on it never on or across a way nor in the column clearance, beside a
+  way: its gate (on the apron side, away from the strip) opens onto a road or
+  track within fourteen cells, else a short side's gate does, else a dogleg
+  from the apron gate (out past the fence, along past the field's end, back
+  toward the strip's side) reaches one, joined by a short access track that
+  never enters the clearance, so it never joins a column's way where the
+  column forms up. Every footprint cell by cell is tried. Unfarmed ground is
   preferred, then a short track, then nearness to where it was wanted; its
   strip runs along x and faces whichever way puts the apron toward the way.
   Round it grows a **hamlet** of up to five buildings (crew quarters, a store
@@ -156,8 +161,22 @@ optional (reported, and the map stands).
 - **Never sealed.** Works never cut the walkable ground apart. Wire, nests,
   barricades and blocks that would are not laid, and say so. A line that closes ground
   leaves at least one way through.
+- **Nothing built on a way.** No structure but paving (a square) stands on a
+  way: a road, the farmland's roads and tracks, or a landscape's lane track.
+  The laid layout reports every structure or works cell on a way, by piece
+  (`LaidLayout.onWays`), so a pool check can read it.
+- **The ways' keeping** (`MissionLayout.Ways`). A layout may keep a **column
+  band**: so many cells either side of every column's way (a road other than
+  the map's own edge, a country or farm road of the farmland, a lane track;
+  `LayoutGround.isColumnWay`), the **column clearance**
+  (`LayoutGround.inColumnClearance`), which an airfield, its hamlet and its
+  access track keep out of, and which a mission's own siting reads, so columns
+  form up at the way's foot and drive past with nothing built beside it. It
+  may also have its lines **break at every way**, the tracks as well as the
+  roads. A layout that keeps neither is laid as before.
 - **Reported by name.** Every piece comes back as laid, partial or refused,
-  with its cells, its ways through and its nests, on the finished map. A later
+  with its cells, its ways through and its nests, on the finished map; a
+  refused structure names the first cell that refused it and why. A later
   objective asks "is this here" by name.
 - **One check.** Whether a laid layout keeps its promises (required pieces
   stand, every gap is open, no line seals) is one check that a mission's

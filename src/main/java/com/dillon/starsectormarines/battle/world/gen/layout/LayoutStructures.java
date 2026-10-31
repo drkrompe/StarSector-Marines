@@ -26,6 +26,9 @@ final class LayoutStructures {
     private static final String CRATES = "doodad.industrial-crate-stack";
     private static final String PAVING = "pavement.concrete.new";
 
+    /** A laid structure's reason when it is paving itself (a square), which may stand on road. */
+    static final String PAVING_REASON = "paving";
+
     private LayoutStructures() {}
 
     static Laid raise(GenContext ctx, LayoutGround ground, Structure s, boolean[][] held) {
@@ -33,12 +36,15 @@ final class LayoutStructures {
         if (s.x() < 1 || s.y() < 1 || s.x() + w >= ctx.width || s.y() + h >= ctx.height) {
             return Laid.refused(s.name(), Laid.Kind.STRUCTURE, s.required(), "off the map");
         }
+        // Nothing but paving stands on a way, the farmland's and landscape's tracks as well as roads; what keeps off
+        // ways keeps off the column clearance too.
         LineCourse.CellTest standable = (x, y) -> (held == null || !held[x][y])
-                && !(s.kind().keepsOffWays() && ground.isWay(x, y))
+                && (s.kind().takesRoad() || !ground.isWay(x, y))
+                && !(s.kind().keepsOffWays() && ground.inColumnClearance(x, y))
                 && (ground.buildable(x, y)
                 || s.kind().takesRoad() && ground.isRoad(x, y) && PreparedGround.open(ctx, x, y));
         if (!StructureFit.fits(standable, s.x(), s.y(), w, h)) {
-            return Laid.refused(s.name(), Laid.Kind.STRUCTURE, s.required(), "its ground is not open");
+            return Laid.refused(s.name(), Laid.Kind.STRUCTURE, s.required(), "its ground is not open" + firstRefused(standable, s, ground));
         }
         int x0 = s.x(), y0 = s.y(), x1 = x0 + w - 1, y1 = y0 + h - 1;
         ctx.doodads.removeIf(d -> d.cellX >= x0 && d.cellX <= x1 && d.cellY >= y0 && d.cellY <= y1);
@@ -71,7 +77,8 @@ final class LayoutStructures {
             case STORE_SHED -> outbuilding(ctx, BuildingStamp.PREFAB_SHORT_MODULE, s, x0, y0, x1, y1);
             case PUMP_HUT -> outbuilding(ctx, BuildingStamp.CONTROL_HUT, s, x0, y0, x1, y1);
         }
-        return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, "", s.required(),
+        return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, s.kind().takesRoad() ? PAVING_REASON : "",
+                s.required(),
                 List.of(new int[]{x0, y0}, new int[]{x1, y1}), List.of(), List.of());
     }
 
@@ -95,6 +102,19 @@ final class LayoutStructures {
         for (int[] c : AirfieldSiting.access(ground, s).track()) {
             if (PreparedGround.open(ctx, c[0], c[1])) PreparedGround.workedGround(ctx, c[0], c[1]);
         }
+    }
+
+    /** Where and why the footprint first fails, for the refusal's reason: " at x,y (way)" and the like. */
+    private static String firstRefused(LineCourse.CellTest standable, Structure s, LayoutGround ground) {
+        for (int y = s.y(); y < s.y() + s.height(); y++) {
+            for (int x = s.x(); x < s.x() + s.width(); x++) {
+                if (standable.test(x, y)) continue;
+                String why = ground.isHeld(x, y) ? "held" : ground.isWay(x, y) ? "way"
+                        : ground.inColumnClearance(x, y) ? "column clearance" : ground.isClaimed(x, y) ? "claimed" : "built";
+                return " at " + x + "," + y + " (" + why + ")";
+            }
+        }
+        return "";
     }
 
     /** One building on its worked yard, its door on the side {@code turns} names (0 south). */

@@ -12,8 +12,8 @@
       { "seed": 3, "note": "two mothers" },
       { "seed": 5, "note": "two mothers; the Wellhollow story map", "story": true,
         "patch": { "place": [
-          { "name": "airbase-1", "kind": "AIRFIELD", "x": 89, "y": 8, "turns": 2 },
-          { "name": "airbase-2", "kind": "AIRFIELD", "x": 478, "y": 8, "turns": 2 }
+          { "name": "airbase-1", "kind": "AIRFIELD", "x": 96, "y": 8, "turns": 0 },
+          { "name": "airbase-2", "kind": "AIRFIELD", "x": 483, "y": 8, "turns": 0 }
         ] } }
     ],
     "ROCK": [

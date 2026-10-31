@@ -88,6 +88,14 @@ public final class HeartLayout {
     public static final String AIRBASES = "airbases";
     /** One airbase: this plus 1 (west) and 2 (east). */
     public static final String AIRBASE = "airbase-";
+    /**
+     * How the heart keeps its ways: {@link #COLUMN_BAND} cells clear either side of every column's way, so the allied
+     * columns and the company form up at their feet and drive out with nothing built beside the road; and a line of
+     * works breaks at a farm or lane track as it does at a road.
+     */
+    static final int COLUMN_BAND = 6;
+    static final MissionLayout.Ways WAYS = new MissionLayout.Ways(COLUMN_BAND, true);
+
     /** Where each airbase is wanted, as shares across and depth, and the cells round that searched deep and across. */
     static final float[] AIRBASE_ACROSS = {0.245f, 0.755f};
     static final float AIRBASE_DEPTH = 0.13f;
@@ -160,7 +168,7 @@ public final class HeartLayout {
             pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS,
                     ground -> companyFord(form, ground.plan().landscape().brooks().get(0)), false));
         }
-        return new MissionLayout(pieces);
+        return new MissionLayout(pieces).withWays(WAYS);
     }
 
     /**
@@ -414,7 +422,7 @@ public final class HeartLayout {
         List<Piece> out = new ArrayList<>();
         for (int i = 0; i < at.length; i++) {
             int[] want = cell(form, depth, Math.round(at[i] * (across - 1)));
-            int[] c = StructureFit.nearest(country(ground), around(ground, want, OP_SEARCH), side, side,
+            int[] c = nearestCountry(ground, around(ground, want, OP_SEARCH), side, side,
                     want[0], want[1], 1);
             if (c != null) {
                 out.add(new Structure(OBSERVATION_POST + (i + 1), StructureKind.OBSERVATION_POST, c[0], c[1], 0, false));
@@ -423,9 +431,22 @@ public final class HeartLayout {
         return out;
     }
 
-    /** Open ground nobody built on: the cordon's own farmland counts, the landing's ground claimed or not. */
+    /**
+     * Open ground nobody built on: the cordon's own farmland counts, the landing's ground claimed or not; never a way
+     * (a farm or lane track as well as a road), nor the columns' clearance either side of theirs.
+     */
     private static LineCourse.CellTest country(LayoutGround ground) {
-        return ground::buildable;
+        return (x, y) -> ground.buildable(x, y) && !ground.isWay(x, y) && !ground.inColumnClearance(x, y);
+    }
+
+    /**
+     * The footprint on {@link #country} nearest {@code (nx, ny)}; failing any, on open ground off the ways inside the
+     * columns' clearance, so a post or a dump crowded by the roads stands beside one rather than not at all.
+     */
+    private static int[] nearestCountry(LayoutGround ground, int[] region, int w, int h, int nx, int ny, int step) {
+        int[] at = StructureFit.nearest(country(ground), region, w, h, nx, ny, step);
+        return at != null ? at : StructureFit.nearest((x, y) -> ground.buildable(x, y) && !ground.isWay(x, y),
+                region, w, h, nx, ny, step);
     }
 
     /** The logistics base's middle: on the farmland behind the line, beside the company's road. */
@@ -448,7 +469,7 @@ public final class HeartLayout {
             int offset = i == 0 ? -step : step;
             int[] want = form.advancesAlongY() ? new int[]{middle[0] + offset, middle[1]}
                     : new int[]{middle[0], middle[1] + offset};
-            int[] at = StructureFit.nearest(country(ground), around(ground, want, BASE_SEARCH / 2), side, side,
+            int[] at = nearestCountry(ground, around(ground, want, BASE_SEARCH / 2), side, side,
                     want[0], want[1], 2);
             if (at != null) out.add(new Structure(AMMO_DUMP + (i + 1), StructureKind.AMMO_DUMP, at[0], at[1], 0, false));
         }
@@ -502,7 +523,7 @@ public final class HeartLayout {
     static List<Piece> vehiclePark(LayoutGround ground, Form form) {
         int[] middle = baseMiddle(form);
         int w = form.advancesAlongY() ? PARK_ALONG : PARK_DEEP, h = form.advancesAlongY() ? PARK_DEEP : PARK_ALONG;
-        int[] at = StructureFit.nearest(country(ground), around(ground, middle, BASE_SEARCH), w, h,
+        int[] at = nearestCountry(ground, around(ground, middle, BASE_SEARCH), w, h,
                 middle[0] - w / 2, middle[1] - h / 2, 2);
         if (at == null) return List.of();
         return List.of(new Site(VEHICLE_PARK, at[0], at[1], at[0] + w - 1, at[1] + h - 1, SitePurpose.OPEN, false));

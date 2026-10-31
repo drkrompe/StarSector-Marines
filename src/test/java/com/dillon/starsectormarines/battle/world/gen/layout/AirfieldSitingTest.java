@@ -20,8 +20,15 @@ class AirfieldSitingTest {
     private static final int W = 240, H = 90;
     /** The road along x the fields are sited beside, and a track across it. */
     private static final int ROAD_Y = 50, TRACK_X = 120;
+    /** The column band the clearance tests keep. */
+    private static final int BAND = 6;
 
     private static LayoutGround ground() {
+        return ground(null, false);
+    }
+
+    /** The same ground keeping {@code ways}, with a road along the map's south edge when {@code edgeRoad}. */
+    private static LayoutGround ground(MissionLayout.Ways ways, boolean edgeRoad) {
         NavigationGrid grid = new NavigationGrid(W, H);
         CellTopology topology = new CellTopology(W, H);
         for (int y = 0; y < H; y++) {
@@ -34,8 +41,9 @@ class AirfieldSitingTest {
         boolean[][] road = new boolean[W][H];
         for (int x = 0; x < W; x++) for (int y = ROAD_Y; y < ROAD_Y + 3; y++) road[x][y] = true;
         for (int y = 0; y < ROAD_Y; y++) for (int x = TRACK_X; x < TRACK_X + 3; x++) road[x][y] = true;
+        if (edgeRoad) for (int x = 0; x < W; x++) for (int y = 0; y < LayoutGround.EDGE; y++) road[x][y] = true;
         ctx.put(BspKeys.ROAD_CELLS, road);
-        return new LayoutGround(ctx);
+        return new LayoutGround(ctx, ways);
     }
 
     private static boolean overlaps(Structure s, int x0, int y0, int x1, int y1) {
@@ -55,6 +63,47 @@ class AirfieldSitingTest {
         AirfieldSiting.Access access = AirfieldSiting.access(ground, field);
         assertTrue(access.track().size() <= 3 * (AirfieldSiting.ACCESS_REACH + 2), "the track is short");
         assertTrue(ROAD_Y - (field.y() + field.height()) <= AirfieldSiting.ACCESS_REACH, "the field is beside the road");
+    }
+
+    /** The clearance runs the band either side of a column's way, the way included, and not along the map's edge. */
+    @Test
+    void theColumnClearanceIsTheBandEitherSideOfAColumnsWay() {
+        LayoutGround ground = ground(new MissionLayout.Ways(BAND, false), true);
+        assertTrue(ground.inColumnClearance(TRACK_X + 1, 20), "the way itself");
+        assertTrue(ground.inColumnClearance(TRACK_X - BAND, 20));
+        assertFalse(ground.inColumnClearance(TRACK_X - BAND - 1, 20));
+        assertTrue(ground.inColumnClearance(TRACK_X + 2 + BAND, 20));
+        assertFalse(ground.inColumnClearance(TRACK_X + 3 + BAND, 20));
+        assertTrue(ground.inColumnClearance(40, ROAD_Y - BAND));
+        assertFalse(ground.inColumnClearance(40, ROAD_Y - BAND - 1));
+        assertFalse(ground.inColumnClearance(40, LayoutGround.EDGE + 1), "the edge's road is no column's");
+        assertFalse(ground(MissionLayout.Ways.NONE, true).inColumnClearance(TRACK_X + 1, 20), "no band, no clearance");
+    }
+
+    /**
+     * With a band kept, the field, its hamlet and its access track keep out of the clearance: the field turns its
+     * apron to the edge's road rather than cross the band to the column's.
+     */
+    @Test
+    void aFieldAndItsHamletKeepOutOfTheColumnClearance() {
+        LayoutGround ground = ground(new MissionLayout.Ways(BAND, false), true);
+        Structure field = AirfieldSiting.site(ground, "airbase-1", new int[]{1, 1, TRACK_X - 1, ROAD_Y - 1},
+                TRACK_X, ROAD_Y, (x, y) -> ground.buildable(x, y));
+        assertNotNull(field);
+        assertEquals(0, field.turns(), "the apron faces the edge's road, away from the clearance");
+        assertTrue(field.x() + field.width() - 1 < TRACK_X - BAND, "the field stands off the track's band");
+        assertTrue(field.y() + field.height() - 1 < ROAD_Y - BAND, "the field stands off the road's band");
+        AirfieldSiting.Access access = AirfieldSiting.access(ground, field);
+        assertTrue(access.reaches(), "the gate reaches the edge's road");
+        for (int[] c : access.track()) assertFalse(ground.inColumnClearance(c[0], c[1]), "the track crosses the band");
+        List<Structure> hamlet = AirfieldSiting.hamlet(ground, field, (x, y) -> ground.buildable(x, y));
+        for (Structure s : hamlet) {
+            for (int x = s.x(); x < s.x() + s.width(); x++) {
+                for (int y = s.y(); y < s.y() + s.height(); y++) {
+                    assertFalse(ground.inColumnClearance(x, y), s.name() + " stands in the clearance");
+                }
+            }
+        }
     }
 
     /** The hamlet keeps off the field, the ways, and the strip's rows past either end. */
