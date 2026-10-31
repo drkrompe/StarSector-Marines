@@ -27,9 +27,12 @@ class CordonPullOutTest {
     }
 
     @Test void theZoneIsTheFencesNorthEastQuarterKeptInFromTheFence() {
-        assertArrayEquals(new int[]{50, 2 + CordonPullOut.INSET, 80 - CordonPullOut.INSET, 21},
+        assertArrayEquals(new int[]{50, 21, 80 - CordonPullOut.INSET, 40 - CordonPullOut.INSET},
                 CordonPullOut.quadrant(new int[]{20, 2, 80, 40}));
         assertNull(CordonPullOut.quadrant(null));
+        CordonPullOut zone = new CordonPullOut(50, 21, 78, 38, new int[]{50, 21}, List.of());
+        assertFalse(zone.contains(50 + CordonPullOut.MUSTER_CLEAR, 21), "kept clear of the muster yard");
+        assertTrue(zone.contains(50 + CordonPullOut.MUSTER_CLEAR + 1, 21));
     }
 
     @Test void theHoldRunsWhileTheZoneIsHeldAndStartsAgainWhenItEmpties() {

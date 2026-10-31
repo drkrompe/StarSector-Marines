@@ -26,38 +26,50 @@ public final class CordonPullOut {
     public static final int RADIUS = 8;
     /** Cells the zone keeps in from the base's fence. */
     static final int INSET = 2;
+    /** Cells the zone keeps from the base's muster yard, where the allies' reinforcements gather. */
+    static final int MUSTER_CLEAR = 5;
     /** Seconds the company must hold the zone without a break to finish (owner, 2026-10-31). */
     public static final int HOLD_SECONDS = 10;
 
     private final int left, top, right, bottom;
+    /** The muster yard's cell the zone keeps {@link #MUSTER_CLEAR} from, or {@code null}. */
+    private final int[] muster;
     private final List<int[]> cells;
 
-    public CordonPullOut(int left, int top, int right, int bottom, List<int[]> cells) {
+    public CordonPullOut(int left, int top, int right, int bottom, int[] muster, List<int[]> cells) {
         this.left = left;
         this.top = top;
         this.right = right;
         this.bottom = bottom;
+        this.muster = muster == null ? null : muster.clone();
         this.cells = List.copyOf(cells);
     }
 
-    /** The zone over the box {@code [left, top, right, bottom]}: its walkable cells. */
-    public static CordonPullOut over(NavigationGrid grid, int[] box) {
+    public CordonPullOut(int left, int top, int right, int bottom, List<int[]> cells) {
+        this(left, top, right, bottom, null, cells);
+    }
+
+    /** The zone over the box {@code [left, top, right, bottom]} clear of {@code muster}: its walkable cells. */
+    public static CordonPullOut over(NavigationGrid grid, int[] box, int[] muster) {
+        CordonPullOut shape = new CordonPullOut(box[0], box[1], box[2], box[3], muster, List.of());
         List<int[]> cells = new ArrayList<>();
         for (int y = box[1]; y <= box[3]; y++) {
-            for (int x = box[0]; x <= box[2]; x++) if (grid.inBounds(x, y) && grid.isWalkable(x, y)) cells.add(new int[]{x, y});
+            for (int x = box[0]; x <= box[2]; x++) {
+                if (shape.contains(x, y) && grid.inBounds(x, y) && grid.isWalkable(x, y)) cells.add(new int[]{x, y});
+            }
         }
-        return new CordonPullOut(box[0], box[1], box[2], box[3], cells);
+        return new CordonPullOut(box[0], box[1], box[2], box[3], muster, cells);
     }
 
     /**
-     * The zone's box: the north-east quadrant (high x, low y) of the base's fence {@code [minX, minY, maxX, maxY]}, kept
+     * The zone's box: the north-east quadrant (high x, high y: up and right on the map) of the base's fence {@code [minX, minY, maxX, maxY]}, kept
      * {@link #INSET} in from the fence (the concrete goods yard's quarter away from the camp on its west side and the
      * muster yard); {@code null} for no fence.
      */
     static int[] quadrant(int[] fence) {
         if (fence == null) return null;
         int cx = (fence[0] + fence[2]) / 2, cy = (fence[1] + fence[3]) / 2;
-        int[] box = {cx, fence[1] + INSET, fence[2] - INSET, cy};
+        int[] box = {cx, cy, fence[2] - INSET, fence[3] - INSET};
         return box[0] > box[2] || box[1] > box[3] ? null : box;
     }
 
@@ -65,14 +77,15 @@ public final class CordonPullOut {
      * The Road's zone: the north-east quadrant of the base's fence when it holds open ground and lies wholly behind the
      * line; else the square of {@link #RADIUS} round {@code rally}, the reserve's place behind the gap.
      */
-    public static CordonPullOut place(NavigationGrid grid, int[] fence, int[] rally, float lineY, int frontward) {
+    public static CordonPullOut place(NavigationGrid grid, int[] fence, int[] muster, int[] rally, float lineY,
+                                      int frontward) {
         int[] box = quadrant(fence);
         if (box != null) {
             int nearRow = frontward > 0 ? box[3] : box[1];
-            CordonPullOut zone = over(grid, box);
+            CordonPullOut zone = over(grid, box, muster);
             if (!zone.cells.isEmpty() && CordonSequence.behindLine(nearRow, lineY, frontward)) return zone;
         }
-        return over(grid, new int[]{rally[0] - RADIUS, rally[1] - RADIUS, rally[0] + RADIUS, rally[1] + RADIUS});
+        return over(grid, new int[]{rally[0] - RADIUS, rally[1] - RADIUS, rally[0] + RADIUS, rally[1] + RADIUS}, null);
     }
 
     /** The zone's middle: where the company is sent and the beacon stands. */
@@ -83,9 +96,10 @@ public final class CordonPullOut {
     /** The zone's walkable cells: the HUD beacon's footprint. */
     public List<int[]> cells() { return cells; }
 
-    /** Whether a cell is in the zone. */
+    /** Whether a cell is in the zone: in its box and clear of the muster yard. */
     public boolean contains(int cx, int cy) {
-        return cx >= left && cx <= right && cy >= top && cy <= bottom;
+        if (cx < left || cx > right || cy < top || cy > bottom) return false;
+        return muster == null || Math.max(Math.abs(cx - muster[0]), Math.abs(cy - muster[1])) > MUSTER_CLEAR;
     }
 
     /**

@@ -348,10 +348,11 @@ choice to leave once the company has done enough. Pulling out is **offered**
 once at least the briefing's number of townspeople are out and no truck is
 loading at the town's gate (`done_enough`): the fall-back row tells the player
 "You've done enough: pull back before the line is overrun" and beacons the
-**pull-out zone**, the walkable ground of the north-east quarter (high x, low
-y) of the logistics base's fence, two cells in from it: the concrete goods
-yard's quarter east of the camp on the base's west side and off the muster
-yard the reinforcements gather in (owner, 2026-10-31). Where the map records no
+**pull-out zone**, the walkable ground of the north-east quarter (high x, high
+y: up and right on the map) of the logistics base's fence, two cells in from it: the concrete goods
+yard's quarter east of the camp on the base's west side, less the ground within
+five cells of the muster yard the reinforcements gather in (owner,
+2026-10-31). Where the map records no
 base fence, that quarter has no open ground or is not wholly behind the line,
 it is the square eight cells round the rally point behind the gap. The **order** is any of the player's own
 squad orders, the command layer's ordinary move or hold, whose target cell is
@@ -365,8 +366,10 @@ have **held** the zone for ten seconds without a break: the count runs while
 any Marine stands in it, starts again whenever it empties, and the fall-back
 row counts it down. After a pull-out no convoy holds up the end: one still
 on the road is left to come home or not, and only the people already out
-count. On Ain Tafrant (seed 7) the zone is the goods yard's open apron at
-(300, 120), behind the middle of the line between redoubts 2 and 3.
+count. On Ain Tafrant (seed 7) the zone is cells 299 to 321 across and 119 to
+141 up, the goods yard's north-east quarter behind the middle of the line
+between redoubts 2 and 3, less its corner at the muster yard (300, 120): 463
+walkable cells (`cordon-line-bores` snapshots).
 
 **Timetable.** What the briefing holds the battle to: when the tides come and
 how long each runs, the ordinary and tide pressures, when bores erupt, the

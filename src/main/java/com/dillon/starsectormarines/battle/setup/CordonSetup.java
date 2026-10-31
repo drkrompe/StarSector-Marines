@@ -644,7 +644,8 @@ public final class CordonSetup {
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
             // The pull-out zone at the base's muster yard is where the company falls back to and must hold to finish.
-            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics == null ? null : baseFence(cordon), rally,
+            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics == null ? null : baseFence(cordon),
+                    logistics == null ? null : new int[]{logistics.musterX(), logistics.musterY()}, rally,
                     CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan())));
             // Bores break out along the line as the evacuation goes on, and the swarm surges at the fall-back.
             sequence.attachEscalation(CordonBoreEscalation.plan(sim, redoubts, convoys, town.town(), timetable,
