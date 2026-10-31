@@ -1519,13 +1519,28 @@ public final class WarshipSystem {
         wrecks.add(new WarshipWreck(ship, WRECK_KEY_BASE - ship.serial()));
     }
 
-    /** Falls, strikes and skids every wreck; the strike and the skid are the aircraft crash's, at the hull's size. */
+    /**
+     * Falls, strikes and skids every wreck; the strike and the skid are the aircraft crash's, at the hull's size and
+     * as hard as its weight. Its secondaries go off along the keel, and once it lies still it burns along its length.
+     */
     private void tickWrecks(float dt, BattleSimulation sim) {
         for (WarshipWreck wreck : wrecks) {
             float before = wreck.seconds();
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
             float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
+            for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
+                float[] at = wreck.keelPoint(blast.keel());
+                if (!onMap(sim, at[0], at[1])) continue;
+                float radius = Math.max(3f, wreck.skidRadius());
+                if (!blast.grounded()) {
+                    sim.wreckSecondary(at[0], at[1], ship.faction, radius, false, wreck.weight());
+                    continue;
+                }
+                Map<Long, Float> under = groundNear(sim, at[0], at[1], radius + GROUND_TALLY_MARGIN_CELLS);
+                sim.wreckSecondary(at[0], at[1], ship.faction, radius, true, wreck.weight());
+                tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
+            }
             switch (step) {
                 case FALLING -> {
                     if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
@@ -1538,7 +1553,7 @@ public final class WarshipSystem {
                     if (onMap(sim, ship.x, ship.y)) {
                         Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.crashHullWreck(wreck.key, ship.x, ship.y, ship.faction, wreck.crushRadius(), wreck.skidRadius(),
-                                ship.velocityX, ship.velocityY);
+                                ship.velocityX, ship.velocityY, wreck.weight());
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
@@ -1548,10 +1563,23 @@ public final class WarshipSystem {
                         Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
+                        if (step == WarshipWreck.Step.CAME_TO_REST) burnAlongKeel(sim, wreck);
                     }
                 }
                 default -> { }
             }
+        }
+    }
+
+    /** A wreck come to rest burns in {@link WarshipWreck.Weight#fires} lengths along its keel; one is the strike's own. */
+    private static void burnAlongKeel(BattleSimulation sim, WarshipWreck wreck) {
+        int fires = wreck.weight().fires();
+        if (fires <= 1) return;
+        float length = wreck.ship.lengthCells * wreck.bodyScale() / fires;
+        float width = 2f * wreck.skidRadius();
+        for (int i = 0; i < fires; i++) {
+            float[] at = wreck.keelPoint((i + 0.5f) / fires);
+            if (onMap(sim, at[0], at[1])) sim.wreckFire(at[0], at[1], length, width);
         }
     }
 

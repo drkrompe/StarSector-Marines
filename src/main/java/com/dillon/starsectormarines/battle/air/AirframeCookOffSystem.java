@@ -99,7 +99,13 @@ public final class AirframeCookOffSystem {
     /** Airframes already burned, so a death that somehow arrived twice only goes up once. */
     private final LongOpenHashSet burned = new LongOpenHashSet();
     private final Long2ObjectOpenHashMap<CrashContact> crashes = new Long2ObjectOpenHashMap<>();
-    private record CrashContact(CrashSweep sweep, LongOpenHashSet struck, float radius, Faction faction) {}
+    /** A crash on the ground: its sweep, who it has struck, and what each skid sweep does. */
+    private record CrashContact(CrashSweep sweep, LongOpenHashSet struck, float radius, Faction faction,
+                                float skidDamage, float penetration, int skidStructure) {}
+
+    /** An aircraft's crash: the crush of the strike, then of each skid sweep, and their armour penetration. */
+    private static final float CRASH_DAMAGE = 900f, SKID_DAMAGE = 600f, CRASH_PENETRATION = 60f;
+    private static final int CRASH_STRUCTURE = 600, SKID_STRUCTURE = 400;
 
     public AirframeCookOffSystem(EffectsService effects, Detonations detonations,
                                  UnitRosterService roster) {
@@ -141,10 +147,11 @@ public final class AirframeCookOffSystem {
         if (!burned.add(airframe)) return;
         float radius = Math.max(BLAST_RADIUS_CELLS, Math.min(8f, hullRadius + 3f));
         float skidRadius = Math.max(1.5f, Math.min(6f, hullRadius + 1f));
-        CrashContact crash = new CrashContact(new CrashSweep(x, y, skidRadius), new LongOpenHashSet(), skidRadius, faction);
+        CrashContact crash = new CrashContact(new CrashSweep(x, y, skidRadius), new LongOpenHashSet(), skidRadius, faction,
+                SKID_DAMAGE, CRASH_PENETRATION, SKID_STRUCTURE);
         crashes.put(airframe, crash);
         effects.spawnVehicleWreck(x, y, radius * 2f, radius);
-        crush(x, y, radius, 900f, 600, crash);
+        crush(x, y, radius, CRASH_DAMAGE, CRASH_STRUCTURE, crash);
         effects.spawnCrashBlastFan(x, y, vx, vy, hullRadius);
     }
 
@@ -152,17 +159,20 @@ public final class AirframeCookOffSystem {
      * A warship's wreck striking at true landed scale. An aircraft's crash is capped (eight cells of crush, six of
      * skid) because an airframe is drawn small; a hull is drawn at its true size on the ground, so its crush is
      * {@code crushRadius} and its skid {@code skidRadius} as given, with no cap, and the wreck, smoke and blast fan
-     * are sized to it.
+     * are sized to it. A frigate's wreck hits as an aircraft does; how much harder a larger one hits is the caller's
+     * ({@code WarshipWreck.Weight}): the strike's and each skid sweep's damage, armour penetration and structure damage.
      */
     public void crashHull(long key, float x, float y, Faction faction, float crushRadius, float skidRadius,
-                          float vx, float vy) {
+                          float vx, float vy, float crushDamage, float skidDamage, float penetration,
+                          int structure, int skidStructure) {
         if (!burned.add(key)) return;
         float radius = Math.max(BLAST_RADIUS_CELLS, crushRadius);
         float sweep = Math.max(1.5f, skidRadius);
-        CrashContact crash = new CrashContact(new CrashSweep(x, y, sweep), new LongOpenHashSet(), sweep, faction);
+        CrashContact crash = new CrashContact(new CrashSweep(x, y, sweep), new LongOpenHashSet(), sweep, faction,
+                skidDamage, penetration, skidStructure);
         crashes.put(key, crash);
         effects.spawnVehicleWreck(x, y, radius * 2f, sweep * 2f);
-        crush(x, y, radius, 900f, 600, crash);
+        crush(x, y, radius, crushDamage, structure, crash);
         effects.spawnCrashBlastFan(x, y, vx, vy, radius);
     }
 
@@ -170,13 +180,13 @@ public final class AirframeCookOffSystem {
     public void skid(long airframe, float x, float y, boolean stopped) {
         CrashContact crash = crashes.get(airframe);
         if (crash == null) return;
-        crash.sweep.advance(x, y, (cx, cy) -> crush(cx, cy, crash.radius, 600f, 400, crash));
+        crash.sweep.advance(x, y, (cx, cy) -> crush(cx, cy, crash.radius, crash.skidDamage, crash.skidStructure, crash));
         if (stopped) crashes.remove(airframe);
     }
 
     private void crush(float x, float y, float radius, float damage, int structureDamage, CrashContact crash) {
         detonations.crushNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER,
-                x, y, 0f, radius, damage, 60f, structureDamage, crash.faction,
+                x, y, 0f, radius, damage, crash.penetration, structureDamage, crash.faction,
                 false, radius, true, false).asGroundEvent(), crash.struck);
     }
 

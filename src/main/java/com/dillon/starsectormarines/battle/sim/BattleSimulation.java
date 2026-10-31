@@ -86,6 +86,7 @@ import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
@@ -3245,11 +3246,32 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * A falling warship strikes the ground at true landed scale: the crash's crush over {@code crushRadius}, the
      * drawn wreck's own extent rather than an aircraft's capped one, then a skid sweeping {@code skidRadius} (its
-     * drawn beam). {@code key} identifies the wreck to the crash machinery.
+     * drawn beam), each as hard as its hull's {@code weight}. {@code key} identifies the wreck to the crash machinery.
      */
     public void crashHullWreck(long key, float x, float y, Faction faction, float crushRadius, float skidRadius,
-                               float vx, float vy) {
-        airframeCookOff.crashHull(key, x, y, faction, crushRadius, skidRadius, vx, vy);
+                               float vx, float vy, WarshipWreck.Weight weight) {
+        airframeCookOff.crashHull(key, x, y, faction, crushRadius, skidRadius, vx, vy,
+                weight.crush(), weight.skid(), weight.penetration(), weight.structure(), weight.skidStructure());
+        effects.spawnBurningSmokePlume(x, y);
+    }
+
+    /**
+     * A wreck's magazine or reactor going up. In the air ({@code grounded} false) it is a blast and nothing else; on
+     * the ground it hurts and breaches whatever is within {@code radius}, whichever side, as hard as {@code weight}.
+     */
+    public void wreckSecondary(float x, float y, Faction faction, float radius, boolean grounded,
+                               WarshipWreck.Weight weight) {
+        effects.spawnHeavyImpact(x, y, radius);
+        if (!grounded) return;
+        effects.spawnBurningSmokePlume(x, y);
+        detonations.detonateNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y, 0f, radius,
+                weight.secondaryDamage(), weight.penetration(), weight.secondaryStructure(), faction,
+                false, radius * 0.6f, true, false));
+    }
+
+    /** A length of a wreck at rest burning, with its smoke: presentation and the battle's fire, no damage. */
+    public void wreckFire(float x, float y, float length, float width) {
+        effects.spawnWreckFire(x, y, length, width);
         effects.spawnBurningSmokePlume(x, y);
     }
 

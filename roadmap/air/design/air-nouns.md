@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-31 — a pool may be based on a field of its own on the map, its stock what stands ready there, its losses replaced on their stands (A based pool). Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-31 — a falling hull's crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, a pool may be based on a field of its own on the map, its stock what stands ready there, its losses replaced on their stands (A based pool). Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2248,6 +2248,12 @@ skids and lies at that size: its crush is half its landed length, its skid half 
 beam, with no aircraft cap, because a hull is drawn at its true size on the ground
 and an airframe is not. A hull drawn below the standard presence (Wolf Strike's gunship at the
 Onslaught's reduced body) never grows on the way down: its landed size is at most the size it flew at.
+A larger hull brings more down with it (`WarshipWreck.Weight`, by hull size): a frigate's strike and
+skid are the aircraft crash's, and each size up hits harder, deeper into armour and harder on
+structures. A destroyer or larger has **secondaries**: blasts along its keel as it falls (seen, not felt,
+since nothing is under them yet) and then a ripple down the keel after it strikes, each hurting and
+breaching whatever is beside it, either side. Once at rest it burns in lengths along its whole keel,
+not at its centre alone.
 The fall is a pure function of the hull's own state, so it
 lands the same way every play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.

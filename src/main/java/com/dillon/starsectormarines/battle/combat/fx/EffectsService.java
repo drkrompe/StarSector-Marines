@@ -122,12 +122,20 @@ public final class EffectsService {
 
     /** A hull-sized, purely visual cook-off followed by three minutes of cooling smoke. */
     public void spawnVehicleWreck(float x, float y, float length, float width) {
+        spawnHeavyImpact(x, y, spawnWreckFire(x, y, length, width));
+    }
+
+    /**
+     * A length of burning wreck, {@code length} by {@code width} cells, with no blast: three minutes of cooling
+     * smoke over a fire the battle is told of. Returns the scale it burns at.
+     */
+    public float spawnWreckFire(float x, float y, float length, float width) {
         float size = (float) Math.sqrt(length * width);
         if (wreckSink != null) wreckSink.wreck(x, y, Math.max(1f, size * .5f));
         float scale = Math.max(1f, Math.min(Math.max(2.5f, size * .1f), size * .65f));
-        spawnHeavyImpact(x, y, scale);
         smokingWrecks.add(new SmokingWreck((int) Math.floor(x), (int) Math.floor(y),
                 180f, .05f, scale, 24f));
+        return scale;
     }
 
     /** One bounded tank cook-off, a brief roof fire and a longer rear-engine burn. No damage. */

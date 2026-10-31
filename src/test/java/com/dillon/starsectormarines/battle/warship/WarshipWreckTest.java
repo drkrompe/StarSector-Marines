@@ -84,4 +84,54 @@ class WarshipWreckTest {
         runUntilChange(wreck, WarshipWreck.Step.FALLING);
         assertTrue(wreck.bodyScale() <= 1f, "lies at " + wreck.bodyScale());
     }
+
+    @Test
+    void aLargerHullNeverComesDownSofter() {
+        ShipClass.HullSize[] sizes = ShipClass.HullSize.values();
+        for (int i = 1; i < sizes.length; i++) {
+            WarshipWreck.Weight lighter = WarshipWreck.Weight.of(sizes[i - 1]);
+            WarshipWreck.Weight heavier = WarshipWreck.Weight.of(sizes[i]);
+            assertTrue(heavier.crush() >= lighter.crush() && heavier.skid() >= lighter.skid(), sizes[i] + " damage");
+            assertTrue(heavier.penetration() >= lighter.penetration(), sizes[i] + " penetration");
+            assertTrue(heavier.structure() >= lighter.structure()
+                    && heavier.skidStructure() >= lighter.skidStructure(), sizes[i] + " structure");
+            assertTrue(heavier.secondaries() >= lighter.secondaries() && heavier.fires() >= lighter.fires(),
+                    sizes[i] + " secondaries and fires");
+        }
+    }
+
+    @Test
+    void secondariesGoOffInTheAirThenRippleDownTheKeelAfterTheStrikeEvenAtRest() throws Exception {
+        Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, 50f, 50f, 0f);
+        ship.serial(5);
+        WarshipWreck wreck = new WarshipWreck(ship, -5L);
+        WarshipWreck.Weight weight = wreck.weight();
+        assertEquals(WarshipWreck.Weight.of(ShipClass.HullSize.CAPITAL), weight);
+        int inAir = 0, onGround = 0;
+        for (int i = 0; i < 600; i++) {
+            float before = wreck.seconds();
+            wreck.advance(DT);
+            for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
+                assertTrue(blast.keel() >= 0f && blast.keel() <= 1f, "keel " + blast.keel());
+                assertEquals(before >= WarshipWreck.FALL_SECONDS || wreck.seconds() > WarshipWreck.FALL_SECONDS,
+                        blast.grounded(), "a blast is grounded exactly when the hull has struck");
+                if (blast.grounded()) onGround++;
+                else inAir++;
+            }
+        }
+        assertEquals(WarshipWreck.Phase.DOWN, wreck.phase());
+        assertEquals(weight.fallSecondaries(), inAir);
+        assertEquals(weight.secondaries(), onGround);
+    }
+
+    @Test
+    void theKeelRunsFromBowToSternAlongTheFacing() throws Exception {
+        Warship ship = hound(0f, 0f);
+        ship.facingDegrees = 90f;
+        WarshipWreck wreck = new WarshipWreck(ship, -6L);
+        float[] bow = wreck.keelPoint(0f);
+        float[] stern = wreck.keelPoint(1f);
+        assertEquals(ship.x, bow[0], 1e-3f);
+        assertEquals(ship.lengthCells * wreck.bodyScale(), bow[1] - stern[1], 1e-3f);
+    }
 }
