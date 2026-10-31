@@ -1286,10 +1286,13 @@ weapons. Both mounts must have walkable connected approach cells.
 All loads move up together as one column, to the Dispatch stop and then the
 East stop, keeping separation behind the leader. Armor moves to the next road stop after each
 defensive window, closing behind the company before Outbound Gate capture
-releases its final breakthrough. The tank takes the forward center position,
-using slower paired high-explosive cannon fire against the exit gun line. It
-drives up into the gun line itself and fights there until the first surviving
-hauler approaches, then pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
+releases its final breakthrough. The tank is the employer's convoy spearhead
+fit (`VehicleStockFit.CONVOY_SPEARHEAD`: heavy plating, spall liner, active
+protection), tough enough to sit in front of the exit machine guns. It takes the
+forward center position, using slower paired high-explosive cannon fire against
+the exit gun line. It drives up into the gun line itself and fights there until
+the lead hauler closes to within 30 cells, then pulls away toward the exit ahead
+of the column, wherever it stands, so the column never queues on it. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
 advance along the road flanks up to the gun line beside the tank and fight it
@@ -1298,8 +1301,11 @@ technical drives in from the freight exit and parks among the exit guns, and two
 four-man rifle sections, each with a scrap rocket, take post beside the guns, so
 the armor has a real fight to clear the way; after a 12-second lead
 interval every load goes at once, as one column, keeping its spacing on the
-road rather than leaving one at a time. The escorts leave only after the last surviving load passes
-the crossing.
+road rather than leaving one at a time. The earlier advance load waits and runs
+out with that column rather than following the armor into the gun line. The
+escorts pull away with the tank, outrunning the haulers on the flanks, and the
+haulers run flat out with only a slight weave: one continuous high-speed
+column through the gate, with no armor left parked in the road to stop it.
 
 **Pressure rises over the whole run** (`ThunderRunPressure`), on top of the
 finite timetable. From the column's first release, raider waves keep coming in

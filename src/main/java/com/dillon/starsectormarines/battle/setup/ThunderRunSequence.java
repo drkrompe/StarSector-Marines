@@ -38,7 +38,7 @@ public final class ThunderRunSequence {
     private final List<Integer> delivered = new ArrayList<>(), lost = new ArrayList<>();
     private final List<EntitySpec> reserve;
     private int phase;
-    private boolean freightReleased, escortExitOrdered;
+    private boolean freightReleased, escortExitOrdered, advanceReleased;
     private final ThunderRunPacing pacing = new ThunderRunPacing();
     private final ThunderRunColumnDriver driver = new ThunderRunColumnDriver();
     private final List<Integer> releasedCargo = new ArrayList<>();
@@ -66,6 +66,8 @@ public final class ThunderRunSequence {
     static final int CHECKPOINT_SECTION = 4;
     /** On the final run the APCs and the tank push up to the exit gun line to fight it, rather than waiting short of it. */
     static final float ESCORT_ASSAULT_X = 292, HEAVY_ASSAULT_X = 298;
+    /** The tank pulls away once the lead hauler is this many cells behind it, so the column never queues on it. */
+    static final float HEAVY_PULL_AWAY_GAP = 30;
 
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
                               List<EntitySpec> reserve, StoryBeatLog log) {
@@ -76,7 +78,7 @@ public final class ThunderRunSequence {
         this.reserve = List.copyOf(reserve); this.log = log;
         escorts.add(place(sim, sim.convoy().spawn(VehicleStockFit.CONVOY_ESCORT, Faction.ALLY, VehicleMission.deployed(27, 70)), 27, 70));
         escorts.add(place(sim, sim.convoy().spawn(VehicleStockFit.CONVOY_ESCORT, Faction.ALLY, VehicleMission.deployed(27, 80)), 27, 80));
-        heavyLead = spawn(sim, VehicleType.BREAKTHROUGH_TANK, 35, 75);
+        heavyLead = place(sim, sim.convoy().spawn(VehicleStockFit.CONVOY_SPEARHEAD, Faction.ALLY, VehicleMission.deployed(35, 75)), 35, 75);
         technical = spawn(sim, VehicleType.MILITIA_TECHNICAL, 34, 83);
         // This earlier load is outside the newly contracted three-load manifest.
         // Its actual fate is witnessed, never scripted or charged to the player's freight award.
@@ -185,22 +187,32 @@ public final class ThunderRunSequence {
                     beat(sim, "freight_committed");
                     beat(sim, "load_" + entry.getKey() + "_released");
                 }
+            // The earlier load runs out with the column, not behind the armor into the gun line.
+            if (freightReleased && !advanceReleased) {
+                advanceReleased = true;
+                order(sim, advanceHauler);
+            }
             if (!heavyExitOrdered && freightReleased) {
-                boolean leadApproaching = cargo.values().stream().anyMatch(id ->
-                        !stranded(sim, id) && sim.convoy().body(id).x >= 280);
+                // The tank leads the run out rather than waiting for a hauler on its bumper: wherever it stands
+                // when the first hauler closes, it pulls away ahead of the column instead of stopping it.
+                float tankX = stranded(sim, heavyLead) ? Float.MAX_VALUE : sim.convoy().body(heavyLead).x;
+                List<Long> haulers = new ArrayList<>(cargo.values());
+                haulers.add(advanceHauler);
+                boolean leadApproaching = haulers.stream().anyMatch(id -> !stranded(sim, id)
+                        && sim.convoy().body(id).x >= Math.min(280, tankX - HEAVY_PULL_AWAY_GAP));
                 if (leadApproaching) {
+                    // The escorts go out with it, outrunning the haulers on the flanks, so no armor is left
+                    // standing in the gun line for the column to queue behind.
                     heavyExitOrdered = true;
+                    escortExitOrdered = true;
                     order(sim, heavyLead);
+                    for (long id : escorts) order(sim, id);
                     beat(sim, "heavy_lead_advancing");
                 }
             }
             boolean rearPassed = releasedCargo.size() == cargo.size();
             for (long id : cargo.values()) if (!stranded(sim, id) && sim.convoy().body(id).x < 282) rearPassed = false;
-            if (rearPassed && !escortExitOrdered) {
-                escortExitOrdered = true;
-                for (long id : escorts) order(sim, id);
-                beat(sim, "rear_clear");
-            }
+            if (rearPassed) beat(sim, "rear_clear");
         }
         // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road, and a
         // hull still on its last leg is simply sent on to the next goal rather than waited for.
@@ -223,7 +235,6 @@ public final class ThunderRunSequence {
                 reinforceCheckpoint(sim);
                 for (long id : escorts) order(sim, id);
                 order(sim, heavyLead);
-                order(sim, advanceHauler);
             }
         }
     }
