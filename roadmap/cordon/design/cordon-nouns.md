@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — on the Road, bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — on the Road, the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -363,7 +363,8 @@ two minutes before a tide. Where the base has carriers forward (rural and town
 country) a column walks to the base's muster yard and is carried up from there
 (*Logistics base*); in a city it walks the whole way, in its two teams, to the
 redoubt that needs it most, a calling one first and then the one with the
-fewest standing. The column is scripted (`AlliedColumns`, which is
+fewest standing. On the Road the line also calls squads up by need
+(*Replacements*). The column is scripted (`AlliedColumns`, which is
 mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
@@ -426,7 +427,8 @@ drives its supply road and refills every gun tower, picket nest and mortar
 tube that redoubt holds. Each redoubt's guns spend rounds from that one stock;
 a gun with none left fires rationed, at a quarter of its rate. A request while
 the swarm is on the apron, or with nothing in stock, is refused, and asked
-again a little later (`cordon-allied-command.md`, The producer). Outside a city the base opens with one carrier. **Supply roads** run from the
+again a little later (`cordon-allied-command.md`, The producer). On the Road
+it also holds the line's **replacements** (below). Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it, laid wherever it
 reaches the redoubt's ground even with no other road near it; across a town's or a
@@ -466,6 +468,32 @@ out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
 straight onto a slot. Two carriers sent to
 one redoubt set down side by side, not on one spot.
+
+**Replacements (the Road)** (`CordonLineCommand`, `CordonAlliedRules.replacement`;
+owner, 2026-10-31). Infantry the line asks the base for by need, on top of the
+timetable's columns: the timetable feeds the line before each tide, and
+replacements make good what a redoubt has lost, through the long Road after the
+last column (the timetable's columns stop at minute ten; the Road runs to
+twenty-five and more). A redoubt whose garrison is a whole team's worth of men
+short of what it was manned with at setup (four of twelve), counting squads
+already on their way to it, asks for that many squads, at most two a call; the
+line makes one call at a time, to the redoubt most teams short (a calling one
+breaking a tie), at most one every forty-five seconds, with at most two
+replacement squads on their way at once. They come out of a small **pool** at
+the base: two squads, one more every three minutes, never more than two. A
+request with the pool empty, or with the swarm on the base's apron, is refused
+and asked again ten seconds later, as the producer's are. Each squad is one
+allied team walking in off the rear edge where the timetable's columns do (the
+entry nearest the muster yard) to the muster yard, where a carrier takes it to
+the redoubt that called for it (with no carrier forward, a city's, it walks to
+the redoubt itself) and it joins the garrison. A fallen or given-up redoubt is
+never refilled: it asks for nothing, and a replacement bound for one that falls
+on the way goes to the redoubt that needs it most. While replacements are on
+their way to a redoubt it has *Help coming*. The pool is small on purpose, so
+the allies hold the ordinary pressure and still sag in the tides and fall to the
+final surge. The Line keeps its timetable alone until the owner says otherwise
+(`CordonAlliedRules.replacesLosses`). UNTUNED throughout
+(`CordonAlliedTable.REPLACEMENTS`).
 
 **Allied armour.** The allies' cars and technicals behind the line, under the
 allies' own command (`allied-command.md`), not the player's. Each has a
@@ -1037,8 +1065,9 @@ with the same keys.
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
-| `column_entered_N` | the Line | OBSERVER_ONLY | The Nth allied column comes on at the rear edge |
-| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches the logistics base (or, with no base, its redoubt) |
+| `column_entered_N` | both | OBSERVER_ONLY | The Nth allied column on the timetable comes on at the rear edge |
+| `column_arrived_N` | both | PLAYER | The Nth allied column, a replacement squad among them, reaches the logistics base (or, with no base, its redoubt) |
+| `reinforcements_N_K` | the Road | PLAYER | Redoubt N's Kth call for replacements: they set out from the rear edge ("Reinforcements marching to redoubt N") |
 | `carried_N` | both | PLAYER | The Nth squad a carrier took up from the base joins a redoubt |
 | `air_sortie_N` | both | OBSERVER_ONLY | The air base sends the Nth sortie of its own tasking (not an observer's call) |
 | `refugees_moving_N` | the Line | OBSERVER_ONLY | Refugee group N leaves its village |
