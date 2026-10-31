@@ -347,7 +347,8 @@ public final class CordonConvoys {
     /**
      * The town is given up (its staging area overrun, or the company pulled out): every townsperson still trapped
      * dies, taken off the field and counted lost; no convoy sets out again; one on its way to the town or loading at
-     * its gate turns for home with whoever is aboard. Publishes {@code town_abandoned}. Idempotent.
+     * its gate turns for home with whoever is aboard. The sequence publishes {@code town_abandoned} as it calls this
+     * ({@link CordonSequence#onAbandonTown}). Idempotent.
      */
     public void abandonTown(BattleSimulation sim) {
         if (abandoned) return;
@@ -364,7 +365,6 @@ public final class CordonConvoys {
             }
         }
         prune();
-        pending.add("town_abandoned");
     }
 
     /** Whether the town has been given up. */

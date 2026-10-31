@@ -71,6 +71,25 @@ class CordonCompanyRulesTest {
     }
 
     @Test
+    void aCallingTownTakesADetachmentAfterTheGateEvenOutsideATide() {
+        CordonRadio town = CordonRadio.report(0, 300, 20, true, 3, 16, 16, 0, false, false);
+        List<int[]> gates = List.<int[]>of(new int[]{300, 30});
+        List<Duty> duties = CordonCompanyRules.duties(List.of(quiet(1, 100)), List.of(), List.of(), gates, town,
+                List.of(), null);
+        assertEquals(List.of(Kind.GATE, Kind.TOWN), duties.stream().map(Duty::kind).toList());
+        // Three squads with a floor of one: the town is the Road's score, so the floor does not keep it waiting.
+        Map<Integer, Duty> out = CordonCompanyRules.assign(duties, company(3), 1);
+        assertEquals(3, out.size());
+        // A quiet town, or one overrun, asks for nobody.
+        CordonRadio quietTown = CordonRadio.report(0, 300, 20, true, 0, 16, 16, NEVER, false, false);
+        CordonRadio overrun = CordonRadio.report(0, 300, 20, false, 9, 0, 16, 0, false, false);
+        assertTrue(CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(), quietTown, List.of(), null)
+                .isEmpty());
+        assertTrue(CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(), overrun, List.of(), null)
+                .isEmpty());
+    }
+
+    @Test
     void theFloorHoldsOutsideATideAndGoesInOne() {
         List<CordonRadio> radio = new ArrayList<>();
         for (int n = 1; n <= 4; n++) radio.add(CordonRadio.report(n, n * 100, 100, true, 2, 10, 10, 0, false, false));
