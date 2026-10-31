@@ -242,6 +242,8 @@ public final class MissionLaunch {
         // off the arc's own state, so a won chapter needs no live progress to stand up again.
         DebugMissionCatalog.Scenario replay = CompletedReplays.scenario(m);
         if (replay != null) {
+            if (ctx != null && !CompletedReplays.at(replay, ctx.planet))
+                throw new IllegalStateException("Travel to the planet this chapter was fought on before replaying it.");
             Detachment frozen = det;
             return new ScenarioPlan(Arrays.asList(m.id, seed, frozen.shuttleManifest), frozen,
                     DetachmentResolver.employerPhysicalShipCount(m), null,

@@ -546,7 +546,7 @@ public final class MissionSelectScreen implements Screen {
 
     private List<Mission> replayOffers() {
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        return CompletedReplays.offers(script == null ? null : script.roster());
+        return CompletedReplays.offers(script == null ? null : script.roster(), context == null ? null : context.planet);
     }
 
     /** Shows or hides the replay contact; hiding it while open returns the board to no selection. */

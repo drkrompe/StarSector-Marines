@@ -8,19 +8,22 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog.Scenario;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Replays of campaign chapters the company has already won, offered by a contact the
  * mission board shows only while its "Replay Story Missions" toggle is on.
  *
  * <p>A replay is the chapter's battle as the debug catalogue builds it, flown by the
- * real company and paid the chapter's credits on victory. It never touches the arc that
+ * real company and paid the chapter's credits on victory. A chapter replays only on the
+ * planet it was fought on, so the contact lists only that planet's chapters. It never touches the arc that
  * owns the chapter: no progress, story completion, award, mark or debrief. The Khettara
  * Bloom offers its own replays and is left out.
  */
@@ -28,6 +31,7 @@ public final class CompletedReplays {
     public static final String CLIENT_FACTION_ID = "marines_replay_completed_client";
     private static final String PREFIX = "replay_completed:";
     private static final String ENABLED_KEY = "marines_replay_completed";
+    private static final String ASHARU = "asharu", AGREUS = "agreus";
     /** Working Passage pays its crew in the ship rather than credits; a replay pays Cold Start's fee. */
     private static final int WORKING_PASSAGE_PAYOUT = ShepherdRecoveryProgress.COLD_PAYMENT;
 
@@ -59,12 +63,51 @@ public final class CompletedReplays {
         return client != null && CLIENT_FACTION_ID.equals(client.factionId);
     }
 
-    /** One replay per chapter the roster has won, in campaign order. */
-    public static List<Mission> offers(MarineRoster roster) {
-        if (roster == null) return List.of();
+    /** One replay per chapter the roster has won on {@code planet}, in campaign order. */
+    public static List<Mission> offers(MarineRoster roster, PlanetAPI planet) {
+        if (planet == null) return List.of();
+        return offers(roster, planet.getId(), planet.getName(), CompletedReplays::siteId);
+    }
+
+    static List<Mission> offers(MarineRoster roster, String planetId, String planetName, Function<Scenario, String> site) {
+        if (roster == null || planetId == null) return List.of();
         List<Mission> out = new ArrayList<>();
-        for (Scenario scenario : completed(roster.completedStoryIds())) out.add(mission(scenario));
+        for (Scenario scenario : completed(roster.completedStoryIds()))
+            if (planetId.equals(site.apply(scenario))) out.add(mission(scenario, planetName));
         return List.copyOf(out);
+    }
+
+    /** Whether {@code scenario}'s chapter replays on {@code planet}. */
+    public static boolean at(Scenario scenario, PlanetAPI planet) {
+        return scenario != null && planet != null && planet.getId().equals(siteId(scenario));
+    }
+
+    /**
+     * The planet the chapter was fought on, or null where the campaign no longer names it: the opening
+     * at the broker's office port, the supply route at its frozen site, and every later arc at its fixed world.
+     */
+    static String siteId(Scenario scenario) {
+        return switch (scenario) {
+            case RELIEF, COUNTERATTACK -> {
+                OpeningBroker.Destination office = OpeningBroker.current();
+                yield office == null ? null : office.planetId();
+            }
+            case JUNCTION, THUNDER_RUN -> {
+                BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
+                yield route == null || !route.readable() ? null : route.planetId();
+            }
+            default -> fixedSiteId(scenario);
+        };
+    }
+
+    /** The site of a chapter whose world never moves. */
+    static String fixedSiteId(Scenario scenario) {
+        if (scenario.corvus() != null) return scenario.corvus().planetId;
+        return switch (scenario) {
+            case SALVAGE_RIGHTS, COLD_START, WORKING_PASSAGE -> ASHARU;
+            case WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR -> AGREUS;
+            default -> null;
+        };
     }
 
     /** The replayable chapters among {@code storyIds}, the roster's won story mission ids. */
@@ -119,9 +162,9 @@ public final class CompletedReplays {
         };
     }
 
-    static Mission mission(Scenario scenario) {
+    static Mission mission(Scenario scenario, String planetName) {
         Mission.Builder builder = Mission.builder(scenario.mission())
-                .id(PREFIX + scenario.name()).source(MissionSource.REPLAY)
+                .id(PREFIX + scenario.name()).source(MissionSource.REPLAY).targetPlanetName(planetName)
                 .name(Strings.format("replayCompletedName", Strings.resolve(scenario.title)))
                 .payout(payout(scenario))
                 .requirements(Strings.format("replayCompletedRequirements", scenario.squads));
