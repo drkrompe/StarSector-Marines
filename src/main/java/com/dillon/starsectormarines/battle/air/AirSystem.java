@@ -1880,11 +1880,28 @@ public class AirSystem {
             return;
         }
         AirBody prey = world.kinematics(duty.preyId);
+        float preyX, preyY, preyVx, preyVy;
+        if (prey != null) {
+            preyX = prey.x;
+            preyY = prey.y;
+            preyVx = prey.vx;
+            preyVy = prey.vy;
+        } else {
+            // A flier: a unit, its motion read from where it was last tick.
+            preyX = world.x(duty.preyId);
+            preyY = world.y(duty.preyId);
+            boolean tracked = duty.trackedFlier == duty.preyId && dt > 0f;
+            preyVx = tracked ? (preyX - duty.flierLastX) / dt : 0f;
+            preyVy = tracked ? (preyY - duty.flierLastY) / dt : 0f;
+            duty.trackedFlier = duty.preyId;
+            duty.flierLastX = preyX;
+            duty.flierLastY = preyY;
+        }
         if (duty.headOnPursuit) {
-            float[] lead = AirToAirGun.leadPoint(body.x, body.y, body.speed(), prey.x, prey.y, prey.vx, prey.vy);
+            float[] lead = AirToAirGun.leadPoint(body.x, body.y, body.speed(), preyX, preyY, preyVx, preyVy);
             AirSteeringSystem.steer(body, lead[0], lead[1], SteeringMode.CRUISE, flight, dt);
         } else {
-            AirIntercept.Plan plan = AirIntercept.plan(body.x, body.y, body.vx, body.vy, flight.maxSpeed(), prey.x, prey.y, prey.vx, prey.vy);
+            AirIntercept.Plan plan = AirIntercept.plan(body.x, body.y, body.vx, body.vy, flight.maxSpeed(), preyX, preyY, preyVx, preyVy);
             AirSteeringSystem.steer(body, plan.x(), plan.y(), plan.mode(), flight, dt);
         }
         world.setAltitudeT(id, 1f);
@@ -1901,10 +1918,11 @@ public class AirSystem {
         mission.state = ShuttleState.ORBIT;
     }
 
-    /** Whether {@code id} is an aircraft in the air, in the battle, and hostile to {@code mine}. */
+    /** Whether {@code id} is an aircraft in the air, in the battle, and hostile to {@code mine}, or a flier hostile to it ({@link FlierPrey}). */
     private boolean hostileAirborne(long id, Faction mine) {
         ShuttleMission other = world.mission(id);
-        if (other == null || other.destroyed || mine == null) return false;
+        if (other == null) return FlierPrey.hostile(roster, id, mine);
+        if (other.destroyed || mine == null) return false;
         AirTargetService craft = roster.airTargets();
         return craft.isPresent(id) && craft.isAirborne(id) && mine.hostileTo(world.airFaction(id));
     }

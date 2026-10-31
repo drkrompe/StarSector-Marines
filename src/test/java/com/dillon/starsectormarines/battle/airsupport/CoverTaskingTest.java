@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -100,6 +103,22 @@ class CoverTaskingTest {
         CoverDuty duty = new CoverDuty(20f, 30f);
         assertEquals(clear, CoverTasking.pickPrey(sim, pool, 0L, Faction.MARINE, duty),
                 "the nearer aircraft is under the battery, so the patrol takes the other");
+    }
+
+    @Test
+    void aHostileFlierNearTheCoveredGroundIsPreyButAnAircraftAttackingItComesFirst() {
+        SceneWorld world = scene(150);
+        BattleSimulation sim = world.sim();
+        long harrier = sim.spawn(new EntitySpec("harrier", Faction.DEFENDER, UnitType.SWARM_HARRIER, 40, 30));
+        run(sim, 2);
+        AirPoolService pool = sim.airPool();
+        CoverDuty duty = new CoverDuty(20f, 30f);
+        assertEquals(harrier, CoverTasking.pickPrey(sim, pool, 0L, Faction.MARINE, duty), "a Harrier is a fighter's prey");
+        long bomber = bomberAt(sim, 60f, 30f);
+        assertEquals(bomber, CoverTasking.pickPrey(sim, pool, 0L, Faction.MARINE, duty),
+                "an aircraft bombing the covered ground before a flier over it");
+        assertNotEquals(harrier, CoverTasking.pickPrey(sim, pool, 0L, Faction.DEFENDER, new CoverDuty(40f, 30f)),
+                "never one's own side's flier");
     }
 
     @Test

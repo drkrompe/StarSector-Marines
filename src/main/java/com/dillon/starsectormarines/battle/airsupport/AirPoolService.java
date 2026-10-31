@@ -3,10 +3,12 @@ package com.dillon.starsectormarines.battle.airsupport;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.CoverDuty;
 import com.dillon.starsectormarines.battle.air.GunshipOrbit;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -41,6 +43,9 @@ import java.util.function.LongPredicate;
  * <p>The aircraft are ordinary corridor sorties ({@code spawnSortie}): they fly in across the side's map edge, make
  * their pass with the same ordnance and flight code every aircraft uses, and leave. Nothing here forks flight or
  * damage. The call surface is serial ({@link #request}, {@link #advance}); the reads only read.
+ *
+ * <p>A side with an airbase on the map ({@link WingAirbase}) flies a call off it instead: the airframe rolls off its
+ * berth down the strip and lands back on it, and only a call with no berth of its kind ready crosses the edge.
  */
 public final class AirPoolService {
 
@@ -305,6 +310,38 @@ public final class AirPoolService {
     }
 
     private final List<RovingObservers> roving = new ArrayList<>();
+    private final Map<Faction, WingAirbase> bases = new EnumMap<>(Faction.class);
+    private final List<StandingPatrol> patrols = new ArrayList<>();
+    private final Map<Faction, Integer> basedLaunches = new EnumMap<>(Faction.class);
+
+    /** Bases {@code base}'s side's sorties on it: a call whose kind has a berth ready there rolls off its strip. */
+    public AirPoolService basedAt(WingAirbase base) {
+        bases.put(base.side(), base);
+        return this;
+    }
+
+    /** The airbase {@code side}'s pool flies from, or null when it flies in over the edge. */
+    public WingAirbase base(Faction side) {
+        return bases.get(side);
+    }
+
+    /** Sorties of {@code side}'s that rolled off its airbase rather than crossing the edge, for evidence. */
+    public int basedLaunches(Faction side) {
+        return basedLaunches.getOrDefault(side, 0);
+    }
+
+    /** Gives a side its standing patrol, looked at each tick after the observers. */
+    public AirPoolService patrolledBy(StandingPatrol patrol) {
+        patrols.add(patrol);
+        return this;
+    }
+
+    /** The standing patrols the mission gave {@code side}, for evidence. */
+    public List<StandingPatrol> patrols(Faction side) {
+        List<StandingPatrol> out = new ArrayList<>();
+        for (StandingPatrol p : patrols) if (p.side() == side) out.add(p);
+        return out;
+    }
 
     /** Sends {@code teams}' roving observers up as the battle goes, before the side's officer looks for ground each tick. */
     public AirPoolService rovingFrom(RovingObservers teams) {
@@ -403,6 +440,26 @@ public final class AirPoolService {
         return call(sim, side, AirPoolKind.FIGHTER, AirMission.COVER, operator, x, y, ready, null);
     }
 
+    /** Seconds from a standing patrol's tasking to its launch: the wing's own operations room, no radio call. */
+    static final float PATROL_READY_SECONDS = 2f;
+
+    /**
+     * The wing's own tasking of one fighter onto a standing patrol over its own ground at {@code (x, y)}
+     * ({@link StandingPatrol}): a cover sortie, reserved from the same stock, with no operator on the ground, so it is
+     * never dropped for one. Refused with nothing reserved when no fighter is in stock.
+     */
+    public Outcome patrol(BattleSimulation sim, Faction side, float x, float y) {
+        Ledger ledger = ledger(side, AirPoolKind.FIGHTER);
+        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        ledger.available--;
+        ledger.reserved++;
+        int ready = sim.getSimTickIndex() + Math.round(PATROL_READY_SECONDS / BattleSimulation.TICK_DT);
+        pending.add(new PendingCall(side, AirPoolKind.FIGHTER, AirMission.COVER, 0L, x, y, ready, null));
+        events.add(new Event(sim.getSimTickIndex(), side, AirPoolKind.FIGHTER, EventType.CALLED, x, y));
+        tallyOf(side, AirMission.COVER).called++;
+        return Outcome.CALLING;
+    }
+
     private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
                          float x, float y, int ready, AirOrdnance ordnance) {
         Ledger ledger = ledger(side, kind);
@@ -442,11 +499,13 @@ public final class AirPoolService {
         regenerate(sim);
         completeCalls(sim);
         resolveSorties(sim);
+        writeOffBurned(sim);
         for (Sortie sortie : sorties) {
             if (sortie.job == AirMission.COVER) CoverTasking.task(sim, this, sortie.craft, sortie.mission, sortie.side);
         }
         for (ForwardObservers posted : observers) posted.tick(sim);
         for (RovingObservers teams : roving) teams.tick(sim);
+        for (StandingPatrol patrol : patrols) patrol.tick(sim, this);
         for (Map.Entry<Faction, AirPoolAllowance> side : declaration.allowances().entrySet()) {
             if (!side.getValue().aiDirected()) continue;
             director(side.getKey()).tick(sim, this);
@@ -470,6 +529,9 @@ public final class AirPoolService {
                     l.regenProgress -= stock.regenSeconds();
                     l.available++;
                     events.add(new Event(sim.getSimTickIndex(), side.getKey(), e.getKey(), EventType.REPLACED, 0f, 0f));
+                    // A replacement ferried onto a stand the base lost in the air, when it has one standing empty.
+                    WingAirbase base = bases.get(side.getKey());
+                    if (base != null) base.restock(e.getKey());
                 }
             }
         }
@@ -478,7 +540,8 @@ public final class AirPoolService {
     private void completeCalls(BattleSimulation sim) {
         for (int i = pending.size() - 1; i >= 0; i--) {
             PendingCall call = pending.get(i);
-            boolean dropped = !CommsOperators.stillAble(sim, call.side, call.operator);
+            // A standing patrol has no operator to lose: it is the wing's own tasking.
+            boolean dropped = call.operator != 0L && !CommsOperators.stillAble(sim, call.side, call.operator);
             if (!dropped && sim.getSimTickIndex() < call.readyTick) continue;
             pending.remove(i);
             Ledger ledger = ledger(call.side, call.kind);
@@ -494,16 +557,27 @@ public final class AirPoolService {
 
     private boolean launch(BattleSimulation sim, PendingCall call, Ledger ledger) {
         World world = sim.world();
-        float[] home = homes.get(call.side);
-        if (home == null) home = homeGround(sim, call.side);
-        if (home == null) home = friendlyCentroid(sim, call.side);
-        if (home == null) home = new float[]{world.x(call.operator), world.y(call.operator)};
-        AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
-                sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
-        if (corridor == null) return false;
         FighterProfile airframe = call.job == AirMission.COVER ? call.kind.coverProfile() : call.kind.profile();
-        long craft = sim.spawnSortie(airframe, call.side, call.x, call.y,
-                corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
+        WingAirbase base = bases.get(call.side);
+        AirfieldService.Berth berth = base == null ? null : base.berthFor(call.kind, airframe, call.x, call.y);
+        if (berth != null && base.overrun(sim)) berth = null;
+        long craft;
+        if (berth != null) {
+            airframe = (FighterProfile) berth.airframe;
+            craft = rollOff(sim, base, berth, airframe, call.side, call.x, call.y);
+            basedLaunches.merge(call.side, 1, Integer::sum);
+        } else {
+            float[] home = homes.get(call.side);
+            if (home == null) home = homeGround(sim, call.side);
+            if (home == null) home = friendlyCentroid(sim, call.side);
+            if (home == null && call.operator != 0L) home = new float[]{world.x(call.operator), world.y(call.operator)};
+            if (home == null) return false;
+            AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
+                    sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
+            if (corridor == null) return false;
+            craft = sim.spawnSortie(airframe, call.side, call.x, call.y,
+                    corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
+        }
         ShuttleMission mission = world.mission(craft);
         mission.strikeSortie = true;
         mission.poolSortie = true;
@@ -518,6 +592,42 @@ public final class AirPoolService {
         sorties.add(new Sortie(craft, mission, call.side, call.kind, call.job, call.x, call.y));
         events.add(new Event(sim.getSimTickIndex(), call.side, call.kind, EventType.LAUNCHED, call.x, call.y));
         return true;
+    }
+
+    /**
+     * Puts {@code berth}'s aircraft in the air for a call at {@code (x, y)}: the hull that was on the stand, damage and
+     * all, taxiing out to the strip and owed back to that stand, as a garrison's shed sortie is ({@code AirStrikeSystem}).
+     */
+    private static long rollOff(BattleSimulation sim, WingAirbase base, AirfieldService.Berth berth,
+                                FighterProfile airframe, Faction side, float x, float y) {
+        AirfieldService field = base.field();
+        Runway strip = field.runway();
+        float standX = berth.centerX + 0.5f;
+        float standY = berth.centerY + 0.5f;
+        long craft = sim.spawnSortie(airframe, side, x, y, standX, standY, standX, standY, 0f);
+        ShuttleMission mission = sim.world().mission(craft);
+        sim.world().setHp(craft, field.launch(berth));
+        mission.homeBerth = berth;
+        sim.world().kinematics(craft).teleport(standX, standY, berth.facingDegrees);
+        mission.departFromRunway(strip, standX, standY, x, y);
+        return craft;
+    }
+
+    /**
+     * Writes off the pool what burned on the side's base: an aircraft standing there was one of the side's available
+     * airframes, so it is lost as surely as one shot down, and comes back only by replacement.
+     */
+    private void writeOffBurned(BattleSimulation sim) {
+        for (WingAirbase base : bases.values()) {
+            for (AirPoolKind kind : base.newlyBurned()) {
+                Ledger ledger = ledger(base.side(), kind);
+                if (ledger == null || ledger.available <= 0) continue;
+                ledger.available--;
+                ledger.lost++;
+                events.add(new Event(sim.getSimTickIndex(), base.side(), kind, EventType.LOST,
+                        base.bounds()[0], base.bounds()[1]));
+            }
+        }
     }
 
     /** Turns a fresh fighter sortie into a patrol: the ring it holds about the ground, sized to what the airframe can fly. */

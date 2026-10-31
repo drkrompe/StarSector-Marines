@@ -57,8 +57,15 @@ public final class CoverDuty {
      */
     public boolean headOnPursuit;
 
-    /** The aircraft being pursued, or {@code 0}. Set by tasking, cleared by flight when the prey is gone. */
+    /** The aircraft (or flier, {@link FlierPrey}) being pursued, or {@code 0}. Set by tasking, cleared by flight when the prey is gone. */
     public long preyId;
+    /**
+     * A flier prey's position last tick and whose it was, so the chase can read its motion: a flier is a unit and
+     * carries no velocity the intercept could read.
+     */
+    public long trackedFlier;
+    public float flierLastX;
+    public float flierLastY;
 
     /** Ground the fighter has been told to work, or none: set by tasking, consumed when the pass begins. */
     public boolean strafeRequested;

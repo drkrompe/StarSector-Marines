@@ -32,11 +32,17 @@ public final class AirToAirFire {
     /** What the loss ledger calls a craft a fighter's guns destroyed. */
     public static final String KILL_LABEL = "air-to-air";
 
-    private record Round(long shooter, long target, float damage, float penetration, int arrival) {}
+    private record Round(long shooter, Faction side, long target, float damage, float penetration, int arrival) {}
 
     private final List<Round> rounds = new ArrayList<>();
     private int roundsFired;
     private int roundsHit;
+    private int flierHits;
+
+    /** Rounds a fighter's guns landed on fliers (Harriers) this battle, both sides, for evidence. */
+    public int flierHits() {
+        return flierHits;
+    }
 
     /** Rounds fired at aircraft this battle, both sides, for evidence. */
     public int roundsFired() {
@@ -59,7 +65,13 @@ public final class AirToAirFire {
                 continue;
             }
             rounds.remove(i);
-            if (world.isAlive(round.target) && sim.getRoster().airTargets().isPresent(round.target)) {
+            if (world.mission(round.target) == null) {
+                // A flier is a unit: the round takes the ordinary damage route, the fighter credited.
+                if (FlierPrey.hostile(sim.getRoster(), round.target, round.side)) {
+                    sim.applyAimedDamage(round.target, round.shooter, round.damage, round.penetration);
+                    flierHits++;
+                }
+            } else if (world.isAlive(round.target) && sim.getRoster().airTargets().isPresent(round.target)) {
                 ShuttleMission prey = world.mission(round.target);
                 if (prey != null) prey.killedByLabel = KILL_LABEL;
                 sim.applyAimedDamage(round.target, round.shooter, round.damage, round.penetration);
@@ -82,11 +94,14 @@ public final class AirToAirFire {
         if (preyId == 0L || !duty.hasAirRounds()) return;
         AirBody body = world.kinematics(id);
         AirBody prey = world.kinematics(preyId);
-        if (body == null || prey == null) return;
+        if (body == null) return;
         Faction mine = world.airFaction(id);
-        if (!mine.hostileTo(world.airFaction(preyId))) return;
-        float range = (float) Math.hypot(prey.x - body.x, prey.y - body.y);
-        float off = AirToAirGun.offNoseDegrees(body, prey.x, prey.y);
+        boolean flier = prey == null;
+        if (flier ? !FlierPrey.hostile(sim.getRoster(), preyId, mine) : !mine.hostileTo(world.airFaction(preyId))) return;
+        float preyX = flier ? world.x(preyId) : prey.x;
+        float preyY = flier ? world.y(preyId) : prey.y;
+        float range = (float) Math.hypot(preyX - body.x, preyY - body.y);
+        float off = AirToAirGun.offNoseDegrees(body, preyX, preyY);
         if (!AirToAirGun.inWindow(range, off) || duty.fireCooldown > 0f) return;
         duty.fireCooldown = AirToAirGun.fireInterval();
         duty.airRoundsLeft--;
@@ -96,8 +111,8 @@ public final class AirToAirFire {
         double nose = Math.toRadians(body.facingDegrees + 90f);
         float fromX = body.x + (float) Math.cos(nose) * MUZZLE_OFFSET_CELLS;
         float fromY = body.y + (float) Math.sin(nose) * MUZZLE_OFFSET_CELLS;
-        float toX = prey.x;
-        float toY = prey.y;
+        float toX = preyX;
+        float toY = preyY;
         if (!hit) {
             float side = sim.random().nextBoolean() ? 1f : -1f;
             float miss = MISS_MIN_CELLS + MISS_SPREAD_CELLS * sim.random().nextFloat();
@@ -107,11 +122,11 @@ public final class AirToAirFire {
         if (hit) {
             duty.airRoundsHit++;
             roundsHit++;
-            rounds.add(new Round(id, preyId, AirToAirGun.DAMAGE, AirToAirGun.PENETRATION,
+            rounds.add(new Round(id, mine, preyId, AirToAirGun.DAMAGE, AirToAirGun.PENETRATION,
                     sim.getSimTickIndex() + Math.max(1, Math.round(AirToAirGun.FLIGHT_SECONDS / dt))));
         }
         sim.postShot(new ShotEvent(fromX, fromY, AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)),
-                toX, toY, AirAppearance.visualAltitudeOffsetCells(world.altitudeT(preyId)), hit, mine,
+                toX, toY, AirAppearance.visualAltitudeOffsetCells(flier ? FlierPrey.VISUAL_ALTITUDE_T : world.altitudeT(preyId)), hit, mine,
                 AirToAirGun.FLIGHT_SECONDS, null, null, null, null, 0f, hit, null, 0L));
     }
 }
