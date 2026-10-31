@@ -98,6 +98,9 @@ public final class ColonyBreachSequence {
     private boolean militiaSeen;
     private boolean terminal;
     private int boreEventCursor;
+    /** The compound's held Locust, or {@code 0}; and the bore events already read for its release. */
+    private long battery;
+    private int batteryEventCursor;
     private int harvestEventCursor;
     private int strikeCursor;
 
@@ -122,6 +125,19 @@ public final class ColonyBreachSequence {
         if (tremorTick >= 0 || plan.sites().size() != this.plan.sites().size())
             throw new IllegalStateException("Replan the breach before the tremor, with the same sites");
         this.plan = plan;
+    }
+
+    /**
+     * Holds the compound's Locust silent until a bore first grows a tier (`colony-breach-nouns.md`, Civil-defence
+     * compound): by then the colony outside is mostly harvested and the guns open on the approaches. Set at setup.
+     */
+    public void holdBatteryUntilBoresGrow(long gun) {
+        battery = gun;
+    }
+
+    /** The compound's Locust while it is still held, else {@code 0}. */
+    public long heldBattery() {
+        return battery;
     }
 
     /** Installs what eruption does on the field. One handler; the last one installed wins. */
@@ -162,12 +178,25 @@ public final class ColonyBreachSequence {
             sim.beginSwarmBoreSourcing();
         }
         if (tremorTick < 0) return;
+        releaseBattery(sim);
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
             if (erupted[i] || tick < ColonyEruptionPlan.eruptionTick(sites.get(i), tremorTick)) continue;
             erupted[i] = true;
             eruptedAt[i] = tick;
             handler.erupted(sim, sites.get(i), tick);
+        }
+    }
+
+    /** Restores the held Locust's power the tick a bore has grown. */
+    private void releaseBattery(BattleSimulation sim) {
+        if (battery == 0L) return;
+        List<SwarmBores.Event> events = sim.swarmBores().events();
+        for (; batteryEventCursor < events.size(); batteryEventCursor++) {
+            if (events.get(batteryEventCursor).kind() != SwarmBores.EventKind.GREW) continue;
+            sim.turretState().restorePower(battery);
+            battery = 0L;
+            return;
         }
     }
 

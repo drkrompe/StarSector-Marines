@@ -66,12 +66,14 @@ public final class CivilDefenceCompound {
      * The dressing planned for one compound.
      *
      * @param cells what the dressing makes of each cell, keyed by packed cell
-     * @param guns  the gun towers' centre cells
-     * @param gateX the first cell of the gate nearest the lift
-     * @param gateY the first cell of the gate nearest the lift
+     * @param guns    the gun towers' centre cells
+     * @param gateX   the first cell of the gate nearest the lift
+     * @param gateY   the first cell of the gate nearest the lift
+     * @param corners the corner towers' gun cells, where the corners are armed; empty otherwise
      */
     record Plan(int left, int top, int right, int bottom, Map<Long, Kind> cells, List<int[]> guns,
-                List<RedoubtWorks.Bag> posts, List<NightLighting.Lamp> lamps, int gateX, int gateY) {}
+                List<RedoubtWorks.Bag> posts, List<NightLighting.Lamp> lamps, int gateX, int gateY,
+                List<int[]> corners) {}
 
     private CivilDefenceCompound() {}
 
@@ -166,10 +168,14 @@ public final class CivilDefenceCompound {
         return true;
     }
 
-    /** Plans the dressing of the wall round {@code shelter}; null when the shelter stands in no closed wall. */
+    /**
+     * Plans the dressing of the wall round {@code shelter}, a heavy machine gun in each corner tower; null when the
+     * shelter stands in no closed wall.
+     */
     static Plan plan(BattleSimulation sim, PointOfInterest shelter, CivilianEvacuationPlacement placement) {
-        return plan(sim, shelter.centerX(), shelter.centerY(), placement.shelterApproachX, placement.shelterApproachY,
-                placement.liftX, placement.liftY, WALL_REACH);
+        return plan(sim.getGrid(), sim.getTopology(), sim.getDoodads(), shelter.centerX(), shelter.centerY(),
+                placement.shelterApproachX, placement.shelterApproachY, placement.liftX, placement.liftY, WALL_REACH,
+                true);
     }
 
     /**
@@ -180,8 +186,14 @@ public final class CivilDefenceCompound {
      */
     static Plan plan(BattleSimulation sim, int sx, int sy, int insideX, int insideY, int towardX, int towardY,
                      int wallReach) {
+        return plan(sim, sx, sy, insideX, insideY, towardX, towardY, wallReach, false);
+    }
+
+    /** As above; {@code armedCorners} mounts a heavy machine gun in each corner tower, as the shelter's compound has. */
+    static Plan plan(BattleSimulation sim, int sx, int sy, int insideX, int insideY, int towardX, int towardY,
+                     int wallReach, boolean armedCorners) {
         return plan(sim.getGrid(), sim.getTopology(), sim.getDoodads(), sx, sy, insideX, insideY, towardX, towardY,
-                wallReach);
+                wallReach, armedCorners);
     }
 
     /**
@@ -191,12 +203,13 @@ public final class CivilDefenceCompound {
      */
     public static List<int[]> gunTowers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx,
                                         int sy, int insideX, int insideY, int towardX, int towardY, int reach) {
-        Plan plan = plan(grid, topology, doodads, sx, sy, insideX, insideY, towardX, towardY, reach);
+        Plan plan = plan(grid, topology, doodads, sx, sy, insideX, insideY, towardX, towardY, reach, false);
         return plan == null ? List.of() : List.copyOf(plan.guns());
     }
 
     private static Plan plan(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx, int sy,
-                             int insideX, int insideY, int towardX, int towardY, int wallReach) {
+                             int insideX, int insideY, int towardX, int towardY, int wallReach,
+                             boolean armedCorners) {
         Set<Long> wall = new HashSet<>();
         for (int y = Math.max(0, sy - wallReach); y <= Math.min(grid.getHeight() - 1, sy + wallReach); y++) {
             for (int x = Math.max(0, sx - wallReach); x <= Math.min(grid.getWidth() - 1, sx + wallReach); x++) {
@@ -279,7 +292,9 @@ public final class CivilDefenceCompound {
             if (in != null) gunTower(crossing, in, wall, inside, open, standing, cells, guns, lamps);
         }
 
-        // A squat tower on each outer corner of the wall, the one furthest out each way.
+        // A squat tower on each outer corner of the wall, the one furthest out each way. An armed tower is a gun
+        // tower: its gun on the corner, the tower round it slit so the gun sees out along both faces.
+        List<int[]> corners = new ArrayList<>();
         for (int[] diagonal : new int[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) {
             long best = -1;
             int bestReach = Integer.MIN_VALUE;
@@ -301,8 +316,12 @@ public final class CivilDefenceCompound {
                 for (int x = cx - 1; x <= cx + 1; x++) {
                     long k = key(x, y);
                     if (inside.contains(k) || wall.contains(k) || cells.containsKey(k) || !open.at(x, y)) continue;
-                    cells.put(k, Kind.WALL);
+                    cells.put(k, armedCorners ? Kind.SLIT : Kind.WALL);
                 }
+            }
+            if (armedCorners && !cells.containsKey(best)) {
+                cells.put(best, Kind.GUN);
+                corners.add(new int[]{cx, cy});
             }
             int lx = cx - diagonal[0] * 3, ly = cy - diagonal[1] * 3;
             if (open.at(lx, ly) && inside.contains(key(lx, ly))) lamps.add(floodlight(lx, ly, diagonal[0], diagonal[1]));
@@ -336,7 +355,7 @@ public final class CivilDefenceCompound {
             }
         }
         if (posts.isEmpty()) return null;
-        return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1]);
+        return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1], List.copyOf(corners));
     }
 
     /**
