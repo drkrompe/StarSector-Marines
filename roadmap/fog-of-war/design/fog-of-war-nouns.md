@@ -25,7 +25,10 @@ position, and shots remain visible through fog.
 - A **vision contributor** is a live unit or convoy hull from a player-visible
   faction. A unit's sight range and close-wall air line-of-sight radius are live
   attributes owned by `VisionService`; a hull's is a marine's, or its mast's where
-  its type carries one. `PlayerVisionState` owns which factions contribute.
+  its type carries one. A gun post carries no sight of its own, so it reveals as
+  its crew sees: a marine's sight, out to its gun's reach where the gun is laid by
+  eye rather than lobbed. That stand-in is the fog's alone; enemy posts still
+  spot nothing for their side. `PlayerVisionState` owns which factions contribute.
 - An **observation footprint** is the set of cells one contributor can presently
   see. `Shadowcast` derives it from map line-of-sight, range, and any air
   clearance; it is not a tactical target-selection result.
