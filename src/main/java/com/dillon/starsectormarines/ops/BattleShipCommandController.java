@@ -82,7 +82,8 @@ final class BattleShipCommandController {
         }
         if (selected == null) return new State(ships, "", "", List.of());
         Tender tender = ShipOrderTargetingPanel.tender(sim, selected);
-        return new State(ships, name(sim, selected, tender), hint(sim, selected, tender), actions(sim, selected, tender));
+        return new State(ships, supplied(name(sim, selected, tender), tender), hint(sim, selected, tender),
+                actions(sim, selected, tender));
     }
 
     static List<Warship> roster(BattleSimulation sim) {
@@ -126,9 +127,9 @@ final class BattleShipCommandController {
                 for (BuildOption option : tender.options()) {
                     CommandPower power = sim.getCommandPowerService().getPower(YardConstruction.ID_PREFIX + option.id());
                     if (!(power instanceof YardConstruction yard) || yard.source() != tender) continue;
-                    // On supply, the button names the build's cost against what the host holds.
+                    // On supply, the button names the build's cost; what the host holds is in the title.
                     String status = tender.metered()
-                            ? Strings.format("yardConstructionStatus", option.cost(), tender.stock(), tender.supplyCap())
+                            ? Strings.format("yardConstructionStatus", option.cost())
                             : text("Build");
                     actions.add(action(ship, "build-" + option.id(), buildLabel(option),
                             buildIcon(option), text("GroundBuildHint"), status,
@@ -141,7 +142,7 @@ final class BattleShipCommandController {
                             && (!tender.metered() || tender.stock() >= option.cost());
                     String detail = Strings.format("battleShipBuildHint", option.label(), Math.round(option.buildSeconds()));
                     String status = tender.metered()
-                            ? Strings.format("yardConstructionStatus", option.cost(), tender.stock(), tender.supplyCap())
+                            ? Strings.format("yardConstructionStatus", option.cost())
                             : Math.round(option.buildSeconds()) + "s";
                     actions.add(action(ship, "build-" + option.id(), buildLabel(option), buildIcon(option), detail,
                             status, ready,
@@ -200,6 +201,19 @@ final class BattleShipCommandController {
         return ship.hullId.isEmpty() ? text("Heading")
                 : Strings.named("shipHull", ship.hullId);
     }
+    /**
+     * The one place a metered tender's supply shows: after its name, what it holds of its cap and when the next point
+     * comes. The build buttons name only their own cost.
+     */
+    static String supplied(String name, Tender tender) {
+        if (tender == null || !tender.metered()) return name;
+        if (tender.supplyCap() == Tender.UNLIMITED) return Strings.format("battleShipSupplyFixed", name, tender.stock());
+        if (tender.stock() >= tender.supplyCap())
+            return Strings.format("battleShipSupplyFull", name, tender.stock(), tender.supplyCap());
+        return Strings.format("battleShipSupply", name, tender.stock(), tender.supplyCap(),
+                (int) Math.ceil(tender.secondsToNextSupply()));
+    }
+
     private static String buildLabel(BuildOption option) {
         return Strings.get("battleShipBuildLabel" + option.id());
     }
