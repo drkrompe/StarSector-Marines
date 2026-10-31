@@ -943,10 +943,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         if (DevConfig.DEV_MODE) hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on, and it opens
-        // Win beside itself.
-        if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
-        else if (Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, List.of(
+        // A player build shows it, labelled CHEAT, only while the mission board's CHEAT key is on. Either build's
+        // switch opens Win and Add Onslaught beside itself.
+        if (DevConfig.DEV_MODE || Cheats.enabled()) hud.addPanel(new DebugHudSwitchPanel(this, List.of(
                 new DebugHudSwitchPanel.Cheat(Strings.get("cheatsWin"), this::cheatWin, () -> true),
                 new DebugHudSwitchPanel.Cheat(Strings.get("cheatsOnslaught"), this::cheatOnslaught,
                         this::onslaughtCheatOffered))));
@@ -964,11 +963,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.
         turretAuthor = new TurretAuthorPanel(this);
-        // A dev build's panel: Win, then the diagnostic rows. A player's Win is the CHEAT switch's.
+        // A dev build's diagnostic rows; its Win and Add Onslaught are the switch's, as in a player build.
         if (DevConfig.DEV_MODE) {
             debugPanel = new DebugTogglesPanel(this);
-            debugPanel.addAction(Strings.get("cheatsWin"), this::cheatWin);
-            debugPanel.addAction(Strings.get("cheatsOnslaught"), this::cheatOnslaught);
             addDiagnosticRows();
             hud.addPanel(debugPanel);
         }
