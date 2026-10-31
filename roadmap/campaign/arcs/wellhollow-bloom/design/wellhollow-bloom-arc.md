@@ -120,7 +120,10 @@ Every chapter won stays on Orens's board as a **replay** next to the
 current chapter. A replay:
 
 - plays the same mission with a fresh vetted map from the chapter's ARID pool
-  (attempt-indexed), so it is the same place on a different day;
+  (attempt-indexed), so it is the same place on a different day; chapter 1
+  instead owns one seed (`WellhollowBloomCampaign.COLONY_BREACH_SEED`, the
+  pool's patched ARID colony) that its first attempt, retries, replays and the
+  debug player all play;
 - pays half the chapter fee on victory and nothing on a loss;
 - carries no unlock, no completion and no one-time reward, and never rewrites
   the arc's progress;
