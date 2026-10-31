@@ -1342,7 +1342,7 @@ public final class BoatDeckViewModel {
         };
     }
 
-    private static BoatDoll.Kind dollKind(BoatFittingSlot slot) {
+    static BoatDoll.Kind dollKind(BoatFittingSlot slot) {
         return switch (slot) {
             case PLATING -> BoatDoll.Kind.PLATING;
             case DRIVE -> BoatDoll.Kind.DRIVE;

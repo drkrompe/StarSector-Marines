@@ -104,6 +104,27 @@ public final class StoreSymbolCanvas {
         };
     }
 
+    /**
+     * The shelf picture of whichever offer is selected, larger, for an offer with no doll: a mech
+     * weapon or internal, or a shuttle part. Built once per selected offer, as {@link #selectedDoll}.
+     */
+    public static CanvasProducer selectedSymbol(Supplier<EquipmentStore.Offer> selected) {
+        return new CanvasProducer() {
+            private EquipmentStore.Offer built;
+            private CanvasProducer symbol;
+
+            @Override
+            public void draw(CanvasContext context) {
+                EquipmentStore.Offer offer = selected.get();
+                if (offer != built) {
+                    built = offer;
+                    symbol = offer == null || hasDoll(offer.kind(), offer.id()) ? null : of(offer.kind(), offer.id());
+                }
+                if (symbol != null) symbol.draw(context);
+            }
+        };
+    }
+
     /** A shuttle fitting or door gun as the Boat Deck draws it, fitted to the picture. */
     private static CanvasProducer boatPart(String id) {
         BoatFittingSlot slot = BoatParts.slot(id);

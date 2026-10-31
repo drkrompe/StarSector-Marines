@@ -25,7 +25,13 @@ public enum VehicleStockFit {
      * hull of its own until the system became a compartment part; missions and evidence that field it field this fit.
      */
     PARAPET(VehicleType.BREAKTHROUGH_TANK, VehiclePlating.FACTORY, VehicleEngine.STOCK,
-            List.of(MechInternal.ACTIVE_PROTECTION));
+            List.of(MechInternal.ACTIVE_PROTECTION)),
+    /**
+     * The convoy spearhead: the Onager the employer puts at the head of a freight run, in heavy plating with a spall
+     * liner so it can sit in front of a machine-gun line, and active protection against the road raiders' rockets.
+     */
+    CONVOY_SPEARHEAD(VehicleType.BREAKTHROUGH_TANK, VehiclePlating.HEAVY, VehicleEngine.STOCK,
+            List.of(MechInternal.SPALL_LINER, MechInternal.ACTIVE_PROTECTION));
 
     public final VehicleType type;
     public final VehiclePlating plating;

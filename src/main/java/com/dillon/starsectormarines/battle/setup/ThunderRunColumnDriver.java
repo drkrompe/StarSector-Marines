@@ -27,7 +27,8 @@ import java.util.Map;
  *       hostile infantry beside the road; the heavy lead edges toward it to put
  *       its hull between. Escorts keep their flank lanes, which are the screen.</li>
  *   <li><b>Under fire.</b> A hauler that has just been hit stops cruising and
- *       runs at full speed, jinking harder.</li>
+ *       runs at full speed. On the run out it never cruises, and every hull
+ *       keeps only {@link #DEPARTURE_WEAVE} of its weave.</li>
  *   <li><b>Wrecks and parked hulls.</b> The lane is moved, across the whole
  *       band if it must be, to the nearest line that clears every burnt-out or
  *       stationary hull ahead; a goal that lies on one is met beside it.</li>
@@ -65,6 +66,8 @@ final class ThunderRunColumnDriver {
     static final int UNDER_FIRE_TICKS = 4 * ThunderRunPacing.TICKS_PER_SECOND;
     /** Ordinary cruising fraction of a hauler's top speed. */
     static final float CARGO_CRUISE = .8f;
+    /** Share of its weave a hull keeps on the run out: a near-straight dash rather than a jink. */
+    static final float DEPARTURE_WEAVE = .35f;
     /** Bumper-to-bumper gap a hull keeps to the one ahead, in cells. */
     static final float STATION_GAP = 2.5f;
     /** Wrecks and parked hulls this far ahead, in cells, shape the lane. */
@@ -250,7 +253,9 @@ final class ThunderRunColumnDriver {
     private void pace(BattleSimulation sim, long id, Plan plan, GroundBody body, VehicleType type,
                       VehicleMission mission, int tick) {
         boolean underFire = tick - plan.lastHitTick <= UNDER_FIRE_TICKS;
-        float cap = plan.role == Role.CARGO && !underFire ? type.maxSpeed * CARGO_CRUISE : type.maxSpeed;
+        // The run out is flat out from the start; cruising is for the legs between holds.
+        boolean cruising = plan.role == Role.CARGO && !underFire && plan.leg != VehicleLeg.DEPARTURE_RUN;
+        float cap = cruising ? type.maxSpeed * CARGO_CRUISE : type.maxSpeed;
         double rad = Math.toRadians(body.facingDegrees);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
         float halfL = type.visualLengthCells * .5f, halfW = type.visualWidthCells * .5f;
@@ -307,7 +312,8 @@ final class ThunderRunColumnDriver {
         VehicleMission mission = sim.convoy().mission(id);
         GroundBody body = sim.convoy().body(id);
         VehicleType type = sim.convoy().vehicleType(id);
-        float[][] lane = lane(body.x, body.y, plan.goalX, plan.lane, weave(plan.role),
+        float weave = plan.leg == VehicleLeg.DEPARTURE_RUN ? weave(plan.role) * DEPARTURE_WEAVE : weave(plan.role);
+        float[][] lane = lane(body.x, body.y, plan.goalX, plan.lane, weave,
                 wavelength(id), phase(id), plan.role == Role.TECHNICAL ? null : type);
         mission.authoredRouteX = lane[0];
         mission.authoredRouteY = lane[1];

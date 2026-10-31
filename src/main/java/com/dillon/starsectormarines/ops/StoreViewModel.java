@@ -1,21 +1,24 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.BoatFitting;
-import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.KitLadderCatalog;
 import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.ArmorIssueResolver;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.StoreSlot;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.ops.battleview.StoreSymbolCanvas;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -66,6 +69,15 @@ final class StoreViewModel {
     /** The loadout card each marine offer is shown as, built once per offer; null for none. */
     private final Map<String, FleetArmoryViewModel.DoctrineTile> cardTiles = new HashMap<>();
     private final ComputedSignal<String> selectedKind;
+    /** The selected offer's spec sheet, as the lab, the deck or the Armory reads the same item. */
+    private final ComputedSignal<SpecSheet> selectedSheet;
+    /** The sheet each offer is read as, built once per offer; null for none. */
+    private final Map<String, SpecSheet> sheets = new HashMap<>();
+    private final ComputedSignal<List<SpecRow>> specRows;
+    private final ComputedSignal<List<SpecNote>> specNotes;
+    private final ComputedSignal<String> specClasses;
+    private final ComputedSignal<String> partClasses;
+    private final ComputedSignal<String> specTopStyle;
     private final ComputedSignal<String> selectedDetail;
     private final ComputedSignal<String> priceLabel;
     private final ComputedSignal<String> buyLabel;
@@ -74,11 +86,15 @@ final class StoreViewModel {
     private final ComputedSignal<String> contextLabel;
 
     private List<EquipmentStore.Offer> shelf = List.of();
+    /** Slots some sellable item fills; a slot no store can ever stock is not listed. Read once, lazily. */
+    private Set<StoreSlot> stockableSlots;
     /** Offers bought on this visit; they stay listed so the shelf does not shift under the cursor. */
     private final Set<String> acquired = new LinkedHashSet<>();
 
     /** An image a row that shows no flag still names, so its hidden flag loads. */
     private static final String NO_FLAG = "graphics/ui/store/slot-marine.svg";
+    /** Spec block heights in px, as {@code company-store.mlx} fixes them. */
+    private static final float PLAIN_ROW = 20f, METERED_ROW = 28f, ROW_GAP = 7f, PART_HEIGHT = 160f;
     private static final String DEFAULT_FILTER = "SECTION:" + StoreSlot.Section.MARINE.name();
 
     StoreViewModel(Reactor reactor, Supplier<List<EquipmentStore.Offer>> shelfSource,
@@ -117,6 +133,30 @@ final class StoreViewModel {
         selectedKind = reactor.computed(() -> {
             EquipmentStore.Offer offer = selected();
             return offer == null ? "" : kind(offer) + " / " + shelfLabel(offer.shelf());
+        });
+        selectedSheet = reactor.computed(() -> {
+            EquipmentStore.Offer offer = selected();
+            return offer == null ? null : sheet(offer);
+        });
+        specRows = reactor.computed(() -> specRows(selectedSheet.get()));
+        specNotes = reactor.computed(() -> specNotes(selectedSheet.get()));
+        specClasses = reactor.computed(() -> {
+            SpecSheet sheet = selectedSheet.get();
+            return sheet == null || sheet.stats().isEmpty() && sheet.notes().isEmpty()
+                    ? "store-spec console-well none" : "store-spec console-well";
+        });
+        partClasses = reactor.computed(() -> {
+            EquipmentStore.Offer offer = selected();
+            return offer != null && !StoreSymbolCanvas.hasDoll(offer.kind(), offer.id())
+                    && StoreSymbolCanvas.has(offer.kind(), offer.id()) ? "store-part" : "store-part none";
+        });
+        specTopStyle = reactor.computed(() -> {
+            // The layout sizes no box from its children, so the stats and the picture beside them
+            // are measured here, from the row heights the stylesheet fixes.
+            float stats = 0f;
+            for (SpecRow row : specRows.get()) stats += (row.classes().endsWith("metered") ? METERED_ROW : PLAIN_ROW) + ROW_GAP;
+            float picture = partClasses.get().endsWith("none") ? 0f : PART_HEIGHT;
+            return "height: " + Math.round(Math.max(picture, Math.max(0f, stats - ROW_GAP))) + "px;";
         });
         selectedDetail = reactor.computed(() -> {
             EquipmentStore.Offer offer = selected();
@@ -209,12 +249,28 @@ final class StoreViewModel {
                     count(sectionKey), current));
             if (!expanded) continue;
             for (StoreSlot slot : StoreSlot.of(section)) {
+                if (!stockableSlots().contains(slot)) continue;
                 String slotKey = "SLOT:" + slot.name();
                 out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot", section, slot,
                         Strings.get("storeSlot" + slot.name()), count(slotKey), current));
             }
         }
         return List.copyOf(out);
+    }
+
+    private Set<StoreSlot> stockableSlots() {
+        if (stockableSlots != null) return stockableSlots;
+        Set<StoreSlot> slots = new LinkedHashSet<>();
+        for (LoadoutCard card : LoadoutCards.all()) slots.add(stockable(EquipmentStore.Kind.LOADOUT, card.id()));
+        for (MechPattern pattern : MechPattern.offerable()) slots.add(stockable(EquipmentStore.Kind.MECH_PATTERN, pattern.id()));
+        for (String part : BoatParts.offerable()) slots.add(stockable(EquipmentStore.Kind.BOAT_PART, part));
+        slots.remove(null);
+        stockableSlots = Set.copyOf(slots);
+        return stockableSlots;
+    }
+
+    private static StoreSlot stockable(EquipmentStore.Kind kind, String id) {
+        return new EquipmentStore.Offer(kind, id, EquipmentStore.Shelf.MARKET, 1).slot();
     }
 
     /** The one section whose slots are showing: the filter's own, or the section of its slot. */
@@ -250,6 +306,16 @@ final class StoreViewModel {
     /** The selected marine loadout as the Armory prints it; empty for any other offer. */
     Signal<List<FleetArmoryViewModel.DoctrineTile>> selectedCards() { return selectedCards; }
     Signal<String> selectedKind() { return selectedKind; }
+    /** The selected item's stat rows: its sheet's numbers, metered where the sheet meters them. */
+    Signal<List<SpecRow>> specRows() { return specRows; }
+    /** The selected item's field notes: what it is and where it comes from. */
+    Signal<List<SpecNote>> specNotes() { return specNotes; }
+    /** Hides the spec block for an item whose sheet says nothing. */
+    Signal<String> specClasses() { return specClasses; }
+    /** Shows the part picture for an offer with no doll: a mech weapon or internal, or a shuttle part. */
+    Signal<String> partClasses() { return partClasses; }
+    /** The stats-and-picture row's height, which its content decides. */
+    Signal<String> specTopStyle() { return specTopStyle; }
     Signal<String> selectedDetail() { return selectedDetail; }
     Signal<String> priceLabel() { return priceLabel; }
     Signal<String> buyLabel() { return buyLabel; }
@@ -424,10 +490,9 @@ final class StoreViewModel {
                     contents.append(EquipmentTemplateCatalog.require(templateId).displayName());
                 }
                 if (contents.length() > 0) {
-                    text.append("\n\n").append(Strings.format("loadoutCardContentsFmt", contents));
+                    text.append("\n").append(Strings.format("loadoutCardContentsFmt", contents));
                 }
-                text.append("\n\n").append(Strings.format("mechPatternCardTierFmt",
-                        Strings.get("mechPatternCardTier" + card.accessTier().name())));
+                text.append("\n").append(terms(card.accessTier().name()));
             }
             case MECH_PATTERN -> {
                 MechPattern pattern = MechPattern.parse(offer.id());
@@ -439,25 +504,114 @@ final class StoreViewModel {
                     case VEHICLE -> "mechPatternCardVehicleUnlockFmt";
                 }, pattern.displayName()));
                 if (pattern.weightClass() != null) {
-                    text.append("\n\n").append(Strings.format("mechPatternCardWeightFmt",
+                    text.append("\n").append(Strings.format("mechPatternCardWeightFmt",
                             Strings.get("mechPatternCardWeight" + pattern.weightClass().name())));
                 }
-                text.append("\n").append(Strings.format("mechPatternCardTierFmt",
-                        Strings.get("mechPatternCardTier" + pattern.accessTier().name())));
+                text.append("\n").append(terms(pattern.accessTier().name()));
             }
             case BOAT_PART -> {
                 if (!BoatParts.exists(offer.id())) return Strings.get("storeUnavailable");
                 text.append(Strings.format("storeBoatPartUnlockFmt", BoatParts.displayName(offer.id())));
-                BoatGun gun = BoatGun.findById(offer.id());
-                BoatFitting fitting = gun == null ? BoatFitting.findById(offer.id()) : null;
-                String effect = gun != null ? gun.effect() : fitting.provenance();
-                if (effect != null && !effect.isBlank()) text.append("\n\n").append(effect);
-                text.append("\n\n").append(Strings.format("mechPatternCardTierFmt",
-                        Strings.get("mechPatternCardTier" + BoatParts.accessTier(offer.id()).name())));
+                text.append("\n").append(terms(BoatParts.accessTier(offer.id()).name()));
             }
         }
-        text.append("\n\n").append(Strings.get("storeLearnedAtOnce"));
         return text.toString();
+    }
+
+    /** The access tier and how the sale is taken, on one line under what the offer teaches. */
+    private static String terms(String tier) {
+        return Strings.join("separatorDot", Strings.format("mechPatternCardTierFmt",
+                Strings.get("mechPatternCardTier" + tier)), Strings.get("storeLearnedAtOnce"));
+    }
+
+    /**
+     * The sheet an offer is read as: the one its own screen shows on hover, so a part reads alike in the
+     * store, the lab and the deck. A loadout's numbers are its card, so its sheet carries only its lore.
+     */
+    private SpecSheet sheet(EquipmentStore.Offer offer) {
+        String key = key(offer);
+        if (sheets.containsKey(key)) return sheets.get(key);
+        SpecSheet sheet = switch (offer.kind()) {
+            case LOADOUT -> {
+                FleetArmoryViewModel.DoctrineTile tile = cardTile(offer);
+                yield tile == null ? null : tile.loreSheet();
+            }
+            case MECH_PATTERN -> {
+                MechPattern pattern = MechPattern.parse(offer.id());
+                yield pattern == null ? null : switch (pattern.kind()) {
+                    case CHASSIS -> SpecSheets.mech(pattern.variant());
+                    case VEHICLE -> SpecSheets.vehicle(pattern.vehicleType());
+                    case WEAPON -> SpecSheets.mechWeapon(pattern.component());
+                    case INTERNAL -> MechLabSpecSheets.internalSheet(pattern.internal());
+                };
+            }
+            case BOAT_PART -> {
+                BoatFittingSlot slot = BoatParts.slot(offer.id());
+                // No hull named: a lift reads its own rating, not a particular boat's.
+                yield BoatDeckSpecSheets.partSheet(slot == null ? BoatDoll.Kind.HARDPOINT
+                        : BoatDeckViewModel.dollKind(slot), offer.id(), null);
+            }
+        };
+        sheets.put(key, sheet);
+        return sheet;
+    }
+
+    private static List<SpecRow> specRows(SpecSheet sheet) {
+        if (sheet == null) return List.of();
+        List<SpecRow> out = new ArrayList<>();
+        for (SpecSheet.Stat stat : sheet.stats()) {
+            String id = "store-spec:" + stat.id().replaceAll("[^A-Za-z0-9]", "");
+            out.add(new SpecRow(id, stat.hasMeter() ? "store-spec-stat metered" : "store-spec-stat",
+                    stat.label(), stat.value(), stat.hasMeter() ? "store-spec-track" : "store-spec-track none",
+                    "width: " + Math.round(Math.max(0f, stat.fill()) * 100f) + "%;"));
+        }
+        return List.copyOf(out);
+    }
+
+    private static List<SpecNote> specNotes(SpecSheet sheet) {
+        if (sheet == null) return List.of();
+        List<SpecNote> out = new ArrayList<>();
+        for (int i = 0; i < sheet.notes().size(); i++) {
+            String text = sheet.notes().get(i);
+            if (text == null || text.isBlank()) continue;
+            out.add(new SpecNote("store-note:" + i, i == 0 ? "label store-spec-note lead" : "label store-spec-note", text));
+        }
+        return List.copyOf(out);
+    }
+
+    /** One stat of the selected item's sheet, with a meter when the sheet meters it. */
+    record SpecRow(String id, String classes, String label, String value, String trackClasses, String fillStyle)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "lineId" -> id + ":line";
+                case "labelId" -> id + ":label";
+                case "valueId" -> id + ":value";
+                case "trackId" -> id + ":track";
+                case "fillId" -> id + ":fill";
+                case "label" -> label;
+                case "value" -> value;
+                case "trackClasses" -> trackClasses;
+                case "fillStyle" -> fillStyle;
+                default -> null;
+            };
+        }
+    }
+
+    /** One paragraph of the selected item's field notes; the first is its own description. */
+    record SpecNote(String id, String classes, String text) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "text" -> text;
+                default -> null;
+            };
+        }
     }
 
     /** One line of the category list: a section header or one of its slots, each with its section's icon. */

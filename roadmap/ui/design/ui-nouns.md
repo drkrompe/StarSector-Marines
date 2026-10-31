@@ -121,8 +121,9 @@ them.
   ceilings, and the item's field note. It is a value with no reference to the
   item and no behaviour, written by one copy factory from the item's owning
   catalog — a weapon at a grade, an armour pattern, a special item, an integral
-  system, a command power, a mech chassis or component, or an equipment template card, which
-  resolves to the equipment it names. No screen assembles one by hand from
+  system, a command power, a mech chassis or component, a vehicle hull, a shuttle part, or an equipment
+  template card, which resolves to the equipment it names. The company store prints the selected
+  offer's sheet in its detail panel rather than on hover, from the same factory. No screen assembles one by hand from
   catalog fields, and no item's prose lives in markup; a mech's note is data
   beside the weapon and armour catalogs, not a field on its enum.
   Comparison rows retain stable stat identities independently of translated

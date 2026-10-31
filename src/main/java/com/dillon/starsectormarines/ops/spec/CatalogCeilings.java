@@ -4,10 +4,12 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MechFabricationCatalog;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 
 /**
  * The best the installed catalogs can do on each axis a comparison meter uses.
@@ -232,6 +235,34 @@ public final class CatalogCeilings {
     /** Furthest-seeing chassis in the mech catalog. */
     public static float mechVisionRange() {
         return maxOverVariants(variant -> variant.visionRange);
+    }
+
+    /** Toughest hull the bay can fabricate. */
+    public static float vehicleStructure() {
+        return maxOverVehicles(type -> type.maxStructure);
+    }
+
+    /** Thickest plate on a hull the bay can fabricate. */
+    public static float vehicleArmor() {
+        return maxOverVehicles(type -> type.maxArmor);
+    }
+
+    /** Fastest hull the bay can fabricate. */
+    public static float vehicleSpeed() {
+        return maxOverVehicles(type -> type.maxSpeed);
+    }
+
+    /** Most seats on a hull the bay can fabricate. */
+    public static float vehicleSeats() {
+        return maxOverVehicles(type -> type.capacity);
+    }
+
+    private static float maxOverVehicles(ToDoubleFunction<VehicleType> metric) {
+        float max = 0f;
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
+            max = Math.max(max, (float) metric.applyAsDouble(recipe.vehicle()));
+        }
+        return max;
     }
 
     /** Drops every held scan. For a test that installs a different catalog mid-run. */

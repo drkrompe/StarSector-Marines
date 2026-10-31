@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Locale;
 
 /** The company store page over a fixed shelf, 1920x1080 at 100% UI scale. */
 public final class StoreSnapshotSuite implements SnapshotSuite {
@@ -46,7 +47,7 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             // A loadout card is built from the catalogs the Armory reads, medicine among them.
             DiskRegistries.install();
             HeadlessSvgAssets.install(context.modRoot());
-            return List.of(
+            List<SnapshotArtifact> out = new ArrayList<>(List.of(
                     new SnapshotArtifact("store-shelf.png", frame(context, false, null, false, null)),
                     // A free-pick Wayline path: sold here as the path not taken, though no pool offers it.
                     new SnapshotArtifact("store-wayline-card.png", frame(context, false, null, false,
@@ -66,7 +67,13 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     new SnapshotArtifact("store-junction-weapons.png",
                             frame(context, junctionShelf(), "SLOT:MECH_WEAPON", false)),
                     new SnapshotArtifact("store-junction-marine.png",
-                            frame(context, junctionShelf(), "SECTION:MARINE", false)));
+                            frame(context, junctionShelf(), "SECTION:MARINE", false))));
+            // Every slot's detail panel, so each kind of item the store sells is seen selected.
+            for (StoreSlot slot : StoreSlot.values()) {
+                out.add(new SnapshotArtifact("store-slot-" + slot.name().toLowerCase(Locale.ROOT) + ".png",
+                        frame(context, false, "SLOT:" + slot.name(), false, null)));
+            }
+            return out;
         }
     }
 

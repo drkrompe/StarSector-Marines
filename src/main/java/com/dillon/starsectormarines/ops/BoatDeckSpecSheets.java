@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
@@ -79,7 +83,7 @@ final class BoatDeckSpecSheets {
             BoatGun gun = BoatGun.findById(itemId);
             if (gun == null) return null;
             return new SpecSheet(gun.displayName(), BoatDeckViewModel.kindLine(gun.tier(), kind), null, "item",
-                    List.of(), List.of(gun.effect(), gun.provenance()));
+                    gunStats(gun), List.of(gun.effect(), gun.provenance()));
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
         if (fitting == null) return null;
@@ -117,5 +121,36 @@ final class BoatDeckSpecSheets {
         }
         return new SpecSheet(fitting.displayName(), BoatDeckViewModel.kindLine(fitting.tier(), kind), null, "item",
                 List.copyOf(stats), List.of(fitting.provenance()));
+    }
+
+    /**
+     * What a door gun hits for, from the turret it mounts: damage, penetration, reach, cycle, magazine and
+     * what each round charges the boat's flux pool. Empty when the turret catalog is not loaded.
+     */
+    private static List<SpecSheet.Stat> gunStats(BoatGun gun) {
+        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
+        StructureDef structure = registry != null ? registry.getStructure(gun.structureId()) : null;
+        TurretMountDef mount = structure != null ? structure.mount : null;
+        WeaponDef weapon = mount != null ? mount.weapon : null;
+        if (weapon == null) return List.of();
+        List<SpecSheet.Stat> stats = new ArrayList<>();
+        int rounds = Math.max(1, weapon.burstCount) * Math.max(1, weapon.projectilesPerShot);
+        String damage = decimal(weapon.damage);
+        stats.add(SpecSheet.Stat.of(Strings.get("gearStatDMG"),
+                rounds > 1 ? Strings.format("gearDamageTimes", damage, rounds) : damage));
+        stats.add(SpecSheet.Stat.of(Strings.get("gearStatPEN"), decimal(weapon.penetration)));
+        stats.add(SpecSheet.Stat.of(Strings.get("gearStatRNG"), String.valueOf(Math.round(weapon.range))));
+        stats.add(SpecSheet.Stat.of(Strings.get("gearStatCooldown"), Strings.format("gearSeconds", decimal(weapon.cooldown))));
+        if (mount.ammoCapacity > 0) {
+            stats.add(SpecSheet.Stat.of(Strings.get("gearStatAMMO"), String.valueOf(mount.ammoCapacity)));
+        }
+        if (gun.family().fluxPerRound() > 0f) {
+            stats.add(SpecSheet.Stat.of(Strings.get("gearStatFluxround"), decimal(gun.family().fluxPerRound())));
+        }
+        return List.copyOf(stats);
+    }
+
+    private static String decimal(float value) {
+        return String.format(Strings.locale(), "%.1f", value);
     }
 }
