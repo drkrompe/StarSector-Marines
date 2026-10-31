@@ -153,8 +153,10 @@ public final class ShipConditionModel {
         Work work = null;
         RefitTrack shown = null;
         boolean bay = false;
-        if (selectedRoom != null && graph.reserved(selectedRoom.id()) && refitState.applies()) {
-            shown = RefitTrack.forReserve(graph.reserve(selectedRoom.id()));
+        RefitTrack reserveTrack = selectedRoom != null && graph.reserved(selectedRoom.id())
+                ? RefitTrack.forReserve(graph.reserve(selectedRoom.id())) : null;
+        if (reserveTrack != null && refitState.applies()) {
+            shown = reserveTrack;
             copy = refitState.band(shown) == RefitBand.DEFICIT ? Strings.get("openingShipConditionReservedCompartmentCopy")
                     : Strings.get("openingRefitReserveOpenCopy");
         } else if (selectedRoom != null && graph.reserved(selectedRoom.id())) {

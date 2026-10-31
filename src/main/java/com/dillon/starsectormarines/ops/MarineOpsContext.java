@@ -259,7 +259,6 @@ public class MarineOpsContext {
         if (companyDeck == null || aboard == null) return;
         var condition = ShipRefits.condition(aboard);
         companyDeck.dress(CoreDressing.restored(condition.restoredCores()));
-        companyDeck.dress(condition.facilityDressing());
     }
 
     /**

@@ -1673,7 +1673,8 @@ same in both states, and an opened reserve is simply not stripped, so its
 hatches work and its fixtures publish their places like any room's. Every
 reserve is closed until named. Second Wind reserves a firing
 range, a gymnasium, a sick bay, a rec lounge and a brig for her refit tree, at
-footprints her deck can spare in every layout (`second-wind-refit-tree.md`).
+footprints her deck can spare in every layout (`second-wind-refit-tree.md`); no
+refit track opens the brig, so it stays sealed.
 These are the founding hull's exception to the destroyer-size gate on those
 rooms, not a change to the general program. Their compact fittings follow the
 ordinary rules: the range's lanes are shut deck behind its firing line, the

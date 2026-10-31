@@ -113,6 +113,7 @@ class TenderTest {
     @Test
     void groundedConstructionTakesAnyOpenSiteOffTheHull() throws Exception {
         Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
+        yard.stock(Tender.UNLIMITED);
         yard.groundDisplay(new Tender.GroundDisplay(20f, 20f, 8f, 8f));
         assertEquals(25.5f, yard.bayX());
         assertEquals(20.5f, yard.bayY());
@@ -146,6 +147,7 @@ class TenderTest {
     @Test
     void aPlotIsRefusedWhenAnyOfItsCellsIsClosedUnseenUnderTheHullOrInAnotherPlot() throws Exception {
         Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        hover.stock(Tender.UNLIMITED);
         BuildOption base = BuildOption.LOCUST_FIRE_BASE;
         assertNull(hover.lay(base, 40.5f, 42.5f, grid), "a blocked cell two rows down");
         float edge = 20f + hover.ship().lowHoverWidth() / 2f;
@@ -161,10 +163,40 @@ class TenderTest {
     @Test
     void aPlotIsRefusedOverAPropItsPadMayNotClearButAPlainTurretIsNot() throws Exception {
         Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        hover.stock(Tender.UNLIMITED);
         hover.keepProps((x, y) -> x == 51 && y == 51);
         assertNull(hover.lay(BuildOption.LOCUST_TURRET, 50.5f, 50.5f, grid), "a kept prop on its rim");
         assertNotNull(hover.lay(BuildOption.HEAVY_MG_TURRET, 51.5f, 51.5f, grid), "a one-cell site keeps today's rule");
         assertNotNull(hover.lay(BuildOption.LOCUST_TURRET, 55.5f, 55.5f, grid), "clear ground");
+    }
+
+    @Test
+    void aRecoveryHostEarnsSupplyOverTimeUpToItsCapAndSpendsItOnBuilds() throws Exception {
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        assertEquals(Tender.RECOVERY_SUPPLY_START, hover.stock());
+        assertNotNull(hover.lay(BuildOption.LOCUST_FIRE_BASE, 55.5f, 55.5f, grid));
+        assertEquals(0, hover.stock());
+        assertNull(hover.lay(BuildOption.HEAVY_MG_TURRET, 50.5f, 50.5f, grid), "nothing left to pay with");
+
+        hover.earn(Tender.SUPPLY_SECONDS - 0.5f);
+        assertEquals(0, hover.stock());
+        hover.earn(0.5f);
+        assertEquals(1, hover.stock());
+        hover.earn(Tender.SUPPLY_SECONDS * 20);
+        assertEquals(Tender.RECOVERY_SUPPLY_CAP, hover.stock(), "income banks no more than the cap");
+        assertEquals(0f, hover.supplyProgress(), 1e-6f);
+
+        hover.cancel(hover.current());
+        assertEquals(Tender.RECOVERY_SUPPLY_CAP + 4, hover.stock(), "a refund is kept in full, past the cap");
+        hover.earn(Tender.SUPPLY_SECONDS * 3);
+        assertEquals(Tender.RECOVERY_SUPPLY_CAP + 4, hover.stock(), "and earns nothing until spent below it");
+    }
+
+    @Test
+    void aFlyingTenderStillBuildsFree() {
+        assertFalse(tender.metered());
+        tender.earn(Tender.SUPPLY_SECONDS * 5);
+        assertEquals(Tender.UNLIMITED, tender.stock());
     }
 
     @Test

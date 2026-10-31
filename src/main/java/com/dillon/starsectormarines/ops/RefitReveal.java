@@ -143,8 +143,7 @@ final class RefitReveal {
     private void next(Phase phase) { this.phase = phase; time = 0f; }
 
     /**
-     * The room a track's work is seen in, or null when it is the whole ship (her plating, grid,
-     * sensors and drive are not a compartment). Looked up on whichever deck is drawn, because opening
+     * The room a track's work is seen in, or null when it has none of its own. Looked up on whichever deck is drawn, because opening
      * a reserve lays the deck out again.
      */
     static Compartment room(RefitTrack track, DeckGraph graph) {
@@ -158,9 +157,7 @@ final class RefitReveal {
             case LIFE_SUPPORT -> RoomPurpose.BARRACKS;
             case COMPUTE -> RoomPurpose.BRIDGE;
             case FABRICATION -> RoomPurpose.PARTS_CAGE;
-            case MESS, WARDROOM, BRIEFING -> RoomPurpose.MESS_HALL;
-            case HYDROPONICS -> RoomPurpose.LOADING_BAY;
-            case HOLDS -> RoomPurpose.STOCKROOM;
+            case MESS -> RoomPurpose.MESS_HALL;
             case RESERVE_HANGAR -> RoomPurpose.HANGAR;
             default -> null;
         };

@@ -86,6 +86,8 @@ public class MorrowLookSuite implements SnapshotSuite {
             try {
                 Tender tender = Tender.lowHover(Faction.MARINE, start[0], start[1], SpawnInOnslaught.PRESENCE);
                 sim.tenders().add(sim, tender);
+                // The look lays all three builds at once to show them, which her supply would not pay for.
+                tender.stock(Tender.UNLIMITED);
                 tender.ship().stationTo(goal[0], goal[1]);
                 morrow[0] = tender;
                 Warship ship = Warship.fit(ShipSupportSource.stockFor("onslaught"), Faction.MARINE,
