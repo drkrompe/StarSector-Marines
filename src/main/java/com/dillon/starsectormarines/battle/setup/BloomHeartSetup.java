@@ -566,7 +566,7 @@ public final class BloomHeartSetup {
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .advancing(sign).armourBehind(BROAD_ARMOUR_BEHIND);
         for (int i = 0; i < across.length; i++) {
-            int[] base = form.cellAt(BROAD_ARMOUR_DEPTH, across[i]);
+            int[] base = form.cellAt(LANE_ARMOUR_DEPTH, across[i]);
             int[] escort = offset(base, axis, 0);
             lanes.addFittedHull(sim, i, VehicleStockFit.CONVOY_ESCORT, escort[0], escort[1], facing);
             int slot = 1;
@@ -644,8 +644,11 @@ public final class BloomHeartSetup {
 
     /** Broad Front's waves after the first, {@link #LATE_WAVE_SECONDS} apart ({@code -Dbattle.heart.broadWaves}). */
     static final int BROAD_WAVES = Integer.getInteger("battle.heart.broadWaves", 12);
-    /** Where a Broad Front lane's armour is set down: on its start line, beside the column's foot. */
-    static final float BROAD_ARMOUR_DEPTH = 0.03f;
+    /**
+     * Where a lane's armour is set down, in both forms: on its start line, beside the column's foot, so the
+     * battlegroup forms up with its machines rather than holding for them to drive in.
+     */
+    static final float LANE_ARMOUR_DEPTH = 0.03f;
 
     /**
      * The Burn as an allied front (`heart-nouns.md`, Allied front); {@code -Dbattle.heart.burnFront=false} is the
@@ -715,9 +718,6 @@ public final class BloomHeartSetup {
 
     /** Seconds after a gunship sortie leaves the shed before the next is ready. */
     static final int GUNSHIP_RESTOCK_SECONDS = 240;
-    /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
-    static final float ARMOUR_DEPTH = 0.12f;
-
     static int acrossExtent(Form form) {
         return form.advancesAlongY() ? form.scale.width : form.scale.height;
     }
@@ -752,7 +752,7 @@ public final class BloomHeartSetup {
             if (inner || HEAVY_ARMOUR) hulls.add(VehicleType.BREAKTHROUGH_TANK);
             // The heavy front brings a second tank and a second technical to every battlegroup.
             if (HEAVY_ARMOUR) hulls.addAll(List.of(VehicleType.BREAKTHROUGH_TANK, VehicleType.MILITIA_TECHNICAL));
-            int[] base = form.cellAt(ARMOUR_DEPTH, across[i]);
+            int[] base = form.cellAt(LANE_ARMOUR_DEPTH, across[i]);
             int[] escort = offset(base, axis, 0);
             lanes.addFittedHull(sim, i, VehicleStockFit.CONVOY_ESCORT, escort[0], escort[1], facing);
             int slot = 1;

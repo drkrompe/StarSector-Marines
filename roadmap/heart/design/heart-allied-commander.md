@@ -27,7 +27,8 @@ on Broad Front).
   as it leaves the farmland.
 - **Armour comes too:** a lane forms only with a machine beside its militia;
   short of one it holds up to a minute for armour that is coming, then goes on
-  without.
+  without. A lane's opening armour, in both forms, is set down on its start line
+  beside the column's foot, so the opening wave forms with it at once.
 - **Fighting advance on contact:** the formation turns to the threat, and
   pushes through at the cap, because the swarm never lets up.
 - **Late waves** from the vehicle park join the main where they catch it up,
