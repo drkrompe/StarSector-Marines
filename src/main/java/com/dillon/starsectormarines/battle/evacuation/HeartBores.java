@@ -61,6 +61,10 @@ public record HeartBores(List<Site> sites) {
     static final int ROAD_REACH = 24;
     /** The road satellite stands no nearer the start than this depth: past the settlement's near gate, in the bloom. */
     static final float ROAD_SATELLITE_DEPTH = 0.42f;
+    /** Depth band of Broad Front's inner row: past the outer row, short of the hollow round the workings. */
+    static final float INNER_DEPTH_FROM = 0.72f, INNER_DEPTH_TO = 0.84f;
+    /** Share of the front's width either side of a lane's line that its inner satellite may stand in. */
+    static final float INNER_HALF_ACROSS = 0.06f;
     /** A young bore stands at least this far from every other bore: nearer than a grown one, it holds less ground. */
     static final int YOUNG_SPACING = 26;
     /** No bore nearer the map edge than this. */
@@ -132,10 +136,20 @@ public record HeartBores(List<Site> sites) {
             if (cell == null) return null;
             sites.add(new Site(s + 1, false, cell[0], cell[1]));
         }
+        // The inner row is drawn after every required site, so a map's mothers and outer row stand where they did, and
+        // a site it cannot seat is left out rather than re-rolling the map.
+        float[][] inner = innerBands(form);
+        for (int s = 0; s < inner.length; s++) {
+            float[] band = inner[s];
+            int[] a = form.cellAt(band[0], band[2]), b = form.cellAt(band[1], band[3]);
+            int[] cell = pick(grid, topology, reachable, sites, rng, SATELLITE_SPACING,
+                    Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1]), null);
+            if (cell != null) sites.add(new Site(bands.length + s + 1, false, cell[0], cell[1]));
+        }
         // The young bores come last, so the mothers and satellites stand where they stood before them; one the
         // map has no ground for is left out rather than re-rolling the map.
         float[][] young = youngBands(form);
-        int number = bands.length;
+        int number = bands.length + inner.length;
         for (float[] band : young) {
             int[] a = form.cellAt(band[0], band[2]), b = form.cellAt(band[1], band[3]);
             int[] cell = pick(grid, topology, reachable, sites, rng, YOUNG_SPACING,
@@ -163,6 +177,22 @@ public record HeartBores(List<Site> sites) {
                 {0.44f, 0.54f, 0.20f, 0.80f},
                 {0.52f, 0.64f, 0.20f, 0.80f},
                 {0.64f, 0.74f, 0.20f, 0.80f}};
+    }
+
+    /**
+     * Where Broad Front's <b>inner satellites</b> may stand, as {@link #satelliteBands} gives them: a second row between
+     * the outer one and the heart, one on each allied lane's line (a sixth, a third, two thirds and five sixths across),
+     * so every lane meets a second bore on its way in. Optional: a band whose site cannot be seated has none. The Burn
+     * has no inner row.
+     */
+    static float[][] innerBands(Form form) {
+        if (form != Form.BROAD_FRONT) return new float[0][];
+        float[] lines = {1f / 6f, 1f / 3f, 2f / 3f, 5f / 6f};
+        float[][] bands = new float[lines.length][];
+        for (int i = 0; i < lines.length; i++) {
+            bands[i] = new float[]{INNER_DEPTH_FROM, INNER_DEPTH_TO, lines[i] - INNER_HALF_ACROSS, lines[i] + INNER_HALF_ACROSS};
+        }
+        return bands;
     }
 
     /**

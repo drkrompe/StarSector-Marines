@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
-import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog.Audience;
@@ -88,11 +87,6 @@ public final class HeartSequence {
     /** The guns and their trucks, or {@code null}. */
     public HeartGuns guns() { return guns; }
 
-    private FieldAirBase airBase;
-
-    /** The allied wing's airbase (The Burn): its ground crew and replacements are worked off every tick from now on. */
-    public void airBase(FieldAirBase airBase) { this.airBase = airBase; }
-
     /** Grows new bores in the battle from now on (The Burn, `heart-nouns.md`, Bore growth). */
     public void growBores(HeartBoreGrowth growth) { this.growth = growth; }
 
@@ -135,7 +129,6 @@ public final class HeartSequence {
         if (barrage != null) barrage.tick(sim);
         if (lanes != null) lanes.tick(sim, pending);
         if (guns != null) guns.tick(sim, pending);
-        if (airBase != null) airBase.advance(sim, BattleSimulation.TICK_DT);
         ObjectiveBoard objectives = sim.getOptionalObjectives();
         if (objectives != null) objectives.advance(tick);
     }

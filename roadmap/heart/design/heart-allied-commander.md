@@ -3,7 +3,7 @@
 Status: SHIPPED. The owner's list is built: all four tools, chosen by need. The gunship is risked as the owner answered: flown when called, the known anti-air shelled first.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — the gunship flies when called, the known anti-air shelled first (the owner's answer); stragglers, standing lanes, neighbour re-aims.
+Updated: 2026-10-31 — combined arms on both forms, The Burn's held by the barrage; The Burn's battlegroups call armour by need.
 
 The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
@@ -19,10 +19,15 @@ commander never orders the company.
 ## What it decides
 
 **How a lane goes forward.** Each lane is a screened advance from its foot to
-its next bore, re-routed when that bore falls.
+its next bore, re-routed when that bore falls (`heart-nouns.md`, Combined arms
+on Broad Front).
 - **Screen by country:** infantry screen in woods and streets, armour screen
-  on open farmland. The lane's ground picks it, so one lane can change screen
+  on open farmland. The way is cut into legs where the country changes for
+  ten cells or more, each leg at least twenty long, so one lane changes screen
   as it leaves the farmland.
+- **Armour comes too:** a lane forms only with a machine beside its militia;
+  short of one it holds up to a minute for armour that is coming, then goes on
+  without.
 - **Fighting advance on contact:** the formation turns to the threat, and
   pushes through at the cap, because the swarm never lets up.
 - **Late waves** from the vehicle park join the main where they catch it up,
@@ -30,7 +35,12 @@ its next bore, re-routed when that bore falls.
   leaves behind (`allied-command.md`, The slowest sets the pace).
 - **A broken screen** hands the lead to the main.
 
-Behind `battle.heart.laneFormation`: a lane forms only once it has armour, and
+On The Burn the battlegroups advance by the same rule, each formation's limit
+the barrage's hold (`heart-nouns.md`, Combined arms on Broad Front), and they
+call their armour from the park by need as below; the gunship and the
+re-aimed waves stay Broad Front's.
+
+Behind `battle.heart.laneFormation`, `battle.heart.broadCombinedArms` and `battle.heart.burnCombinedArms`: a lane forms only once it has armour, and
 the bore assault takes it once it has rallied.
 
 **How a lane attacks its bore.** On The Burn once the guns allow it, and on

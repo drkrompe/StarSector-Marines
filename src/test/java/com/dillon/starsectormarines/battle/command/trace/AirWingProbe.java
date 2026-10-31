@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.airsupport.AirMission;
+import com.dillon.starsectormarines.battle.airsupport.StandingPatrol;
+import com.dillon.starsectormarines.battle.airsupport.WingAirbase;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.airsupport.CommsKit;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
@@ -69,6 +72,37 @@ final class AirWingProbe {
                     .put("knownColoniesWithin30", known));
         }
         json.put("losses", losses);
+        // The airbases it flies from, where it has them: what rolled off them, what stands in each base's bays now, the
+        // crews standing, the rebuilds begun, the standing patrol.
+        if (pool.based(Faction.ALLY)) {
+            JSONArray bases = new JSONArray();
+            for (WingAirbase base : pool.bases(Faction.ALLY)) {
+                JSONObject berths = new JSONObject();
+                int wrecks = 0;
+                for (AirfieldService.Berth berth : base.berths()) {
+                    String state = berth.state.name().toLowerCase(Locale.ROOT);
+                    berths.put(state, berths.optInt(state) + 1);
+                    if (berth.wreckOnPad) wrecks++;
+                }
+                int[] b = base.bounds();
+                int crew = 0;
+                for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                    long u = sim.liveUnitAt(i);
+                    if (sim.identity().faction(u) != Faction.ALLY || !sim.ambientTasks().assigned().contains(u)) continue;
+                    float x = sim.world().x(u), y = sim.world().y(u);
+                    if (x >= b[0] && x <= b[2] + 1 && y >= b[1] && y <= b[3] + 1) crew++;
+                }
+                bases.put(new JSONObject().put("x0", b[0]).put("y0", b[1]).put("bays", berths)
+                        .put("wrecksOnBays", wrecks).put("crewStanding", crew));
+            }
+            int patrols = 0;
+            for (StandingPatrol patrol : pool.patrols(Faction.ALLY)) patrols += patrol.launched();
+            json.put("airbases", new JSONObject().put("basedLaunches", pool.basedLaunches(Faction.ALLY))
+                    .put("rebuildsBegun", sim.getAirfieldService().rebuildsBegun())
+                    .put("patrolsLaunched", patrols).put("bases", bases));
+        }
+        json.put("airToAir", new JSONObject().put("roundsFired", sim.airToAir().roundsFired())
+                .put("roundsHit", sim.airToAir().roundsHit()).put("flierHits", sim.airToAir().flierHits()));
         System.out.println("[air-wing] " + run + " " + json);
     }
 }

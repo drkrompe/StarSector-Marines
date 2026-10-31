@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -15,13 +16,13 @@ import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
-import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -174,6 +175,10 @@ public final class MissionLayoutStage implements GenStage {
                     continue;
                 }
                 out.add(LayoutStructures.raise(ctx, ground, structure, held));
+            } else if (piece instanceof Worked worked) {
+                out.add(layWorked(ctx, worked, held));
+            } else if (piece instanceof Props props && phase == Phase.STRUCTURES) {
+                out.add(layProps(ctx, props));
             } else if (phase == Phase.STRUCTURES) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(),
                         "only structures are raised in the structures phase"));
@@ -231,8 +236,42 @@ public final class MissionLayoutStage implements GenStage {
         // The gate yards the precinct ward laid inside walled places, reported with the rest.
         List<Laid> yards = ctx.get(BspKeys.GATE_YARDS);
         if (yards != null) out.addAll(yards);
-        ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+        ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out, onWays(ground, out)));
     }
+
+    /** Each laid structure or line of works standing on a way, with the cells it covers there (LaidLayout.onWays). */
+    static Map<String, List<int[]>> onWays(LayoutGround ground, List<Laid> laid) {
+        Map<String, List<int[]>> out = new HashMap<>();
+        for (Laid piece : laid) {
+            if (!piece.isLaid() || piece.cells().isEmpty()) continue;
+            List<int[]> on = new ArrayList<>();
+            if (piece.kind() == Laid.Kind.STRUCTURE && !LayoutStructures.PAVING_REASON.equals(piece.reason())) {
+                int[] a = piece.cells().get(0), b = piece.cells().get(piece.cells().size() - 1);
+                for (int x = a[0]; x <= b[0]; x++) {
+                    for (int y = a[1]; y <= b[1]; y++) if (ground.isUsedWay(x, y)) on.add(new int[]{x, y});
+                }
+            } else if (piece.kind() == Laid.Kind.LINE) {
+                for (int[] c : piece.cells()) if (ground.isUsedWay(c[0], c[1])) on.add(c);
+            }
+            if (!on.isEmpty()) out.put(piece.name(), on);
+        }
+        // The farmland's own farms, yard and buildings, read the same way: nothing stands on a way.
+        RuralLayout rural = ground.rural();
+        if (rural != null) {
+            for (int i = 0; i < rural.farmsteads().size(); i++) {
+                RuralLayout.Farmstead f = rural.farmsteads().get(i);
+                List<int[]> on = new ArrayList<>();
+                for (int x = f.yardX0(); x <= f.yardX1(); x++) {
+                    for (int y = f.yardY0(); y <= f.yardY1(); y++) if (ground.isUsedWay(x, y)) on.add(new int[]{x, y});
+                }
+                if (!on.isEmpty()) out.put(FARMLAND_FARMSTEAD + (i + 1), on);
+            }
+        }
+        return out;
+    }
+
+    /** How the reading names the farmland's own farms: this plus their number. */
+    static final String FARMLAND_FARMSTEAD = "farmland-farmstead-";
 
     /**
      * The airbase lot authored on its held ground ({@link AirbaseLot#author}), reported by the lot's corners; refused
@@ -271,6 +310,19 @@ public final class MissionLayoutStage implements GenStage {
      * Each prop through the ordinary placement, and a tree's canopy through the forest brush, which refuses it on
      * ground a tree may not stand on; laid when any stood, reported by the low corners of those that did.
      */
+    /** Worked earth over a {@link Worked} piece's open cells, off held ground. */
+    static Laid layWorked(GenContext ctx, Worked worked, boolean[][] held) {
+        List<int[]> done = new ArrayList<>();
+        for (int[] c : worked.cells()) {
+            if (held != null && ctx.grid.inBounds(c[0], c[1]) && held[c[0]][c[1]]) continue;
+            if (PreparedGround.workedGround(ctx, c[0], c[1])) done.add(c);
+        }
+        return done.isEmpty()
+                ? Laid.refused(worked.name(), Laid.Kind.BLOCK, worked.required(), "no open ground")
+                : new Laid(worked.name(), Laid.Kind.BLOCK, Laid.Status.LAID, done.size() + " of " + worked.cells().size(),
+                        worked.required(), done, List.of(), List.of());
+    }
+
     static Laid layProps(GenContext ctx, Props props) {
         TileRegistry tiles = TileRegistry.installed();
         List<int[]> stood = new ArrayList<>();
@@ -325,7 +377,7 @@ public final class MissionLayoutStage implements GenStage {
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
         boolean dug = line.style().dug();
-        LineCourse.Course course = LineCourse.plan(line.path(), ground::isRoad, line.roadGap(), line.frontward(),
+        LineCourse.Course course = LineCourse.plan(line.path(), (x, y) -> breaks(ground, x, y), line.roadGap(), line.frontward(),
                 line.style() == LineStyle.TRENCH_WIRE ? line.funnelEvery() : 0,
                 dug ? line.depth() : 1, dug, line.nestEvery());
         int[] front = line.frontward();
@@ -336,7 +388,7 @@ public final class MissionLayoutStage implements GenStage {
             planned += run.size();
             for (int[] c : run) {
                 if (takes(ctx, ground, held, c)) works.add(c);
-                else if (!ground.isRoad(c[0], c[1])) blocked.add(c);
+                else if (!breaks(ground, c[0], c[1])) blocked.add(c);
             }
         }
         if (planned == 0) return Laid.refused(line.name(), Laid.Kind.LINE, line.required(), "no course between roads");
@@ -542,8 +594,16 @@ public final class MissionLayoutStage implements GenStage {
 
     /** Whether the cell may take a work: open ground that is not road, nor held by a site the layout states up front. */
     private static boolean takes(GenContext ctx, LayoutGround ground, boolean[][] held, int[] c) {
-        return PreparedGround.open(ctx, c[0], c[1]) && !ground.isRoad(c[0], c[1])
+        return PreparedGround.open(ctx, c[0], c[1]) && !breaks(ground, c[0], c[1])
                 && (held == null || !held[c[0]][c[1]]);
+    }
+
+    /**
+     * Whether a line of works breaks at the cell: at a road, and at every way when the layout says so
+     * ({@link MissionLayout.Ways#worksBreakAtWays}).
+     */
+    static boolean breaks(LayoutGround ground, int x, int y) {
+        return ground.isRoad(x, y) || ground.ways().worksBreakAtWays() && ground.isWay(x, y);
     }
 
     /**

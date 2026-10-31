@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * The world's military air wing over a Rav Bloom battle (`air-nouns.md`, Forward observer): an {@link Faction#ALLY} pool
@@ -21,20 +22,42 @@ import java.util.List;
  * <p>Air cannot clear the map: the wing is a few airframes replaced slowly, every call needs an observer with the ground
  * in sight, and the officer judges the anti-air only from what the side has seen, so a mass's unseen spore colonies take
  * aircraft.
+ *
+ * <p>Where the mission laid it airbases ({@link WingAirbase}), the wing is their bays and flies from them, and keeps a
+ * standing patrol of fighters over the formations while the air is contested ({@link StandingPatrol}).
  */
 public final class AlliedAirWing {
 
     private AlliedAirWing() {}
 
+    /** Salts the roving teams' kit rolls, seeded from the wing's home so one map rolls the same teams. */
+    private static final long ROVING_SALT = 0x524F56494E47L;
+
     /**
      * The wing: two bombers back every minute, two fighters every forty-five seconds. UNTUNED first-pass
      * mission-design choice, smaller and slower than a Conquest company's own pool, since the wing serves a whole front.
      */
-    /** Salts the roving teams' kit rolls, seeded from the wing's home so one map rolls the same teams. */
-    private static final long ROVING_SALT = 0x524F56494E47L;
-
     static final AirPoolAllowance WING = AirPoolAllowance.of(
             new AirPoolStock(2, 2, 60f), new AirPoolStock(2, 2, 45f), true);
+
+    /**
+     * The wing with airbases on the map: its establishment is the bays, a bomber for every bomber's bay and a fighter
+     * for every fighter's, and what it has to fly is what stands airworthy in them ({@link AirPoolService}). Replaced
+     * only by the bays' crews' rebuilds, so the regeneration here is never read.
+     */
+    static AirPoolAllowance basedWing(List<WingAirbase> bases) {
+        int bombers = 0, fighters = 0;
+        for (WingAirbase base : bases) {
+            for (var berth : base.berths()) {
+                if (base.kindOf(berth) == AirPoolKind.BOMBER) bombers++;
+                else fighters++;
+            }
+        }
+        return AirPoolAllowance.of(new AirPoolStock(bombers, bombers, 0f), new AirPoolStock(fighters, fighters, 0f), true);
+    }
+
+    /** Standing patrol fighters up at once over a based wing's formations, for each of its bases. UNTUNED. */
+    static final int PATROL_UP_PER_BASE = 2;
 
     /**
      * Gives the battle's allies the wing, flying in over {@code home} (ground behind their own line), posts one
@@ -44,13 +67,31 @@ public final class AlliedAirWing {
      */
     public static ForwardObservers install(BattleSimulation sim, float homeX, float homeY,
                                            List<? extends ForwardObservers.Post> posts) {
+        return install(sim, homeX, homeY, posts, List.of(), List.of(), s -> false);
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, float, float, List)}, the wing based on {@code bases} when there are any: its
+     * establishment the bases' bays, its sorties rolling off their strips, and a standing patrol of two fighters a base
+     * over {@code stations}, flown while {@code contested} says the air is.
+     */
+    public static ForwardObservers install(BattleSimulation sim, float homeX, float homeY,
+                                           List<? extends ForwardObservers.Post> posts, List<WingAirbase> bases,
+                                           List<? extends StandingPatrol.Station> stations,
+                                           Predicate<BattleSimulation> contested) {
         ForwardObservers observers = new ForwardObservers(Faction.ALLY, posts);
         AirPoolService previous = sim.airPool();
         AirPoolDeclaration declared = previous == null ? AirPoolDeclaration.NONE : previous.declaration();
-        AirPoolService service = new AirPoolService(declared.with(Faction.ALLY, WING));
+        AirPoolService service = new AirPoolService(declared.with(Faction.ALLY, bases.isEmpty() ? WING : basedWing(bases)));
         RovingObservers teams = new RovingObservers(Faction.ALLY, homeX, homeY, BloomVantages.of(homeX, homeY),
                 (Float.floatToIntBits(homeX) * 31L + Float.floatToIntBits(homeY)) ^ ROVING_SALT);
-        sim.setAirPool(service.observedFrom(observers).rovingFrom(teams).homeAt(Faction.ALLY, homeX, homeY));
+        service.observedFrom(observers).rovingFrom(teams).homeAt(Faction.ALLY, homeX, homeY);
+        if (!bases.isEmpty()) {
+            for (WingAirbase base : bases) service.basedAt(base);
+            if (!stations.isEmpty()) service.patrolledBy(new StandingPatrol(Faction.ALLY, stations,
+                    PATROL_UP_PER_BASE * bases.size(), contested));
+        }
+        sim.setAirPool(service);
         return observers;
     }
 
@@ -76,8 +117,8 @@ public final class AlliedAirWing {
     }
 
     /**
-     * Bases the wing {@link #install} gave the allies on an airbase lot of their own ({@code cordon-nouns.md}, Air base;
-     * {@code heart-nouns.md}, Airbase): {@code strip} installed as the field's runway, then one airframe of the
+     * Bases the wing {@link #install} gave the allies on an airbase lot of their own ({@code cordon-nouns.md}, Air base):
+     * {@code strip} installed as the field's runway, then one airframe of the
      * establishment in each of {@code sheds}, bombers first, rolling out over the strip for every sortie and home to the
      * shed after; any the sheds cannot hold (or every one, with no strip) stands on the lot's apron {@code pads}, nose
      * to the pad's approach, lifting off it. From then on the wing takes off from and lands on those berths, its stock

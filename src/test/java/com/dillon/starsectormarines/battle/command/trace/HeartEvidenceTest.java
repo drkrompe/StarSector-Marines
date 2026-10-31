@@ -233,6 +233,8 @@ class HeartEvidenceTest {
                 .put("boreAssault", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().assaultLine())
                 .put("noRouteBy", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().noRouteLine(sim))
                 .put("sectionLog", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().sectionLogLine(sim))
+                .put("together", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().togetherLine())
+                .put("alliedCap", sim.alliedCap().line(sim))
                 .put("ledger", ledgerLine(sim));
     }
 
@@ -285,6 +287,8 @@ class HeartEvidenceTest {
                 .append("\nRefused for no route, by hull: ").append(s.optString("noRouteBy", "—")).append(".\n")
                 .append("\nBore assaults: ").append(s.optString("boreAssault", "—")).append(".\n")
                 .append("\nFire-section carriers: ").append(s.optString("sectionLog", "—")).append(".\n")
+                .append("\nMilitia and armour together: ").append(s.optString("together", "—")).append(".\n")
+                .append("\nAllied cap: ").append(s.optString("alliedCap", "—")).append(".\n")
                 .append("\nDamage to the swarm by tool: ").append(s.optString("ledger", "—")).append(".\n");
         JSONObject objectives = s.getJSONObject("objectives");
         if (objectives.length() > 0) {

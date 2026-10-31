@@ -52,6 +52,9 @@ public final class AlliedToolShed implements AlliedProducer {
     private final Map<AlliedTool, Predicate<BattleSimulation>> supplies = new EnumMap<>(AlliedTool.class);
     private final List<Dispatch> onRoad = new ArrayList<>();
     private final List<Dispatch> log = new ArrayList<>();
+    /** Tools that bring fighting bodies on, the pool they count against and how many each brings ({@link AlliedCap}). */
+    private final Map<AlliedTool, AlliedCap.Pool> capPools = new EnumMap<>(AlliedTool.class);
+    private final Map<AlliedTool, Integer> capSizes = new EnumMap<>(AlliedTool.class);
 
     public AlliedToolShed(AlliedDepot depot) {
         this.depot = depot;
@@ -78,6 +81,17 @@ public final class AlliedToolShed implements AlliedProducer {
      */
     public AlliedToolShed suppliedWhile(AlliedTool tool, Predicate<BattleSimulation> supplied) {
         supplies.put(tool, supplied);
+        return this;
+    }
+
+    /**
+     * A tool that brings {@code bodies} fighting bodies of {@code pool} on: a request for it obeys the battle's allied
+     * cap, waiting its turn in the cap's queue while the pool has no room ({@link AlliedCap#mayGo}), keyed by the tool and
+     * the place it is for. The maker enlists what it brings.
+     */
+    public AlliedToolShed capped(AlliedTool tool, AlliedCap.Pool pool, int bodies) {
+        capPools.put(tool, pool);
+        capSizes.put(tool, bodies);
         return this;
     }
 
@@ -109,6 +123,9 @@ public final class AlliedToolShed implements AlliedProducer {
 
     boolean request(BattleSimulation sim, AlliedRequest request, int tick) {
         if (refusal(sim, request.tool()) != null) return false;
+        AlliedCap.Pool pool = capPools.get(request.tool());
+        if (pool != null && !sim.alliedCap().mayGo(sim, request.tool() + "@" + request.toPlace(), pool,
+                capSizes.get(request.tool()))) return false;
         Line line = lines.get(request.tool());
         Sent sent = line.maker.make(sim, depot.dispatchCell(sim), request);
         if (sent == null) return false;

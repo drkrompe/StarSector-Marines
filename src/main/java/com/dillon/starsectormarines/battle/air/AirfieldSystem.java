@@ -64,7 +64,9 @@ public final class AirfieldSystem {
                     }
                 }
                 case DESTROYED -> {
-                    // Terminal. Nothing to place, nothing to count down.
+                    // Terminal on a field that does not rebuild, and on a stand with a hulk on it. A field that
+                    // rebuilds starts a replacement here as a frame on the stand, which its crew then works up.
+                    service.beginRebuild(berth);
                 }
             }
         }
@@ -132,7 +134,7 @@ public final class AirfieldSystem {
     private void place(BattleControl sim, AirfieldService service,
                        AirfieldService.Berth berth) {
         berth.airframeId = sim.spawn(BasedAircraft.create(
-                "af" + (nextAirframeId++), service.owner(), berth.airframe,
+                "af" + (nextAirframeId++), service.ownerOf(berth), berth.airframe,
                 berth.centerX, berth.centerY, berth.hullHp));
     }
 

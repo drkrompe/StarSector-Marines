@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.airsupport;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.air.CoverDuty;
+import com.dillon.starsectormarines.battle.air.FlierPrey;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -113,7 +114,24 @@ final class CoverTasking {
                 best = id;
             }
         }
+        // Fliers (Harriers) too: units, not aircraft, but what a patrol over the lanes is up there for
+        // (`FlierPrey`). One over the covered ground is attacking it; an aircraft attacking it still comes first.
+        UnitRosterService roster = sim.getRoster();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long id = sim.liveUnitAt(i);
+            if (!FlierPrey.hostile(roster, id, side)) continue;
+            double gap = Math.hypot(world.x(id) - duty.coverX, world.y(id) - duty.coverY);
+            if (gap > ENGAGE_CELLS || hunters(sim, id) >= MAX_HUNTERS) continue;
+            double score = (gap <= PROTECT_CELLS ? 500 : 1500) + gap;
+            if (score >= bestScore || underKnownAntiAirAt(sim, pool, side, world.x(id), world.y(id))) continue;
+            bestScore = score;
+            best = id;
+        }
         return best;
+    }
+
+    private static boolean underKnownAntiAirAt(BattleSimulation sim, AirPoolService pool, Faction side, float x, float y) {
+        return pool.director(side).risk(sim, x, y, AirPoolKind.FIGHTER) > CHASE_RISK_CEILING;
     }
 
     /**
@@ -125,8 +143,12 @@ final class CoverTasking {
      */
     static boolean underKnownAntiAir(BattleSimulation sim, AirPoolService pool, Faction side, long aircraft) {
         AirBody body = sim.world().kinematics(aircraft);
-        if (body == null) return false;
-        return pool.director(side).risk(sim, body.x, body.y, AirPoolKind.FIGHTER) > CHASE_RISK_CEILING;
+        if (body == null) {
+            // A flier is a unit, read where it stands.
+            return FlierPrey.hostile(sim.getRoster(), aircraft, side)
+                    && underKnownAntiAirAt(sim, pool, side, sim.world().x(aircraft), sim.world().y(aircraft));
+        }
+        return underKnownAntiAirAt(sim, pool, side, body.x, body.y);
     }
 
     /** Whether an aircraft carries something that can hurt the covered ground: a strike, a gunship, another fighter on patrol. */

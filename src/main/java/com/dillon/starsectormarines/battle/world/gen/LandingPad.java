@@ -19,7 +19,11 @@ public final class LandingPad {
         CONQUEST_ARRIVAL,
         /** A hardstand on the defender garrison's own airfield, inside its ward. */
         GARRISON_AIRFIELD,
-        /** A hardstand on an allied side's own airbase: its air wing's, never a place a company lands. */
+        /**
+         * A hardstand on an allied side's own airbase, one a mission laid (the heart's, `heart-nouns.md`; the cordon's):
+         * the allies' air wing flies from it, no lift or company lands on it, and it is no garrison's, so nothing that
+         * reads a garrison field reads it.
+         */
         ALLIED_AIRFIELD,
         FALLBACK
     }
@@ -87,13 +91,14 @@ public final class LandingPad {
                 Purpose.GARRISON_AIRFIELD);
     }
 
-    /** Backward-compatible one-cell berth for a dynamically selected LZ. */
+    /** One hardstand on an allied airbase a mission laid. */
     public static LandingPad allied(int centerX, int centerY, Approach approach) {
         return new LandingPad(centerX, centerY, 2, 2, approach,
                 Purpose.ALLIED_AIRFIELD);
     }
 
-        public static LandingPad fallback(int centerX, int centerY) {
+    /** Backward-compatible one-cell berth for a dynamically selected LZ. */
+    public static LandingPad fallback(int centerX, int centerY) {
         return new LandingPad(centerX, centerY, 0, 0, Approach.NORTH,
                 Purpose.FALLBACK);
     }

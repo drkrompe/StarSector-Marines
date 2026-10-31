@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -51,11 +53,60 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                     String head = map.id + " " + biome.name().toLowerCase(Locale.ROOT) + " seed " + entry.seed()
                             + (entry.note().isBlank() ? "" : " | " + entry.note());
                     out.add(new SnapshotArtifact(name, frame(whole, map, biome, entry, head)));
+                    if (AIRBASES && map.id.startsWith("heart-front")) out.addAll(airbases(context, map, biome, entry, name, head));
                 }
             }
         }
         return out;
     }
+
+    /** {@code -Dsnapshot.storyMapPools.airbases=true}: a closer frame of each allied airbase and its hamlet too. */
+    private static final boolean AIRBASES = Boolean.getBoolean("snapshot.storyMapPools.airbases");
+    /** Cells across an airbase's close frame: the field, its hamlet and the ways round them. */
+    private static final float AIRBASE_CELLS_ACROSS = 170f;
+
+    private static List<SnapshotArtifact> airbases(SnapshotContext context, StoryMap map, SurfacePalette biome,
+                                                   StoryMapPool.Entry entry, String name, String head) throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), biome,
+                BloomHeartSetup.densityOf(map), entry);
+        try (BattleSimulation sim = built.sim()) {
+            for (Laid piece : built.map().layout.pieces()) {
+                if (!piece.name().matches(HeartLayout.AIRBASE + "[0-9]+") || !piece.isLaid()) continue;
+                // Framed on the field and every building of its hamlet.
+                int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+                for (Laid part : built.map().layout.pieces()) {
+                    if (!part.isLaid() || !(part.name().equals(piece.name()) || part.name().startsWith(piece.name() + "."))) continue;
+                    for (int[] c : part.cells()) {
+                        x0 = Math.min(x0, c[0]);
+                        y0 = Math.min(y0, c[1]);
+                        x1 = Math.max(x1, c[0]);
+                        y1 = Math.max(y1, c[1]);
+                    }
+                }
+                BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                        (x0 + x1) / 2f, (y0 + y1) / 2f, Math.max(AIRBASE_CELLS_ACROSS, x1 - x0 + 30f));
+                out.add(new SnapshotArtifact(name.replace(".png", "-" + piece.name() + ".png"),
+                        close.render(sim, head + " | " + piece.name(), ReviewAnnotations.builder().build())));
+            }
+            for (String spot : CLOSE_AT.isBlank() ? new String[0] : CLOSE_AT.split(";")) {
+                String[] xy = spot.trim().split(",");
+                float x = Float.parseFloat(xy[0].trim()), y = Float.parseFloat(xy[1].trim());
+                BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                        x, y, AIRBASE_CELLS_ACROSS);
+                String at = "at-" + Math.round(x) + "-" + Math.round(y);
+                out.add(new SnapshotArtifact(name.replace(".png", "-" + at + ".png"),
+                        close.render(sim, head + " | " + at, ReviewAnnotations.builder().build())));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * {@code -Dsnapshot.storyMapPools.closeAt=x,y;x,y}: with the airbase frames, a close frame of the same width on
+     * each cell named, for a spot a review is about.
+     */
+    private static final String CLOSE_AT = System.getProperty("snapshot.storyMapPools.closeAt", "");
 
     private static BufferedImage frame(BattleReviewFrameRenderer whole, StoryMap map, SurfacePalette biome,
                                        StoryMapPool.Entry entry, String head) throws Exception {

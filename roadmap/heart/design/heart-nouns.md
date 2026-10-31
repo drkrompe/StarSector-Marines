@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — The Burn: an airbase lot behind the start line flying the wing, the guns dug in at the bases, and bores growing on the unburnt flanks
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams; the air wing flies from two large allied airbases whose crews refit and rebuild its aircraft, and keeps a standing patrol over the lanes; the bases stand beside the farm tracks with hamlets round them, placed by hand on the story map (ARID seed 5), strips to the north and clear of the columns' roads; nothing is built on a way; each base's hamlet is a lane of fenced yards; combined arms on The Burn too, its allies at Broad Front's strength; Locust pits at the bases; an allied on-map cap; The Burn: its station airbase lot behind the start line flying the wing as Broad Front's bases do, the guns dug in at its bases (so no Locust pits there), and bores growing on the unburnt flanks
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -63,9 +63,13 @@ releases at maw. They stand round the workings, at least twenty-two cells
 apart: one reservoir, several mouths. Every mother collapsed is the win.
 
 **Satellite bore.** An ordinary bore opened at setup and fed to maw, standing
-between the heart and the start line. Broad Front has five, one to each fifth
-of the front, so every lane meets one on its way in; The Burn strings three
-along its one approach, and grows more ahead of the front as they fall (Bore growth). A satellite collapsed is scored, and is a bore whose
+between the heart and the start line. Broad Front has an outer row of five, one
+to each fifth of the front, so every lane meets one on its way in, and an
+**inner row** of up to four deeper in, one on each allied lane's line between
+the outer row and the heart, so every lane fights a second bore before it
+converges (owner, 2026-10-31: more bores). The inner row is optional: drawn
+after every required site, a band whose ground cannot seat a bore has none, so
+it never re-rolls a map. The Burn strings three along its one approach, and grows more ahead of the front as they fall (Bore growth). A satellite collapsed is scored, and is a bore whose
 surges and creep are gone, but it is never required.
 
 **Young bore** (The Burn). A satellite opened at setup as a fissure, unfed, on
@@ -131,7 +135,12 @@ of it in each half of the front; and on the farmland behind it the logistics
 base's ammunition dumps and vehicle park, with a supply road up to the
 settlement. Where no road can be laid (a city's ground) the streets are the
 supply road, as the Cordon's are: the way a truck drives from the landing to the
-settlement, a street priced cheapest. Each beat's set piece is laid the
+settlement, a street priced cheapest. The forward line is armed
+(`HeartRidgeGuns`, owner 2026-10-31: the ridge reads as a front line): an
+allied heavy machine gun in every nest it laid, every third a Hephaestus, and a
+flak emplacement three cells behind every other nest. They are the military's
+guns, never the company's, shoot whatever comes up to the line, and their flak
+meets the flier law as the base's does. Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there
@@ -166,7 +175,17 @@ the road for good (F6). The gunship is not road-borne.
 - On Broad Front it holds all four of the owner's tools: armour pairs (one per
   lane, at the old wave pace), mech lances in town and city, one gunship gated
   on open air, and one ammunition truck.
-- On The Burn, which has no lanes, it holds ammunition trucks alone.
+- On The Burn it holds armour pairs for the battlegroups (mech lances in town
+  and city) and ammunition trucks, the battlegroups calling by need as Broad
+  Front's lanes do (`-Dbattle.heart.burnParity=false`: trucks alone).
+- On Broad Front it mans its **Locust pits**, two behind the vehicle park and
+  two beside each airbase (The Burn has none: its battery is dug in at its
+  bases), laid clear of the park, the strips'
+  run-up rows, the ways and the columns' clearance (`HeartLayout.LOCUST_PIT`).
+  Each is a support gun (`SupportFire`): it fires on the biggest swarm mass in
+  its band that somebody of the side has in sight, never danger close, and its
+  salvos are rounds on hand (`HeartBaseGuns`; `-Dbattle.heart.baseLocusts=false`
+  is the control).
 Every truck in the heart comes from it, the B5 beat's included.
 The base digs **flak** at its first ammunition dump and its vehicle park, and on
 The Burn among the battery (`HeartObjectives.airDefence`), each on the guns'
@@ -186,9 +205,9 @@ refills it, so a base the swarm has cut off shows as a barrage thinning out.
 **Allied commander** (Broad Front). The lanes' own commander
 (`heart-allied-commander.md`): authored rules, not a general that weighs the
 field. It never orders the company and never ends the battle.
-- **How a lane goes forward:** from bore to bore as a screened advance, with
-  armour screening on open ground and militia screening through woods and
-  streets.
+- **How a lane goes forward:** from its foot and then from bore to bore as a
+  screened advance, with armour screening on open ground and militia
+  screening through woods and streets (Combined arms on Broad Front).
 - **When to call help:** a lane calls its next machines when it is
   **uncovered** (it has lost a machine), broken, or **stalled** (its formation
   pushed through two contacts at the cap in a row, clearing neither). In town
@@ -200,12 +219,26 @@ field. It never orders the company and never ends the battle.
   with the air open. While the air is shut, the base shoots the colonies
   keeping it shut instead, since nothing else in play reaches them.
 
+**The allied cap.** Both variants declare an allied cap (`allied-command.md`,
+The allied cap; `BloomHeartSetup.ALLIED_CAP`): at most 240 allied soldiers on
+the map at once, and 32 machines on Broad Front, 40 on The Burn. A wave, a
+called pair or a scheduled tank due at the cap waits its turn until losses make
+room. The numbers are sized to stay out of normal play: a lane at full strength
+holds two waves (one in contact, one joining, 16 soldiers each) and has a third
+on the march, 48, so four lanes, the roving observers and a margin make 240.
+Broad Front opens with 23 machines and The Burn with 31, and a pair on its way to
+every lane adds 8. Uncapped, the waves alone would bring over 800 soldiers and
+the armour some 80 machines over a battle. Ridge guns, base Locusts and flak, the
+Burn's gun crews and the airbase crews are outside it.
+`-Dbattle.heart.alliedCap=false` is the control.
+
 **Forward observer** (Broad Front). The lanes' waves are militia, but the
 world's military attaches one observer to each lane: the radio goes to a
 soldier other than the leader of the first team to step off on the lane's
 ground (`air-nouns.md`, Forward observer). Through it the military's **air
-wing** (two bombers and two fighters, flying in over the farmland behind the
-start line) strikes a swarm mass that observer has in sight. It is a different
+wing** (the bays of the allied airbases, below: six bombers and ten fighters
+with two bases)
+strikes a swarm mass that observer has in sight. It is a different
 tool from the base's gunship: the gunship is the commander's one heavy sortie
 onto a bore, flown when called; the wing is the observers' own, onto the masses
 in front of them, judged on the anti-air the side has seen, so both are
@@ -228,14 +261,68 @@ fenced (`HeartLayout`, `Airfield`). Turned along the advance rather than across 
 (owner, 2026-10-31), it takes a corner of the rear and leaves the rear's width
 open for the columns to advance across. The lot is held from before the places grow, so no field, wood or
 road takes its ground. Its berths are published as an *allied* field's: no
-company lands on them and no garrison node offers the base to the attacker. The
-wing's two bombers and one fighter are kept in the sheds and taxi out to roll
-down the strip for every sortie, landing and taxiing home after; the second
-fighter stands on an apron berth and lifts off it
-(`AlliedAirWing.baseOnLot`). Turnaround and replacement are the based pool's
-(`air-nouns.md`, A based pool). The swarm can reach the field and burn what
+company lands on them and no garrison node offers the base to the attacker. It
+is named as Broad Front's bases are (`airbase-1`, `HeartLayout.BURN_AIRBASE`)
+and opened the same way (Allied airbase, below; `air-nouns.md`, Airbase): its
+apron stands and its three sheds are the wing's bays, each holding the next
+airframe of the bases' list, every sortie taxiing to the strip and rolling,
+landing and taxiing home after, refitted and rebuilt by the field's crew. The
+Burn keeps no standing patrol. The swarm can reach the field and burn what
 stands on it. A map whose rear could not hold the lot flies the wing in over the
 start edge as before.
+
+**Allied airbase** (Broad Front). The air wing's fields, two named pieces of the
+layout (`HeartLayout.AIRBASES`, `airbase-1` west and `airbase-2` east): each
+a large airfield lot (`air-nouns.md`, Airbase; `AirbaseLot.BASE`, 72 by 24
+cells and its verge) on the cordon's farmland behind the line, sited by the
+common airfield rules (`mission-layout.md`, Airfield siting): never on or
+across a road or track and never in the **column clearance** (six cells either
+side of the lanes' tracks, the company's road and the farm road, kept by the
+heart's layout, `HeartLayout.COLUMN_BAND`, so the columns form up at their
+feet and drive out with nothing built beside the road), beside a way with its
+gate and a short access track that keeps out of the clearance too, on unfarmed
+ground where there is any, clear of the landing and the logistics base, its
+strip along the front. Each is wanted at
+about a quarter and three quarters across, searched a little inward and out to
+the map's side, and each raised from its own draw. Round each grows a
+**hamlet** (`mission-layout.md`, Hamlet): a lane of its own off a farm track
+or the road out along the map's edge, with up to six fenced or hedged yards on
+it (crew quarters with a utility truck, a mess, a stores shed with drums and
+crates, a pump house with its tanks, a homestead, a radio hut), on whichever
+side of the base has the most open ground, wild or fallow but never a crop, so it reads as a place
+that grew beside the field; smaller where room is short. One is
+laid where only one flank has the ground, none where neither has (most city
+maps, where the farm tracks and the lanes' clearance leave no open strip 76
+cells wide). The story map (ARID seed 5, `story-map-pools.md`, Story map)
+places both by hand, strip to the north and apron and gate to the south, the
+gate's track running out to the map's south edge: the west base between the
+west lane's track and the next lane's at (96, 8), ten cells clear of the west
+track; the east base on the sandy ground past the east lane's track at
+(483, 8), six cells clear of it and against the map's east edge. The
+clearance leaves no room on the bases' own side, so each hamlet stands across
+its lane's track: the west base's six round a lane running out to the map's
+west edge, on the open ground south of the pond; the east base's four on the
+fallow parcel west of the farm track at x 440, round a lane running north onto
+the farm track along the fields' foot. Each base is a common strip and
+eight bays: five hardstands and three sheds, holding three Daggers (the wing's
+bombers), three Talons and two Broadswords, and a crew of eight allied
+technicians, one to a bay, who refit and patch an aircraft that lands and
+rebuild on its bay one lost in the air; with its crew dead a bay's aircraft
+does not fly again and nothing is rebuilt on it, and dead crews are not
+replaced. The wing is the bays (six bombers and ten fighters with two bases):
+what it has to fly is what stands airworthy in them. A call rolls off the
+nearest base with a bay of its kind ready and the swarm not on it, down that
+base's own strip, and lands back on it; with none ready no sortie flies. The air
+war is **passive**: while the flier law lets Harriers fly, the wing keeps up to
+two fighters a base on a **standing patrol** over the lanes, each over a lane's
+foremost squad in turn, uncalled, and they hunt the Harrier packs air to air
+(`air-nouns.md`, Standing patrol; Fighters and fliers); bombers still come only
+through the observers. The bases are real places: the swarm can reach them and
+burn the aircraft on their bays, each one burned lost with its hulk left on the
+bay for the battle. Losing a base, its aircraft or its crew costs the wing,
+never the battle. Where no base is laid the wing flies from the edge, the old
+two and two. `-Dbattle.heart.airbase=false` is the control: the old wing of two
+and two from the edge, no patrol, the bases laid and empty.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -317,24 +404,69 @@ to a new aim. A fresh tank and technical come up
 eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
 Broad Front those waves are the logistics base's stock, called up by need
 (Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).
-Broad Front's armour stays behind (`-Dbattle.heart.broadArmourBehind`),
-because its lanes march into the overgrowth before the armour can follow.
+That leash is now the fallback: a battlegroup with no armour to form with,
+and the control (`-Dbattle.heart.burnCombinedArms=false`). Otherwise The
+Burn's battlegroups advance as combined-arms teams by Broad Front's rule
+(below).
+
+**Combined arms on Broad Front.** A lane's militia and its armour go forward
+together, every leg of the way, as one screened advance (`allied-command.md`,
+Screened advance; `HeartLanes.COMBINED_ARMS`):
+- **From the foot.** The lane's first wave joins it at its foot on the start
+  line, where its armour stands, and the lane steps off from there as one
+  formation; its armour waits at the foot until the wave is in, rather than
+  driving onto its bore's ring alone. The lane has arrived (`lane_arrived_N`)
+  when its first assault begins.
+- **Leg by leg, by country.** A leg runs over one country. Where at least ten
+  cells in a row of the other kind start twenty or more cells along the way, the
+  leg ends on the last cell before them and the next leg forms there. Ground a
+  tank can drive is open, and armour screens it, leashed a screen's distance
+  ahead of its militia; through woods and streets the militia screen, with the
+  armour behind them. The slowest element sets the pace, so the militia never
+  walk into contact ahead of their armour, and a hull the woods bar is a
+  straggler the formation leaves to catch up.
+- **Waves join the lane.** A later wave marches to where its lane's militia
+  stand; with none standing, to where its armour stands, never to the bore
+  alone.
+- **A lane without its armour** forms only with a machine within 24 cells of
+  its militia. Short of one, it holds where it stands while armour is coming (a
+  machine of its own standing elsewhere, or a call on the road), for at most a
+  minute, and then goes on without it. With nothing coming it goes on at once:
+  no lane freezes waiting on a base the swarm has cut off.
+
+**On The Burn** the same rule holds, adapted to the barrage: a battlegroup's
+formation is aimed at its bore, not at the hold, and the barrage's hold is its
+**limit** (`allied-command.md`, Scripted per mission): its screen comes up no
+further than the hold, a safe distance short of the line firing, and moves up
+as each line lifts (`BarrageScreen.routeLimit`). A battlegroup with no armour
+to form with walks up behind the guns as before.
+
+`-Dbattle.heart.broadCombinedArms=false` is the control: the first wave
+marches to its satellite alone while the armour drives onto the satellite's
+ring, a leg is a bore with its screen picked once for the whole way, and a lane
+without armour goes on at once. `-Dbattle.heart.broadArmourBehind` sets only
+where a lane's armour stands when neither a formation nor an assault has it.
 
 **Battlegroup** (The Burn). One allied sector's force: the planetary militia
 committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
 and vehicles"). Its infantry comes in **waves**: the first steps off at the
 opening, one more as each of the barrage's first lines lifts, and more at a
 steady cadence once the barrage has ended, feeding the push on the mothers. A
-wave marches to wherever its lane is aimed now and joins the lane there. On
-Broad Front a lane that already stands has its next wave march to the lane
-itself, where its militia stand, and go on with it, rather than past it to the
-bore. A column held short of its bore by the fight on its own lane's ground has
+wave marches to wherever its lane is aimed now and joins the lane there. A
+lane that already stands has its next wave march to the lane itself, where its
+militia stand, and go on with it, rather than past it to the bore. At Broad
+Front's strength (`-Dbattle.heart.burnParity`) a wave also steps off every
+minute through the walk, between the early lifts and the barrage's end, so the
+front is fed throughout as Broad Front's lanes are. A column held short of its bore by the fight on its own lane's ground has
 **reached the front** and joins there (`cordon-nouns.md`, Allied column): a bore
 spawns its own defenders, so the 12 cells of its mouth are ground no column
 reaches except by winning. Its
 armour is a convoy-escort APC, two technicals, two breakthrough tanks and a Hound
-pair, with a fresh tank and technical coming up every two minutes once the
-barrage has ended. It follows the barrage on its own line across the front, armour stepping with
+pair; at Broad Front's strength its fresh pairs are called from the vehicle park by
+need from the opening (uncovered, broken or stalled), and the company's sector
+gets Broad Front's company armour, a breakthrough tank and a Hound pair. The
+control has a fresh tank and technical coming up every two minutes once the
+barrage has ended, and no armour in the company's sector. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
 the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
@@ -425,7 +557,7 @@ a biome, never a market.
 | Woods | 70% of the wild ground | 80%: the fuel the burn runs through |
 | Cleared ground | a track along each of four allied lanes | two rides across the approach |
 | Water | none | the brook, about three fifths of the way in |
-| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6) | 2-3 mothers, 3 satellites from 44% to 74% depth |
+| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6); up to 4 inner satellites at 72-84% depth, one on each allied lane's line | 2-3 mothers, 3 satellites from 44% to 74% depth |
 
 A plan states its country through its **landscape** (`mapgen-nouns.md`,
 Authored forests: a plan's landscape): how much of the wild ground is wood,
@@ -529,9 +661,9 @@ told only to defend a cell far behind it fought where it stood). When the last o
 
 The allied columns are scripted (`HeartLanes`): a wave of militia teams at the
 foot of each of the four lanes steps off at the opening, and the rest follow
-on the lane's cadence, each marching to wherever its lane is aimed then. The
-first wave marches to its lane's first satellite as the Cordon's scripted columns march to a redoubt
-(`cordon-nouns.md`, Allied column). Once a column has arrived it is the lane's:
+on the lane's cadence, each marching to the lane where it stands (`cordon-nouns.md`,
+Allied column). The first wave joins its lane at the foot and goes up with
+the lane's armour (Combined arms on Broad Front). Once a column has joined it is the lane's:
 when the bore it is on falls it goes on to its lane's next satellite, then to
 the nearest living mother. An allied lane's band is about a tenth of the front's
 width either side of its line, so neighbouring lanes do not take each other's
@@ -589,7 +721,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | --- | --- | --- |
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
-| `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
+| `lane_arrived_N` | Broad Front | lane N reaches its first bore (its first assault begins) |
 | `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
 | `gunship_called_N`, `gunship_lost_N` | Broad Front | the commander's Nth sortie is granted; the Nth sortie is shot down |
 | `line_lit` | The Burn | the fire line takes |

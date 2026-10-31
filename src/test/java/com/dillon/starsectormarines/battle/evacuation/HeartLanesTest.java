@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.allied.ScreenedAdvance;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,6 +52,33 @@ class HeartLanesTest {
         // Advancing toward lower cells, armour standing 4 behind (above) its aim.
         assertEquals(100 - screen, HeartLanes.screenedAlong(40, 100f, -1, 4) + 4);
         assertEquals(40, HeartLanes.screenedAlong(40, 41f, -1, 4));
+    }
+
+    @Test
+    void aLegEndsWhereTheCountryChangesForGood() {
+        // Thirty cells of farmland with a two-cell hedge, then woods: the armour's leg ends on the last open cell.
+        boolean[] way = new boolean[60];
+        for (int i = 0; i < 30; i++) way[i] = i != 12 && i != 13;
+        assertEquals(29, HeartLanes.legEnd(way, 10, 20));
+        assertTrue(HeartLanes.openShare(way, 29) >= HeartLanes.ARMOUR_LEADS_OPEN, "armour screens the farmland leg");
+        // The country holding to the end is one leg.
+        boolean[] open = new boolean[60];
+        Arrays.fill(open, true);
+        assertEquals(59, HeartLanes.legEnd(open, 10, 20));
+        // A wood whose edge is nearer than the shortest leg does not end one: a lane rallied six cells short of it is
+        // already in the wood's leg, which ends where open ground comes back.
+        boolean[] edge = new boolean[80];
+        for (int i = 0; i < 80; i++) edge[i] = i < 6 || i >= 50;
+        assertEquals(49, HeartLanes.legEnd(edge, 10, 20));
+        assertFalse(HeartLanes.openShare(edge, 49) >= HeartLanes.ARMOUR_LEADS_OPEN, "militia screen the wood's leg");
+    }
+
+    @Test
+    void aLaneHoldsForArmourThatIsComingButNotForever() {
+        assertTrue(HeartLanes.waitsForArmour(false, true, 0f));
+        assertFalse(HeartLanes.waitsForArmour(true, true, 0f), "armour with the lane: it forms and goes");
+        assertFalse(HeartLanes.waitsForArmour(false, false, 0f), "nothing coming: it goes on without");
+        assertFalse(HeartLanes.waitsForArmour(false, true, HeartLanes.ARMOUR_WAIT_SECONDS), "the hold is bounded");
     }
 
     @Test

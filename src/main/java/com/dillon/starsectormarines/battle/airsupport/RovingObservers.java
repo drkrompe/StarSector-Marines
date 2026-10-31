@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.airsupport;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -131,7 +132,8 @@ public final class RovingObservers {
         if (ranked.isEmpty()) return;
         if (mayRove(tick, nextTeamTick, teams.size(), observersOnMap(sim, side))) {
             Team team = send(sim);
-            nextTeamTick = tick + Math.round(TEAM_EVERY_SECONDS / BattleSimulation.TICK_DT);
+            // Held by the allied cap, the team stays due and goes as soon as there is room.
+            if (!heldByCap) nextTeamTick = tick + Math.round(TEAM_EVERY_SECONDS / BattleSimulation.TICK_DT);
             if (team != null) teams.add(team);
         }
         for (Team team : teams) {
@@ -171,10 +173,19 @@ public final class RovingObservers {
     }
 
     /** Seats a team on the ground nearest home and gives its second man the radio; {@code null} when there is no ground. */
+    /** Whether the last team due was held back by the allied cap. */
+    private boolean heldByCap;
+
     private Team send(BattleSimulation sim) {
+        // The allied cap: a team due while the side is at its infantry cap waits (the next look asks again).
+        heldByCap = !sim.alliedCap().mayGo(sim, this, AlliedCap.Pool.INFANTRY, TEAM_SIZE);
+        if (heldByCap) return null;
         List<int[]> cells = openCells(sim.getGrid(), Math.round(homeX), Math.round(homeY), TEAM_SIZE);
         if (cells.size() < TEAM_SIZE) return null;
         int squad = ColonyMilitia.seatTeam(sim, cells, "Observer team " + (sent + 1), RiskLevel.HIGH, rng);
+        for (int i = 0, n = sim.squadMemberCount(squad); i < n; i++) {
+            sim.alliedCap().enlist(sim, AlliedCap.Pool.INFANTRY, sim.squadMemberAt(squad, i));
+        }
         long observer = ForwardObservers.issue(sim, side, List.of(squad));
         if (observer == 0L) return null;
         sent++;

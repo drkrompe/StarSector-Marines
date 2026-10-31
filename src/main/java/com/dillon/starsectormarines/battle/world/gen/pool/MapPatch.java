@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
+import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import org.json.JSONArray;
@@ -23,9 +25,11 @@ import java.util.Set;
  * @param lift     the cell the colony's lift is wanted at, or {@code null} to let the setup choose
  * @param bores    the colony's eruption sites, the first wave in order and one mother; empty to let the setup choose
  * @param holdouts a cell inside each building the colony holds out in, in redoubt order; empty to let the setup choose
+ * @param place    structures put down by hand, by layout name: a deferred layout piece that resolves a structure of
+ *                 that name takes it here instead of siting it ({@code MissionLayout.placed})
  */
 public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, List<Bore> bores,
-                       List<Cell> holdouts) {
+                       List<Cell> holdouts, List<Structure> place) {
 
     /** The patch of a seed that needs none. */
     public static final MapPatch NONE = new MapPatch(List.of(), List.of());
@@ -51,6 +55,7 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
         ruin = List.copyOf(ruin);
         bores = List.copyOf(bores);
         holdouts = List.copyOf(holdouts);
+        place = place == null ? List.of() : List.copyOf(place);
         Set<String> places = new HashSet<>();
         for (Pin pin : pins) {
             if (!places.add(pin.place())) throw new IllegalArgumentException("place pinned twice: " + pin.place());
@@ -62,15 +67,29 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
 
     /** A patch of pins and ruin alone. */
     public MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
-        this(pins, ruin, null, List.of(), List.of());
+        this(pins, ruin, null, List.of(), List.of(), List.of());
+    }
+
+    /** A Colony Breach patch: pins, ruin, and where the colony's lift, bores and holdouts stand. */
+    public MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, List<Bore> bores, List<Cell> holdouts) {
+        this(pins, ruin, lift, bores, holdouts, List.of());
     }
 
     public boolean isEmpty() {
-        return pins.isEmpty() && ruin.isEmpty() && lift == null && bores.isEmpty() && holdouts.isEmpty();
+        return pins.isEmpty() && ruin.isEmpty() && lift == null && bores.isEmpty() && holdouts.isEmpty()
+                && place.isEmpty();
     }
 
-    /** The plan with every pinned place moved; a pin naming no place of the plan is an authoring error. */
+    /**
+     * The plan with every pinned place moved and the placed structures handed to its layout; a pin naming no place of
+     * the plan is an authoring error.
+     */
     public PrecinctPlan pinned(PrecinctPlan plan) {
+        PrecinctPlan out = movePins(plan);
+        return place.isEmpty() ? out : out.withLayout(out.layout().withPlaced(place));
+    }
+
+    private PrecinctPlan movePins(PrecinctPlan plan) {
         if (pins.isEmpty()) return plan;
         List<Precinct> out = new ArrayList<>(plan.precincts().size());
         Set<String> used = new HashSet<>();
@@ -148,7 +167,16 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
         if (holdoutArray != null) {
             for (int i = 0; i < holdoutArray.length(); i++) holdouts.add(cell(holdoutArray.getJSONArray(i)));
         }
-        return new MapPatch(pins, ruin, lift, bores, holdouts);
+        List<Structure> place = new ArrayList<>();
+        JSONArray placeArray = json.optJSONArray("place");
+        if (placeArray != null) {
+            for (int i = 0; i < placeArray.length(); i++) {
+                JSONObject s = placeArray.getJSONObject(i);
+                place.add(new Structure(s.getString("name"), StructureKind.valueOf(s.getString("kind")),
+                        s.getInt("x"), s.getInt("y"), s.optInt("turns", 0), true));
+            }
+        }
+        return new MapPatch(pins, ruin, lift, bores, holdouts, place);
     }
 
     private static Cell cell(JSONArray xy) throws JSONException {

@@ -4,10 +4,12 @@ import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
+import com.dillon.starsectormarines.battle.world.gen.layout.AirfieldSiting;
 import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
+import com.dillon.starsectormarines.battle.world.gen.layout.HamletGrowth;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Line;
 import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
@@ -24,15 +26,20 @@ import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureFit;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.layout.Worked;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
@@ -84,8 +91,45 @@ public final class HeartLayout {
     public static final String GUN_FLANK = "gun-flank-";
     /** The company's ford over the brook (B4). */
     public static final String COMPANY_FORD = "company-ford";
-    /** The Burn's allied airbase behind the start line (`heart-nouns.md`, Airbase). */
-    public static final String AIRBASE = "airbase";
+    /** The allies' airbases on the farmland behind the line, one toward each flank, the air wing's (Broad Front). */
+    public static final String AIRBASES = "airbases";
+    /** One airbase: this plus 1 (west) and 2 (east). */
+    public static final String AIRBASE = "airbase-";
+    /** An airbase's hamlet's lane: the base's name and this. */
+    public static final String HAMLET_LANE = ".lane";
+    /** An airbase's access track from its gate: the base's name and this. */
+    public static final String ACCESS_TRACK = ".track";
+    /**
+     * A Locust emplacement's pit at a Broad Front base: {@code locust-pit-logistics-<n>} beside the vehicle park and
+     * {@code locust-pit-airbase-<base>-<n>} beside each airbase. An open site its gun is seated in. The Burn's bases
+     * have none: its battery is dug in at them.
+     */
+    public static final String LOCUST_PIT = "locust-pit-";
+    /** A base's Locust pits, the pit's side, and the open margin kept round it. */
+    static final int LOCUST_PITS = 2, PIT_SIDE = 3, PIT_MARGIN = 1;
+    /** Cells behind the park, and out from an airfield's short side, a pit is wanted; and the search round that. */
+    static final int PIT_BEHIND = 6, PIT_SEARCH = 20;
+    /** The works-phase piece that lays the airbases' Locust pits. */
+    static final String AIRBASE_PITS = "airbase-pits";
+    /**
+     * How the heart keeps its ways: {@link #COLUMN_BAND} cells clear either side of every column's way, so the allied
+     * columns and the company form up at their feet and drive out with nothing built beside the road; and a line of
+     * works breaks at a farm or lane track as it does at a road.
+     */
+    static final int COLUMN_BAND = 6;
+    static final MissionLayout.Ways WAYS = new MissionLayout.Ways(COLUMN_BAND, true);
+
+    /** Where each airbase is wanted, as shares across and depth, and the cells round that searched deep and across. */
+    static final float[] AIRBASE_ACROSS = {0.245f, 0.755f};
+    static final float AIRBASE_DEPTH = 0.13f;
+    static final int AIRBASE_SEARCH = 24, AIRBASE_SLIDE = 48;
+    /** Cells an airbase and its hamlet keep past the landing's field of fire, and (square) from the logistics base. */
+    static final int AIRBASE_LANDING_CLEAR = 10, AIRBASE_LOGISTICS_CLEAR = 36;
+    /**
+     * The Burn's allied airbase behind the start line (`heart-nouns.md`, Airbase): its one airbase, named as Broad
+     * Front's are, so the battle opens every heart airbase the same way.
+     */
+    public static final String BURN_AIRBASE = AIRBASE + 1;
 
     /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
     static final int LANE_GAP = 6;
@@ -150,6 +194,15 @@ public final class HeartLayout {
         if (form == Form.BROAD_FRONT) {
             pieces.add(new Deferred(HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, HOLDOUT, true, density), false));
+            // The bases' Locust pits are open sites, laid in the works phase once the farmland's tracks are painted,
+            // beside the fields the structures phase raised.
+            List<RaisedAirbase> lots = new ArrayList<>();
+            pieces.add(new Deferred(AIRBASES, Phase.STRUCTURES, ground -> airbases(ground, form, lots), false));
+            pieces.add(new Deferred(AIRBASE_PITS, Phase.WORKS, ground -> {
+                List<Piece> out = new ArrayList<>();
+                for (RaisedAirbase lot : lots) out.addAll(airbasePits(ground, lot.field(), lot.hamlet(), lot.track()));
+                return out;
+            }, false));
         } else {
             pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, VILLAGE_HOLDOUT, false, density), false));
@@ -158,7 +211,7 @@ public final class HeartLayout {
             pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS,
                     ground -> companyFord(form, ground.plan().landscape().brooks().get(0)), false));
         }
-        return new MissionLayout(pieces);
+        return new MissionLayout(pieces).withWays(WAYS);
     }
 
     /**
@@ -412,7 +465,7 @@ public final class HeartLayout {
         List<Piece> out = new ArrayList<>();
         for (int i = 0; i < at.length; i++) {
             int[] want = cell(form, depth, Math.round(at[i] * (across - 1)));
-            int[] c = StructureFit.nearest(country(ground), around(ground, want, OP_SEARCH), side, side,
+            int[] c = nearestCountry(ground, around(ground, want, OP_SEARCH), side, side,
                     want[0], want[1], 1);
             if (c != null) {
                 out.add(new Structure(OBSERVATION_POST + (i + 1), StructureKind.OBSERVATION_POST, c[0], c[1], 0, false));
@@ -421,16 +474,40 @@ public final class HeartLayout {
         return out;
     }
 
-    /** Open ground nobody built on: the cordon's own farmland counts, the landing's ground claimed or not. */
+    /**
+     * Open ground nobody built on: the cordon's own farmland counts, the landing's ground claimed or not; never a way
+     * (a farm or lane track as well as a road), nor the columns' clearance either side of theirs.
+     */
     private static LineCourse.CellTest country(LayoutGround ground) {
-        return ground::buildable;
+        return (x, y) -> ground.buildable(x, y) && !ground.isWay(x, y) && !ground.inColumnClearance(x, y);
+    }
+
+    /**
+     * The footprint on {@link #country} nearest {@code (nx, ny)}; failing any, on open ground off the ways inside the
+     * columns' clearance, so a post or a dump crowded by the roads stands beside one rather than not at all.
+     */
+    private static int[] nearestCountry(LayoutGround ground, int[] region, int w, int h, int nx, int ny, int step) {
+        int[] at = StructureFit.nearest(country(ground), region, w, h, nx, ny, step);
+        return at != null ? at : StructureFit.nearest((x, y) -> ground.buildable(x, y) && !ground.isWay(x, y),
+                region, w, h, nx, ny, step);
     }
 
     /** Open country a base's works may stand on: on The Burn, never the airbase's held ground, which the works lay round. */
     private static LineCourse.CellTest country(LayoutGround ground, Form form) {
-        if (form != Form.THE_BURN) return country(ground);
+        LineCourse.CellTest country = country(ground);
+        if (form != Form.THE_BURN) return country;
         Site held = airbase(form).reservation();
-        return (x, y) -> ground.buildable(x, y) && (x < held.x0() || x > held.x1() || y < held.y0() || y > held.y1());
+        return (x, y) -> country.test(x, y) && (x < held.x0() || x > held.x1() || y < held.y0() || y > held.y1());
+    }
+
+    /** {@link #nearestCountry} for a base's works, kept off The Burn's airbase's held ground on either search. */
+    private static int[] nearestCountry(LayoutGround ground, Form form, int[] region, int w, int h, int nx, int ny,
+                                        int step) {
+        if (form != Form.THE_BURN) return nearestCountry(ground, region, w, h, nx, ny, step);
+        Site held = airbase(form).reservation();
+        int[] at = StructureFit.nearest(country(ground, form), region, w, h, nx, ny, step);
+        return at != null ? at : StructureFit.nearest((x, y) -> ground.buildable(x, y) && !ground.isWay(x, y)
+                && (x < held.x0() || x > held.x1() || y < held.y0() || y > held.y1()), region, w, h, nx, ny, step);
     }
 
     /** The logistics base's middle: on the farmland behind the line, beside the company's road. */
@@ -453,24 +530,153 @@ public final class HeartLayout {
             int offset = i == 0 ? -step : step;
             int[] want = form.advancesAlongY() ? new int[]{middle[0] + offset, middle[1]}
                     : new int[]{middle[0], middle[1] + offset};
-            int[] at = StructureFit.nearest(country(ground, form), around(ground, want, BASE_SEARCH / 2), side, side,
+            int[] at = nearestCountry(ground, form, around(ground, want, BASE_SEARCH / 2), side, side,
                     want[0], want[1], 2);
             // The Burn's airbase holds ground beside the base, so a dump the near search cannot seat looks further.
-            if (at == null) at = StructureFit.nearest(country(ground, form), around(ground, want, BASE_SEARCH), side, side,
+            if (at == null) at = nearestCountry(ground, form, around(ground, want, BASE_SEARCH), side, side,
                     want[0], want[1], 2);
             if (at != null) out.add(new Structure(AMMO_DUMP + (i + 1), StructureKind.AMMO_DUMP, at[0], at[1], 0, false));
         }
         return out;
     }
 
+    /** A raised airbase, its hamlet and access track: what its Locust pits keep clear of. */
+    record RaisedAirbase(Structure field, HamletGrowth.Hamlet hamlet, List<int[]> track) { }
+
+    /**
+     * The allies' airbases, one toward each flank on the farmland behind the line, each with the hamlet that grew up
+     * round it ({@link AirfieldSiting}): beside a road or track it never stands on, on unfarmed ground where there is
+     * any, clear of the landing and the logistics base. A base a story map's patch placed by hand
+     * ({@link MissionLayout#placed}) stands where it was put; the rest are sited near where they are wanted. One
+     * where only one flank has the ground, none where neither has. Each is raised from its own draw. Each base raised
+     * is recorded into {@code lots} (cleared first), for its Locust pits in the works phase.
+     */
+    static List<Piece> airbases(LayoutGround ground, Form form, List<RaisedAirbase> lots) {
+        lots.clear();
+        if (!form.advancesAlongY()) return List.of();
+        MissionLayout layout = ground.plan() == null ? MissionLayout.NONE : ground.plan().layout();
+        RuralLayout rural = ground.rural();
+        FieldOfFire landing = rural == null ? null : rural.field();
+        int[] logistics = baseMiddle(form);
+        List<Structure> taken = new ArrayList<>();
+        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y)
+                && (landing == null || Math.hypot(x - landing.centerX(), y - landing.centerY())
+                > landing.radius() + AIRBASE_LANDING_CLEAR)
+                && Math.max(Math.abs(x - logistics[0]), Math.abs(y - logistics[1])) > AIRBASE_LOGISTICS_CLEAR
+                && taken.stream().noneMatch(s -> x >= s.x() - 2 && x < s.x() + s.width() + 2
+                && y >= s.y() - 2 && y < s.y() + s.height() + 2);
+        int w = StructureKind.AIRFIELD.along, h = StructureKind.AIRFIELD.deep;
+        List<Piece> out = new ArrayList<>();
+        for (int i = 0; i < AIRBASE_ACROSS.length; i++) {
+            String name = AIRBASE + (i + 1);
+            Structure base = layout.placed(name);
+            if (base == null) {
+                int[] middle = form.cellAt(AIRBASE_DEPTH, AIRBASE_ACROSS[i]);
+                // Inward only so far, the lanes' feet and the landing being that way; outward to the map's side.
+                boolean west = AIRBASE_ACROSS[i] < 0.5f;
+                int[] region = {west ? 1 : middle[0] - w / 2 - AIRBASE_SLIDE, middle[1] - h / 2 - AIRBASE_SEARCH,
+                        west ? middle[0] + w / 2 + AIRBASE_SLIDE : ground.width() - 2, middle[1] + h / 2 + AIRBASE_SEARCH};
+                base = AirfieldSiting.site(ground, name, region, middle[0], middle[1], open);
+            }
+            if (base == null) continue;
+            HamletGrowth.Hamlet hamlet = AirfieldSiting.hamlet(ground, base, open);
+            out.add(base);
+            out.addAll(hamlet.buildings());
+            if (!hamlet.lane().isEmpty()) out.add(new Worked(name + HAMLET_LANE, hamlet.lane(), false));
+            // The gate's track as worked ground of its own, so the landscape keeps it as laid.
+            List<int[]> track = AirfieldSiting.access(ground, base).track();
+            if (!track.isEmpty()) out.add(new Worked(name + ACCESS_TRACK, track, false));
+            taken.add(base);
+            taken.addAll(hamlet.buildings());
+            lots.add(new RaisedAirbase(base, hamlet, track));
+        }
+        return out;
+    }
+
+    /**
+     * Two Locust pits beside an airbase, off each short side of the field, else off its corners: on country ({@link #country}: never a
+     * way nor the columns' clearance), clear of what the field keeps clear ({@link AirfieldSiting#keepsClear}: the
+     * field, its gap and its strip's run-up rows), its access track, its hamlet's lane and buildings.
+     */
+    static List<Piece> airbasePits(LayoutGround ground, Structure field, HamletGrowth.Hamlet hamlet, List<int[]> track) {
+        Set<Long> kept = new HashSet<>();
+        for (int[] c : track) kept.add(cellKey(c[0], c[1]));
+        for (int[] c : hamlet.lane()) kept.add(cellKey(c[0], c[1]));
+        LineCourse.CellTest country = country(ground);
+        LineCourse.CellTest ok = (x, y) -> country.test(x, y) && !ground.isHeld(x, y)
+                && !AirfieldSiting.keepsClear(field, x, y) && !kept.contains(cellKey(x, y))
+                && hamlet.buildings().stream().noneMatch(b -> x >= b.x() - 1 && x < b.x() + b.width() + 1
+                && y >= b.y() - 1 && y < b.y() + b.height() + 1);
+        int midY = field.y() + field.height() / 2, x0 = field.x() - PIT_BEHIND, x1 = field.x() + field.width() + PIT_BEHIND;
+        int y0 = field.y() - PIT_BEHIND, y1 = field.y() + field.height() + PIT_BEHIND;
+        // Off each short side first; failing that, off the field's corners (its strip's run-up is kept clear).
+        int[][] wants = {{field.x() - AirfieldSiting.RUN_UP / 3, midY},
+                {field.x() + field.width() + AirfieldSiting.RUN_UP / 3, midY}, {x0, y0}, {x1, y0}, {x0, y1}, {x1, y1}};
+        return pits(ground, ok, field.name(), wants);
+    }
+
+    /** One pit nearest each wanted cell that {@code ok} admits with its margin, named {@code LOCUST_PIT + base + "-" + n}. */
+    static List<Piece> pits(LayoutGround ground, LineCourse.CellTest ok, String base, int[][] wants) {
+        List<Piece> out = new ArrayList<>();
+        List<int[]> taken = new ArrayList<>();
+        int side = PIT_SIDE + 2 * PIT_MARGIN;
+        for (int i = 0; i < wants.length && out.size() < LOCUST_PITS; i++) {
+            LineCourse.CellTest free = (x, y) -> ok.test(x, y) && taken.stream().noneMatch(t -> Math.abs(t[0] - x) <= side
+                    && Math.abs(t[1] - y) <= side);
+            int[] at = StructureFit.nearest(free, around(ground, wants[i], PIT_SEARCH), side, side,
+                    wants[i][0] - side / 2, wants[i][1] - side / 2, 1);
+            if (at == null) continue;
+            int x0 = at[0] + PIT_MARGIN, y0 = at[1] + PIT_MARGIN;
+            taken.add(new int[]{x0 + PIT_SIDE / 2, y0 + PIT_SIDE / 2});
+            out.add(new Site(LOCUST_PIT + base + "-" + (out.size() + 1), x0, y0, x0 + PIT_SIDE - 1, y0 + PIT_SIDE - 1,
+                    SitePurpose.OPEN, false));
+        }
+        return out;
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
+    }
+
     /** The vehicle park between the dumps: open ground the armour waves form up on. */
     static List<Piece> vehiclePark(LayoutGround ground, Form form) {
         int[] middle = baseMiddle(form);
         int w = form.advancesAlongY() ? PARK_ALONG : PARK_DEEP, h = form.advancesAlongY() ? PARK_DEEP : PARK_ALONG;
-        int[] at = StructureFit.nearest(country(ground, form), around(ground, middle, BASE_SEARCH), w, h,
+        int[] at = nearestCountry(ground, form, around(ground, middle, BASE_SEARCH), w, h,
                 middle[0] - w / 2, middle[1] - h / 2, 2);
         if (at == null) return List.of();
-        return List.of(new Site(VEHICLE_PARK, at[0], at[1], at[0] + w - 1, at[1] + h - 1, SitePurpose.OPEN, false));
+        List<Piece> out = new ArrayList<>();
+        out.add(new Site(VEHICLE_PARK, at[0], at[1], at[0] + w - 1, at[1] + h - 1, SitePurpose.OPEN, false));
+        // Broad Front's base gets Locust pits; The Burn's is armed already, its battery dug in by the dumps.
+        if (form == Form.BROAD_FRONT) out.addAll(logisticsPits(ground, form, new int[]{at[0], at[1], at[0] + w - 1, at[1] + h - 1}));
+        return out;
+    }
+
+    /**
+     * The logistics base's two Locust pits, behind the vehicle park toward the start, one off each end of it: on
+     * country, clear of the park and its margin so the armour forms up and drives out unhindered. The dumps are
+     * raised by then, so their ground is not open to a pit.
+     */
+    static List<Piece> logisticsPits(LayoutGround ground, Form form, int[] park) {
+        int[] ahead = frontward(form);
+        int cx = (park[0] + park[2]) / 2, cy = (park[1] + park[3]) / 2;
+        int halfAlong = form.advancesAlongY() ? (park[2] - park[0]) / 2 : (park[3] - park[1]) / 2;
+        int halfDeep = form.advancesAlongY() ? (park[3] - park[1]) / 2 : (park[2] - park[0]) / 2;
+        int back = halfDeep + PIT_BEHIND;
+        // Behind either end of the park first; failing that beside its ends, then ahead of them.
+        int[][] offsets = {{-halfAlong, -back}, {halfAlong, -back}, {-halfAlong - PIT_BEHIND - PIT_SIDE, 0},
+                {halfAlong + PIT_BEHIND + PIT_SIDE, 0}, {-halfAlong, back}, {halfAlong, back}};
+        int[][] wants = new int[offsets.length][];
+        for (int i = 0; i < offsets.length; i++) {
+            int across = offsets[i][0], deep = offsets[i][1];
+            wants[i] = form.advancesAlongY() ? new int[]{cx + across, cy + ahead[1] * deep}
+                    : new int[]{cx + ahead[0] * deep, cy + across};
+        }
+        LineCourse.CellTest country = country(ground);
+        int margin = 2;
+        LineCourse.CellTest ok = (x, y) -> country.test(x, y) && !ground.isHeld(x, y)
+                && !(x >= park[0] - margin && x <= park[2] + margin && y >= park[1] - margin && y <= park[3] + margin);
+        return pits(ground, ok, "logistics", wants);
     }
 
     /** The yard by the workings, on its start side where the lanes come in. */
@@ -547,10 +753,10 @@ public final class HeartLayout {
         int side = acrossCells(form) - 1 - GUN_FLANK_INSET - BURN_AIRBASE_TRENCH_GAP;
         if (form.advancesAlongY()) {
             int x0 = side - AirbaseLot.reservedSpanX(size, facing) + 1;
-            return new Airfield(AIRBASE, x0, BURN_AIRBASE_REAR, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+            return new Airfield(BURN_AIRBASE, x0, BURN_AIRBASE_REAR, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
         }
         int y0 = side - AirbaseLot.reservedSpanY(size, facing) + 1;
-        return new Airfield(AIRBASE, BURN_AIRBASE_REAR, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+        return new Airfield(BURN_AIRBASE, BURN_AIRBASE_REAR, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
     }
 
     static List<Piece> gunFlanks(Form form) {

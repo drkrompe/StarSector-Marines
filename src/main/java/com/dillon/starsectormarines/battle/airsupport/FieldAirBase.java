@@ -119,6 +119,14 @@ public final class FieldAirBase implements AirBase {
     }
 
     @Override
+    public float reach(BattleSimulation sim, AirPoolKind kind, FighterProfile wanted, float x, float y) {
+        Stand s = nearestReady(kind, x, y);
+        if (s == null) return Float.MAX_VALUE;
+        float dx = s.berth.centerX - x, dy = s.berth.centerY - y;
+        return dx * dx + dy * dy;
+    }
+
+    @Override
     public float nextReplacementSeconds(AirPoolKind kind) {
         float next = -1f;
         for (Stand s : stands) {

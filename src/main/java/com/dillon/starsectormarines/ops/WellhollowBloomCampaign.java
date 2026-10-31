@@ -196,15 +196,20 @@ public final class WellhollowBloomCampaign {
     private static HeartCountry.Density heartDensity() { return HeartCountry.Density.RURAL; }
 
     /**
-     * A vetted ARID map for this attempt, cycling the chapter's pool so a replay is the same place on a
-     * different day. Colony Breach always plays {@link #COLONY_BREACH_SEED}, Ain Tafrant {@link #AIN_TAFRANT_SEED}.
+     * A vetted ARID map for this attempt: Colony Breach always plays {@link #COLONY_BREACH_SEED}, Ain Tafrant
+     * {@link #AIN_TAFRANT_SEED}; any other chapter its story map on every attempt where its pool names one
+     * ({@code story-map-pools.md}, Story map), the controlled experience its patch is authored for, otherwise cycling the
+     * chapter's pool so a replay is the same place on a different day.
      */
     static long seed(Chapter chapter, int attempt) {
         if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
         if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long roll = SEED_BASE + 7919L * chapter.ordinal() + attempt;
         if (!StoryMapPools.installed()) return roll;
-        List<StoryMapPool.Entry> entries = StoryMapPools.pool(storyMap(chapter)).entries(SurfacePalette.ARID);
+        StoryMapPool pool = StoryMapPools.pool(storyMap(chapter));
+        StoryMapPool.Entry story = pool.story(SurfacePalette.ARID);
+        if (story != null) return story.seed();
+        List<StoryMapPool.Entry> entries = pool.entries(SurfacePalette.ARID);
         return entries == null || entries.isEmpty() ? roll : entries.get(Math.floorMod(attempt, entries.size())).seed();
     }
 
@@ -240,13 +245,19 @@ public final class WellhollowBloomCampaign {
                     SwarmDefenseRoster.countFor(RiskLevel.HIGH), BloomHeartSetup.world(SurfacePalette.ARID), false, HivePosture.DEFAULT);
         };
     }
-    /** The first vetted ARID map of the chapter's pool, or a chapter's own seed: the one map the debug player always plays. */
+    /**
+     * The one map the debug player always plays: a chapter's own seed where it pins one, else its ARID story map where
+     * its pool names one, else the first vetted ARID map of its pool.
+     */
     static long fixedSeed(Chapter chapter) {
         if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
         if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long fallback = SEED_BASE + 7919L * chapter.ordinal();
         if (!StoryMapPools.installed()) return fallback;
-        List<StoryMapPool.Entry> entries = StoryMapPools.pool(storyMap(chapter)).entries(SurfacePalette.ARID);
+        StoryMapPool pool = StoryMapPools.pool(storyMap(chapter));
+        StoryMapPool.Entry story = pool.story(SurfacePalette.ARID);
+        if (story != null) return story.seed();
+        List<StoryMapPool.Entry> entries = pool.entries(SurfacePalette.ARID);
         return entries == null || entries.isEmpty() ? fallback : entries.get(0).seed();
     }
     static void begin(Mission m) {

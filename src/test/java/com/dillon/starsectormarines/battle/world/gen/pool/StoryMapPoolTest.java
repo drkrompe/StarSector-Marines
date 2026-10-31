@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
+import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import org.json.JSONObject;
@@ -75,5 +77,25 @@ class StoryMapPoolTest {
                 new JSONObject(pool("heart-burn", "[]"))));
         assertThrows(Exception.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
                 new JSONObject(pool("heart-front", "[{\"seed\":4}]"))));
+    }
+    @Test
+    void aBiomeNamesAtMostOneStoryMapAndTheRestStayPooled() throws Exception {
+        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
+                pool("heart-burn", "[{\"seed\":4},{\"seed\":9,\"story\":true},{\"seed\":2}]")));
+        assertEquals(9, pool.story(SurfacePalette.VERDANT).seed());
+        assertEquals(3, pool.entries(SurfacePalette.VERDANT).size());
+        assertNull(pool.story(SurfacePalette.ROCK));
+        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
+                pool("heart-burn", "[{\"seed\":4,\"story\":true},{\"seed\":9,\"story\":true}]"))));
+    }
+
+    @Test
+    void aPlacedStructureReachesThePlansLayoutByName() throws Exception {
+        MapPatch patch = MapPatch.read(new JSONObject("{\"place\":[{\"name\":\"airbase-1\",\"kind\":\"AIRFIELD\","
+                + "\"x\":89,\"y\":8,\"turns\":2}]}"));
+        PrecinctPlan plan = patch.pinned(new PrecinctPlan(List.of(place("base", 10, 10))));
+        Structure placed = plan.layout().placed("airbase-1");
+        assertEquals(new Structure("airbase-1", StructureKind.AIRFIELD, 89, 8, 2, true), placed);
+        assertNull(plan.layout().placed("airbase-2"));
     }
 }

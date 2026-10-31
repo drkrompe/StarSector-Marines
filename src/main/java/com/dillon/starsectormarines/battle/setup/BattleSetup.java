@@ -4413,11 +4413,17 @@ public final class BattleSetup {
      * berths exist; and a berth's servicing is work only while something is
      * standing on it, which is a question only the field can answer.
      *
-     * <p>The crew is the defender's. A garrison's field is worked by the
+     * <p>The crew is the field's owner's. A garrison's field is worked by the
      * garrison, so its technicians are on the roster, can be shot on the apron,
      * and stop working when they are.
+     *
+     * <p>A battle with several fields crews each from its owner, in the rooms
+     * that hold its berths: the first field as a garrison's always was
+     * ({@link #APRON_WATCH} to a room), every other one a hand for every bay in
+     * the room, since the crew is what turns each aircraft round and rebuilds
+     * what the field loses ({@code AirfieldService.beginRebuild}).
      */
-    private static void installAirfieldCrew(BattleSimulation sim, MapResult map) {
+    static void installAirfieldCrew(BattleSimulation sim, MapResult map) {
         AirfieldService field = sim.getAirfieldService();
         if (field.berths().isEmpty()) return;
 
@@ -4430,9 +4436,68 @@ public final class BattleSetup {
 
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
-        StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
-                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH,
-                sim.getWorksCrews());
+        boolean[] occupied = AirfieldWork.occupied(field);
+        List<AirfieldService.Field> manned = new ArrayList<>();
+        for (AirfieldService.Berth berth : field.berths()) {
+            if (!manned.contains(berth.field)) manned.add(berth.field);
+        }
+        if (manned.size() == 1 && manned.get(0) == field.fields().get(0)) {
+            // One field, the garrison's: every hangar room on the map, as it always was.
+            StructureWatch.man(sim, field.owner(), rooms, apron, occupied,
+                    EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH, sim.getWorksCrews());
+            return;
+        }
+        for (AirfieldService.Field each : manned) {
+            for (RoomSite room : rooms) {
+                int bays = 0;
+                for (AirfieldService.Berth berth : field.berths()) {
+                    if (berth.field == each && room.contains(berth.centerX, berth.centerY)) bays++;
+                }
+                if (bays == 0) continue;
+                int watch = each == field.fields().get(0) ? APRON_WATCH : bays;
+                StructureWatch.man(sim, each.owner(), List.of(room), apron, occupied,
+                        EnumSet.of(RoomPurpose.HANGAR), watch, sim.getWorksCrews());
+            }
+        }
+    }
+
+    /**
+     * Opens the airfield a mission laid inside {@code bounds} ({x0, y0, x1, y1}, inclusive) as a field of
+     * {@code owner}'s with its own strip: an aircraft from {@code airframes} on each of its hardstands of
+     * {@code purpose} and in each of its sheds (pads first, then sheds, cycling the list). A field that
+     * {@code rebuilds} has its crew build a replacement on the stand of an aircraft it loses. Returns the berths it
+     * registered, in that order; none when the bounds hold no strip. The crews are stood after every field is open
+     * ({@link #installAirfieldCrew}).
+     */
+    static List<AirfieldService.Berth> installAirfield(BattleSimulation sim, MapResult map, int[] bounds,
+                                                       Faction owner, LandingPad.Purpose purpose, boolean rebuilds,
+                                                       List<? extends Airframe> airframes) {
+        AirfieldService field = sim.getAirfieldService();
+        if (airframes.isEmpty()) return List.of();
+        Runway strip = null;
+        for (Runway runway : map.runways) {
+            if (inside(bounds, runway.centreX(), runway.centreY())) {
+                strip = runway;
+                break;
+            }
+        }
+        if (strip == null) return List.of();
+        AirfieldService.Field opened = field.addField(owner, strip, rebuilds);
+        List<AirfieldService.Berth> berths = new ArrayList<>();
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose != purpose || !inside(bounds, pad.centerX, pad.centerY)) continue;
+            berths.add(field.addBerth(opened, pad, airframes.get(berths.size() % airframes.size()),
+                    AirBody.facingToward(pad.approach.dx, pad.approach.dy)));
+        }
+        for (Gantry shed : map.shelters) {
+            if (!inside(bounds, shed.centerX, shed.centerY)) continue;
+            berths.add(field.addShelterBerth(opened, shed, airframes.get(berths.size() % airframes.size())));
+        }
+        return berths;
+    }
+
+    private static boolean inside(int[] bounds, float x, float y) {
+        return x >= bounds[0] && x <= bounds[2] && y >= bounds[1] && y <= bounds[3];
     }
 
     /**

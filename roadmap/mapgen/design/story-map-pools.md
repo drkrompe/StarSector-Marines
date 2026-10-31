@@ -7,7 +7,7 @@ and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-28 — a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
+Updated: 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -72,6 +72,16 @@ its patch; a seed outside the pool plays the old unvetted path, re-rolls and
 all, which is how a candidate is tried before it is added. Nothing on the
 campaign path reaches the unvetted path.
 
+**Story map.** An entry marked `"story": true` (at most one per biome,
+`StoryMapPool.story`) is the one map a story campaign's chapter plays on that
+biome, on every attempt: a controlled experience, its patch authored for it,
+its flow the same each time. The Wellhollow campaign plays its chapter's ARID
+story map wherever the pool names one (`WellhollowBloomCampaign.seed`, and the
+debug player's `fixedSeed`), and cycles the ARID entries by attempt only where
+it names none. Broad Front's is `heart-front` ARID seed 5 (owner, 2026-10-31):
+switching it is moving the flag to another entry. The biome's other entries
+stay in the pool for bloom events on other worlds.
+
 **Size.** Three per biome, twelve per story map (owner, 2026-10-23): few
 enough that each is owned and tuned, and the whole pool plays in one evidence
 run. The pool is a dial, not a constant: add a map when one earns it.
@@ -134,7 +144,14 @@ cannot disagree:
   edge-aware clearance mask the convoys lay their routes on, so a fence or low
   wall along a cell edge that would stop a hull fails the map rather than
   jamming a carrier or a truck in play.
-- **Heart**: the bores seat (`HeartBores.plan`).
+- **Heart**: the bores seat (`HeartBores.plan`), and nothing the layout laid
+  stands on a way in the start-side third (`LaidLayout.onWays`, cells of
+  structures and works, and of the farmland's own farms, on a road, farm track
+  or lane track, read off at depth 0.34, where the creep has not reached).
+
+Every Heart and Cordon row's detail carries that reading, `on roads N
+start-side [piece cells], M deeper [...]`; deeper cells, and every Cordon
+cell, are reported without failing the map.
 
 and the battle then stands up on it (the patch applied).
 
@@ -174,7 +191,18 @@ instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
   inside.
 
 They replace the setup's choices and its clearances; a placement that cannot
-seat fails the map like any other acceptance. Asharu's ARID entry is placed
+seat fails the map like any other acceptance.
+
+Any entry may also **place** a mission layout's structures by name
+(`MissionLayout.placed`, `mission-layout.md`):
+
+- **`place`** `[{name, kind, x, y, turns?}]`: the structure's footprint
+  corner and quarter turns, cells read off the map. A deferred layout piece
+  that resolves a structure of that name takes the placed one instead of
+  siting it, and whatever it lays round it (an airfield's hamlet) is laid
+  round the placed one. A placed structure not laid at its cell fails the map
+  in `storyMapPools`. Broad Front's story map places its two allied airbases
+  this way (`heart-nouns.md`, Allied airbase). Asharu's ARID entry is placed
 this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
 Patches are authored in the pool file, in cell coordinates read off the

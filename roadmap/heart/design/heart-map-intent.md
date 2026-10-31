@@ -176,6 +176,21 @@ vetted on:
   fenced base that spawns machines: that is step 3's.
 - **The supply road** (`supply-road`): a drivable road from the landing's
   farmland up to the settlement's near gate.
+- **The allied airbases** (Broad Front, `airbase-1` west and `airbase-2`
+  east, each with its hamlet `airbase-N.1` ... on its lane `airbase-N.lane`):
+  fields beside a way on
+  unfarmed ground behind the line, clear of the columns' roads
+  (`heart-nouns.md`, Allied airbase). The story map places both by hand in
+  its patch; other pooled maps site them.
+- **The columns' roads stay clear.** The heart's layout keeps a column band of
+  six cells either side of every column's way (the lanes' tracks, the
+  company's road, the farm road), which no airbase, hamlet or access track
+  enters and the posts and dumps keep out of where they can; nothing but
+  paving is built on any way, and the cordon's works break at the farm and
+  lane tracks as at a road (`mission-layout.md`, Laws). The farmland's own
+  farms step aside off the lanes' tracks and their band (`mapgen-nouns.md`,
+  Rural country). The pool check fails a heart map with anything built on a
+  way in its start-side third, those farms included (`story-map-pools.md`).
 
 ## The beats' set pieces
 

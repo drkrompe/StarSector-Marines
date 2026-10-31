@@ -137,7 +137,7 @@ public final class CordonConstructions {
                 map.defenderSpawnY, map.pointsOfInterest, map.doodads, tactical, buildings, map.defensePosts,
                 map.roadGraph, map.landingPads, map.landingAreas, map.biomeMap, gantries, tasks, map.runways,
                 map.shelters, map.vehicleCorridor, map.frontDepth, map.lanes)
-                .withFieldOfFire(map.fieldOfFire).withLayout(new LaidLayout(laid));
+                .withFieldOfFire(map.fieldOfFire).withLayout(new LaidLayout(laid, map.layout == null ? null : map.layout.onWays()));
         if (map.initialDamage != null) out = out.withInitialDamage(map.initialDamage);
         return out;
     }

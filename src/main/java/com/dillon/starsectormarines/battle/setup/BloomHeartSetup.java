@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
-import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
+import com.dillon.starsectormarines.battle.airsupport.StandingPatrol;
+import com.dillon.starsectormarines.battle.airsupport.WingAirbase;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -19,8 +24,11 @@ import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObj
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBoreGrowth;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCap;
+import com.dillon.starsectormarines.battle.evacuation.HeartBaseGuns;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.evacuation.HeartRidgeGuns;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
@@ -346,6 +354,9 @@ public final class BloomHeartSetup {
         // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
         HeartGuns heartGuns = new HeartGuns();
         int[] battery = null;
+        // The allied side's on-map cap, declared before anything allied is set down so the opening counts against it.
+        if (ALLIED_CAP) sim.alliedCap().limit(AlliedCap.Pool.INFANTRY, ALLIED_INFANTRY_CAP)
+                .limit(AlliedCap.Pool.MACHINES, form == Form.BROAD_FRONT ? BROAD_MACHINE_CAP : BURN_MACHINE_CAP);
         if (form == Form.THE_BURN) {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
@@ -362,10 +373,15 @@ public final class BloomHeartSetup {
                 barrage.magazine(heartGuns.stock(HeartGuns.BATTERY)::spend);
             }
         }
-        HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
-        // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
+        boolean front = barrage != null && burnFront();
+        HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed())
+                : front ? burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed()) : null;
+        // The armour waves come up the supply road from the vehicle park the layout laid, while it stands. The Burn's
+        // battlegroups call theirs from it by need as Broad Front's lanes do (burnParity); the control keeps their
+        // timetable after the barrage.
         HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
-        if (lanes != null && park != null) {
+        boolean broad = form == Form.BROAD_FRONT;
+        if (lanes != null && park != null && (broad || BURN_PARITY)) {
             lanes.sentFrom(park);
             lanes.road(supplyRoad(built.map(), built.plan()));
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
@@ -374,14 +390,20 @@ public final class BloomHeartSetup {
             AlliedToolShed shed = new AlliedToolShed(park)
                     .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
                             Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
-                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT));
+                    // What brings fighting machines on obeys the allied cap; trucks and the gunship do not count.
+                    .capped(AlliedTool.ARMOUR_PAIR, AlliedCap.Pool.MACHINES, 2)
+                    .capped(AlliedTool.MECH_LANCE, AlliedCap.Pool.MACHINES, 2)
+                    .capped(AlliedTool.FIRE_SECTION, AlliedCap.Pool.MACHINES, 2);
+            // The gunship and the fire sections are Broad Front's: The Burn's indirect fire is its battery.
+            if (broad) shed.stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1,
+                    Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT));
             if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
             shed.stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS);
             // Indirect fire for a lane whose ring cannot hurt its bore (`heart-allied-tools-next.md`): one section ready,
             // at most two, restocked at the mech lances' pace.
-            shed.stock(AlliedTool.FIRE_SECTION, lanes.sectionMaker(), 1, FIRE_SECTIONS,
+            if (broad) shed.stock(AlliedTool.FIRE_SECTION, lanes.sectionMaker(), 1, FIRE_SECTIONS,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             // Fresh hulls and ammunition come up the supply road: while its satellite cuts it, none reaches the park (F6).
             HeartSupplyRoad road = lanes.road();
@@ -394,33 +416,43 @@ public final class BloomHeartSetup {
             heartGuns.calledFrom(new AlliedToolShed(park)
                     .stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS), true);
         }
-        if (lanes != null) {
+        if (lanes != null && broad) {
             // The military's air wing over Broad Front, called through the observer it attaches to each lane (`heart-nouns.md`).
             Precinct home = built.plan().landingPlace();
+            // Flown from the airbases the layout laid, where they stand, with a standing patrol over the lanes (`heart-nouns.md`).
+            List<WingAirbase> airbases = AIRBASE ? alliedAirbases(sim, built.map()) : List.of();
+            int axis = form.advancesAlongY() ? 1 : 0;
+            int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
             AlliedAirWing.install(sim, home.seedX(), home.seedY(), lanes.grounds().stream()
-                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
+                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList(),
+                    airbases, lanes.grounds().stream()
+                            .map(g -> StandingPatrol.lane(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth(), sign))
+                            .toList(),
+                    SwarmFliers::hasAirCover);
         }
-        boolean front = barrage != null && burnFront();
-        FieldAirBase airBase = null;
         if (front) {
-            lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
-            // The military's airbase on station behind the start line: its wing flies off the lot, called through
-            // the observer each battlegroup carries (`heart-nouns.md`, Airbase and Forward observer).
-            Laid lot = built.map().layout.find(HeartLayout.AIRBASE);
+            // The military's airbase on station behind the start line, flown as Broad Front's airbases are: its bays are
+            // the wing, rolling off its strip, called through the observer each battlegroup carries (`heart-nouns.md`,
+            // Airbase and Forward observer).
+            List<WingAirbase> airbases = AIRBASE ? alliedAirbases(sim, built.map()) : List.of();
+            Laid lot = built.map().layout.find(HeartLayout.BURN_AIRBASE);
             int[] home = lot != null && lot.isLaid() ? middleOf(lot) : form.cellAt(0f, 0.5f);
             AlliedAirWing.install(sim, home[0], home[1], lanes.grounds().stream()
-                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
-            if (lot != null && lot.isLaid()) airBase = baseWing(sim, built.map(), lot);
+                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList(),
+                    airbases, List.of(), contested -> false);
         }
         sim.installHeart(form, barrage, lanes, built.map().layout);
         sim.getHeart().guns(heartGuns);
-        if (airBase != null) sim.getHeart().airBase(airBase);
         if (form == Form.THE_BURN) {
             Precinct start = built.plan().landingPlace();
             sim.getHeart().growBores(new HeartBoreGrowth(form, new int[]{start.seedX(), start.seedY()}, built.battleSeed()));
         }
         // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
         HeartObjectives.airDefence(sim, built.map().layout, heartGuns, battery);
+        // Rocket artillery at the allied bases, firing for the side on sighted masses, its rounds on the guns' stock.
+        if (BASE_LOCUSTS) HeartBaseGuns.man(sim, built.map().layout, heartGuns);
+        // The forward line on the cordon ridge is a front that has held for weeks: guns in its nests, flak behind them.
+        HeartRidgeGuns.man(sim, built.map().layout, form);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
         List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
@@ -444,7 +476,8 @@ public final class BloomHeartSetup {
                 ? null : burnScreen(form, barrage.plan());
         if (form == Form.BROAD_FRONT && BROAD_FORM_UP_SECONDS > 0) screen = broadFormUp(form, landing);
         HeartLane companyLane = new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth);
-        if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
+        if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR
+                || front && BURN_PARITY) supportCompany(sim, form, lanes, companyLane, landing);
         if (front) lanes.companySector(companyLane);
         HeartAssaultCommand company = new HeartAssaultCommand(companyLane, screen);
         if (form == Form.BROAD_FRONT && lanes != null) company.alongside(lanes.waveGrounds());
@@ -455,6 +488,46 @@ public final class BloomHeartSetup {
         sim.setAutonomousCommander(Faction.MARINE, company, HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
+    }
+
+    /**
+     * Whether the heart's air wing flies from the airbases its layout laid, Broad Front's two and The Burn's station
+     * ({@code -Dbattle.heart.airbase}, default true). {@code false} is the control: the old wing of two and two flying
+     * in over the start edge, no standing patrol, the bases laid but empty. Temporary A/B lever: remove it, and the edge-only path for the heart, once the based
+     * wing's evidence is accepted (`switches.md`).
+     */
+    static final boolean AIRBASE = Boolean.parseBoolean(System.getProperty("battle.heart.airbase", "true"));
+
+    /**
+     * What stands in an airbase's eight bays: its five hardstands, then its three sheds. Three bombers (Daggers, the
+     * pool's bomber) and five fighters (three Talons for the patrol, two Broadswords for gun runs).
+     */
+    static final List<FighterProfile> AIRBASE_AIRFRAMES = List.of(FighterProfile.DAGGER, FighterProfile.TALON,
+            FighterProfile.DAGGER, FighterProfile.TALON, FighterProfile.DAGGER,
+            FighterProfile.TALON, FighterProfile.BROADSWORD, FighterProfile.BROADSWORD);
+
+    /**
+     * The allies' airbases the layout laid ({@link HeartLayout#AIRBASE} 1 and 2), each opened as an allied field of
+     * its own with its strip, its aircraft and a crew for every bay that turns them round and rebuilds what is lost;
+     * empty where none was laid.
+     */
+    static List<WingAirbase> alliedAirbases(BattleSimulation sim, MapResult map) {
+        List<WingAirbase> out = new ArrayList<>();
+        if (map.layout == null) return out;
+        for (int n = 1; n <= 2; n++) {
+            Laid laid = map.layout.find(HeartLayout.AIRBASE + n);
+            if (laid == null || !laid.isLaid() || laid.cells().size() < 2) continue;
+            int[] a = laid.cells().get(0), b = laid.cells().get(1);
+            int[] bounds = {Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
+            List<AirfieldService.Berth> berths = BattleSetup.installAirfield(sim, map, bounds, Faction.ALLY,
+                    LandingPad.Purpose.ALLIED_AIRFIELD, true, AIRBASE_AIRFRAMES);
+            if (berths.isEmpty()) continue;
+            List<AirPoolKind> kinds = new ArrayList<>();
+            for (AirfieldService.Berth berth : berths) kinds.add(WingAirbase.kindOf((FighterProfile) berth.airframe));
+            out.add(new WingAirbase(sim.getAirfieldService(), bounds, berths, kinds));
+        }
+        if (!out.isEmpty()) BattleSetup.installAirfieldCrew(sim, map);
+        return out;
     }
 
     /** An allied lane's band: satellites this share of the front's width either side of its line are its own. */
@@ -656,12 +729,10 @@ public final class BloomHeartSetup {
             entries.add(foot);
         }
         int[] lifts = screen.liftTick();
-        int early = Math.min(BATTLEGROUP_WAVES, lifts.length);
-        int[] waves = new int[1 + early + BATTLEGROUP_LATE_WAVES];
-        waves[0] = HeartLanes.STEP_OFF_SECONDS;
-        for (int w = 1; w <= early; w++) waves[w] = Math.round(lifts[w - 1] * BattleSimulation.TICK_DT);
-        int ended = Math.round(lifts[lifts.length - 1] * BattleSimulation.TICK_DT);
-        for (int w = 0; w < BATTLEGROUP_LATE_WAVES; w++) waves[1 + early + w] = ended + w * LATE_WAVE_SECONDS;
+        int[] liftSeconds = new int[lifts.length];
+        for (int i = 0; i < lifts.length; i++) liftSeconds[i] = Math.round(lifts[i] * BattleSimulation.TICK_DT);
+        int[] waves = burnWaves(liftSeconds, BATTLEGROUP_WAVES, BATTLEGROUP_LATE_WAVES, BURN_PARITY);
+        int ended = liftSeconds[liftSeconds.length - 1];
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .following(screen).armourBehind(BURN_ARMOUR_BEHIND);
         int axis = form.advancesAlongY() ? 1 : 0;
@@ -694,6 +765,71 @@ public final class BloomHeartSetup {
         return lanes;
     }
 
+    /**
+     * When The Burn's battlegroup waves step off, in seconds: the column at the opening, one as each of the first
+     * {@code early} lines lifts, and {@code late} more a minute apart from the barrage's end (its last lift). With
+     * {@code steady} (Broad Front's parity, {@link #BURN_PARITY}) a wave also steps off every minute between the last
+     * early lift and the end, so the front is fed through the walk as Broad Front's lanes are, not only either side of it.
+     */
+    static int[] burnWaves(int[] liftSeconds, int early, int late, boolean steady) {
+        List<Integer> out = new ArrayList<>();
+        out.add(HeartLanes.STEP_OFF_SECONDS);
+        int lifted = Math.min(early, liftSeconds.length);
+        for (int w = 0; w < lifted; w++) out.add(liftSeconds[w]);
+        int ended = liftSeconds[liftSeconds.length - 1];
+        if (steady) {
+            int from = lifted == 0 ? HeartLanes.STEP_OFF_SECONDS : liftSeconds[lifted - 1];
+            for (int t = from + LATE_WAVE_SECONDS; t < ended; t += LATE_WAVE_SECONDS) out.add(t);
+        }
+        for (int w = 0; w < late; w++) out.add(ended + w * LATE_WAVE_SECONDS);
+        int[] waves = new int[out.size()];
+        for (int i = 0; i < waves.length; i++) waves[i] = out.get(i);
+        return waves;
+    }
+
+    /**
+     * Whether The Burn's allies are brought to Broad Front's strength (`heart-nouns.md`, Battlegroup): waves through
+     * the walk as well as either side of it, armour called from the vehicle park by need from the opening, and the
+     * company's sector armoured as Broad Front's is. Removal condition: the owner has seen The Burn with it and the
+     * pool's evidence has been read against the control; {@code false} is the control, the waves at the lifts and
+     * after the barrage, the armour pairs on the timetable after it, and no armour in the company's sector.
+     */
+    static final boolean BURN_PARITY = Boolean.parseBoolean(System.getProperty("battle.heart.burnParity", "true"));
+
+    /**
+     * Whether the allied bases' Locust pits are manned (`heart-nouns.md`, Logistics base): {@code HeartBaseGuns}.
+     * Removal condition: the owner has seen both forms with them and their evidence has been read against the
+     * control; {@code false} is the control, the pits laid and empty.
+     */
+    /**
+     * Whether the heart declares its allied on-map cap ({@code AlliedCap}; `heart-nouns.md`, The allied cap). Removal
+     * condition: the owner has picked the numbers and the evidence has been read against the control; {@code false}
+     * is the control, uncapped spawning.
+     */
+    static final boolean ALLIED_CAP = Boolean.parseBoolean(System.getProperty("battle.heart.alliedCap", "true"));
+    /**
+     * Allied soldiers on the map at once, both forms. A lane at full strength holds two waves (one in contact, one
+     * joining, 4 teams of 4 each) and has a third on the march: 48 soldiers; four lanes 192, the roving observer teams
+     * 6 more, and some 40 of margin. Uncapped, Broad Front's 13 waves of 16 a lane would put 832 on the map if none
+     * fell, and The Burn's at parity some 960.
+     */
+    static final int ALLIED_INFANTRY_CAP = 240;
+    /**
+     * Allied machines (hulls and mechs, fire-section carriers included) on the map at once. Broad Front opens with 23
+     * (a lane's escort APC, technical, tank and Hound pair, four lanes, and the company's tank and Hound pair); a pair
+     * on its way to every lane brings it to 31. Uncapped, the park's pairs (a pair a lane every two minutes when called)
+     * could bring some 80 over a battle.
+     */
+    static final int BROAD_MACHINE_CAP = 32;
+    /**
+     * The Burn opens with 31 (a battlegroup's APC, two technicals, two tanks and Hound pair, four of them, and the
+     * company's three); a pair on its way to every battlegroup brings it to 39. Uncapped, its timetable alone brings
+     * 64 more hulls after the barrage.
+     */
+    static final int BURN_MACHINE_CAP = 40;
+
+    static final boolean BASE_LOCUSTS = Boolean.parseBoolean(System.getProperty("battle.heart.baseLocusts", "true"));
+
     /** {@code base} moved {@code slot} places across the advance, five cells apart, alternating sides. */
     private static int[] offset(int[] base, int axis, int slot) {
         int shift = (slot % 2 == 0 ? 1 : -1) * ((slot + 1) / 2) * 5;
@@ -707,11 +843,6 @@ public final class BloomHeartSetup {
     /** The middle of a laid lot reported by its two corners. */
     static int[] middleOf(Laid lot) {
         return middleOf(lot.cells());
-    }
-
-    /** The allied wing on the airbase lot: its strip, its sheds, and its apron berths, each inside the lot's fence. */
-    static FieldAirBase baseWing(BattleSimulation sim, MapResult map, Laid lot) {
-        return AlliedAirWing.baseOnLot(sim, map, lot);
     }
 
     /** The Burn's guns: Locust rocket-artillery batteries dug in on the start line, firing a heavier round than a post's Locust. */
@@ -737,7 +868,7 @@ public final class BloomHeartSetup {
         int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
         List<int[]> wants = new ArrayList<>();
         List<int[]> keepOff = new ArrayList<>();
-        Laid airbase = layout == null ? null : layout.find(HeartLayout.AIRBASE);
+        Laid airbase = layout == null ? null : layout.find(HeartLayout.BURN_AIRBASE);
         for (int i = 0; i < 2; i++) {
             Laid dump = layout == null ? null : layout.find(HeartLayout.AMMO_DUMP + (i + 1));
             int[] at = dump == null || !dump.isLaid() ? null : middleOf(dump.cells());

@@ -172,6 +172,57 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
         return new RuralLayout(width, height, edge, depth, field, roads, keptPlots, keptFarms);
     }
 
+    /** Cells a farm keeps off ({@link #farmsKeepingOff}). */
+    public interface Cells {
+        boolean test(int x, int y);
+    }
+
+    /**
+     * The same country with no farm on {@code kept} cells (a way cut across the fields after they were surveyed, a
+     * lane's track and the ground kept clear beside it): a farm whose yard touches one steps aside along its plot's
+     * frontage to the nearest place clear of them, keeping its depth, so its doors still face the road they did; a
+     * farm with no such place in its plot is not built.
+     */
+    public RuralLayout farmsKeepingOff(Cells kept) {
+        List<Farmstead> out = new ArrayList<>(farmsteads.size());
+        for (Farmstead f : farmsteads) {
+            Farmstead moved = stepAside(f, kept, out);
+            if (moved != null) out.add(moved);
+        }
+        return out.size() == farmsteads.size() && out.equals(farmsteads) ? this
+                : new RuralLayout(width, height, edge, depth, field, roads, plots, out);
+    }
+
+    private Farmstead stepAside(Farmstead f, Cells kept, List<Farmstead> standing) {
+        Plot plot = plotAt(f.yardX0(), f.yardY0());
+        boolean alongX = edge >= 2;
+        int lo = plot == null ? 0 : alongX ? plot.x0() - f.yardX0() : plot.y0() - f.yardY0();
+        int hi = plot == null ? 0 : alongX ? plot.x1() - f.yardX1() : plot.y1() - f.yardY1();
+        for (int step = 0; step <= Math.max(-lo, hi); step++) {
+            for (int sign = 1; sign >= -1; sign -= 2) {
+                int s = step * sign;
+                if (s < lo || s > hi || (step == 0 && sign < 0)) continue;
+                int dx = alongX ? s : 0, dy = alongX ? 0 : s;
+                Farmstead g = new Farmstead(f.yardX0() + dx, f.yardY0() + dy, f.yardX1() + dx, f.yardY1() + dy,
+                        f.houseX() + dx, f.houseY() + dy, f.barnX() + dx, f.barnY() + dy, f.turns());
+                if (clear(g, kept, standing)) return g;
+            }
+        }
+        return null;
+    }
+
+    private static boolean clear(Farmstead g, Cells kept, List<Farmstead> standing) {
+        for (Farmstead o : standing) {
+            if (o.yardX0() <= g.yardX1() && o.yardX1() >= g.yardX0() && o.yardY0() <= g.yardY1() && o.yardY1() >= g.yardY0()) {
+                return false;
+            }
+        }
+        for (int x = g.yardX0(); x <= g.yardX1(); x++) {
+            for (int y = g.yardY0(); y <= g.yardY1(); y++) if (kept.test(x, y)) return false;
+        }
+        return true;
+    }
+
     /** Whether a cell is in the country at all. */
     public boolean inCountry(int x, int y) {
         return x >= 0 && y >= 0 && x < width && y < height && depthOf(x, y) < depth;

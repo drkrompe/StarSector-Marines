@@ -3,7 +3,7 @@
 Status: SHIPPED — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). The standing model is `heart-nouns.md` (Logistics base, Rounds on hand).
 
 Written: 2026-10-23
-Updated: 2026-10-23 — all four built; folded into `heart-nouns.md`.
+Updated: 2026-10-31 — The Burn's battlegroups call armour from the park by need too; Locust pits at the bases.
 
 `heart-nouns.md` is the model; the laws
 still hold: allies never end the battle, the guns cannot take the heart, and a
@@ -67,8 +67,27 @@ tools as one `AlliedToolShed`:
 - armour pairs, one per lane, restocking at the old wave pace;
 - one gunship, gated on open air;
 - mech lances, in town and city;
-- one ammunition truck, restocking every ninety seconds. On The Burn, which
-  has no lanes, the park is a shed of trucks alone.
+- one ammunition truck, restocking every ninety seconds.
+
+On The Burn the battlegroups call armour pairs (and mech lances in town and
+city) from the same park by need, as Broad Front's lanes do
+(`-Dbattle.heart.burnParity=false` is the control: a shed of trucks alone and
+the battlegroups' pairs on a timetable after the barrage). The gunship and the
+fire sections stay Broad Front's: The Burn's indirect fire is its battery.
+
+**The cap.** What the base sends obeys the battle's allied cap
+(`heart-nouns.md`, The allied cap): an armour pair, a mech lance or a fire
+section called while the side is at its machine cap waits its turn at the park
+until losses make room. Trucks and the gunship are outside it.
+
+**Rocket artillery at the bases.** Each base has two Locust emplacements in
+pits the layout lays (`HeartLayout.LOCUST_PIT`): behind the vehicle park on
+both forms, and off each short side of every Broad Front airbase, clear of the
+park, the strip's run-up rows, the ways and the columns' clearance. They are
+support guns (`SupportFire`): each fires on the biggest swarm mass in its band
+(30 to 100 cells) that somebody of the side has in sight, never danger close,
+and its salvos are rounds on hand, so a base running low calls a truck
+(`HeartBaseGuns`; `-Dbattle.heart.baseLocusts=false` is the control).
 
 ## The military's air
 

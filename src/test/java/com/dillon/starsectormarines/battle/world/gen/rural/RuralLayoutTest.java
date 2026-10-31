@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -189,5 +190,32 @@ class RuralLayoutTest {
             assertTrue(farm.houseY() >= farm.yardY0()
                     && farm.houseY() + RuralLayout.HOUSE_DEEP - 1 <= farm.yardY1() - 2, farm.toString());
         }
+    }
+
+    /** A country against the south edge with one plot x 0..{@code plotX1} and a farm in its west corner. */
+    private static RuralLayout oneFarm(int plotX1) {
+        Plot plot = new Plot(0, 0, plotX1, 59, Use.GRAIN, true, false);
+        Farmstead farm = new Farmstead(10, 46, 38, 59, 12, 50, 24, 49, 2);
+        return new RuralLayout(W, H, 2, 60, null, List.of(), List.of(plot), List.of(farm));
+    }
+
+    /** A farm a lane's track crosses steps aside along its plot, buildings and all, to the nearest clear place. */
+    @Test
+    void aFarmStepsAsideOffATrackCutAcrossIt() {
+        RuralLayout moved = oneFarm(99).farmsKeepingOff((x, y) -> x >= 20 && x <= 22);
+        assertEquals(1, moved.farmsteads().size());
+        Farmstead farm = moved.farmsteads().get(0);
+        assertEquals(23, farm.yardX0(), "the nearest place clear of the track, east of it");
+        assertEquals(46, farm.yardY0(), "it keeps its depth, facing the same road");
+        assertEquals(25, farm.houseX());
+        assertEquals(37, farm.barnX());
+    }
+
+    /** A farm with nowhere clear in its plot is not built; one nothing touches stays where it is. */
+    @Test
+    void aFarmWithNoClearPlaceInItsPlotIsNotBuilt() {
+        assertTrue(oneFarm(40).farmsKeepingOff((x, y) -> x >= 20 && x <= 22).farmsteads().isEmpty());
+        RuralLayout untouched = oneFarm(99);
+        assertEquals(untouched, untouched.farmsKeepingOff((x, y) -> x > 150));
     }
 }
