@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-25 — a forward observer attached to each Broad Front lane calls the military's air wing
+Updated: 2026-10-31 — The Burn's battlegroups carry observers too, on the wing from an airbase behind the start line
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -201,8 +201,12 @@ friendly soldier, never at a Harrier pack overhead. A lane whose observer dies
 calls no more air. Now and then the military also sends a roving observer
 team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
 foremost team, on the way back to its foot, the lanes with the most squads in
-contact first, so the team follows the push. The Burn has none of either: its
-guns are its fire support.
+contact first, so the team follows the push. The Burn has both too (owner,
+2026-10-31): the military's **airbase** is on station behind the start line,
+so the wing launches over the battery, and each battlegroup carries an observer
+the same way, the first team to step off on its band of the front; the
+battery's crews already standing in their pits never take the radio. The guns
+walk the barrage; the wing hunts the masses the observers see past it.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -314,7 +318,7 @@ into the map, with the second it opens and the seconds it fires before it
 current line. A round carries no danger marker, as a called strike does:
 nothing is drawn on the ground, and the battle announces the guns by the line,
 in its beats. How the walk should read beyond the rounds (ranging smoke, a
-marker) is open (`heart-barrage-read`). A line may fire incendiary shells, which light what they
+marker) is open (`heart-barrage-read`). The objectives rail reads the frozen timetable as a **barrage row** (`HeartChecklist`): it counts down to the opening shoot, then to each line's lift, says when the next incendiary line lights the burn, beacons the line firing and the battery, and fails with the battery. A line may fire incendiary shells, which light what they
 land on through fire's ignition seam. The plan ends at the **last line**, short
 of the heart: the batteries' reach, or the ammunition the briefing names. The
 Burn's plan follows **firebreaks hold** (the owner's pick): the fire stops at

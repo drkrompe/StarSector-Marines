@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
-import com.dillon.starsectormarines.battle.command.HeartLane;
-import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -15,27 +13,24 @@ import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The owner's question {@code heart-burn-observers}: should The Burn's battlegroups carry forward observers on the
- * military's air wing as Broad Front's lanes do, or keep the battery as their only fire support? One Burn battle (the
- * evidence fixture, seed 202) played twice to the same moment through the look preset: {@code burn-observers} with the
- * wing and an observer posted with each battlegroup's lane, from the first sortie the wing flies, the camera on its aim;
- * {@code burn-guns-only}, the battle as it ships, at the same tick over the same ground. The two are one battle until the
- * first stick lands. Plays the battle unrecorded to the sortie, which costs a minute or two; opt-in.
+ * The Burn's air wing as it ships: the airbase on station behind the start line and an observer with each
+ * battlegroup's lane (`heart-nouns.md`, Forward observer). One Burn battle (the evidence fixture, seed 202) played
+ * unrecorded to the first sortie the wing flies, then recorded through the look preset over its aim. Plays the battle
+ * to the sortie, which costs a minute or two; opt-in.
  */
-public final class BurnObserversLookSuite implements SnapshotSuite {
+public final class BurnAirLookSuite implements SnapshotSuite {
 
     /** The latest tick the wing's first sortie is waited for. */
     static final int SORTIE_BY = 14000;
     /** Ticks recorded from the sortie: its run in, the stick and the smoke. */
     static final int RECORD_TICKS = 450;
 
-    @Override public String id() { return "burn-observers-look"; }
+    @Override public String id() { return "burn-air-look"; }
 
-    @Override public String label() { return "The Burn with and without forward observers on the air wing, the same moment"; }
+    @Override public String label() { return "The Burn's air wing: its first sortie from the airbase behind the start line"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -45,20 +40,16 @@ public final class BurnObserversLookSuite implements SnapshotSuite {
             JSONObject fixture = new JSONObject(Files.readString(context.projectRoot()
                     .resolve("src/test/resources/battle-fixtures/heart-burn-v1.json"), StandardCharsets.UTF_8));
             float[] aim = firstSortie(fixture);
-            List<SnapshotArtifact> out = new ArrayList<>(LookReview.record(context.modRoot(),
-                    shot("burn-observers", fixture, true, aim)));
-            out.addAll(LookReview.record(context.modRoot(), shot("burn-guns-only", fixture, false, aim)));
-            return out;
+            return LookReview.record(context.modRoot(), shot("burn-air", fixture, aim));
         }
     }
 
     /**
-     * Plays the battle with the wing and its observers unrecorded to the wing's first launch; returns its tick and aim
+     * Plays the battle unrecorded to the wing's first launch; returns its tick and aim
      * as {@code {tick, x, y}}, or a zero tick when none flew by {@link #SORTIE_BY}.
      */
     static float[] firstSortie(JSONObject fixture) throws Exception {
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
-        post(sim);
         while (sim.getSimTickIndex() < SORTIE_BY) {
             sim.advance(BattleSimulation.TICK_DT);
             if (sim.getSimTickIndex() % 600 == 0) gates(sim);
@@ -74,8 +65,8 @@ public final class BurnObserversLookSuite implements SnapshotSuite {
         return new float[3];
     }
 
-    /** The battle, with the wing and its observers or as it ships, played unrecorded to {@code aim}'s tick and recorded over its point. */
-    static LookReview.Shot shot(String name, JSONObject fixture, boolean observers, float[] aim) {
+    /** The battle played unrecorded to {@code aim}'s tick and recorded over its point. */
+    static LookReview.Shot shot(String name, JSONObject fixture, float[] aim) {
         return new LookReview.Shot(name, LookGround.verdant(), 40, 30, placement -> {
             BattleSimulation sim;
             try {
@@ -83,7 +74,6 @@ public final class BurnObserversLookSuite implements SnapshotSuite {
             } catch (Exception e) {
                 throw new IllegalStateException("burn fixture", e);
             }
-            if (observers) post(sim);
             while (sim.getSimTickIndex() < aim[0]) sim.advance(BattleSimulation.TICK_DT);
             return sim;
         }, placement -> List.of(LookReview.View.play(aim[1], aim[2])), RECORD_TICKS, 3, 4);
@@ -105,23 +95,5 @@ public final class BurnObserversLookSuite implements SnapshotSuite {
                 : String.format("in sight, risk %.2f", officer.risk(sim, sim.world().x(seen), sim.world().y(seen)));
         System.out.printf("    [burn-gates] t=%ds observers free %d, a mass anywhere %s, %s%n", sim.getSimTickIndex() / 30,
                 eyes.size(), anywhere != 0L, verdict);
-    }
-
-    /** The wing, home over the start line, and an observer posted with each battlegroup's lane. */
-    static void post(BattleSimulation sim) {
-        HeartLanes lanes = sim.getHeart().lanes();
-        List<ForwardObservers.Post> posts = new ArrayList<>();
-        float x = 0f, y = 0f;
-        int feet = 0;
-        for (int i = 0; i < lanes.grounds().size(); i++) {
-            HeartLane g = lanes.grounds().get(i);
-            posts.add(ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth()));
-            int[] foot = lanes.entry(i + 1);
-            if (foot == null) continue;
-            x += foot[0];
-            y += foot[1];
-            feet++;
-        }
-        AlliedAirWing.install(sim, feet == 0 ? 0f : x / feet, feet == 0 ? 0f : y / feet, posts);
     }
 }
