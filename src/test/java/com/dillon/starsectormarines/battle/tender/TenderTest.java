@@ -159,6 +159,15 @@ class TenderTest {
     }
 
     @Test
+    void aPlotIsRefusedOverAPropItsPadMayNotClearButAPlainTurretIsNot() throws Exception {
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        hover.keepProps((x, y) -> x == 51 && y == 51);
+        assertNull(hover.lay(BuildOption.LOCUST_TURRET, 50.5f, 50.5f, grid), "a kept prop on its rim");
+        assertNotNull(hover.lay(BuildOption.HEAVY_MG_TURRET, 51.5f, 51.5f, grid), "a one-cell site keeps today's rule");
+        assertNotNull(hover.lay(BuildOption.LOCUST_TURRET, 55.5f, 55.5f, grid), "clear ground");
+    }
+
+    @Test
     void theComplementIsTheHullsBuiltInWingSplitBetweenBuildAndDefence() {
         assertEquals(6, Tender.complement());
         assertEquals(3, tender.builderComplement());

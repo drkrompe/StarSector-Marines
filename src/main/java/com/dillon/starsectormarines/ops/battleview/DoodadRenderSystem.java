@@ -1,6 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.tender.BuildPlot;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.ui.highlight.BuildPreview;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -11,6 +17,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -86,9 +93,63 @@ public final class DoodadRenderSystem implements RenderSystem {
             // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
             if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
                 collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
+            if (ctx.highlights != null) {
+                for (BuildPreview ghost : ctx.highlights.buildPreviews()) collectGhost(ghost, out, cam, view, ctx.alphaMult);
+            }
         } finally {
             fire = null;
             serving = null;
+        }
+    }
+
+    /** How strongly a build's ghost draws, against its finished art. */
+    private static final float GHOST_ALPHA = 0.45f;
+    /** The pad's concrete tone, as the ghost's fill. */
+    private static final float[] GHOST_PAD = {0.62f, 0.62f, 0.6f};
+    /** The refused tone a ghost wears where it cannot be laid. */
+    private static final float[] GHOST_REFUSED = {1f, 0.35f, 0.3f};
+
+    /**
+     * A staged build's finished layout under the placement cursor, faint: the pad as a concrete fill, the rim and
+     * stores in their own art, and the gun on its collar turned to the plot's facing. Refused, the whole of it wears
+     * the refused tone. Presentation only ({@link BuildPreview}).
+     */
+    private void collectGhost(BuildPreview ghost, DrawList out, BattleCamera cam, VisibleCellRect view,
+                              float alphaMult) {
+        float alpha = GHOST_ALPHA * alphaMult;
+        float cellPx = cam.cellPxSize();
+        float[] pad = ghost.valid() ? GHOST_PAD : GHOST_REFUSED;
+        TileRegistry registry = TileRegistry.installed();
+        List<Doodad> pieces = new ArrayList<>();
+        for (BuildPlot.Piece piece : ghost.pieces()) {
+            if (piece.doodad() == null) {
+                float x0 = cam.cellToScreenX(piece.x()), x1 = cam.cellToScreenX(piece.x() + 1f);
+                float y0 = cam.cellToScreenY(piece.y()), y1 = cam.cellToScreenY(piece.y() + 1f);
+                out.addSolidRect(RenderLayer.DOODADS, Math.min(x0, x1), Math.min(y0, y1), Math.max(x0, x1),
+                        Math.max(y0, y1), pad[0], pad[1], pad[2], alpha * 0.6f);
+                continue;
+            }
+            DoodadDef def = registry == null ? null : registry.doodad(piece.doodad());
+            if (def != null) pieces.add(new Doodad(piece.x(), piece.y(), def));
+        }
+        if (ghost.valid()) collectPlacements(pieces, out, cam, view, alpha);
+        else collectTinted(pieces, out, cam, view, pad[0], pad[1], pad[2], alpha);
+        StructureDef structure = TurretCatalogRegistry.installed() == null ? null
+                : TurretCatalogRegistry.installed().getStructure(ghost.structureId());
+        if (structure == null) return;
+        float gx = cam.cellToScreenX(ghost.gunX() + 0.5f), gy = cam.cellToScreenY(ghost.gunY() + 0.5f);
+        float r = ghost.valid() ? 1f : pad[0], g = ghost.valid() ? 1f : pad[1], b = ghost.valid() ? 1f : pad[2];
+        ShuttleSpriteCache collar = structure.art == null || structure.art.basePath == null ? null
+                : sprites.spriteByPath(structure.art.basePath);
+        if (collar != null) {
+            float w = structure.footprintCellsX * cellPx, h = structure.footprintCellsY * cellPx;
+            out.addSprite(RenderLayer.DOODADS, collar.sprite, gx, gy, w, h, 0f, r, g, b, alpha);
+        }
+        ShuttleSpriteCache mount = sprites.turretSprites().get(structure.id);
+        if (mount != null) {
+            float h = structure.mount.visualCells * cellPx;
+            out.addSprite(RenderLayer.DOODADS, mount.sprite, gx, gy, h * mount.aspect, h,
+                    AirBody.facingToward(ghost.facingX(), ghost.facingY()), r, g, b, alpha);
         }
     }
 

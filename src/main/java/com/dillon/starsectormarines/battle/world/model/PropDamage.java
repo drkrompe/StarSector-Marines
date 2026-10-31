@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
@@ -109,7 +112,7 @@ public final class PropDamage {
     public static final int STARTING_HP = 100;
     @FunctionalInterface public interface ClearedCell { void accept(int x, int y); }
     private static final class Entry {
-        final int index;
+        int index;
         final Doodad original;
         final DoodadDef damaged, destroyed;
         final int[] cells;
@@ -158,6 +161,22 @@ public final class PropDamage {
             entry.hp = grid.getWallHp(prop.cellX, prop.cellY);
         for (int cell : entry.cells) owners.computeIfAbsent(cell, ignored -> new ArrayList<>()).add(entry);
         return true;
+    }
+
+    /** Sets the list index of every prop this channel carries; their cover is the channel's, never the static cells'. */
+    void markOwned(BitSet out) {
+        for (List<Entry> at : owners.values()) for (Entry entry : at) out.set(entry.index);
+    }
+
+    /** Forgets the prop at {@code index} as it leaves the list; every later prop's index moves down one. */
+    void removed(int index) {
+        Set<Entry> moved = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (int key : owners.keySet().toIntArray()) {
+            List<Entry> at = owners.get(key);
+            at.removeIf(entry -> entry.index == index);
+            if (at.isEmpty()) owners.remove(key);
+            else for (Entry entry : at) if (entry.index > index && moved.add(entry)) entry.index--;
+        }
     }
 
     /** Own-cell physical cover only; tactical neighbor contributions are combined by DoodadService. */

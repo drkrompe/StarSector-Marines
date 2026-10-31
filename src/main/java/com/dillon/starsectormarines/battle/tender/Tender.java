@@ -198,6 +198,8 @@ public final class Tender implements DroneAnchor {
     final TenderFlight flight = new TenderFlight();
     private boolean helmed;
     private List<ConstructionOrder> ordersBeforeHelm = List.of();
+    /** Cells holding a prop a plot's pad may not clear; none until a battle says ({@link #keepProps}). */
+    private BiPredicate<Integer, Integer> keptProps = (x, y) -> false;
     private boolean defenceOutBeforeHelm = true;
 
     private Tender(Warship ship, List<WarshipSlot> bays, int complement) {
@@ -502,7 +504,8 @@ public final class Tender implements DroneAnchor {
 
     /**
      * Whether {@code option} may be laid centred on the cell under {@code (x, y)}: every cell of its plot (the one cell
-     * for a plain turret) is open, walkable ground off the hull, and the plot crowds no live or kept site. Whether the
+     * for a plain turret) is open, walkable ground off the hull, a plot covers no prop its pad may not clear
+     * ({@link #keepProps}), and the plot crowds no live or kept site. Whether the
      * player has seen the ground is the caller's rule ({@link #everyCell}).
      */
     public boolean siteOpen(BuildOption option, float x, float y, NavigationGrid grid) {
@@ -510,12 +513,18 @@ public final class Tender implements DroneAnchor {
         int cy = (int) Math.floor(y);
         int reach = option == null ? 0 : option.reach();
         boolean open = everyCell(option, cx, cy, (px, py) -> grid.inBounds(px, py) && grid.isWalkable(px, py)
-                && (reach == 0 || !grid.isDoorway(px, py)) && buildableSite(px + 0.5f, py + 0.5f));
+                && (reach == 0 || !grid.isDoorway(px, py) && !keptProps.test(px, py))
+                && buildableSite(px + 0.5f, py + 0.5f));
         if (!open || groundPlotReserved(cx + 0.5f, cy + 0.5f, reach)) return false;
         for (ConstructionOrder other : orders) {
             if (!other.phase().terminal() && crowds(other, cx + 0.5f, cy + 0.5f, reach)) return false;
         }
         return true;
+    }
+
+    /** Names the cells a plot may not cover because a prop there must stay: the battle's works, machinery and the like. */
+    public void keepProps(BiPredicate<Integer, Integer> kept) {
+        this.keptProps = kept;
     }
 
     /** Whether {@code test} holds for every cell of {@code option}'s site centred on {@code (cx, cy)}. */

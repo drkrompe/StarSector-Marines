@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
 
@@ -76,6 +77,8 @@ public final class TenderSystem {
     /** A builder this close to its station turns to face the site. */
     static final float STATION_FACE_CELLS = 0.8f;
     static final float FACE_DEG_PER_SEC = 240f;
+    /** A ground unit this close to a gun cell's centre holds the gun until it moves. */
+    static final float OCCUPIED_CELLS = 0.75f;
     private static final float DESTROY = 1.0e6f;
 
     private final List<Tender> tenders = new ArrayList<>();
@@ -86,6 +89,7 @@ public final class TenderSystem {
 
     /** Puts a tender over the battle: its hull is flown by the warship system, its drones launch from the next tick. */
     public void add(BattleSimulation sim, Tender tender) {
+        tender.keepProps(sim::plotKeepsProp);
         track(tender);
         if (!tender.grounded()) sim.addWarship(tender.ship());
     }
@@ -260,6 +264,12 @@ public final class TenderSystem {
     private void tickOrders(Tender t, float dt, BattleSimulation sim) {
         t.blockedSeconds = Math.max(0f, t.blockedSeconds - dt);
         t.sweep();
+        // A plot faces once, on the first tick after it is laid, so a queued build keeps the facing its ghost showed.
+        for (ConstructionOrder q : t.orders()) {
+            if (q.option().plot() != null && !q.faced() && !q.phase().terminal()) {
+                q.face(plotFacing(sim, t, q.siteX(), q.siteY()));
+            }
+        }
         // A tender whose station time is spent is leaving: no new standoff may pull it back.
         if (t.ship().departing()) return;
         ConstructionOrder o = t.current();
@@ -272,7 +282,6 @@ public final class TenderSystem {
         switch (o.phase()) {
             case QUEUED -> {
                 o.begin();
-                if (o.option().plot() != null) o.face(facing(t, o, sim));
                 if (t.grounded()) {
                     o.standoff(t.bayX(), t.bayY());
                     return;
@@ -348,6 +357,11 @@ public final class TenderSystem {
         // Builders stood down for a threat come back out once the ground is clear.
         if (!contested) deployBuilders(t, dt, sim);
         int crew = t.builderComplement();
+        BuildPlot plot = o.option().plot();
+        if (plot != null && o.stagesLaid() == plot.stages().size()) {
+            int[] gun = gunCell(o);
+            o.holdGun(occupied(sim, gun[0], gun[1]));
+        }
         boolean done = o.work(dt, onSite, crew, contested);
         // A staged build's ground goes down as the work passes each stage's share, and stays whatever follows.
         for (BuildPlot.Stage stage = o.stageDue(); stage != null; stage = o.stageDue()) {
@@ -381,14 +395,32 @@ public final class TenderSystem {
     }
 
     /**
-     * Which way a plot's forward side faces when its order sets out: toward the nearest hostile the tender's side
-     * knows of, or straight away from the tender when it knows of none.
+     * Whether a ground unit stands on the cell or close enough to its centre that a gun stood there would overlap it.
+     * Fliers (the builders themselves) and riders do not count.
      */
-    private static int[] facing(Tender t, ConstructionOrder o, BattleSimulation sim) {
+    static boolean occupied(BattleSimulation sim, int x, int y) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] dense = roster.denseArray();
+        int n = roster.liveCount();
+        for (int i = 0; i < n; i++) {
+            long u = dense[i];
+            if (roster.isRiding(u) || world.hasKinematics(u)) continue;
+            if (Math.hypot(world.x(u) - (x + 0.5f), world.y(u) - (y + 0.5f)) < OCCUPIED_CELLS) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Which way a plot centred on {@code (x, y)} would face if laid now: toward the nearest hostile the tender's side
+     * knows of, or straight away from the tender when it knows of none. An order is faced by this once, on the first
+     * tick after its lay, and the placement ghost asks it every frame, so both agree.
+     */
+    public static int[] plotFacing(BattleSimulation sim, Tender t, float x, float y) {
         float[] known = TenderThreat.known(sim, t);
         float bestX = 0f, bestY = 0f, best = Float.MAX_VALUE;
         for (int i = 0; i + 1 < known.length; i += 2) {
-            float dx = known[i] - o.siteX(), dy = known[i + 1] - o.siteY();
+            float dx = known[i] - x, dy = known[i + 1] - y;
             float d = dx * dx + dy * dy;
             if (d < best) {
                 best = d;
@@ -397,8 +429,8 @@ public final class TenderSystem {
             }
         }
         if (best == Float.MAX_VALUE) {
-            bestX = o.siteX() - t.ship().x;
-            bestY = o.siteY() - t.ship().y;
+            bestX = x - t.ship().x;
+            bestY = y - t.ship().y;
         }
         return BuildPlot.facing(bestX, bestY);
     }

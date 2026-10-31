@@ -130,6 +130,13 @@ public final class MechBay implements Serializable {
         labLesson = 1;
     }
 
+    /** Closes the gantry lesson unfinished; the spare rack stays in stores. */
+    public void skipLabLesson() {
+        if (labLesson <= 0) return;
+        labLesson = 5;
+        labLessonPaused = false;
+    }
+
     public void advanceLabLesson() {
         if (labLesson == 1) { labLesson = 2; observeLabFit(); }
         else if (labLesson == 4) labLesson = 5;

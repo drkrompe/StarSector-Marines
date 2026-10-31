@@ -107,6 +107,9 @@ final class BattleDirectTenderStatus {
                     } else if (o.contested()) {
                         state = Strings.get("tenderStatusStoodDown");
                         tone = Tone.WARN;
+                    } else if (o.gunHeld()) {
+                        state = Strings.get("tenderStatusGunHeld");
+                        tone = Tone.WARN;
                     } else {
                         state = Strings.get("tenderStatusBuilding");
                         tone = Tone.BUSY;

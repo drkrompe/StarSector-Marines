@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public final class RockDamage {
         public String stone(String group) { return "nature.rock-" + prefix + group; }
     }
     private static final class Entry {
-        final int index;
+        int index;
         final String id;
         final DoodadDef damaged, destroyed;
         int hp;
@@ -48,6 +49,17 @@ public final class RockDamage {
     private final List<Doodad> props;
     private final Map<Integer, Entry> entries = new HashMap<>();
     public RockDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+
+    /** Sets the list index of every damaged rock this channel placed; their cover stays in the nature channel. */
+    void markOwned(BitSet out) {
+        for (Entry entry : entries.values()) out.set(entry.index);
+    }
+
+    /** Forgets the rock at {@code index} as it leaves the list; every later prop's index moves down one. */
+    void removed(int index) {
+        entries.values().removeIf(entry -> entry.index == index);
+        for (Entry entry : entries.values()) if (entry.index > index) entry.index--;
+    }
 
     /** The id of a standing rock on this cell, or null: what a round that stopped here would wear. */
     public String standingIdAt(int x, int y, CellTopology topology, TileRegistry registry) {

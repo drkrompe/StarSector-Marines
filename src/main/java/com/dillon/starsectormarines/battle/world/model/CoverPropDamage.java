@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,11 +32,11 @@ public final class CoverPropDamage {
     /** Militia hedgehogs: crate-style naming, but one per cell. */
     private static final Set<String> HEDGEHOGS = Set.of("doodad.fort-hedgehog");
     private static final class Entry {
-        final int index;
+        int index;
         final Doodad original;
         final DoodadDef damaged, destroyed;
         final boolean physical;
-        final Entry next;
+        Entry next;
         int hp;
         Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed,
               boolean physical, Entry next) {
@@ -74,6 +76,37 @@ public final class CoverPropDamage {
         if (!physical && grid.getWallHp(prop.cellX, prop.cellY) <= 0)
             grid.setWallHp(prop.cellX, prop.cellY, entry.hp);
         return physical;
+    }
+
+    /**
+     * Whether a prop of this id is loose: a crate stack or a field sandbag, which a build's pad may clear away. Fort
+     * sandbags, emplacement pieces, fences and hedgehogs are works, and stay.
+     */
+    public static boolean loose(String id) {
+        return id != null && (CRATES.contains(id) || SANDBAG_PREFIX.equals(familyPrefix(id)));
+    }
+
+    /** Sets the list index of every prop whose cover this channel carries on walkable ground. */
+    void markPhysical(BitSet out) {
+        for (Entry head : entries.values())
+            for (Entry entry = head; entry != null; entry = entry.next) if (entry.physical) out.set(entry.index);
+    }
+
+    /** Forgets the prop at {@code index} as it leaves the list; every later prop's index moves down one. */
+    void removed(int index) {
+        for (int key : entries.keySet().toIntArray()) {
+            List<Entry> chain = new ArrayList<>();
+            for (Entry entry = entries.get(key); entry != null; entry = entry.next) if (entry.index != index) chain.add(entry);
+            Entry kept = null;
+            for (int i = chain.size() - 1; i >= 0; i--) {
+                Entry entry = chain.get(i);
+                entry.next = kept;
+                if (entry.index > index) entry.index--;
+                kept = entry;
+            }
+            if (kept == null) entries.remove(key);
+            else entries.put(key, kept);
+        }
     }
 
     /** Strongest surviving walkable cover prop whose silhouette contains this ray. */

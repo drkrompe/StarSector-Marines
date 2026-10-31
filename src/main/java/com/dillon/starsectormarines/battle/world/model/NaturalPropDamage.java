@@ -23,7 +23,7 @@ public final class NaturalPropDamage {
     public enum Result { NOT_NATURAL_PROP, UNCHANGED, DAMAGED, DESTROYED }
     @FunctionalInterface public interface ClearedCell { void accept(int x, int y); }
     private static final class Entry {
-        final int index;
+        int index;
         final Doodad original;
         final DoodadDef damaged, destroyed;
         final int[] cells;
@@ -43,6 +43,14 @@ public final class NaturalPropDamage {
     /** Cells whose obstruction is the ground itself, never crushable: a summit a tree stands on. */
     private IntPredicate permanent = cell -> false;
     public NaturalPropDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+
+    /** Forgets the prop at {@code index} as it leaves the list; every later prop's index moves down one. */
+    void removed(int index) {
+        entries.removeIf(entry -> entry.index == index);
+        for (List<Entry> at : owners.values()) at.removeIf(entry -> entry.index == index);
+        owners.values().removeIf(List::isEmpty);
+        for (Entry entry : entries) if (entry.index > index) entry.index--;
+    }
 
     /** Names the cells (map indices) whose obstruction outlives any prop on them. */
     public void setPermanent(IntPredicate permanent) { this.permanent = permanent; }

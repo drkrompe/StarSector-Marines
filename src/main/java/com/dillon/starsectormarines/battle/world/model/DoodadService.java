@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.function.IntPredicate;
 
@@ -289,6 +290,107 @@ public final class DoodadService {
                 } else {
                     addDirectionalEdgeCover(x, y, def.cover.level(),
                             def.cover.defaultBallisticHalfHeight());
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether a prop on this cell stops a build's plot: anything with weight (cover or a fighting position) that is
+     * not {@linkplain #loose loose}, such as works, machinery, a vehicle or a mission prop. Flat dressing stays under
+     * the plot and stops nothing.
+     */
+    public boolean plotKeeps(int x, int y) {
+        for (Doodad d : doodads) {
+            if (d.occupiesCell(x, y) && !loose(d)
+                    && (d.cover > 0 || d.fightingPosition() != FightingPositionRole.NONE)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Takes every loose prop standing on the cell off the map, as a build's pad clears its ground: the prop leaves the
+     * render list, its damage channel forgets it, and the cover it published is rebuilt without it. Returns whether
+     * anything was cleared.
+     */
+    public boolean clearLoose(int x, int y) {
+        boolean cleared = false;
+        for (int i = doodads.size() - 1; i >= 0; i--) {
+            Doodad d = doodads.get(i);
+            if (!d.occupiesCell(x, y) || !loose(d)) continue;
+            doodads.remove(i);
+            destructibleCover.removed(i);
+            destructibleProps.removed(i);
+            naturalProps.removed(i);
+            rocks.removed(i);
+            republishCoverAround(d);
+            cleared = true;
+        }
+        return cleared;
+    }
+
+    /**
+     * Whether a prop is loose: field scatter, a crate stack, a field sandbag or a drum cluster, in any damage state,
+     * standing wholly on open ground and holding no fighting position. Its family is the damage channels' own catalog
+     * ({@link CoverPropDamage#loose}, {@link PropDamage#BARRELS}) or the nature catalog.
+     */
+    static boolean loose(Doodad d, NavigationGrid grid) {
+        String id = d.definitionId();
+        if (id == null || d.fightingPosition() != FightingPositionRole.NONE) return false;
+        for (int dy = 0; dy < d.footprintCellsY; dy++) {
+            for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                if (!grid.inBounds(d.cellX + dx, d.cellY + dy) || !grid.isWalkable(d.cellX + dx, d.cellY + dy)) return false;
+            }
+        }
+        String base = id.replace("-damaged-", "-").replace("-destroyed-", "-");
+        if (base.endsWith("-damaged")) base = base.substring(0, base.length() - "-damaged".length());
+        if (base.endsWith("-destroyed")) base = base.substring(0, base.length() - "-destroyed".length());
+        return base.startsWith("nature.") || CoverPropDamage.loose(base) || PropDamage.BARRELS.contains(base);
+    }
+
+    private boolean loose(Doodad d) {
+        return loose(d, grid);
+    }
+
+    /**
+     * Rebuilds the static doodad cover about a prop that has left the list. That cover is max-merged and cannot be
+     * subtracted, so the cells the prop could have reached are zeroed and every remaining prop near them publishes
+     * again, as {@link #addDoodad} first did.
+     */
+    private void republishCoverAround(Doodad gone) {
+        if (gone.cover <= 0 || doodadCoverByFacing == null) return;
+        int x0 = gone.cellX - 1, y0 = gone.cellY - 1;
+        int x1 = gone.cellX + gone.footprintCellsX, y1 = gone.cellY + gone.footprintCellsY;
+        for (int y = y0; y <= y1; y++) {
+            for (int x = x0; x <= x1; x++) {
+                if (!grid.inBounds(x, y)) continue;
+                int idx = grid.index(x, y);
+                for (int f = 0; f < NavigationGrid.FACING_COUNT; f++) doodadCoverByFacing[idx * NavigationGrid.FACING_COUNT + f] = 0;
+                for (int l = 0; l <= NavigationGrid.MAX_COVER; l++) doodadHalfHeightByLevelOnCell[idx * (NavigationGrid.MAX_COVER + 1) + l] = 0f;
+                if (occupantCoverOnCell != null) {
+                    occupantCoverOnCell[idx] = 0;
+                    occupantHalfHeightOnCell[idx] = 0f;
+                }
+            }
+        }
+        BitSet channelled = new BitSet(doodads.size());
+        destructibleCover.markPhysical(channelled);
+        destructibleProps.markOwned(channelled);
+        rocks.markOwned(channelled);
+        for (int i = 0; i < doodads.size(); i++) {
+            Doodad d = doodads.get(i);
+            if (d.cover <= 0 || channelled.get(i)) continue;
+            if (d.cellX + d.footprintCellsX < x0 - 1 || d.cellX > x1 + 1
+                    || d.cellY + d.footprintCellsY < y0 - 1 || d.cellY > y1 + 1) continue;
+            for (int dy = 0; dy < d.footprintCellsY; dy++) {
+                for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                    int cellX = d.cellX + dx, cellY = d.cellY + dy;
+                    if (!grid.isWalkable(cellX, cellY)) continue;
+                    if (d.fightingPosition() == FightingPositionRole.TRENCH) {
+                        addOccupantCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    } else {
+                        addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    }
                 }
             }
         }

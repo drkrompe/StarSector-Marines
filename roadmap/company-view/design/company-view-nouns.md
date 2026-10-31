@@ -1014,7 +1014,8 @@ The company officer offers a short, dismissible first-use management guide in an
 anchored callout with her portrait and name, plus a Company Guide resume action.
 She is pragmatic and matriarchal: warm, observant and firm as the moment needs,
 with occasional dry humor rather than a fixed dry tone. The guide highlights the
-next real preparation control and moves beside it. A dim backdrop leaves openings
+next real preparation control and moves beside it; the callout is only as tall as
+her words, up to a cap past which they scroll. A dim backdrop leaves openings
 around the lesson's declared controls and readouts: formations with filters and
 paging, or the current resource order with its availability.
 Only those regions and the portrait callout accept pointer and keyboard input;
@@ -1983,7 +1984,8 @@ present, preserving the required founding induction's precedence.
 
 First Refit still requires its ordinary technology claim and actual equipment
 issue. The gantry lesson uses the existing once-only SRM and fit/remove/refit
-receipts. Missing the Hound does not trap the company at a nonexistent gantry.
+receipts, and **Skip** closes it for good while the spare stays in stores. Missing
+the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation
 uses the existing real founding bill, wounded billets and deployment minimum.

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -24,10 +25,11 @@ interface ReviewSceneBackend {
 
     /**
      * One frame's world: who is drawn, through which camera, and what a review feed adds ahead of each layer;
-     * {@code selection} is what the player has selected, for a mark drawn only on a selected squad, or null for none.
+     * {@code selection} is what the player has selected, for a mark drawn only on a selected squad, or null for none;
+     * {@code highlights} what the HUD has published for the world pass (a build ghost), or null for nothing.
      */
     record Scene(BattleSimulation simulation, BattleCamera camera, EnumSet<RenderLayer> layers,
-                 float clockSeconds, ReviewImpactFx impacts, Selection selection) { }
+                 float clockSeconds, ReviewImpactFx impacts, Selection selection, HighlightOverlay highlights) { }
 
     /** The scene as a {@code width}x{@code height} image, top row first. */
     BufferedImage draw(Scene scene, int width, int height);

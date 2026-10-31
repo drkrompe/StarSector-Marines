@@ -49,9 +49,11 @@ public final class TenderSiteRenderSystem implements RenderSystem {
                 if (order.phase().terminal()) continue;
                 if (!isKnown(ctx, tender.faction(), order.siteX(), order.siteY())) continue;
                 boolean working = order.phase() == ConstructionOrder.Phase.WORKING;
+                // A finished site waiting for its gun's cell to clear wears the stood-down tone too.
+                boolean stopped = order.contested() || order.gunHeld();
                 float r = 1f;
-                float g = order.contested() ? 0.35f : 0.75f;
-                float b = order.contested() ? 0.3f : 0.25f;
+                float g = stopped ? 0.35f : 0.75f;
+                float b = stopped ? 0.3f : 0.25f;
                 float sx = camera.cellToScreenX(order.siteX());
                 float sy = camera.cellToScreenY(order.siteY());
                 float marker = MARKER_CELLS * cellPx;
