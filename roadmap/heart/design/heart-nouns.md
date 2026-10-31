@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line
+Updated: 2026-10-31 — Broad Front's inner row of satellites; guns and flak on the forward line; lanes advance as combined-arms teams
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -182,9 +182,9 @@ refills it, so a base the swarm has cut off shows as a barrage thinning out.
 **Allied commander** (Broad Front). The lanes' own commander
 (`heart-allied-commander.md`): authored rules, not a general that weighs the
 field. It never orders the company and never ends the battle.
-- **How a lane goes forward:** from bore to bore as a screened advance, with
-  armour screening on open ground and militia screening through woods and
-  streets.
+- **How a lane goes forward:** from its foot and then from bore to bore as a
+  screened advance, with armour screening on open ground and militia
+  screening through woods and streets (Combined arms on Broad Front).
 - **When to call help:** a lane calls its next machines when it is
   **uncovered** (it has lost a machine), broken, or **stalled** (its formation
   pushed through two contacts at the cap in a row, clearing neither). In town
@@ -289,8 +289,38 @@ to a new aim. A fresh tank and technical come up
 eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
 Broad Front those waves are the logistics base's stock, called up by need
 (Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).
-Broad Front's armour stays behind (`-Dbattle.heart.broadArmourBehind`),
-because its lanes march into the overgrowth before the armour can follow.
+Broad Front's lanes go further: they advance as combined-arms teams (below).
+
+**Combined arms on Broad Front.** A lane's militia and its armour go forward
+together, every leg of the way, as one screened advance (`allied-command.md`,
+Screened advance; `HeartLanes.COMBINED_ARMS`):
+- **From the foot.** The lane's first wave joins it at its foot on the start
+  line, where its armour stands, and the lane steps off from there as one
+  formation; its armour waits at the foot until the wave is in, rather than
+  driving onto its bore's ring alone. The lane has arrived (`lane_arrived_N`)
+  when its first assault begins.
+- **Leg by leg, by country.** A leg runs over one country. Where at least ten
+  cells in a row of the other kind start twenty or more cells along the way, the
+  leg ends on the last cell before them and the next leg forms there. Ground a
+  tank can drive is open, and armour screens it, leashed a screen's distance
+  ahead of its militia; through woods and streets the militia screen, with the
+  armour behind them. The slowest element sets the pace, so the militia never
+  walk into contact ahead of their armour, and a hull the woods bar is a
+  straggler the formation leaves to catch up.
+- **Waves join the lane.** A later wave marches to where its lane's militia
+  stand; with none standing, to where its armour stands, never to the bore
+  alone.
+- **A lane without its armour** forms only with a machine within 24 cells of
+  its militia. Short of one, it holds where it stands while armour is coming (a
+  machine of its own standing elsewhere, or a call on the road), for at most a
+  minute, and then goes on without it. With nothing coming it goes on at once:
+  no lane freezes waiting on a base the swarm has cut off.
+
+`-Dbattle.heart.broadCombinedArms=false` is the control: the first wave
+marches to its satellite alone while the armour drives onto the satellite's
+ring, a leg is a bore with its screen picked once for the whole way, and a lane
+without armour goes on at once. `-Dbattle.heart.broadArmourBehind` sets only
+where a lane's armour stands when neither a formation nor an assault has it.
 
 **Battlegroup** (The Burn). One allied sector's force: the planetary militia
 committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
@@ -464,9 +494,9 @@ told only to defend a cell far behind it fought where it stood). When the last o
 
 The allied columns are scripted (`HeartLanes`): a wave of militia teams at the
 foot of each of the four lanes steps off at the opening, and the rest follow
-on the lane's cadence, each marching to wherever its lane is aimed then. The
-first wave marches to its lane's first satellite as the Cordon's scripted columns march to a redoubt
-(`cordon-nouns.md`, Allied column). Once a column has arrived it is the lane's:
+on the lane's cadence, each marching to the lane where it stands (`cordon-nouns.md`,
+Allied column). The first wave joins its lane at the foot and goes up with
+the lane's armour (Combined arms on Broad Front). Once a column has joined it is the lane's:
 when the bore it is on falls it goes on to its lane's next satellite, then to
 the nearest living mother. An allied lane's band is about a tenth of the front's
 width either side of its line, so neighbouring lanes do not take each other's
@@ -520,7 +550,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | --- | --- | --- |
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
-| `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
+| `lane_arrived_N` | Broad Front | lane N reaches its first bore (its first assault begins) |
 | `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
 | `gunship_called_N`, `gunship_lost_N` | Broad Front | the commander's Nth sortie is granted; the Nth sortie is shot down |
 | `line_lit` | The Burn | the fire line takes |

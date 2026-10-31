@@ -50,10 +50,12 @@ import java.util.Random;
  * the foot of each lane, sent up it together at the opening, each taking the
  * satellites in its own lane and then converging on the nearest living mother.
  *
- * <p>A column comes on and marches to its lane's first bore as the Cordon's
- * scripted columns do ({@link AlliedColumns}). Once it has arrived it is the
- * lane's: every second it is sent on to the lane's next bore when the one it is
- * on falls. The columns fight under garrison authority; they never end the
+ * <p>A column comes on and marches as the Cordon's scripted columns do
+ * ({@link AlliedColumns}): on Broad Front its first wave joins the lane at its
+ * foot and goes up with the lane's armour as one formation, leg by leg
+ * ({@link #COMBINED_ARMS}); otherwise it marches to the lane's first bore. Once
+ * it has joined it is the lane's: it is sent on to the lane's next bore when the
+ * one it is on falls. The columns fight under garrison authority; they never end the
  * battle, and a lane broken below a third of its strength is a cost on the
  * outcome, not a loss.
  */
@@ -123,6 +125,15 @@ public final class HeartLanes {
         final Set<Integer> assaultOrdered = new HashSet<>();
         /** Whether the lane's last bore fell under its assault, so the next one is taken armour first. */
         boolean afterFall;
+        /**
+         * Whether the current advance ends where the country changes, short of the bore: the lane forms its next leg
+         * there, with the screen the new country picks.
+         */
+        boolean nextLeg;
+        /** The tick the lane began holding for its armour before an advance, or -1 while it is not holding. */
+        int armourWaitTick = -1;
+        /** Whether {@code lane_arrived_N} has gone out: raised once, as the lane's first assault begins. */
+        boolean arrivedRaised;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -163,6 +174,9 @@ public final class HeartLanes {
             if (standing != null) return standing;
             // A lane assaulting its bore takes its waves on its support line, behind its machines.
             if (assault != null) return new int[]{assault.supportX, assault.supportY};
+            // Combined arms: a wave with no militia of its lane standing joins the lane's armour, never the bore alone.
+            int[] withArmour = withArmour(sim);
+            if (withArmour != null) return withArmour;
             KnownBore bore = ground.target(known(sim), entryX, entryY);
             return bore == null ? null : aim(sim, ground, bore);
         }
@@ -173,6 +187,8 @@ public final class HeartLanes {
             if (screen == null) {
                 int[] standing = standing(sim);
                 if (standing != null) return Math.max(Math.abs(standing[0] - x), Math.abs(standing[1] - y)) <= ARRIVE_CELLS;
+                int[] withArmour = assault == null ? withArmour(sim) : null;
+                if (withArmour != null) return Math.max(Math.abs(withArmour[0] - x), Math.abs(withArmour[1] - y)) <= ARRIVE_CELLS;
                 return livingBoreAt(sim, x, y);
             }
             // Following the guns, a column marches to where its lane is aimed now: the hold moves up as each
@@ -239,12 +255,30 @@ public final class HeartLanes {
             for (int squad : joined) joinedMembers += sim.squadMemberCount(squad);
             // A wave that joined the lane where it stands goes on with it to its aim (a formation gives it a slot,
             // an assault its phase's order).
-            if (assault == null && (targetX != destX || targetY != destY)) {
+            if (assault == null && armourWaitTick >= 0) {
+                // The lane is holding for its armour: the wave holds with it where it came in.
+                for (int squad : joined) {
+                    sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, destX, destY),
+                            CommandAuthority.GARRISON, ISSUER, "a wave holds with lane " + number + " for its armour");
+                }
+            } else if (assault == null && (targetX != destX || targetY != destY)) {
                 for (int squad : joined) {
                     sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, targetX, targetY),
                             CommandAuthority.GARRISON, ISSUER, "a wave joins lane " + number);
                 }
             }
+        }
+
+        /**
+         * Where a wave goes to join its lane's armour when none of the lane's militia stand (combined arms, Broad Front
+         * only): the lane's foot for its first wave, so the lane steps off from there as one formation; later, the
+         * middle of its standing machines. {@code null} off combined arms, for armour-only ground, or with no machine.
+         */
+        int[] withArmour(BattleSimulation sim) {
+            if (!combinedArms() || teams == 0) return null;
+            if (squads == null) return new int[]{entryX, entryY};
+            float[] machines = machineMiddle(sim, this);
+            return machines == null ? null : walkableNear(sim, Math.round(machines[0]), Math.round(machines[1]));
         }
 
         /**
@@ -436,8 +470,10 @@ public final class HeartLanes {
             boolean assaulting = !formed && assault(sim, lane, tick);
             if (tick % RETARGET_TICKS == 0) tallyRefusals(sim, lane, formed ? 0 : assaulting ? 1 : 2);
             if (tick % RETARGET_TICKS == 0 && !formed && !assaulting) driveArmour(sim, lane);
+            if (tick % RETARGET_TICKS == 0) tallyTogether(sim, lane);
             lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
-                if (beat.equals("column_arrived_1")) beats.add("lane_arrived_" + lane.number);
+                // Combined arms: the first wave joins the lane at its foot; the lane arrives as its first assault begins.
+                if (beat.equals("column_arrived_1") && !combinedArms()) beats.add("lane_arrived_" + lane.number);
             });
             // A column stepping off for a gap says so the tick it does.
             beats.addAll(laneBeats);
@@ -662,7 +698,7 @@ public final class HeartLanes {
      * its decisions once a second, as the lanes' other orders do.
      */
     private boolean assault(BattleSimulation sim, Lane lane, int tick) {
-        if (!BORE_ASSAULT) return false;
+        if (!BORE_ASSAULT || waitsAtFoot(lane)) return false;
         if (tick % RETARGET_TICKS != 0) return lane.assault != null;
         SwarmBore bore = lane.assault == null ? null : bore(sim, lane.assault.boreKey);
         if (lane.assault != null && (bore == null || bore.collapsed())) {
@@ -696,6 +732,10 @@ public final class HeartLanes {
             lane.targetX = next.x();
             lane.targetY = next.y();
             assaultsBegun++;
+            if (combinedArms() && lane.teams > 0 && !lane.arrivedRaised) {
+                lane.arrivedRaised = true;
+                laneBeats.add("lane_arrived_" + lane.number);
+            }
         }
         stepAssault(sim, lane, bore, tick);
         return true;
@@ -1050,19 +1090,25 @@ public final class HeartLanes {
     static final float LANE_CONTACT_HOLD_SECONDS = 20f;
 
     /**
-     * Broad Front's lane between bores: when the bore it was on is down, the lane forms up where it stands and goes
-     * on to the next as a screened advance, armour screening across open ground and militia screening through woods
-     * and streets. Returns whether the formation has the lane this tick; once it has rallied on the bore, the lane
-     * attacks it as before.
+     * Broad Front's lane between bores: when the bore it was on is down (with combined arms, also from its foot at the
+     * opening), the lane forms up where it stands and goes on to the next as a screened advance, armour screening
+     * across open ground and militia screening through woods and streets; with combined arms a leg ends where the
+     * country changes and the next forms there, and a lane with no machine beside its militia holds for armour that
+     * is coming ({@link #waitsForArmour}). Returns whether the formation has the lane this tick; once it has rallied
+     * on the bore, the lane attacks it as before.
      */
     private boolean formation(BattleSimulation sim, Lane lane, int tick) {
         if (!LANE_FORMATION || screen != null) return false;
+        // Holding for its armour, the lane keeps the ground between its once-a-second looks.
+        if (lane.advance == null && lane.armourWaitTick >= 0 && tick % RETARGET_TICKS != 0) return true;
         if (tick % RETARGET_TICKS == 0 && (lane.advance == null || !lane.advance.active())
-                && (lane.targetX < 0 || !livingBoreAt(sim, lane.targetX, lane.targetY))) {
+                && (lane.nextLeg || lane.targetX < 0 || !livingBoreAt(sim, lane.targetX, lane.targetY))) {
             KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
+            if (next == null) lane.nextLeg = false;
             if (next != null) {
                 int[] aim = aim(sim, lane.ground, next);
-                if (aim[0] != lane.targetX || aim[1] != lane.targetY) {
+                if (lane.nextLeg || aim[0] != lane.targetX || aim[1] != lane.targetY) {
+                    if (holdsForArmour(sim, lane, tick)) return true;
                     lane.targetX = aim[0];
                     lane.targetY = aim[1];
                     lane.advance = form(sim, lane, aim);
@@ -1079,8 +1125,10 @@ public final class HeartLanes {
         if (advance == null) return false;
         if (!advance.active()) {
             // Rallied on the bore (or halted): the lane attacks it from where the formation brought it, by assault
-            // where the bore assault is on (the lane's next tick hands it over), else straight in.
+            // where the bore assault is on (the lane's next tick hands it over), else straight in. A leg that ended
+            // where the country changes is followed by the next, formed on the lane's next look.
             lane.advance = null;
+            if (lane.nextLeg) return true;
             if (BORE_ASSAULT) return false;
             for (int squad : lane.squads) {
                 sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, lane.targetX, lane.targetY),
@@ -1103,14 +1151,35 @@ public final class HeartLanes {
         List<Long> hulls = new ArrayList<>(), mechs = new ArrayList<>();
         for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f) hulls.add(hull);
         for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech)) mechs.add(mech);
+        lane.nextLeg = false;
         if (hulls.isEmpty() && mechs.isEmpty()) return null;
-        int[] from = laneBody(sim, lane, hulls);
+        // Combined arms forms where the militia stand: machines coming up behind join them there, rather than the
+        // militia walking back to meet them.
+        int[] from = combinedArms() ? laneBody(sim, lane, List.of()) : null;
+        if (from == null) from = laneBody(sim, lane, hulls);
         if (from == null) return null;
-        lane.armourLeads = openShare(sim, from, aim) >= ARMOUR_LEADS_OPEN;
         // The formation rallies on the bore's support line, not on the bore: its mouth is the swarm's ground, and the
         // assault goes on from there. A lane already that close has no advance to make.
         int[] rally = BORE_ASSAULT ? rallyShort(sim, from, aim) : aim;
         if (rally == null) return null;
+        if (combinedArms()) {
+            // One leg per stretch of country: armour screens across open ground, militia through woods and streets,
+            // and the lane changes screen where the country changes.
+            boolean[] open = openAlong(sim, from, rally);
+            int end = legEnd(open, COUNTRY_RUN, MIN_LEG_CELLS);
+            lane.armourLeads = openShare(open, end) >= ARMOUR_LEADS_OPEN;
+            if (end < open.length - 1) {
+                int steps = open.length - 1;
+                rally = walkableNear(sim, from[0] + Math.round((rally[0] - from[0]) * (float) end / steps),
+                        from[1] + Math.round((rally[1] - from[1]) * (float) end / steps));
+                lane.nextLeg = true;
+                legsSplit++;
+            }
+        } else {
+            lane.armourLeads = openShare(sim, from, aim) >= ARMOUR_LEADS_OPEN;
+        }
+        if (lane.armourLeads) legsArmourLed++;
+        else legsMilitiaLed++;
         lane.formedSquads.clear();
         lane.formedMachines.clear();
         lane.formedSquads.addAll(lane.squads);
@@ -1165,14 +1234,172 @@ public final class HeartLanes {
 
     /** Share of the straight way from {@code from} to {@code to} a tank can drive: how open the country is. */
     private float openShare(BattleSimulation sim, int[] from, int[] to) {
+        boolean[] open = openAlong(sim, from, to);
+        return openShare(open, open.length - 1);
+    }
+
+    /** Whether a tank can drive each cell of the straight way from {@code from} to {@code to}, one sample a cell. */
+    private boolean[] openAlong(BattleSimulation sim, int[] from, int[] to) {
         VehicleClearance clearance = clearance(sim, VehicleType.BREAKTHROUGH_TANK);
-        int steps = Math.max(1, Math.max(Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]))), open = 0;
+        int steps = Math.max(1, Math.max(Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1])));
+        boolean[] open = new boolean[steps + 1];
         for (int i = 0; i <= steps; i++) {
             int x = from[0] + Math.round((to[0] - from[0]) * (float) i / steps);
             int y = from[1] + Math.round((to[1] - from[1]) * (float) i / steps);
-            if (clearance.isPassable(x, y)) open++;
+            open[i] = clearance.isPassable(x, y);
         }
-        return open / (float) (steps + 1);
+        return open;
+    }
+
+    /** Share of the samples {@code 0..end} of a way that are open. */
+    static float openShare(boolean[] open, int end) {
+        int n = 0;
+        for (int i = 0; i <= end; i++) if (open[i]) n++;
+        return n / (float) (end + 1);
+    }
+
+    /**
+     * Whether Broad Front's lanes advance as combined-arms teams (`heart-nouns.md`, Combined arms on Broad Front):
+     * every leg, the first from the lane's foot included, is one formation of the lane's militia and armour, split
+     * where the country changes so the screen follows it; a lane forms where its militia stand and holds a bounded
+     * while for armour that is coming; a wave with no militia of its lane standing joins the lane's armour. Removal
+     * condition: the owner has seen Broad Front with it and the pool's evidence has been read against the control;
+     * {@code false} is the control, the first wave marching to its satellite alone while the armour drives onto the
+     * bore's ring, one leg a bore with its screen picked once, and a lane without armour going on at once.
+     */
+    static final boolean COMBINED_ARMS = Boolean.parseBoolean(System.getProperty("battle.heart.broadCombinedArms", "true"));
+    /** Cells of the other country in a row along a lane's way that end a leg: a copse or a lane through a field does not. */
+    static final int COUNTRY_RUN = 10;
+    /** The shortest leg: a change of country nearer than this does not end one, so every leg makes ground. */
+    static final int MIN_LEG_CELLS = 20;
+    /** Cells from its militia a lane machine stands with the lane: what the lane forms with rather than waits for. */
+    static final float WITH_LANE_CELLS = 24f;
+    /** Longest a lane holds for armour that is coming before it goes on without it. */
+    static final float ARMOUR_WAIT_SECONDS = 60f;
+
+    private boolean combinedArms() {
+        return COMBINED_ARMS && LANE_FORMATION && screen == null;
+    }
+
+    /** A Broad Front lane whose first wave has not yet joined it: its armour waits at the foot to step off with it. */
+    private boolean waitsAtFoot(Lane lane) {
+        return combinedArms() && lane.teams > 0 && lane.squads == null;
+    }
+
+    /**
+     * Where a lane's first leg ends along a way sampled a cell at a time, {@code open} whether a tank can drive each:
+     * the leg is the country of its first {@code minLeg} samples (open by a half or more; a lane that rallied a few
+     * cells short of a wood's edge is already in the wood's leg), and it ends on the last sample before the first
+     * {@code run} in a row of the other country starting at least {@code minLeg} along. The whole way, its last
+     * index, when the country holds.
+     */
+    static int legEnd(boolean[] open, int run, int minLeg) {
+        int n = open.length, lead = Math.min(Math.max(run, minLeg), n), openLead = 0;
+        for (int i = 0; i < lead; i++) if (open[i]) openLead++;
+        boolean country = openLead * 2 >= lead;
+        for (int i = Math.max(1, minLeg); i + run <= n; i++) {
+            boolean changed = true;
+            for (int j = i; j < i + run && changed; j++) if (open[j] == country) changed = false;
+            if (changed) return i - 1;
+        }
+        return n - 1;
+    }
+
+    /**
+     * Whether a lane about to advance holds for its armour: none of its machines stands with its militia, armour is
+     * coming (a machine standing elsewhere, or a call on the road), and it has held less than
+     * {@link #ARMOUR_WAIT_SECONDS}. With nothing coming, or past the wait, it goes on without.
+     */
+    static boolean waitsForArmour(boolean machineWithLane, boolean machineComing, float heldSeconds) {
+        return !machineWithLane && machineComing && heldSeconds < ARMOUR_WAIT_SECONDS;
+    }
+
+    /** {@link #waitsForArmour} for the lane now; the first second of a hold has its militia hold where they stand. */
+    private boolean holdsForArmour(BattleSimulation sim, Lane lane, int tick) {
+        if (!combinedArms() || lane.teams == 0) return false;
+        int[] militia = laneBody(sim, lane, List.of());
+        boolean with = false, standing = false;
+        for (float[] at : machinesOf(sim, lane)) {
+            standing = true;
+            if (militia != null && Math.hypot(at[0] - militia[0], at[1] - militia[1]) <= WITH_LANE_CELLS) with = true;
+        }
+        boolean called = shed != null && (shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0
+                || shed.onRoad(AlliedTool.MECH_LANCE, place(lane.number)) > 0);
+        boolean first = lane.armourWaitTick < 0;
+        float held = first ? 0f : (tick - lane.armourWaitTick) * BattleSimulation.TICK_DT;
+        if (militia == null || !waitsForArmour(with, standing || called, held)) {
+            lane.armourWaitTick = -1;
+            return false;
+        }
+        lane.advance = null;
+        if (first) {
+            lane.armourWaitTick = tick;
+            armourHolds++;
+            for (int squad : lane.squads) {
+                int[] at = squadCell(sim, squad);
+                if (at == null) continue;
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, at[0], at[1]), CommandAuthority.GARRISON,
+                        ISSUER, "lane " + lane.number + " holds for its armour");
+            }
+        }
+        armourHoldSeconds++;
+        return true;
+    }
+
+    /** Where each of the lane's standing machines is, hulls and walkers. */
+    private static List<float[]> machinesOf(BattleSimulation sim, Lane lane) {
+        List<float[]> out = new ArrayList<>();
+        for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f)
+            out.add(new float[]{sim.convoy().body(hull).x, sim.convoy().body(hull).y});
+        for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech))
+            out.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
+        return out;
+    }
+
+    /** The middle of the lane's standing machines, or {@code null} with none. */
+    private static float[] machineMiddle(BattleSimulation sim, Lane lane) {
+        List<float[]> machines = machinesOf(sim, lane);
+        if (machines.isEmpty()) return null;
+        float x = 0f, y = 0f;
+        for (float[] at : machines) { x += at[0]; y += at[1]; }
+        return new float[]{x / machines.size(), y / machines.size()};
+    }
+
+    /** Legs the lanes formed, by which element screened, and those cut short where the country changed. */
+    private int legsArmourLed, legsMilitiaLed, legsSplit;
+    /** Holds for armour begun, and lane-seconds spent holding. */
+    private int armourHolds, armourHoldSeconds;
+    /** Lane-seconds with both militia and machines standing, those within {@link #WITH_LANE_CELLS}, and the summed gap. */
+    private int pairedSeconds, togetherSeconds;
+    private double gapSum;
+    /** The same, only while the lane is on the move in a formation. */
+    private int movingSeconds, movingTogetherSeconds;
+
+    /** Counts, once a second, how far a wave lane's machines stand from its militia. */
+    private void tallyTogether(BattleSimulation sim, Lane lane) {
+        if (lane.teams == 0 || lane.squads == null) return;
+        int[] militia = laneBody(sim, lane, List.of());
+        float[] machines = machineMiddle(sim, lane);
+        if (militia == null || machines == null) return;
+        double gap = Math.hypot(machines[0] - militia[0], machines[1] - militia[1]);
+        boolean together = gap <= WITH_LANE_CELLS;
+        pairedSeconds++;
+        gapSum += gap;
+        if (together) togetherSeconds++;
+        if (lane.advance != null && lane.advance.active()) {
+            movingSeconds++;
+            if (together) movingTogetherSeconds++;
+        }
+    }
+
+    /** How the lanes' militia and armour kept together, one line for the evidence. */
+    public String togetherLine() {
+        return String.format(Locale.ROOT, "legs %d (armour screening %d, militia screening %d, %d cut where the country"
+                        + " changed); machines within %.0f cells of their militia %d of %d lane-seconds (mean gap %.1f),"
+                        + " %d of %d on the move; holds for armour %d, %d lane-seconds",
+                legsArmourLed + legsMilitiaLed, legsArmourLed, legsMilitiaLed, legsSplit, WITH_LANE_CELLS,
+                togetherSeconds, pairedSeconds, pairedSeconds == 0 ? 0.0 : gapSum / pairedSeconds,
+                movingTogetherSeconds, movingSeconds, armourHolds, armourHoldSeconds);
     }
 
     /**
@@ -1622,7 +1849,7 @@ public final class HeartLanes {
 
     /** Moves a lane's armour up to its aim when the aim has moved: each machine to its own cell across the lane. */
     private void driveArmour(BattleSimulation sim, Lane lane) {
-        if (lane.hulls.isEmpty() && lane.mechs.isEmpty()) return;
+        if (lane.hulls.isEmpty() && lane.mechs.isEmpty() || waitsAtFoot(lane)) return;
         KnownBore bore = lane.ground.target(known(sim), lane.entryX, lane.entryY);
         if (bore == null) return;
         int[] aim = aim(sim, lane.ground, bore);
