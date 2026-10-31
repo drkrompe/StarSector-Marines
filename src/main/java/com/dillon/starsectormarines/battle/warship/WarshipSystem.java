@@ -72,7 +72,9 @@ public final class WarshipSystem {
     /** How often a falling hull sheds a burning piece onto its own track, in seconds. */
     private static final float WRECK_FIRE_PERIOD_SECONDS = 0.2f;
     /** Cells per second a wreck's outermost field blasts are thrown out from its centre. */
-    private static final float BLAST_THROW_SPEED = 5f;
+    private static final float BLAST_THROW_SPEED = 2.5f;
+    /** The share of the hull's own way a field blast keeps, so a sliding wreck's fire stays on it, not streaked behind. */
+    private static final float BLAST_CARRY = 0.3f;
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -1531,19 +1533,19 @@ public final class WarshipSystem {
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
             float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
+            float[] centre = wreck.hullPoint(0.5f, 0.5f);
             for (WarshipWreck.Blast blast : wreck.blastsBetween(before, wreck.seconds())) {
-                float[] at = wreck.hullPoint(blast.along(), blast.across());
+                float[] at = wreck.hullPoint(blast.u(), blast.v());
                 if (!onMap(sim, at[0], at[1])) continue;
-                // Each throws out from the hull's centre on top of the way the hull is going.
-                float out = 2f * (float) Math.hypot(blast.along(), blast.across());
-                float dx = at[0] - ship.x, dy = at[1] - ship.y;
+                // Each throws out a little from the hull's centre, carried a little by the way the hull is going.
+                float dx = at[0] - centre[0], dy = at[1] - centre[1];
                 float len = Math.max(1e-3f, (float) Math.hypot(dx, dy));
-                float throwSpeed = BLAST_THROW_SPEED * out;
-                sim.wreckBlast(at[0], at[1], blast.radius(), ship.velocityX * 0.5f + dx / len * throwSpeed,
-                        ship.velocityY * 0.5f + dy / len * throwSpeed);
+                float throwSpeed = BLAST_THROW_SPEED * Math.min(1f, WarshipWreck.reach(blast));
+                sim.wreckBlast(at[0], at[1], blast.radius(), ship.velocityX * BLAST_CARRY + dx / len * throwSpeed,
+                        ship.velocityY * BLAST_CARRY + dy / len * throwSpeed);
             }
             for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
-                float[] at = wreck.keelPoint(blast.keel());
+                float[] at = wreck.hullPoint(blast.u(), blast.v());
                 if (!onMap(sim, at[0], at[1])) continue;
                 float radius = Math.max(3f, wreck.skidRadius());
                 if (!blast.grounded()) {
@@ -1561,7 +1563,8 @@ public final class WarshipSystem {
                         int fires = wreck.fallFires();
                         float size = Math.max(2f, 0.5f * ship.widthCells * wreck.bodyScale());
                         for (int i = 0; i < fires; i++) {
-                            float[] at = wreck.keelPoint(wreck.fallFireKeel(period, i));
+                            float[] spot = wreck.fallFireSpot(period, i);
+                            float[] at = wreck.hullPoint(spot[0], spot[1]);
                             sim.spawnFallingWreckFire(at[0], at[1], size);
                         }
                     }
