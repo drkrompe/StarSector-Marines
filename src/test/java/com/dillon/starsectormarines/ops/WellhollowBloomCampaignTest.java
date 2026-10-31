@@ -71,6 +71,12 @@ class WellhollowBloomCampaignTest {
         assertEquals(first, WellhollowBloomCampaign.fixedSeed(Chapter.COLONY_BREACH));
     }
 
+    @Test void ainTafrantPlaysItsOwnSeedOnEveryAttempt() {
+        for (int attempt = 0; attempt < 4; attempt++)
+            assertEquals(WellhollowBloomCampaign.AIN_TAFRANT_SEED, WellhollowBloomCampaign.seed(Chapter.CORDON_ROAD, attempt));
+        assertEquals(WellhollowBloomCampaign.AIN_TAFRANT_SEED, WellhollowBloomCampaign.fixedSeed(Chapter.CORDON_ROAD));
+    }
+
     @Test void theBoardOffersTheCurrentChapterThenEveryWonChapterAsAReplay() {
         List<Mission> offers = WellhollowBloomCampaign.offers(wonThrough(2), "Asharu");
         assertEquals(3, offers.size());

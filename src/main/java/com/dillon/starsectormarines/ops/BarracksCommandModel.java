@@ -151,9 +151,6 @@ public final class BarracksCommandModel {
         bind(reactor, "officerPointClasses", () -> selectedOfficer() != null && canTrain(selectedOfficer())
                 ? "training-point officer-point" : "hidden");
         bind(reactor, "officerService", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandOperationsVictoriesMissionXpRecorded", selectedOfficer().career().deployments(), selectedOfficer().career().victories(), selectedOfficer().career().earnedXp()));
-        bind(reactor, "officerSquads", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandHomeCommand", lineSquads().stream()
-                .filter(squad -> command.equals(squad.homeCaptainId())).map(MarineSquad::name)
-                .reduce((a, c) -> a + ", " + c).orElse(Strings.get("openingBarracksCommandNoSquadsAssigned"))));
         bind(reactor, "officerTraining", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandTrainingPointsOneOnAppointmentOnePer", selectedOfficer().career().availablePoints(selectedOfficer().rank())));
         bind(reactor, "officerSpecialties", this::officerSpecialties);
         bind(reactor, "officerTraits", this::officerTraits);
