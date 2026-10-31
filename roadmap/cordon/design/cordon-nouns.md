@@ -1208,6 +1208,13 @@ and the evidence; change them here first. Bores' own beats (grew, collapsed,
 surge, fed, harvest, impale) are Colony Breach's, published under this prefix
 with the same keys.
 
+The Road's battle radio (`WaylineNarration`, catalog `cordon_road_narration.json`)
+answers a chosen few PLAYER beats with a line from Orens, Castle, the convoy
+lead or the town guard; an event ending `_N` answers every index of a numbered
+beat that has no line of its own, one recording is not queued again within
+`StoryNarrationQueue.REPEAT_SECONDS`, and a string still marked `[UNWRITTEN` is
+never presented. A line is subtitle-only until its take is recorded.
+
 | Beat | Variant | Audience | When |
 | --- | --- | --- | --- |
 | `landfall` | both | PLAYER | First Marine on the ground |

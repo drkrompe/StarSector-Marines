@@ -32,7 +32,7 @@ public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
     /** Per-feature catalogs of the same shape, merged into the built-ins; a missing one costs only its own lines. */
     public static final List<String> FEATURE_PATHS = List.of("data/marines/colony_breach_narration.json",
-            "data/marines/wellhollow_narration.json");
+            "data/marines/wellhollow_narration.json", "data/marines/cordon_road_narration.json");
     /** The Colony Breach catalog's mission id: the breach is a campaign event, not a story chapter, so it is keyed by the battle. */
     public static final String COLONY_BREACH = "story_colony_breach";
     private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
@@ -42,6 +42,8 @@ public final class WaylineNarration {
             BrokenSupplyRouteProgress.LIFT, "story_supply_route_last_lift",
             BrokenSupplyRouteProgress.RELAY, "story_supply_route_relay_nine",
             BrokenSupplyRouteProgress.THUNDER, "story_supply_route_thunder_run");
+    /** A numbered beat's trailing index, which a catalog may answer once for every index as {@code _N}. */
+    private static final Pattern NUMBERED_EVENT = Pattern.compile("_[0-9]+$");
     private static WaylineNarration builtins = new WaylineNarration(List.of());
     private final Map<String, Line> lines = new LinkedHashMap<>();
     private final Map<String, List<Line>> briefings = new LinkedHashMap<>();
@@ -193,7 +195,16 @@ public final class WaylineNarration {
         };
     }
 
-    public Line find(String missionId, String event) { return lines.get(missionId + "/" + event); }
+    /**
+     * The line for one beat: its own entry, else the numbered beat's catch-all ({@code cordon.tide_3} falls back to
+     * {@code cordon.tide_N}), so a catalog voices the first instance and the rest without listing every index.
+     */
+    public Line find(String missionId, String event) {
+        Line exact = lines.get(missionId + "/" + event);
+        if (exact != null || event == null) return exact;
+        Matcher numbered = NUMBERED_EVENT.matcher(event);
+        return numbered.find() ? lines.get(missionId + "/" + event.substring(0, numbered.start()) + "_N") : null;
+    }
     /** Ordered turns supersede a whole-briefing recording in the pre-mission UI only. */
     public List<Line> briefing(String missionId) {
         var turns = briefings.getOrDefault(missionId, List.of());

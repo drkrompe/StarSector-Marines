@@ -22,6 +22,16 @@ class NarrationPlayerTest {
     }
 
     @Test
+    void aRecordingThatFailsToPlayStillShowsItsSubtitle() {
+        NarrationPlayer player = new NarrationPlayer(line -> { throw new IllegalStateException("no such sound"); });
+        player.start(LINE);
+        assertFalse(player.hasSound());
+        assertEquals(LINE, player.current());
+        player.advance(6);
+        assertFalse(player.busy());
+    }
+
+    @Test
     void replayAndLeavingScreenStopTheOwnedHandle() {
         FakeSound first = new FakeSound();
         FakeSound second = new FakeSound();

@@ -31,7 +31,16 @@ public final class NarrationPlayer {
         if (line == null) return;
         current = line;
         remaining = line.durationSeconds() + 0.4f;
-        sound = line.voiced() ? play.apply(line) : null;
+        sound = line.voiced() ? playOrNull(line) : null;
+    }
+
+    /** A recording that cannot play leaves the subtitle up for the line's duration. */
+    private SoundAPI playOrNull(Line line) {
+        try {
+            return play.apply(line);
+        } catch (RuntimeException failure) {
+            return null;
+        }
     }
 
     /** Audio is real-time even when the simulation is paused or accelerated. */
