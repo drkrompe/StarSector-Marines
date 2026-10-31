@@ -5742,7 +5742,7 @@
 		"cordonHudConvoysDone": "已有足够的镇民撤出",
 		"cordonHudConvoysFailed": "剩下可带出的镇民太少了",
 		"cordonHudConvoysClosed": "救援运输已经结束。",
-		"cordonHudConvoy": "车队 {0}",
+		"cordonHudConvoy": "第 {0}/{1} 趟",
 		"cordonHudConvoyDue": "车队 {0} 将在 {1} 后抵达：在缺口迎接",
 		"cordonHudConvoyUncalled": "前一支车队通过缺口后，车队 {0} 才会出发",
 		"cordonHudConvoyHeld": "车队 {0} 正在等待护送",
