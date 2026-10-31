@@ -90,7 +90,8 @@ public final class LayoutLint {
     private static final Color[] MARK_COLOURS = {
             new Color(0xFF3B30), new Color(0xFF9F0A), new Color(0xFF2DD4), new Color(0x2DE1FF), new Color(0x8A8F80) };
     private static volatile String suite = "unlabelled";
-    private static volatile int translations;
+    /** Labels of the translation overlays open, innermost last. */
+    private static final List<String> overlays = new ArrayList<>();
 
     private LayoutLint() {}
 
@@ -282,17 +283,21 @@ public final class LayoutLint {
     }
 
     /**
-     * Marks pages drawn under a translation overlay (a localization suite's stretched strings), which are
-     * counted as their own screens so they never inflate or hide what the shipped strings do.
+     * Marks pages drawn under a translation overlay (a localization suite's stretched strings, or a translation
+     * mod), which are counted as their own screens, labelled {@code [label]}, so they never inflate or hide what
+     * the shipped strings do.
      */
-    public static synchronized void translated(boolean entering) {
-        translations = Math.max(0, translations + (entering ? 1 : -1));
+    public static synchronized void translated(String label, boolean entering) {
+        if (entering) overlays.add(label);
+        else if (!overlays.isEmpty()) overlays.remove(overlays.size() - 1);
     }
 
     private static String screen(UiElement root, Policy policy) {
         String label = segment(root);
         String screen = label == null ? "(root)" : label;
-        if (translations > 0) screen += " [translated]";
+        synchronized (LayoutLint.class) {
+            if (!overlays.isEmpty()) screen += " [" + overlays.get(overlays.size() - 1) + "]";
+        }
         if (policy != null && policy.uiScale() != 1f) {
             screen += String.format(Locale.ROOT, " @%.2gx", policy.uiScale());
         }

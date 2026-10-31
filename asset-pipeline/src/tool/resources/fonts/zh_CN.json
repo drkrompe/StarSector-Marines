@@ -1,0 +1,16 @@
+{
+  "_comment": "CJK faces for the zh_CN translation mod (GenerateCjkFontsTask). Each face keeps the vanilla .fnt's Latin glyphs, line metrics and page 0 (the game's own PNG, not shipped) and adds Noto Sans SC pages at the vanilla atlas size. size is the CJK em in pixels, chosen so the ideographic em box sits inside the vanilla line.",
+  "fontDir": "art-source/fonts/noto-sans-sc",
+  "output": "translations/zh_CN/graphics/fonts",
+  "coverageFrom": ["translations/zh_CN/data/strings/strings.json"],
+  "faces": [
+    {"fnt": "insignia15LTaa", "font": "NotoSansSC-Regular.otf", "size": 14},
+    {"fnt": "insignia21LTaa", "font": "NotoSansSC-Regular.otf", "size": 19},
+    {"fnt": "orbitron10", "font": "NotoSansSC-Bold.otf", "size": 12},
+    {"fnt": "orbitron12bold", "font": "NotoSansSC-Bold.otf", "size": 13},
+    {"fnt": "orbitron16", "font": "NotoSansSC-Regular.otf", "size": 17},
+    {"fnt": "orbitron20aa", "font": "NotoSansSC-Regular.otf", "size": 18},
+    {"fnt": "orbitron20aabold", "font": "NotoSansSC-Bold.otf", "size": 18},
+    {"fnt": "orbitron24aabold", "font": "NotoSansSC-Bold.otf", "size": 22}
+  ]
+}

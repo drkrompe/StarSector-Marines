@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,6 +24,21 @@ class CordonTownWarrenTest {
                 assertTrue(Math.max(gapX, gapY) >= CordonTownWarren.ALLEY, a + " and " + b);
             }
         }
+    }
+
+    @Test
+    void streetFrontsStandBothSidesOfAStreetSetBackFromItsCarriageway() {
+        List<int[]> street = List.of(new int[]{0, 50}, new int[]{120, 50});
+        List<CordonTownWarren.Lot> lots = CordonTownWarren.frontage(List.of(street), (x, y) -> true, new HashSet<>());
+        int set = CordonTownWarren.STREET_WIDTH / 2 + CordonTownWarren.ROAD_CLEAR + 1;
+        boolean north = false, south = false;
+        for (CordonTownWarren.Lot lot : lots) {
+            int y1 = lot.y() + CordonTownWarren.height(lot) - 1;
+            if (lot.y() == 50 + set) north = true;
+            else if (y1 == 50 - set) south = true;
+            else throw new AssertionError("off the street front: " + lot);
+        }
+        assertTrue(north && south, "both sides are built");
     }
 
     @Test

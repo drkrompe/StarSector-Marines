@@ -68,6 +68,10 @@ bin/
 # Generated C1 ship sequence (render_ship_sequence.py regenerates it)
 art-source/company-prologue/second-wind-cinematic/corvus-approach/layers/second-wind-seq/
 
+# CJK font faces baked by `:asset-pipeline:generateCjkFonts`; the licence beside them is tracked
+/translations/zh_CN/graphics/fonts/*.fnt
+/translations/zh_CN/graphics/fonts/*.png
+
 
 # Rendered review output is never committed (owner, 2026-10-18): each file
 # below is written by a createSnapshots suite or an art-source script, so it
