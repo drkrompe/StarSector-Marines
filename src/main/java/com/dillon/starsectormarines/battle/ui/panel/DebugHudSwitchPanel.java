@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -68,7 +70,7 @@ public final class DebugHudSwitchPanel implements HudPanel {
         HudDraw.filledRect(x, y, W, H, hover ? BG_HOVER : BG, alphaMult);
         HudDraw.borderRect(x, y, W, H, on ? BORDER_ON : BORDER_OFF, alphaMult);
         HudDraw.filledRect(x + 7f, y + H * .5f - 3f, 6f, 6f, on ? BORDER_ON : BORDER_OFF, alphaMult);
-        font.drawString("DEBUG", x + 19f, y + H - 5f, on ? TEXT_ON : TEXT_OFF, alphaMult);
+        font.drawString(DevConfig.DEV_MODE ? "DEBUG" : Strings.get("cheatsToggle"), x + 19f, y + H - 5f, on ? TEXT_ON : TEXT_OFF, alphaMult);
     }
 
     @Override

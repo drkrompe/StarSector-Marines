@@ -71,6 +71,10 @@ public final class WarshipSystem {
     private static final long WRECK_KEY_BASE = Long.MIN_VALUE / 2;
     /** How often a falling hull sheds a burning piece onto its own track, in seconds. */
     private static final float WRECK_FIRE_PERIOD_SECONDS = 0.2f;
+    /** Cells per second a wreck's outermost field blasts are thrown out from its centre. */
+    private static final float BLAST_THROW_SPEED = 2.5f;
+    /** The share of the hull's own way a field blast keeps, so a sliding wreck's fire stays on it, not streaked behind. */
+    private static final float BLAST_CARRY = 0.3f;
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -1519,18 +1523,50 @@ public final class WarshipSystem {
         wrecks.add(new WarshipWreck(ship, WRECK_KEY_BASE - ship.serial()));
     }
 
-    /** Falls, strikes and skids every wreck; the strike and the skid are the aircraft crash's, at the hull's size. */
+    /**
+     * Falls, strikes and skids every wreck; the strike and the skid are the aircraft crash's, at the hull's size and
+     * as hard as its weight. Its secondaries go off along the keel, and once it lies still it burns along its length.
+     */
     private void tickWrecks(float dt, BattleSimulation sim) {
         for (WarshipWreck wreck : wrecks) {
             float before = wreck.seconds();
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
             float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
+            float[] centre = wreck.hullPoint(0.5f, 0.5f);
+            for (WarshipWreck.Blast blast : wreck.blastsBetween(before, wreck.seconds())) {
+                float[] at = wreck.hullPoint(blast.u(), blast.v());
+                if (!onMap(sim, at[0], at[1])) continue;
+                // Each throws out a little from the hull's centre, carried a little by the way the hull is going.
+                float dx = at[0] - centre[0], dy = at[1] - centre[1];
+                float len = Math.max(1e-3f, (float) Math.hypot(dx, dy));
+                float throwSpeed = BLAST_THROW_SPEED * Math.min(1f, WarshipWreck.reach(blast));
+                sim.wreckBlast(at[0], at[1], blast.radius(), ship.velocityX * BLAST_CARRY + dx / len * throwSpeed,
+                        ship.velocityY * BLAST_CARRY + dy / len * throwSpeed);
+            }
+            for (WarshipWreck.Secondary blast : wreck.secondariesBetween(before, wreck.seconds())) {
+                float[] at = wreck.hullPoint(blast.u(), blast.v());
+                if (!onMap(sim, at[0], at[1])) continue;
+                float radius = Math.max(3f, wreck.skidRadius());
+                if (!blast.grounded()) {
+                    sim.wreckSecondary(at[0], at[1], ship.faction, radius, false, wreck.weight());
+                    continue;
+                }
+                Map<Long, Float> under = groundNear(sim, at[0], at[1], radius + GROUND_TALLY_MARGIN_CELLS);
+                sim.wreckSecondary(at[0], at[1], ship.faction, radius, true, wreck.weight());
+                tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
+            }
             switch (step) {
                 case FALLING -> {
-                    if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
-                        float drawn = 0.5f * Math.max(ship.lengthCells, ship.widthCells) * wreck.bodyScale();
-                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, drawn * 0.6f));
+                    int period = (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS);
+                    if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != period) {
+                        int fires = wreck.fallFires();
+                        float size = Math.max(2f, 0.5f * ship.widthCells * wreck.bodyScale());
+                        for (int i = 0; i < fires; i++) {
+                            float[] spot = wreck.fallFireSpot(period, i);
+                            float[] at = wreck.hullPoint(spot[0], spot[1]);
+                            sim.spawnFallingWreckFire(at[0], at[1], size);
+                        }
                     }
                 }
                 case STRUCK -> {
@@ -1538,7 +1574,8 @@ public final class WarshipSystem {
                     if (onMap(sim, ship.x, ship.y)) {
                         Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.crashHullWreck(wreck.key, ship.x, ship.y, ship.faction, wreck.crushRadius(), wreck.skidRadius(),
-                                ship.velocityX, ship.velocityY);
+                                ship.velocityX, ship.velocityY, wreck.weight());
+                        sim.wreckShockwave(ship.x, ship.y, wreck.crushRadius() * 1.15f);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
@@ -1548,10 +1585,23 @@ public final class WarshipSystem {
                         Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
+                        if (step == WarshipWreck.Step.CAME_TO_REST) burnAlongKeel(sim, wreck);
                     }
                 }
                 default -> { }
             }
+        }
+    }
+
+    /** A wreck come to rest burns in {@link WarshipWreck.Weight#fires} lengths along its keel; one is the strike's own. */
+    private static void burnAlongKeel(BattleSimulation sim, WarshipWreck wreck) {
+        int fires = wreck.weight().fires();
+        if (fires <= 1) return;
+        float length = wreck.ship.lengthCells * wreck.bodyScale() / fires;
+        float width = 2f * wreck.skidRadius();
+        for (int i = 0; i < fires; i++) {
+            float[] at = wreck.keelPoint((i + 0.5f) / fires);
+            if (onMap(sim, at[0], at[1])) sim.wreckFire(at[0], at[1], length, width);
         }
     }
 

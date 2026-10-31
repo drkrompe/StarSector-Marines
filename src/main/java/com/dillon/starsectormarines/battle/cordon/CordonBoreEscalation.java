@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
@@ -47,6 +46,12 @@ public final class CordonBoreEscalation {
     static final int OFF_TOWN = 30;
     /** Cells a site keeps from every other site and from the bores already standing. */
     static final int APART = 16;
+    /** Depth of the band a town site may open in, past {@link #OFF_TOWN} from the town's wall. */
+    static final int TOWN_BAND = 24;
+    /** Cells a town site may stand past the town's own extent along its wall. */
+    static final int TOWN_SPREAD = 10;
+    /** Road cells at the town's end read for the side the road comes in from. */
+    static final int ROAD_END = 40;
     /** Cells kept from the map's edge. */
     static final int EDGE = 10;
     /** Candidate cells are looked at on this pitch. */
@@ -60,16 +65,12 @@ public final class CordonBoreEscalation {
     /** Seconds a surge site stirs before it opens, and between one surge site starting to stir and the next. */
     static final int SURGE_WARNING_SECONDS = 8, SURGE_STAGGER_SECONDS = 5;
     /** The most sites the surge opens. */
-    static final int SURGE_MAX = 4;
+    static final int SURGE_MAX = 6;
     /** Seconds the surge holds the swarm at the tide's strength, and the floor it holds after. */
     static final int SURGE_HOLD_SECONDS = 120;
     static final float SURGE_TAIL_PRESSURE = 0.4f;
     /** The surge comes at this time whatever the town is doing, so the end is a fight before the hard cap. */
     static final int SURGE_LATEST_SECONDS = 1500;
-    /** A Marine this close to the town's wall is still in the town. */
-    static final int TOWN_REACH = CordonSequence.CONTACT_RANGE;
-    /** Share of the company on the ground behind the line that says it is falling back. */
-    static final float FALLBACK_SHARE = 0.5f;
     /** Seconds between puffs of ground thrown up at a stirring site. */
     private static final float DUST_SECONDS = 1f;
 
@@ -100,13 +101,17 @@ public final class CordonBoreEscalation {
     /** Whether a cell is open ground a bore can break out on. */
     public interface Open { boolean at(int x, int y); }
 
+    /** What a site stands before: a redoubt's front, a stretch of picket line, or the town's far side or far flank. */
+    public enum Kind { FRONT, BETWEEN, TOWN_BEYOND, TOWN_FLANK }
+
     /**
      * A planned site: its place in the opening order from 1, its cell, the redoubts it stands before ({@code west} and
-     * {@code east} the same for a redoubt's own front, neighbours for the stretch between), and whether it is kept for
-     * the surge.
+     * {@code east} the same for a redoubt's own front, neighbours for the stretch between, 0 for the town's), whether
+     * it is kept for the surge, and what it stands before.
      */
-    public record Site(int order, int x, int y, int west, int east, boolean surge) {
-        public boolean between() { return west != east; }
+    public record Site(int order, int x, int y, int west, int east, boolean surge, Kind kind) {
+        public boolean between() { return kind == Kind.BETWEEN; }
+        public boolean town() { return kind == Kind.TOWN_BEYOND || kind == Kind.TOWN_FLANK; }
     }
 
     /** How a site stands now. */
@@ -166,8 +171,16 @@ public final class CordonBoreEscalation {
         for (SwarmBore b : sim.swarmBores().bores()) if (!b.collapsed()) bores.add(new int[]{b.x(), b.y()});
         List<int[]> road = convoys.corridor();
         int[] crossing = road.get(Math.min(convoys.gapIndex(), road.size() - 1));
-        List<Site> sites = plan(walls, frontward, road, crossing[0], keepOut, bores,
-                (x, y) -> open(grid, topology, x, y), grid.getWidth(), grid.getHeight(), STANDARD.size(), seed);
+        Open ground = (x, y) -> open(grid, topology, x, y);
+        List<Site> sites = new ArrayList<>(plan(walls, frontward, road, crossing[0], keepOut, bores, ground,
+                grid.getWidth(), grid.getHeight(), STANDARD.size(), seed));
+        if (town != null) {
+            List<int[]> taken = new ArrayList<>(bores);
+            for (Site s : sites) taken.add(new int[]{s.x(), s.y()});
+            sites.addAll(townSites(new Box(town.left(), town.top(), town.right(), town.bottom()), frontward,
+                    flank(road, (town.left() + town.right()) / 2), walls, road, keepOut, taken, ground,
+                    grid.getWidth(), grid.getHeight(), sites.size(), seed));
+        }
         return new CordonBoreEscalation(sites, STANDARD, timetable, lineY, frontward);
     }
 
@@ -210,9 +223,59 @@ public final class CordonBoreEscalation {
             if (candidates.isEmpty()) continue;
             int[] c = candidates.get(rng.nextInt(candidates.size()));
             taken.add(c);
-            out.add(new Site(out.size() + 1, c[0], c[1], a.west(), a.east(), out.size() >= scheduled));
+            out.add(new Site(out.size() + 1, c[0], c[1], a.west(), a.east(), out.size() >= scheduled,
+                    a.west() == a.east() ? Kind.FRONT : Kind.BETWEEN));
         }
         return out;
+    }
+
+    /**
+     * The town's sites, kept for the surge ({@code cordon-nouns.md}, Line bores): one on the town's far side (further
+     * into the front) and one on its far flank ({@code flank} +1 east, -1 west), each a seeded open cell
+     * {@link #OFF_TOWN} to {@link #OFF_TOWN} + {@link #TOWN_BAND} off the wall there and within {@link #TOWN_SPREAD} past
+     * the town's extent along it, on ground {@link #allowed} (the town's own kept-out box among {@code keepOut}). Numbered
+     * on from {@code before}.
+     */
+    static List<Site> townSites(Box town, int frontward, int flank, List<Box> redoubts, List<int[]> road,
+                                List<Box> keepOut, List<int[]> taken, Open open, int width, int height, int before,
+                                long seed) {
+        SplittableRandom rng = new SplittableRandom(seed ^ SALT ^ 0x544F574EL);
+        List<int[]> placed = new ArrayList<>(taken);
+        List<Site> out = new ArrayList<>();
+        for (Kind kind : List.of(Kind.TOWN_BEYOND, Kind.TOWN_FLANK)) {
+            List<int[]> candidates = new ArrayList<>();
+            for (int d = OFF_TOWN + 1; d <= OFF_TOWN + TOWN_BAND; d += PITCH) {
+                for (int along = -TOWN_SPREAD; ; along += PITCH) {
+                    int x, y;
+                    if (kind == Kind.TOWN_BEYOND) {
+                        if (town.left() + along > town.right() + TOWN_SPREAD) break;
+                        x = town.left() + along;
+                        y = (frontward > 0 ? town.bottom() : town.top()) + frontward * d;
+                    } else {
+                        if (town.top() + along > town.bottom() + TOWN_SPREAD) break;
+                        x = (flank > 0 ? town.right() : town.left()) + flank * d;
+                        y = town.top() + along;
+                    }
+                    if (x < EDGE || y < EDGE || x >= width - EDGE || y >= height - EDGE) continue;
+                    if (allowed(x, y, redoubts, road, keepOut, placed) && open.at(x, y)) candidates.add(new int[]{x, y});
+                }
+            }
+            if (candidates.isEmpty()) continue;
+            int[] c = candidates.get(rng.nextInt(candidates.size()));
+            placed.add(c);
+            out.add(new Site(before + out.size() + 1, c[0], c[1], 0, 0, true, kind));
+        }
+        return out;
+    }
+
+    /** The town's far flank from the road: away from where the road's last stretch runs, east where it is square on. */
+    static int flank(List<int[]> road, int townX) {
+        if (road == null || road.isEmpty()) return 1;
+        long sum = 0;
+        int n = 0;
+        for (int i = Math.max(0, road.size() - ROAD_END); i < road.size(); i++, n++) sum += road.get(i)[0];
+        float mean = sum / (float) n;
+        return townX >= mean ? 1 : -1;
     }
 
     /** Whether a cell is ground a site may stand on: off the road, the redoubts, the kept-out boxes and every bore. */
@@ -249,17 +312,13 @@ public final class CordonBoreEscalation {
     }
 
     /**
-     * Whether the final surge comes ({@code cordon-nouns.md}, The final surge): at once when the town is abandoned; at
-     * {@link #SURGE_LATEST_SECONDS} whatever else; otherwise once the town no longer needs the company and no truck is
-     * left loading at its gate: the town is finished (everyone out), or the briefing's number is out and the company is
-     * falling back (nobody left in the town and at least {@link #FALLBACK_SHARE} of it behind the line).
+     * Whether the final surge comes ({@code cordon-nouns.md}, The final surge): at once when the town is abandoned or the
+     * player orders the pull-out; at {@link #SURGE_LATEST_SECONDS} whatever else; and once the town is empty and its
+     * last truck has left the gate (none loading).
      */
-    static boolean surges(boolean abandoned, boolean townFinished, boolean loading, int peopleOut, int needed,
-                          boolean companyInTown, float companyBehindShare, int seconds) {
-        if (abandoned || seconds >= SURGE_LATEST_SECONDS) return true;
-        if (loading) return false;
-        if (townFinished) return true;
-        return peopleOut >= needed && !companyInTown && companyBehindShare >= FALLBACK_SHARE;
+    static boolean surges(boolean abandoned, boolean pulledOut, boolean townEmpty, boolean loading, int seconds) {
+        if (abandoned || pulledOut || seconds >= SURGE_LATEST_SECONDS) return true;
+        return townEmpty && !loading;
     }
 
     /** The planned sites, in opening order. */
@@ -292,7 +351,7 @@ public final class CordonBoreEscalation {
     /** One tick, from the sequence after its tides: due sites stir, stirred sites open, and the surge when it comes. */
     void advance(BattleSimulation sim, int tick, CordonSequence sequence, Consumer<String> beat) {
         int seconds = Math.round(tick * BattleSimulation.TICK_DT);
-        if (!surging && checkSurge(sim, sequence, seconds)) startSurge(sim, tick, sequence, beat);
+        if (!surging && checkSurge(sequence, seconds)) startSurge(sim, tick, sequence, beat);
         if (!surging && nextScheduled < sites.size() && !sites.get(nextScheduled).surge()
                 && nextScheduled < schedule.size() && tick - lastWarn >= CordonSequence.ticks(STEP_GAP_SECONDS)) {
             CordonConvoys convoys = sequence.convoys();
@@ -336,33 +395,14 @@ public final class CordonBoreEscalation {
         }
     }
 
-    private boolean checkSurge(BattleSimulation sim, CordonSequence sequence, int seconds) {
+    private boolean checkSurge(CordonSequence sequence, int seconds) {
         CordonConvoys convoys = sequence.convoys();
-        boolean abandoned = "town_abandoned".equals(sequence.townFinished());
         boolean loading = false;
         if (convoys != null) {
             for (int c = 1; c <= convoys.convoys(); c++) if ("loading".equals(convoys.phase(c))) loading = true;
         }
-        int out = convoys == null ? 0 : convoys.peopleOut();
-        boolean townFinished = sequence.townFinished() != null;
-        int needed = sequence.peopleNeeded();
-        // Only look for the company falling back once nothing else decides it.
-        if (abandoned || seconds >= SURGE_LATEST_SECONDS || loading || townFinished || out < needed) {
-            return surges(abandoned, townFinished, loading, out, needed, true, 0f, seconds);
-        }
-        boolean inTown = false;
-        int total = 0, behind = 0;
-        CordonTown town = sequence.town();
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (!sim.world().hasPosition(unit) || sim.isRiding(unit)) continue;
-            if (sim.identity().faction(unit) != Faction.MARINE || !CordonSequence.isCompany(sim.identity().type(unit))) continue;
-            int x = sim.world().cellX(unit), y = sim.world().cellY(unit);
-            total++;
-            if (CordonSequence.behindLine(y, lineY, frontward)) behind++;
-            if (town != null && town.contains(x, y, TOWN_REACH)) inTown = true;
-        }
-        return surges(false, false, false, out, needed, inTown, total == 0 ? 0f : behind / (float) total, seconds);
+        return surges("town_abandoned".equals(sequence.townFinished()), sequence.pulledOut(),
+                "town_empty".equals(sequence.townFinished()), loading, seconds);
     }
 
     /**

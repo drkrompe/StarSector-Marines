@@ -822,9 +822,9 @@ public final class BoatDeckViewModel {
         String classes = "catalog-row" + (held ? " selected" : "") + (build ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
         String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1]);
-        // A spare in stores can be broken down while the machine shop runs; its refund takes
+        // A spare in stores can be broken down while the machine shop runs, but never a part she is wearing; its refund takes
         // the strip a price would, in green.
-        FabricationCost back = !free && spares > 0 ? workshop.recycleQuote(itemId) : null;
+        FabricationCost back = !free && !fitted && spares > 0 ? workshop.recycleQuote(itemId) : null;
         List<Row> materials = build ? priceRows(id, bill) : recoveryRows(id, back);
         String stock = free ? kindLine(tier, kind)
                 : Strings.format("openingMechLabOwnFree", kindLine(tier, kind), MechLabViewModel.spareCount(spares));

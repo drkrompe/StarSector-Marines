@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,11 @@ import java.util.function.LongPredicate;
  * when its squad stands at the lift. It never heads for the lift on its
  * own: a civilian whose squad has gone out of reach waits where it is until a
  * marine comes for it.
+ *
+ * <p><b>The player says whom they follow, never where they go</b> (owner,
+ * 2026-10-31). A rally ({@link #rally}) hands a civilian's whole walking group
+ * to one of the company's squads, mech lances or vehicles, which they then
+ * keep at any distance while it lives, ahead of the commander's named escorts.
  */
 public final class CivilianEvacuationSystem {
 
@@ -126,8 +132,23 @@ public final class CivilianEvacuationSystem {
     /** Each walking civilian's squad, by identity. */
     private final Map<Long, Leader> leaderOf = new HashMap<>();
 
-    /** The squad a civilian follows, or the lone marine it follows when that marine has no squad. */
-    private record Leader(int squadId, long unitId) { }
+    /** Unattached released people within this many cells of a rallied civilian with no one to follow join its rally. */
+    static final int RALLY_REACH = 6;
+
+    /**
+     * The squad a civilian follows, or the lone body it follows when that has no squad (a marine alone, or a
+     * vehicle). A {@code rallied} leader is the player's: it holds at any distance while it lives.
+     */
+    private record Leader(int squadId, long unitId, boolean rallied) {
+        Leader(int squadId, long unitId) {
+            this(squadId, unitId, false);
+        }
+
+        boolean sameEscort(Leader other) {
+            return squadId != Squad.NO_SQUAD ? squadId == other.squadId : other.squadId == Squad.NO_SQUAD
+                    && unitId == other.unitId;
+        }
+    }
     /** A holdout falls once its garrison is dead and a swarm body stands this close to its walls. */
     static final int FALL_PERIMETER = 1;
 
@@ -354,7 +375,7 @@ public final class CivilianEvacuationSystem {
                 destination = screenedDestination(id, escort, threat, sim);
             } else if (nearLift(sim.world().cellX(escort), sim.world().cellY(escort))) {
                 destination = packCell(liftX, liftY);
-            } else if (distanceSquared(id, escort, sim) <= FOLLOW_DISTANCE * FOLLOW_DISTANCE) {
+            } else if (distanceSquared(id, escort, sim) <= standOff(escort, sim) * standOff(escort, sim)) {
                 destination = NO_CELL;
             } else {
                 destination = besideCell(id, escort, sim);
@@ -554,6 +575,13 @@ public final class CivilianEvacuationSystem {
      */
     private long follow(long civilian, Set<Integer> named, BattleSimulation sim) {
         float leash = FOLLOW_LEASH * FOLLOW_LEASH;
+        // A rally holds at any distance while its escort lives: the people walk to it.
+        Leader rallied = leaderOf.get(civilian);
+        if (rallied != null && rallied.rallied()) {
+            long member = member(civilian, rallied, sim);
+            if (member != 0L) return member;
+            leaderOf.remove(civilian);
+        }
         if (!named.isEmpty()) {
             long escort = nearestMarine(civilian, sim, unit -> sim.squadOf(unit) != null
                     && named.contains(sim.squadOf(unit).id));
@@ -564,10 +592,7 @@ public final class CivilianEvacuationSystem {
         }
         Leader leader = leaderOf.get(civilian);
         if (leader != null) {
-            long member = leader.squadId() != Squad.NO_SQUAD
-                    ? nearestMarine(civilian, sim, unit -> sim.squadOf(unit) != null
-                            && sim.squadOf(unit).id == leader.squadId())
-                    : (sim.resolveUnit(leader.unitId()) != 0L ? leader.unitId() : 0L);
+            long member = member(civilian, leader, sim);
             if (member != 0L && distanceSquared(civilian, member, sim) <= leash) return member;
             leaderOf.remove(civilian);
         }
@@ -578,6 +603,80 @@ public final class CivilianEvacuationSystem {
         return marine;
     }
 
+    /** The body of {@code leader} {@code civilian} walks after: its squad's nearest member, or its own body; 0 when gone. */
+    private long member(long civilian, Leader leader, BattleSimulation sim) {
+        if (leader.squadId() != Squad.NO_SQUAD) {
+            return nearestMarine(civilian, sim, unit -> sim.squadOf(unit) != null
+                    && sim.squadOf(unit).id == leader.squadId());
+        }
+        return escortLives(leader.unitId(), sim) ? leader.unitId() : 0L;
+    }
+
+    /** Whether a lone escort still stands: a vehicle on the field, or a live unit. */
+    private static boolean escortLives(long id, BattleSimulation sim) {
+        VehicleMission vehicle = sim.convoy().mission(id);
+        if (vehicle != null) return vehicle.isVisible();
+        return sim.resolveUnit(id) != 0L;
+    }
+
+    /**
+     * The player's rally: the walking group {@code civilian} belongs to ({@link #rallyGroup}) attaches to
+     * {@code escort}, a company soldier's squad (a mech's lance too) or a company vehicle. Returns how many changed
+     * hands: {@code 0} for a civilian that is not walking, or an escort that is not the company's.
+     */
+    public int rally(long civilian, long escort, BattleSimulation sim) {
+        List<Long> group = rallyGroup(civilian, sim);
+        if (group.isEmpty()) return 0;
+        Leader to;
+        VehicleMission vehicle = sim.convoy().mission(escort);
+        if (vehicle != null) {
+            if (!vehicle.isVisible() || sim.convoy().faction(escort) != Faction.MARINE) return 0;
+            to = new Leader(Squad.NO_SQUAD, escort, true);
+        } else {
+            if (sim.resolveUnit(escort) == 0L || sim.identity().faction(escort) != Faction.MARINE
+                    || isShelterGuard(escort, sim)) return 0;
+            Squad squad = sim.squadOf(escort);
+            to = new Leader(squad != null ? squad.id : Squad.NO_SQUAD, escort, true);
+        }
+        for (long id : group) leaderOf.put(id, to);
+        return group.size();
+    }
+
+    /**
+     * The walking group {@code civilian} belongs to, it first: everyone following its squad or lone escort, or, when
+     * it follows no one, the released people within {@link #RALLY_REACH} of it who follow no one either. Empty when
+     * it is not a released, active member of the cohort.
+     */
+    public List<Long> rallyGroup(long civilian, BattleSimulation sim) {
+        if (!walking(civilian, sim)) return List.of();
+        Leader own = leaderOf.get(civilian);
+        List<Long> group = new ArrayList<>();
+        group.add(civilian);
+        for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+            long id = tracker.entityIdAt(i);
+            if (id == civilian || !walking(id, sim)) continue;
+            Leader leader = leaderOf.get(id);
+            boolean same = own != null ? leader != null && own.sameEscort(leader)
+                    : leader == null && distanceSquared(civilian, id, sim) <= RALLY_REACH * RALLY_REACH;
+            if (same) group.add(id);
+        }
+        return group;
+    }
+
+    /** Whether {@code id} is a member of the cohort out of its door and still walking. */
+    private boolean walking(long id, BattleSimulation sim) {
+        return configured && tracker.state(id) == CivilianEvacuationTracker.State.ACTIVE
+                && sim.resolveUnit(id) != 0L && released(id);
+    }
+
+    /** Cells from a vehicle's centre its followers stand: clear of its hull. */
+    static final int VEHICLE_STAND_OFF = 3;
+
+    /** How near {@code escort} a follower stands: beside a soldier, clear of a vehicle's hull. */
+    private static int standOff(long escort, BattleSimulation sim) {
+        return sim.convoy().mission(escort) != null ? VEHICLE_STAND_OFF : FOLLOW_DISTANCE;
+    }
+
     /** The open cell beside {@code escort} nearest {@code civilian}, where it walks to stand by it. */
     private static long besideCell(long civilian, long escort, BattleSimulation sim) {
         int ex = sim.world().cellX(escort), ey = sim.world().cellY(escort);
@@ -585,9 +684,12 @@ public final class CivilianEvacuationSystem {
         byte[] occupancy = sim.getOccupancyMap();
         long best = packCell(ex, ey);
         int bestScore = Integer.MAX_VALUE;
-        for (int y = ey - 1; y <= ey + 1; y++) {
-            for (int x = ex - 1; x <= ex + 1; x++) {
-                if ((x == ex && y == ey) || !sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)) continue;
+        // Beside a soldier the next cell; beside a vehicle the ring just past its hull.
+        int ring = standOff(escort, sim) - 1;
+        for (int y = ey - ring; y <= ey + ring; y++) {
+            for (int x = ex - ring; x <= ex + ring; x++) {
+                if (Math.max(Math.abs(x - ex), Math.abs(y - ey)) < ring) continue;
+                if (!sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)) continue;
                 if ((occupancy[sim.getGrid().index(x, y)] & 0xFF) != 0 && (x != cx || y != cy)) continue;
                 int score = (x - cx) * (x - cx) + (y - cy) * (y - cy);
                 if (score < bestScore) {
