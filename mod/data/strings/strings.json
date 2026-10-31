@@ -1331,7 +1331,7 @@
     "gearPowerEffectMechSupport": "Calls a heavy transport to land the company's mechs and vehicles.",
     "gearPowerEffectOrbitalBarrage": "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.",
     "gearPowerEffectWolfStrike": "Draw a short line: a Wolf (H) frigate drops out of the clouds, flies a low pass down it with its turrets firing on their own, and climbs back out.",
-    "gearPowerEffectSpawnInOnslaught": "Drops a stock Onslaught over the targeted ground to fight for the company. Once a battle.",
+    "gearPowerEffectSpawnInOnslaught": "Drops a stock Onslaught over the targeted ground to fight for the company. One at a time; a damaged one needs repairs before the next call, and a destroyed one ends the power for the battle.",
     "gearPowerEffectShipOnStation": "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.",
     "gearReplenisherAccelerated": "Accelerated loader",
     "gearInternalIndustrialEngine": "Industrial engine",
