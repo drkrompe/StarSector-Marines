@@ -74,6 +74,24 @@ public record CordonAlliedTable(List<VehicleType> openingArmour, boolean opening
     /** UNTUNED: two squads in the pool, one more every three minutes, two at a time, a call at most every 45 seconds. */
     static final Replacements REPLACEMENTS = new Replacements(2, 180, 2, 2, 45);
 
+    /**
+     * The base shed's production caps ({@code cordon-allied-forces.md}, Production caps): the shed builds only while
+     * the machines the base has put out and that still stand are fewer than {@code alive}, and while fewer than
+     * {@code idle} finished machines wait at the base to get out of its door. A loss lets it build again up to the cap;
+     * a finished machine is sent out at once, so nothing the shed builds stands idle at the base.
+     *
+     * @param alive the most machines from the base standing at once: the shed's, the reserve's armour pairs and the
+     *              opening carrier
+     * @param idle  the most finished machines waiting at the base before the shed stops
+     */
+    public record Production(int alive, int idle) { }
+
+    /**
+     * UNTUNED: six machines out from the base at once (with the four opening hulls, ten: a floor of one a sector, a
+     * convoy's escort of three and a spare), and one finished machine waiting at the door at most.
+     */
+    static final Production PRODUCTION = new Production(6, 1);
+
     /** Where a carrier sets down at a redoubt. */
     public enum CarrierDrop {
         /** Anywhere behind the rear wall's middle, and between carries on the redoubt's flanks as support. */

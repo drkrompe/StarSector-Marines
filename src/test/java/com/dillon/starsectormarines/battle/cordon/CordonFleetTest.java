@@ -21,11 +21,20 @@ class CordonFleetTest {
     }
 
     @Test
+    void theFleetIsOneConvoyOfThreeTrucksWithAFixedEscortOffTheRoad() {
+        assertEquals(3, SIZE, "one convoy of three: the owner's pick-up");
+        assertEquals(SIZE, CordonConvoys.PARK_PLACES, "the camp parks the fleet and nothing else");
+        assertEquals(3, CordonConvoys.ESCORT);
+        int[][] posts = CordonConvoys.guardOffsets();
+        assertEquals(CordonConvoys.ESCORT, posts.length);
+        for (int[] post : posts) assertTrue(post[1] != 0, "no escort post on the road itself");
+    }
+
+    @Test
     void theSameTrucksCycleTripAfterTripAndTheFleetNeverGrowsPastItsSize() {
         CordonFleet fleet = new CordonFleet(SIZE, DELAY);
         Deque<Integer> waiting = new ArrayDeque<>();
         int nextId = 0, tick = 0;
-        int[] onRoad = null;
         for (int trip = 0; trip < 20; trip++, tick += 50) {
             assertTrue(fleet.ready(waiting.size(), tick) >= TRUCKS, "a trip always finds its trucks");
             int[] convoy = new int[TRUCKS];
@@ -38,9 +47,8 @@ class CordonFleetTest {
                 }
             }
             assertTrue(fleet.live() <= SIZE);
-            // Two convoys staggered: the one before comes home once this one is on its way.
-            if (onRoad != null) for (int id : onRoad) waiting.add(id);
-            onRoad = convoy;
+            // One convoy: its trucks are home at the camp before the next trip is called.
+            for (int id : convoy) waiting.add(id);
         }
         assertEquals(SIZE, fleet.spawned(), "twenty trips, and only the fleet's own trucks ever came on");
         assertEquals(SIZE, nextId);

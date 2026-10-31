@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -20,9 +21,11 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -39,6 +42,12 @@ import java.util.function.Consumer;
  * hull waits on its berth until the one before it has driven clear of the door, so two never meet in
  * the lane; a carrier waits on its own slot, never in the doorway; and a car or technical leaves the
  * apron for its home behind the line at once.
+ *
+ * <p><b>Production is capped</b> ({@link CordonAlliedTable.Production}): the shed builds only while fewer machines
+ * the base put out still stand than the cap, and while no more than the idle cap of finished ones wait at its door; a
+ * loss lets it build again. Every finished machine goes straight out: a carrier to its slot while there is one, any
+ * other machine to the sector that needs it most, and from there to a convoy's escort when the armour's surplus is
+ * asked for one ({@link CordonArmour}).
  *
  * <p>It is the Cordon's {@link AlliedDepot}: a machine sent from it (a beat's truck or dozer) sets out
  * from the threshold outside the machine door, and nothing is sent while the swarm is on the apron.
@@ -102,6 +111,12 @@ public final class CordonLogistics implements AlliedDepot {
     private final Random rng;
     private final List<String> landed = new ArrayList<>();
     private long exiting;
+    /** The shed's works, held at the production cap; {@code null} with no shed. */
+    private FabricationService works;
+    /** Every machine the base has put out (the shed's, the reserve's, the opening carrier), pruned as they are lost. */
+    private final Set<Long> fromBase = new LinkedHashSet<>();
+    /** Reviews the shed stood held at its cap, for evidence. */
+    private int heldLooks;
     private int exitingSince;
     private int carried, built, homed;
     /** The company's lifts ({@code cordon-allied-command.md}, rule 10): asked, granted, and set down. */
@@ -364,8 +379,43 @@ public final class CordonLogistics implements AlliedDepot {
         return false;
     }
 
+    /** Has the production cap hold these works ({@link CordonAlliedTable#PRODUCTION}). */
+    public void produceWith(FabricationService works) {
+        this.works = works;
+    }
+
+    /** A machine the base sent out by another way than the shed (the reserve's armour pair): it counts to the cap. */
+    public void fromBase(long machine) {
+        fromBase.add(machine);
+    }
+
+    /** Machines from the base still standing, those lost dropped. */
+    public int alive(BattleSimulation sim) {
+        fromBase.removeIf(id -> !standing(sim, id));
+        return fromBase.size();
+    }
+
+    /**
+     * Finished machines still at the base: on their berth waiting to be let out, and the one let out that has not yet
+     * got clear of the door (the tug tows that one out when its time is up, so it never holds the shed for long).
+     */
+    public int idle() {
+        return leaving.size() + (exiting != 0L ? 1 : 0);
+    }
+
+    /** Reviews the shed stood held at its production cap. */
+    public int heldLooks() { return heldLooks; }
+
+    private static boolean standing(BattleSimulation sim, long id) {
+        if (sim.convoy().isVehicle(id)) {
+            return sim.convoy().structure(id) > 0f && sim.convoy().faction(id) == Faction.ALLY;
+        }
+        return sim.resolveUnit(id) != 0L && sim.world().isAlive(id);
+    }
+
     /** Puts a carrier standing on the field to work from the base, on a staging slot of its own. */
     public void addCarrier(BattleSimulation sim, long hull) {
+        fromBase.add(hull);
         armour.command().enlist(sim, hull);
         int[] slot = slots.get(carriers.size() % slots.size());
         carrierSlot.put(hull, slot);
@@ -379,6 +429,7 @@ public final class CordonLogistics implements AlliedDepot {
      */
     public void rolledOut(BattleSimulation sim, long machine) {
         built++;
+        fromBase.add(machine);
         if (!sim.convoy().isVehicle(machine)) {
             armour.adoptMech(sim, machine);
             return;
@@ -448,6 +499,11 @@ public final class CordonLogistics implements AlliedDepot {
         }
         letOut(sim);
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
+        if (works != null) {
+            boolean held = !CordonAlliedRules.shedBuilds(alive(sim), idle(), CordonAlliedTable.PRODUCTION);
+            works.setHeld(held);
+            if (held) heldLooks++;
+        }
         waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
         waitingFor.keySet().retainAll(waiting);
         aboard.keySet().retainAll(carriers);

@@ -51,10 +51,18 @@ public final class CordonConvoys {
     /** Trucks in a convoy: eighteen seats a trip, so the town's forty-eight take three trips (owner, 2026-10-31). */
     public static final int TRUCKS = 3;
     /**
-     * Convoys in the fleet: two, staggered, so one loads while the other drives. The fleet's {@code FLEET} by
-     * {@link #TRUCKS} trucks are all the trucks the road ever has: they cycle, trip after trip ({@link CordonFleet}).
+     * Convoys in the fleet: one (owner, 2026-10-31: "3 trucks for pickup and a handful on this line for escort"). The
+     * fleet's {@code FLEET} by {@link #TRUCKS} trucks are all the trucks the road ever has: they cycle, trip after trip
+     * ({@link CordonFleet}), the next trip setting out once all three are back at the camp. Two staggered convoys put
+     * six trucks on the road and in the camp's parking line, which read as a queue far longer than a pick-up.
      */
-    public static final int FLEET = 2;
+    public static final int FLEET = 1;
+    /**
+     * Armed hulls that ride with a convoy: one either side of the road a little ahead of its lead truck and a third
+     * further on ({@link #guardOffsets}). Fixed: the convoy never takes more, and goes short only where the surplus
+     * cannot spare them ({@link CordonAlliedRules#escorts}). UNTUNED.
+     */
+    public static final int ESCORT = 3;
     /** Townspeople a truck carries out. */
     public static final int SEATS = 6;
     /** The most round trips the fleet drives to the town: five. */
@@ -65,8 +73,8 @@ public final class CordonConvoys {
      */
     static final int REPLACE_TICKS = Math.round(45f / BattleSimulation.TICK_DT);
     /**
-     * The people trapped in the town: four full trips of {@link #TRUCKS} by {@link #SEATS}, so getting everyone out
-     * takes more than three convoys, and the fifth is there for the seats lost to a truck or a slow loading.
+     * The people trapped in the town: three full trips of {@link #TRUCKS} by {@link #SEATS}, so getting everyone out
+     * takes three convoys, and the fourth and fifth are there for the seats lost to a truck or a slow loading.
      */
     public static final int TOWNSPEOPLE = 48;
     /** Corridor cells from either end of the road a truck counts as there. */
@@ -1319,10 +1327,24 @@ public final class CordonConvoys {
         for (int[] place : escorts(sim, false, true)) {
             guardConvoys.add(place[4]);
             int at = place[2], direction = place[3];
-            int ahead = Math.max(0, Math.min(corridor.size() - 1, at + direction * GUARD_POINT));
-            out.add(new int[][]{beside(at, GUARD_SIDE), beside(at, -GUARD_SIDE), beside(ahead, GUARD_SIDE)});
+            int[][] posts = new int[ESCORT][];
+            int[][] offsets = guardOffsets();
+            for (int k = 0; k < ESCORT; k++) {
+                int along = Math.max(0, Math.min(corridor.size() - 1, at + direction * offsets[k][0]));
+                posts[k] = beside(along, offsets[k][1]);
+            }
+            out.add(posts);
         }
         return out;
+    }
+
+    /**
+     * The convoy's {@link #ESCORT} posts as {corridor cells ahead of its lead truck, cells to the left of the road}: one
+     * either side beside the lead and a third further ahead on the left. None on the road itself (a side of 0), where a
+     * parked car is in the trucks' way.
+     */
+    static int[][] guardOffsets() {
+        return new int[][]{{0, GUARD_SIDE}, {0, -GUARD_SIDE}, {GUARD_POINT, GUARD_SIDE}};
     }
 
     /** The cell {@code side} cells to the left of the road at a corridor cell (to the right when negative). */

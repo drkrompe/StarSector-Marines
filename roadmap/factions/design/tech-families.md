@@ -92,7 +92,7 @@ from, not a finished design.
 | | Low-tech | Midline | High-tech |
 |---|---|---|---|
 | Power plant | Rough combustion: diesel chug, knock and exhaust | Governed and steady: a smaller engine under an electric traction hum (open) | Turbine roar and whine; lift fans; electric |
-| Ground engines today | `marines_engine_tracked` (heavy diesel), `marines_engine_wheeled` (truck diesel) | None | `marines_engine_turbine` (gas turbine), `marines_engine_hover` (lift fans) |
+| Ground engines today | `marines_engine_tracked` (heavy diesel), `marines_engine_wheeled` (truck diesel) | None | `marines_engine_turbine` (gas turbine; laser tank and hover hulls) |
 | Air and warship engines | Vanilla `lotek` clips | Vanilla `midtek` clips | Vanilla `hitek` clips |
 | Weapons | Ballistic bark and mechanical cycling | Mixed ballistic and energy | Energy hum, charge and lance |
 | Machinery | Clanking tracks, hydraulic hiss, heavy footfalls | Servo whir, cleaner footfalls (open) | Quiet actuators and electric pulses (open) |

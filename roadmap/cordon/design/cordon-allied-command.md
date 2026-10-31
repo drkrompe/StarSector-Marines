@@ -233,10 +233,16 @@ rule in `CordonAlliedRules`:
   are on their way the redoubt has *Help coming*. Model:
   `cordon-nouns.md`, Replacements.
 
+The shed's own line is capped too (`cordon-allied-forces.md`, Production
+caps): a cover pair counts to the six machines from the base the shed builds
+up to.
+
 A request with none in stock, or while the swarm is on the apron, is refused
 and asked again ten seconds later. The reserve (`CordonAlliedTable.Reserve`)
 is sized so an ordinary battle barely notices it: one cover in stock and one
-more every four minutes; two trucks and one more every two minutes; a gun
+more every four minutes; two trucks and one more every two minutes, the two
+counting the trucks still on the road (`AlliedToolShed.capsOnRoad`: a truck
+waiting at the gate for its escort is one of them, so they never queue there); a gun
 holds 400 bursts, about fifteen minutes of a heavy MG firing without pause,
 and a truck is asked for under 30% of the redoubt's rounds. Evidence reads how
 often any of it is used: on the 2026-10-23 pools no ordinary battle asked for
