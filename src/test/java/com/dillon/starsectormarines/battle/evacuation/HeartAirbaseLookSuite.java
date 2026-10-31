@@ -17,15 +17,15 @@ import java.util.List;
 
 /**
  * Broad Front's allied airbase as the owner would see it (`heart-nouns.md`, Allied airbase): one Broad Front battle
- * (verdant, seed 3) stood up and played unrecorded to {@code -Dsnapshot.heartAirbase.from} (default 60), then recorded
+ * (the Wellhollow story map, arid seed 5) stood up and played unrecorded to {@code -Dsnapshot.heartAirbase.from} (default 60), then recorded
  * on a fixed camera framing the whole west base: its common strip, its eight bays with their aircraft, the crew at
  * every bay, and the standing patrol's fighters
  * taxiing out and rolling off the strip ({@code airbase}). Opt-in.
  */
 public final class HeartAirbaseLookSuite implements SnapshotSuite {
 
-    static final String FIXTURE = "{\"schemaVersion\":2,\"kind\":\"BLOOM_HEART\",\"seed\":3,\"form\":\"BROAD_FRONT\","
-            + "\"biome\":\"VERDANT\",\"shuttles\":["
+    static final String FIXTURE = "{\"schemaVersion\":2,\"kind\":\"BLOOM_HEART\",\"seed\":5,\"form\":\"BROAD_FRONT\","
+            + "\"biome\":\"ARID\",\"shuttles\":["
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
@@ -33,7 +33,7 @@ public final class HeartAirbaseLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "heart-airbase-look"; }
 
-    @Override public String label() { return "Heart allied airbase: parked aircraft, crew and sorties off the strip (Broad Front verdant 3)"; }
+    @Override public String label() { return "Heart allied airbase: parked aircraft, crew and sorties off the strip (the story map, arid seed 5)"; }
 
     @Override public boolean inAll() { return false; }
 

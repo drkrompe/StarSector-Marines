@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
@@ -12,24 +13,26 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /**
- * The cordon ridge's guns as the owner would see them (`heart-nouns.md`, Cordon's works): the commander look's Broad
- * Front battle played a short way in, then recorded on the forward line's guns and flak nearest the middle of the front
- * while the columns go up through its gaps. Stands the battle up, so opt-in.
+ * The cordon ridge's guns as the owner would see them (`heart-nouns.md`, Cordon's works): the Wellhollow story map
+ * (arid seed 5, the airbase look's battle) played a moment in, then recorded on a fixed camera over the forward line
+ * round the ridge flak nearest a third of the way across, away from the company's gap, so a stretch of the line's guns
+ * and its flak read before the swarm reaches them. Stands the battle up, so opt-in.
  */
 public final class HeartRidgeLookSuite implements SnapshotSuite {
 
-    /** Ticks played unrecorded first: the lanes' first waves have stepped off. */
-    static final int FROM = 300;
-    /** Ridge guns the camera holds on. */
-    static final int GUNS = 3;
+    /** Ticks played unrecorded first: the guns are seated and the first waves are stepping off. */
+    static final int FROM = 60;
+    /** Share of the front's width the camera looks for a flak emplacement nearest. */
+    static final float ACROSS = 0.3f;
+    /** Cells across the frame: a stretch of the line with several nests and its flak. */
+    static final float CELLS_ACROSS = 90f;
 
     @Override public String id() { return "heart-ridge-look"; }
 
-    @Override public String label() { return "Heart cordon ridge: the forward line's guns and flak on Broad Front"; }
+    @Override public String label() { return "Heart cordon ridge: the forward line's guns and flak on the story map (arid seed 5)"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -41,26 +44,31 @@ public final class HeartRidgeLookSuite implements SnapshotSuite {
     }
 
     static LookReview.Shot shot() {
-        String[] keys = new String[GUNS];
-        for (int i = 0; i < GUNS; i++) keys[i] = "gun" + i;
+        float[] at = new float[2];
         return new LookReview.Shot("ridge-guns", LookGround.verdant(), 40, 30, placement -> {
             BattleSimulation sim;
             try {
-                sim = HeadlessBattles.fixture(new JSONObject(HeartCommanderLookSuite.FIXTURE));
+                sim = HeadlessBattles.fixture(new JSONObject(HeartAirbaseLookSuite.FIXTURE));
             } catch (Exception e) {
                 throw new IllegalStateException("heart fixture", e);
             }
             while (sim.getSimTickIndex() < FROM) sim.advance(BattleSimulation.TICK_DT);
-            float middle = sim.getGrid().getWidth() / 2f;
-            List<Long> guns = new ArrayList<>();
+            float want = sim.getGrid().getWidth() * ACROSS;
+            long flak = 0L;
+            int guns = 0;
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
                 long unit = sim.liveUnitAt(i);
-                if (sim.identity().faction(unit) == Faction.ALLY && sim.turretState().isTurret(unit)) guns.add(unit);
+                if (sim.identity().faction(unit) != Faction.ALLY || !sim.turretState().isTurret(unit)) continue;
+                guns++;
+                if (!TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID.equals(sim.turretState().structure(unit).id)) continue;
+                if (flak == 0L || Math.abs(sim.world().x(unit) - want) < Math.abs(sim.world().x(flak) - want)) flak = unit;
             }
-            guns.sort(Comparator.comparingDouble(u -> Math.abs(sim.world().x(u) - middle)));
-            for (int i = 0; i < Math.min(GUNS, guns.size()); i++) placement.subject(keys[i], guns.get(i));
-            System.out.printf("    [look/ridge] %d allied guns standing, %d framed%n", guns.size(), Math.min(GUNS, guns.size()));
+            if (flak != 0L) {
+                at[0] = sim.world().x(flak);
+                at[1] = sim.world().y(flak);
+            }
+            System.out.printf("    [look/ridge] %d allied guns standing, framed on ridge flak at %.0f,%.0f%n", guns, at[0], at[1]);
             return sim;
-        }, placement -> List.of(LookReview.View.follow("play", placement, 70f, keys)), 900, 6, 4);
+        }, placement -> List.of(new LookReview.View("play", sim -> new float[]{at[0], at[1], CELLS_ACROSS})), 600, 6, 4);
     }
 }
