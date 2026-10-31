@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -201,6 +202,9 @@ public final class MissionLayoutStage implements GenStage {
                 Laid laid = layProps(ctx, props);
                 out.add(laid);
                 closed |= laid.isLaid();
+            } else if (piece instanceof Airfield airfield) {
+                out.add(layAirfield(ctx, airfield));
+                closed = true;
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -221,6 +225,22 @@ public final class MissionLayoutStage implements GenStage {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+    }
+
+    /**
+     * The airbase lot authored on its held ground ({@link AirbaseLot#author}), reported by the lot's corners; refused
+     * when its reservation runs off the map.
+     */
+    static Laid layAirfield(GenContext ctx, Airfield airfield) {
+        Site held = airfield.reservation();
+        if (held.x0() < 0 || held.y0() < 0 || held.x1() >= ctx.width || held.y1() >= ctx.height) {
+            return Laid.refused(airfield.name(), Laid.Kind.SITE, airfield.required(), "off the map");
+        }
+        int[] lot = airfield.lot();
+        new AirbaseLot(lot[0], lot[1], lot[2], lot[3], airfield.facing(), airfield.size(), airfield.purpose())
+                .author(ctx, ctx.rng);
+        return new Laid(airfield.name(), Laid.Kind.SITE, Laid.Status.LAID, airfield.size().name(), airfield.required(),
+                List.of(new int[]{lot[0], lot[1]}, new int[]{lot[2], lot[3]}), List.of(), List.of());
     }
 
     /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */

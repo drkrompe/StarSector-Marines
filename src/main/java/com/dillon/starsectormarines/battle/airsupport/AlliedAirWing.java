@@ -1,7 +1,12 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 
 import java.util.List;
 
@@ -66,6 +71,34 @@ public final class AlliedAirWing {
                 base.addStand(site[0], site[1], kind, facingDegrees);
             }
         }
+        pool.basedAt(Faction.ALLY, base);
+        return base;
+    }
+
+    /**
+     * Bases the wing on an airbase lot of the allies' own ({@code heart-nouns.md}, Airbase): the strip installed as the
+     * field's runway, then one airframe of the establishment in each of {@code sheds}, bombers first, rolling out over
+     * the strip for every sortie, and any the sheds cannot hold on the lot's apron {@code berths}, lifting off them as a
+     * hardstand's do. Returns the base, or {@code null} when the battle has no wing or the lot has nowhere to keep one.
+     */
+    public static HardstandAirBase baseOnLot(BattleSimulation sim, Runway strip, List<Gantry> sheds,
+                                             List<LandingPad> berths) {
+        AirPoolService pool = sim.airPool();
+        if (pool == null || !pool.hasPool(Faction.ALLY) || (sheds.isEmpty() && berths.isEmpty())) return null;
+        AirfieldService field = sim.getAirfieldService();
+        if (strip != null) field.installRunway(strip);
+        HardstandAirBase base = new HardstandAirBase(Faction.ALLY, field, WING);
+        int shed = 0, berth = 0;
+        for (AirPoolKind kind : AirPoolKind.values()) {
+            for (int i = 0; i < WING.stock(kind).cap(); i++) {
+                if (strip != null && shed < sheds.size()) base.addShelter(sheds.get(shed++), kind);
+                else if (berth < berths.size()) {
+                    LandingPad pad = berths.get(berth++);
+                    base.addStand(pad.centerX, pad.centerY, kind, AirBody.facingToward(pad.approach.dx, pad.approach.dy));
+                }
+            }
+        }
+        if (base.stands().isEmpty()) return null;
         pool.basedAt(Faction.ALLY, base);
         return base;
     }

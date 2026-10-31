@@ -202,11 +202,25 @@ calls no more air. Now and then the military also sends a roving observer
 team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
 foremost team, on the way back to its foot, the lanes with the most squads in
 contact first, so the team follows the push. The Burn has both too (owner,
-2026-10-31): the military's **airbase** is on station behind the start line,
-so the wing launches over the battery, and each battlegroup carries an observer
-the same way, the first team to step off on its band of the front; the
-battery's crews already standing in their pits never take the radio. The guns
-walk the barrage; the wing hunts the masses the observers see past it.
+2026-10-31): the wing flies off the **Airbase** below, and each battlegroup
+carries an observer the same way, the first team to step off on its band of the
+front; the battery's crews already standing in their pits never take the radio.
+The guns walk the barrage; the wing hunts the masses the observers see past it.
+
+**Airbase** (The Burn). The military's air wing on station behind the start
+line, on an airbase lot of its own (`mapgen-nouns.md`, airbase lot): a
+**station**, its strip along the start edge, its apron and three sheds behind
+it, fenced, in the open rear north of the company's landing (`HeartLayout`,
+`Airfield`). The lot is held from before the places grow, so no field, wood or
+road takes its ground. Its berths are published as an *allied* field's: no
+company lands on them and no garrison node offers the base to the attacker. The
+wing's two bombers and one fighter are kept in the sheds and taxi out to roll
+down the strip for every sortie, landing and taxiing home after; the second
+fighter stands on an apron berth and lifts off it
+(`AlliedAirWing.baseOnLot`). Turnaround and replacement are the based pool's
+(`air-nouns.md`, A based pool). The swarm can reach the field and burn what
+stands on it. A map whose rear could not hold the lot flies the wing in over the
+start edge as before.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -236,7 +250,10 @@ over it is its bridge; where the settlement's streets cross its line it runs
 under them.
 
 **Battery** (The Burn). The guns that fire the barrage: Locust rocket-artillery
-batteries dug in across the start line, the company's own. Every shell is a
+batteries dug in at the bases behind the start line, the company's own (owner,
+2026-10-31): a gun beside each of the logistics base's two ammunition dumps,
+toward the heart, and two in a gun line behind the airbase's back fence; a base
+the map did not lay leaves its guns on the start line. Every shell is a
 round fired from the gun nearest its point, lobbing in on a high, slow arc, so
 the warning is the rounds themselves coming in: a player reads the walk by
 watching where they land. The guns can be killed, and a battery with no gun
