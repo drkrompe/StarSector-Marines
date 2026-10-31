@@ -5242,7 +5242,7 @@
 		"storeKindSheet": "护甲配装",
 		"storeKindWeapon": "武器配装",
 		"storeCheatFreeLicenses": "[作弊] 免费许可",
-		"storeCheatTakeEverything": "[作弊] 全部获取",
+		"storeCheatUnlockEverything": "[作弊] 全部解锁",
 		"storeContextFmt": "连队商店 / {0}",
 		"storeRowAcquired": "已获得",
 		"storeRowFree": "免费",

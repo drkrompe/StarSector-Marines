@@ -3671,7 +3671,7 @@
     "storeBuyFree": "BUY / FREE",
     "storeRowFree": "FREE",
     "storeCheatFreeLicenses": "[Cheat] Free Licenses",
-    "storeCheatTakeEverything": "[Cheat] Take Everything",
+    "storeCheatUnlockEverything": "[Cheat] Unlock Everything",
     "storeLearnedAtOnce": "Learned on purchase; no card is carried in cargo",
     "storeSoldFmt": "Acquired {0}.",
     "storeAlreadyKnownFmt": "{0} is already known to the company; nothing was charged.",

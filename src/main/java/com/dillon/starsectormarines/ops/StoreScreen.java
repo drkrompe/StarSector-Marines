@@ -127,11 +127,11 @@ public final class StoreScreen implements Screen {
         props.put("freeKeyClasses", on ? "good-surface" : "");
         props.put("freeLabel", Strings.get("storeCheatFreeLicenses"));
         props.put("freeAction", toggle);
-        props.put("takeAllLabel", Strings.get("storeCheatTakeEverything"));
+        props.put("takeAllLabel", Strings.get("storeCheatUnlockEverything"));
         props.put("takeAllAction", (Runnable) () -> { });
     }
 
-    /** "[Cheat] Take Everything": teaches every card, pattern and boat part any store may sell, free. */
+    /** "[Cheat] Unlock Everything": teaches every card, pattern and boat part any store may sell, free. */
     private void takeEverything() {
         EquipmentStore.takeEverything(holdings(), new CampaignFabricationResources());
         viewModel.refresh();

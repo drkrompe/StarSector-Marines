@@ -85,7 +85,7 @@ own losses and experience are what the battle had reached.
 The store's **[Cheat] Free Licenses** key, shown only while Debug is on and
 saved with the game, makes every store purchase (loadout cards, mech patterns,
 boat parts) free; the shelf and what it teaches are unchanged. Beside it,
-**[Cheat] Take Everything** teaches at once, free, every loadout card, machine
+**[Cheat] Unlock Everything** teaches at once, free, every loadout card, machine
 pattern and boat part any store may sell, whatever the Kit Ladder, licences or
 story progress have opened (`EquipmentStore.takeEverything`).
 

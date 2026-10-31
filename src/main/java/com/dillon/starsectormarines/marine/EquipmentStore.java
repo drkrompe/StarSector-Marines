@@ -229,7 +229,7 @@ public final class EquipmentStore {
 
     /**
      * Every loadout card, machine pattern and boat part any store may sell, whatever the Kit Ladder, licence or
-     * rotation allows: the list the store's Take Everything cheat teaches. Priced as a licensed shelf without tariff.
+     * rotation allows: the list the store's Unlock Everything cheat teaches. Priced as a licensed shelf without tariff.
      */
     public static List<Offer> everything() {
         List<Offer> offers = new ArrayList<>();
@@ -241,7 +241,7 @@ public final class EquipmentStore {
         return List.copyOf(offers);
     }
 
-    /** The store's Take Everything cheat: teaches every {@link #everything} offer the company lacks, free; how many. */
+    /** The store's Unlock Everything cheat: teaches every {@link #everything} offer the company lacks, free; how many. */
     public static int takeEverything(Holdings held, FabricationResources purse) {
         int taught = 0;
         for (Offer offer : everything()) {
