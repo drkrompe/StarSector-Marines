@@ -221,7 +221,7 @@
       "missionId": "story_wellhollow_cordon_road",
       "event": "briefing.03",
       "textKey": "wellhollowRoad3",
-      "text": "Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. They've barricaded the pump hall. We hear them on the radio every night.",
+      "text": "Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. Civilians and a small guard holed up in the compound. We need a fast action force that can help to get those people out of there.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -229,7 +229,7 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[grim] Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. They've barricaded the pump hall. We hear them on the radio every night.",
+      "synthesisText": "[grim] Ain Tafrant. It's the pumping town at the basin's low end, and the line went round it. Civilians and a small guard holed up in the compound. We need a fast action force that can help to get those people out of there.",
       "durationSeconds": 9.84
     },
     {
@@ -253,7 +253,7 @@
       "missionId": "story_wellhollow_cordon_road",
       "event": "briefing.05",
       "textKey": "wellhollowRoad5",
-      "text": "Pulled north. Regional Command is planning its offensive, and Ain Tafrant isn't on that map. So it's your company and my convoys, through a gap in the wire and across ground the bloom holds.",
+      "text": "Pulled north. Regional Command is pushing it's own offensives, and Ain Tafrant isn't on that map. I only have enough reserves to hold this line and provide ground lift. I need someone to keep those trucks moving.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -261,7 +261,7 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[dry, frustrated, then decisive] Pulled north. Regional Command is planning its offensive, and Ain Tafrant isn't on that map. So it's your company and my convoys, through a gap in the wire and across ground the bloom holds.",
+      "synthesisText": "[dry, frustrated, then decisive] Pulled north. Regional Command is pushing it's own offensives, and Ain Tafrant isn't on that map. I only have enough reserves to hold this line and provide ground lift. I need someone to keep those trucks moving.",
       "durationSeconds": 11.44
     },
     {
@@ -269,7 +269,7 @@
       "missionId": "story_wellhollow_cordon_road",
       "event": "briefing.06",
       "textKey": "wellhollowRoad6",
-      "text": "Clear ahead of them, picket the bores that can reach the road, keep the gap from closing.",
+      "text": "We hold the town while your trucks run them out through the gap, back to your camp.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -277,7 +277,7 @@
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "voiced": true,
-      "synthesisText": "[businesslike] Clear ahead of them, picket the bores that can reach the road, keep the gap from closing.",
+      "synthesisText": "[businesslike] We hold the town while your trucks run them out through the gap, back to your camp.",
       "durationSeconds": 4.8
     },
     {
@@ -285,7 +285,7 @@
       "missionId": "story_wellhollow_cordon_road",
       "event": "briefing.07",
       "textKey": "wellhollowRoad7",
-      "text": "And bring them back out. The convoys go in empty and come out full. If they stop, everybody on them stays.",
+      "text": "Exactly right, we'll need to do about 5 loads to get everyone. The ravs are getting more active by the minute so the faster we get this done the better.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -293,24 +293,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[firm] And bring them back out. The convoys go in empty and come out full. If they stop, everybody on them stays.",
+      "synthesisText": "[firm] Exactly right, we'll need to do about 5 loads to get everyone. The ravs are getting more active by the minute so the faster we get this done the better.",
       "durationSeconds": 7.12
-    },
-    {
-      "id": "wellhollow_road_retry",
-      "missionId": "story_wellhollow_cordon_road",
-      "event": "briefing.retry",
-      "textKey": "wellhollowRoadRetry",
-      "text": "The convoys didn't make it through. Ain Tafrant is still on the radio. We go again.",
-      "priority": 10,
-      "expiresSeconds": 60,
-      "supersedes": [],
-      "speaker": "@wellhollowSpeakerWarden",
-      "portrait": "graphics/portraits/hollis-maro.png",
-      "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": true,
-      "synthesisText": "[determined] The convoys didn't make it through. Ain Tafrant is still on the radio. We go again.",
-      "durationSeconds": 5.36
     },
     {
       "id": "wellhollow_replay",

@@ -157,7 +157,8 @@ public final class WellhollowBloomCampaign {
     }
 
     /**
-     * First briefing, one retry line after a loss on this chapter, or one replay line. Each turn names
+     * First briefing, one retry line after a loss on this chapter (Ain Tafrant has none: a retry hears its
+     * first briefing again), or one replay line. Each turn names
      * its recording, so a line whose string changed after recording plays as text until it is re-recorded.
      */
     static List<MissionDialogue.Turn> briefing(WellhollowBloomProgress p, Chapter chapter, boolean replay) {
@@ -169,7 +170,7 @@ public final class WellhollowBloomCampaign {
             case BROAD_FRONT -> "Front";
         };
         String sound = "wellhollow_" + stem.toLowerCase(Locale.ROOT) + "_";
-        if (p.lastLost(chapter)) return List.of(warden("@wellhollow" + stem + "Retry", sound + "retry"));
+        if (p.lastLost(chapter) && chapter != Chapter.CORDON_ROAD) return List.of(warden("@wellhollow" + stem + "Retry", sound + "retry"));
         int[] lines = briefingLines(chapter);
         List<MissionDialogue.Turn> turns = new ArrayList<>(lines.length);
         for (int i : lines) {
