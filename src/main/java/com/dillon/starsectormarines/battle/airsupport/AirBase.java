@@ -13,8 +13,8 @@ import java.util.List;
  * stand and turned round, it is out while it flies, it comes home to the same stand to be rearmed and refuelled, and one
  * lost is replaced on the field, by the field's own law. The pool keeps doing everything else (the calls, the sorties'
  * bookkeeping, the side's anti-air memory), so a based sortie is the same sortie an edge-flown one is, only taking off
- * and landing where the side can see it. {@link WingAirbase} is the airbase a mission lays (bays rebuilt by its crew);
- * {@link FieldAirBase} is a pool's stands on a field of its own (losses replaced on a timer).
+ * and landing where the side can see it. {@link WingAirbase} is the airbase a mission lays, one law for every laid field
+ * (bays rebuilt by its crew).
  */
 public interface AirBase {
 

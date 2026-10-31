@@ -91,7 +91,8 @@ steps it on command and answers queries between steps, one JSON line each:
 `until T`, `until-beat final_run`, `entity ID` (health, plate, target, orders,
 squad, telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`,
 `presence` (what keeps the company in play: ground bodies, boats, reserve
-powers, each objective), and,
+powers, each objective), `airbase` (the Cordon's air base: each bay's airframe and
+state, and its own sorties), and,
 after `hitlog on`, `hits target=ID` / `hits-by attacker target=ID` (every
 resolved hit with penetration, plate rating and arc, and what went to armor and
 structure). Sources: `thunder-run[:seed=N,...]` and `fixture:<path>`; without

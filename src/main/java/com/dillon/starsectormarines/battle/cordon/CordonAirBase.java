@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
-import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.EnemyConcentration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
@@ -8,18 +8,12 @@ import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
 import com.dillon.starsectormarines.battle.airsupport.AirTasking;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators;
-import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
+import com.dillon.starsectormarines.battle.airsupport.WingAirbase;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
-import com.dillon.starsectormarines.battle.nav.ElevationMap;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
-import com.fs.starfarer.api.Global;
-import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,20 +21,20 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The allies' air base behind the line ({@code cordon-nouns.md}, Air base): the military's air wing on hardstands of its
- * own in the rear, near the logistics base, and the base's operations room tasking the wing's own sorties.
+ * The allies' air base behind the line ({@code cordon-nouns.md}, Air base): the military's air wing on the airbase lot
+ * the Cordon's map reserves in a rear corner, and the base's operations room tasking the wing's own sorties.
  *
- * <p>The wing is the one {@link AlliedAirWing} gives the allies, and the base is where it lives
- * ({@link AlliedAirWing#baseAt}): its aircraft stand on the apron, take off from it for every sortie, the observers'
- * calls included, come home to it to be rearmed and refuelled, and a loss is replaced on its stand on the wing's own
- * timer. On top of the observers' calls the base flies its own sorties on its own cadence, from what the side can
- * fairly know: the swarm massing on a redoubt that is calling for relief (the call is radio; the mass must be in an
- * allied soldier's sight), a swarm mass some allied soldier sees, and the bores, which the garrison has watched for
- * weeks. It keeps one airframe of each kind back for the radio, never strikes within the director's danger-close ring
- * of a friendly soldier, and skips ground whose believed anti-air would cost more than the director's ceiling. Allied
- * command, never the player's.
+ * <p>The base is one of the airbases every laid field is ({@link WingAirbase}, {@code air-nouns.md}, Airbase), and the
+ * wing {@link AlliedAirWing} gives the allies is its bays: its aircraft stand on the apron and in the sheds, roll off the
+ * lot's strip for every sortie, the observers' calls included, land back on it to be rearmed and refuelled, and a loss
+ * is rebuilt on its bay by the field's crew. On top of the observers' calls the base flies its own sorties on its own
+ * cadence, from what the side can fairly know: the swarm massing on a redoubt that is calling for relief (the call is
+ * radio; the mass must be in an allied soldier's sight), a swarm mass some allied soldier sees, and the bores, which the
+ * garrison has watched for weeks. It keeps one airframe of each kind back for the radio, never strikes within the
+ * director's danger-close ring of a friendly soldier, and skips ground whose believed anti-air would cost more than the
+ * director's ceiling. Allied command, never the player's.
  *
- * <p>Air cannot clear the map: four airframes, a turnaround after every sortie, one self-tasked sortie at most every
+ * <p>Air cannot clear the map: a handful of bays, a turnaround after every sortie, one self-tasked sortie at most every
  * {@link #SORTIE_INTERVAL_SECONDS}, and the bores' unseen spore colonies cost what they cost. UNTUNED throughout.
  */
 public final class CordonAirBase {
@@ -62,21 +56,6 @@ public final class CordonAirBase {
     /** Sim seconds before a struck point is a candidate again. UNTUNED. */
     static final float REPEAT_SECONDS = 60f;
 
-    /** Cells along the long axis from one stand to the next. */
-    static final int STAND_PITCH = 6;
-    /** A stand's clear footprint either side of its middle: a garrison hardstand's. */
-    static final int STAND_HALF = 2;
-    /** Cells behind the logistics base, toward the rear edge, the apron is sought from. */
-    static final int REARWARD = 24;
-    /** How far from where it is sought the apron may stand. */
-    static final int SITE_REACH = 70;
-    /** Cells a stand keeps off the relief corridor. */
-    static final int CORRIDOR_KEEP = 8;
-    /** Cells a stand keeps off a road's line. */
-    static final int ROAD_KEEP = 4;
-    /** Cells a stand keeps off the company's landing pads and the base's apron. */
-    static final int PAD_KEEP = 12;
-
     /** Why a point is worth an aircraft, most urgent first. */
     enum Reason { RELIEF, MASS, BORE }
 
@@ -91,88 +70,35 @@ public final class CordonAirBase {
 
     private record Struck(float x, float y, int tick) {}
 
-    private final FieldAirBase field;
+    private final WingAirbase field;
     private final List<Struck> struck = new ArrayList<>();
     private int nextTick = ticks(FIRST_SORTIE_SECONDS);
     private int sorties;
 
-    private final Ground ground;
-
-    CordonAirBase(FieldAirBase field, Ground ground) {
+    /** The operations room of {@code field}, the airbase opened on the Cordon's lot ({@link CordonPlan#airBase}). */
+    public CordonAirBase(WingAirbase field) {
         this.field = field;
-        this.ground = ground;
     }
 
-    /** Where the wing stands: the map's airbase lot, or the open-ground fallback. */
-    public Ground ground() { return ground; }
-
-    /** Where the wing stands: the airbase lot the map reserved, or the open-ground fallback where it reserved none. */
-    public enum Ground { LOT, OPEN_GROUND }
-
-    private static final Logger LOG = Global.getLogger(CordonAirBase.class);
-
-    /**
-     * Bases the allies' wing on the airbase lot the Cordon's map reserved in a rear corner ({@code cordon-nouns.md},
-     * Air base; {@link CordonPlan#airBase}): its sheds, rolling off the lot's strip, and its apron's berths
-     * ({@link AlliedAirWing#baseOnLot}). Where the map laid no lot, the open-ground fallback ({@link #lay}), and the log
-     * says so. {@code null} when there is no wing, or neither finds room.
-     */
-    public static CordonAirBase base(BattleSimulation sim, MapResult map, int anchorX, int anchorY, int frontward,
-                                     List<int[]> corridor, List<int[]> roadLines, List<int[]> keepOff) {
-        Laid lot = map.layout == null ? null : map.layout.find(CordonPlan.AIR_BASE_PLACE);
-        if (lot != null && lot.isLaid()) {
-            FieldAirBase field = AlliedAirWing.baseOnLot(sim, map, lot);
-            if (field != null) return new CordonAirBase(field, Ground.LOT);
-        }
-        if (sim.airPool() == null || !sim.airPool().hasPool(Faction.ALLY)) return null;
-        LOG.warn("cordon: the map laid no airbase lot; the wing stands on open ground behind the logistics base");
-        return lay(sim, anchorX, anchorY, frontward, corridor, roadLines, keepOff);
-    }
-
-    /**
-     * The open-ground fallback: a row of stands, one for each airframe of the wing, on open ground behind
-     * {@code (anchorX, anchorY)} (the logistics base), clear of the corridor, the roads, the company's pads and the
-     * base's apron. {@code null} when the battle has no wing or the rear has no room, and the wing then flies in over
-     * the map edge as before.
-     */
-    static CordonAirBase lay(BattleSimulation sim, int anchorX, int anchorY, int frontward, List<int[]> corridor,
-                                    List<int[]> roadLines, List<int[]> keepOff) {
-        NavigationGrid grid = sim.getGrid();
-        int w = grid.getWidth(), h = grid.getHeight();
-        boolean[] blocked = new boolean[w * h];
-        mark(blocked, w, h, corridor, CORRIDOR_KEEP);
-        mark(blocked, w, h, roadLines, ROAD_KEEP);
-        mark(blocked, w, h, keepOff, PAD_KEEP);
-        ElevationMap elevation = grid.elevation();
-        int ax = anchorX, ay = Math.max(1, Math.min(h - 2, anchorY - frontward * REARWARD));
-        List<int[]> sites = site((x, y) -> grid.inBounds(x, y) && !blocked[y * w + x] && grid.isWalkable(x, y)
-                        && (elevation == null || elevation.tier(x, y) == elevation.tier(ax, ay)),
-                ax, ay, AlliedAirWing.stands(), STAND_PITCH, STAND_HALF, SITE_REACH);
-        if (sites == null) return null;
-        FieldAirBase field = AlliedAirWing.baseAt(sim, sites, AirBody.facingToward(0f, frontward));
-        return field == null ? null : new CordonAirBase(field, Ground.OPEN_GROUND);
-    }
-
-    /** The wing's stands. */
-    public FieldAirBase field() { return field; }
+    /** The airbase the wing flies from. */
+    public WingAirbase field() { return field; }
 
     /** Sorties the base has tasked on its own so far. */
     public int sorties() { return sorties; }
 
-    /** The middle of the apron, as {x, y}. */
+    /** The middle of the base's bays, as {x, y}. */
     public int[] centre() {
-        List<FieldAirBase.Stand> stands = field.stands();
+        List<AirfieldService.Berth> berths = field.berths();
         int sx = 0, sy = 0;
-        for (FieldAirBase.Stand s : stands) {
-            sx += s.x();
-            sy += s.y();
+        for (AirfieldService.Berth b : berths) {
+            sx += b.centerX;
+            sy += b.centerY;
         }
-        return new int[]{sx / stands.size(), sy / stands.size()};
+        return new int[]{sx / berths.size(), sy / berths.size()};
     }
 
-    /** One tick: the apron's ground crew and replacements, and now and then a sortie of the base's own. */
+    /** One tick: now and then a sortie of the base's own. */
     public void advance(BattleSimulation sim, List<CordonRedoubt> redoubts, Consumer<String> beats) {
-        field.advance(sim, BattleSimulation.TICK_DT);
         int tick = sim.getSimTickIndex();
         if (tick < nextTick) return;
         nextTick = tick + ticks(RETRY_SECONDS);
@@ -279,52 +205,6 @@ public final class CordonAirBase {
             if (CommsOperators.lineClear(sim.getGrid(), ax, ay, ux, uy, SIGHT_CELLS)) return true;
         }
         return false;
-    }
-
-    /** A test on a cell. */
-    interface CellTest {
-        boolean test(int x, int y);
-    }
-
-    /**
-     * A row of {@code count} stand middles across the long axis, {@code pitch} apart, each with its whole
-     * {@code half}-cell footprint on {@code free} ground, centred as near {@code (x, y)} as reaches {@code reach}; or
-     * {@code null}.
-     */
-    static List<int[]> site(CellTest free, int x, int y, int count, int pitch, int half, int reach) {
-        for (int r = 0; r <= reach; r++) {
-            for (int dy = -r; dy <= r; dy++) {
-                for (int dx = -r; dx <= r; dx++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
-                    List<int[]> row = row(free, x + dx, y + dy, count, pitch, half);
-                    if (row != null) return row;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static List<int[]> row(CellTest free, int cx, int cy, int count, int pitch, int half) {
-        List<int[]> row = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            int sx = cx + Math.round((i - (count - 1) / 2f) * pitch);
-            for (int fy = cy - half; fy <= cy + half; fy++) {
-                for (int fx = sx - half; fx <= sx + half; fx++) {
-                    if (!free.test(fx, fy)) return null;
-                }
-            }
-            row.add(new int[]{sx, cy});
-        }
-        return row;
-    }
-
-    private static void mark(boolean[] blocked, int w, int h, List<int[]> cells, int keep) {
-        if (cells == null) return;
-        for (int[] c : cells) {
-            for (int y = Math.max(0, c[1] - keep); y <= Math.min(h - 1, c[1] + keep); y++) {
-                for (int x = Math.max(0, c[0] - keep); x <= Math.min(w - 1, c[0] + keep); x++) blocked[y * w + x] = true;
-            }
-        }
     }
 
     private static int ticks(float seconds) {
