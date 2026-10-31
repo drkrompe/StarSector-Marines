@@ -122,6 +122,8 @@ public final class CordonPlan {
     static final int TOWN_GATES = 6;
     /** The layout's name for the town built up round the compound ({@link CordonTownWarren}). */
     static final String TOWN_WARREN = "town-warren";
+    /** The layout's name for the sandbag lines outside the compound ({@link CordonTownSandbags}). */
+    static final String TOWN_SANDBAGS = "town-sandbags";
     private static final long SEED_SALT = 0x434F52444F4E504CL;
     /** The rear's side, its own splittable draw (see {@code BattleSetup.colonyPlanFor}). */
     private static final long REAR_SIDE_SALT = 0x5245415253494445L;
@@ -465,6 +467,10 @@ public final class CordonPlan {
             // through alleys; open country and a city keep the ground they grew.
             pieces.add(new Deferred(TOWN_WARREN, Phase.STRUCTURES, ground -> CordonTownWarren.structures(ground, front[1]),
                     false));
+        }
+        if (variant == CordonVariant.ROAD) {
+            // Sandbag lines on the approaches to the compound's ways in, for the company to occupy.
+            pieces.add(new Deferred(TOWN_SANDBAGS, Phase.WORKS, CordonTownSandbags::pieces, false));
         }
         if (density.ridge) pieces.add(new Deferred(RIDGE, Phase.WORKS, ground -> ridge(ground, front), false));
         pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));

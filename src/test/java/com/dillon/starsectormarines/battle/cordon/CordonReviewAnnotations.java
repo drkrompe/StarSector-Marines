@@ -68,6 +68,83 @@ public final class CordonReviewAnnotations {
         return marks.build();
     }
 
+    /**
+     * The sandbag lines outside the compound ({@link CordonTownSandbags}), each boxed with its number, its length and
+     * the way it faces; a line's return is boxed with it and named as its L. The compound boxed for reference.
+     */
+    public static ReviewAnnotations townSandbags(BattleSimulation sim) {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null || cordon.town() == null) return marks.build();
+        CordonTown town = cordon.town();
+        marks.box(town.left(), town.top(), town.right(), town.bottom(), "COMPOUND", ReviewStyle.KEEP);
+        for (String line : sandbagLines(sim)) System.out.println("[cordon-mapgen] sandbags " + line);
+        List<Laid> bags = sandbags(cordon);
+        int number = 0;
+        for (int i = 0; i < bags.size(); i++) {
+            List<int[]> cells = bags.get(i).cells();
+            if (cells.size() <= CordonTownSandbags.RETURN) continue;
+            number++;
+            List<int[]> all = new ArrayList<>(cells);
+            String text = "SANDBAGS " + number + " · " + cells.size() + " cells · faces " + facing(town, cells);
+            if (i + 1 < bags.size() && bags.get(i + 1).cells().size() <= CordonTownSandbags.RETURN) {
+                List<int[]> back = bags.get(i + 1).cells();
+                all.addAll(back);
+                text += " · L faces " + returnFacing(cells, back);
+            }
+            int[] box = bounds(all);
+            marks.box(box[0], box[1], box[2], box[3], text, ReviewStyle.POSITION);
+        }
+        return marks.build();
+    }
+
+    /** Each laid sandbag line as "name: n cells from (x,y) to (x,y)", for the console. */
+    static List<String> sandbagLines(BattleSimulation sim) {
+        List<String> out = new ArrayList<>();
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null) return out;
+        for (Laid laid : sandbags(cordon)) {
+            List<int[]> c = laid.cells();
+            out.add(String.format(Locale.ROOT, "%s: %d cells (%d,%d)-(%d,%d)", laid.name(), c.size(), c.get(0)[0],
+                    c.get(0)[1], c.get(c.size() - 1)[0], c.get(c.size() - 1)[1]));
+        }
+        return out;
+    }
+
+    private static List<Laid> sandbags(CordonSequence cordon) {
+        List<Laid> out = new ArrayList<>();
+        for (Laid laid : cordon.beats().laid().pieces()) {
+            if (laid.isLaid() && !laid.cells().isEmpty() && laid.name().startsWith(CordonTownSandbags.NAME)) out.add(laid);
+        }
+        return out;
+    }
+
+    /** A line across an approach faces away from the compound along the axis it does not run on. */
+    private static String facing(CordonTown town, List<int[]> cells) {
+        int[] b = bounds(cells);
+        // The map's y grows north, the way the frames draw it.
+        if (b[2] - b[0] >= b[3] - b[1]) return b[1] > town.centreY() ? "N" : "S";
+        return b[0] < town.centreX() ? "W" : "E";
+    }
+
+    /** A return faces out past the line's outer end, the way from the line's middle to it. */
+    private static String returnFacing(List<int[]> line, List<int[]> back) {
+        int[] l = bounds(line), r = bounds(back);
+        if (l[2] - l[0] >= l[3] - l[1]) return r[0] * 2 > l[0] + l[2] ? "E" : "W";
+        return r[1] * 2 > l[1] + l[3] ? "N" : "S";
+    }
+
+    private static int[] bounds(List<int[]> cells) {
+        int[] b = {Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
+        for (int[] c : cells) {
+            b[0] = Math.min(b[0], c[0]);
+            b[1] = Math.min(b[1], c[1]);
+            b[2] = Math.max(b[2], c[0]);
+            b[3] = Math.max(b[3], c[1]);
+        }
+        return b;
+    }
+
     /** The rooms the trapped wait in, each with its count, and each of the town's teams where it stands. */
     private static void addRooms(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonTown town) {
         if (town == null) return;
