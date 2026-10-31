@@ -69,6 +69,12 @@ public final class ColonyMilitia {
      * ({@link ColonyBreachSequence#holdBatteryUntilBoresGrow}).
      */
     public static final String BATTERY_STRUCTURE = TurretCatalogRegistry.LOCUST_STRUCTURE_ID;
+    /** Flak guns in the compound's yard, against the Harriers. */
+    public static final int YARD_FLAK = 2;
+    /** The compound's flak: the dual flak a tender builds, which tracks fliers and still fires on the ground. */
+    public static final String FLAK_STRUCTURE = TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID;
+    /** The nearest a yard flak stands to the Locust or to another flak, in cells, so the guns are spread. */
+    private static final int FLAK_SPACING = 6;
     /** Command issuer the posts are claimed under. */
     public static final String ISSUER = "colony-militia";
     private static final int PATROL_RADIUS = 4;
@@ -497,6 +503,12 @@ public final class ColonyMilitia {
             emplacements.add(seatEmplacement(sim, gun, "compound-corner-gun-" + (emplacements.size() + 1)));
         }
         claimed.add(new int[]{compound.left(), compound.top(), compound.right(), compound.bottom()});
+        RedoubtWorks.Ground ground = RedoubtWorks.ground(sim);
+        if (CivilDefenceCompound.raiseFence(sim, compound,
+                (x, y) -> ground.open(x, y) && !sim.isInsideRescueOpeningProtectedZone(x, y)) > 0) {
+            int f = CivilDefenceCompound.FENCE_OFFSET;
+            claimed.add(new int[]{compound.left() - f, compound.top() - f, compound.right() + f, compound.bottom() + f});
+        }
         sim.setCivilianRedoubtGround(1, compound.left(), compound.top(), compound.right(), compound.bottom());
         int wall = ColonyRedoubts.seatLine(sim, compound.posts(), compound.gateX(), compound.gateY(),
                 compound.left(), compound.top(), compound.right(), compound.bottom(),
@@ -506,17 +518,18 @@ public final class ColonyMilitia {
             squads.add(wall);
             if (node != null) sim.setCivilianHoldoutLine(1, wall, node);
         }
-        return holdInside(sim, compound, placement, node, risk, rng, squads);
+        return holdInside(sim, compound, placement, node, risk, rng, squads, emplacements);
     }
 
     /**
      * The compound's inside: the Locust on the open yard cell nearest the yard's middle with room round it, held
-     * silent, then a team on the yard round it holding the compound's ground and a team holding the shelter hall, on
-     * the yard cells nearest the gun. Returns the gun, or {@code 0} when the yard has no room for it.
+     * silent; {@link #YARD_FLAK} flak on the next such cells {@link #FLAK_SPACING} from it and each other; then a
+     * team on the yard round the Locust holding the compound's ground and a team holding the shelter hall, on the
+     * yard cells nearest the gun. Returns the Locust, or {@code 0} when the yard has no room for it.
      */
     private static long holdInside(BattleSimulation sim, CivilDefenceCompound.Plan compound,
                                    CivilianEvacuationPlacement placement, TacticalNode hall, RiskLevel risk,
-                                   Random rng, List<Integer> squads) {
+                                   Random rng, List<Integer> squads, List<Long> emplacements) {
         List<int[]> yard = yardCells(sim, compound, placement);
         if (yard.isEmpty()) return 0L;
         long sx = 0, sy = 0;
@@ -529,22 +542,29 @@ public final class ColonyMilitia {
         int mx = (int) (sx / yard.size()), my = (int) (sy / yard.size());
         yard.sort(Comparator.comparingInt((int[] c) -> Math.abs(c[0] - mx) + Math.abs(c[1] - my))
                 .thenComparingInt(c -> sim.getGrid().index(c[0], c[1])));
-        int[] gun = null;
+        List<int[]> sites = new ArrayList<>();
         for (int[] c : yard) {
+            if (sites.size() > YARD_FLAK) break;
             boolean room = true;
             for (int dy = -1; dy <= 1 && room; dy++)
                 for (int dx = -1; dx <= 1 && room; dx++) room = ground.contains(cellKey(c[0] + dx, c[1] + dy));
-            if (room) {
-                gun = c;
-                break;
-            }
+            for (int[] s : sites) room &= Math.max(Math.abs(c[0] - s[0]), Math.abs(c[1] - s[1])) >= FLAK_SPACING;
+            if (room) sites.add(c);
         }
-        if (gun == null) return 0L;
+        if (sites.isEmpty()) return 0L;
+        int[] gun = sites.get(0);
         long battery = seatEmplacement(sim, gun, "compound-locust", BATTERY_STRUCTURE);
         sim.turretState().cutPower(battery);
+        for (int i = 1; i < sites.size(); i++) {
+            emplacements.add(seatEmplacement(sim, sites.get(i), "compound-flak-" + i, FLAK_STRUCTURE));
+        }
         int gx = gun[0], gy = gun[1];
         List<int[]> cells = new ArrayList<>();
-        for (int[] c : yard) if (Math.max(Math.abs(c[0] - gx), Math.abs(c[1] - gy)) > 1) cells.add(c);
+        for (int[] c : yard) {
+            boolean clear = true;
+            for (int[] s : sites) clear &= Math.max(Math.abs(c[0] - s[0]), Math.abs(c[1] - s[1])) > 1;
+            if (clear) cells.add(c);
+        }
         cells.sort(Comparator.comparingInt((int[] c) -> Math.abs(c[0] - gx) + Math.abs(c[1] - gy))
                 .thenComparingInt(c -> sim.getGrid().index(c[0], c[1])));
         int centreX = (compound.left() + compound.right()) / 2, centreY = (compound.top() + compound.bottom()) / 2;

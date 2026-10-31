@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-31 — holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
+Updated: 2026-10-31 — the shelter's compound gains two yard flak and an outer fence on the three sides away from its main gate. Earlier: holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
 
 Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
@@ -641,7 +641,7 @@ militia make the rest of it when the battle is set up:
 - a **gun tower** beside each gate: a heavy machine gun on the line of the
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
-  other flank, so it always has two. No layers, no bunkers, no flak. Its heavy
+  other flank, so it always has two. No layers and no bunkers. Its heavy
   machine guns track fliers, so they answer Harriers and meet the flier law
   (*Laws*);
 - a heavy machine gun in each **corner tower** (owner, 2026-10-31): the gun on
@@ -653,6 +653,16 @@ militia make the rest of it when the battle is set up:
   bore first grows a tier: by then the colony outside is going and the guns
   open on the approaches (`ColonyBreachSequence.holdBatteryUntilBoresGrow`).
   Its minimum range keeps it off the compound itself;
+- two **yard flak** (owner, 2026-10-31), the dual flak a tender builds, on the
+  next open yard cells with room round them, six cells from the Locust and
+  each other: they track Harriers and still fire on the ground;
+- the **outer fence** (owner, 2026-10-31: it buys time against Brutes
+  breaking through), industrial fence three cells out from the wall on the
+  three sides away from the main gate; the gate's side, the way relief comes
+  in, is left open. It stands only on open ground, never along a street's
+  asphalt, and leaves a gap two cells either side of any way in through the
+  wall, so no gate or door is shut. It is a barricade the swarm assaults and
+  works ground, as a holdout's barricade is (`CivilDefenceCompound.fence`);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongConsumer;
 
 /**
  * A group of people a beat walks (L1, L5, R2): stood up together, walked to a place as the Line's
@@ -61,13 +62,20 @@ final class CordonWalkers {
 
     /** One step toward {@code (destX, destY)}; anyone standing safe leaves the field. */
     void walk(BattleSimulation sim, int destX, int destY, Safe safe) {
+        walk(sim, destX, destY, safe, id -> {
+            sim.clearPath(id);
+            sim.takeOffTheField(id);
+        });
+    }
+
+    /** One step toward {@code (destX, destY)}; anyone standing safe is out of this group and handed to {@code arrived}. */
+    void walk(BattleSimulation sim, int destX, int destY, Safe safe, LongConsumer arrived) {
         count(sim);
         for (int i = 0; i < members.size(); ) {
             long id = members.get(i);
             int x = sim.world().cellX(id), y = sim.world().cellY(id);
             if (safe.at(x, y)) {
-                sim.clearPath(id);
-                sim.takeOffTheField(id);
+                arrived.accept(id);
                 members.remove(i);
                 out++;
                 continue;

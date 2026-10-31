@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
+import com.dillon.starsectormarines.battle.cordon.CordonCamp;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldWork;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
@@ -632,11 +634,10 @@ public final class CordonSetup {
             CordonConvoys convoys = convoys(sim, cordon, town, timetable, logistics);
             sequence.attachConvoys(convoys);
             sequence.onAbandonTown(convoys::abandonTown);
+            convoys.shelterAt(camp(sim, cordon, convoys, logistics, sequence.airBase(), pads));
             int[] rally = rally(sim, cordon, convoys.gapIndex());
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
-            // Abandoning the town (every townsperson still trapped dies, no more convoys set out) is the convoys' to do:
-            // wired here once CordonConvoys carries it; until then an abandoned town only starts the fall-back.
             armour.escortConvoys(convoys::guardPosts);
             convoys.escortedBy(armour::convoyEscort);
         }
@@ -800,6 +801,29 @@ public final class CordonSetup {
         else convoys.standTownspeople(sim, frontward);
         return convoys;
     }
+
+    /**
+     * The Road's safe camp behind the line ({@code cordon-nouns.md}, Camp), round where the convoys set out, clear of the
+     * company's pads, the logistics base's berths and door and the air base's stands; {@code null} where the rear has
+     * no ground for it, and the convoys then bring the people back to the entry as before.
+     */
+    static CordonCamp camp(BattleSimulation sim, CordonMap cordon, CordonConvoys convoys, CordonLogistics logistics,
+                           CordonAirBase air, List<LandingPad> pads) {
+        List<int[]> keepOff = new ArrayList<>();
+        for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
+        if (logistics != null) {
+            keepOff.addAll(logistics.slots());
+            keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
+            keepOff.add(new int[]{logistics.musterX(), logistics.musterY()});
+        }
+        if (air != null) for (FieldAirBase.Stand stand : air.field().stands()) keepOff.add(new int[]{stand.x(), stand.y()});
+        CordonCamp.Plan plan = CordonCamp.plan(convoys.corridor(), convoys.entry(), convoys.gapIndex(),
+                CordonFront.frontward(cordon.plan()), sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                CordonCamp.open(sim), keepOff);
+        return CordonCamp.raise(sim, plan, GARRISON_RISK, new Random(cordon.battleSeed() ^ CAMP_SALT));
+    }
+
+    private static final long CAMP_SALT = 0x43414D50L;
 
     /**
      * The cut-off town held ({@code cordon-nouns.md}, Cut-off town): its compound's wall dressed as a redoubt's, and

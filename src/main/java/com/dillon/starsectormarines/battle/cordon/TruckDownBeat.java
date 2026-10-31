@@ -53,7 +53,10 @@ final class TruckDownBeat extends CordonBeat {
             int people = convoys.strand(sim, CONVOY, TRUCK);
             if (people <= 0) return Status.LAPSED;
             walkers = CordonWalkers.stand(sim, "Passenger", truck[2], truck[3], people);
-            int[] to = corridor.get(Math.max(0, convoys.gapIndex() - WALK_SHORT));
+            // They walk to the camp where there is one, else back through the gap.
+            CordonCamp camp = convoys.camp();
+            int[] to = camp != null ? new int[]{camp.centreX(), camp.centreY()}
+                    : corridor.get(Math.max(0, convoys.gapIndex() - WALK_SHORT));
             dest = CordonGround.nearestWalkable(sim.getGrid(), to[0], to[1]);
             convoys.walkedLost(people - walkers.spawned());
             if (dest == null) dest = to;
@@ -67,8 +70,14 @@ final class TruckDownBeat extends CordonBeat {
     void watch(BattleSimulation sim, int tick) {
         if (walkers == null) return;
         CordonConvoys convoys = beats.sequence().convoys();
-        walkers.walk(sim, dest[0], dest[1], (x, y) -> beats.behindLine(y) >= SAFE_ROWS);
-        convoys.walkedOut(walkers.out() - countedOut);
+        CordonCamp camp = convoys.camp();
+        if (camp != null) {
+            // Out once they reach the camp, where they wait with the others.
+            walkers.walk(sim, dest[0], dest[1], camp::contains, id -> convoys.arrived(sim, id));
+        } else {
+            walkers.walk(sim, dest[0], dest[1], (x, y) -> beats.behindLine(y) >= SAFE_ROWS);
+            convoys.walkedOut(walkers.out() - countedOut);
+        }
         convoys.walkedLost(walkers.lost() - countedLost);
         countedOut = walkers.out();
         countedLost = walkers.lost();
