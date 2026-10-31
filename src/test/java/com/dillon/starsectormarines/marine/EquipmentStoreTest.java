@@ -131,7 +131,7 @@ class EquipmentStoreTest {
 
         for (String part : BoatParts.offerable()) assertTrue(deck.knowsPart(part), part);
         for (MechPattern pattern : MechPattern.offerable()) assertTrue(EquipmentStore.known(
-                new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(), EquipmentStore.Shelf.LICENSE, 1), held),
+                new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(), EquipmentStore.Shelf.MARKET, 1), held),
                 pattern.id());
         assertEquals(0, purse.credits, "a cheat charges nothing");
         assertEquals(0, EquipmentStore.takeEverything(held, purse), "nothing is taught twice");
