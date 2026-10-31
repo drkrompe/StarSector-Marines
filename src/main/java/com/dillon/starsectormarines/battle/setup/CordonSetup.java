@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
+import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
@@ -31,6 +32,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonPosture;
+import com.dillon.starsectormarines.battle.cordon.CordonStagingArea;
 import com.dillon.starsectormarines.battle.cordon.CordonStrikes;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
@@ -60,6 +62,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -469,6 +472,31 @@ public final class CordonSetup {
         return logistics;
     }
 
+    /**
+     * The allies' air base ({@code cordon-nouns.md}, Air base): the wing's stands laid behind the logistics base (behind
+     * the middle of the line where there is none), clear of the corridor, the roads, the company's pads and the base's
+     * apron; {@code null} where the rear has no room, and the wing then flies in over the rear edge.
+     */
+    private static CordonAirBase airBase(BattleSimulation sim, CordonMap cordon, CordonLogistics logistics,
+                                         List<LandingPad> pads) {
+        int frontward = CordonFront.frontward(cordon.plan());
+        int anchorX = logistics != null ? logistics.doorX() : WIDTH / 2;
+        int anchorY = logistics != null ? logistics.doorY() : Math.round(CordonFront.lineY(cordon.plan()));
+        List<int[]> roads = new ArrayList<>();
+        if (cordon.map().roadGraph != null) {
+            for (RoadGraph.Edge edge : cordon.map().roadGraph.edges()) {
+                for (int i = 0; i < edge.length(); i++) roads.add(new int[]{edge.cellsX[i], edge.cellsY[i]});
+            }
+        }
+        List<int[]> keepOff = new ArrayList<>();
+        for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
+        if (logistics != null) {
+            keepOff.addAll(logistics.slots());
+            keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
+        }
+        return CordonAirBase.lay(sim, anchorX, anchorY, frontward, cordon.corridor(), roads, keepOff);
+    }
+
     private static final long BASE_SALT = 0x4C4F474953544943L;
     /** Technicians posted to the base's shed. */
     static final int BASE_CREW = 3;
@@ -572,8 +600,13 @@ public final class CordonSetup {
         sequence.attachArmour(armour);
         CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts, table);
         if (logistics != null) sequence.attachLogistics(logistics);
+        sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
-            CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
+            List<int[]> corridor = cordon.corridor();
+            CordonStagingArea staging = CordonStagingArea.at(sim, CordonCorridor.compound(cordon.plan()),
+                    corridor.get(corridor.size() - 1));
+            sequence.attachStaging(staging);
+            CordonConvoys convoys = convoys(sim, cordon, timetable, logistics, staging);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
             convoys.escortedBy(armour::convoyEscort);
@@ -716,7 +749,8 @@ public final class CordonSetup {
      * compound at the corridor's far end ({@code cordon-nouns.md}, Convoy, Cut-off town).
      */
     static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon,
-                                 CordonSequence.Timetable timetable, CordonLogistics base) {
+                                 CordonSequence.Timetable timetable, CordonLogistics base,
+                                 CordonStagingArea staging) {
         List<int[]> corridor = cordon.corridor();
         float line = CordonFront.lineY(cordon.plan());
         int frontward = CordonFront.frontward(cordon.plan());
@@ -739,8 +773,9 @@ public final class CordonSetup {
         CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
                 timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
         convoys.setTownMilitia(militia);
-        // The townspeople stand behind the militia, so the militia's cells are taken first.
-        convoys.standTownspeople(sim, frontward);
+        // The townspeople are trapped in the staging area, stood after the militia so the militia's cells are taken first.
+        if (staging != null && !staging.cells().isEmpty()) convoys.standTownspeople(sim, staging.cells());
+        else convoys.standTownspeople(sim, frontward);
         return convoys;
     }
 

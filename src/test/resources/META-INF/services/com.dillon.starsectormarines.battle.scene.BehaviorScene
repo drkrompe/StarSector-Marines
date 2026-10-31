@@ -90,6 +90,7 @@ com.dillon.starsectormarines.battle.mech.MechHullDownScene
 com.dillon.starsectormarines.battle.mech.MechVersusInfantryScene
 com.dillon.starsectormarines.battle.mech.PdBeamScene
 com.dillon.starsectormarines.battle.vehicle.TankVersusInfantryScene
+com.dillon.starsectormarines.battle.vehicle.RavsClawTankScene
 com.dillon.starsectormarines.battle.vehicle.TankVersusAirScene
 com.dillon.starsectormarines.battle.mech.MechDuelRangeScene
 com.dillon.starsectormarines.battle.mech.MechFrameEnduranceScene

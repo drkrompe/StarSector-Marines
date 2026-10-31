@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
+import com.dillon.starsectormarines.ops.CompletedReplays;
+import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -87,6 +89,8 @@ public final class MissionForceEnvelope {
      * jump required by its three simultaneous lanes and sustained ferry battle.
      */
     public static int recommendedSquads(Mission mission) {
+        DebugMissionCatalog.Scenario replay = CompletedReplays.scenario(mission);
+        if (replay != null) return replay.squads;
         if (ShepherdRecoveryCampaign.isBattle(mission)) return WorkingShipCompany.SQUADS;
         if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 || DistrictEscortCampaign.isBattle(mission)) return 2;

@@ -60,6 +60,19 @@ and as Restart inside Retreat's confirmation. One retry is free per visit to
 mission select; each further one spends a Starsector story point. Only story
 operations retry; contracts and recurring work settle every attempt.
 
+A **replay** re-flies a story chapter the company has already won. The mission
+board's "Replay Story Missions" lamp key (off by default, saved with the game) shows a
+**Company records** contact listing one replay per chapter won on that planet
+(the opening at the broker's office port such as Jangala, the supply route at its
+site, Working Ship on Asharu, Agreus on Agreus, each Corvus chapter on its own
+world); a chapter launches only from its own planet. The Khettara Bloom keeps
+its own replays and is not listed. A replay builds the chapter's
+battle off the arc's state, is flown by the company as it stands now, and on
+victory pays the chapter's credits (Working Passage, which paid none, pays Cold
+Start's). Personnel, losses and loot settle as for any operation; the arc's
+progress, story completion, awards, campaign marks and debriefs are untouched,
+and a replay does not retry.
+
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's
 campaign settlement is claimed once before writeback, so repeated exit input

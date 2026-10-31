@@ -253,6 +253,7 @@ com.dillon.starsectormarines.battle.evacuation.SwarmSpitterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BombardSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSoundLookSuite
+com.dillon.starsectormarines.ops.battleview.NonRavSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite
@@ -320,6 +321,7 @@ com.dillon.starsectormarines.battle.cordon.CordonGateLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonAirBaseLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
@@ -338,7 +340,7 @@ com.dillon.starsectormarines.battle.evacuation.EvacCordonLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidLookSuite
-com.dillon.starsectormarines.battle.airsupport.BurnObserversLookSuite
+com.dillon.starsectormarines.battle.airsupport.BurnAirLookSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerLookSuite
 com.dillon.starsectormarines.battle.evacuation.SpireSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmEmergenceLookSuite
@@ -385,3 +387,4 @@ com.dillon.starsectormarines.battle.power.WolfStrikeLookSuite
 com.dillon.starsectormarines.battle.tender.MorrowLookSuite
 com.dillon.starsectormarines.battle.tender.LocustFireBaseMockSuite
 com.dillon.starsectormarines.battle.weapon.WeaponReelSuite
+com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite

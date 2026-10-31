@@ -3,7 +3,7 @@
 python tools/generate_marine_barks.py [--id ID] --generate [--replace]
 python tools/generate_marine_barks.py --register     (levels, audio.json + sounds.json entries, offline)
 
-Barks are the background voice of the people in a fight with the Rav (colony-breach-nouns.md, Sound):
+Barks are the background voice of the people in a fight, with the Rav or with people and machines (colony-breach-nouns.md, Sound):
 shouts, cries and grunts heard in the mix, never hero lines. Each cast (the marines, the colony militia,
 the colonists) has its own voices and lines; every voice of a cast speaks every line of each of its
 kinds, one take each, so a take's ID is <prefix><cast prefix><kind>_<voice>_<line>, the grid

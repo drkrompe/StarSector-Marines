@@ -103,6 +103,24 @@ class PreparationGuideTest {
         }
     }
 
+    @Test void dockedLessonSitsInItsDocksCornerAndOtherwiseSearches() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var dock = new UiElement("quiet-corner").style("position: absolute; left: 600px; top: 200px; width: 700px; height: 600px;");
+            var document = new UiDocument(new UiElement("root").child(dock)).theme(fixedWidthTheme());
+            var docked = new boolean[]{true};
+            var guide = new PreparationGuide(document, () -> new PreparationGuide.Lesson(1, "TITLE", "One short line.",
+                    List.of(), null, null, 280, null, null, docked[0] ? "quiet-corner" : null), () -> {},
+                    new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                            List.of("data/ui/components/company/preparation-guide.mlx")));
+            document.layout(1920, 1080); guide.update();
+            assertEquals(612f, guide.calloutBounds().x(), .5f);
+            assertEquals(208f, guide.calloutBounds().y(), .5f);
+            dock.style("position: absolute; left: 600px; top: 200px; width: 300px; height: 600px;");
+            document.advance(0f); guide.update();
+            assertNotEquals(612f, guide.calloutBounds().x(), "A dock too small for the callout falls back to the search");
+        }
+    }
+
     /** Ten pixels a glyph, twenty a line: the shared theme fonts keep the game's metrics untouched. */
     private static UiTheme fixedWidthTheme() {
         var manifest = new StringBuilder("common lineHeight=20 base=16 scaleW=256 scaleH=256\npage id=0 file=\"test.png\"\n");

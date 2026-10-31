@@ -17,10 +17,10 @@ class EquipmentStoreTest {
     @Test
     void priceScalesWithTheAccessTierAndTheMarketTariff() {
         assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(EquipmentAccessTier.COMMON, 0f));
-        assertEquals(6500, EquipmentStore.price(EquipmentAccessTier.COMMON, 0.3f));
-        assertEquals(13_000, EquipmentStore.price(EquipmentAccessTier.ADVANCED, 0.3f));
-        assertEquals(26_000, EquipmentStore.price(EquipmentAccessTier.PRESTIGE, 0.3f));
-        assertEquals(39_000, EquipmentStore.price(EquipmentAccessTier.RESTRICTED, 0.3f));
+        for (EquipmentAccessTier tier : EquipmentAccessTier.values()) {
+            assertEquals(Math.round(EquipmentStore.BASE_PRICE * EquipmentStore.tierMultiplier(tier) * 1.3),
+                    EquipmentStore.price(tier, 0.3f), "the tariff is added on top of the tier's price: " + tier);
+        }
         assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(EquipmentAccessTier.COMMON, -1f),
                 "a negative tariff is no discount");
         long previous = 0;

@@ -57,8 +57,8 @@ public final class SecondWindLanceSnapshotSuite implements SnapshotSuite {
         for (long seed : new long[]{42, 81, 417, 2026, 987654}) {
             List<DeckGraph.Compartment> layout = null;
             List<String> previousBerths = List.of();
-            for (int count = 0; count <= 4; count++) {
-                var state = new ShipRestoration(true, count > 0, false, false, false, Math.max(0, count - 1));
+            for (int count : new int[]{0, ShipRestoration.RECOVERED_MECH_BERTHS, 3, 4}) {
+                var state = new ShipRestoration(true, count > 0, false, false, false, Math.max(0, count - 2));
                 var ship = hull.withRestoration(state);
                 var plan = ship.deckPlan();
                 // These are the pre-expansion envelope measured with the actual Cerberus outline.
@@ -124,7 +124,7 @@ public final class SecondWindLanceSnapshotSuite implements SnapshotSuite {
      * furniture reads and the crew at the deck clock above.
      */
     private static void reserves(SnapshotContext context, CompanyShip hull, List<SnapshotArtifact> frames) throws Exception {
-        var restored = new ShipRestoration(true, true, true, true, true, 3);
+        var restored = new ShipRestoration(true, true, true, true, true, 2);
         var open = restored.withOpenReserves(EnumSet.allOf(ReservedFacility.class));
         for (long seed : new long[]{42, 81, 417}) {
             List<DeckGraph.Compartment> sealedLayout = null;

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the townspeople stand in the compound and board the convoys one at a time
+Updated: 2026-10-31 — the townspeople are trapped in the town's staging area and board the convoys one at a time; the air wing flies off an allied air base in the rear, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -197,13 +197,44 @@ stand; the company never commands it.
 call air: each redoubt's garrison carries one radio, in its front wall team
 (the first team behind the slits facing the front), on a soldier other than its
 leader (`air-nouns.md`, Forward observer). Through it the military's **air
-wing** (two bombers and two fighters, flying in over the rear) strikes a swarm
+wing** (two bombers and two fighters, flying off the *Air base* below) strikes a swarm
 mass that observer has in sight, never within ten cells of an allied or company
 soldier, and never a Harrier pack overhead. Its officer reads the anti-air from
 the colonies the side has seen, so a mass in front of a bore whose colonies
 nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
 air; the columns, the street teams, the town's militia, the refugees and the
 company carry no radio onto the wing's net. Both variants, every density.
+
+**Air base** (`CordonAirBase`). Where the air wing lives: a row of four
+hardstands on open ground in the rear, sought some twenty-four cells behind the
+logistics base's machine door (behind the middle of the line where there is no
+base), on one level, clear of the corridor by eight cells, of the roads by four
+and of the company's pads and the base's apron by twelve, its stands six cells
+apart across the long axis, every nose toward the front. One stand for each
+airframe of the wing, bombers first (`AlliedAirWing.baseAt`), and the aircraft
+on them are the allies' own parked units: drawn, seen by the swarm and killable
+where they stand (`air-nouns.md`, A based pool). Every sortie the wing flies, an
+observer's call or the base's own, lifts off its stand and comes home to it to
+be rearmed and refuelled (about twenty-five seconds' turnaround, longer when it
+comes home shot up); one shot down is replaced on its stand after the wing's
+own time (a minute for a bomber, forty-five seconds for a fighter), and one
+burned where it stood leaves its hulk and the stand is out for the battle. A
+rear with no room for the row lays no base, and the wing flies in over the rear
+edge as before. Besides the observers' calls, the base's operations room tasks
+the wing's **own sorties**, allied command and never the player's: the first a
+minute in, then one at most every twenty seconds, with one airframe of each
+kind left on the apron for the radio. It strikes only what the side can fairly
+know, most urgent first: the swarm massed on a redoubt calling for relief (the
+call is radio, the bodies must be in an allied soldier's sight within thirty
+cells of that redoubt's middle), then the densest swarm mass some allied soldier
+sees, then a bore (known from the start; a bomber only, the bore nearest the
+redoubt worst off first). The airframe is the one the ground calls for
+(`AirTasking`), never a fighter against works or armour; never within the
+director's ten cells of a friendly soldier; nowhere struck in the last minute;
+and nowhere whose believed anti-air would cost more than the director's
+ceiling (the director's estimate, losses there in the last three minutes
+counted in), so the bores' unseen spore colonies take what they take. Both
+variants share it. UNTUNED throughout: air helps the line, it does not hold it.
 
 **Roving observer team** (`air-nouns.md`, Roving observer). Now and then the
 military sends a two-man observer team up from the rear. Its vantages are the
@@ -425,7 +456,7 @@ groups of six, two minutes apart, from the two rear villages in turn.
 line, where the people Colony Breach left behind are still holding out in its
 civil-defence compound with what is left of the militia (two teams, seated
 inside the gate). Its people are the Road's score. The **townspeople** are trapped
-civilians huddled in the town's staging area (with none laid, in the compound
+civilians huddled in the town's staging area, the open ground inside the gate (with none found, in the compound
 behind the militia, fourteen cells past the gate). They never walk off or flee
 on their own: one jostled off its place walks back to it. While a convoy loads they walk out to its trucks and **board** one at a time,
 each boarding taking one off the field and putting one more aboard that truck.
@@ -756,8 +787,7 @@ beacons and the briefing survey the same rows. On the Road the first is the
 relief convoys: beaconed at the gap, the town's gate and each convoy on the
 road, tallied as convoys out against the briefing's number, and saying which
 convoy is held and why (no escort near its trucks past the gap, or the swarm
-on the road ahead), and a loading convoy's townspeople aboard out of its
-seats. The second is the gap (on the Line, the line): the gap's
+on the road ahead). The second is the gap (on the Line, the line): the gap's
 redoubts and any redoubt calling, the redoubts lost against those allowed, and
 the window's time left. Each row's focus is where the company is wanted now:
 a held convoy, then one on the road, the gate while one loads, and the gap
@@ -813,6 +843,7 @@ with the same keys.
 | `column_entered_N` | the Line | OBSERVER_ONLY | The Nth allied column comes on at the rear edge |
 | `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches the logistics base (or, with no base, its redoubt) |
 | `carried_N` | both | PLAYER | The Nth squad a carrier took up from the base joins a redoubt |
+| `air_sortie_N` | both | OBSERVER_ONLY | The air base sends the Nth sortie of its own tasking (not an observer's call) |
 | `refugees_moving_N` | the Line | OBSERVER_ONLY | Refugee group N leaves its village |
 | `refugees_out_N` | the Line | OBSERVER_ONLY | Refugee group N is off the map |
 | `refugees_caught_N` | the Line | PLAYER | The swarm reaches refugee group N |

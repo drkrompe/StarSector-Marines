@@ -9,7 +9,11 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
+import it.unimi.dsi.fastutil.longs.Long2DoubleMap;
+import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -101,6 +105,14 @@ public final class FogOfWarService {
     private byte[] unitVisibility;
     private float[] fadeAlpha;
     private int unitCapacity;
+
+    /**
+     * Hulls keep no unit slot, so their sight is kept by entity id: the hulls the
+     * player sees this vision tick, and the alpha of each that has slipped out of
+     * sight and is still fading. A hull in neither is hidden.
+     */
+    private final LongOpenHashSet hullsInSight = new LongOpenHashSet();
+    private final Long2DoubleOpenHashMap hullFade = new Long2DoubleOpenHashMap();
 
     private final FogCohort[] cohorts = new FogCohort[COHORT_COUNT];
     private int cohortCursor = 0;
@@ -240,6 +252,28 @@ public final class FogOfWarService {
     public float getFadeAlpha(int denseIdx) {
         if (!initialized || denseIdx < 0 || denseIdx >= unitCapacity) return 1f;
         return fadeAlpha[denseIdx];
+    }
+
+    /**
+     * How much of a convoy hull the player's picture shows, as a unit's {@link #getFadeAlpha}:
+     * 1 in sight, falling to 0 as it slips out of sight, 0 hidden.
+     */
+    public float hullAlpha(long id) {
+        if (!initialized || hullsInSight.contains(id)) return 1f;
+        return (float) hullFade.get(id);
+    }
+
+    /**
+     * Whether a convoy hull is in the player's sight, on a unit's terms: a contributor
+     * side's hull always, any other while a revealed cell lies under its body.
+     */
+    private boolean isHullInSight(ConvoyService convoy, long id) {
+        if (!initialized || visionState.isContributor(convoy.faction(id))) return true;
+        GroundBody body = convoy.body(id);
+        if (isCellRevealed((int) Math.floor(body.x), (int) Math.floor(body.y))) return true;
+        if (bodyReveal() == BodyReveal.CENTRE) return false;
+        VehicleType type = convoy.vehicleType(id);
+        return anyCellRevealed(body.x, body.y, Math.max(type.drawnLengthCells, type.visualWidthCells) * 0.5f);
     }
 
     /**
@@ -384,6 +418,7 @@ public final class FogOfWarService {
             tickEphemeralSources();
             rebuildClearAirReveal(roster);
             sweepUnitVisibility(roster);
+            sweepHullVisibility(roster.convoy());
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
             // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
             if (!buildings.isEmpty()) {
@@ -411,6 +446,12 @@ public final class FogOfWarService {
                     unitVisibility[i] = VIS_HIDDEN;
                 }
             }
+        }
+        for (var it = hullFade.long2DoubleEntrySet().fastIterator(); it.hasNext(); ) {
+            Long2DoubleMap.Entry e = it.next();
+            double alpha = e.getDoubleValue() - decay;
+            if (alpha <= 0d) it.remove();
+            else e.setValue(alpha);
         }
     }
 
@@ -753,6 +794,21 @@ public final class FogOfWarService {
                 unitVisibility[i] = VIS_HIDDEN;
             }
         }
+    }
+
+    /** A hull that leaves sight starts its fade at full alpha; one that is gone from the convoy is forgotten. */
+    private void sweepHullVisibility(ConvoyService convoy) {
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long id = convoy.vehicleAt(i);
+            if (convoy.isPresent(id) && isHullInSight(convoy, id)) {
+                hullsInSight.add(id);
+                hullFade.remove(id);
+            } else if (hullsInSight.remove(id)) {
+                hullFade.put(id, 1d);
+            }
+        }
+        hullsInSight.removeIf(id -> !convoy.isVehicle(id));
+        hullFade.keySet().removeIf(id -> !convoy.isVehicle(id));
     }
 
     /** How far from its position a body's revealing part reaches, in cells, under {@code reveal}. */
