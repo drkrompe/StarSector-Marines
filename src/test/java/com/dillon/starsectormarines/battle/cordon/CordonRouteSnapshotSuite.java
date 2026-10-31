@@ -81,6 +81,12 @@ public final class CordonRouteSnapshotSuite implements SnapshotSuite {
                 near.refocus(town.right() + 22f, town.centreY() + front * 22f, 64f);
                 out.add(new SnapshotArtifact(tag + "04-town-alleys.png", near.render(sim,
                         "the alleys north-east of the compound at play zoom, 64 cells across", marks)));
+                // The same streets through the look preset, real ground and nothing drawn over it, for the owner.
+                BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
+                        town.right() + 22f, town.centreY() + front * 22f, 64f);
+                out.add(new SnapshotArtifact(tag + "05-town-look-play-zoom.png", look.render(sim, "")));
+                look.refocus(town.right() + 18f, town.centreY() + front * 18f, 170f);
+                out.add(new SnapshotArtifact(tag + "06-town-look-close.png", look.render(sim, "")));
             }
         }
         return out;

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ui.retained.headless;
 
 import com.dillon.starsectormarines.ops.MarineOpsUiViewport;
 import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotWorkers;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -693,8 +695,12 @@ public final class HeadlessUiRenderer {
         private volatile Map<SpriteTintKey, BufferedImage> previousTints = new ConcurrentHashMap<>();
         /** Source rectangles already cut, by image identity: a fresh subimage per draw cost Java2D a new surface and a disposer record every time. */
         private final Map<RegionKey, BufferedImage> regions = new ConcurrentHashMap<>();
-        private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
-                new IdentityHashMap<>();
+        /**
+         * The file each face's metrics were last installed from, by any renderer: faces are shared statics, so a
+         * renderer must reinstall one that another renderer, or an overlay, has since pointed at another file.
+         */
+        private static final Map<BitmapFont, Path> installedFonts =
+                Collections.synchronizedMap(new IdentityHashMap<>());
 
         /** Cuts beyond this many are dropped wholesale; a cut is a view onto its image, so it costs a header, not pixels. */
         private static final int MAX_REGIONS = 200_000;
@@ -760,8 +766,10 @@ public final class HeadlessUiRenderer {
             }
         }
 
+        /** Installs a face's manifest, again whenever a translation overlay opening or closing changes its file. */
         private void installFontMetrics(BitmapFont font) {
-            if (installedFonts.put(font, Boolean.TRUE) == null) {
+            Path source = resolve(font.sourcePath());
+            if (!source.equals(installedFonts.put(font, source))) {
                 font.installMetrics(readString(font.sourcePath()));
             }
         }
@@ -794,14 +802,15 @@ public final class HeadlessUiRenderer {
             if (text == null || text.isEmpty()) return;
             installFontMetrics(font);
             int alpha = Math.round(255f * clampAlpha(color.getAlpha() / 255f * alphaMult));
-            TintKey key = new TintKey(font.pagePath(), color.getRGB() & 0x00FFFFFF, alpha);
-            BufferedImage atlas = tintedFonts.computeIfAbsent(key,
-                    ignored -> tint(image(font.pagePath()), color, alpha));
             float cursor = x;
-            for (int index = 0; index < text.length(); index++) {
-                BitmapFont.Glyph glyph = font.glyph(text.charAt(index));
+            for (int index = 0; index < text.length(); index += Character.charCount(text.codePointAt(index))) {
+                BitmapFont.Glyph glyph = font.glyph(text.codePointAt(index));
                 if (glyph == null) continue;
-                if (glyph.w > 0 && glyph.h > 0) {
+                String page = font.pagePath(glyph.page);
+                if (glyph.w > 0 && glyph.h > 0 && page != null) {
+                    BufferedImage atlas = tintedFonts.computeIfAbsent(
+                            new TintKey(page, color.getRGB() & 0x00FFFFFF, alpha),
+                            ignored -> tint(image(page), color, alpha));
                     int dx1 = Math.round(cursor + glyph.xoffset * scaleX);
                     int dy1 = Math.round(y + glyph.yoffset * scaleY);
                     int dx2 = Math.round(dx1 + glyph.w * scaleX);
@@ -813,8 +822,18 @@ public final class HeadlessUiRenderer {
             }
         }
 
+        /**
+         * The file for {@code resourcePath}: an open translation overlay's first, as the game loads a translation
+         * mod after this one. Cached images are keyed by resource path, so an overlay adds files under new names
+         * (its fonts' CJK pages) rather than replacing images a renderer may already hold.
+         */
         private Path resolve(String resourcePath) {
             String local = resourcePath.replace('/', java.io.File.separatorChar);
+            Path overlay = HeadlessStrings.overlayRoot();
+            if (overlay != null) {
+                Path candidate = overlay.toAbsolutePath().normalize().resolve(local).normalize();
+                if (Files.isRegularFile(candidate)) return candidate;
+            }
             for (Path root : roots) {
                 Path candidate = root.resolve(local).normalize();
                 if (candidate.startsWith(root) && Files.isRegularFile(candidate)) return candidate;

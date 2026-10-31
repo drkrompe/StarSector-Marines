@@ -777,7 +777,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         for (int code : label.text().codePoints().toArray()) {
             var glyph = font.glyph(code);
             if (glyph == null) continue;
-            if (glyph.w > 0 && glyph.h > 0) context.sprite(font.pagePath(), null,
+            if (glyph.w > 0 && glyph.h > 0) context.sprite(font.pagePath(glyph.page), null,
                     x + glyph.xoffset + glyph.w / 2f, height - topY + glyph.yoffset + glyph.h / 2f,
                     glyph.w, glyph.h, 0, tint,
                     new CanvasSpriteRegion(glyph.x / (float) font.atlasWidth(), glyph.y / (float) font.atlasHeight(),

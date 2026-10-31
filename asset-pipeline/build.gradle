@@ -143,6 +143,26 @@ tasks.register('processReleaseAudio', JavaExec) {
     javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
 }
 
+// Bakes the zh_CN translation mod's CJK faces (GenerateCjkFontsTask) from the vanilla .fnt files
+// and the Noto Sans SC fonts in art-source/fonts/. The output is regenerated, never tracked.
+tasks.register('generateCjkFonts', JavaExec) {
+    description 'Bake CJK AngelCode font pages for the zh_CN translation mod'
+    group 'build'
+
+    classpath = sourceSets.tool.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.assets.pipeline.GenerateCjkFontsTask'
+
+    def recipeFile = file('src/tool/resources/fonts/zh_CN.json')
+    def starsectorCore = new File(rootProject.file(providers.gradleProperty('starsectorDir').get()), 'starsector-core')
+    inputs.file recipeFile
+    inputs.dir "${rootDir}/art-source/fonts"
+    inputs.file "${rootDir}/translations/zh_CN/data/strings/strings.json"
+    outputs.dir "${rootDir}/translations/zh_CN/graphics/fonts"
+    args rootDir.absolutePath, recipeFile.absolutePath, starsectorCore.absolutePath
+
+    javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
+}
+
 // Derives <sheet>_height.png / <sheet>_normal.png for terrain tile-sheet albedos
 // listed in src/tool/resources/tilemaps/tilemaps.json, written next to each source
 // sheet under mod/graphics/. See TileMapRecipeManifest for the manifest schema.
