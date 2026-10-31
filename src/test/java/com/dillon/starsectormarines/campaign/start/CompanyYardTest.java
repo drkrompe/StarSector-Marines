@@ -80,22 +80,22 @@ class CompanyYardTest {
                     "getScripts", List.of(script), "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, ui))));
             assertEquals(0, CompanyShipRestoration.state(ship).workingMechBerths());
             roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
-            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
             assertEquals(20000, credits.get());
             roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
-            assertEquals(1, CompanyShipRestoration.state(ship).workingMechBerths());
-            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
+            assertEquals(2, CompanyShipRestoration.state(ship).workingMechBerths(), "the recovery restores two berths");
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_4));
             credits.set(4999);
-            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
             credits.set(20000);
             ui.clear();
-            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
             owned.clear();
-            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_2));
+            assertNotNull(CompanyShipRestoration.repair(ship, roster, Work.MECH_BERTH_3));
             owned.add(ship);
-            int working = 1;
-            for (var work : new Work[]{Work.MECH_BERTH_2, Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
+            int working = 2;
+            for (var work : new Work[]{Work.MECH_BERTH_3, Work.MECH_BERTH_4}) {
                 assertNull(CompanyShipRestoration.repair(ship, roster, work));
                 working++;
                 assertEquals(working, CompanyShipRestoration.state(ship).workingMechBerths());
@@ -115,7 +115,7 @@ class CompanyYardTest {
                 assertEquals(working, CompanyShipRestoration.state(ship).workingMechBerths());
                 assertEquals(0, CompanyShipRestoration.paidMechBerths(saved, "other-hull"));
             }
-            assertEquals(5000, credits.get());
+            assertEquals(10000, credits.get());
             assertTrue(roster.mechBay().activeSquad().mechs().isEmpty(), "Yard repairs award no chassis");
         } finally { Global.setSector(previous); }
     }
