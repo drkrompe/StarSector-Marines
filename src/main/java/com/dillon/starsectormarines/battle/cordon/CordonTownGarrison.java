@@ -307,6 +307,11 @@ public final class CordonTownGarrison {
      * ({@code left..right} by {@code top..bottom}), each as {x, y, width} at its middle, in order round the ring.
      */
     public static List<int[]> gates(NavigationGrid grid, int left, int top, int right, int bottom) {
+        return gates((x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y), left, top, right, bottom);
+    }
+
+    /** The same over any walkable test: the map's grid, or the ground as the layout reads it. */
+    static List<int[]> gates(CordonCorridor.CellTest walkable, int left, int top, int right, int bottom) {
         List<int[]> ring = new ArrayList<>();
         int l = left - 1, t = top - 1, r = right + 1, b = bottom + 1;
         for (int x = l; x <= r; x++) ring.add(new int[]{x, t});
@@ -317,7 +322,7 @@ public final class CordonTownGarrison {
         List<int[]> run = new ArrayList<>();
         for (int i = 0; i <= ring.size(); i++) {
             int[] c = i < ring.size() ? ring.get(i) : null;
-            if (c != null && grid.inBounds(c[0], c[1]) && grid.isWalkable(c[0], c[1])) {
+            if (c != null && walkable.test(c[0], c[1])) {
                 run.add(c);
                 continue;
             }

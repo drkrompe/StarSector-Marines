@@ -111,6 +111,16 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                         BattleReviewFrameRenderer plain = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
                                 FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, across);
                         out.add(new SnapshotArtifact("look/" + tag + "town-compound.png", plain.render(sim, "")));
+                        // The compound with its approaches out past the sandbag lines, each line labelled with its facing.
+                        float wide = across + 2.5f * (CordonTownSandbags.TO + CordonTownSandbags.RETURN) * FRAME_W / (float) FRAME_H;
+                        near.refocus(town.centreX() + 0.5f, town.centreY() + 0.5f, wide);
+                        out.add(new SnapshotArtifact(tag + "12-town-sandbags.png",
+                                near.render(sim, "the " + name + ", " + biome.name().toLowerCase() + " seed " + seed
+                                        + ", the sandbag lines on the compound's approaches, each with the way it faces",
+                                        CordonReviewAnnotations.townSandbags(sim))));
+                        BattleReviewFrameRenderer approaches = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                FRAME_H, town.centreX() + 0.5f, town.centreY() + 0.5f, wide);
+                        out.add(new SnapshotArtifact("look/" + tag + "town-approaches.png", approaches.render(sim, "")));
                         // Each way in, at play zoom, and the town hard against the compound's east side and front.
                         List<int[]> gates = townGates(sim, town);
                         StringBuilder list = new StringBuilder();
