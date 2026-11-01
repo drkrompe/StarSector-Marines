@@ -1,6 +1,17 @@
 Starsector Marines - Changelog
 ==============================
 
+0.1.1-alpha (hotfix)
+--------------------
+  - Fixed: the game no longer fails to launch with Starsector Marines and
+    other mods enabled together (a SecurityException on startup).
+  - Fixed: with Nexerelin or another mod that ships its own weapon or hull
+    tables enabled, warships over a battle (the Onslaught, your fleet's
+    support ships) came up with no guns.
+  - Weapons from other mods fitted to your support ships now fire as the
+    closest base-game weapon of the same mount, size and role, so a modded
+    fit still arms the ship.
+
 0.1.0-alpha (first public alpha)
 --------------------------------
 First public build.

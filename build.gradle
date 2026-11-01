@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.dillon.starsectormarines'
-version = '0.1.0-alpha'
+version = '0.1.1-alpha'
 
 def starsectorDir = file(providers.gradleProperty('starsectorDir').get())
 def starsectorCore = new File(starsectorDir, 'starsector-core')

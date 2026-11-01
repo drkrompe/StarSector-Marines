@@ -1,4 +1,4 @@
-Starsector Marines 0.1.0-alpha
+Starsector Marines 0.1.1-alpha
 ==============================
 
 Run a mercenary marine company inside Starsector: named officers and squads,
