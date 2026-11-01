@@ -149,7 +149,7 @@ mod's copy and fonts in `opening-localization`, linted as `[zh_CN]` screens.
 Blocking a live zh_CN pass:
 
 - **Fonts in game.** `deployTranslation` installs the single-page faces; they
-  have loaded at launch but have not yet been read on screen in a running game.
+  have not yet been seen loading or on screen in a running game.
 - The planet-menu option "Marine operations" and other `rules.csv` text are
   outside the catalog and stay English.
 
