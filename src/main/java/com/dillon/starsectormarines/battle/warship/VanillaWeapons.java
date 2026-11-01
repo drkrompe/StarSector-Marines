@@ -6,14 +6,20 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Resolves a vanilla weapon id to a {@link VanillaWeapon}, through
  * {@link VanillaData}. A weapon that is not in the table is absent, not an
  * error: a hull armed with something unknown fires one gun fewer.
+ *
+ * <p>A weapon another mod adds resolves to its base-game stand-in
+ * ({@link WeaponStandIns}): the weapon returned is the stand-in, id and all,
+ * so everything read off it later (magazine, hints, role) is the stand-in's.
  */
 public final class VanillaWeapons {
 
@@ -21,6 +27,8 @@ public final class VanillaWeapons {
     private static final String TABLE = "data/weapons/weapon_data.csv";
 
     private static volatile Map<String, Map<String, String>> rows;
+    /** The base game's own weapon ids; null until read, and empty when unreadable (then nothing is swapped). */
+    private static volatile Set<String> baseIds;
     private static final Map<String, VanillaWeapon> CACHE = new ConcurrentHashMap<>();
     private static final VanillaWeapon ABSENT = VanillaWeapon.of("", Map.of(), null, null);
 
@@ -29,6 +37,7 @@ public final class VanillaWeapons {
     /** Forgets what was read, for a tool that has just changed where data comes from. */
     public static void clearCache() {
         rows = null;
+        baseIds = null;
         CACHE.clear();
     }
 
@@ -41,19 +50,56 @@ public final class VanillaWeapons {
     private static VanillaWeapon resolve(String id) {
         try {
             Map<String, String> row = table().get(id);
-            if (row == null) return ABSENT;
+            if (row == null) {
+                LOG.warn("VanillaWeapons: " + id + " is in no weapon table; its mount stays empty");
+                return ABSENT;
+            }
+            if (isBase(id)) return build(id, row);
             JSONObject wpn = optional("data/weapons/" + id + ".wpn");
             String projectileId = wpn == null ? null : wpn.optString("projectileSpecId", null);
-            JSONObject proj = projectileId == null ? null : projectile(projectileId);
-            JSONObject behaviour = proj == null ? null : proj.optJSONObject("behaviorSpec");
-            String warheadId = behaviour == null ? null : behaviour.optString("projectileSpec", null);
-            JSONObject warhead = warheadId == null || warheadId.isBlank() ? null
-                    : optional("data/weapons/proj/" + warheadId + ".proj");
-            return VanillaWeapon.of(id, row, wpn, proj, warhead);
+            String standIn = WeaponStandIns.standInFor(row, wpn, projectileId == null ? null : projectile(projectileId));
+            Map<String, String> standInRow = standIn == null ? null : table().get(standIn);
+            if (standInRow == null) {
+                LOG.info("VanillaWeapons: modded " + id + " has no stand-in; its mount stays empty");
+                return ABSENT;
+            }
+            LOG.info("VanillaWeapons: modded " + id + " fires as " + standIn);
+            return build(standIn, standInRow);
         } catch (Exception e) {
             LOG.warn("VanillaWeapons: " + id + " — " + e.getClass().getSimpleName() + ": " + e.getMessage());
             return ABSENT;
         }
+    }
+
+    private static VanillaWeapon build(String id, Map<String, String> row) {
+        JSONObject wpn = optional("data/weapons/" + id + ".wpn");
+        String projectileId = wpn == null ? null : wpn.optString("projectileSpecId", null);
+        JSONObject proj = projectileId == null ? null : projectile(projectileId);
+        JSONObject behaviour = proj == null ? null : proj.optJSONObject("behaviorSpec");
+        String warheadId = behaviour == null ? null : behaviour.optString("projectileSpec", null);
+        JSONObject warhead = warheadId == null || warheadId.isBlank() ? null
+                : optional("data/weapons/proj/" + warheadId + ".proj");
+        return VanillaWeapon.of(id, row, wpn, proj, warhead);
+    }
+
+    /** Whether the base game ships this weapon; every weapon counts when its table cannot be read. */
+    private static boolean isBase(String id) {
+        Set<String> ids = baseIds;
+        if (ids == null) {
+            ids = new HashSet<>();
+            try {
+                for (Map<String, String> row : VanillaData.baseCsv(TABLE)) {
+                    String rowId = row.get("id");
+                    if (rowId != null && !rowId.isBlank()) ids.add(rowId);
+                }
+            } catch (Exception e) {
+                LOG.warn("VanillaWeapons: the base weapon table would not read, so no modded weapon is stood in — "
+                        + e.getMessage());
+                ids.clear();
+            }
+            baseIds = ids;
+        }
+        return ids.isEmpty() || ids.contains(id);
     }
 
     /**

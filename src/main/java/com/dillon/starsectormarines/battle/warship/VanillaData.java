@@ -27,6 +27,14 @@ public final class VanillaData {
         JSONObject json(String path) throws Exception;
 
         List<Map<String, String>> csv(String path) throws Exception;
+
+        /**
+         * The table as the base game alone ships it, without any enabled mod's rows: what tells a
+         * stock weapon from a modded one. A source with no mods to merge has nothing to leave out.
+         */
+        default List<Map<String, String>> baseCsv(String path) throws Exception {
+            return csv(path);
+        }
     }
 
     /** The key column of every table read here (ship_data, weapon_data, wing_data), by which mods' rows merge. */
@@ -40,20 +48,27 @@ public final class VanillaData {
         @Override public List<Map<String, String>> csv(String path) throws Exception {
             // The table every enabled mod adds to, as the game merges it: loadCSV returns one file, so any mod
             // shipping its own weapon_data.csv (Nexerelin's holds two rows) would hide every vanilla weapon.
-            JSONArray rows = Global.getSettings().getMergedSpreadsheetData(ID_COLUMN, path);
-            List<Map<String, String>> out = new ArrayList<>();
-            for (int i = 0; i < rows.length(); i++) {
-                JSONObject row = rows.getJSONObject(i);
-                Map<String, String> map = new LinkedHashMap<>();
-                for (Iterator<?> keys = row.keys(); keys.hasNext(); ) {
-                    String key = (String) keys.next();
-                    map.put(key, row.optString(key, ""));
-                }
-                out.add(map);
-            }
-            return out;
+            return rows(Global.getSettings().getMergedSpreadsheetData(ID_COLUMN, path));
+        }
+
+        @Override public List<Map<String, String>> baseCsv(String path) throws Exception {
+            return rows(Global.getSettings().loadCSV(path, false));
         }
     };
+
+    private static List<Map<String, String>> rows(JSONArray rows) throws Exception {
+        List<Map<String, String>> out = new ArrayList<>();
+        for (int i = 0; i < rows.length(); i++) {
+            JSONObject row = rows.getJSONObject(i);
+            Map<String, String> map = new LinkedHashMap<>();
+            for (Iterator<?> keys = row.keys(); keys.hasNext(); ) {
+                String key = (String) keys.next();
+                map.put(key, row.optString(key, ""));
+            }
+            out.add(map);
+        }
+        return out;
+    }
 
     private static volatile Source source = GAME;
 
@@ -70,5 +85,10 @@ public final class VanillaData {
 
     public static List<Map<String, String>> csv(String path) throws Exception {
         return source.csv(path);
+    }
+
+    /** {@link Source#baseCsv}: the table without any mod's rows. */
+    public static List<Map<String, String>> baseCsv(String path) throws Exception {
+        return source.baseCsv(path);
     }
 }

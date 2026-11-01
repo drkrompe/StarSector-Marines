@@ -37,6 +37,15 @@ The game remains the authority for a hull's authored data; the mod chooses how
 that data reads in atmosphere and what role the resulting craft has in a
 mission.
 
+**A modded weapon fires as its base-game stand-in** (owner, 2026-11-01). A warship's
+weapon that the base game does not ship is replaced, look and all, by the base-game
+weapon of the same mount category, size and role (`WeaponStandIns`: beam, missile or
+gun; point defence; damage type; burst), so a player's fit from another mod still
+arms the hull while only weapons this mod has seen work fly; a modded weapon's
+scripted effects are never run. A mod that re-tunes a base-game weapon keeps that
+weapon with the mod's numbers, because the weapon tables are read merged across
+enabled mods. Each swap is logged once (`modded <id> fires as <stand-in>`).
+
 ## Core vocabulary
 
 **Remote ship command** selects a player-owned overhead hull without taking its helm.
