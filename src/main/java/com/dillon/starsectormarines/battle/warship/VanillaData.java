@@ -29,13 +29,18 @@ public final class VanillaData {
         List<Map<String, String>> csv(String path) throws Exception;
     }
 
+    /** The key column of every table read here (ship_data, weapon_data, wing_data), by which mods' rows merge. */
+    private static final String ID_COLUMN = "id";
+
     private static final Source GAME = new Source() {
         @Override public JSONObject json(String path) throws Exception {
             return Global.getSettings().loadJSON(path);
         }
 
         @Override public List<Map<String, String>> csv(String path) throws Exception {
-            JSONArray rows = Global.getSettings().loadCSV(path);
+            // The table every enabled mod adds to, as the game merges it: loadCSV returns one file, so any mod
+            // shipping its own weapon_data.csv (Nexerelin's holds two rows) would hide every vanilla weapon.
+            JSONArray rows = Global.getSettings().getMergedSpreadsheetData(ID_COLUMN, path);
             List<Map<String, String>> out = new ArrayList<>();
             for (int i = 0; i < rows.length(); i++) {
                 JSONObject row = rows.getJSONObject(i);
