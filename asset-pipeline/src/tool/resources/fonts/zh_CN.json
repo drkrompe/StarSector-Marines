@@ -1,5 +1,5 @@
 {
-  "_comment": "CJK faces for the zh_CN translation mod (GenerateCjkFontsTask). Each face keeps the vanilla .fnt's Latin glyphs, line metrics and page 0 (the game's own PNG, not shipped) and adds Noto Sans SC pages at the vanilla atlas size. size is the CJK em in pixels, chosen so the ideographic em box sits inside the vanilla line.",
+  "_comment": "CJK faces for the zh_CN translation mod (GenerateCjkFontsTask). Each face keeps the vanilla .fnt's Latin glyphs and line metrics and is one atlas: vanilla's page 0 at the origin, Noto Sans SC glyphs packed below (the game reads one page per face). size is the CJK em in pixels, chosen so the ideographic em box sits inside the vanilla line.",
   "fontDir": "art-source/fonts/noto-sans-sc",
   "output": "translations/zh_CN/graphics/fonts",
   "coverageFrom": ["translations/zh_CN/data/strings/strings.json"],

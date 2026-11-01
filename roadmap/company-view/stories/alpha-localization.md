@@ -134,20 +134,22 @@ Fonts: the translation mod replaces each retained-UI face in `Fonts` at its
 vanilla path (`graphics/fonts/<face>.fnt`). `GenerateCjkFontsTask`
 (`gradlew :asset-pipeline:generateCjkFonts`, recipe `zh_CN.json` in the
 asset pipeline's tool resources) keeps the vanilla face's Latin glyphs, line
-metrics, kerning and page 0, which still names the game's own PNG, and adds
-Noto Sans SC (SIL OFL 1.1, licence shipped beside the fonts) pages at the
-vanilla atlas size for GB2312 level 1, CJK punctuation, full-width forms and
-every character the translation's strings use. The generated faces and pages
-are ignored and regenerated, never tracked; `BitmapFont` reads multi-page
-manifests. Headless, `-Dsnapshot.translation=zh_CN` renders the translation
+metrics and kerning, and adds Noto Sans SC (SIL OFL 1.1, licence shipped
+beside the fonts) glyphs for GB2312 level 1, CJK punctuation, full-width forms
+and every character the translation's strings use. Each face is one page:
+vanilla's own loader reads a `.fnt` by line position and takes exactly one
+`page` line (a second is read as `chars count`, and launch fails), so vanilla's
+page 0 is copied to the origin of one power-of-two atlas with the CJK glyphs
+packed below it, and `GenerateCjkFontsTask.checkLoadable` holds every face to
+that shape. The translation runs only on the base game, whose font art it
+carries (owner). The generated faces and atlases are ignored and regenerated,
+never tracked. Headless, `-Dsnapshot.translation=zh_CN` renders the translation
 mod's copy and fonts in `opening-localization`, linted as `[zh_CN]` screens.
 
 Blocking a live zh_CN pass:
 
-- **Fonts in game.** `deployTranslation` installs the faces, but they have not
-  been seen in a running game: whether page 0 resolves to the game's own PNG
-  from the mod's copy of the `.fnt`, and whether vanilla's own text renderer,
-  which reads the same replaced files, takes 20-55 pages per face.
+- **Fonts in game.** `deployTranslation` installs the single-page faces; they
+  have loaded at launch but have not yet been read on screen in a running game.
 - The planet-menu option "Marine operations" and other `rules.csv` text are
   outside the catalog and stay English.
 

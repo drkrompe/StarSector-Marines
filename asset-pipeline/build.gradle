@@ -146,7 +146,7 @@ tasks.register('processReleaseAudio', JavaExec) {
 // Bakes the zh_CN translation mod's CJK faces (GenerateCjkFontsTask) from the vanilla .fnt files
 // and the Noto Sans SC fonts in art-source/fonts/. The output is regenerated, never tracked.
 tasks.register('generateCjkFonts', JavaExec) {
-    description 'Bake CJK AngelCode font pages for the zh_CN translation mod'
+    description 'Bake single-page CJK AngelCode fonts for the zh_CN translation mod'
     group 'build'
 
     classpath = sourceSets.tool.runtimeClasspath

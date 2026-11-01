@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import javax.imageio.ImageIO;
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -31,11 +32,13 @@ import java.util.regex.Pattern;
 /**
  * Bakes CJK AngelCode faces for a translation mod from the recipe at
  * {@code src/tool/resources/fonts/<locale>.json}. Each face starts from the vanilla {@code .fnt}
- * of the same name: its info, line metrics, Latin glyphs, kerning and page 0 (which still names
- * the game's own PNG, so vanilla art is never copied) stay as they are, and every code point the
- * recipe covers that vanilla lacks is rasterised from the recipe's font onto further pages of
- * vanilla's {@code scaleW x scaleH}, written as {@code <face>_zh_<n>.png} beside the new
- * {@code .fnt}. Pages store coverage in RGB and alpha alike, as the vanilla pages do.
+ * of the same name: its info, line metrics, Latin glyphs and kerning stay as they are, and every
+ * code point the recipe covers that vanilla lacks is rasterised from the recipe's font. The game
+ * loads one page per face, so vanilla's page 0 is copied to the origin of a single power-of-two
+ * atlas, {@code <face>_zh.png} beside the new {@code .fnt}, with the CJK glyphs packed below it
+ * (the translation runs only on the base game, whose font art it carries). The atlas stores
+ * coverage in RGB and alpha alike, as the vanilla pages do; {@link #checkLoadable} holds the
+ * output to the line order the game's loader reads.
  *
  * <p>Coverage is the GB2312 level-1 hanzi (rows 16-55), GB2312 symbol rows 1 and 3 (CJK
  * punctuation and full-width ASCII), the CJK Symbols and Punctuation block, and every non-ASCII
@@ -48,6 +51,7 @@ import java.util.regex.Pattern;
 public final class GenerateCjkFontsTask {
 
     private static final int SPACING = 1;
+    private static final int MAX_ATLAS = 4096;
     private static final Pattern KEY_VALUE = Pattern.compile("(\\w+)=(\"[^\"]*\"|\\S+)");
 
     public static void main(String[] args) throws Exception {
@@ -74,7 +78,7 @@ public final class GenerateCjkFontsTask {
             Font font = fonts.computeIfAbsent(face.get("font").asText(), file -> load(fontDir.resolve(file)))
                     .deriveFont((float) face.get("size").asInt());
             String vanilla = Files.readString(vanillaFonts.resolve(name + ".fnt"));
-            bake(name, vanilla, font, coverage, output);
+            bake(name, vanilla, vanillaFonts, font, coverage, output);
         }
     }
 
@@ -109,7 +113,8 @@ public final class GenerateCjkFontsTask {
 
     private record Raster(int codePoint, BufferedImage ink, int xoffset, int yoffset, int xadvance) {}
 
-    private static void bake(String name, String vanilla, Font font, TreeSet<Integer> coverage, Path output)
+    private static void bake(String name, String vanilla, Path vanillaFonts, Font font, TreeSet<Integer> coverage,
+                             Path output)
             throws IOException {
         List<String> info = new ArrayList<>(), pages = new ArrayList<>(), chars = new ArrayList<>(), rest = new ArrayList<>();
         String common = null;
@@ -144,46 +149,94 @@ public final class GenerateCjkFontsTask {
             rasters.add(rasterise(font, cp, base));
         }
 
-        // Shelf-pack in code point order onto pages 1..n; page 0 stays vanilla's.
-        List<BufferedImage> atlases = new ArrayList<>();
-        BufferedImage atlas = null;
-        int x = 0, y = 0, shelf = 0;
-        for (Raster r : rasters) {
+        // The game reads exactly one page, so vanilla's page sits at the atlas origin (its glyphs
+        // keep their x/y) and the CJK glyphs shelf-pack below it in code point order. The atlas
+        // is the narrowest power-of-two square-or-wider that holds them all.
+        BufferedImage vanillaPage = ImageIO.read(vanillaFonts.resolve(values(pages.get(0)).get("file").replace("\"", "")).toFile());
+        if (vanillaPage.getWidth() != scaleW || vanillaPage.getHeight() != scaleH) {
+            throw new IllegalStateException(name + ": page 0 is not scaleW x scaleH");
+        }
+        int width = Math.max(scaleW, 64), height;
+        List<int[]> placements;
+        while (true) {
+            placements = new ArrayList<>();
+            int x = 0, y = scaleH + SPACING, shelf = 0;
+            for (Raster r : rasters) {
+                int w = r.ink() == null ? 0 : r.ink().getWidth();
+                int h = r.ink() == null ? 0 : r.ink().getHeight();
+                if (x + w > width) { x = 0; y += shelf + SPACING; shelf = 0; }
+                placements.add(new int[] {x, y});
+                x += w + SPACING;
+                shelf = Math.max(shelf, h);
+            }
+            height = Math.max(Integer.highestOneBit(Math.max(y + shelf, scaleH) - 1) << 1, scaleH);
+            if (height <= width) break;
+            width <<= 1;
+        }
+        if (width > MAX_ATLAS) throw new IllegalStateException(name + ": atlas " + width + "x" + height + " exceeds " + MAX_ATLAS);
+
+        BufferedImage atlas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = atlas.createGraphics();
+        g.setComposite(AlphaComposite.Src);
+        g.drawImage(vanillaPage, 0, 0, null);
+        g.dispose();
+        for (int i = 0; i < rasters.size(); i++) {
+            Raster r = rasters.get(i);
+            int x = placements.get(i)[0], y = placements.get(i)[1];
             int w = r.ink() == null ? 0 : r.ink().getWidth();
             int h = r.ink() == null ? 0 : r.ink().getHeight();
-            if (atlas != null && x + w > scaleW) { x = 0; y += shelf + SPACING; shelf = 0; }
-            if (atlas == null || y + h > scaleH) {
-                atlas = new BufferedImage(scaleW, scaleH, BufferedImage.TYPE_INT_ARGB);
-                atlases.add(atlas);
-                x = 0; y = 0; shelf = 0;
-            }
             if (r.ink() != null) atlas.setRGB(x, y, w, h, r.ink().getRGB(0, 0, w, h, null, 0, w), 0, w);
-            chars.add(String.format("char id=%-5d x=%-5d y=%-5d width=%-5d height=%-5d xoffset=%-5d yoffset=%-5d xadvance=%-5d page=%d  chnl=15",
-                    r.codePoint(), x, y, w, h, r.xoffset(), r.yoffset(), r.xadvance(), atlases.size()));
-            x += w + SPACING;
-            shelf = Math.max(shelf, h);
+            chars.add(String.format("char id=%-5d x=%-5d y=%-5d width=%-5d height=%-5d xoffset=%-5d yoffset=%-5d xadvance=%-5d page=0  chnl=15",
+                    r.codePoint(), x, y, w, h, r.xoffset(), r.yoffset(), r.xadvance()));
         }
 
+        String file = name + "_zh.png";
         StringBuilder fnt = new StringBuilder();
         info.forEach(line -> fnt.append(line).append('\n'));
-        fnt.append(common.replaceFirst("pages=\\d+", "pages=" + (atlases.size() + 1))).append('\n');
-        fnt.append(pages.get(0)).append('\n');
-        try (var stale = Files.list(output)) {
-            for (Path old : stale.filter(p -> p.getFileName().toString().startsWith(name + "_zh_")).toList()) {
-                Files.delete(old);
-            }
-        }
-        for (int i = 0; i < atlases.size(); i++) {
-            String file = name + "_zh_" + (i + 1) + ".png";
-            fnt.append("page id=").append(i + 1).append(" file=\"").append(file).append("\"\n");
-            ImageIO.write(atlases.get(i), "png", output.resolve(file).toFile());
-        }
+        fnt.append(common.replaceFirst("scaleW=\\d+", "scaleW=" + width)
+                .replaceFirst("scaleH=\\d+", "scaleH=" + height)).append('\n');
+        fnt.append("page id=0 file=\"").append(file).append("\"\n");
         fnt.append("chars count=").append(chars.size()).append('\n');
         chars.forEach(line -> fnt.append(line).append('\n'));
         rest.forEach(line -> fnt.append(line).append('\n'));
+        checkLoadable(name, fnt.toString());
+
+        try (var stale = Files.list(output)) {
+            for (Path old : stale.filter(p -> p.getFileName().toString().startsWith(name + "_zh")).toList()) {
+                Files.delete(old);
+            }
+        }
+        ImageIO.write(atlas, "png", output.resolve(file).toFile());
         Files.writeString(output.resolve(name + ".fnt"), fnt.toString());
-        System.out.printf("%s: %d vanilla + %d CJK glyphs on %d new page(s) of %dx%d; %d not in %s%n",
-                name, vanillaChars.size(), rasters.size(), atlases.size(), scaleW, scaleH, missing, font.getFontName());
+        System.out.printf("%s: %d vanilla + %d CJK glyphs on one %dx%d page; %d not in %s%n",
+                name, vanillaChars.size(), rasters.size(), width, height, missing, font.getFontName());
+    }
+
+    /**
+     * Fails unless {@code fnt} has the shape Starsector 0.98a's loader reads by position: info,
+     * common, exactly one page, {@code chars count=N}, then N char lines. The loader ignores
+     * {@code pages=} and reads a second page line as the char count, so a multi-page face throws
+     * {@code NumberFormatException} at game launch.
+     */
+    static void checkLoadable(String name, String fnt) {
+        String[] lines = fnt.split("\\r?\\n");
+        String[] expected = {"info", "common", "page", "chars"};
+        for (int i = 0; i < expected.length; i++) {
+            if (lines.length <= i || !lines[i].startsWith(expected[i] + " ")) {
+                throw new IllegalStateException(name + ": line " + (i + 1) + " must be '" + expected[i]
+                        + "' (the game reads info, common, one page, chars in that order)");
+            }
+        }
+        if (!"1".equals(values(lines[1]).get("pages")) || !"0".equals(values(lines[2]).get("id"))) {
+            throw new IllegalStateException(name + ": the game reads exactly one page, id 0");
+        }
+        int count = Integer.parseInt(values(lines[3]).get("count"));
+        for (int i = 4; i < 4 + count; i++) {
+            if (lines.length <= i || !lines[i].startsWith("char ") || !"0".equals(values(lines[i]).get("page"))) {
+                throw new IllegalStateException(name + ": line " + (i + 1) + " must be a page-0 char ("
+                        + count + " declared)");
+            }
+        }
     }
 
     /** One glyph drawn white at {@code base} below the line top, cropped to its ink. */
