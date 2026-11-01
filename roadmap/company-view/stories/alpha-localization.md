@@ -146,10 +146,11 @@ carries (owner). The generated faces and atlases are ignored and regenerated,
 never tracked. Headless, `-Dsnapshot.translation=zh_CN` renders the translation
 mod's copy and fonts in `opening-localization`, linted as `[zh_CN]` screens.
 
+The single-page faces load and draw in a running game (owner, 2026-11-01); the
+translation ships as its own zip from 0.1.1-alpha.
+
 Blocking a live zh_CN pass:
 
-- **Fonts in game.** `deployTranslation` installs the single-page faces; they
-  have not yet been seen loading or on screen in a running game.
 - The planet-menu option "Marine operations" and other `rules.csv` text are
   outside the catalog and stay English.
 
