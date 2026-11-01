@@ -207,6 +207,13 @@ or a renderer is not a unit test and does not belong in `test`.
   `xstream-1.4.10.jar`, `fs.common_obf.jar`, all in
   `<starsectorDir>/starsector-core/`. API sources are in `starfarer.api.zip`
   there (unzip locally, never check in).
+- **The game refuses file access and reflection to mod code.** Its script
+  classloader throws `SecurityException` the first time shipped code naming
+  `java.io` (outside a stream/reader whitelist), `java.nio.file.File*`,
+  `java.lang.reflect`, `javax.script` or `java.util.prefs` runs, even just in
+  an `instanceof` or `catch`. Tests never see it. Read data through
+  `SettingsAPI`; `verifyScriptSandbox` (part of `check` and `packageRelease`;
+  run it directly when touching I/O or exception handling) holds the lists.
 - Logging: `Global.getLogger(Class)` (log4j 1.2), to
   `starsector-core/starsector.log`.
 - `BaseModPlugin` lifecycle: `onApplicationLoad` once before any save;

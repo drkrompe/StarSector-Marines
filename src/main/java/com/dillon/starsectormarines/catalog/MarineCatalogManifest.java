@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +69,9 @@ public record MarineCatalogManifest(
     }
 
     private static boolean isAbsentManifest(Exception failure) {
-        if (failure instanceof FileNotFoundException) return true;
+        // Matched by name: Starsector's script classloader refuses java.io.File* classes,
+        // so naming FileNotFoundException here throws SecurityException in game.
+        if (failure.getClass().getName().equals("java.io.FileNotFoundException")) return true;
         // Starsector 0.98a's provider-scoped SettingsAPI loader declares IOException,
         // but its missing-resource path actually throws this untyped RuntimeException.
         // Match the complete resource-specific shape so malformed JSON and unrelated

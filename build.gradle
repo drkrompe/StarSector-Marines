@@ -1332,6 +1332,91 @@ static Set<String> classEntries(FileCollection classpath) {
 
 tasks.named('check').configure { dependsOn tasks.named('verifyModJarBoundary') }
 
+// Starsector loads mod jars through a script classloader that refuses file
+// access and reflection: java.io outside a short stream/reader whitelist,
+// java.nio.file.File*, java.lang.reflect outside four type interfaces,
+// javax.script, java.util.prefs. A refused class throws SecurityException the
+// first time the code naming it runs -- only in game, never in tests -- so a
+// missing-manifest check naming FileNotFoundException crashed every launch with
+// another mod enabled. The lists below are read from the 0.98a loader
+// (com.fs.starfarer.loading.scripts.B). Only our own classes are checked: the
+// shaded libraries name refused classes on paths the mod never calls.
+tasks.register('verifyScriptSandbox') {
+    group = 'verification'
+    description = 'Fail if mod code names a class Starsector refuses to load for mods'
+    dependsOn tasks.named('shadowJar')
+
+    def shipped = tasks.named('shadowJar').flatMap { it.archiveFile }
+    inputs.file(shipped)
+
+    doLast {
+        Set<String> ioAllowed = [
+                'BufferedInputStream', 'BufferedReader', 'FilterInputStream', 'InputStreamReader',
+                'Reader', 'Serializable', 'InvalidClassException', 'ObjectStreamException',
+                'InputStream', 'IOException', 'PrintStream', 'PrintWriter', 'ByteArrayInputStream',
+                'FilterOutputStream', 'OutputStream', 'Closeable', 'Flushable', 'StringReader',
+                'FileReader'].collect { 'java/io/' + it } as Set
+        Set<String> reflectAllowed = ['AnnotatedElement', 'InvocationTargetException', 'Type',
+                'GenericDeclaration'].collect { 'java/lang/reflect/' + it } as Set
+        def refused = { String name ->
+            (name.startsWith('java/io/') && !ioAllowed.contains(name)) ||
+                    name.startsWith('java/nio/file/File') ||
+                    (name.startsWith('java/lang/reflect/') && !reflectAllowed.contains(name)) ||
+                    name.startsWith('javax/script/') || name.startsWith('java/util/prefs/') ||
+                    name == 'sun/reflect/misc/MethodUtil'
+        }
+        def javaName = ~/(?:java|javax|sun)\/[A-Za-z0-9_\/$]+/
+
+        Map<String, Set<String>> found = new TreeMap<>()
+        new java.util.zip.ZipFile(shipped.get().asFile).withCloseable { archive ->
+            archive.entries().each { entry ->
+                if (!entry.name.endsWith('.class')
+                        || !entry.name.startsWith('com/dillon/starsectormarines/')
+                        || entry.name.startsWith('com/dillon/starsectormarines/shaded/')) return
+                byte[] bytes = archive.getInputStream(entry).withCloseable { it.readAllBytes() }
+                constantPoolStrings(bytes).each { String text ->
+                    (text =~ javaName).each { String name ->
+                        if (refused(name)) found.computeIfAbsent(entry.name) { new TreeSet<>() }
+                                .add(name.replace('/', '.'))
+                    }
+                }
+            }
+        }
+        if (!found.isEmpty()) {
+            throw new GradleException("mod classes name classes Starsector's script "
+                    + "classloader refuses (SecurityException in game):\n  "
+                    + found.collect { cls, names -> cls + ' -> ' + names.join(', ') }.join('\n  '))
+        }
+        logger.lifecycle('Script sandbox clean: no mod class names a refused class.')
+    }
+}
+
+/** Every CONSTANT_Utf8 in a class file's constant pool: class names and descriptors among them. */
+static List<String> constantPoolStrings(byte[] bytes) {
+    def data = java.nio.ByteBuffer.wrap(bytes)
+    int count = data.getShort(8) & 0xFFFF
+    List<String> strings = []
+    int position = 10
+    for (int index = 1; index < count; index++) {
+        int tag = bytes[position] & 0xFF
+        switch (tag) {
+            case 1:
+                int length = data.getShort(position + 1) & 0xFFFF
+                strings.add(new String(bytes, position + 3, length, 'UTF-8'))
+                position += 3 + length
+                break
+            case [3, 4, 9, 10, 11, 12, 17, 18]: position += 5; break
+            case [5, 6]: position += 9; index++; break
+            case [7, 8, 16, 19, 20]: position += 3; break
+            case 15: position += 4; break
+            default: throw new GradleException('unknown constant pool tag ' + tag)
+        }
+    }
+    return strings
+}
+
+tasks.named('check').configure { dependsOn tasks.named('verifyScriptSandbox') }
+
 // Wire the shaded jar into the standard build lifecycle so `gradlew build`
 // produces the mod jar without needing to name `shadowJar` explicitly.
 tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
@@ -1411,7 +1496,8 @@ tasks.register('mergeTextureUsage', Exec) {
 tasks.register('packageRelease', Zip) {
     group = 'starsector'
     description = 'Zip the shippable mod into build/release/StarsectorMarines-<version>.zip'
-    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio',
+    dependsOn tasks.named('verifyModJarBoundary'), tasks.named('verifyScriptSandbox'),
+            ':asset-pipeline:processReleaseAudio',
             tasks.named('optimizePngs')
 
     def releaseSounds = layout.buildDirectory.dir("release/sounds").get().asFile
