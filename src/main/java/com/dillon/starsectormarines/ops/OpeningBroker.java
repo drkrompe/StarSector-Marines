@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.OpeningPort;
 import com.dillon.starsectormarines.campaign.start.OpeningPort.Use;
@@ -27,8 +28,7 @@ public final class OpeningBroker {
     public static Destination current() {
         SectorAPI sector = Global.getSector();
         PlanetAPI port = CerberusCompanyStart.destination();
-        if (sector != null && port != null
-                && OpeningPort.eligible(port.getMarket(), sector.getPlayerFaction(), Use.OFFICE)) return of(port);
+        if (port != null && OpeningPort.eligible(port.getMarket(), CampaignBackend.playerFaction(), Use.OFFICE)) return of(port);
         MarketAPI market = OpeningPort.resolve(sector, Use.OFFICE, CerberusCompanyStart.homeSystem());
         return market == null ? null : of(market.getPlanetEntity());
     }

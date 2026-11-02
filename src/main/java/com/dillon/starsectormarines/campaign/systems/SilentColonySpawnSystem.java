@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
 import com.dillon.starsectormarines.campaign.CampaignEvents;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -219,7 +220,7 @@ public final class SilentColonySpawnSystem implements CampaignSystem {
             }
             List<Site> result = new ArrayList<>();
             for (MarketAPI market
-                    : Global.getSector().getEconomy().getMarketsCopy()) {
+                    : CampaignBackend.markets()) {
                 int tier = eligibleTier(market);
                 if (tier > 0) result.add(new Site(market.getId(), tier));
             }

@@ -15,8 +15,8 @@ import java.util.UUID;
 public final class CompanyYard {
     private CompanyYard() { }
     public static boolean accessible(MarketAPI market) {
-        return MercenaryCompanyConversion.planetaryYard(market) && Global.getSector() != null
-                && market.getFaction() != null && !market.getFaction().isHostileTo(Global.getSector().getPlayerFaction());
+        return MercenaryCompanyConversion.planetaryYard(market)
+                && market.getFaction() != null && !market.getFaction().isHostileTo(CampaignBackend.playerFaction());
     }
     public static MarketAPI dockedMarket() {
         if (Global.getSector() == null || Global.getSector().getCampaignUI() == null) return null;

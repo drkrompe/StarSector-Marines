@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -29,7 +30,6 @@ import com.dillon.starsectormarines.ops.intel.IntelReader;
 import com.dillon.starsectormarines.ops.intel.PlanetIntel;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.dillon.starsectormarines.ops.mission.story.StoryMissionRegistry;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
@@ -323,8 +323,7 @@ public final class MissionGenerator {
         Random r = new Random(seed);
 
         int emitted = 0;
-        int currentDay = Global.getSector() != null
-                ? CampaignClock.day() : 0;
+        int currentDay = CampaignClock.day();
         for (int i = 0; i < state.contractCount && emitted < MAX_MISSIONS; i++) {
             if (!contractMissionAvailable(state, i, currentDay)) continue;
             if (state.contractPatronHouseId[i] != client.patronHouseId) continue;
@@ -359,9 +358,7 @@ public final class MissionGenerator {
         if (targetMarketSlot < 0) return null;
         String targetMarketStr = state.marketRegistry.get(targetMarketSlot);
         if (targetMarketStr == null) return null;
-        MarketAPI targetMarket = Global.getSector() != null
-                ? Global.getSector().getEconomy().getMarket(targetMarketStr)
-                : null;
+        MarketAPI targetMarket = CampaignBackend.market(targetMarketStr);
         if (targetMarket == null || targetMarket.getPrimaryEntity() == null) return null;
 
         String targetPlanetName = targetMarket.getPrimaryEntity().getName();
@@ -479,8 +476,8 @@ public final class MissionGenerator {
                                             int marketSlot) {
         String marketId = state != null
                 ? state.marketRegistry.get(marketSlot) : null;
-        if (marketId == null || Global.getSector() == null) return null;
-        MarketAPI market = Global.getSector().getEconomy().getMarket(marketId);
+        if (marketId == null) return null;
+        MarketAPI market = CampaignBackend.market(marketId);
         if (market == null) return null;
         if (market.getPrimaryEntity() != null
                 && market.getPrimaryEntity().getName() != null

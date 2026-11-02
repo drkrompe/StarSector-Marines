@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrisonEstimate;
@@ -13,7 +14,6 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.StationedStrength;
 import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
 import com.dillon.starsectormarines.campaign.polity.PolityGarrisonDoctrine;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
@@ -61,8 +61,8 @@ public final class TargetProfileResolver {
      * {@link TargetProfile#NEUTRAL} when there's nothing to read.
      */
     public static TargetProfile resolve(String targetPlanetName) {
-        if (targetPlanetName == null || Global.getSector() == null) return TargetProfile.NEUTRAL;
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        if (targetPlanetName == null) return TargetProfile.NEUTRAL;
+        for (MarketAPI market : CampaignBackend.markets()) {
             if (market == null || market.getPrimaryEntity() == null) continue;
             if (!targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
             return fromMarket(market);

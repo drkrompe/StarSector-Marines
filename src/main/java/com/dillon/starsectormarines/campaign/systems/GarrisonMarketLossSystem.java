@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -111,7 +112,7 @@ public final class GarrisonMarketLossSystem implements CampaignSystem {
 
     static String liveOwner(String marketId) {
         if (Global.getSector() == null || Global.getSector().getEconomy() == null) return null;
-        MarketAPI market = Global.getSector().getEconomy().getMarket(marketId);
+        MarketAPI market = CampaignBackend.market(marketId);
         if (market == null || market.isPlanetConditionMarketOnly()
                 || market.getFactionId() == null) {
             return NO_OWNER;
@@ -121,7 +122,7 @@ public final class GarrisonMarketLossSystem implements CampaignSystem {
 
     private static String liveFactionName(String factionId) {
         if (Global.getSector() == null) return null;
-        FactionAPI faction = Global.getSector().getFaction(factionId);
+        FactionAPI faction = CampaignBackend.faction(factionId);
         return faction != null ? faction.getDisplayName() : null;
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
@@ -102,8 +103,8 @@ public final class StarsectorLootCatalog {
 
     private static void addWeapons(List<LootCandidate> out, SettingsAPI settings,
                                    LootRollRequest request) {
-        FactionAPI faction = request.targetFactionId != null && Global.getSector() != null
-                ? Global.getSector().getFaction(request.targetFactionId)
+        FactionAPI faction = request.targetFactionId != null
+                ? CampaignBackend.faction(request.targetFactionId)
                 : null;
         Set<String> knownWeapons = faction != null ? faction.getKnownWeapons() : null;
         Collection<String> weaponIds = knownWeapons != null && !knownWeapons.isEmpty()

@@ -435,7 +435,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         for (int slot = 0; slot < s.marketRegistry.size(); slot++) {
             String marketId = s.marketRegistry.get(slot);
             if (marketId == null) continue;
-            MarketAPI m = Global.getSector().getEconomy().getMarket(marketId);
+            MarketAPI m = CampaignBackend.market(marketId);
             if (m == null) continue;
             if (m.getStarSystem() == playerSystem) slots.add(slot);
         }
@@ -639,7 +639,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         for (int slot : localSlots) {
             String marketId = state.marketRegistry.get(slot);
             MarketAPI market = marketId != null
-                    ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                    ? CampaignBackend.market(marketId) : null;
             if (market == null || market.isHidden()
                     || market.getPrimaryEntity() == null || market.getSize() < 3) {
                 continue;

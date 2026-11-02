@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -163,7 +164,7 @@ public final class StationedStrengthSystem implements CampaignSystem {
                     || Global.getSector().getEconomy() == null) {
                 return null;
             }
-            return Global.getSector().getEconomy().getMarket(marketId);
+            return CampaignBackend.market(marketId);
         }
     }
 }

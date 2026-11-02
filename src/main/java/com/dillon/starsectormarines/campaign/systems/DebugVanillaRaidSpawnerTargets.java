@@ -104,7 +104,7 @@ public final class DebugVanillaRaidSpawnerTargets {
                 || Global.getSector().getEconomy() == null) {
             return null;
         }
-        FactionAPI player = Global.getSector().getFaction(Factions.PLAYER);
+        FactionAPI player = CampaignBackend.faction(Factions.PLAYER);
         MarketAPI hostile = nearestSource(target, player, false);
         return hostile != null ? hostile : nearestSource(target, player, true);
     }
@@ -117,7 +117,7 @@ public final class DebugVanillaRaidSpawnerTargets {
 
         List<MarketAPI> markets = new ArrayList<>();
         List<Candidate> candidates = new ArrayList<>();
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        for (MarketAPI market : CampaignBackend.markets()) {
             if (!isRaidable(market) || market.isPlayerOwned()) continue;
             FactionAPI faction = market.getFaction();
             if (faction == null || faction == player) continue;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -74,7 +75,7 @@ public final class StrandedDetachmentSystem implements CampaignSystem {
                 || Global.getSector().getEconomy() == null) {
             return null;
         }
-        MarketAPI market = Global.getSector().getEconomy().getMarket(marketId);
+        MarketAPI market = CampaignBackend.market(marketId);
         return market != null ? market.getName() : null;
     }
 }

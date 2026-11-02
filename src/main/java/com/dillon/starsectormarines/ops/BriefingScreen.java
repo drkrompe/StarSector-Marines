@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import java.util.Locale;
@@ -637,8 +638,8 @@ public class BriefingScreen implements Screen {
 
     private static void putFactionIdentity(Map<String, Object> props, String role,
                                            String factionId) {
-        FactionAPI faction = factionId != null && !factionId.isBlank() && Global.getSector() != null
-                ? Global.getSector().getFaction(factionId) : null;
+        FactionAPI faction = factionId != null && !factionId.isBlank()
+                ? CampaignBackend.faction(factionId) : null;
         if (faction == null) return;
         BriefingViewModel.putFactionIdentity(props, role, faction.getDisplayName(), faction.getCrest());
     }

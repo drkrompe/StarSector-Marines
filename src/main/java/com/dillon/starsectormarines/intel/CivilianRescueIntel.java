@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
@@ -250,7 +251,7 @@ public final class CivilianRescueIntel extends BaseIntelPlugin {
         }
         String marketId = marketId(state, row);
         return marketId != null
-                ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                ? CampaignBackend.market(marketId) : null;
     }
 
     private static String marketId(CampaignState state, int row) {

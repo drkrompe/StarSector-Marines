@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
@@ -47,7 +48,7 @@ public final class HouseSeeder {
             return;
         }
 
-        List<MarketAPI> markets = Global.getSector().getEconomy().getMarketsCopy();
+        List<MarketAPI> markets = CampaignBackend.markets();
         Set<String> seededSystems = new HashSet<>();
 
         int t1 = 0;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -88,7 +89,7 @@ public final class InternalFlipGarrisonSystem implements CampaignSystem {
             if (marketSlot < 0 || !seenMarkets.add(marketSlot)) continue;
             String marketId = state.marketRegistry.get(marketSlot);
             MarketAPI market = marketId != null
-                    ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                    ? CampaignBackend.market(marketId) : null;
             if (market == null || market.getFactionId() == null) continue;
             String factionId = market.getFactionId();
             int factionSlot = state.factionRegistry.intern(factionId);

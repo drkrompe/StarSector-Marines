@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
@@ -292,7 +293,7 @@ public final class DeadLetterIntel extends BaseIntelPlugin {
         }
         String marketId = state.marketRegistry.get(state.eventMarketId[row]);
         return marketId != null
-                ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                ? CampaignBackend.market(marketId) : null;
     }
 
     private static String marketName(CampaignState state, int row) {

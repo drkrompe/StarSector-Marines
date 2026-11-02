@@ -30,7 +30,7 @@ public final class CerberusCompanyStart implements Script {
     private static final String DEPOT_KEY = "sm_preparation_depot";
     private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
     /** The start port, chosen once by {@link OpeningPort} when the start runs and kept. */
-    private static final String START_PORT_KEY = "sm_start_port_market";
+    public static final String START_PORT_KEY = "sm_start_port_market";
     /** The start port's planet, which outlives its market, so its system is known after the port is lost. */
     private static final String START_PLANET_KEY = "sm_start_port_planet";
     /** The replacement port the last crossing fuel was granted for, so each re-pick grants once. */
@@ -177,8 +177,8 @@ public final class CerberusCompanyStart implements Script {
     /** Whether the depot's port can no longer be reached. */
     public static boolean depotLost() {
         PreparationDepot depot = depot();
-        if (depot == null || Global.getSector().getEconomy() == null) return false;
-        return lost(Global.getSector().getEconomy().getMarket(depot.marketId()), Global.getSector().getPlayerFaction());
+        if (depot == null || !CampaignBackend.economyRunning()) return false;
+        return lost(CampaignBackend.market(depot.marketId()), CampaignBackend.playerFaction());
     }
     /** A port is lost when it is gone, decivilized, hidden or hostile; a disrupted spaceport is only closed. */
     static boolean lost(MarketAPI market, FactionAPI player) {
@@ -190,7 +190,7 @@ public final class CerberusCompanyStart implements Script {
     public static PlanetAPI depotPlanet() {
         PreparationDepot depot = depot();
         if (depot == null || depotLost()) return null;
-        return Global.getSector().getEconomy().getMarket(depot.marketId()).getPlanetEntity();
+        return CampaignBackend.market(depot.marketId()).getPlanetEntity();
     }
     public static void establishDepot(FleetMemberAPI member, MarketAPI market) {
         if (!member.getId().equals(startingShipId())) return;
@@ -204,20 +204,18 @@ public final class CerberusCompanyStart implements Script {
      * lost, or a save older than the lock) the {@link OpeningPort} order's yard. A lost depot points there too.
      */
     public static PlanetAPI destination() {
-        var sector = Global.getSector();
-        if (sector == null || sector.getEconomy() == null) return null;
         PlanetAPI depot = depotPlanet();
         if (depot != null) return depot;
-        Object locked = sector.getPersistentData().get(START_PORT_KEY);
+        Object locked = CampaignBackend.savedData() == null ? null : CampaignBackend.savedData().get(START_PORT_KEY);
         if (locked instanceof String id) {
-            MarketAPI market = sector.getEconomy().getMarket(id);
-            if (OpeningPort.eligible(market, sector.getPlayerFaction(), Use.YARD)) {
+            MarketAPI market = CampaignBackend.market(id);
+            if (OpeningPort.eligible(market, CampaignBackend.playerFaction(), Use.YARD)) {
                 // A lost depot sends the company back to the start port, which may be a system away.
                 if (depot() != null) provisionCrossing(market);
                 return market.getPlanetEntity();
             }
         }
-        MarketAPI market = OpeningPort.resolve(sector, Use.YARD, homeSystem());
+        MarketAPI market = OpeningPort.resolve(Global.getSector(), Use.YARD, homeSystem());
         if (market == null) return null;
         if (locked != null) provisionCrossing(market);
         return market.getPlanetEntity();

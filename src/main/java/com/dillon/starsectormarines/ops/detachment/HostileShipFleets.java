@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.fs.starfarer.api.Global;
@@ -62,7 +63,7 @@ public final class HostileShipFleets {
     }
 
     private static SectorEntityToken targetEntity(String planetName) {
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        for (MarketAPI market : CampaignBackend.markets()) {
             if (market == null || market.getPrimaryEntity() == null) continue;
             if (planetName.equals(market.getPrimaryEntity().getName())) return market.getPrimaryEntity();
         }

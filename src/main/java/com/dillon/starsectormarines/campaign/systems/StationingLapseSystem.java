@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AbsentDefenceResolution;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
@@ -219,9 +220,9 @@ public final class StationingLapseSystem implements CampaignSystem {
     static DefenceReport.Place livePlace(String marketId, String attackerFactionId) {
         if (Global.getSector() == null) return DefenceReport.Place.UNKNOWN;
         MarketAPI market = marketId != null && Global.getSector().getEconomy() != null
-                ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                ? CampaignBackend.market(marketId) : null;
         FactionAPI attacker = attackerFactionId != null
-                ? Global.getSector().getFaction(attackerFactionId) : null;
+                ? CampaignBackend.faction(attackerFactionId) : null;
         // The adjective form ("Pirate", "Hegemony") reads as "Pirate raiders"; the display
         // name would give "Pirates raiders".
         String attackerName = attacker == null ? null

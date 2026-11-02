@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.nexerelin;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
@@ -46,7 +47,7 @@ public final class NexInvasionSettlement {
         if (key == null) return Result.NOT_APPLIED;
         if (!NexInvasionLedger.claim(state, key.serial())) return Result.ALREADY_SETTLED;
         MarketAPI market = Global.getSector() != null
-                ? Global.getSector().getEconomy().getMarket(key.marketId()) : null;
+                ? CampaignBackend.market(key.marketId()) : null;
         if (market == null || !Nexerelin.isEnabled()) {
             LOG.warn("MarineOps: invasion " + missionId + " has no market or no Nexerelin to settle with");
             return Result.NOT_APPLIED;

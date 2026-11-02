@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.bloom;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.intel.RavBloomIntel;
 import com.fs.starfarer.api.Global;
@@ -66,7 +67,7 @@ public final class SectorBloomWorld implements BloomWorld {
     public BloomMarket market(String marketId) {
         MarketAPI market = live(marketId);
         if (market == null) return null;
-        return read(market, coreCentre(Global.getSector().getEconomy().getMarketsCopy()));
+        return read(market, coreCentre(CampaignBackend.markets()));
     }
 
     @Override

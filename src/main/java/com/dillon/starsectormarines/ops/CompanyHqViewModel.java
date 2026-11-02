@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
@@ -22,7 +23,6 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.dillon.starsectormarines.ops.HqActionItem.Action;
@@ -391,7 +391,7 @@ final class CompanyHqViewModel {
     }
 
     private static String factionCrest(String id) {
-        FactionAPI faction = Global.getSector() == null ? null : Global.getSector().getFaction(id);
+        FactionAPI faction = CampaignBackend.faction(id);
         return faction == null ? "" : faction.getCrest();
     }
 

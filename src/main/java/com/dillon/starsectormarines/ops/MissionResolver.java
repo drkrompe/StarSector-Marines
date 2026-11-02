@@ -845,7 +845,7 @@ public final class MissionResolver {
         float disruptDays = disruptionDaysFor(outcome.missionType);
         if (disruptDays <= 0f) return;
 
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        for (MarketAPI market : CampaignBackend.markets()) {
             if (market == null || market.getPrimaryEntity() == null) continue;
             if (!outcome.targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
             Industry industry = market.getIndustry(outcome.targetIndustryId);

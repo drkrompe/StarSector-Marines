@@ -46,6 +46,14 @@ class CampaignBackendBoundaryTest {
         assertEquals(new TreeSet<>(Set.of(BACKEND)), filesCalling("getScripts()"));
     }
 
+    @Test
+    void factionsAndMarketsAreAskedOfTheBackend() throws IOException {
+        Set<String> onlyTheBackend = new TreeSet<>(Set.of(BACKEND));
+        assertEquals(onlyTheBackend, filesCalling("Global.getSector().getFaction("));
+        assertEquals(onlyTheBackend, filesCalling("Global.getSector().getPlayerFaction()"));
+        assertEquals(onlyTheBackend, filesCalling("Global.getSector().getEconomy().getMarket"));
+    }
+
     private static Set<String> filesCalling(String call) throws IOException {
         try (Stream<Path> files = Files.walk(SOURCES)) {
             return files.parallel().filter(file -> file.toString().endsWith(".java"))

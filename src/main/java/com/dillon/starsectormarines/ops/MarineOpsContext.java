@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
@@ -42,7 +43,6 @@ import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
@@ -884,9 +884,7 @@ public class MarineOpsContext {
         Set<String> seen = new LinkedHashSet<>();
 
         // Player faction is used to look up relationships against everyone else.
-        FactionAPI player = Global.getSector() != null
-                ? Global.getSector().getPlayerFaction()
-                : null;
+        FactionAPI player = CampaignBackend.playerFaction();
 
         // 0. The debug client is not resolved here: the mission board lists it while the
         //    player's Debug key is on (Cheats), which can change while the board is open.
@@ -945,18 +943,14 @@ public class MarineOpsContext {
         }
 
         // 2. Independent broker — available when authored local work exists.
-        FactionAPI independent = Global.getSector() != null
-                ? Global.getSector().getFaction(Factions.INDEPENDENT)
-                : null;
+        FactionAPI independent = CampaignBackend.faction(Factions.INDEPENDENT);
         if (independent != null && seen.add(independent.getId())) {
             appendIfWorkExists(out, planet,
                     buildClient(independent, player, true));
         }
 
         // 3. Pirate contact — available when authored local work exists.
-        FactionAPI pirates = Global.getSector() != null
-                ? Global.getSector().getFaction(Factions.PIRATES)
-                : null;
+        FactionAPI pirates = CampaignBackend.faction(Factions.PIRATES);
         if (pirates != null && seen.add(pirates.getId())) {
             appendIfWorkExists(out, planet,
                     buildClient(pirates, player, true));
@@ -1110,9 +1104,7 @@ public class MarineOpsContext {
                     ? state.houseDisplayName[patronRow]
                     : ("house#" + patronId);
 
-            FactionAPI faction = (factionId != null && Global.getSector() != null)
-                    ? Global.getSector().getFaction(factionId)
-                    : null;
+            FactionAPI faction = factionId != null ? CampaignBackend.faction(factionId) : null;
             String crest = faction != null ? faction.getCrest() : null;
             RepLevel rep = (faction != null && player != null)
                     ? player.getRelationshipLevel(faction.getId())

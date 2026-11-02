@@ -20,7 +20,6 @@ import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -293,7 +292,7 @@ public final class DetachmentResolver {
      */
     public static boolean planetHasHeavyArmaments(String targetPlanetName) {
         if (targetPlanetName == null) return false;
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        for (MarketAPI market : CampaignBackend.markets()) {
             if (market == null || market.getPrimaryEntity() == null) continue;
             if (!targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
             return market.hasIndustry(Industries.HEAVYINDUSTRY)

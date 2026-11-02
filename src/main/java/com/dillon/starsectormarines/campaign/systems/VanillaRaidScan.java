@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -122,7 +123,7 @@ final class VanillaRaidScan {
                 || Global.getSector().getEconomy() == null) {
             return null;
         }
-        return Global.getSector().getEconomy().getMarket(marketId);
+        return CampaignBackend.market(marketId);
     }
 
     private static Set<String> marketIds(Collection<MarketAPI> markets) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
@@ -39,8 +40,8 @@ public final class SupplyRouteCampaign {
     public static OpeningBroker.Destination destination() {
         BrokenSupplyRouteProgress p = current();
         if (p == null) return OpeningBroker.current();
-        if (!p.readable() || Global.getSector() == null || Global.getSector().getEconomy() == null) return null;
-        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+        if (!p.readable()) return null;
+        for (MarketAPI market : CampaignBackend.markets()) {
             PlanetAPI planet = market.getPlanetEntity();
             if (planet != null && p.planetId().equals(planet.getId()) && accessible(market))
                 return new OpeningBroker.Destination(p.planetId(), p.planetName(), p.systemName(), planet);
@@ -49,8 +50,8 @@ public final class SupplyRouteCampaign {
     }
     private static boolean accessible(MarketAPI market) {
         return !market.isHidden() && !market.isPlayerOwned() && market.getSize() > 0
-                && market.getFaction() != null && (Global.getSector().getPlayerFaction() == null
-                || !market.getFaction().isHostileTo(Global.getSector().getPlayerFaction()));
+                && market.getFaction() != null && (CampaignBackend.playerFaction() == null
+                || !market.getFaction().isHostileTo(CampaignBackend.playerFaction()));
     }
     public static boolean atSite(PlanetAPI planet) {
         OpeningBroker.Destination destination = destination();

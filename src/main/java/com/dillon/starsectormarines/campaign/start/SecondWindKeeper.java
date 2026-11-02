@@ -224,7 +224,7 @@ public final class SecondWindKeeper extends BaseCampaignEventListener implements
     /** Whether this port can sell her back: she is lost, and it has a yard open to the company. */
     public static boolean buyBackOffered(MarketAPI market) {
         return loss() != null && Global.getSector() != null
-                && OpeningPort.eligible(market, Global.getSector().getPlayerFaction(), Use.YARD);
+                && OpeningPort.eligible(market, CampaignBackend.playerFaction(), Use.YARD);
     }
 
     /** Whether campaign missions can be flown now; see {@link SecondWindKeep#gate}. */

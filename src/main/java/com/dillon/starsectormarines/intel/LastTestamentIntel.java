@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.KingmakerTestament;
@@ -210,7 +211,7 @@ public final class LastTestamentIntel extends BaseIntelPlugin {
         }
         String marketId = state.marketRegistry.get(marketRegistryId);
         return marketId != null
-                ? Global.getSector().getEconomy().getMarket(marketId) : null;
+                ? CampaignBackend.market(marketId) : null;
     }
 
     private static String clean(String value) {

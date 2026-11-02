@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.bloom.BloomEnd;
 import com.dillon.starsectormarines.campaign.bloom.BloomStage;
@@ -191,7 +192,7 @@ public final class RavBloomIntel extends BaseIntelPlugin {
 
     private static MarketAPI market(String marketId) {
         if (Global.getSector() == null || Global.getSector().getEconomy() == null) return null;
-        return Global.getSector().getEconomy().getMarket(marketId);
+        return CampaignBackend.market(marketId);
     }
 
     private static String name(String marketId) {
