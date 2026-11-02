@@ -65,7 +65,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 /**
  * {@code gradlew playBattle}: the mod's real screens ({@link MarineOpsPanelPlugin}) in a window of their own, with no
  * game running. It opens
- * on the company's HQ over a stand-in campaign ({@link PlayCompany}), a mission runs through its real briefing, battle
+ * on the mission board at a stand-in Jangala ({@link PlayCompany}), a mission runs through its real briefing, battle
  * and results, or
  * {@code -Pbattle=<source>} jumps straight into one battle. It gives the screens what the game would: a window, a frame
  * loop, input events, settings, sound and saved data ({@code CampaignBackend}).
@@ -81,8 +81,10 @@ import static org.lwjgl.opengl.GL11.glViewport;
  *
  * <p>{@code -PplayScript=<file>} drives a run with no one at the keyboard, one line per step: {@code <seconds> move
  * <x> <y>}, {@code <seconds> click <x> <y> [right]}, {@code <seconds> key <NAME>} (an LWJGL key name),
- * {@code <seconds> shot <name>} (a PNG in {@code build/play-battle}), {@code <seconds> quit}, and {@code <seconds>
- * battle}, which holds the script until a battle is playing. Seconds count from the window opening, or from the last
+ * {@code <seconds> press <id>} (a control by its markup id, holding the script until it is there and enabled and
+ * shifting later steps by the wait), {@code <seconds> ids} (prints what can be pressed), {@code <seconds> shot <name>}
+ * (a PNG in {@code build/play-battle}), {@code <seconds> quit}, and {@code <seconds> battle}, which holds the script
+ * until a battle is playing. A control or battle that never comes ends the run with an error. Seconds count from the window opening, or from the last
  * battle starting to play; a named battle waits for that before its first step.
  */
 public final class PlayBattleMain {
@@ -93,23 +95,26 @@ public final class PlayBattleMain {
     private static final int DEFAULT_HEIGHT = 1080;
     /** A frame longer than this, a stall or a battle rebuild, is not played as time passing. */
     private static final float MAX_FRAME_SECONDS = 0.1f;
+    /** How long a script waits for a control to come and be enabled; a survey can take this long to prepare. */
+    private static final long PRESS_WAIT_NANOS = 60_000_000_000L;
+    private static final long BATTLE_WAIT_NANOS = 300_000_000_000L;
 
     private PlayBattleMain() {
     }
 
     /**
-     * Keeps routes on screens that can run here: a planet's own screens need a planet, so they land on the company's
-     * HQ. A battle named up front has no mission to settle: continuing from it ends the run instead.
+     * Keeps routes on screens that can run here: stationing and a colony need more of a world, so they land on
+     * the company's HQ. A battle named up front has no mission to settle: continuing from it ends the run instead.
      */
     private static final class Context extends MarineOpsContext {
         private static final Set<ScreenId> UNHOSTED =
-                EnumSet.of(ScreenId.MISSION_SELECT, ScreenId.STATIONING, ScreenId.POLITY_DOCTRINE);
+                EnumSet.of(ScreenId.STATIONING, ScreenId.POLITY_DOCTRINE);
 
         private final boolean direct;
         boolean finished;
 
         Context(boolean direct) {
-            super(null);
+            super(PlayCompany.jangala());
             this.direct = direct;
         }
 
@@ -176,12 +181,16 @@ public final class PlayBattleMain {
                 context.setBattleSimulation(sim);
                 context.goTo(ScreenId.BATTLE);
             } else {
-                context.goTo(ScreenId.COMPANY_HQ);
+                context.goTo(ScreenId.MISSION_SELECT);
             }
             MarineOpsPanelPlugin plugin = new MarineOpsPanelPlugin(context, null);
             PositionAPI position = position(size[0], size[1]);
             plugin.positionChanged(position);
-            plugin.setOnBack(() -> context.finished = true);
+            // The game's planet menu has no stand-in: the board, where the dialog opens, is where leaving a room lands.
+            plugin.setOnBack(() -> {
+                if (source != null || context.getCurrentScreen() == ScreenId.MISSION_SELECT) context.finished = true;
+                else context.goTo(ScreenId.MISSION_SELECT);
+            });
             play(plugin, position, context, input, sound, source, size, script);
             BattleSimulation last = context.getBattleSimulation();
             if (last != null) {
@@ -208,6 +217,8 @@ public final class PlayBattleMain {
         // With a battle named up front, a script's clock waits out its loading screen, as a `battle` step does later.
         boolean awaitingBattle = source != null;
         boolean quit = false;
+        PlayControls controls = new PlayControls();
+        long[] held = {0L};
         while (!quit && !context.finished && !Display.isCloseRequested()) {
             long now = System.nanoTime();
             float dt = Math.min((now - last) / 1e9f, MAX_FRAME_SECONDS);
@@ -221,11 +232,30 @@ public final class PlayBattleMain {
                     clockSince = now;
                 }
             }
+            if (awaitingBattle && !script.isEmpty()) {
+                if (held[0] == 0L) held[0] = now;
+                if (now - held[0] > BATTLE_WAIT_NANOS) throw new IllegalStateException("script waited for a battle that never played");
+            } else if (!awaitingBattle && held[0] != 0L && !script.isEmpty() && !script.peek().words()[0].equals("press")) {
+                held[0] = 0L;
+            }
             String shot = null;
-            while (!awaitingBattle && !script.isEmpty() && script.peek().seconds() <= (now - clockSince) / 1e9f) {
+            boolean pressed = false;
+            while (!awaitingBattle && !pressed && !script.isEmpty() && script.peek().seconds() <= (now - clockSince) / 1e9f) {
+                Step step = script.peek();
+                if (step.words()[0].equals("press") && !pressable(step.words()[1], controls, now, held)) break;
                 String[] words = script.poll().words();
                 switch (words[0]) {
                     case "battle" -> awaitingBattle = true;
+                    case "press" -> {
+                        int[] at = controls.find(words[1]);
+                        events.add(input.move(at[0], at[1], 0, 0));
+                        events.add(input.button(0, true, at[0], at[1]));
+                        events.add(input.button(0, false, at[0], at[1]));
+                        // What it waited for shifts the steps after it, so their times stay relative to it.
+                        clockSince = now - (long) (step.seconds() * 1e9f);
+                        pressed = true;
+                    }
+                    case "ids" -> System.out.println("[playBattle] " + context.getCurrentScreen() + ": " + controls.list());
                     case "move" -> events.add(input.move(Integer.parseInt(words[1]), Integer.parseInt(words[2]), 0, 0));
                     case "click" -> {
                         int x = Integer.parseInt(words[1]);
@@ -262,6 +292,7 @@ public final class PlayBattleMain {
                 }
             }
             plugin.processInput(events);
+            controls.frameDone();
             plugin.advance(dt);
             if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
@@ -271,6 +302,19 @@ public final class PlayBattleMain {
             Display.sync(60);
         }
         plugin.dismiss();
+    }
+
+    /** Whether a script's {@code press} can go ahead; a control that never comes ends the run saying what is there. */
+    private static boolean pressable(String id, PlayControls controls, long now, long[] held) {
+        if (controls.find(id) != null) {
+            held[0] = 0L;
+            return true;
+        }
+        if (held[0] == 0L) held[0] = now;
+        if (now - held[0] > PRESS_WAIT_NANOS) {
+            throw new IllegalStateException("script: nothing to press called " + id + "; pressable now: " + controls.list());
+        }
+        return false;
     }
 
     /** The state the game's UI hooks can rely on: a screen-sized, y-up orthographic view with alpha blending. */

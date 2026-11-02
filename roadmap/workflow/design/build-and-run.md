@@ -45,11 +45,11 @@ touch packaging.
 with no game booted, for a playtest in seconds rather than a launch and a campaign
 (`PlayBattleMain`). It hosts `MarineOpsPanelPlugin` itself, over a stand-in campaign
 (`PlayCompany`, through `CampaignBackend`): a veteran company aboard the converted
-Second Wind, docked at a port, with stores that do not run out, 10 million credits
-and the cheats on. It starts on the company's HQ, from which the rooms and, by Debug
-Missions, the catalog
-with every mission unlocked are all reachable, and a mission runs through its real
-briefing, with the debug kit and company choices, battle, debrief and back.
+Second Wind, docked at Jangala, with stores that do not run out, 10 million credits
+and the cheats on. It starts on the mission board, as the game does at a planet, and
+leaving a room comes back to it; leaving the board quits. Zoey Venn's story contracts
+run on the company itself, through settlement, rewards and the next chapter. Debug
+Missions opens the catalog with every mission unlocked, on disposable forces.
 `-Pbattle=<source>` jumps straight into one battle instead. It needs the install
 only for its jars, natives
 and vanilla assets, and no `deployMod`. Windows only for now: the game's Mac
@@ -67,10 +67,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
   Closing the window always quits.
-- **What is not there:** the stand-in has no planet, so the mission board and a
-  planet's stationing screens land on HQ. Nothing advances or saves: a run starts
-  over, and the clock stands at day zero. What else the rooms cannot yet read waits
-  on `campaign-backend.md`.
+- **What is not there:** stationing and a colony's screens land on HQ. Jangala is the
+  only world, with nothing on it the mission board does not read. The clock stands
+  at day zero and nothing saves: story progress holds for the run and a run starts
+  over. What else the rooms cannot yet read waits on `campaign-backend.md`.
 - **`-Pwindow=<w>x<h>`** changes the window from 1920x1080. A window as large as
   the desktop has no title bar. `-Dbattle.*` and `-Dmarines.*` switches are
   forwarded, so `-Dmarines.dev=true` gives the developer HUD.
@@ -78,7 +78,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   tasks' serial switches, and the player commands the company as in any played
   battle (`mission-command-nouns.md`).
 - **`-PplayScript=<file>`** drives a run unattended and takes screenshots into
-  `build/play-battle`; the format is on `PlayBattleMain`.
+  `build/play-battle`; the format is on `PlayBattleMain`. Prefer `press <id>`, a
+  control by its markup id, to pixel clicks: it waits for the control, respects
+  modals and fails naming what could be pressed. `ids` prints that list.
+  Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
 
 - **Sound** plays through OpenAL (`PlayBattleSound`), the game's own native and
   Vorbis library, from the clips `:asset-pipeline:processAudio` generates, so it

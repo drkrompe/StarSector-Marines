@@ -20,6 +20,20 @@ public final class StarsectorUiInputAdapter {
 
     private static final float WHEEL_PIXELS_PER_NOTCH = 53f;
 
+    /**
+     * Told which documents are taking input, for {@code playBattle}'s scripts to find a control by id. Never set in the
+     * game.
+     */
+    public interface Watcher {
+        void taking(UiDocument document, UiViewport viewport);
+    }
+
+    private static volatile Watcher watcher;
+
+    public static void watch(Watcher value) {
+        watcher = value;
+    }
+
     private final UiDocument document;
     private final UiViewport viewport;
 
@@ -32,6 +46,8 @@ public final class StarsectorUiInputAdapter {
     }
 
     public void process(List<InputEventAPI> events) {
+        Watcher told = watcher;
+        if (told != null) told.taking(document, viewport);
         if (events == null) return;
         for (InputEventAPI event : events) {
             // Starsector invalidates access to portions of an event after consume().

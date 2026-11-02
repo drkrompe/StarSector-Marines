@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
+import com.dillon.starsectormarines.campaign.start.OpeningPort;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
@@ -11,13 +12,24 @@ import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.FleetDataAPI;
+import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.PlanetSpecAPI;
+import com.fs.starfarer.api.campaign.RepLevel;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.loading.IndustrySpecAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
+import com.fs.starfarer.api.combat.StatBonus;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
+import com.fs.starfarer.api.fleet.MutableMarketStatsAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.RepairTrackerAPI;
+import com.fs.starfarer.api.util.DynamicStatsAPI;
 import com.fs.starfarer.api.util.MutableValue;
 
 import java.lang.reflect.Proxy;
@@ -28,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at a port,
+ * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at Jangala,
  * with a purse and
  * stores that do not run out, answered through {@link CampaignBackend}. Enough for the company's rooms to open with the
  * cheats on; it is not a simulation of the campaign, and nothing here advances or saves.
@@ -49,6 +61,8 @@ final class PlayCompany {
     private static final float MAX_CREW = 68f;
     private static final float CARGO = 75f;
     private static final float READINESS = 0.7f;
+    private static final String PORT_ID = "jangala_market";
+    private static final PlanetAPI JANGALA = newJangala();
 
     private PlayCompany() {
     }
@@ -70,8 +84,32 @@ final class PlayCompany {
         CampaignBackend.useSavedData(() -> saved);
         CampaignBackend.useCompanyFleet(() -> fleet);
         CampaignBackend.useSectorScripts(() -> scripts);
-        MarketAPI port = port();
+        MarketAPI port = JANGALA.getMarket();
+        saved.put(CerberusCompanyStart.START_PORT_KEY, PORT_ID);
         CampaignBackend.useDockedPort(() -> port);
+        CampaignBackend.useMarkets(new CampaignBackend.Markets() {
+            @Override public boolean running() {
+                return true;
+            }
+
+            @Override public List<MarketAPI> all() {
+                return List.of(port);
+            }
+
+            @Override public MarketAPI byId(String id) {
+                return PORT_ID.equals(id) ? port : null;
+            }
+        });
+        Map<String, FactionAPI> factions = new HashMap<>();
+        CampaignBackend.useFactions(new CampaignBackend.Factions() {
+            @Override public FactionAPI player() {
+                return byId("player");
+            }
+
+            @Override public FactionAPI byId(String id) {
+                return factions.computeIfAbsent(id, known -> faction(known, known));
+            }
+        });
     }
 
     private static CampaignFleetAPI fleet() {
@@ -97,13 +135,62 @@ final class PlayCompany {
         return stub(CargoAPI.class, cargo);
     }
 
-    /** A port the fleet stands docked at throughout, so the store and the yards are open. */
-    private static MarketAPI port() {
+    /**
+     * Jangala, where the fleet stands docked throughout: the company's first office, with a store and a yard. Hers is
+     * the only market and Corvus the only system.
+     */
+    static PlanetAPI jangala() {
+        return JANGALA;
+    }
+
+    private static PlanetAPI newJangala() {
+        Map<String, Object> industrySpec = new HashMap<>();
+        industrySpec.put("hasTag", (Answer) args -> "spaceport".equals(args[0]));
+        Map<String, Object> industry = new HashMap<>();
+        industry.put("getSpec", stub(IndustrySpecAPI.class, industrySpec));
+        industry.put("isFunctional", true);
+
         Map<String, Object> port = new HashMap<>();
-        port.put("getId", "play_port");
-        port.put("getName", "Stand-in Port");
+        port.put("getId", PORT_ID);
+        port.put("getName", "Jangala");
+        port.put("getSize", 6);
         port.put("getFactionId", "independent");
-        return stub(MarketAPI.class, port);
+        port.put("getFaction", faction("independent", "Independent"));
+        port.put("getIndustries", List.of(stub(Industry.class, industry)));
+        // What vanilla's own defender strength reads off a market, with nothing modifying it.
+        Map<String, Object> dynamic = new HashMap<>();
+        dynamic.put("getMod", new StatBonus());
+        port.put("getStats", stub(MutableMarketStatsAPI.class, Map.of("getDynamic", stub(DynamicStatsAPI.class, dynamic))));
+        port.put("getMemoryWithoutUpdate", stub(MemoryAPI.class, Map.of()));
+        MarketAPI market = stub(MarketAPI.class, port);
+
+        Map<String, Object> texture = new HashMap<>();
+        texture.put("getTexture", "graphics/planets/jungle.jpg");
+        Map<String, Object> planet = new HashMap<>();
+        planet.put("getId", OpeningPort.JANGALA);
+        planet.put("getName", "Jangala");
+        planet.put("getTypeId", "jungle");
+        planet.put("getMarket", market);
+        planet.put("getSpec", stub(PlanetSpecAPI.class, texture));
+        PlanetAPI jangala = stub(PlanetAPI.class, planet);
+        port.put("getPlanetEntity", jangala);
+        port.put("getPrimaryEntity", jangala);
+
+        Map<String, Object> corvus = new HashMap<>();
+        corvus.put("getBaseName", OpeningPort.CORVUS);
+        corvus.put("getName", OpeningPort.CORVUS);
+        corvus.put("getPlanets", List.of(jangala));
+        planet.put("getStarSystem", stub(StarSystemAPI.class, corvus));
+        return jangala;
+    }
+
+    private static FactionAPI faction(String id, String name) {
+        Map<String, Object> faction = new HashMap<>();
+        faction.put("getId", id);
+        faction.put("getDisplayName", name);
+        faction.put("getCrest", "graphics/factions/crest_neutral_traders.png");
+        faction.put("getRelationshipLevel", RepLevel.NEUTRAL);
+        return stub(FactionAPI.class, faction);
     }
 
     /** The hull she is, for reading her deck's outline off her file. Cerberus's data lives in warhound.ship. */
