@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.backend;
 
 import com.dillon.starsectormarines.campaign.CivilizedPort;
+import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -50,6 +51,12 @@ public final class CampaignBackend {
     /** The port the fleet is docked at, where the company can buy and fabricate. */
     public interface DockedPort {
         /** The civilized market the fleet could trade with now, or null. */
+        MarketAPI market();
+    }
+
+    /** The planet the fleet is docked at, where a yard can take the company's ship in hand. */
+    public interface YardPort {
+        /** The market of the planet the fleet is at now, or null. Whether its yard will serve the company is not asked here. */
         MarketAPI market();
     }
 
@@ -129,6 +136,7 @@ public final class CampaignBackend {
     private static volatile ShipYard shipYard =
             variantId -> Global.getFactory().createFleetMember(FleetMemberType.SHIP, variantId);
     private static volatile DockedPort dockedPort = CivilizedPort::dockedInDialog;
+    private static volatile YardPort yardPort = CompanyYard::planetInDialog;
     private static volatile Factions factions = GAME_FACTIONS;
     private static volatile Markets markets = GAME_MARKETS;
 
@@ -173,6 +181,16 @@ public final class CampaignBackend {
     /** Answers the docked port from {@code backend} from now on, for a host with no game running. */
     public static void useDockedPort(DockedPort backend) {
         dockedPort = backend;
+    }
+
+    /** {@link YardPort#market} of the installed backend. */
+    public static MarketAPI yardPort() {
+        return yardPort.market();
+    }
+
+    /** Answers the yard's planet from {@code backend} from now on, for a host with no game running. */
+    public static void useYardPort(YardPort backend) {
+        yardPort = backend;
     }
 
     /** {@link StarSystems#byName} of the installed backend. */

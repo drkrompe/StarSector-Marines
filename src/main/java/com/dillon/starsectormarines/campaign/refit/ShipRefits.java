@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.CompanyShipDesignation;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -29,8 +28,7 @@ public final class ShipRefits {
 
     /** Only the founding hull carries the tree; every other hull is neutral. */
     public static ShipCondition condition(FleetMemberAPI ship) {
-        if (ship == null || Global.getSector() == null
-                || CompanyBayRestoration.state(ship) == BoatBayState.NONE) return ShipCondition.NONE;
+        if (ship == null || CompanyBayRestoration.state(ship) == BoatBayState.NONE) return ShipCondition.NONE;
         return read(CampaignBackend.savedData(), ship.getId(),
                 ShipCondition.fabrication(CompanyWorkshopRestoration.state(ship)));
     }

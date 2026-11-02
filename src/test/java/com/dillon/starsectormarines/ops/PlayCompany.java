@@ -103,6 +103,7 @@ final class PlayCompany {
         CampaignBackend.useSectorScripts(() -> List.of(script, campaign));
         saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
         CampaignBackend.useDockedPort(() -> docked.getMarket());
+        CampaignBackend.useYardPort(() -> docked.getMarket());
         CampaignBackend.useStarSystems(SYSTEMS::get);
         CampaignBackend.useShipYard(PlayCompany::newShip);
         CampaignBackend.useMarkets(new CampaignBackend.Markets() {

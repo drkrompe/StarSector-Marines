@@ -19,11 +19,15 @@ public final class CompanyYard {
                 && market.getFaction() != null && !market.getFaction().isHostileTo(CampaignBackend.playerFaction());
     }
     public static MarketAPI dockedMarket() {
+        MarketAPI market = CampaignBackend.yardPort();
+        return accessible(market) ? market : null;
+    }
+    /** The game's answer to {@link CampaignBackend#yardPort}, read from the open interaction dialog. */
+    public static MarketAPI planetInDialog() {
         if (Global.getSector() == null || Global.getSector().getCampaignUI() == null) return null;
         InteractionDialogAPI dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         if (dialog == null || dialog.getInteractionTarget() == null || !(dialog.getInteractionTarget() instanceof PlanetAPI)) return null;
-        MarketAPI market = dialog.getInteractionTarget().getMarket();
-        return accessible(market) ? market : null;
+        return dialog.getInteractionTarget().getMarket();
     }
     public static String refusal(boolean owned, boolean compatible, boolean mothballed,
                                  boolean installed, boolean docked, float credits) {

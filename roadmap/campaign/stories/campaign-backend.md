@@ -28,6 +28,7 @@ and each gets a pass in the real game: much of this code has no headless coverag
 | Company fleet, with its purse and cargo | `getPlayerFleet`, then its members and cargo | Moved, but for six files that hold a sector or are a rule command |
 | Sector scripts | `getScripts`: the roster, campaign state and event presenter | Moved |
 | Docked port | `CivilizedPort.docked`: the store, and buying in the rooms | Moved |
+| Yard port | `CompanyYard.dockedMarket`: the planet whose yard repairs and refits the ship | Moved |
 | Factions | `getFaction`, `getPlayerFaction` | Moved, but for files that hold a sector of their own |
 | Markets | `getEconomy`, `getMarket`, `getMarketsCopy` | Moved, but for files that hold a sector of their own |
 | News | intel, `getCampaignUI` messages | Not started |

@@ -18,6 +18,7 @@ import com.fs.starfarer.api.fleet.FleetMemberType;
 import com.fs.starfarer.api.impl.campaign.tutorial.GalatianAcademyStipend;
 import com.fs.starfarer.api.util.Misc;
 import org.apache.log4j.Logger;
+import java.util.Map;
 
 /** Runs once, after vanilla's ordinary skip-tutorial setup, only for this selected start. */
 public final class CerberusCompanyStart implements Script {
@@ -128,14 +129,13 @@ public final class CerberusCompanyStart implements Script {
     }
 
     public static String startingShipId() {
-        if (Global.getSector() == null) return null;
-        Object id = CampaignBackend.savedData().get(SHIP_KEY);
-        return id instanceof String value ? value : null;
+        Map<String, Object> saved = CampaignBackend.savedData();
+        return saved != null && saved.get(SHIP_KEY) instanceof String value ? value : null;
     }
     /** The start port's market id, locked when the start ran, or null for an ordinary start or an older save. */
     public static String startPortMarketId() {
-        if (Global.getSector() == null) return null;
-        return CampaignBackend.savedData().get(START_PORT_KEY) instanceof String id ? id : null;
+        Map<String, Object> saved = CampaignBackend.savedData();
+        return saved != null && saved.get(START_PORT_KEY) instanceof String id ? id : null;
     }
     public static boolean pendingDesignation() {
         if (startingShipId() == null) return false;
