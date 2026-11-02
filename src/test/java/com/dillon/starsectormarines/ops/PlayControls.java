@@ -57,6 +57,17 @@ final class PlayControls {
         return null;
     }
 
+    /** The first of these controls that carries the class, or null with none on screen. */
+    String firstWithClass(String className, String... ids) {
+        for (Live each : live) {
+            for (String id : ids) {
+                UiElement control = find(each.document().root(), id);
+                if (control != null && control.hasClass(className)) return id;
+            }
+        }
+        return null;
+    }
+
     /** Every control that could be pressed now, for writing a script. */
     String list() {
         TreeSet<String> ids = new TreeSet<>();

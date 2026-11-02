@@ -312,11 +312,20 @@ public final class PlayBattleMain {
         boolean awaitingBattle = source != null;
         boolean quit = false;
         PlayControls controls = new PlayControls();
+        Deque<String> asked = new ArrayDeque<>();
         PlayDiagnosis.View view = new PlayDiagnosis.View() {
             @Override public BattleSimulation battle() { return host.battle(); }
             @Override public String screen() { return host.screen(); }
             @Override public String world() { return PlayCompany.docked().getName(); }
             @Override public String controls() { return controls.list(); }
+            @Override public String timeButton() {
+                return controls.firstWithClass("time-selected", "battle-time-pause", "battle-time-normal", "battle-time-double", "battle-time-quad");
+            }
+            @Override public boolean press(String id) {
+                if (controls.find(id) == null) return false;
+                asked.add(id);
+                return true;
+            }
         };
         long[] held = {0L};
         while (!quit && !host.finished() && !Display.isCloseRequested()) {
@@ -325,6 +334,16 @@ public final class PlayBattleMain {
             last = now;
 
             List<InputEventAPI> events = new ArrayList<>(input.poll());
+            for (String id; (id = asked.poll()) != null; ) {
+                int[] at = controls.find(id);
+                if (at == null) continue;
+                // The pointer goes back: someone is playing with it.
+                int x = input.pointerX(), y = input.pointerY();
+                events.add(input.move(at[0], at[1], 0, 0));
+                events.add(input.button(0, true, at[0], at[1]));
+                events.add(input.button(0, false, at[0], at[1]));
+                events.add(input.move(x, y, 0, 0));
+            }
             if (awaitingBattle) {
                 BattleSimulation battle = host.battle();
                 if (battle != null && battle.getSimTickIndex() > 0) {

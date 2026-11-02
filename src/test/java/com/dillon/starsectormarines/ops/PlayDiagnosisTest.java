@@ -42,6 +42,8 @@ class PlayDiagnosisTest {
             @Override public String screen() { return "BATTLE"; }
             @Override public String world() { return "Jangala"; }
             @Override public String controls() { return ""; }
+            @Override public String timeButton() { return null; }
+            @Override public boolean press(String id) { return false; }
         };
         try (PlayDiagnosis server = server()) {
             var response = call(server, "play_status", "{}");

@@ -116,13 +116,20 @@ claude mcp add --transport http --scope user play-battle http://127.0.0.1:47811/
   the commander's phase, the goal, the plan step by step and each member. `command`
   is every side's mission command and the objectives; `units [label=] [squad=]` every
   body's position, health, goal and order. Commands sent together see one tick.
-- **`battle_hitlog`**, the one write: switches the hit recorder that `hits` and
-  `hits-by` read. An observer; it changes nothing in the battle.
+- **`battle_pause`, `battle_resume [speed]`, `battle_run_to tick|by|beat [speed]`**, the
+  writes to the clock: they press the battle's own time buttons, as the player would, so
+  the HUD shows them and the player's hand wins (`PlayRunTo`). A run stops on the exact
+  tick: it pauses up to 8 ticks short, since a frame can run that many, and steps the
+  rest, which show no effects. A beat stops the frame it fired in. It only goes forward,
+  and the asynchronous defaults do not repeat, so to see one moment again exactly use
+  `battleProbe`.
+- **`battle_hitlog`**: switches the hit recorder that `hits` and `hits-by` read. An
+  observer; it changes nothing in the battle.
 
-There is no pause and no order: the owner has the pause key, and one call already sees
-one tick. Stepping commands (`advance`, `until`, `watch`, `topology` and the rest) are
-refused, because the window owns the clock; `BattleProbe` names the reads, so a new
-command stays refused until it is listed.
+There is no order: mission design asks, the player plays. Stepping commands in
+`battle_query` (`advance`, `until`, `watch`, `topology` and the rest) are refused, since a
+frame has no room for them; `BattleProbe` names the reads, so a new command stays refused
+until it is listed.
 
 Reads run on the host's own frame, between `advance` and `render`, on the thread that
 runs every tick; the HTTP thread only queues one and waits, up to 5 s. There is one HTTP
