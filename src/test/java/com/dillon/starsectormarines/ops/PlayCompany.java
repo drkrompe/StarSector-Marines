@@ -33,14 +33,16 @@ import com.fs.starfarer.api.util.DynamicStatsAPI;
 import com.fs.starfarer.api.util.MutableValue;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at Jangala,
+ * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at one of a few worlds,
  * with a purse and
  * stores that do not run out, answered through {@link CampaignBackend}. Enough for the company's rooms to open with the
  * cheats on; it is not a simulation of the campaign, and nothing here advances or saves.
@@ -61,8 +63,17 @@ final class PlayCompany {
     private static final float MAX_CREW = 68f;
     private static final float CARGO = 75f;
     private static final float READINESS = 0.7f;
-    private static final String PORT_ID = "jangala_market";
-    private static final PlanetAPI JANGALA = newJangala();
+    private static final String ARCADIA = "Arcadia";
+    private static final Map<String, StarSystemAPI> SYSTEMS = new LinkedHashMap<>();
+    private static final Map<String, List<PlanetAPI>> PLANETS = new HashMap<>();
+    /** The story's worlds, by the ids the mod finds them with; Jangala first, where a run starts. */
+    private static final List<PlanetAPI> WORLDS = List.of(
+            newWorld(OpeningPort.JANGALA, "Jangala", OpeningPort.CORVUS, "jungle", "graphics/planets/jungle.jpg"),
+            newWorld("asharu", "Asharu", OpeningPort.CORVUS, "desert", "graphics/planets/desert.jpg"),
+            newWorld("corvus_IIIb", "Warion", OpeningPort.CORVUS, "barren", "graphics/planets/barren00.jpg"),
+            newWorld("corvus_IIIa", "Garnir", OpeningPort.CORVUS, "cryovolcanic", "graphics/planets/cryovolcanic01.jpg"),
+            newWorld("agreus", "Agreus", ARCADIA, "barren", "graphics/planets/barren02.jpg"));
+    private static volatile PlanetAPI docked = WORLDS.get(0);
 
     private PlayCompany() {
     }
@@ -84,20 +95,20 @@ final class PlayCompany {
         CampaignBackend.useSavedData(() -> saved);
         CampaignBackend.useCompanyFleet(() -> fleet);
         CampaignBackend.useSectorScripts(() -> scripts);
-        MarketAPI port = JANGALA.getMarket();
-        saved.put(CerberusCompanyStart.START_PORT_KEY, PORT_ID);
-        CampaignBackend.useDockedPort(() -> port);
+        saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
+        CampaignBackend.useDockedPort(() -> docked.getMarket());
+        CampaignBackend.useStarSystems(SYSTEMS::get);
         CampaignBackend.useMarkets(new CampaignBackend.Markets() {
             @Override public boolean running() {
                 return true;
             }
 
             @Override public List<MarketAPI> all() {
-                return List.of(port);
+                return WORLDS.stream().map(PlanetAPI::getMarket).toList();
             }
 
             @Override public MarketAPI byId(String id) {
-                return PORT_ID.equals(id) ? port : null;
+                return all().stream().filter(market -> market.getId().equals(id)).findFirst().orElse(null);
             }
         });
         Map<String, FactionAPI> factions = new HashMap<>();
@@ -135,15 +146,21 @@ final class PlayCompany {
         return stub(CargoAPI.class, cargo);
     }
 
-    /**
-     * Jangala, where the fleet stands docked throughout: the company's first office, with a store and a yard. Hers is
-     * the only market and Corvus the only system.
-     */
-    static PlanetAPI jangala() {
-        return JANGALA;
+    /** The worlds a run can dock at. */
+    static List<PlanetAPI> worlds() {
+        return WORLDS;
     }
 
-    private static PlanetAPI newJangala() {
+    /** Where the fleet is docked, whose store and yard are open. */
+    static PlanetAPI docked() {
+        return docked;
+    }
+
+    static void dockAt(PlanetAPI world) {
+        docked = world;
+    }
+
+    private static PlanetAPI newWorld(String id, String name, String system, String type, String skin) {
         Map<String, Object> industrySpec = new HashMap<>();
         industrySpec.put("hasTag", (Answer) args -> "spaceport".equals(args[0]));
         Map<String, Object> industry = new HashMap<>();
@@ -151,8 +168,8 @@ final class PlayCompany {
         industry.put("isFunctional", true);
 
         Map<String, Object> port = new HashMap<>();
-        port.put("getId", PORT_ID);
-        port.put("getName", "Jangala");
+        port.put("getId", id + "_market");
+        port.put("getName", name);
         port.put("getSize", 6);
         port.put("getFactionId", "independent");
         port.put("getFaction", faction("independent", "Independent"));
@@ -165,23 +182,27 @@ final class PlayCompany {
         MarketAPI market = stub(MarketAPI.class, port);
 
         Map<String, Object> texture = new HashMap<>();
-        texture.put("getTexture", "graphics/planets/jungle.jpg");
+        texture.put("getTexture", skin);
         Map<String, Object> planet = new HashMap<>();
-        planet.put("getId", OpeningPort.JANGALA);
-        planet.put("getName", "Jangala");
-        planet.put("getTypeId", "jungle");
+        planet.put("getId", id);
+        planet.put("getName", name);
+        planet.put("getTypeId", type);
         planet.put("getMarket", market);
         planet.put("getSpec", stub(PlanetSpecAPI.class, texture));
-        PlanetAPI jangala = stub(PlanetAPI.class, planet);
-        port.put("getPlanetEntity", jangala);
-        port.put("getPrimaryEntity", jangala);
+        PlanetAPI world = stub(PlanetAPI.class, planet);
+        port.put("getPlanetEntity", world);
+        port.put("getPrimaryEntity", world);
 
-        Map<String, Object> corvus = new HashMap<>();
-        corvus.put("getBaseName", OpeningPort.CORVUS);
-        corvus.put("getName", OpeningPort.CORVUS);
-        corvus.put("getPlanets", List.of(jangala));
-        planet.put("getStarSystem", stub(StarSystemAPI.class, corvus));
-        return jangala;
+        List<PlanetAPI> neighbours = PLANETS.computeIfAbsent(system, known -> new ArrayList<>());
+        neighbours.add(world);
+        planet.put("getStarSystem", SYSTEMS.computeIfAbsent(system, known -> {
+            Map<String, Object> answers = new HashMap<>();
+            answers.put("getBaseName", known);
+            answers.put("getName", known);
+            answers.put("getPlanets", neighbours);
+            return stub(StarSystemAPI.class, answers);
+        }));
+        return world;
     }
 
     private static FactionAPI faction(String id, String name) {

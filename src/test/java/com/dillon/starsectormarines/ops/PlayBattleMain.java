@@ -8,7 +8,11 @@ import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.BasicConfigurator;
@@ -65,8 +69,8 @@ import static org.lwjgl.opengl.GL11.glViewport;
 /**
  * {@code gradlew playBattle}: the mod's real screens ({@link MarineOpsPanelPlugin}) in a window of their own, with no
  * game running. It opens
- * on the mission board at a stand-in Jangala ({@link PlayCompany}), a mission runs through its real briefing, battle
- * and results, or
+ * on the mission board at a stand-in Jangala ({@link PlayCompany}), and Back there opens {@link PlayWorldMenu} to
+ * move between worlds. A mission runs through its real briefing, battle and results, or
  * {@code -Pbattle=<source>} jumps straight into one battle. It gives the screens what the game would: a window, a frame
  * loop, input events, settings, sound and saved data ({@code CampaignBackend}).
  *
@@ -113,8 +117,8 @@ public final class PlayBattleMain {
         private final boolean direct;
         boolean finished;
 
-        Context(boolean direct) {
-            super(PlayCompany.jangala());
+        Context(PlanetAPI world, boolean direct) {
+            super(world);
             this.direct = direct;
         }
 
@@ -126,6 +130,99 @@ public final class PlayBattleMain {
             if (!direct) return super.beginBattleSettlement();
             finished = true;
             return false;
+        }
+    }
+
+    /**
+     * What is on screen: Marine Operations at a world, or the world menu between them. Leaving the board closes the
+     * dialog for the menu, as the game closes it for the campaign map; a fresh dialog opens at the next world.
+     */
+    private static final class Host {
+        private final PositionAPI position;
+        private final boolean direct;
+        private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, () -> this.finished = true);
+        private final TextureLease menuImages = TextureLedger.shared().lease("playBattle world menu");
+        private Context context;
+        private MarineOpsPanelPlugin plugin;
+        private PlanetAPI next;
+        private boolean leaving;
+        private boolean finished;
+
+        Host(PositionAPI position, boolean direct) {
+            this.position = position;
+            this.direct = direct;
+        }
+
+        void open(PlanetAPI world, BattleSimulation battle) {
+            PlayCompany.dockAt(world);
+            context = new Context(world, direct);
+            if (battle != null) {
+                context.setBattleSimulation(battle);
+                context.goTo(ScreenId.BATTLE);
+            } else {
+                context.goTo(ScreenId.MISSION_SELECT);
+            }
+            plugin = new MarineOpsPanelPlugin(context, null);
+            plugin.positionChanged(position);
+            // Leaving a room lands on the board, where the dialog opens; leaving the board closes it.
+            plugin.setOnBack(() -> {
+                if (direct) finished = true;
+                else if (context.getCurrentScreen() == ScreenId.MISSION_SELECT) leaving = true;
+                else context.goTo(ScreenId.MISSION_SELECT);
+            });
+        }
+
+        /** Between input and the next tick, never from inside a screen's own handler. */
+        private void settle() {
+            if (leaving) {
+                leaving = false;
+                plugin.dismiss();
+                plugin = null;
+                context = null;
+                UiSpriteCache.shared().enter(menuImages);
+                menu.attach(position, null, () -> { });
+            }
+            if (next != null) {
+                PlanetAPI world = next;
+                next = null;
+                menu.detach();
+                UiSpriteCache.shared().leave(menuImages);
+                open(world, null);
+            }
+        }
+
+        void processInput(List<InputEventAPI> events) {
+            if (plugin != null) plugin.processInput(events);
+            else menu.processInput(events);
+            settle();
+        }
+
+        void advance(float dt) {
+            if (plugin != null) plugin.advance(dt);
+            else menu.advance(dt);
+            settle();
+        }
+
+        void render() {
+            if (plugin != null) plugin.render(1f);
+            else menu.render(1f);
+        }
+
+        void close() {
+            if (plugin != null) {
+                plugin.dismiss();
+            } else {
+                menu.detach();
+                UiSpriteCache.shared().leave(menuImages);
+            }
+        }
+
+        boolean finished() {
+            return finished || context != null && context.finished;
+        }
+
+        BattleSimulation battle() {
+            return context == null ? null : context.getBattleSimulation();
         }
     }
 
@@ -147,7 +244,7 @@ public final class PlayBattleMain {
         InstalledVanillaData.install();
         InstalledWeaponSlots.install();
         PlayInput input = new PlayInput();
-        Global.setSettings(new PlayBattleSettings(List.of(project.resolve("mod"), core), Global.getSettings(),
+        Global.setSettings(new PlayBattleSettings(List.of(project.resolve("mod"), core, project.resolve("src/test/resources")), Global.getSettings(),
                 size[0], size[1], input::pointerX, input::pointerY).settings());
         Global.setSoundPlayer(PlayBattleSettings.silence());
         // What the mod plugin loads at application start for the voices. Without them a battle has no radio or subtitles.
@@ -176,23 +273,10 @@ public final class PlayBattleMain {
                         Float.parseFloat(System.getProperty("play.volume", "1")));
             }
             if (sound != null) Global.setSoundPlayer(sound);
-            Context context = new Context(source != null);
-            if (sim != null) {
-                context.setBattleSimulation(sim);
-                context.goTo(ScreenId.BATTLE);
-            } else {
-                context.goTo(ScreenId.MISSION_SELECT);
-            }
-            MarineOpsPanelPlugin plugin = new MarineOpsPanelPlugin(context, null);
-            PositionAPI position = position(size[0], size[1]);
-            plugin.positionChanged(position);
-            // The game's planet menu has no stand-in: the board, where the dialog opens, is where leaving a room lands.
-            plugin.setOnBack(() -> {
-                if (source != null || context.getCurrentScreen() == ScreenId.MISSION_SELECT) context.finished = true;
-                else context.goTo(ScreenId.MISSION_SELECT);
-            });
-            play(plugin, position, context, input, sound, source, size, script);
-            BattleSimulation last = context.getBattleSimulation();
+            Host host = new Host(position(size[0], size[1]), source != null);
+            host.open(PlayCompany.worlds().get(0), sim);
+            play(host, input, sound, source, size, script);
+            BattleSimulation last = host.battle();
             if (last != null) {
                 System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
                         + (last.isComplete() ? ", winner " + last.getWinner() : ", unfinished"));
@@ -209,8 +293,7 @@ public final class PlayBattleMain {
         System.exit(status);
     }
 
-    private static void play(MarineOpsPanelPlugin plugin, PositionAPI position, Context context, PlayInput input,
-                             PlayBattleSound sound, String source,
+    private static void play(Host host, PlayInput input, PlayBattleSound sound, String source,
                              int[] size, Deque<Step> script) throws Exception {
         long last = System.nanoTime();
         long clockSince = last;
@@ -219,14 +302,14 @@ public final class PlayBattleMain {
         boolean quit = false;
         PlayControls controls = new PlayControls();
         long[] held = {0L};
-        while (!quit && !context.finished && !Display.isCloseRequested()) {
+        while (!quit && !host.finished() && !Display.isCloseRequested()) {
             long now = System.nanoTime();
             float dt = Math.min((now - last) / 1e9f, MAX_FRAME_SECONDS);
             last = now;
 
             List<InputEventAPI> events = new ArrayList<>(input.poll());
             if (awaitingBattle) {
-                BattleSimulation battle = context.getBattleSimulation();
+                BattleSimulation battle = host.battle();
                 if (battle != null && battle.getSimTickIndex() > 0) {
                     awaitingBattle = false;
                     clockSince = now;
@@ -255,7 +338,7 @@ public final class PlayBattleMain {
                         clockSince = now - (long) (step.seconds() * 1e9f);
                         pressed = true;
                     }
-                    case "ids" -> System.out.println("[playBattle] " + context.getCurrentScreen() + ": " + controls.list());
+                    case "ids" -> System.out.println("[playBattle] " + (host.context == null ? "WORLDS" : host.context.getCurrentScreen()) + ": " + controls.list());
                     case "move" -> events.add(input.move(Integer.parseInt(words[1]), Integer.parseInt(words[2]), 0, 0));
                     case "click" -> {
                         int x = Integer.parseInt(words[1]);
@@ -281,27 +364,27 @@ public final class PlayBattleMain {
                     event.consume();
                     if (source != null) {
                         System.out.println("[playBattle] rebuilding " + source);
-                        context.setBattleSimulation(HeadlessBattles.build(source));
-                        plugin.positionChanged(position);
+                        host.context.setBattleSimulation(HeadlessBattles.build(source));
+                        host.plugin.positionChanged(host.position);
                         awaitingBattle = true;
-                    } else if (context.getCurrentScreen() == ScreenId.BATTLE) {
-                        context.setBattle(null, null, null);
-                        context.goTo(ScreenId.DEBUG_MISSIONS);
+                    } else if (host.context != null && host.context.getCurrentScreen() == ScreenId.BATTLE) {
+                        host.context.setBattle(null, null, null);
+                        host.context.goTo(ScreenId.DEBUG_MISSIONS);
                     }
                     last = System.nanoTime();
                 }
             }
-            plugin.processInput(events);
+            host.processInput(events);
             controls.frameDone();
-            plugin.advance(dt);
+            host.advance(dt);
             if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
-            plugin.render(1f);
+            host.render();
             if (shot != null) shot(size[0], size[1], shot);
             Display.update();
             Display.sync(60);
         }
-        plugin.dismiss();
+        host.close();
     }
 
     /** Whether a script's {@code press} can go ahead; a control that never comes ends the run saying what is there. */

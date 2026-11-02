@@ -45,10 +45,13 @@ touch packaging.
 with no game booted, for a playtest in seconds rather than a launch and a campaign
 (`PlayBattleMain`). It hosts `MarineOpsPanelPlugin` itself, over a stand-in campaign
 (`PlayCompany`, through `CampaignBackend`): a veteran company aboard the converted
-Second Wind, docked at Jangala, with stores that do not run out, 10 million credits
+Second Wind, docked at Jangala to begin with, with stores that do not run out, 10 million credits
 and the cheats on. It starts on the mission board, as the game does at a planet, and
-leaving a room comes back to it; leaving the board quits. Zoey Venn's story contracts
-run on the company itself, through settlement, rewards and the next chapter. Debug
+leaving a room comes back to it. Leaving the board opens a world menu (`PlayWorldMenu`,
+standing in for the campaign map) of the story's worlds in Corvus and Arcadia and who
+has work on each; picking one docks there and opens a fresh dialog, and Quit is there.
+Zoey Venn's story contracts run on the company itself, through settlement, rewards and
+the next chapter. Debug
 Missions opens the catalog with every mission unlocked, on disposable forces.
 `-Pbattle=<source>` jumps straight into one battle instead. It needs the install
 only for its jars, natives
@@ -67,8 +70,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
   Closing the window always quits.
-- **What is not there:** stationing and a colony's screens land on HQ. Jangala is the
-  only world, with nothing on it the mission board does not read. The clock stands
+- **What is not there:** stationing and a colony's screens land on HQ. The worlds have
+  nothing on them the mission board does not read, and there is no flight between them. The clock stands
   at day zero and nothing saves: story progress holds for the run and a run starts
   over. What else the rooms cannot yet read waits on `campaign-backend.md`.
 - **`-Pwindow=<w>x<h>`** changes the window from 1920x1080. A window as large as
