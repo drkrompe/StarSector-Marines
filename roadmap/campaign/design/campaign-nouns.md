@@ -136,6 +136,10 @@ campaign work. `moral-compass.md` owns the hidden record that can connect
 otherwise separate campaign choices without turning it into an optimisation
 surface.
 
+`CampaignBackend` is the seam where screens and rules reach the running campaign, so
+a host with no game can answer them. Which families have moved is in
+`campaign-backend.md`.
+
 ## Laws
 
 - A campaign extension must name its authoritative persisted fact, its terminal

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
@@ -41,7 +42,7 @@ public final class CompanyShipRestoration {
         if (CompanyBayRestoration.state(ship) == BoatBayState.NONE) return ShipRestoration.NONE;
         var script = MarineRosterScript.getInstance();
         var roster = script == null ? null : script.roster();
-        var data = Global.getSector().getPersistentData();
+        var data = CampaignBackend.savedData();
         return new ShipRestoration(true, mechBayRestored(roster),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.BILLETS)),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.POWER)),
@@ -95,7 +96,7 @@ public final class CompanyShipRestoration {
         var offer = offer(ship, roster, work);
         if (offer.refusal() != null) return offer.refusal();
         Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(work.price);
-        Global.getSector().getPersistentData().put(KEY + ship.getId() + work, true);
+        CampaignBackend.savedData().put(KEY + ship.getId() + work, true);
         return null;
     }
 }

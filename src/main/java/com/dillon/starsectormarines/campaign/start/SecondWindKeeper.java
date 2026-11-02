@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.OpeningPort.Use;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeep.Action;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeep.Cause;
@@ -216,7 +217,7 @@ public final class SecondWindKeeper extends BaseCampaignEventListener implements
     /** Her loss while she is gone and waiting to be bought back, else null. */
     public static SecondWindLoss loss() {
         if (Global.getSector() == null) return null;
-        Object loss = Global.getSector().getPersistentData().get(LOSS_KEY);
+        Object loss = CampaignBackend.savedData().get(LOSS_KEY);
         return loss instanceof SecondWindLoss value ? value : null;
     }
 
@@ -270,7 +271,7 @@ public final class SecondWindKeeper extends BaseCampaignEventListener implements
     // ---- helpers --------------------------------------------------------------------------------------------
 
     private void remember(FleetMemberAPI ship, CargoAPI cargo) {
-        Map<String, Object> data = Global.getSector().getPersistentData();
+        Map<String, Object> data = CampaignBackend.savedData();
         if (data.get(REMEMBERED_KEY) != ship) data.put(REMEMBERED_KEY, ship);
         tag(ship);
         casualty = false;
@@ -375,7 +376,7 @@ public final class SecondWindKeeper extends BaseCampaignEventListener implements
     }
 
     private static FleetMemberAPI remembered() {
-        Object ship = Global.getSector().getPersistentData().get(REMEMBERED_KEY);
+        Object ship = CampaignBackend.savedData().get(REMEMBERED_KEY);
         return ship instanceof FleetMemberAPI member ? member : null;
     }
 

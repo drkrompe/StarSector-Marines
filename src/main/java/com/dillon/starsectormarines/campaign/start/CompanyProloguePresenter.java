@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.ops.CompanyPrologueDialog;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.GameState;
@@ -16,7 +17,7 @@ public final class CompanyProloguePresenter implements EveryFrameScript {
     }
 
     @Override public boolean isDone() {
-        return Global.getSector() == null || !CompanyPrologue.pending(Global.getSector().getPersistentData());
+        return Global.getSector() == null || !CompanyPrologue.pending(CampaignBackend.savedData());
     }
     @Override public boolean runWhilePaused() { return true; }
     @Override public void advance(float amount) {

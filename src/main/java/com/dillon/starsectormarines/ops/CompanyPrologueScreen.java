@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.cinematic.ArrivalCinematic;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
@@ -26,21 +27,21 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     @Override protected Map<String, Object> props() {
         var planet = CerberusCompanyStart.destination();
         var cargo = Global.getSector().getPlayerFleet().getCargo();
-        return model(CompanyPrologue.page(Global.getSector().getPersistentData()),
+        return model(CompanyPrologue.page(CampaignBackend.savedData()),
                 planet == null ? null : planet.getName(),
                 planet != null && "jangala".equals(planet.getId()) && ArrivalCinematic.available(),
                 cargo.getCrew(), (int) cargo.getCredits().get(), CompanyYard.reservedCredits(CerberusCompanyStart.startingShip()),
                 this::next, this::back, this::finish);
     }
     private void next() {
-        var saved = Global.getSector().getPersistentData();
+        var saved = CampaignBackend.savedData();
         int page = CompanyPrologue.page(saved);
         if (page == CompanyPrologue.PAGE_COUNT - 1) { finish(); return; }
         CompanyPrologue.moveTo(saved, page + 1);
         rebuildDocument();
     }
     private void back() {
-        var saved = Global.getSector().getPersistentData();
+        var saved = CampaignBackend.savedData();
         CompanyPrologue.moveTo(saved, CompanyPrologue.page(saved) - 1);
         rebuildDocument();
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.cinematic;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
 import com.fs.starfarer.api.Global;
@@ -32,7 +33,7 @@ public final class ArrivalCinematic {
     public static boolean due(InteractionDialogAPI dialog) {
         if (Global.getSector() == null || dialog == null || !(dialog.getInteractionTarget() instanceof PlanetAPI docked)) return false;
         return CerberusCompanyStart.conversionRequired()
-                && due(Global.getSector().getPersistentData(), docked, CerberusCompanyStart.destination());
+                && due(CampaignBackend.savedData(), docked, CerberusCompanyStart.destination());
     }
 
     /** Whether any shot of the arrival is installed, so the opening can promise it. */

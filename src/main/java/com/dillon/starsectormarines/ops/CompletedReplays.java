@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
@@ -7,7 +8,6 @@ import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog.Scenario;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 
@@ -51,7 +51,7 @@ public final class CompletedReplays {
     }
 
     private static Map<String, Object> persistentData() {
-        return Global.getSector() == null ? null : Global.getSector().getPersistentData();
+        return CampaignBackend.savedData();
     }
 
     public static Client client() {

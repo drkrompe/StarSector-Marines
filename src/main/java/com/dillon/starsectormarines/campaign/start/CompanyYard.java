@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
@@ -47,7 +48,7 @@ public final class CompanyYard {
     }
     public static int reservedCredits(FleetMemberAPI member) {
         return member == null || Global.getSector() == null || MercenaryCompanyConversion.installed(member)
-                ? 0 : FoundingReserve.available(Global.getSector().getPersistentData(), member.getId());
+                ? 0 : FoundingReserve.available(CampaignBackend.savedData(), member.getId());
     }
     /** Credits the yard waives: the pressure test, when Castle's founding reserve pays. */
     public static int waived(int reserved) { return reserved > 0 ? MercenaryCompanyConversion.PRESSURE_TEST : 0; }
@@ -70,7 +71,7 @@ public final class CompanyYard {
         refit.addPermaMod(MercenaryCompanyConversion.ID);
         member.setVariant(refit, false, true);
         member.updateStats();
-        FoundingReserve.consume(Global.getSector().getPersistentData(), member.getId(), reserved);
+        FoundingReserve.consume(CampaignBackend.savedData(), member.getId(), reserved);
         int cash = cashCost(reserved);
         if (cash > 0) Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(cash);
         Global.getSector().getPlayerFleet().getFleetData().setSyncNeeded();

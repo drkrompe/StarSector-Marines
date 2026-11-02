@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.intel.CompanyFoundingIntel;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -128,13 +129,13 @@ public final class CerberusCompanyStart implements Script {
 
     public static String startingShipId() {
         if (Global.getSector() == null) return null;
-        Object id = Global.getSector().getPersistentData().get(SHIP_KEY);
+        Object id = CampaignBackend.savedData().get(SHIP_KEY);
         return id instanceof String value ? value : null;
     }
     /** The start port's market id, locked when the start ran, or null for an ordinary start or an older save. */
     public static String startPortMarketId() {
         if (Global.getSector() == null) return null;
-        return Global.getSector().getPersistentData().get(START_PORT_KEY) instanceof String id ? id : null;
+        return CampaignBackend.savedData().get(START_PORT_KEY) instanceof String id ? id : null;
     }
     public static boolean pendingDesignation() {
         if (startingShipId() == null) return false;
@@ -145,7 +146,7 @@ public final class CerberusCompanyStart implements Script {
     /** Founding conversion is mandatory; completed companies never regain this gate. */
     public static boolean conversionRequired() {
         return startingShipId() != null
-                && !Global.getSector().getPersistentData().containsKey(DEPOT_ISSUED)
+                && !CampaignBackend.savedData().containsKey(DEPOT_ISSUED)
                 && !MercenaryCompanyConversion.installed(startingShip());
     }
     public static FleetMemberAPI startingShip() {
@@ -156,7 +157,7 @@ public final class CerberusCompanyStart implements Script {
     }
     public static PreparationDepot depot() {
         if (Global.getSector() == null) return null;
-        Object depot = Global.getSector().getPersistentData().get(DEPOT_KEY);
+        Object depot = CampaignBackend.savedData().get(DEPOT_KEY);
         return depot instanceof PreparationDepot value ? value : null;
     }
     /**
@@ -193,7 +194,7 @@ public final class CerberusCompanyStart implements Script {
     }
     public static void establishDepot(FleetMemberAPI member, MarketAPI market) {
         if (!member.getId().equals(startingShipId())) return;
-        var data = Global.getSector().getPersistentData();
+        var data = CampaignBackend.savedData();
         if (data.containsKey(DEPOT_ISSUED)) return;
         data.put(DEPOT_KEY, new PreparationDepot(market.getId(), FoundingReserve.protectedStart(data)));
         data.put(DEPOT_ISSUED, true);

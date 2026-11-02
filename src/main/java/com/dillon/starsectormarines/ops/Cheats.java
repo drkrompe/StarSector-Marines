@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 
 import java.util.Map;
 
@@ -43,6 +43,6 @@ public final class Cheats {
     }
 
     private static Map<String, Object> persistentData() {
-        return Global.getSector() == null ? null : Global.getSector().getPersistentData();
+        return CampaignBackend.savedData();
     }
 }

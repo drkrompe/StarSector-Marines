@@ -1,6 +1,6 @@
 # Campaign story board
 
-Status: ACTIVE — 4 open stories
+Status: ACTIVE — 5 open stories
 
 Written: 2026-08-23
 
@@ -20,3 +20,4 @@ For authored mission sequences and their dedicated arc boards, start with
 | `stationed-ground-defence.md` | In progress — slices 1–5 shipped, live pass remains | A Garrison detachment counts toward the protected market's vanilla ground defences, a won vanilla-triggered defence sends the raid home, and an unanswered one settles from vanilla's own result. Adds the raid-intel reader beside the existing fleet-group trigger. First of the pair. |
 | `polity-defence-raid-hook.md` | In progress — slices 1–6 shipped, live acceptance remains | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |
 | `derived-polity-roster.md` | In progress — slices 1–4 shipped, live pass remains | The polity ground doctrine implemented: released kit, production quality, a derived `GroundRosterProfile` registered under the player faction, defence-strength headcount net of the company, three doctrine points and their panel. |
+| `campaign-backend.md` | In progress — saved data moved | What screens ask of the running campaign goes behind one seam, family by family, so `playBattle` can host them with no game. Each family needs a pass in the real game. |

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
@@ -20,7 +21,7 @@ public final class CompanyWorkshopRestoration {
 
     public static WorkshopState state(FleetMemberAPI ship) {
         if (CompanyBayRestoration.state(ship) == BoatBayState.NONE) return WorkshopState.NONE;
-        Object saved = Global.getSector().getPersistentData().get(KEY + ship.getId());
+        Object saved = CampaignBackend.savedData().get(KEY + ship.getId());
         if (saved instanceof String name) {
             try { return WorkshopState.valueOf(name); }
             catch (IllegalArgumentException ignored) { /* An unknown stage cannot award a benefit. */ }
@@ -91,7 +92,7 @@ public final class CompanyWorkshopRestoration {
         if (live.refusal() != null) return live.refusal();
         CargoAPI cargo = cargo();
         cargo.getCredits().subtract(reviewed.price());
-        Global.getSector().getPersistentData().put(KEY + ship.getId(), reviewed.next().name());
+        CampaignBackend.savedData().put(KEY + ship.getId(), reviewed.next().name());
         if (reviewed == WorkshopState.BURIED) cargo.addCommodity(Commodities.METALS, CLEARANCE_METALS);
         return null;
     }

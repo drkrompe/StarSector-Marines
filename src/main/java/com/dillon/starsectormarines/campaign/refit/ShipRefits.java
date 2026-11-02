@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
@@ -30,7 +31,7 @@ public final class ShipRefits {
     public static ShipCondition condition(FleetMemberAPI ship) {
         if (ship == null || Global.getSector() == null
                 || CompanyBayRestoration.state(ship) == BoatBayState.NONE) return ShipCondition.NONE;
-        return read(Global.getSector().getPersistentData(), ship.getId(),
+        return read(CampaignBackend.savedData(), ship.getId(),
                 ShipCondition.fabrication(CompanyWorkshopRestoration.state(ship)));
     }
 
@@ -107,7 +108,7 @@ public final class ShipRefits {
         var fleetCargo = Global.getSector().getPlayerFleet().getCargo();
         fleetCargo.getCredits().subtract(order.price);
         for (var need : order.cores().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
-        Global.getSector().getPersistentData().put(KEY + ship.getId() + order.receipt, true);
+        CampaignBackend.savedData().put(KEY + ship.getId() + order.receipt, true);
         ship.updateStats();
         return null;
     }

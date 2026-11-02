@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.cinematic;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.fs.starfarer.api.Global;
@@ -32,7 +33,7 @@ public final class AsharuBattleCinematic {
 
     public static boolean due(InteractionDialogAPI dialog) {
         if (Global.getSector() == null || dialog == null || !(dialog.getInteractionTarget() instanceof PlanetAPI docked)) return false;
-        return due(Global.getSector().getPersistentData(), ShepherdRecoveryCampaign.current(),
+        return due(CampaignBackend.savedData(), ShepherdRecoveryCampaign.current(),
                 ShepherdRecoveryCampaign.atSite(docked), FILM::available);
     }
 }

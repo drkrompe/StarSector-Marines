@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -16,7 +17,7 @@ public final class CompanyBayRestoration {
     public static BoatBayState state(FleetMemberAPI ship) {
         if (!MercenaryCompanyConversion.compatible(ship) || ship.getId() == null
                 || !ship.getId().equals(CerberusCompanyStart.startingShipId())) return BoatBayState.NONE;
-        return Boolean.TRUE.equals(Global.getSector().getPersistentData().get(KEY_PREFIX + ship.getId()))
+        return Boolean.TRUE.equals(CampaignBackend.savedData().get(KEY_PREFIX + ship.getId()))
                 ? BoatBayState.RESTORED : BoatBayState.DAMAGED;
     }
 
@@ -58,6 +59,6 @@ public final class CompanyBayRestoration {
 
     /** Records the bay as open; payment and prerequisites are the caller's. */
     public static void markRestored(FleetMemberAPI ship) {
-        Global.getSector().getPersistentData().put(KEY_PREFIX + ship.getId(), true);
+        CampaignBackend.savedData().put(KEY_PREFIX + ship.getId(), true);
     }
 }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.cinematic;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.ops.CompanyStoryDialogDelegate;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
@@ -70,7 +71,7 @@ public final class CinematicFilm {
         CinematicSequence sequence = load();
         if (sequence.isEmpty()) return false;
         // The receipt is taken first: a crash or a quit mid-film must not replay it.
-        Global.getSector().getPersistentData().put(receipt, true);
+        CampaignBackend.savedData().put(receipt, true);
         showing = this;
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
