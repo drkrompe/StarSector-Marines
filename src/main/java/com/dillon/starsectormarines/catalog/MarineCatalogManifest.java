@@ -73,15 +73,17 @@ public record MarineCatalogManifest(
         // so naming FileNotFoundException here throws SecurityException in game.
         if (failure.getClass().getName().equals("java.io.FileNotFoundException")) return true;
         // Starsector 0.98a's provider-scoped SettingsAPI loader declares IOException,
-        // but its missing-resource path actually throws this untyped RuntimeException.
-        // Match the complete resource-specific shape so malformed JSON and unrelated
-        // runtime failures remain launch-blocking.
+        // but its missing-resource path actually throws an untyped RuntimeException,
+        // and mods that replace the file loader word it their own way (vanilla: "Error
+        // loading [<path>] resource, not found in [<mod>]"; fast-rendering: "Resource
+        // [<path>] not found in game and mod resources."). Match any plain
+        // RuntimeException naming this path as not found, so malformed JSON, read
+        // failures and unrelated runtime failures remain launch-blocking.
         String message = failure.getMessage();
         return failure.getClass() == RuntimeException.class
                 && message != null
-                && message.startsWith("Error loading [" + MANIFEST_PATH
-                        + "] resource, not found in [")
-                && message.endsWith("]");
+                && message.contains("[" + MANIFEST_PATH + "]")
+                && message.contains("not found");
     }
 
     @FunctionalInterface

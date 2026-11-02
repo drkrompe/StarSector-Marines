@@ -74,13 +74,18 @@ class MarineCatalogManifestTest {
         List<String> loads = new ArrayList<>();
 
         MarineCatalogManifest manifest = MarineCatalogManifest.discoverEnabled(
-                List.of("unrelated-api", "unrelated-game", "provider-a", "provider-b"),
+                List.of("unrelated-api", "unrelated-game", "unrelated-fast", "provider-a", "provider-b"),
                 (path, modId) -> {
                     loads.add(modId + ":" + path);
                     if (modId.equals("unrelated-api")) throw new FileNotFoundException(path);
                     if (modId.equals("unrelated-game")) {
                         throw new RuntimeException("Error loading [" + path
                                 + "] resource, not found in [unrelated-game]");
+                    }
+                    if (modId.equals("unrelated-fast")) {
+                        // fast-rendering's replacement file loader
+                        throw new RuntimeException("Resource [" + path
+                                + "] not found in game and mod resources.");
                     }
                     return new JSONObject("""
                             {"schemaVersion": 1, "weapons": ["data/%s.weapon.json"]}
@@ -90,6 +95,7 @@ class MarineCatalogManifestTest {
         assertEquals(List.of(
                 "unrelated-api:" + MarineCatalogManifest.MANIFEST_PATH,
                 "unrelated-game:" + MarineCatalogManifest.MANIFEST_PATH,
+                "unrelated-fast:" + MarineCatalogManifest.MANIFEST_PATH,
                 "provider-a:" + MarineCatalogManifest.MANIFEST_PATH,
                 "provider-b:" + MarineCatalogManifest.MANIFEST_PATH), loads);
         assertEquals(List.of("provider-a", "provider-b"), manifest.weapons().stream()
