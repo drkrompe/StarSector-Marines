@@ -62,12 +62,21 @@ game's Mac natives do not load on the Mac's JDK.
 - **`-PplayScript=<file>`** drives a run unattended and takes screenshots into
   `build/play-battle`; the format is on `PlayBattleMain`.
 
-**Not there yet:** sound (the cues run and play nothing), any campaign state
-(nothing settles, and a story retry is not offered), and vanilla combat
-(`combathybrid`). **It cannot replace a run in the game:** the game hands the
-screen a polluted GL state and refuses file access to shipped code, and neither
-happens here, so sign a change off with `runStarsector`, and `verifyScriptSandbox`
-when it touches I/O.
+- **Sound** plays through OpenAL (`PlayBattleSound`), the game's own native and
+  Vorbis library, from the clips `:asset-pipeline:processAudio` generates, so it
+  needs `ffmpeg` as `deployMod` does. `-Pvolume=<0..1>` sets the level; `-Psilent`
+  turns it off and needs neither. The run's last line counts what played and
+  names any id with no clip. **Distance roll-off is an approximation:** the
+  game's engine is obfuscated, so judge what plays and when here, and final
+  levels in the game. To check output without speakers, point OpenAL Soft's
+  `ALSOFT_CONF` at a config with `drivers = wave` and a `[wave]` `file`, and set
+  `ALSOFT_DRIVERS=wave`: the run writes a WAV of exactly what it mixed.
+
+**Not there yet:** any campaign state (nothing settles, and a story retry is not
+offered), and vanilla combat (`combathybrid`). **It cannot replace a run in the
+game:** the game hands the screen a polluted GL state and refuses file access to
+shipped code, and neither happens here, so sign a change off with
+`runStarsector`, and `verifyScriptSandbox` when it touches I/O.
 
 ## Release
 

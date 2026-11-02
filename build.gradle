@@ -100,6 +100,9 @@ dependencies {
     testCompileOnly files(
             new File(starsectorCore, 'lwjgl.jar'),
             new File(starsectorCore, 'lwjgl_util.jar'),
+            // `playBattle` decodes the mod's clips with the game's own Vorbis library.
+            new File(starsectorCore, 'jogg-0.0.7.jar'),
+            new File(starsectorCore, 'jorbis-0.0.15.jar'),
     )
 }
 
@@ -1111,7 +1114,11 @@ tasks.register('playBattle', JavaExec) {
     description = 'Play one battle in a window without booting Starsector.'
     jvmArgs '--enable-native-access=ALL-UNNAMED'
     dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath + files(new File(starsectorCore, 'jogg-0.0.7.jar'),
+            new File(starsectorCore, 'jorbis-0.0.15.jar'))
+    // `-Psilent` plays without sound, and without needing the gitignored clips or ffmpeg.
+    if (providers.gradleProperty('silent').isPresent()) systemProperty 'play.silent', 'true'
+    else dependsOn ':asset-pipeline:processAudio'
     mainClass = 'com.dillon.starsectormarines.ops.PlayBattleMain'
     workingDir projectDir
     outputs.upToDateWhen { false }
@@ -1120,7 +1127,7 @@ tasks.register('playBattle', JavaExec) {
     System.properties.each { key, value ->
         if (key.toString().startsWith('marines.')) systemProperty key.toString(), value
     }
-    ['battle': 'play.battle', 'window': 'play.window'].each { argument, property ->
+    ['battle': 'play.battle', 'window': 'play.window', 'volume': 'play.volume'].each { argument, property ->
         def value = providers.gradleProperty(argument).getOrElse('').trim()
         if (!value.isBlank()) systemProperty property, value
     }

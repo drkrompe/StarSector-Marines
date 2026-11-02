@@ -56,7 +56,7 @@ public final class BattleSoundMix {
     private BattleSoundMix() { }
 
     /** One take of a sound id: its file, and the level and pitch {@code sounds.json} gives it. */
-    record Take(Path file, float volume, float pitch) { }
+    public record Take(Path file, float volume, float pitch) { }
 
     /**
      * Mixes {@code log} into {@code wav}, {@code seconds} long; a sound starting past the end is dropped and one running
@@ -289,7 +289,7 @@ public final class BattleSoundMix {
     }
 
     /** Every sound id in the mod's {@code sounds.json}, groups such as {@code music} included, to its takes. */
-    static Map<String, List<Take>> takes(Path modRoot) throws IOException {
+    public static Map<String, List<Take>> takes(Path modRoot) throws IOException {
         Path config = modRoot.resolve("data/config/sounds.json");
         JSONObject root;
         try {

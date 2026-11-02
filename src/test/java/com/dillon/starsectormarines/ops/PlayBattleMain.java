@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
+import com.dillon.starsectormarines.battle.audio.OperationRadio;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
@@ -64,8 +67,8 @@ import static org.lwjgl.opengl.GL11.glViewport;
  *
  * <p>Sources are {@link HeadlessBattles#build}'s, or the name of a checked-in fixture. The simulation keeps the live
  * game's asynchronous defaults, unlike the evidence tasks, so what is felt here is what plays in the game. F9 rebuilds
- * the battle; closing the window or continuing from a finished battle quits. The battle is silent, there is no
- * campaign behind it, and nothing settles.
+ * the battle; closing the window or continuing from a finished battle quits. There is no campaign behind it and
+ * nothing settles. {@code -Psilent} turns the sound off and {@code -Pvolume=<0..1>} sets its level.
  *
  * <p><b>Not a final check.</b> The game hands the screen a polluted GL state and refuses file access to shipped code;
  * this does neither, so something can work here and still fail in the game.
@@ -121,6 +124,10 @@ public final class PlayBattleMain {
         Global.setSettings(new PlayBattleSettings(List.of(project.resolve("mod"), core), Global.getSettings(),
                 size[0], size[1], input::pointerX, input::pointerY).settings());
         Global.setSoundPlayer(PlayBattleSettings.silence());
+        // What the mod plugin loads at application start for the voices. Without them a battle has no radio or subtitles.
+        WaylineNarration.loadBuiltins();
+        CompanyOfficer.loadBuiltins();
+        OperationRadio.loadBuiltins();
 
         long started = System.nanoTime();
         System.out.println("[playBattle] building " + source);
@@ -129,13 +136,19 @@ public final class PlayBattleMain {
 
         openWindow(size[0], size[1], source);
         int status = 0;
+        PlayBattleSound sound = null;
         try {
+            if (!Boolean.getBoolean("play.silent")) {
+                sound = PlayBattleSound.openOrNull(project.resolve("mod"),
+                        Float.parseFloat(System.getProperty("play.volume", "1")));
+            }
+            if (sound != null) Global.setSoundPlayer(sound);
             Context context = new Context();
             context.setBattleSimulation(sim);
             BattleScreen screen = new BattleScreen();
             PositionAPI position = position(size[0], size[1]);
             screen.attach(position, context, () -> context.finished = true);
-            play(screen, position, context, input, source, size, script);
+            play(screen, position, context, input, sound, source, size, script);
             BattleSimulation last = context.getBattleSimulation();
             System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
                     + (last.isComplete() ? ", winner " + last.getWinner() : ", unfinished"));
@@ -143,6 +156,7 @@ public final class PlayBattleMain {
             failure.printStackTrace();
             status = 1;
         } finally {
+            if (sound != null) sound.close();
             Display.destroy();
             strings.close();
         }
@@ -150,8 +164,8 @@ public final class PlayBattleMain {
         System.exit(status);
     }
 
-    private static void play(BattleScreen screen, PositionAPI position, Context context, PlayInput input, String source,
-                             int[] size, Deque<Step> script) throws Exception {
+    private static void play(BattleScreen screen, PositionAPI position, Context context, PlayInput input,
+                             PlayBattleSound sound, String source, int[] size, Deque<Step> script) throws Exception {
         long last = System.nanoTime();
         long playingSince = 0L;
         boolean quit = false;
@@ -199,6 +213,7 @@ public final class PlayBattleMain {
 
             screen.processInput(events);
             screen.advance(dt);
+            if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
             screen.render(1f);
             if (shot != null) shot(size[0], size[1], shot);

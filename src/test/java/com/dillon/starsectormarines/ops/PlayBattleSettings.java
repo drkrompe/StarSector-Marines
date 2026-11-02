@@ -155,7 +155,7 @@ final class PlayBattleSettings {
         return v;
     }
 
-    /** A sound player that plays nothing: the cues still run, and nothing reads what they return. */
+    /** A sound player that plays nothing, for {@code -Psilent} or no sound device; the voices read a null handle as no recording. */
     static SoundPlayerAPI silence() {
         return (SoundPlayerAPI) Proxy.newProxyInstance(SoundPlayerAPI.class.getClassLoader(),
                 new Class<?>[]{SoundPlayerAPI.class}, (proxy, method, args) -> switch (method.getName()) {
