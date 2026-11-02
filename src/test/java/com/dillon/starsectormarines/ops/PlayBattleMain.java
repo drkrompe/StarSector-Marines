@@ -90,6 +90,9 @@ import static org.lwjgl.opengl.GL11.glViewport;
  * (a PNG in {@code build/play-battle}), {@code <seconds> quit}, and {@code <seconds> battle}, which holds the script
  * until a battle is playing. A control or battle that never comes ends the run with an error. Seconds count from the window opening, or from the last
  * battle starting to play; a named battle waits for that before its first step.
+ *
+ * <p>{@code -PplayServer[=<port>]} opens {@link PlayDiagnosis}, so a Claude session can ask the running battle questions
+ * while it is played.
  */
 public final class PlayBattleMain {
 
@@ -224,6 +227,10 @@ public final class PlayBattleMain {
         BattleSimulation battle() {
             return context == null ? null : context.getBattleSimulation();
         }
+
+        String screen() {
+            return context == null ? "WORLDS" : String.valueOf(context.getCurrentScreen());
+        }
     }
 
     private record Step(float seconds, String[] words) { }
@@ -238,6 +245,9 @@ public final class PlayBattleMain {
         Path project = Path.of("");
         Path core = Path.of(System.getProperty("starsectorDir"), "starsector-core");
         Deque<Step> script = script(System.getProperty("play.script", ""));
+        // Before anything slow, so a port already taken fails at once rather than after a battle has been built.
+        String port = System.getProperty("play.server");
+        PlayDiagnosis diagnosis = port == null ? null : PlayDiagnosis.open(port, project, core);
 
         var strings = HeadlessBattles.install(project);
         InstalledHullEngines.install();
@@ -275,7 +285,7 @@ public final class PlayBattleMain {
             if (sound != null) Global.setSoundPlayer(sound);
             Host host = new Host(position(size[0], size[1]), source != null);
             host.open(PlayCompany.worlds().get(0), sim);
-            play(host, input, sound, source, size, script);
+            play(host, input, sound, source, size, script, diagnosis);
             BattleSimulation last = host.battle();
             if (last != null) {
                 System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
@@ -285,6 +295,7 @@ public final class PlayBattleMain {
             failure.printStackTrace();
             status = 1;
         } finally {
+            if (diagnosis != null) diagnosis.close();
             if (sound != null) sound.close();
             Display.destroy();
             strings.close();
@@ -294,13 +305,19 @@ public final class PlayBattleMain {
     }
 
     private static void play(Host host, PlayInput input, PlayBattleSound sound, String source,
-                             int[] size, Deque<Step> script) throws Exception {
+                             int[] size, Deque<Step> script, PlayDiagnosis diagnosis) throws Exception {
         long last = System.nanoTime();
         long clockSince = last;
         // With a battle named up front, a script's clock waits out its loading screen, as a `battle` step does later.
         boolean awaitingBattle = source != null;
         boolean quit = false;
         PlayControls controls = new PlayControls();
+        PlayDiagnosis.View view = new PlayDiagnosis.View() {
+            @Override public BattleSimulation battle() { return host.battle(); }
+            @Override public String screen() { return host.screen(); }
+            @Override public String world() { return PlayCompany.docked().getName(); }
+            @Override public String controls() { return controls.list(); }
+        };
         long[] held = {0L};
         while (!quit && !host.finished() && !Display.isCloseRequested()) {
             long now = System.nanoTime();
@@ -338,7 +355,7 @@ public final class PlayBattleMain {
                         clockSince = now - (long) (step.seconds() * 1e9f);
                         pressed = true;
                     }
-                    case "ids" -> System.out.println("[playBattle] " + (host.context == null ? "WORLDS" : host.context.getCurrentScreen()) + ": " + controls.list());
+                    case "ids" -> System.out.println("[playBattle] " + host.screen() + ": " + controls.list());
                     case "move" -> events.add(input.move(Integer.parseInt(words[1]), Integer.parseInt(words[2]), 0, 0));
                     case "click" -> {
                         int x = Integer.parseInt(words[1]);
@@ -377,6 +394,8 @@ public final class PlayBattleMain {
             host.processInput(events);
             controls.frameDone();
             host.advance(dt);
+            // No tick is running here: this thread runs them all, and the next is a frame away.
+            if (diagnosis != null) diagnosis.frame(view);
             if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
             host.render();

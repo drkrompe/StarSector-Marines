@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.probe;
 import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
 import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -98,6 +99,11 @@ import java.util.Set;
  *   hits-by attacker|target [same filters]
  *                                         recorded hits grouped by the other side's label: count, damage, kills
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment and its reason
+ *   units [label=TEXT] [squad=N]          every body or one squad's: position, health, squad, goal, its order in the plan,
+ *                                         reflex and target
+ *   why SQUAD                             what a squad is doing and why: who owns it, the directive and its provenance,
+ *                                         the commander's phase, the goal, the plan step by step, each member
+ *   command                               mission command: every side's strategy, phase and directives, every objective
  *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
  *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left, special kit
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
@@ -126,6 +132,16 @@ import java.util.Set;
  */
 public final class BattleProbe {
 
+    /**
+     * The commands that only read, for a host playing the battle itself. Named rather than the steppers excluded, so
+     * a stepping command added later is refused there until someone says otherwise. {@code hitlog} is in neither: it
+     * only switches an observer, and a host offers it as the write it is.
+     */
+    private static final Set<String> READS = Set.of("tick", "presence", "entity", "near", "near-cell", "sight", "find",
+            "hits", "hits-by", "squads", "units", "why", "command", "members", "speed", "path", "beats", "route",
+            "escort", "places", "bores", "lanes", "pads", "creep", "grid", "cell", "windows", "ground", "drive",
+            "cordon", "airbase", "corridor");
+
     private final BattleSimulation sim;
     private final Map<String, Command> commands = new LinkedHashMap<>();
 
@@ -136,6 +152,15 @@ public final class BattleProbe {
 
     private interface Command {
         JSONObject run(Args args) throws Exception;
+    }
+
+    /** Whether a command line only reads the battle, so it may be asked of one that is being played. */
+    public static boolean reads(String line) {
+        return READS.contains(Args.parse(line).name);
+    }
+
+    public static Set<String> readCommands() {
+        return READS;
     }
 
     public BattleProbe(BattleSimulation sim) {
@@ -158,6 +183,9 @@ public final class BattleProbe {
         commands.put("hits", this::hits);
         commands.put("hits-by", this::hitsBy);
         commands.put("squads", this::squads);
+        commands.put("units", this::units);
+        commands.put("why", a -> why(a.intAt(0)));
+        commands.put("command", a -> command());
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
         commands.put("dither", this::dither);
@@ -467,7 +495,8 @@ public final class BattleProbe {
     // --- stepping ---
 
     private JSONObject status() throws Exception {
-        return new JSONObject().put("tick", sim.getSimTickIndex()).put("complete", sim.isComplete())
+        return new JSONObject().put("tick", sim.getSimTickIndex())
+                .put("seconds", round(sim.getSimTickIndex() * BattleSimulation.TICK_DT)).put("complete", sim.isComplete())
                 .put("winner", sim.isComplete() ? String.valueOf(sim.getWinner()) : JSONObject.NULL)
                 .put("routeStalls", sim.movement().routeStalls())
                 .put("routeWaitStalls", sim.squadRouteWaitStalls());
@@ -487,11 +516,6 @@ public final class BattleProbe {
                     .put("destroyed", mission.destroyed).put("aboard", mission.marinesRemaining)
                     .put("cycle", mission.currentCycle).put("cycles", mission.totalCycles));
         }
-        JSONArray objectives = new JSONArray();
-        for (Objective objective : sim.getObjectives())
-            objectives.put(new JSONObject().put("name", objective.displayName())
-                    .put("owner", String.valueOf(objective.owningFaction()))
-                    .put("complete", objective.isComplete()).put("failed", objective.isFailed()));
         JSONArray reserve = new JSONArray();
         CommandPowerService powers = sim.getCommandPowerService();
         for (CommandPower power : powers.getAvailablePowers())
@@ -501,7 +525,16 @@ public final class BattleProbe {
                 .put("supplies", powers.getAvailableSupplies()).put("reserve", reserve)
                 .put("pendingArrivals", sim.pendingGroundArrivals(Faction.MARINE))
                 .put("survivors", sim.survivorPickup() == null ? 0 : sim.survivorPickup().survivingCount(Faction.MARINE))
-                .put("boats", boats).put("objectives", objectives);
+                .put("boats", boats).put("objectives", objectives());
+    }
+
+    private JSONArray objectives() throws Exception {
+        JSONArray objectives = new JSONArray();
+        for (Objective objective : sim.getObjectives())
+            objectives.put(new JSONObject().put("name", objective.displayName())
+                    .put("owner", String.valueOf(objective.owningFaction()))
+                    .put("complete", objective.isComplete()).put("failed", objective.isFailed()));
+        return objectives;
     }
 
     private JSONObject step(int untilTick, String beat) throws Exception {
@@ -827,6 +860,92 @@ public final class BattleProbe {
             if (row.toString().contains(text)) rows.put(row);
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("count", rows.length()).put("squads", rows);
+    }
+
+    private JSONObject units(Args a) throws Exception {
+        String text = a.option("label", "");
+        int only = a.intOr("squad", -1);
+        List<JSONObject> rows = new ArrayList<>();
+        for (long id : bodies()) {
+            if (!label(id).contains(text)) continue;
+            boolean ground = sim.identity().has(id) && !sim.convoy().isVehicle(id);
+            int squadId = ground && sim.squad().hasSquad(id) ? sim.squad().squadId(id) : -1;
+            if (only >= 0 && squadId != only) continue;
+            JSONObject row = brief(id);
+            if (squadId >= 0) {
+                row.put("squad", squadId);
+                Squad squad = sim.getSquad(squadId);
+                if (squad != null) {
+                    if (squad.currentGoal != null) row.put("goal", squad.currentGoal.name());
+                    SquadPlan.Step step = squad.currentPlan == null ? null : squad.currentPlan.currentStep();
+                    if (step != null) {
+                        String slot = step.slotOf(id);
+                        row.put("order", step.action.getClass().getSimpleName() + (slot == null ? "" : " as " + slot));
+                    }
+                }
+            }
+            if (ground) {
+                put(row, "reflex", () -> sim.world().lastReflex(id));
+                put(row, "target", () -> sim.world().targetId(id));
+            } else if (sim.convoy().isVehicle(id)) {
+                put(row, "order", () -> String.valueOf(sim.convoy().mission(id).state));
+            }
+            rows.add(row);
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("count", rows.size())
+                .put("units", new JSONArray(rows));
+    }
+
+    /** One squad, from who owns it down to each member: everything the game knows of why it is doing what it does. */
+    private JSONObject why(int squadId) throws Exception {
+        Squad squad = sim.getSquad(squadId);
+        if (squad == null) return new JSONObject().put("error", "no squad " + squadId);
+        JSONObject out = squad(squad).put("tick", sim.getSimTickIndex())
+                .put("playerCommands", sim.playerCommands(squad))
+                .put("underFire", squad._underFireAtLosLastTick)
+                .put("plannedAgainst", squad.assignedObjectiveAtLastPlan == null ? JSONObject.NULL
+                        : assignment(squad.assignedObjectiveAtLastPlan));
+        CommandDirective directive = sim.getCommanderService().activeDirective(squadId);
+        out.put("directive", directive == null ? JSONObject.NULL : directive(directive));
+        CommanderSnapshot<?> commander = sim.getCommanderSnapshot(squad.faction);
+        out.put("commander", commander == null ? JSONObject.NULL : new JSONObject().put("strategy", commander.strategy())
+                .put("phase", commander.phase()).put("tick", commander.tick()));
+        JSONArray steps = new JSONArray();
+        if (squad.currentPlan != null) {
+            SquadPlan.Step current = squad.currentPlan.currentStep();
+            for (SquadPlan.Step step : squad.currentPlan.steps()) {
+                JSONObject slots = new JSONObject();
+                for (Map.Entry<String, List<Long>> slot : step.assignments.entrySet())
+                    slots.put(slot.getKey(), new JSONArray(slot.getValue()));
+                steps.put(new JSONObject().put("action", step.action.getClass().getSimpleName())
+                        .put("current", step == current).put("slots", slots));
+            }
+        }
+        return out.put("steps", steps).put("members", members(squadId).getJSONArray("members"));
+    }
+
+    /** Mission command as each side last published it, and the objectives it is commanding toward. */
+    private JSONObject command() throws Exception {
+        JSONArray sides = new JSONArray();
+        for (Faction faction : Faction.values()) {
+            CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(faction);
+            if (snapshot == null) continue;
+            JSONArray directives = new JSONArray();
+            for (CommandDirective directive : snapshot.directives()) directives.put(directive(directive));
+            sides.put(new JSONObject().put("faction", String.valueOf(faction)).put("strategy", snapshot.strategy())
+                    .put("phase", snapshot.phase()).put("tick", snapshot.tick()).put("pool", snapshot.commandPoolSize())
+                    .put("reserve", snapshot.reserveCount()).put("objectives", new JSONArray(snapshot.objectiveSummaries()))
+                    .put("directives", directives));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("sides", sides).put("objectives", objectives());
+    }
+
+    private static JSONObject directive(CommandDirective d) throws Exception {
+        return new JSONObject().put("squad", d.squadId()).put("issuer", d.issuer())
+                .put("authority", String.valueOf(d.authority())).put("reason", d.reason())
+                .put("status", String.valueOf(d.status())).put("disposition", d.dispositionReason())
+                .put("assignment", d.assignment() == null ? JSONObject.NULL : assignment(d.assignment()))
+                .put("issued", d.issuedTick()).put("stableUntil", d.stableUntilTick()).put("leaseUntil", d.leaseUntilTick());
     }
 
     private JSONObject path(Args a) throws Exception {

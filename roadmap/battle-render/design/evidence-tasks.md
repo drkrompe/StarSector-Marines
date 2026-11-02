@@ -90,8 +90,10 @@ Ask a battle questions instead of bisecting for them. Stands one battle up,
 steps it on command and answers queries between steps, one JSON line each:
 `until T`, `until-beat final_run`, `entity ID` (health, plate, target, orders,
 squad, telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`,
-`presence` (what keeps the company in play: ground bodies, boats, reserve
-powers, each objective), `airbase` (the Cordon's air base: each bay's airframe and
+`units` (every body's position, health, squad, goal and order), `why SQUAD`
+(what a squad is doing and why, from directive to members), `command` (each
+side's mission command and every objective), `presence` (what keeps the company
+in play: ground bodies, boats, reserve powers, each objective), `airbase` (the Cordon's air base: each bay's airframe and
 state, and its own sorties), and,
 after `hitlog on`, `hits target=ID` / `hits-by attacker target=ID` (every
 resolved hit with penetration, plate rating and arc, and what went to armor and
@@ -101,7 +103,8 @@ that matters and switching the hit log on there answers any number of
 questions for one replay. The hit log (`HitLog`) draws no random number and is
 off unless asked for. A mission with its own construction adds a source in
 `HeadlessBattles.build`, which the snapshot suites share, so a probe reading
-reproduces in a clip.
+reproduces in a clip. `playBattle -PplayServer` asks the same reads of a battle
+being played (`build-and-run.md`).
 
 ### `sceneEvidence`
 

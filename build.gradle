@@ -1113,7 +1113,10 @@ tasks.register('sceneDeterminism', JavaExec) {
 // helper's edit; a run after any test edit recompiles these few files, and no other edit recompiles anything.
 def compilePlayBattle = tasks.register('compilePlayBattle', JavaCompile) {
     description = 'Compile playBattle and only the test sources it reaches.'
-    source = fileTree('src/test/java') { include 'com/dillon/starsectormarines/ops/Play*.java' }
+    source = fileTree('src/test/java') {
+        include 'com/dillon/starsectormarines/ops/Play*.java'
+        exclude '**/*Test.java'
+    }
     classpath = sourceSets.test.compileClasspath
     destinationDirectory = layout.buildDirectory.dir('classes/java/playBattle')
     javaCompiler = javaToolchains.compilerFor(java.toolchain)
@@ -1150,6 +1153,9 @@ tasks.register('playBattle', JavaExec) {
     }
     def script = providers.gradleProperty('playScript').getOrElse('').trim()
     if (!script.isBlank()) systemProperty 'play.script', file(script).absolutePath
+    // `-PplayServer[=<port>]` opens the live diagnosis server (`PlayDiagnosis`); an ordinary playtest opens no port.
+    def server = providers.gradleProperty('playServer')
+    if (server.isPresent()) systemProperty 'play.server', server.get().trim()
 }
 
 tasks.register('layerAuthoring', JavaExec) {

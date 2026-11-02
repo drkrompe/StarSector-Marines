@@ -111,7 +111,8 @@ The full procedure (Drive layout, pruning, previews, the picks page and its
   builds the public zip. `gradlew.bat playBattle` plays the company's screens over a
   stand-in campaign, or one
   battle with `-Pbattle=<source>`, in a window with no game booted: a playtest, not a
-  final check.
+  final check. `-PplayServer` lets a Claude session question the running battle over
+  MCP on loopback.
   Details, crash triage and flags: `build-and-run.md`.
 - **Load every mod texture through `ModTextures`**, never
   `Global.getSettings().getSprite` or `openStream`: shipped textures are fitted

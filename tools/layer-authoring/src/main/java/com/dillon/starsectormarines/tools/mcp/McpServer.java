@@ -44,9 +44,16 @@ public final class McpServer {
     private final McpToolContext context;
     private final String serverName;
     private final String serverVersion;
+    private final String instructions;
 
     public McpServer(McpToolCatalog catalog, McpToolContext context,
                      String serverName, String serverVersion) {
+        this(catalog, context, serverName, serverVersion, null);
+    }
+
+    /** @param instructions what a client is told this server is for; null for the authoring tools' own */
+    public McpServer(McpToolCatalog catalog, McpToolContext context,
+                     String serverName, String serverVersion, String instructions) {
         if (catalog == null || context == null) {
             throw new IllegalArgumentException("a tool catalog and a project context are required");
         }
@@ -54,6 +61,7 @@ public final class McpServer {
         this.context = context;
         this.serverName = serverName == null ? "authoring" : serverName;
         this.serverVersion = serverVersion == null ? "0.0.1" : serverVersion;
+        this.instructions = instructions;
     }
 
     /**
@@ -143,7 +151,7 @@ public final class McpServer {
         response.put("protocolVersion", agreed);
         response.put("capabilities", capabilities);
         response.put("serverInfo", info);
-        response.put("instructions",
+        response.put("instructions", instructions != null ? instructions :
                 "Authoring tools for the Starsector Marines checkout at "
                         + context.projectRoot()
                         + ". Tileset tools follow the ingest procedure in "

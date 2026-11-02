@@ -85,6 +85,48 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   control by its markup id, to pixel clicks: it waits for the control, respects
   modals and fails naming what could be pressed. `ids` prints that list.
   Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
+- **`-PplayServer[=<port>]`** opens a live diagnosis server, so a Claude session can
+  question the battle while the owner plays it (`PlayDiagnosis`). See below. Off by
+  default: an ordinary playtest opens no port.
+
+### Asking a played battle questions
+
+`gradlew.bat playBattle -PplayServer` serves MCP over HTTP at
+`http://127.0.0.1:47811/mcp`, on the loopback address only, and prints that URL. A
+second window on the same port fails at once; `-PplayServer=<port>` picks another.
+Open the window first, then connect the session, since a client connects as it
+starts. Once, for every session:
+
+```bash
+claude mcp add --transport http --scope user play-battle http://127.0.0.1:47811/mcp
+```
+
+Or for one run, the same server as `--mcp-config`:
+`{"mcpServers":{"play-battle":{"type":"http","url":"http://127.0.0.1:47811/mcp"}}}`.
+While no window is open a user-scope server just shows as failed. It is plain JSON-RPC
+over POST, so `curl` works from a session that started too early.
+
+- **`play_status`**: the screen, the world, what can be pressed, the battle's tick and
+  seconds, frames shown and the slowest call so far.
+- **`battle_query`**: `commands`, lines of `BattleProbe`'s command language, the same
+  surface as `battleProbe` (`evidence-tasks.md`), its reads only. Start with `squads`,
+  then `why <squad>`: who owns the squad, its directive with reason and disposition,
+  the commander's phase, the goal, the plan step by step and each member. `command`
+  is every side's mission command and the objectives; `units [label=] [squad=]` every
+  body's position, health, goal and order. Commands sent together see one tick.
+- **`battle_hitlog`**, the one write: switches the hit recorder that `hits` and
+  `hits-by` read. An observer; it changes nothing in the battle.
+
+There is no pause and no order: the owner has the pause key, and one call already sees
+one tick. Stepping commands (`advance`, `until`, `watch`, `topology` and the rest) are
+refused, because the window owns the clock; `BattleProbe` names the reads, so a new
+command stays refused until it is listed.
+
+Reads run on the host's own frame, between `advance` and `render`, on the thread that
+runs every tick; the HTTP thread only queues one and waits, up to 5 s. There is one HTTP
+thread, so a frame answers at most one call. Host and Origin are checked against
+loopback, so a page in a browser cannot reach the port. The server is in the test tree
+with a JDK HTTP server and `:layer-authoring`'s `McpServer`, and never ships.
 
 - **Sound** plays through OpenAL (`PlayBattleSound`), the game's own native and
   Vorbis library, from the clips `:asset-pipeline:processAudio` generates, so it
