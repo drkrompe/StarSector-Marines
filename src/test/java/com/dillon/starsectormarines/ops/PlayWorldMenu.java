@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * {@code playBattle}'s campaign map: the worlds {@link PlayCompany} stands in, each with who has work there now, so the
  * story can be followed from one to the next. Picking one docks there and opens Marine Operations, as a flight and a
- * planet menu would. Not a screen of the mod; its markup lives with the test tree and never ships.
+ * planet menu would. Beside them are the run's saves ({@link PlaySaves}). Not a screen of the mod; its markup lives with the test tree and never ships.
  */
 final class PlayWorldMenu extends MissionFlowMlxScreen {
 
@@ -22,11 +22,15 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
 
     private final Consumer<PlanetAPI> pick;
     private final Runnable quit;
+    private final Consumer<String> load;
+    private final Runnable save;
 
-    PlayWorldMenu(Consumer<PlanetAPI> pick, Runnable quit) {
+    PlayWorldMenu(Consumer<PlanetAPI> pick, Runnable quit, Consumer<String> load, Runnable save) {
         super(ROOT, COMPONENTS);
         this.pick = pick;
         this.quit = quit;
+        this.load = load;
+        this.save = save;
     }
 
     @Override protected List<String> requiredElementIds() {
@@ -53,6 +57,20 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
         Map<String, Object> props = new HashMap<>();
         props.put("worlds", worlds);
         props.put("quitAction", quit);
+        props.put("saveAction", save);
+        List<Map<String, Object>> saves = new ArrayList<>();
+        for (String name : PlaySaves.names()) {
+            String id = "save-" + name;
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", id);
+            row.put("nameId", id + "-name");
+            row.put("whenId", id + "-when");
+            row.put("name", name);
+            row.put("when", PlaySaves.when(name));
+            row.put("action", (Runnable) () -> load.accept(name));
+            saves.add(row);
+        }
+        props.put("saves", saves);
         return props;
     }
 

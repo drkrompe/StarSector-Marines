@@ -70,6 +70,15 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
   Closing the window always quits.
+- **Saves:** every arrival at the mission board checkpoints `auto`, and one save per
+  story mission on offer, named for it and docked where it is offered, under
+  `~/.starsector-marines/play-saves` (`PlaySaves`). `-PplayLoad=auto` picks up where
+  you stopped; `-PplayLoad=the-dust-ledger` opens the board just before that mission,
+  so a tweak can be played again in seconds. The world menu lists them and has Save
+  here; scripts have `save <name>` and `load <name>`. They are XML through XStream, as
+  the game's saves are: an element a class no longer has is skipped and a new field
+  stays unset, so a save outlives a tweak, as long as the code copes with that field
+  being unset as it must on a real load.
 - **What is not there:** stationing and a colony's screens land on HQ. The worlds have
   nothing on them the mission board does not read, and there is no flight between them. The clock stands
   at day zero and nothing saves: story progress holds for the run and a run starts

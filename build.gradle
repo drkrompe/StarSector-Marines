@@ -1132,6 +1132,11 @@ tasks.register('playBattle', JavaExec) {
     group = 'development'
     description = 'Play one battle in a window without booting Starsector.'
     jvmArgs '--enable-native-access=ALL-UNNAMED'
+    // What XStream reads and writes on this JDK, as the game's own vmparams open it for its saves.
+    jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.util.concurrent=ALL-UNNAMED',
+            '--add-opens=java.base/java.lang.ref=ALL-UNNAMED', '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+            '--add-opens=java.base/java.text=ALL-UNNAMED', '--add-opens=java.desktop/java.awt=ALL-UNNAMED',
+            '--add-opens=java.desktop/java.awt.font=ALL-UNNAMED'
     // The test task's classpath but for its classes: its resources hold the fixtures.
     classpath = files(compilePlayBattle, tasks.named('processTestResources')) + sourceSets.main.output +
             configurations.testRuntimeClasspath + files(new File(starsectorCore, 'jogg-0.0.7.jar'),
@@ -1147,7 +1152,7 @@ tasks.register('playBattle', JavaExec) {
     System.properties.each { key, value ->
         if (key.toString().startsWith('marines.')) systemProperty key.toString(), value
     }
-    ['battle': 'play.battle', 'window': 'play.window', 'volume': 'play.volume'].each { argument, property ->
+    ['battle': 'play.battle', 'window': 'play.window', 'volume': 'play.volume', 'playLoad': 'play.load'].each { argument, property ->
         def value = providers.gradleProperty(argument).getOrElse('').trim()
         if (!value.isBlank()) systemProperty property, value
     }

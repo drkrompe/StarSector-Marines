@@ -1,4 +1,4 @@
-<template props="worlds,quitAction">
+<template props="worlds,quitAction,saves,saveAction">
   <div id="world-menu-root" class="world-root">
     <div id="world-menu-header" class="world-header console-header">
       <img id="world-menu-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -15,6 +15,7 @@
       </div>
       <img id="world-menu-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
+    <div id="world-menu-body" class="world-body">
     <div id="world-menu-list" class="world-list panel">
       <button each="world in worlds" key="{world.id}" id="{world.id}" class="world-row" onclick="{world.action}">
         <canvas id="{world.globeId}" class="world-globe" width="72" height="72" />
@@ -25,6 +26,17 @@
         </div>
       </button>
     </div>
+    <div id="world-menu-saves" class="world-saves panel">
+      <div id="world-menu-saves-title" class="label heading tone-edge">SAVES</div>
+      <button id="world-menu-save" class="world-save-now" onclick="{saveAction}">Save here</button>
+      <div id="world-menu-save-list" class="world-save-list">
+        <button each="save in saves" key="{save.id}" id="{save.id}" class="world-save-row" onclick="{save.action}">
+          <div id="{save.nameId}" class="label">{save.name}</div>
+          <div id="{save.whenId}" class="label tone-muted">{save.when}</div>
+        </button>
+      </div>
+    </div>
+    </div>
   </div>
 </template>
 <style>
@@ -34,7 +46,14 @@
 .world-heading .label { height: 24px; }
 .world-quit-rail { flex-direction: row; width: 180px; height: 42px; padding: 3px; border-width: 2px; }
 .world-quit-rail button { flex-direction: row; align-items: center; width: 100%; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
-.world-list { flex-direction: column; flex-grow: 1; gap: 10px; padding: 12px; border-width: 1px; overflow: scroll; }
+.world-body { flex-direction: row; flex-grow: 1; height: 0px; gap: 10px; }
+.world-saves { flex-direction: column; width: 420px; padding: 12px; gap: 8px; border-width: 1px; }
+.world-saves .label { height: 24px; }
+.world-save-now { height: 40px; border-width: 1px; font-family: heading; text-align: center; }
+.world-save-list { flex-direction: column; flex-grow: 1; height: 0px; gap: 6px; overflow: scroll; }
+.world-save-row { flex-direction: column; height: 58px; padding: 6px 10px; gap: 2px; border-width: 1px; text-align: left; }
+.world-save-row .label { height: 20px; pointer-events: none; }
+.world-list { flex-direction: column; width: 0px; flex-grow: 1; gap: 10px; padding: 12px; border-width: 1px; overflow: scroll; }
 .world-row { flex-direction: row; align-items: center; height: 110px; padding: 12px; gap: 18px; border-width: 1px; text-align: left; }
 .world-globe { width: 72px; height: 72px; pointer-events: none; }
 .world-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; pointer-events: none; }

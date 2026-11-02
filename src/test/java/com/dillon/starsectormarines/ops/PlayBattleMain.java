@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -143,12 +145,16 @@ public final class PlayBattleMain {
     private static final class Host {
         private final PositionAPI position;
         private final boolean direct;
-        private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, () -> this.finished = true);
+        private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, () -> this.finished = true,
+                name -> this.loading = name, () -> this.saving = true);
         private final TextureLease menuImages = TextureLedger.shared().lease("playBattle world menu");
         private Context context;
         private MarineOpsPanelPlugin plugin;
         private PlanetAPI next;
         private boolean leaving;
+        private String loading;
+        private boolean saving;
+        private ScreenId lastScreen;
         private boolean finished;
 
         Host(PositionAPI position, boolean direct) {
@@ -158,6 +164,7 @@ public final class PlayBattleMain {
 
         void open(PlanetAPI world, BattleSimulation battle) {
             PlayCompany.dockAt(world);
+            lastScreen = null;
             context = new Context(world, direct);
             if (battle != null) {
                 context.setBattleSimulation(battle);
@@ -177,6 +184,27 @@ public final class PlayBattleMain {
 
         /** Between input and the next tick, never from inside a screen's own handler. */
         private void settle() {
+            if (saving) {
+                saving = false;
+                save("save-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")));
+                menu.detach();
+                menu.attach(position, null, () -> { });
+            }
+            if (loading != null) {
+                PlaySaves.State state = PlaySaves.read(loading);
+                loading = null;
+                if (plugin != null) {
+                    plugin.dismiss();
+                    plugin = null;
+                    context = null;
+                } else {
+                    menu.detach();
+                    UiSpriteCache.shared().leave(menuImages);
+                }
+                PlayCompany.restore(state);
+                open(PlayCompany.docked(), null);
+            }
+            checkpoint();
             if (leaving) {
                 leaving = false;
                 plugin.dismiss();
@@ -192,6 +220,31 @@ public final class PlayBattleMain {
                 UiSpriteCache.shared().leave(menuImages);
                 open(world, null);
             }
+        }
+
+        /** Each arrival at the board comes before any launch, so a save taken there can launch again. */
+        private void checkpoint() {
+            if (direct || context == null) return;
+            ScreenId screen = context.getCurrentScreen();
+            if (screen == ScreenId.MISSION_SELECT && lastScreen != screen) {
+                // A checkpoint that cannot be written is worth a message, not the playtest.
+                try {
+                    List<String> written = PlaySaves.checkpoint(PlayCompany.snapshot());
+                    System.out.println("[playBattle] saved " + String.join(" ", written));
+                } catch (RuntimeException failure) {
+                    failure.printStackTrace();
+                }
+            }
+            lastScreen = screen;
+        }
+
+        void save(String name) {
+            PlaySaves.write(name, PlayCompany.snapshot());
+            System.out.println("[playBattle] saved " + name);
+        }
+
+        void load(String name) {
+            loading = name;
         }
 
         void processInput(List<InputEventAPI> events) {
@@ -264,6 +317,8 @@ public final class PlayBattleMain {
 
         // The catalog lists its missions only with the cheats on, and they are read from the save.
         PlayCompany.install();
+        String load = System.getProperty("play.load", "").strip();
+        if (!load.isEmpty()) PlayCompany.restore(PlaySaves.read(load));
         Cheats.setEnabled(true);
 
         BattleSimulation sim = null;
@@ -284,7 +339,7 @@ public final class PlayBattleMain {
             }
             if (sound != null) Global.setSoundPlayer(sound);
             Host host = new Host(position(size[0], size[1]), source != null);
-            host.open(PlayCompany.worlds().get(0), sim);
+            host.open(PlayCompany.docked(), sim);
             play(host, input, sound, source, size, script, diagnosis);
             BattleSimulation last = host.battle();
             if (last != null) {
@@ -371,6 +426,8 @@ public final class PlayBattleMain {
                         events.add(input.key(key, false, '\0', false));
                     }
                     case "shot" -> shot = words[1];
+                    case "save" -> host.save(words[1]);
+                    case "load" -> host.load(words[1]);
                     case "quit" -> quit = true;
                     default -> throw new IllegalArgumentException("unknown script step: " + words[0]);
                 }

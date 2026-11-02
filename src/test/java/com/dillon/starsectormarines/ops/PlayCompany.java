@@ -46,7 +46,7 @@ import java.util.Set;
  * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at one of a few worlds,
  * with a purse and
  * stores that do not run out, answered through {@link CampaignBackend}. Enough for the company's rooms to open with the
- * cheats on; it is not a simulation of the campaign, and nothing here advances or saves.
+ * cheats on; it is not a simulation of the campaign, and nothing here advances. {@link PlaySaves} writes it out.
  *
  * <p>The game's types are answered with proxies, as the tests do. A question not listed answers empty: no, zero, an
  * empty list or null.
@@ -75,13 +75,18 @@ final class PlayCompany {
             newWorld("corvus_IIIa", "Garnir", OpeningPort.CORVUS, "cryovolcanic", "graphics/planets/cryovolcanic01.jpg"),
             newWorld("agreus", "Agreus", ARCADIA, "barren", "graphics/planets/barren02.jpg"));
     private static volatile PlanetAPI docked = WORLDS.get(0);
+    private static final MutableValue HELD_CREDITS = new MutableValue(CREDITS);
+    private static final List<FleetMemberAPI> MEMBERS = new ArrayList<>();
+    private static MarineRoster roster;
+    private static CampaignStateScript campaign;
+    private static Map<String, Object> saved;
 
     private PlayCompany() {
     }
 
     /** Installs the stand-in as the campaign backend, for the rest of the run. */
     static void install() {
-        MarineRoster roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
+        roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
                 DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
         roster.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
         MarineRosterScript script = new MarineRosterScript() {
@@ -89,13 +94,13 @@ final class PlayCompany {
                 return roster;
             }
         };
-        List<EveryFrameScript> scripts = List.of(script, new CampaignStateScript());
+        campaign = new CampaignStateScript();
         CampaignFleetAPI fleet = fleet();
-        Map<String, Object> saved = new HashMap<>();
+        saved = new HashMap<>();
         saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
         CampaignBackend.useSavedData(() -> saved);
         CampaignBackend.useCompanyFleet(() -> fleet);
-        CampaignBackend.useSectorScripts(() -> scripts);
+        CampaignBackend.useSectorScripts(() -> List.of(script, campaign));
         saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
         CampaignBackend.useDockedPort(() -> docked.getMarket());
         CampaignBackend.useStarSystems(SYSTEMS::get);
@@ -126,12 +131,12 @@ final class PlayCompany {
     }
 
     private static CampaignFleetAPI fleet() {
-        List<FleetMemberAPI> members = new ArrayList<>(List.of(secondWind()));
+        MEMBERS.add(secondWind());
         Map<String, Object> data = new HashMap<>();
-        data.put("getMembersListCopy", (Answer) args -> new ArrayList<>(members));
-        data.put("getMembersInPriorityOrder", (Answer) args -> new ArrayList<>(members));
-        data.put("addFleetMember", (Answer) args -> members.add((FleetMemberAPI) args[0]));
-        data.put("removeFleetMember", (Answer) args -> members.remove(args[0]));
+        data.put("getMembersListCopy", (Answer) args -> new ArrayList<>(MEMBERS));
+        data.put("getMembersInPriorityOrder", (Answer) args -> new ArrayList<>(MEMBERS));
+        data.put("addFleetMember", (Answer) args -> MEMBERS.add((FleetMemberAPI) args[0]));
+        data.put("removeFleetMember", (Answer) args -> MEMBERS.remove(args[0]));
         Map<String, Object> fleet = new HashMap<>();
         fleet.put("getFleetData", stub(FleetDataAPI.class, data));
         fleet.put("getCargo", cargo());
@@ -140,7 +145,7 @@ final class PlayCompany {
 
     private static CargoAPI cargo() {
         Map<String, Object> cargo = new HashMap<>();
-        cargo.put("getCredits", new MutableValue(CREDITS));
+        cargo.put("getCredits", HELD_CREDITS);
         cargo.put("getMothballedShips", stub(FleetDataAPI.class, Map.of()));
         for (String plenty : List.of("getCommodityQuantity", "getMarines", "getCrew", "getSupplies", "getFuel",
                 "getMaxCapacity", "getSpaceLeft", "getMaxFuel", "getFreeFuelSpace", "getMaxPersonnel",
@@ -148,6 +153,40 @@ final class PlayCompany {
             cargo.put(plenty, PLENTY);
         }
         return stub(CargoAPI.class, cargo);
+    }
+
+    /** The campaign as it stands, to write out. */
+    static PlaySaves.State snapshot() {
+        PlaySaves.State state = new PlaySaves.State();
+        state.roster = roster;
+        state.campaign = campaign;
+        state.saved = saved;
+        state.docked = docked.getId();
+        state.credits = HELD_CREDITS.get();
+        state.awarded = new ArrayList<>();
+        for (FleetMemberAPI member : MEMBERS.subList(1, MEMBERS.size())) {
+            PlaySaves.Ship ship = new PlaySaves.Ship();
+            ship.id = member.getId();
+            ship.variantId = member.getVariant().getHullVariantId();
+            ship.name = member.getShipName();
+            state.awarded.add(ship);
+        }
+        return state;
+    }
+
+    /** Puts a saved campaign in place. No dialog may still be open over the old one. */
+    static void restore(PlaySaves.State state) {
+        roster = state.roster;
+        campaign = state.campaign;
+        saved = state.saved;
+        HELD_CREDITS.set(state.credits);
+        docked = WORLDS.stream().filter(world -> world.getId().equals(state.docked)).findFirst().orElse(WORLDS.get(0));
+        MEMBERS.subList(1, MEMBERS.size()).clear();
+        for (PlaySaves.Ship ship : state.awarded) {
+            FleetMemberAPI member = newShip(ship.variantId, ship.id);
+            member.setShipName(ship.name);
+            MEMBERS.add(member);
+        }
     }
 
     /** The worlds a run can dock at. */
@@ -257,6 +296,10 @@ final class PlayCompany {
 
     /** A ship the yard hands over: whole, crewed and ready, with nothing fitted a stand-in needs to read. */
     private static FleetMemberAPI newShip(String variantId) {
+        return newShip(variantId, variantId + "-" + System.nanoTime());
+    }
+
+    private static FleetMemberAPI newShip(String variantId, String id) {
         String hullId = variantId.substring(0, variantId.indexOf('_'));
         Map<String, Object> spec = new HashMap<>();
         spec.put("getHullId", hullId);
@@ -277,7 +320,7 @@ final class PlayCompany {
         status.put("getHullFraction", 1f);
 
         Map<String, Object> member = new HashMap<>();
-        member.put("getId", variantId + "-" + System.identityHashCode(member));
+        member.put("getId", id);
         member.put("getHullId", hullId);
         member.put("getHullSpec", hull);
         member.put("getVariant", stub(ShipVariantAPI.class, variant));
