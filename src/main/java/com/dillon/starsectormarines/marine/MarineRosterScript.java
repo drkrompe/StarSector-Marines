@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
@@ -55,8 +56,7 @@ public class MarineRosterScript implements EveryFrameScript {
 
     /** Find the registered roster script on the sector, or null if not yet installed. */
     public static MarineRosterScript getInstance() {
-        if (Global.getSector() == null) return null;
-        for (EveryFrameScript script : Global.getSector().getScripts()) {
+        for (EveryFrameScript script : CampaignBackend.sectorScripts()) {
             if (script instanceof MarineRosterScript) {
                 return (MarineRosterScript) script;
             }

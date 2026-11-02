@@ -20,7 +20,7 @@ final class CompanyPreparationGuide {
     private CompanyPreparationGuide() { }
 
     static MarineRoster roster() {
-        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster();
     }
 

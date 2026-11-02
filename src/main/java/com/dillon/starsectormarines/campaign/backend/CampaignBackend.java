@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.campaign.backend;
 
+import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +35,12 @@ public final class CampaignBackend {
         CampaignFleetAPI fleet();
     }
 
+    /** The sector's running scripts, which is where the roster and the campaign's state live. */
+    public interface SectorScripts {
+        /** The scripts; empty when no campaign is running. */
+        List<EveryFrameScript> scripts();
+    }
+
     /** The game's answers, read afresh each time since a sector comes and goes with each save. */
     private static final SavedData GAME_SAVED_DATA =
             () -> Global.getSector() == null ? null : Global.getSector().getPersistentData();
@@ -40,6 +48,9 @@ public final class CampaignBackend {
     private static volatile SavedData savedData = GAME_SAVED_DATA;
     private static volatile CompanyFleet companyFleet =
             () -> Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
+
+    private static volatile SectorScripts sectorScripts =
+            () -> Global.getSector() == null ? List.of() : Global.getSector().getScripts();
 
     private CampaignBackend() {
     }
@@ -62,5 +73,15 @@ public final class CampaignBackend {
     /** Answers the company's fleet from {@code backend} from now on, for a host with no game running. */
     public static void useCompanyFleet(CompanyFleet backend) {
         companyFleet = backend;
+    }
+
+    /** {@link SectorScripts#scripts} of the installed backend. */
+    public static List<EveryFrameScript> sectorScripts() {
+        return sectorScripts.scripts();
+    }
+
+    /** Answers the sector's scripts from {@code backend} from now on, for a host with no game running. */
+    public static void useSectorScripts(SectorScripts backend) {
+        sectorScripts = backend;
     }
 }

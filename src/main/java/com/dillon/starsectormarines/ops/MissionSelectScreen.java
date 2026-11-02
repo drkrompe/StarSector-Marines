@@ -121,7 +121,7 @@ public final class MissionSelectScreen implements Screen {
                 ? Strings.get("missionSelectChooseAClientToInspectTheirCurrent")
                 : missions.isEmpty() && stationing.isEmpty()
                         ? Strings.get("missionSelectNothingPendingFromThisClient") : "");
-        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript script = MarineRosterScript.getInstance();
         putBroker(props, selectedClient, script == null ? null : script.roster());
         OpeningBroker.Destination office = OpeningBroker.current();
         String referral = OpeningBroker.referral(selectedClient, script == null ? null : script.roster(), office);
@@ -567,7 +567,7 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private List<Mission> replayOffers() {
-        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript script = MarineRosterScript.getInstance();
         return CompletedReplays.offers(script == null ? null : script.roster(), context == null ? null : context.planet);
     }
 

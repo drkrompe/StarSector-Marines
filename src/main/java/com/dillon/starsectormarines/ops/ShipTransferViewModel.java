@@ -140,7 +140,7 @@ public final class ShipTransferViewModel {
                 CompanyShipDesignation::home,
                 ShipTransferViewModel::designate,
                 CompanyMeans.ofPlayer());
-        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript script = MarineRosterScript.getInstance();
         preparation(script == null ? null : script.roster(), CampaignFabricationResources.forPreparation(),
                 CampaignSquadFoundingResources.forPreparation());
     }

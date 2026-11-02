@@ -83,7 +83,7 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript rosterScript = MarineRosterScript.getInstance();
         List<HqActionItem> items = HqActionGatherer.current(day, clocks, state,
                 rosterScript == null ? null : rosterScript.roster(), respond, plotCourse, auxiliary, handover);
         return build(standing, items, news, day, aboard,

@@ -42,6 +42,11 @@ class CampaignBackendBoundaryTest {
                 filesCalling("getPlayerFleet()"));
     }
 
+    @Test
+    void theSectorsScriptsAreAskedOfTheBackend() throws IOException {
+        assertEquals(new TreeSet<>(Set.of(BACKEND)), filesCalling("getScripts()"));
+    }
+
     private static Set<String> filesCalling(String call) throws IOException {
         try (Stream<Path> files = Files.walk(SOURCES)) {
             return files.parallel().filter(file -> file.toString().endsWith(".java"))

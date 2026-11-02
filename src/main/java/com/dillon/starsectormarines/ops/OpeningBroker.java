@@ -55,7 +55,7 @@ public final class OpeningBroker {
     }
 
     static boolean introductionPending() {
-        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null && !script.roster().hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId);
     }
 

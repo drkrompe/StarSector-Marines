@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.event;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -152,8 +153,7 @@ public final class PlayerEventPresenter implements EveryFrameScript {
 
     /** Finds the registered presenter, or null if not yet installed. */
     public static PlayerEventPresenter getInstance() {
-        if (Global.getSector() == null) return null;
-        for (EveryFrameScript script : Global.getSector().getScripts()) {
+        for (EveryFrameScript script : CampaignBackend.sectorScripts()) {
             if (script instanceof PlayerEventPresenter) {
                 return (PlayerEventPresenter) script;
             }

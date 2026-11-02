@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.bloom.RavBloomSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
@@ -160,8 +161,7 @@ public class CampaignStateScript implements EveryFrameScript {
 
     /** Finds the registered campaign-state script, or null if not yet installed. */
     public static CampaignStateScript getInstance() {
-        if (Global.getSector() == null) return null;
-        for (EveryFrameScript script : Global.getSector().getScripts()) {
+        for (EveryFrameScript script : CampaignBackend.sectorScripts()) {
             if (script instanceof CampaignStateScript) {
                 return (CampaignStateScript) script;
             }
