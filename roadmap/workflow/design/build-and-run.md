@@ -39,6 +39,36 @@ touch packaging.
   - `-PplayerBuild` launches without `-Dmarines.dev=true`, so every debug
     surface behind `DevConfig.DEV_MODE` is off, as on a player's install.
 
+## Playing a battle without the game
+
+`gradlew.bat playBattle -Pbattle=<source>` opens the real `BattleScreen` in a
+window of its own, with no game booted, for a playtest in seconds rather than a
+launch and a campaign (`PlayBattleMain`). It needs the install only for its
+jars, natives and vanilla assets, and no `deployMod`. Windows only for now: the
+game's Mac natives do not load on the Mac's JDK.
+
+- **Sources:** `HeadlessBattles.build`'s (`relief`, the default; `thunder-run`,
+  `cordon`, `salvage-rights`, `cold-start`, `working-passage`, each with its
+  `:key=value` options; `fixture:<path>`), or the bare name of a fixture in
+  `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
+- **Controls** are the battle's own. F9 rebuilds the battle. Closing the window
+  or continuing from a finished battle quits, printing the tick and the winner.
+- **`-Pwindow=<w>x<h>`** changes the window from 1920x1080. A window as large as
+  the desktop has no title bar. `-Dbattle.*` and `-Dmarines.*` switches are
+  forwarded, so `-Dmarines.dev=true` gives the developer HUD.
+- **It plays as the game plays:** the asynchronous defaults, not the evidence
+  tasks' serial switches, and the player commands the company as in any played
+  battle (`mission-command-nouns.md`).
+- **`-PplayScript=<file>`** drives a run unattended and takes screenshots into
+  `build/play-battle`; the format is on `PlayBattleMain`.
+
+**Not there yet:** sound (the cues run and play nothing), any campaign state
+(nothing settles, and a story retry is not offered), and vanilla combat
+(`combathybrid`). **It cannot replace a run in the game:** the game hands the
+screen a polluted GL state and refuses file access to shipped code, and neither
+happens here, so sign a change off with `runStarsector`, and `verifyScriptSandbox`
+when it touches I/O.
+
 ## Release
 
 `gradlew.bat packageRelease` builds `build/release/StarsectorMarines-<version>.zip`:

@@ -108,7 +108,9 @@ The full procedure (Drive layout, pruning, previews, the picks page and its
 - `gradlew.bat deployMod` syncs `mod/` into the game (needs `ffmpeg` for sounds);
   `gradlew.bat runStarsector` deploys and launches it, recording the exit status
   and JVM output under `build/starsector-run/`; `gradlew.bat packageRelease`
-  builds the public zip. Details, crash triage and flags: `build-and-run.md`.
+  builds the public zip. `gradlew.bat playBattle -Pbattle=<source>` plays one
+  battle in a window with no game booted, a playtest and not a final check.
+  Details, crash triage and flags: `build-and-run.md`.
 - **Load every mod texture through `ModTextures`**, never
   `Global.getSettings().getSprite` or `openStream`: shipped textures are fitted
   to their drawn size and only `ModTextures` maps them back (`texture-fit.md`).

@@ -1104,6 +1104,30 @@ tasks.register('sceneDeterminism', JavaExec) {
     }
 }
 
+// The real battle screen in its own window, with no game booted (`PlayBattleMain`). No async overrides, unlike the
+// evidence tasks above: a playtest should feel the live game's simulation.
+tasks.register('playBattle', JavaExec) {
+    group = 'development'
+    description = 'Play one battle in a window without booting Starsector.'
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.PlayBattleMain'
+    workingDir projectDir
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    forwardBattleSwitches(delegate)
+    System.properties.each { key, value ->
+        if (key.toString().startsWith('marines.')) systemProperty key.toString(), value
+    }
+    ['battle': 'play.battle', 'window': 'play.window'].each { argument, property ->
+        def value = providers.gradleProperty(argument).getOrElse('').trim()
+        if (!value.isBlank()) systemProperty property, value
+    }
+    def script = providers.gradleProperty('playScript').getOrElse('').trim()
+    if (!script.isBlank()) systemProperty 'play.script', file(script).absolutePath
+}
+
 tasks.register('layerAuthoring', JavaExec) {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'
