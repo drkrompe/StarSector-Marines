@@ -1107,14 +1107,31 @@ tasks.register('sceneDeterminism', JavaExec) {
     }
 }
 
+// playBattle reaches a few dozen of the test sources' thousands, so it compiles only those: its own classes, with the
+// test tree as a source path javac pulls just what they name from. A separate task rather than a source set, so the
+// classes stay in src/test where an IDE resolves them. All of the tree is an input, as a source path alone would miss a
+// helper's edit; a run after any test edit recompiles these few files, and no other edit recompiles anything.
+def compilePlayBattle = tasks.register('compilePlayBattle', JavaCompile) {
+    description = 'Compile playBattle and only the test sources it reaches.'
+    source = fileTree('src/test/java') { include 'com/dillon/starsectormarines/ops/Play*.java' }
+    classpath = sourceSets.test.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('classes/java/playBattle')
+    javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    options.sourcepath = files('src/test/java')
+    options.compilerArgs += '-implicit:class'
+    options.incremental = false
+    inputs.dir('src/test/java').withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 // The real battle screen in its own window, with no game booted (`PlayBattleMain`). No async overrides, unlike the
 // evidence tasks above: a playtest should feel the live game's simulation.
 tasks.register('playBattle', JavaExec) {
     group = 'development'
     description = 'Play one battle in a window without booting Starsector.'
     jvmArgs '--enable-native-access=ALL-UNNAMED'
-    dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath + files(new File(starsectorCore, 'jogg-0.0.7.jar'),
+    // The test task's classpath but for its classes: its resources hold the fixtures.
+    classpath = files(compilePlayBattle, tasks.named('processTestResources')) + sourceSets.main.output +
+            configurations.testRuntimeClasspath + files(new File(starsectorCore, 'jogg-0.0.7.jar'),
             new File(starsectorCore, 'jorbis-0.0.15.jar'))
     // `-Psilent` plays without sound, and without needing the gitignored clips or ffmpeg.
     if (providers.gradleProperty('silent').isPresent()) systemProperty 'play.silent', 'true'

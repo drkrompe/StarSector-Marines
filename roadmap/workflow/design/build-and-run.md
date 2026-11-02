@@ -45,7 +45,11 @@ touch packaging.
 window of its own, with no game booted, for a playtest in seconds rather than a
 launch and a campaign (`PlayBattleMain`). It needs the install only for its
 jars, natives and vanilla assets, and no `deployMod`. Windows only for now: the
-game's Mac natives do not load on the Mac's JDK.
+game's Mac natives do not load on the Mac's JDK. It does not run
+`compileTestJava`: `compilePlayBattle` builds its `Play*` classes with the test
+tree as a javac source path, so only the few dozen test sources they reach
+compile. A new `Play*` class or helper needs nothing more; one found only by
+reflection would not compile, and fails at run time with `NoClassDefFoundError`.
 
 - **Sources:** `HeadlessBattles.build`'s (`relief`, the default; `thunder-run`,
   `cordon`, `salvage-rights`, `cold-start`, `working-passage`, each with its
