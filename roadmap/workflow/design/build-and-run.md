@@ -94,17 +94,19 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
 `gradlew.bat playBattle -PplayServer` serves MCP over HTTP at
 `http://127.0.0.1:47811/mcp`, on the loopback address only, and prints that URL. A
 second window on the same port fails at once; `-PplayServer=<port>` picks another.
-Open the window first, then connect the session, since a client connects as it
-starts. Once, for every session:
+A session calls it through the `play-battle` skill's shell scripts, which need no
+connection and no restart whenever the window opens:
+
+```bash
+.agents/skills/play-battle/scripts/play-query.sh "why 4"
+```
+
+An MCP client can connect too, though it connects as it starts, so the window has to be
+open first:
 
 ```bash
 claude mcp add --transport http --scope user play-battle http://127.0.0.1:47811/mcp
 ```
-
-Or for one run, the same server as `--mcp-config`:
-`{"mcpServers":{"play-battle":{"type":"http","url":"http://127.0.0.1:47811/mcp"}}}`.
-While no window is open a user-scope server just shows as failed. It is plain JSON-RPC
-over POST, so `curl` works from a session that started too early.
 
 - **`play_status`**: the screen, the world, what can be pressed, the battle's tick and
   seconds, frames shown and the slowest call so far.
