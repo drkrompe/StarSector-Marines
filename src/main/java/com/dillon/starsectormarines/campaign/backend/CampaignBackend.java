@@ -7,6 +7,8 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.fleet.FleetMemberType;
 
 import java.util.List;
 import java.util.Map;
@@ -106,6 +108,11 @@ public final class CampaignBackend {
         StarSystemAPI byName(String name);
     }
 
+    /** Where a ship the company is awarded comes from. */
+    public interface ShipYard {
+        FleetMemberAPI build(String variantId);
+    }
+
     /** The game's answers, read afresh each time since a sector comes and goes with each save. */
     private static final SavedData GAME_SAVED_DATA =
             () -> Global.getSector() == null ? null : Global.getSector().getPersistentData();
@@ -119,6 +126,8 @@ public final class CampaignBackend {
 
     private static volatile StarSystems starSystems =
             name -> Global.getSector() == null ? null : Global.getSector().getStarSystem(name);
+    private static volatile ShipYard shipYard =
+            variantId -> Global.getFactory().createFleetMember(FleetMemberType.SHIP, variantId);
     private static volatile DockedPort dockedPort = CivilizedPort::dockedInDialog;
     private static volatile Factions factions = GAME_FACTIONS;
     private static volatile Markets markets = GAME_MARKETS;
@@ -174,6 +183,16 @@ public final class CampaignBackend {
     /** Answers star systems from {@code backend} from now on, for a host with no game running. */
     public static void useStarSystems(StarSystems backend) {
         starSystems = backend;
+    }
+
+    /** {@link ShipYard#build} of the installed backend. */
+    public static FleetMemberAPI newShip(String variantId) {
+        return shipYard.build(variantId);
+    }
+
+    /** Builds ships from {@code backend} from now on, for a host with no game running. */
+    public static void useShipYard(ShipYard backend) {
+        shipYard = backend;
     }
 
     /** {@link Factions#player} of the installed backend. */

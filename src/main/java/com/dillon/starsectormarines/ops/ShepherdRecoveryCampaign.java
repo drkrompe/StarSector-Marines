@@ -8,10 +8,8 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import com.fs.starfarer.api.fleet.FleetMemberType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -159,7 +157,7 @@ public final class ShepherdRecoveryCampaign {
             if(o.workingPassage==null || o.coldStart!=null || o.salvageRights!=null || CampaignBackend.playerFleet() == null)return -1;
             if(!p.matches(o.missionId))return -1;
             var r=o.workingPassage;
-            FleetMemberAPI ship=o.victory?Global.getFactory().createFleetMember(FleetMemberType.SHIP,"shepherd_Frontier"):null;
+            FleetMemberAPI ship=o.victory?CampaignBackend.newShip("shepherd_Frontier"):null;
             int crew=ship==null?0:(int)Math.ceil(ship.getMinCrew());
             int paid=settlePassage(p,o,ship==null?null:new FleetAward() {
                 public String memberId(){return ship.getId();}

@@ -32,6 +32,7 @@ and each gets a pass in the real game: much of this code has no headless coverag
 | Markets | `getEconomy`, `getMarket`, `getMarketsCopy` | Moved, but for files that hold a sector of their own |
 | News | intel, `getCampaignUI` messages | Not started |
 | Star systems | `getStarSystem`: where the story's arcs find their worlds | Moved |
+| Awarded ships | `createFleetMember` for what a contract pays in kind | Moved, but for the company start and a variant read |
 | World basics | clock, entities | Not started |
 
 ## Laws

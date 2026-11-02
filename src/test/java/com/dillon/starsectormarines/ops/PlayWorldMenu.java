@@ -59,8 +59,9 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
     /** Whoever has work on this world, asked as its mission board would ask. */
     private static String work(PlanetAPI world) {
         List<String> offers = new ArrayList<>();
-        for (Client client : new MarineOpsContext(world).clients) {
-            int contracts = MissionGenerator.generate(world, client).size();
+        MarineOpsContext board = new MarineOpsContext(world);
+        for (Client client : board.clients) {
+            int contracts = board.getMissionsFor(client).size();
             if (contracts > 0) offers.add(client.displayName + ": " + contracts + (contracts == 1 ? " contract" : " contracts"));
         }
         return offers.isEmpty() ? "No work here now" : String.join("  /  ", offers);

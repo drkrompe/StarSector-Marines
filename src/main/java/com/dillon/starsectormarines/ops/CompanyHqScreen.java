@@ -82,6 +82,9 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void installDocument() {
+        // The screen outlives a battle, and a letter a settlement just opened must be on this rebuild's list.
+        auxiliary.refresh();
+        handover.refresh();
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
                 context::roomAboard,
                 this::onBarracks,

@@ -28,6 +28,7 @@ import com.fs.starfarer.api.combat.StatBonus;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.fleet.MutableMarketStatsAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.fleet.FleetMemberStatusAPI;
 import com.fs.starfarer.api.fleet.RepairTrackerAPI;
 import com.fs.starfarer.api.util.DynamicStatsAPI;
 import com.fs.starfarer.api.util.MutableValue;
@@ -98,6 +99,7 @@ final class PlayCompany {
         saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
         CampaignBackend.useDockedPort(() -> docked.getMarket());
         CampaignBackend.useStarSystems(SYSTEMS::get);
+        CampaignBackend.useShipYard(PlayCompany::newShip);
         CampaignBackend.useMarkets(new CampaignBackend.Markets() {
             @Override public boolean running() {
                 return true;
@@ -124,10 +126,12 @@ final class PlayCompany {
     }
 
     private static CampaignFleetAPI fleet() {
-        FleetMemberAPI ship = secondWind();
+        List<FleetMemberAPI> members = new ArrayList<>(List.of(secondWind()));
         Map<String, Object> data = new HashMap<>();
-        data.put("getMembersListCopy", List.of(ship));
-        data.put("getMembersInPriorityOrder", List.of(ship));
+        data.put("getMembersListCopy", (Answer) args -> new ArrayList<>(members));
+        data.put("getMembersInPriorityOrder", (Answer) args -> new ArrayList<>(members));
+        data.put("addFleetMember", (Answer) args -> members.add((FleetMemberAPI) args[0]));
+        data.put("removeFleetMember", (Answer) args -> members.remove(args[0]));
         Map<String, Object> fleet = new HashMap<>();
         fleet.put("getFleetData", stub(FleetDataAPI.class, data));
         fleet.put("getCargo", cargo());
@@ -248,6 +252,39 @@ final class PlayCompany {
         member.put("getMinCrew", MIN_CREW);
         member.put("getMaxCrew", MAX_CREW);
         member.put("getCargoCapacity", CARGO);
+        return stub(FleetMemberAPI.class, member);
+    }
+
+    /** A ship the yard hands over: whole, crewed and ready, with nothing fitted a stand-in needs to read. */
+    private static FleetMemberAPI newShip(String variantId) {
+        String hullId = variantId.substring(0, variantId.indexOf('_'));
+        Map<String, Object> spec = new HashMap<>();
+        spec.put("getHullId", hullId);
+        spec.put("getBaseHullId", hullId);
+        spec.put("getHullName", hullId);
+        spec.put("getHullSize", ShipAPI.HullSize.DESTROYER);
+        ShipHullSpecAPI hull = stub(ShipHullSpecAPI.class, spec);
+
+        Map<String, Object> variant = new HashMap<>();
+        variant.put("getHullSpec", hull);
+        variant.put("getHullVariantId", variantId);
+
+        Map<String, Object> repair = new HashMap<>();
+        repair.put("getCR", READINESS);
+        repair.put("getMaxCR", READINESS);
+
+        Map<String, Object> status = new HashMap<>();
+        status.put("getHullFraction", 1f);
+
+        Map<String, Object> member = new HashMap<>();
+        member.put("getId", variantId + "-" + System.identityHashCode(member));
+        member.put("getHullId", hullId);
+        member.put("getHullSpec", hull);
+        member.put("getVariant", stub(ShipVariantAPI.class, variant));
+        member.put("getRepairTracker", stub(RepairTrackerAPI.class, repair));
+        member.put("getStatus", stub(FleetMemberStatusAPI.class, status));
+        member.put("getMinCrew", 1f);
+        member.put("setShipName", (Answer) args -> member.put("getShipName", args[0]));
         return stub(FleetMemberAPI.class, member);
     }
 

@@ -55,6 +55,14 @@ class CampaignBackendBoundaryTest {
         assertEquals(onlyTheBackend, filesCalling("Global.getSector().getStarSystem("));
     }
 
+    @Test
+    void onlyTheStartAndAVariantReadBuildShipsOfTheGame() throws IOException {
+        assertEquals(new TreeSet<>(Set.of(BACKEND, 
+                "com/dillon/starsectormarines/campaign/start/CerberusCompanyStart.java",
+                "com/dillon/starsectormarines/ops/CompanyShipResolver.java")),
+                filesCalling("Global.getFactory().createFleetMember("));
+    }
+
     private static Set<String> filesCalling(String call) throws IOException {
         try (Stream<Path> files = Files.walk(SOURCES)) {
             return files.parallel().filter(file -> file.toString().endsWith(".java"))
