@@ -1,6 +1,6 @@
 ---
 name: play-battle
-description: Question a Starsector Marines battle while it is being played in the playBattle window - what a squad is doing and why, units, mission command, objectives, story beats, who hit whom - from a shell, with no MCP server to connect and no session restart. Use whenever the owner has playBattle open with -PplayServer, or asks what is happening in a battle they are playing, for mission design or diagnosis.
+description: Question a Starsector Marines battle while it is being played in the playBattle window - what a squad is doing and why, units, mission command, objectives, story beats, who hit whom - and pause it, resume it or run it to a tick or story beat, from a shell, with no MCP server to connect and no session restart. Use whenever the owner has playBattle open with -PplayServer, or asks what is happening in a battle they are playing, for mission design or diagnosis.
 ---
 
 # Asking a played battle questions
@@ -28,12 +28,41 @@ Run them from the repository root, or any worktree of it:
 .agents/skills/play-battle/scripts/play-hitlog.sh on
 ```
 
+```bash
+.agents/skills/play-battle/scripts/play-run-to.sh 900 speed=4
+```
+
 Answers are one line of JSON on stdout. Exit 1 means the server refused or the
 question failed, with the reason on stderr. Exit 2 means nothing is listening: ask
 the owner to open the window, then just run the script again. With no Python on the
 path, the answer comes back inside its JSON-RPC envelope.
 
 If the owner chose another port with `-PplayServer=<port>`, set `PLAY_BATTLE_PORT`.
+
+## Stopping at a moment
+
+Stop the battle first when several questions must describe one moment.
+
+| Script | Does |
+|--------|------|
+| `play-run-to.sh 900 [speed=1\|2\|4]` | Runs to tick 900 and pauses on exactly it |
+| `play-run-to.sh +300` | 300 ticks from now, for a query, wait, query loop. While paused, `+1` steps one tick |
+| `play-run-to.sh beat=final_run` | Pauses when a story beat whose id contains the text fires |
+| `play-pause.sh` | Pauses now and answers the tick |
+| `play-resume.sh [1\|2\|4]` | Runs again, at the speed it last ran at unless told |
+
+`play-run-to.sh` waits until the battle has stopped, then prints the status: `run.state`
+is `ARRIVED`, `BEAT` or `COMPLETE`, with `stoppedAt` and `reason`. At 30 ticks a second a
+far target takes a while, so give a long run `speed=4` and run the script in the background.
+
+These press the battle's own time buttons, so the owner sees the HUD change. **They move
+the owner's battle: use them when the owner asked for it or has handed over the clock.**
+If the owner changes the speed during a run, the run ends with `CANCELLED` and exit 1, and
+nothing fights them. `run` stays `CANCELLED` until the next run; check `time` in the status
+for whether the battle is paused now.
+
+A run only goes forward. The window's asynchronous battle does not repeat, so to see one
+moment again exactly, use `battleProbe`.
 
 ## Finding out why
 
@@ -70,12 +99,12 @@ shows what mission command tried to do as well as what happened.
 
 ## What to expect
 
-- **The battle moves between calls** unless the player has paused. Commands in one
+- **The battle moves between calls** unless it is paused. Commands in one
   `play-query.sh` call see one tick, so ask together whatever must agree; every answer
   carries its tick.
-- **Nothing here steps or changes the battle.** `advance`, `until`, `watch`, `topology`
-  and the other stepping commands are refused, because the window owns the clock. To
-  step a battle, use `battleProbe` (`evidence-tasks.md`).
+- **A question never moves the battle.** `advance`, `until`, `watch`, `topology` and the
+  other stepping commands are refused in `play-query.sh`; move it with `play-run-to.sh`.
+  There is no way to give orders from here.
 - **"no battle is being played"** comes from the mission board and other screens;
   `play-status.sh` still answers there.
 - **"reached no frame in 5 s"** means the window is opening or building a battle. Ask

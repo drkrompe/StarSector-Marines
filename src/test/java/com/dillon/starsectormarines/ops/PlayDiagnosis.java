@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.probe.BattleProbe;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.tools.mcp.McpSchema;
 import com.dillon.starsectormarines.tools.mcp.McpServer;
 import com.dillon.starsectormarines.tools.mcp.McpTool;
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -45,9 +47,11 @@ import java.util.concurrent.TimeoutException;
  * call, however hard a client asks, and a frame with nothing asked costs one queue poll. Each call's commands run
  * within that frame and so see one tick. The slowest call so far is in {@code play_status}.
  *
- * <p><b>Nothing here steps the battle:</b> {@link BattleProbe#reads} refuses every stepping command, and the only write
- * is {@code battle_hitlog}, which switches an observer on. Host and Origin are checked, so a web page in a browser on
- * this machine cannot reach the port by way of DNS rebinding.
+ * <p><b>A question never moves the battle:</b> {@link BattleProbe#reads} refuses every stepping command. The writes are
+ * named as tools of their own: {@code battle_hitlog} switches an observer, and {@code battle_pause},
+ * {@code battle_resume} and {@code battle_run_to} press the battle's own time buttons as the player would ({@link
+ * PlayRunTo}). Host and Origin are checked, so a web page in a browser on this machine cannot reach the port by way of
+ * DNS rebinding.
  */
 final class PlayDiagnosis implements AutoCloseable {
 
@@ -60,6 +64,12 @@ final class PlayDiagnosis implements AutoCloseable {
         String world();
 
         String controls();
+
+        /** The battle's time button showing as chosen, or null with none on screen. */
+        String timeButton();
+
+        /** Queues a press for the next frame; false if the control cannot be pressed now. */
+        boolean press(String id);
     }
 
     private interface Read {
@@ -76,10 +86,14 @@ final class PlayDiagnosis implements AutoCloseable {
     private static final long ANSWER_WAIT_SECONDS = 5L;
     private static final int MAX_BODY_BYTES = 1 << 20;
     private static final int MAX_COMMANDS = 32;
+    private static final String NORMAL_SPEED = "battle-time-normal";
+    private static final Map<String, String> SPEEDS =
+            Map.of("1", NORMAL_SPEED, "2", "battle-time-double", "4", "battle-time-quad");
     private static final String INSTRUCTIONS = "A live Starsector Marines battle being played by hand in the playBattle "
-            + "window. Everything reads between ticks and nothing steps it, so the tick moves on between calls unless the "
-            + "player has paused; commands sent together in one battle_query see the same tick. Start with play_status, "
-            + "then battle_query 'squads' to find a squad and 'why <id>' to learn what it is doing and why.";
+            + "window. Questions read between ticks and never step it, so the tick moves on between calls unless it is "
+            + "paused; commands sent together in one battle_query see the same tick. battle_run_to stops it on a tick or "
+            + "story beat, so several calls can ask about one moment. Start with play_status, then battle_query 'squads' to "
+            + "find a squad and 'why <id>' to learn what it is doing and why.";
 
     private final Queue<Pending> pending = new ConcurrentLinkedQueue<>();
     private final HttpServer http;
@@ -91,11 +105,17 @@ final class PlayDiagnosis implements AutoCloseable {
     private long frames;
     private long calls;
     private float slowestCallMs;
+    private PlayRunTo run;
+    private BattleSimulation runBattle;
+    private String runBeat;
+    private int runBeatsSeen;
+    private int runStoppedAt = -1;
+    private String lastSpeed = NORMAL_SPEED;
 
     private PlayDiagnosis(HttpServer http, ExecutorService thread, Path project, Path core) {
         this.http = http;
         this.thread = thread;
-        this.protocol = new McpServer(new McpToolCatalog(List.of(status(), query(), hitlog())),
+        this.protocol = new McpServer(new McpToolCatalog(List.of(status(), query(), hitlog(), pause(), resume(), runTo())),
                 new McpToolContext(project, core), "starsector-marines-play", "0.0.1", INSTRUCTIONS);
     }
 
@@ -143,6 +163,50 @@ final class PlayDiagnosis implements AutoCloseable {
             }
             calls++;
             slowestCallMs = Math.max(slowestCallMs, (System.nanoTime() - started) / 1e6f);
+        }
+        String button = view.timeButton();
+        if (button != null && !button.equals(PlayRunTo.PAUSE)) lastSpeed = button;
+        advanceRun(view, button);
+    }
+
+    private void advanceRun(View view, String button) {
+        if (run == null || run.state() != PlayRunTo.State.RUNNING) return;
+        BattleSimulation battle = view.battle();
+        if (battle != runBattle) {
+            run.cancel("the battle was left");
+            return;
+        }
+        PlayRunTo.Next next = run.frame(battle.getSimTickIndex(), battle.isComplete(), button, beatFired(battle));
+        if (next.press() != null && !view.press(next.press())) run.cancel(next.press() + " cannot be pressed now");
+        for (int i = 0; i < next.steps(); i++) battle.advance(BattleSimulation.TICK_DT);
+        if (run.state() != PlayRunTo.State.RUNNING) runStoppedAt = battle.getSimTickIndex();
+    }
+
+    /** The beat a run is waiting for, as it fired, or null. */
+    private String beatFired(BattleSimulation battle) {
+        if (runBeat == null) return null;
+        List<StoryBeatLog.Event> beats = battle.getStoryBeats();
+        for (int i = runBeatsSeen; i < beats.size(); i++) {
+            if (beats.get(i).id().contains(runBeat)) return beats.get(i).id() + " at tick " + beats.get(i).tick();
+        }
+        runBeatsSeen = beats.size();
+        return null;
+    }
+
+    private JSONObject runStatus() throws Exception {
+        if (run == null) return null;
+        JSONObject out = new JSONObject().put("state", run.state().name())
+                .put("target", run.target() == Integer.MAX_VALUE ? JSONObject.NULL : run.target())
+                .put("beat", runBeat == null ? JSONObject.NULL : runBeat);
+        if (run.state() != PlayRunTo.State.RUNNING) out.put("stoppedAt", runStoppedAt).put("reason", run.reason());
+        return out;
+    }
+
+    /** Whoever asks for the clock last has it. */
+    private void endRun(String why) {
+        if (run != null && run.state() == PlayRunTo.State.RUNNING) {
+            run.cancel(why);
+            runStoppedAt = runBattle.getSimTickIndex();
         }
     }
 
@@ -223,12 +287,14 @@ final class PlayDiagnosis implements AutoCloseable {
 
     private McpTool status() {
         return tool("play_status", "Where the player is now: the current screen, the world docked at, what can be pressed, "
-                        + "and the battle's tick, seconds and winner if one is being played. Also frames shown, how long the server has been open "
+                        + "the battle's tick, seconds and winner if one is being played, its time (paused, 1, 2 or 4) and "
+                        + "how the last battle_run_to stands. Also frames shown, how long the server has been open "
                         + "and the slowest call so far, to see what asking has cost the window.",
                 McpSchema.object().build(), arguments -> atFrame(view -> {
                     BattleSimulation battle = view.battle();
                     return McpToolResult.of(new JSONObject().put("screen", view.screen()).put("world", view.world())
                             .put("battle", battle == null ? JSONObject.NULL : probe(battle).run("tick"))
+                            .put("time", timeName(view.timeButton())).put("run", runStatus())
                             .put("controls", view.controls()).put("frames", frames)
                             .put("serverSeconds", (System.nanoTime() - opened) / 1_000_000_000L)
                             .put("calls", calls).put("slowestCallMs", Math.round(slowestCallMs * 100f) / 100d).toString());
@@ -272,8 +338,87 @@ final class PlayDiagnosis implements AutoCloseable {
                 });
     }
 
+    private static Object timeName(String button) {
+        if (button == null) return JSONObject.NULL;
+        if (button.equals(PlayRunTo.PAUSE)) return "paused";
+        for (Map.Entry<String, String> speed : SPEEDS.entrySet()) {
+            if (speed.getValue().equals(button)) return speed.getKey();
+        }
+        return button;
+    }
+
+    private McpTool pause() {
+        return tool("battle_pause", "A write: pause the battle with its own pause button, ending any battle_run_to. Answers the "
+                        + "tick it stopped on; it runs no further, so later calls all read that tick.",
+                McpSchema.object().build(), arguments -> atFrame(view -> {
+                    BattleSimulation battle = view.battle();
+                    if (battle == null) return noBattle(view);
+                    endRun("battle_pause");
+                    if (!PlayRunTo.PAUSE.equals(view.timeButton()) && !view.press(PlayRunTo.PAUSE)) {
+                        return McpToolResult.failure("the pause button cannot be pressed now; the window is on " + view.screen());
+                    }
+                    return McpToolResult.of(new JSONObject().put("tick", battle.getSimTickIndex()).put("time", "paused").toString());
+                }));
+    }
+
+    private McpTool resume() {
+        return tool("battle_resume", "A write: run the battle again with its own time buttons, ending any battle_run_to. speed is "
+                        + "1, 2 or 4; left out, the speed it last ran at.",
+                McpSchema.object().string("speed", "1, 2 or 4").build(), arguments -> {
+                    String speed = arguments.optString("speed", "");
+                    if (!speed.isEmpty() && !SPEEDS.containsKey(speed)) return McpToolResult.failure("speed is 1, 2 or 4");
+                    return atFrame(view -> {
+                        BattleSimulation battle = view.battle();
+                        if (battle == null) return noBattle(view);
+                        endRun("battle_resume");
+                        String button = speed.isEmpty() ? lastSpeed : SPEEDS.get(speed);
+                        if (!view.press(button)) {
+                            return McpToolResult.failure(button + " cannot be pressed now; the window is on " + view.screen());
+                        }
+                        return McpToolResult.of(new JSONObject().put("tick", battle.getSimTickIndex())
+                                .put("time", timeName(button)).toString());
+                    });
+                });
+    }
+
+    private McpTool runTo() {
+        return tool("battle_run_to", "A write: run the battle on and stop it, on the exact tick, or just after a story beat fires "
+                        + "(the frame it fired in; the status says which tick that was). Give tick, by or beat; a tick and a beat "
+                        + "together stop at whichever comes first. Answers at once: poll play_status, whose run.state goes from "
+                        + "RUNNING to ARRIVED, BEAT or COMPLETE, or CANCELLED if the player changes the speed. It cannot go back: "
+                        + "a tick already past is refused. While paused, by=1 steps one tick.",
+                McpSchema.object().integer("tick", "The tick to stop on.").integer("by", "Ticks from now to stop after.")
+                        .string("beat", "Stop when a story beat whose id contains this fires.")
+                        .string("speed", "1, 2 or 4; left out, the speed it is running at or last ran at.").build(), arguments -> {
+                    String speed = arguments.optString("speed", "");
+                    String beat = arguments.optString("beat", "");
+                    if (!speed.isEmpty() && !SPEEDS.containsKey(speed)) return McpToolResult.failure("speed is 1, 2 or 4");
+                    if (!arguments.has("tick") && !arguments.has("by") && beat.isEmpty()) {
+                        return McpToolResult.failure("give tick, by or beat");
+                    }
+                    return atFrame(view -> {
+                        BattleSimulation battle = view.battle();
+                        if (battle == null) return noBattle(view);
+                        if (battle.isComplete()) return McpToolResult.failure("the battle is over");
+                        if (view.timeButton() == null) {
+                            return McpToolResult.failure("the battle's time controls are not on screen; the window is on " + view.screen());
+                        }
+                        int now = battle.getSimTickIndex();
+                        int target = arguments.has("by") ? now + arguments.getInt("by")
+                                : arguments.has("tick") ? arguments.getInt("tick") : Integer.MAX_VALUE;
+                        if (target <= now) return McpToolResult.failure("the battle is already at tick " + now + "; it cannot go back");
+                        endRun("a new battle_run_to");
+                        run = new PlayRunTo(target, speed.isEmpty() ? lastSpeed : SPEEDS.get(speed));
+                        runBattle = battle;
+                        runBeat = beat.isEmpty() ? null : beat;
+                        runBeatsSeen = battle.getStoryBeats().size();
+                        return McpToolResult.of(new JSONObject().put("tick", now).put("run", runStatus()).toString());
+                    });
+                });
+    }
+
     private McpTool hitlog() {
-        return tool("battle_hitlog", "The one write: start or stop recording every resolved hit, so battle_query's hits and "
+        return tool("battle_hitlog", "A write, but not to the battle: start or stop recording every resolved hit, so battle_query's hits and "
                         + "hits-by can answer who hurt whom from here on. An observer: it draws no random number and changes nothing "
                         + "in the battle.",
                 McpSchema.object().requiredString("action", "on, off, clear or status").build(), arguments -> {
