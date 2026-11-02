@@ -77,7 +77,7 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `ALSOFT_DRIVERS=wave`: the run writes a WAV of exactly what it mixed.
 
 **Not there yet:** any campaign state (nothing settles, and a story retry is not
-offered), and vanilla combat (`combathybrid`). **It cannot replace a run in the
+offered). **It cannot replace a run in the
 game:** the game hands the screen a polluted GL state and refuses file access to
 shipped code, and neither happens here, so sign a change off with
 `runStarsector`, and `verifyScriptSandbox` when it touches I/O.

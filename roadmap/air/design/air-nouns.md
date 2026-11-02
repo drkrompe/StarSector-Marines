@@ -2030,8 +2030,7 @@ hull's own figures, and none of them is turned into a broadside.
 
 **It is a superweapon, used rarely, and it is the map's dominant fact while it
 is there.** Its weapons are authored *ground effects* resolved by the simulation,
-not vanilla projectiles bridged in, because the vanilla combat model cannot
-express area effect against infantry (`vanilla-combat-bridge-nouns.md`, law 4).
+because area effect against infantry is the simulation's to resolve.
 Two classes carry the design:
 
 - A **sweep** is a beam whose ground end is walked across an arc over seconds.
@@ -3181,9 +3180,7 @@ other support; Air owns how committed craft exist and behave in the simulation.
 `convoy-nouns.md` is the ground-vehicle sibling: both use data-driven bodies and
 steering, but neither is an implementation template for the other.
 
-`vanilla-combat-bridge` owns the seam where a real vanilla combat host and the
-ground simulation interact. It may host external air, but does not create a
-second internal air model. `battle-render` owns the eventual camera-Z and
+`battle-render` owns the eventual camera-Z and
 view-projection work that gives altitude its shared presentation space.
 
 Ship collision, wing composition, air-to-air, modules, and air persistence stay

@@ -20,8 +20,6 @@ import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageLi
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
-import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
-import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.mech.MechCatalog;
@@ -215,29 +213,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         } else {
             removeCampaignDebugIntel();
         }
-        if (DevConfig.S0_COMBAT_PROBE) {
-            ensureCombatHybridProbe();
-        }
         logRosterContents();
-    }
-
-    /**
-     * Registers the S0 vanilla-combat-bridge probe: a {@link CombatHybridCampaignPlugin}
-     * that can route {@code startBattle} to our minimal battle definition, and a
-     * {@link CombatHybridInputListener} that arms it from a campaign-map hotkey.
-     * Both are transient (not save-persisted), so we re-register each load and
-     * de-dup defensively.
-     */
-    private static void ensureCombatHybridProbe() {
-        SectorAPI sector = Global.getSector();
-
-        sector.unregisterPlugin(CombatHybridCampaignPlugin.PLUGIN_ID);
-        sector.registerPlugin(new CombatHybridCampaignPlugin());
-
-        if (sector.getListenerManager().getListeners(CombatHybridInputListener.class).isEmpty()) {
-            sector.getListenerManager().addListener(new CombatHybridInputListener(), true);
-        }
-        LOG.info("Starsector Marines: S0 combat-bridge probe registered (Ctrl+Shift+B on the campaign map)");
     }
 
     private static void ensureBridgeIntel() {

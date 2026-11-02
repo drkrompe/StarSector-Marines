@@ -34,7 +34,6 @@ public final class GroundAntiAirSystem {
             this(shooter, target, damage, penetration, arrival, 0f, 0f, 0f);
         }
     }
-    private static final long[] NO_AIRCRAFT = new long[0];
     /** One round on its way to a low-flying hull, landed through the warships' own hit rules. */
     private record HullRound(long shooter, Faction side, Warship target, float fromX, float fromY,
                              float damage, float penetration, int arrival) {}
@@ -58,18 +57,7 @@ public final class GroundAntiAirSystem {
     }
 
     public void tick(BattleSimulation sim) {
-        run(sim, sim.getAirEntityIds());
-    }
-
-    /**
-     * The same pass with no aircraft in it, for a battle whose air layer the host owns: the mounts still engage the
-     * swarm's fliers, which are the battle's own bodies whoever owns the aircraft.
-     */
-    public void tickFliersOnly(BattleSimulation sim) {
-        run(sim, NO_AIRCRAFT);
-    }
-
-    private void run(BattleSimulation sim, long[] aircraft) {
+        long[] aircraft = sim.getAirEntityIds();
         advanceMissiles(sim);
         for (var it = rounds.iterator(); it.hasNext();) {
             Round round = it.next();

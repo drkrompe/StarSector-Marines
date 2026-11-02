@@ -36,7 +36,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Mode-level Conquest factory invariants shared by campaign and bridge hosts. */
+/** Mode-level Conquest factory invariants. */
 @Tag("generated-space-evidence")
 public class ConquestBattleSetupTest {
 

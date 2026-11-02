@@ -27,9 +27,9 @@ import java.util.Random;
  * emit a short acknowledgement or combat remark to keep the tactical net alive
  * without becoming a constant voice track.
  *
- * <p>This class deliberately knows nothing about OpenAL or either battle
- * host's coordinate system. The standalone and hybrid presenters project the
- * returned squad centroid into their own audio frames.
+ * <p>This class deliberately knows nothing about OpenAL or the battle
+ * screen's coordinate system. The screen projects the returned squad centroid
+ * into its own audio frame.
  */
 public final class BattleRadioChatter {
 

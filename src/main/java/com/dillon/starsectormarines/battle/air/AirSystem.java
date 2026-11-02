@@ -86,7 +86,7 @@ public class AirSystem {
      * HP/sec each enemy defense post in range drains from an airborne shuttle. Gentle by design — a
      * lone post merely taxes a pass, but a cluster (a hot drop zone) shreds the wave. Tuned against
      * {@code AEROSHUTTLE} maxHp = 60: one post for a ~3s descent leg costs ~18 (survivable), three
-     * posts shred it. Re-dial freely. (S3d D3; the standalone battle's arrival shuttles feel it too.)
+     * posts shred it. Re-dial freely.
      */
     private static final float AA_DPS_PER_POST = 6f;
 
@@ -696,7 +696,7 @@ public class AirSystem {
     /**
      * Anti-air: each airborne shuttle within range of an enemy defense post (turret) takes HP drain,
      * summed over every post in its AA bubble. At zero HP it's shot down — the marines still aboard are
-     * lost, so a hot drop zone yields a partial-success wave (S3d D3). This is the first damage source
+     * lost, so a hot drop zone yields a partial-success wave. This is the first damage source
      * for {@link ShuttleMission#hp}. Area drain, not lock-on projectiles — the same "structures threaten an area" model as
      * ground-vs-infantry. Posts come from the spatial index, so this is O(shuttles × small bucket).
      */

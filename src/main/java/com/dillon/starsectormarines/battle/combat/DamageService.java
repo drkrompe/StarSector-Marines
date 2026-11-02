@@ -53,8 +53,7 @@ public final class DamageService {
          * @param attackerId the entity credited with the hit, or
          *        {@link com.dillon.starsectormarines.battle.sim.CombatTelemetryService#NO_ATTACKER}
          *        when nothing in the sim is responsible (scripted damage,
-         *        flyby strafing, the vanilla-combat bridge's mirrored hull
-         *        damage). Carried for telemetry attribution only — it does
+         *        flyby strafing). Carried for telemetry attribution only — it does
          *        not affect what the hit does.
          * @param part where on a person a modeled round landed, or null for a payload with no
          *        part (area, strafing, scripted, or a body without parts)

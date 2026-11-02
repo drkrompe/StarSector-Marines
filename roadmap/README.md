@@ -183,9 +183,10 @@ Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
 both composed world entities flying the same sortie from two origins — a berth
 on the map or a corridor off it — and a field with a strip runs the whole ground
 procedure either side of the flight. What is left of the fighter fold is the
-package rename; overhead ships remain an extension. See `air-nouns.md`. The inverse
-vanilla-combat integration and its production-launch boundary live in
-`vanilla-combat-bridge-nouns.md`.
+package rename; overhead ships remain an extension. See `air-nouns.md`.
+
+Every battle runs on this mod's own engine in Marine Operations. Running a ground
+battle beneath the vanilla combat engine was tried and given up.
 
 ### Content and presentation
 

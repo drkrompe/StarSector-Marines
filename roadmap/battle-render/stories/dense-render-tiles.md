@@ -47,8 +47,6 @@ changing the simulation's cell grid.
 - Resident GPU memory is bounded by the view rather than total map area.
 - A failed or unavailable tile target falls back locally to the present cell
   renderer with unchanged paint order.
-- Standalone and combat-bridge hosts consume the same residency mechanism with
-  host-appropriate projection and pixel density.
 
 ## Out of scope
 

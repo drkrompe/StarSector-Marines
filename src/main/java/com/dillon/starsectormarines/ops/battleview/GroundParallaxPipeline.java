@@ -716,11 +716,8 @@ public final class GroundParallaxPipeline {
     }
 
     /**
-     * Sanity bound on FBO side length. {@link #renderGround} is reachable with a
-     * WORLD-UNIT {@link BattleCamera} (the vanilla-combat-bridge backdrop uses one —
-     * see {@code combathybrid.bridge.GroundSceneBackdrop}), whose {@code vpW/vpH}
-     * aren't UI pixels at all; the {@code sx/sy} scale below assumes they are. Rather
-     * than special-case that camera, clamp: an absurd size degrades to the fallback
+     * Sanity bound on FBO side length. The {@code sx/sy} scale below assumes
+     * {@link BattleCamera}'s {@code vpW/vpH} are UI pixels. Clamp: an absurd size degrades to the fallback
      * path exactly like any other failure, instead of a multi-GB allocation attempt.
      */
     private static final int MAX_FBO_DIM = 8192;

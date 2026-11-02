@@ -7,14 +7,11 @@ Written: 2026-10-11
 Updated: 2026-10-18 — hard flux shipped (a raised shield holds only what its absorbed hits put in the pool).
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
-`combat-durability-nouns.md`, `command-powers-nouns.md` and
-`vanilla-combat-bridge-nouns.md` before accepting this story.
+`combat-durability-nouns.md` and `command-powers-nouns.md` before accepting this story.
 
 ## Problem
 
-Players want to bring a capital into the fight. The hybrid bridge cannot show
-it: vanilla damage reaches the ground only through proxies of structures, and
-infantry area damage is unmodelled. A capital's weapons are area effects on
+Players want to bring a capital into the fight. A capital's weapons are area effects on
 ground forces, which only the ground simulation can resolve.
 
 ## Goal

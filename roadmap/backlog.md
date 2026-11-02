@@ -71,9 +71,6 @@ ledger, code, tests, and Git.
   for unreachable members, preserve usable field portions while deferred, and
   retain epoch-pinned costing. A bounded legal neighbor join is another option
   with an explicit route-quality tradeoff. See `ai-nouns.md`.
-- **Shared combat FX and sound presentation** — extract a frame-parameterized
-  presenter only after standalone and vanilla-host weapon dispatch demonstrably
-  diverge.
 - **Per-panel legacy widget roots** — isolate rebuilds where an immediate-mode
   screen still loses unrelated hover or input state.
 - **Renderer naming** — rename `BridgeRenderer` after another real consumer proves

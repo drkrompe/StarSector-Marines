@@ -76,7 +76,7 @@ public class BattleSprites {
      */
     private final TextureLease lease;
 
-    /** Loads for the whole session: the company deck, the Armory, the combat bridge. */
+    /** Loads for the whole session. */
     public BattleSprites() {
         this(TextureLedger.shared().session());
     }

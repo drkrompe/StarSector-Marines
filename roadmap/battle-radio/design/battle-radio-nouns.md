@@ -1,6 +1,6 @@
 # Battle Radio
 
-Status: ACTIVE — one presentation-only cue policy spans both battle hosts; battle music follows the battle through four music states; mix, a sourced alert bed, and release-audio provenance remain unsettled.
+Status: ACTIVE — one presentation-only cue policy drives the battle host; battle music follows the battle through four music states; mix, a sourced alert bed, and release-audio provenance remain unsettled.
 
 Written: 2026-08-23
 
@@ -33,9 +33,8 @@ gameplay state nor serves as a continuous voice track.
   landing as a whole, never for one squad's situation, and never for the ship.
 - The **voice budget** is the single global throttle for every squad cue. It keeps
   the radio subordinate to combat sound and music.
-- A **host** is a presentation environment: the standalone battle screen or
-  the vanilla-combat bridge. Hosts share cue policy but own conversion from a
-  speaker's simulation cell to their audio world.
+- A **host** is a presentation environment: the battle screen. It owns
+  conversion from a speaker's simulation cell to its audio world.
 
 `BattleRadioChatter` owns cue selection and per-battle presentation state; the
 hosts own sound playback. The simulation owns tactical state and reports only
@@ -76,7 +75,7 @@ may vary between presentations without changing a replay or outcome.
 
 Marine Operations presents the cue policy's reports in generated voices over
 the shipboard radio net and adds sampled assignment exchanges under the same
-voice budget. The hybrid host has no squad radio.
+voice budget.
 
 ## Battle music
 
@@ -126,8 +125,7 @@ encoded to one loudness) and a raise fades it out over its crossfade. A state wi
 shuffles them. Until an alert bed is sourced (the owner's call), alert plays
 the combat files at reduced volume (the `_alert` sound sets). The Marine Ops
 theme, "Next Move" (`marines_intel_music`), is the menu's alone and never
-plays in battle (owner). The standalone battle screen is the only music host;
-the vanilla-combat bridge plays no music of its own. Each change of state is
+plays in battle (owner). The battle screen is the only music host. Each change of state is
 logged with its reason. Headless look recordings run the same director and
 mix its tracks into the soundtrack under `-Dsnapshot.lookSound=true`.
 
@@ -184,8 +182,7 @@ when sound is muted or unavailable, in both strategic and direct-control views.
 Speech runs in real time while simulation speed changes; pause allows the
 current recording to finish but starts no new line. Completion discards pending
 instructions but lets the active mission sentence finish. Leaving a screen stops its owned audio. Resizing does
-not reset the battle cursor or replay briefings. The hybrid debug host has no
-campaign chapter identity and therefore does not play Zoey's story dialogue.
+not reset the battle cursor or replay briefings.
 
 The same catalog may explicitly mark an authored line as text-only, in which case
 its declared reading duration owns the subtitle and no sound lookup occurs.
@@ -210,8 +207,7 @@ retained by stable voice ID with clean source takes and generation provenance.
 Her callsign is Castle. She belongs to the company rather than Wayline.
 Zoey remains the employer's
 mission contact. Command replies are available in the Marine Operations battle
-host; the hybrid debug host has no company command identity and retains its
-squad net. Both hosts still use the same squad cue policy.
+host.
 
 The player normally oversees deployment from the command ship. Ground radio is
 traffic between deployed units and shipboard command, not commentary addressed

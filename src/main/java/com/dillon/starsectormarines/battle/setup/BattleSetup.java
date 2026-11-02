@@ -334,9 +334,8 @@ public final class BattleSetup {
     /**
      * Result of {@link #buildMap}: the constructed sim, the map it was built
      * from, and the structure units spawned for its defense posts (turrets +
-     * drone hubs, in spawn order). Standalone factories ignore
-     * {@code structures}; the combat-bridge host mirrors them as targetable
-     * proxies.
+     * drone hubs, in spawn order). Most factories ignore
+     * {@code structures}.
      *
      * <p>The {@link MapResult} rides along because it is the only statement of
      * what the generator actually produced — the front depth, the arrival areas
@@ -351,14 +350,12 @@ public final class BattleSetup {
 
     /**
      * Builds the host-agnostic <b>map layer</b> — the part shared by every
-     * {@code createX} factory and the combat-bridge host. Constructs the sim
+     * {@code createX} factory. Constructs the sim
      * from the grid, installs the tactical map / buildings / defense posts /
      * parked vehicles / doodads, and spawns the defense-post structure units.
      *
-     * <p>This is the "build a {@link BattleSimulation}, then choose a host" seam:
-     * the standalone path follows this with live-scenario population (defenders,
-     * objectives, commander, reinforcement) + internal air; the bridge follows it
-     * with {@code setAirProvider(EXTERNAL)} + proxy wiring.
+     * <p>The factory follows this with live-scenario population (defenders,
+     * objectives, commander, reinforcement) + air.
      *
      * <p><b>Pre-condition:</b> {@code vehicles} and {@code defensePosts} must
      * already be stamped into {@code map.grid} — both flip cell walkability that
@@ -3444,9 +3441,7 @@ public final class BattleSetup {
      *
      * <p>Returns the full {@link MapBuild} (sim + the map it was built from +
      * the spawned defense-post structures). Most callers want just the sim —
-     * {@link #createConquest} is the thin delegating overload for them. The
-     * combat bridge needs the structures list to mirror them as targetable
-     * proxies, so it calls this.
+     * {@link #createConquest} is the thin delegating overload for them.
      */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor, RiskLevel risk,
@@ -6100,11 +6095,8 @@ public final class BattleSetup {
      * don't carry valid cover values; the demolition path re-bakes on death.
      */
     /**
-     * Public so the debug combat-bridge creation plugin spawns
-     * the planet's defenses through the <em>same</em> path the standalone battle uses —
-     * no reimplementation to drift from this one (its earlier copy omitted the cover
-     * recompute). Returns the spawned structure units (turrets + drone hubs) in spawn
-     * order, for callers that need to reference them (the bridge mirrors them as proxies).
+     * Returns the spawned structure units (turrets + drone hubs) in spawn order, for
+     * callers that need to reference them.
      */
     public static LongList spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
         LongArrayList spawned = new LongArrayList();

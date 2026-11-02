@@ -1103,7 +1103,7 @@ public class BattleRenderer {
 
     @DebugOnly
     private void renderSelectedVehicleDebug(ConvoyService convoy, float alphaMult) {
-        // Hosts without a selection model (the combat bridge passes selection=null) have no
+        // Hosts without a selection model (selection=null) have no
         // selected vehicle and no use for this dev overlay — skip rather than NPE.
         if (rc.selection == null) return;
         long selId = rc.selection.getSelectedVehicleId();
@@ -1391,11 +1391,6 @@ public class BattleRenderer {
      * {@link RenderSystem#layer()} is in {@code layers} (so passes whose sheets a
      * host didn't load never run), and only those layers are drained. Paint order
      * within the subset is unchanged (drain still walks the enum in ordinal order).
-     *
-     * <p>The combat-bridge backdrop ({@code GroundSceneBackdrop}) uses this to draw
-     * just terrain + structures under the vanilla ships, with a world-space camera —
-     * collect emits world-unit coords, drain brackets its own GL, so the same
-     * pipeline serves the standalone screen view and the combat layer unchanged.
      */
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers) {
         renderWorld(rc, layers, null);

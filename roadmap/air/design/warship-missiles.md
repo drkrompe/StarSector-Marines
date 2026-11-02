@@ -555,9 +555,8 @@ Reuse the game's art; author none. Per body:
   navigation). Rejected: the renderer and the sim would each own a path, replays
   would drift, cost scales with bodies x ticks, and the result is a sim of
   missiles the ground battle does not need. Closed-form paths are the choice.
-- **Bridging real vanilla missiles into the combat engine.** Rejected by
-  `vanilla-combat-bridge-nouns.md` law 4: the vanilla engine cannot express area
-  effect on infantry.
+- **Bridging real vanilla missiles into the combat engine.** Rejected: the
+  vanilla engine cannot express area effect on infantry.
 - **Visual-only submunitions.** Rejected as a default: they cannot be intercepted
   or saturate, so the lore (Sabot, Hurricane, Locust) would be a picture. Kept as
   the fuse-over-cap fallback only.

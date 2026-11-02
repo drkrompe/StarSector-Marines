@@ -210,9 +210,7 @@ motion to refresh a night range change.
 
 Fog is adjacent to the render pipeline because it chooses paint order and
 consumes visual state, and to map generation because buildings provide interior
-cells. Neither adjacent system owns player sight. The combat bridge is another
-render host and must advance the same roof and unit fade presentation as the
-standalone battle screen.
+cells. Neither adjacent system owns player sight.
 
 Smoke grenades are another adjacent input, not a fog feature. Battle
 simulation owns each transient smoke field and the

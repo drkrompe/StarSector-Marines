@@ -150,7 +150,6 @@ import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
-import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.air.GroundMarineArrival;
 import com.dillon.starsectormarines.battle.command.BattleResources;
@@ -1567,9 +1566,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Campaign-faction doctrine resolved once at setup and reused by every defender source. */
     private GroundRosterProfile groundRoster;
 
-    /** Who owns the air layer. {@link AirProvider#INTERNAL} by default — standalone battles <em>and</em> the current combat-bridge host both run the sim's own shuttles + flyby (the S3d drop-ship invasion depends on it: dropships are the sim's own air craft, spawned via {@link #spawnShuttle}). {@link AirProvider#EXTERNAL} is the alternative where a host owns the air — the sim's air tick is skipped and internal air-install is rejected — kept for a future direct-injection bridge, but not used today. See {@link AirProvider}. */
-    private AirProvider airProvider = AirProvider.INTERNAL;
-
     /** Battle-scoped tactical data from the map generator — TacticalMap hint graph + DefensePost list. The {@link #getTacticalMap}/{@link #setTacticalMap}/{@link #setDefensePosts} delegates below forward here. */
     private final TacticalContextService tactical =
             new TacticalContextService();
@@ -2182,7 +2178,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
     /** Attaches a turret loadout to an air entity (presence component). Called at setup once the craft is spawned (id minted); no-op for an empty loadout. */
-    public void attachAirTurrets(long airEntityId, MountedTurret[] mounts) { requireInternalAir("attachAirTurrets"); airSystem.attachTurrets(airEntityId, mounts); }
+    public void attachAirTurrets(long airEntityId, MountedTurret[] mounts) { airSystem.attachTurrets(airEntityId, mounts); }
     /** An air entity's mounted turrets (by id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
     public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
     /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()} / {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}; distinct from the parked road vehicles, which are ordinary doodads. */
@@ -2605,7 +2601,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The dispatcher flying {@link #getFlybyRoster}; read-only use (a renewable wing's bay cycle) by probes and scenes. */
     public AirCoverSystem getAirCoverSystem() { return airCoverSystem; }
     public void setFlybyRoster(FlybyRoster roster) {
-        requireInternalAir("setFlybyRoster");
         this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY;
     }
 
@@ -2619,25 +2614,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundRoster = groundRoster;
     }
 
-    /** Who owns the air layer for this battle. See {@link AirProvider}. */
-    public AirProvider getAirProvider() { return airProvider; }
-    /**
-     * Declare who owns the air. {@link AirProvider#EXTERNAL} hands the air off to the
-     * combat-bridge host: the internal air tick is skipped and internal air-install
-     * ({@link #spawnShuttle}/{@link #attachAirTurrets}/{@link #setFlybyRoster}) fails loud.
-     * Set once at setup, before any air is installed.
-     */
-    public void setAirProvider(AirProvider provider) {
-        this.airProvider = provider != null ? provider : AirProvider.INTERNAL;
-    }
-
-    /** Guards the internal-air installers — they are a contract violation under {@link AirProvider#EXTERNAL}, where the host owns the air. */
-    private void requireInternalAir(String op) {
-        if (airProvider != AirProvider.INTERNAL) {
-            throw new IllegalStateException(op + " requires AirProvider.INTERNAL; this sim is "
-                    + airProvider + " (the host owns the air — deliver via external events instead).");
-        }
-    }
     public List<ShotEvent> getActiveShots(){ return shots.getActiveShots(); }
 
     /** Thread-safe snapshot of active shots for callers iterating during the parallel UPDATE_UNITS dispatch. See {@link com.dillon.starsectormarines.battle.combat.ShotService#snapshotActiveShots()}. */
@@ -3087,7 +3063,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawnShuttle(ShuttleType type, Faction faction,
                              float lzX, float lzY, float entryX, float entryY,
                              float exitX, float exitY, float pendingDelay) {
-        requireInternalAir("spawnShuttle");
         return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
     }
 
@@ -3104,7 +3079,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                              float lzX, float lzY, float entryX, float entryY,
                              float exitX, float exitY, float pendingDelay,
                              int seatsPerSortie) {
-        requireInternalAir("spawnShuttle");
         return airSystem.spawn(type, frame, faction, lzX, lzY, entryX, entryY,
                 exitX, exitY, pendingDelay, seatsPerSortie);
     }
@@ -3113,7 +3087,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawnSortie(Airframe frame, Faction faction,
                             float lzX, float lzY, float entryX, float entryY,
                             float exitX, float exitY, float pendingDelay) {
-        requireInternalAir("spawnSortie");
         return airSystem.spawnSortie(frame, faction, lzX, lzY, entryX, entryY,
                 exitX, exitY, pendingDelay);
     }
@@ -3122,7 +3095,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawnGunship(Airframe frame, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
                              float exitX, float exitY) {
-        requireInternalAir("spawnGunship");
         return airSystem.spawnGunship(frame, faction, centreX, centreY, entryX, entryY, exitX, exitY);
     }
 
@@ -3360,10 +3332,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * timing the built-in demolition handlers see. Subscribe once at setup — there
      * is no unsubscribe.
      *
-     * <p>Exists for out-of-tree consumers (the combat-bridge adapter) that must
-     * react to sim death without importing the dispatcher or scanning the roster,
-     * keeping the dependency one-way: the adapter knows the sim, the sim never
-     * knows the adapter.
+     * <p>For a consumer outside the sim that must react to sim death without
+     * importing the dispatcher or scanning the roster.
      */
     public void subscribeDeath(java.util.function.Consumer<com.dillon.starsectormarines.battle.unit.DeathEvent> handler) {
         deathDispatcher.subscribe(handler);
@@ -4231,21 +4201,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.REINFORCEMENT);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
-        // Internal air only — under AirProvider.EXTERNAL the host's real ships own the
-        // air layer, so the sim runs no internal shuttle/flyby state machine.
-        if (airProvider == AirProvider.INTERNAL) {
-            // Before the state machine, so a wing dispatched this tick starts
-            // flying on it rather than a tick late. Internal air only: a
-            // corridor sortie is an internal air entity, and under
-            // AirProvider.EXTERNAL the host's own ships are the air cover.
-            airCoverSystem.tick(TICK_DT, this);
-            airSystem.tick(TICK_DT, simTickIndex * TICK_DT);
-            groundAntiAir.tick(this);
-            airToAir.tick(this);
-            airSystem.finishMissileContacts();
-        } else {
-            groundAntiAir.tickFliersOnly(this);
-        }
+        // Before the state machine, so a wing dispatched this tick starts
+        // flying on it rather than a tick late.
+        airCoverSystem.tick(TICK_DT, this);
+        airSystem.tick(TICK_DT, simTickIndex * TICK_DT);
+        groundAntiAir.tick(this);
+        airToAir.tick(this);
+        airSystem.finishMissileContacts();
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.

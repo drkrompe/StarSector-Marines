@@ -90,9 +90,7 @@ it.
 2. **Published fact.** Add an optional mission music state on the battle's
    presentation facts, and declare it from the Dust Ledger's quiet phase and
    alarm. A unit test covers the declaration.
-3. **Hosts.** Drive the standalone `BattleScreen` from the director. Check
-   whether the vanilla-combat bridge host plays battle music at all; if it
-   does, route it through the same director.
+3. **Hosts.** Drive the standalone `BattleScreen` from the director.
 4. **Evidence.** Log each music-state change with its reason in the battle
    log. Record a Dust Ledger battle video with the music on, from the look
    preset at 1920x1080, through the quiet phase, the alarm and the fight. Put

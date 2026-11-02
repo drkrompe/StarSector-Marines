@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.ambient;
 
-import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -223,10 +222,6 @@ public final class WorksCrewSystem {
     private boolean flyOne(BattleSimulation sim, WorksCrewService crews,
                            WorksCrewService.Posting posting, int billet,
                            AmbientTaskRoute rotation, String name) {
-        // Nothing to fly on a battle whose air the host owns; the walk still
-        // works, which is why this reads as "no lift went" rather than as an
-        // error.
-        if (sim.getAirProvider() != AirProvider.INTERNAL) return false;
         int[] lz = reliefPad(sim, crews, posting);
         if (lz == null) return false;
 

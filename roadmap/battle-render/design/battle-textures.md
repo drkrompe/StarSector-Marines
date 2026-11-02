@@ -113,15 +113,15 @@ holds, which is the number to quote for a battle.
 
 | Art | Loaded by | When | Shared with | Card |
 |---|---|---|---|--:|
-| Convoy and armor vehicle sheets, 14 lines (`graphics/battle/vehicles`) | `BattleSprites.ensureConvoySprites` | attach, the set's lines only | combat bridge backdrop | 212 MB |
-| Structures and turrets (`graphics/structures`) | `ensureTurretSprites` (whole `TurretCatalogRegistry`), `spriteByPath` | every attach; lazy on draw | combat bridge | 202 MB |
-| Tilesets (`graphics/tilesets`) | `SheetTexture` via `ensureTileSheet` and the other sheet `ensure*`, every sheet in `TileRegistry` | every attach | company deck (tile, road, doodad sheets), combat bridge | 190 MB |
+| Convoy and armor vehicle sheets, 14 lines (`graphics/battle/vehicles`) | `BattleSprites.ensureConvoySprites` | attach, the set's lines only | — | 212 MB |
+| Structures and turrets (`graphics/structures`) | `ensureTurretSprites` (whole `TurretCatalogRegistry`), `spriteByPath` | every attach; lazy on draw | — | 202 MB |
+| Tilesets (`graphics/tilesets`) | `SheetTexture` via `ensureTileSheet` and the other sheet `ensure*`, every sheet in `TileRegistry` | every attach | company deck (tile, road, doodad sheets) | 190 MB |
 | Marine infantry, every armor family (`marine-modular-topdown`) | `ensureLayeredUnitSprites` | attach, the set's families only | company deck, Armory previews | 161 MB |
 | Doodad and parked-vehicle sheets (`graphics/doodads`) | `ensureDoodadSheet` | every attach | company deck | 56 MB |
 | Ship-crew and colonist families | `ensureLayeredUnitSprites` | attach, the set's families only | company deck | 61 MB |
 | Fort buildings (`graphics/fort`) | `spriteByPath` from `FortBuildingRenderSystem` | lazy, on draw | — | 30 MB |
 | Grounded warship hulls (`graphics/battle/ships`) | `spriteByPath` from `GroundHullArt` | lazy | — | 24 MB |
-| Battle FX (`graphics/battle/fx`), smoke, fire, satchel, decals | `ensureEngineFxSprites`, `ensureSmokeSprites`, `ensureSatchelSprite`, `ensureDecalSheet`, `ImpactFx.ensureSprites` | every attach | combat bridge | 21 MB |
+| Battle FX (`graphics/battle/fx`), smoke, fire, satchel, decals | `ensureEngineFxSprites`, `ensureSmokeSprites`, `ensureSatchelSprite`, `ensureDecalSheet`, `ImpactFx.ensureSprites` | every attach | — | 21 MB |
 | Mech parts and every livery (`mech-modular-topdown`) | `ensureLayeredMechSprites` | attach, the liveries the set's sides wear | company deck | 17 MB |
 | Rav Bloom rigs, xeno families, blood pools | `ensureLayeredUnitSprites` | attach, when the set has a swarm (blood pools always) | — | 15 MB |
 | Aircraft, drones, objective icons | `ensureAirframeSprites`, `ensureDrone*`, `ensureObjectiveIcons` | every attach, all airframes | company deck (airframes) | 6 MB |
@@ -145,8 +145,7 @@ family, every livery and every registered terrain sheet too.
 
 Owners of `BattleSprites` instances, for reference when deciding which lease a load is under:
 the battle screen (also used for the Armory range trial) under a battle lease, the company deck
-under its deck lease (a new instance per lease), the Armory previews under theirs, and the
-combat bridge backdrop, which alone stays on the session lease.
+under its deck lease (a new instance per lease), and the Armory previews under theirs.
 
 ## The battle texture set
 

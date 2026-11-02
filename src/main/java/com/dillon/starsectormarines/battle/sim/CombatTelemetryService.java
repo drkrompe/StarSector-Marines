@@ -53,8 +53,8 @@ public final class CombatTelemetryService {
 
     /**
      * Attacker id meaning "no entity is responsible" — scripted scenario
-     * damage, flyby strafing routed through {@code applyExternalDamage}, and
-     * the vanilla-combat bridge's mirrored hull damage. Damage credited to it
+     * damage and flyby strafing routed through {@code applyExternalDamage}.
+     * Damage credited to it
      * is dropped rather than attributed. Safe as a sentinel because
      * {@code UnitRosterService} mints ids from 1.
      */

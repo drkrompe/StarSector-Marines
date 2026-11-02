@@ -871,10 +871,7 @@ ordinary wheel zoom and cursor lead available afterward.
 `ui-nouns.md` owns battle input routing and camera projection.
 `convoy-nouns.md` owns vehicle motion and delivery states; `mechs-nouns.md`
 owns Mech gait, facing, and mount constraints. This design targets the
-standalone Marine Operations battle first. The vanilla-combat bridge has a
-separate ground inspection/order mode in `ground-control-mode.md`; supporting
-direct control there requires its own host input adapter and cannot leak WASD
-or fire into vanilla ship controls.
+Marine Operations battle.
 
 Open implementation slices and acceptance are indexed in `stories.md`.
 
