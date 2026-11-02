@@ -79,6 +79,13 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   the game's saves are: an element a class no longer has is skipped and a new field
   stays unset, so a save outlives a tweak, as long as the code copes with that field
   being unset as it must on a real load.
+- **Save profiles:** a run writes only to its own profile, so a session's test cannot
+  move where the owner stopped. A run opened by hand writes to the owner's, the directory
+  above; a run with `-PplayScript` writes to the script profile, its `script` folder, and
+  also reads the owner's saves, so `-PplayLoad=thunder-run` starts from either and changes
+  neither of the owner's. `-PplayProfile=owner` or `script` overrides that, which is how
+  the owner opens saves a scripted walk left, and how a session opening a window by hand
+  stays out of the owner's.
 - **What is not there:** stationing and a colony's screens land on HQ. The worlds have
   nothing on them the mission board does not read, and there is no flight between them. The clock stands
   at day zero and nothing saves: story progress holds for the run and a run starts

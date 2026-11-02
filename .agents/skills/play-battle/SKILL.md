@@ -110,4 +110,5 @@ shows what mission command tried to do as well as what happened.
 - **"reached no frame in 5 s"** means the window is opening or building a battle. Ask
   again.
 - **Never start or close the owner's window** unless asked. `gradlew playBattle` needs a
-  worktree, as every build does.
+  worktree, as every build does. A window a session opens without `-PplayScript` passes
+  `-PplayProfile=script`, or its board arrivals overwrite the owner's saves.

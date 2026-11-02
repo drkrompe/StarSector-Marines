@@ -317,6 +317,7 @@ public final class PlayBattleMain {
 
         // The catalog lists its missions only with the cheats on, and they are read from the save.
         PlayCompany.install();
+        System.out.println("[playBattle] saves: " + PlaySaves.profile() + " profile");
         String load = System.getProperty("play.load", "").strip();
         if (!load.isEmpty()) PlayCompany.restore(PlaySaves.read(load));
         Cheats.setEnabled(true);
