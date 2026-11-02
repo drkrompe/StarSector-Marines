@@ -193,6 +193,7 @@ class RecyclingTest {
         var deck = new BoatDeck();
         deck.reconcile("ship", ShuttleType.HERMES, 1);
         String part = BoatFitting.REINFORCED_PLATING.id();
+        deck.learnPart(part); // stores drop an unlearned part with no spare, and this card must outlive its last spare
         deck.stow(part);
         var hold = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         var model = new BoatDeckViewModel(new Reactor(), deck, hold, "Second Wind");
