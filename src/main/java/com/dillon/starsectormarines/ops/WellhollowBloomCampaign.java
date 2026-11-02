@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
@@ -21,7 +22,6 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress.Chapter;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 
@@ -89,8 +89,7 @@ public final class WellhollowBloomCampaign {
     }
 
     public static PlanetAPI site() {
-        if (Global.getSector() == null) return null;
-        var corvus = Global.getSector().getStarSystem("Corvus");
+        var corvus = CampaignBackend.starSystem("Corvus");
         if (corvus == null) return null;
         for (var planet : corvus.getPlanets()) if ("asharu".equals(planet.getId()) && !planet.isStar()) return planet;
         return null;
@@ -270,7 +269,7 @@ public final class WellhollowBloomCampaign {
         if (p != null) p.abandon(m.id);
     }
     static int settle(MissionOutcome o) {
-        var script = Global.getSector() == null ? null : CampaignStateScript.getInstance();
+        var script = CampaignStateScript.getInstance();
         var p = script == null ? null : script.state().wellhollowBloom;
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)) return -1;
         return p.settle(o.missionId, o.victory, o.payoutEarned);

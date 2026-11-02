@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
@@ -21,7 +20,7 @@ public final class SupplyRouteCampaign {
     private SupplyRouteCampaign() { }
 
     public static BrokenSupplyRouteProgress current() {
-        CampaignStateScript script = Global.getSector() == null ? null : CampaignStateScript.getInstance();
+        CampaignStateScript script = CampaignStateScript.getInstance();
         return script == null ? null : script.state().brokenSupplyRoute;
     }
     public static boolean owns(String id) { return id != null && id.startsWith("supply_route_"); }

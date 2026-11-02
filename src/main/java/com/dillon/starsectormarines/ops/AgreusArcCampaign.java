@@ -11,9 +11,9 @@ import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
-import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import java.util.List;
@@ -77,7 +77,7 @@ public final class AgreusArcCampaign {
 
     static boolean eligibleHistory(ShepherdRecoveryProgress recovery) { return recovery != null && recovery.departed(); }
     public static AgreusArcProgress current() {
-        var script = Global.getSector() == null ? null : CampaignStateScript.getInstance();
+        var script = CampaignStateScript.getInstance();
         if (script == null || !eligibleHistory(script.state().shepherdRecovery)) return null;
         return script.state().agreusArc == null ? new AgreusArcProgress() : script.state().agreusArc;
     }
@@ -86,17 +86,15 @@ public final class AgreusArcCampaign {
     /** Whether this Agreus battle needs an owned working tender: every chapter but A Small War, which has no construction step. */
     public static boolean requiresConstructionTender(Mission m) { return isBattle(m) && !AgreusArcProgress.smallWar(m.id); }
     public static boolean isContact(Client client) { return client != null && CONTACT_ID.equals(client.contactId); }
-    public static OpeningBroker.Destination destination() { return current() == null ? null : resolve(Global.getSector()); }
-    static OpeningBroker.Destination resolve(SectorAPI sector) {
-        if (sector == null) return null;
-        var arcadia = sector.getStarSystem("Arcadia");
+    public static OpeningBroker.Destination destination() { return current() == null ? null : resolve(CampaignBackend.starSystem("Arcadia"), CampaignBackend.playerFaction()); }
+    static OpeningBroker.Destination resolve(StarSystemAPI arcadia, FactionAPI player) {
         if (arcadia == null) return null;
         for (var planet : arcadia.getPlanets()) {
             if (!"agreus".equals(planet.getId()) || planet.isStar()) continue;
             var market = planet.getMarket();
             if (market == null || market.getPlanetEntity() != planet || market.isHidden() || market.getSize() <= 0
                     || market.isPlayerOwned() || !"independent".equals(market.getFactionId()) || market.getFaction() == null
-                    || sector.getPlayerFaction() != null && market.getFaction().isHostileTo(sector.getPlayerFaction())) return null;
+                    || player != null && market.getFaction().isHostileTo(player)) return null;
             return new OpeningBroker.Destination(planet.getId(), planet.getName(), arcadia.getName(), planet);
         }
         return null;

@@ -131,8 +131,8 @@ class CorvusWaylineCampaignTest {
         p.begin(p.missionId(), "Asharu"); p.settle(p.missionId(), "Asharu", true, 22000);
         PlanetAPI impostor = stub(PlanetAPI.class, Map.of("getId", "other", "getName", "Warion", "isStar", false));
         PlanetAPI moon = stub(PlanetAPI.class, Map.of("getId", "corvus_IIIb", "getName", "Renamed Warion", "isStar", false));
-        assertNull(CorvusWaylineCampaign.destination(p, sector(List.of(impostor))));
-        assertSame(moon, CorvusWaylineCampaign.destination(p, sector(List.of(impostor, moon))).planet());
+        assertNull(CorvusWaylineCampaign.destination(p, sector(List.of(impostor)).getStarSystem("Corvus")));
+        assertSame(moon, CorvusWaylineCampaign.destination(p, sector(List.of(impostor, moon)).getStarSystem("Corvus")).planet());
         var guide = new CorvusWaylineWorkGuide(p, null, () -> { });
         assertEquals(true, guide.markupProperty("courseDisabled"));
         assertTrue(guide.markupProperty("route").toString().startsWith("Paused: Warion is not in Corvus"));

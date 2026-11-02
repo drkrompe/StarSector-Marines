@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
@@ -8,10 +9,8 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
-import com.fs.starfarer.api.campaign.SectorAPI;
 
 import java.util.List;
 
@@ -34,12 +33,10 @@ public final class CorvusWaylineCampaign {
         return m != null && m.source == MissionSource.STORY && CorvusWaylineProgress.forMission(m.id) != null;
     }
     public static OpeningBroker.Destination destination() {
-        return destination(current(), Global.getSector());
+        return destination(current(), CampaignBackend.starSystem("Corvus"));
     }
-    static OpeningBroker.Destination destination(CorvusWaylineProgress p, SectorAPI sector) {
-        if (p == null || p.chapter() == null || sector == null) return null;
-        StarSystemAPI corvus = sector.getStarSystem("Corvus");
-        if (corvus == null) return null;
+    static OpeningBroker.Destination destination(CorvusWaylineProgress p, StarSystemAPI corvus) {
+        if (p == null || p.chapter() == null || corvus == null) return null;
         for (PlanetAPI planet : corvus.getPlanets()) {
             if (p.chapter().planetId.equals(planet.getId()) && !planet.isStar())
                 return new OpeningBroker.Destination(planet.getId(), planet.getName(), corvus.getName(), planet);

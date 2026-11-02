@@ -5,6 +5,7 @@ import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.List;
@@ -99,6 +100,12 @@ public final class CampaignBackend {
         }
     };
 
+    /** The sector's star systems, where the story's worlds are found by name. */
+    public interface StarSystems {
+        /** The system, or null when it is unknown or no campaign is running. */
+        StarSystemAPI byName(String name);
+    }
+
     /** The game's answers, read afresh each time since a sector comes and goes with each save. */
     private static final SavedData GAME_SAVED_DATA =
             () -> Global.getSector() == null ? null : Global.getSector().getPersistentData();
@@ -110,6 +117,8 @@ public final class CampaignBackend {
     private static volatile SectorScripts sectorScripts =
             () -> Global.getSector() == null ? List.of() : Global.getSector().getScripts();
 
+    private static volatile StarSystems starSystems =
+            name -> Global.getSector() == null ? null : Global.getSector().getStarSystem(name);
     private static volatile DockedPort dockedPort = CivilizedPort::dockedInDialog;
     private static volatile Factions factions = GAME_FACTIONS;
     private static volatile Markets markets = GAME_MARKETS;
@@ -155,6 +164,16 @@ public final class CampaignBackend {
     /** Answers the docked port from {@code backend} from now on, for a host with no game running. */
     public static void useDockedPort(DockedPort backend) {
         dockedPort = backend;
+    }
+
+    /** {@link StarSystems#byName} of the installed backend. */
+    public static StarSystemAPI starSystem(String name) {
+        return starSystems.byName(name);
+    }
+
+    /** Answers star systems from {@code backend} from now on, for a host with no game running. */
+    public static void useStarSystems(StarSystems backend) {
+        starSystems = backend;
     }
 
     /** {@link Factions#player} of the installed backend. */

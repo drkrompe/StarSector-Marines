@@ -31,7 +31,8 @@ and each gets a pass in the real game: much of this code has no headless coverag
 | Factions | `getFaction`, `getPlayerFaction` | Moved, but for files that hold a sector of their own |
 | Markets | `getEconomy`, `getMarket`, `getMarketsCopy` | Moved, but for files that hold a sector of their own |
 | News | intel, `getCampaignUI` messages | Not started |
-| World basics | clock, star systems, entities | Not started |
+| Star systems | `getStarSystem`: where the story's arcs find their worlds | Moved |
+| World basics | clock, entities | Not started |
 
 ## Laws
 

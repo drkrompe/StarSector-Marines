@@ -87,15 +87,15 @@ public final class ShepherdRecoveryCampaign {
             new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageInstructions", "basin_passage_instructions_01"));
     private ShepherdRecoveryCampaign(){}
     public static ShepherdRecoveryProgress current(){
-        var script=Global.getSector()==null?null:CampaignStateScript.getInstance();
+        var script=CampaignStateScript.getInstance();
         if(script==null||script.state().corvusWayline==null||!script.state().corvusWayline.aftermathAcknowledged())return null;
         return script.state().shepherdRecovery==null?new ShepherdRecoveryProgress():script.state().shepherdRecovery;
     }
     public static boolean owns(String id){return ShepherdRecoveryProgress.owns(id);}
     public static boolean isBattle(Mission mission){return mission!=null&&mission.source==MissionSource.STORY&&owns(mission.id);}
     public static OpeningBroker.Destination destination(){
-        if(current()==null||Global.getSector()==null)return null;
-        var corvus=Global.getSector().getStarSystem("Corvus");
+        if(current()==null)return null;
+        var corvus=CampaignBackend.starSystem("Corvus");
         if(corvus==null)return null;
         for(var planet:corvus.getPlanets())if("asharu".equals(planet.getId())&&!planet.isStar())
             return new OpeningBroker.Destination(planet.getId(),planet.getName(),corvus.getName(),planet);

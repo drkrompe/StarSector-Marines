@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
-import com.fs.starfarer.api.Global;
 
 import java.util.List;
 import java.util.Set;
@@ -115,7 +114,7 @@ public final class DistrictEscortCampaign {
         CampaignStateScript.getInstance().state().agreusDistrictEscort = p;
     }
     static int settle(MissionOutcome o) {
-        var script = Global.getSector() == null ? null : CampaignStateScript.getInstance();
+        var script = CampaignStateScript.getInstance();
         return settle(script == null ? null : script.state().agreusDistrictEscort, o);
     }
     /** Writes only the escort ledger: no card, premium, ratification or standing. */

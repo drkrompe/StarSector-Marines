@@ -52,6 +52,7 @@ class CampaignBackendBoundaryTest {
         assertEquals(onlyTheBackend, filesCalling("Global.getSector().getFaction("));
         assertEquals(onlyTheBackend, filesCalling("Global.getSector().getPlayerFaction()"));
         assertEquals(onlyTheBackend, filesCalling("Global.getSector().getEconomy().getMarket"));
+        assertEquals(onlyTheBackend, filesCalling("Global.getSector().getStarSystem("));
     }
 
     private static Set<String> filesCalling(String call) throws IOException {

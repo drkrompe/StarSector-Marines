@@ -58,7 +58,7 @@ class AgreusArcCampaignTest {
         var other = stub(PlanetAPI.class, Map.of("getId", "asharu"));
         var system = stub(StarSystemAPI.class, Map.of("getPlanets", List.of(other), "getName", "Arcadia"));
         var sector = stub(SectorAPI.class, Map.of("getStarSystem", system));
-        assertNull(AgreusArcCampaign.resolve(sector));
+        assertNull(resolve(sector));
         PlanetAPI[] planet = new PlanetAPI[1];
         var faction = stub(FactionAPI.class, Map.of());
         var market = (MarketAPI) Proxy.newProxyInstance(MarketAPI.class.getClassLoader(), new Class<?>[]{MarketAPI.class},
@@ -67,15 +67,18 @@ class AgreusArcCampaignTest {
         planet[0] = stub(PlanetAPI.class, Map.of("getId", "agreus", "getName", "Agreus", "getMarket", market));
         system = stub(StarSystemAPI.class, Map.of("getPlanets", List.of(planet[0]), "getName", "Arcadia"));
         sector = stub(SectorAPI.class, Map.of("getStarSystem", system));
-        assertSame(planet[0], AgreusArcCampaign.resolve(sector).planet());
+        assertSame(planet[0], resolve(sector).planet());
     }
     @Test void incompatibleOrInaccessibleMarketsPauseInsteadOfRelocating() {
         for (Map<String, Object> policy : List.of(Map.<String, Object>of("isHidden", true),
                 Map.<String, Object>of("isPlayerOwned", true), Map.<String, Object>of("getFactionId", "hegemony"))) {
-            assertNull(AgreusArcCampaign.resolve(agreus(policy, false)));
+            assertNull(resolve(agreus(policy, false)));
         }
-        assertNull(AgreusArcCampaign.resolve(agreus(Map.of(), true)));
-        assertNotNull(AgreusArcCampaign.resolve(agreus(Map.of(), false)));
+        assertNull(resolve(agreus(Map.of(), true)));
+        assertNotNull(resolve(agreus(Map.of(), false)));
+    }
+    private static OpeningBroker.Destination resolve(SectorAPI sector) {
+        return AgreusArcCampaign.resolve(sector.getStarSystem("Arcadia"), sector.getPlayerFaction());
     }
     private static SectorAPI agreus(Map<String, Object> policy, boolean hostile) {
         PlanetAPI[] planet = new PlanetAPI[1];
