@@ -729,7 +729,6 @@ public final class MissionResolver {
      * {@code MarineRosterScript.getInstance} walks one.
      */
     private static BoatDeck liveBoatDeck() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster().boatDeck();
     }

@@ -346,7 +346,6 @@ public final class CompanyShipDesignation {
      * caller asking what a hull's deck would look like legitimately is.
      */
     private static MarineRoster roster() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster();
     }

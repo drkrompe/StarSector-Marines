@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
-import com.fs.starfarer.api.Global;
 
 import java.util.Set;
 
@@ -63,7 +62,6 @@ public final class EquipmentAcquisitionEligibility {
     }
 
     public static Progress currentProgress() {
-        if (Global.getSector() == null) return Progress.OPENING;
         MarineRosterScript rosterScript = MarineRosterScript.getInstance();
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         MarineRoster roster = rosterScript != null ? rosterScript.roster() : null;

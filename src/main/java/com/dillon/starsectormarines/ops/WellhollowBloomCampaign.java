@@ -77,7 +77,6 @@ public final class WellhollowBloomCampaign {
      * (owner, 2026-10-27). Old saves enter at chapter one.
      */
     public static WellhollowBloomProgress current() {
-        if (Global.getSector() == null) return null;
         var script = CampaignStateScript.getInstance();
         if (script == null || script.state().shepherdRecovery == null || !script.state().shepherdRecovery.departed()) return null;
         return script.state().wellhollowBloom == null ? new WellhollowBloomProgress() : script.state().wellhollowBloom;

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
 
@@ -98,7 +97,6 @@ public interface CompanyMeans {
     }
 
     private static MarineRoster roster() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster();
     }

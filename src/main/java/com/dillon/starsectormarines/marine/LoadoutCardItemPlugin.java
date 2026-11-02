@@ -152,7 +152,6 @@ public final class LoadoutCardItemPlugin extends BaseSpecialItemPlugin {
     }
 
     private MarineArmory armory() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? script.roster().armory() : null;
     }

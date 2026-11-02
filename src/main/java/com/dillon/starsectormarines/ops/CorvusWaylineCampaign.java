@@ -24,7 +24,6 @@ public final class CorvusWaylineCampaign {
         return route != null && route.readable() && route.closed();
     }
     public static CorvusWaylineProgress current() {
-        if (Global.getSector() == null) return null;
         CampaignStateScript script = CampaignStateScript.getInstance();
         if (script == null || !unlocked(script.state().brokenSupplyRoute)) return null;
         // Old saves enter at chapter one, without mutating a save from a read.

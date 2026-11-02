@@ -148,7 +148,6 @@ public final class MechPatternCardItemPlugin extends BaseSpecialItemPlugin {
     }
 
     private MechBay bay() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? script.roster().mechBay() : null;
     }

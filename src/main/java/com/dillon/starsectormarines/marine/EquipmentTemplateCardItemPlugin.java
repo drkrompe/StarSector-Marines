@@ -145,7 +145,6 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
     }
 
     private MarineArmory armory() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? script.roster().armory() : null;
     }

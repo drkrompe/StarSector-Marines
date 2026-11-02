@@ -98,7 +98,6 @@ public final class DetachmentResolver {
 
     /** The active lance as it launches, with the company ship's Mech Lab refits frozen over each mech. */
     private static List<MechDeploymentSpec> campaignMechDeployment() {
-        if (Global.getSector() == null) return List.of();
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? withShipRefit(script.roster().mechBay().activeDeployment(),
                 ShipRefits.aboard().mechRefit()) : List.of();
@@ -112,7 +111,6 @@ public final class DetachmentResolver {
 
     /** Null without a campaign roster, so debug and detached launches keep the fallback hull. */
     private static List<VehicleDeploymentSpec> campaignVehicleDeployment() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script != null ? script.roster().mechBay().activeVehicleDeployment() : null;
     }

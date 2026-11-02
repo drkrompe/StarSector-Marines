@@ -267,9 +267,8 @@ public class MarineOpsContext {
      * as every berth held.
      */
     static boolean[] companyBoatsHeld() {
-        // Asked before the routing gate knows there is a game at all, so the
-        // sector is checked rather than assumed; MarineRosterScript walks it.
-        if (Global.getSector() == null) return null;
+        // Asked before the routing gate knows there is a game at all; with none,
+        // MarineRosterScript answers null.
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script == null ? null : script.roster();
         if (roster == null) return null;
@@ -282,7 +281,6 @@ public class MarineOpsContext {
     }
 
     static boolean[] companyBoatsGrounded() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null) return null;
         var boats = script.roster().boatDeck().boats();
@@ -295,14 +293,12 @@ public class MarineOpsContext {
 
     /** @see BoatDeck#doorGuns() */
     static FittedBoat[] companyDoorGuns() {
-        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null || script.roster() == null) return null;
         return script.roster().boatDeck().doorGuns();
     }
 
     static boolean[] companyBoatWrecks() {
-        if (Global.getSector() == null) return null;
         var script = MarineRosterScript.getInstance();
         if (script == null || script.roster() == null) return null;
         var deck = script.roster().boatDeck();
