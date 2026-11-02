@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.OpeningPort;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
@@ -46,8 +47,13 @@ public final class CivilizedPort {
         return "SNEAK".equals(tradeMode) && market.hasSubmarket(Submarkets.SUBMARKET_BLACK);
     }
 
-    /** The civilized market the fleet is docked at now and could trade with, or null. */
+    /** The civilized market the fleet is docked at now and could trade with, or null: the installed backend's answer. */
     public static MarketAPI docked() {
+        return CampaignBackend.dockedPort();
+    }
+
+    /** The game's answer to {@link #docked}, read from the open interaction dialog. */
+    public static MarketAPI dockedInDialog() {
         var sector = Global.getSector();
         if (sector == null || sector.getCampaignUI() == null) return null;
         InteractionDialogAPI dialog = sector.getCampaignUI().getCurrentInteractionDialog();

@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
@@ -257,8 +255,7 @@ public final class EquipmentStore {
      * company already knows or carries are not offered again.
      */
     public static List<Offer> shelfAt(MarketAPI market) {
-        SectorAPI sector = Global.getSector();
-        if (sector == null || market == null) return List.of();
+        if (market == null) return List.of();
 
         Set<String> unavailableCards = LoadoutCardInventory.playerUnavailableCardIds();
         if (unavailableCards == null) {

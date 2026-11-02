@@ -1,6 +1,6 @@
 # Campaign backend
 
-Status: IN PROGRESS — saved data, the company fleet and sector scripts moved; markets, news and world basics remain
+Status: IN PROGRESS — saved data, the company fleet, sector scripts and the docked port moved; markets, news and world basics remain
 
 Written: 2026-11-02
 
@@ -25,8 +25,9 @@ and each gets a pass in the real game: much of this code has no headless coverag
 | Family | Reads today | Status |
 | --- | --- | --- |
 | Saved data | `getPersistentData` | Moved, but for four files that hold a sector of their own |
-| Company fleet, with its purse and cargo | `getPlayerFleet`, then its members and cargo | Moved, but for seven files that hold a sector or are a rule command |
+| Company fleet, with its purse and cargo | `getPlayerFleet`, then its members and cargo | Moved, but for six files that hold a sector or are a rule command |
 | Sector scripts | `getScripts`: the roster, campaign state and event presenter | Moved |
+| Docked port | `CivilizedPort.docked`: the store, and buying in the rooms | Moved |
 | Markets | `getEconomy`, `getMarket`, `getMarketsCopy` | Not started |
 | News | intel, `getCampaignUI` messages | Not started |
 | World basics | clock, factions | Not started |

@@ -35,7 +35,6 @@ class CampaignBackendBoundaryTest {
     @Test
     void theCompanyFleetIsAskedOfTheBackend() throws IOException {
         assertEquals(new TreeSet<>(Set.of(BACKEND, CERBERUS, PROLOGUE, KEEPER,
-                        "com/dillon/starsectormarines/campaign/OfficerMoodReader.java",
                         "com/dillon/starsectormarines/ops/CompanyViewAbility.java",
                         "com/dillon/starsectormarines/ops/event/PlayerEventPresenter.java",
                         "com/fs/starfarer/api/impl/campaign/rulecmd/CompanyYardCMD.java")),

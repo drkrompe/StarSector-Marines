@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
@@ -11,6 +12,7 @@ import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.campaign.FleetDataAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -26,7 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, with a purse and
+ * The campaign {@code playBattle} stands in for: a veteran company aboard the converted Second Wind, docked at a port,
+ * with a purse and
  * stores that do not run out, answered through {@link CampaignBackend}. Enough for the company's rooms to open with the
  * cheats on; it is not a simulation of the campaign, and nothing here advances or saves.
  *
@@ -60,13 +63,15 @@ final class PlayCompany {
                 return roster;
             }
         };
-        List<EveryFrameScript> scripts = List.of(script);
+        List<EveryFrameScript> scripts = List.of(script, new CampaignStateScript());
         CampaignFleetAPI fleet = fleet();
         Map<String, Object> saved = new HashMap<>();
         saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
         CampaignBackend.useSavedData(() -> saved);
         CampaignBackend.useCompanyFleet(() -> fleet);
         CampaignBackend.useSectorScripts(() -> scripts);
+        MarketAPI port = port();
+        CampaignBackend.useDockedPort(() -> port);
     }
 
     private static CampaignFleetAPI fleet() {
@@ -90,6 +95,15 @@ final class PlayCompany {
             cargo.put(plenty, PLENTY);
         }
         return stub(CargoAPI.class, cargo);
+    }
+
+    /** A port the fleet stands docked at throughout, so the store and the yards are open. */
+    private static MarketAPI port() {
+        Map<String, Object> port = new HashMap<>();
+        port.put("getId", "play_port");
+        port.put("getName", "Stand-in Port");
+        port.put("getFactionId", "independent");
+        return stub(MarketAPI.class, port);
     }
 
     /** The hull she is, for reading her deck's outline off her file. Cerberus's data lives in warhound.ship. */

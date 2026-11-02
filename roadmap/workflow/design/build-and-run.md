@@ -45,8 +45,9 @@ touch packaging.
 with no game booted, for a playtest in seconds rather than a launch and a campaign
 (`PlayBattleMain`). It hosts `MarineOpsPanelPlugin` itself, over a stand-in campaign
 (`PlayCompany`, through `CampaignBackend`): a veteran company aboard the converted
-Second Wind, with credits and stores that do not run out and the cheats on. It
-starts on the company's HQ, from which the rooms and, by Debug Missions, the catalog
+Second Wind, docked at a port, with stores that do not run out, 10 million credits
+and the cheats on. It starts on the company's HQ, from which the rooms and, by Debug
+Missions, the catalog
 with every mission unlocked are all reachable, and a mission runs through its real
 briefing, with the debug kit and company choices, battle, debrief and back.
 `-Pbattle=<source>` jumps straight into one battle instead. It needs the install

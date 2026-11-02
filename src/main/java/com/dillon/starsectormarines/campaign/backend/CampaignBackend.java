@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.campaign.backend;
 
+import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,12 @@ public final class CampaignBackend {
         List<EveryFrameScript> scripts();
     }
 
+    /** The port the fleet is docked at, where the company can buy and fabricate. */
+    public interface DockedPort {
+        /** The civilized market the fleet could trade with now, or null. */
+        MarketAPI market();
+    }
+
     /** The game's answers, read afresh each time since a sector comes and goes with each save. */
     private static final SavedData GAME_SAVED_DATA =
             () -> Global.getSector() == null ? null : Global.getSector().getPersistentData();
@@ -51,6 +59,8 @@ public final class CampaignBackend {
 
     private static volatile SectorScripts sectorScripts =
             () -> Global.getSector() == null ? List.of() : Global.getSector().getScripts();
+
+    private static volatile DockedPort dockedPort = CivilizedPort::dockedInDialog;
 
     private CampaignBackend() {
     }
@@ -83,5 +93,15 @@ public final class CampaignBackend {
     /** Answers the sector's scripts from {@code backend} from now on, for a host with no game running. */
     public static void useSectorScripts(SectorScripts backend) {
         sectorScripts = backend;
+    }
+
+    /** {@link DockedPort#market} of the installed backend. */
+    public static MarketAPI dockedPort() {
+        return dockedPort.market();
+    }
+
+    /** Answers the docked port from {@code backend} from now on, for a host with no game running. */
+    public static void useDockedPort(DockedPort backend) {
+        dockedPort = backend;
     }
 }

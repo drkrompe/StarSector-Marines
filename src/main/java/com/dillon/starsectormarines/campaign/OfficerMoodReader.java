@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.MonthlyReport;
 import com.fs.starfarer.api.impl.campaign.shared.SharedData;
 
@@ -127,12 +127,9 @@ public final class OfficerMoodReader {
 
     /** Reads the live player state. Every external lookup is guarded; see {@link #currentMood}. */
     public static Snapshot read() {
-        SectorAPI sector = Global.getSector();
-        if (sector == null) return new Snapshot(0f, 0f, 0f, 0, 0, 0, 0, 0, false);
-
         float credits = 0f;
         int ships = 0;
-        CampaignFleetAPI fleet = sector.getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet != null) {
             if (fleet.getCargo() != null && fleet.getCargo().getCredits() != null) {
                 credits = fleet.getCargo().getCredits().get();
@@ -146,7 +143,7 @@ public final class OfficerMoodReader {
         float upkeepLastMonth = 0f;
         int debt = 0;
         int previousDebt = 0;
-        MonthlyReport prev = SharedData.getData().getPreviousReport();
+        MonthlyReport prev = Global.getSector() == null ? null : SharedData.getData().getPreviousReport();
         boolean hasReport = prev != null && prev.getRoot() != null;
         if (hasReport) {
             netLastMonth = prev.getRoot().totalIncome - prev.getRoot().totalUpkeep;
