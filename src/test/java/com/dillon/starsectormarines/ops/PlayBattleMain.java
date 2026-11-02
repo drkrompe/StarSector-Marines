@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -33,10 +32,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -64,8 +63,10 @@ import static org.lwjgl.opengl.GL11.glReadPixels;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 /**
- * {@code gradlew playBattle}: the mod's real mission screens in a window of their own, with no game running. It opens
- * on the debug catalog, and a mission runs through its real briefing, battle and results ({@link PlayRouter}), or
+ * {@code gradlew playBattle}: the mod's real screens ({@link MarineOpsPanelPlugin}) in a window of their own, with no
+ * game running. It opens
+ * on the company's HQ over a stand-in campaign ({@link PlayCompany}), a mission runs through its real briefing, battle
+ * and results, or
  * {@code -Pbattle=<source>} jumps straight into one battle. It gives the screens what the game would: a window, a frame
  * loop, input events, settings, sound and saved data ({@code CampaignBackend}).
  *
@@ -96,14 +97,24 @@ public final class PlayBattleMain {
     private PlayBattleMain() {
     }
 
-    /** A battle named up front has no mission to settle: continuing from it ends the run instead. */
-    private static final class Context extends PlayRouter.Context {
+    /**
+     * Keeps routes on screens that can run here: a planet's own screens need a planet, so they land on the company's
+     * HQ. A battle named up front has no mission to settle: continuing from it ends the run instead.
+     */
+    private static final class Context extends MarineOpsContext {
+        private static final Set<ScreenId> UNHOSTED =
+                EnumSet.of(ScreenId.MISSION_SELECT, ScreenId.STATIONING, ScreenId.POLITY_DOCTRINE);
+
         private final boolean direct;
         boolean finished;
 
-        Context(Map<ScreenId, Screen> screens, boolean direct) {
-            super(screens);
+        Context(boolean direct) {
+            super(null);
             this.direct = direct;
+        }
+
+        @Override public void goTo(ScreenId screen) {
+            super.goTo(UNHOSTED.contains(screen) ? ScreenId.COMPANY_HQ : screen);
         }
 
         @Override boolean beginBattleSettlement() {
@@ -140,8 +151,7 @@ public final class PlayBattleMain {
         OperationRadio.loadBuiltins();
 
         // The catalog lists its missions only with the cheats on, and they are read from the save.
-        Map<String, Object> saved = new HashMap<>();
-        CampaignBackend.useSavedData(() -> saved);
+        PlayCompany.install();
         Cheats.setEnabled(true);
 
         BattleSimulation sim = null;
@@ -161,14 +171,18 @@ public final class PlayBattleMain {
                         Float.parseFloat(System.getProperty("play.volume", "1")));
             }
             if (sound != null) Global.setSoundPlayer(sound);
-            Map<ScreenId, Screen> screens = PlayRouter.screens();
-            Context context = new Context(screens, source != null);
-            if (sim != null) context.setBattleSimulation(sim);
-            context.goTo(sim != null ? ScreenId.BATTLE : ScreenId.DEBUG_MISSIONS);
-            PlayRouter router = new PlayRouter(screens, context, position(size[0], size[1]),
-                    () -> context.finished = true);
-            router.sync();
-            play(router, context, input, sound, source, size, script);
+            Context context = new Context(source != null);
+            if (sim != null) {
+                context.setBattleSimulation(sim);
+                context.goTo(ScreenId.BATTLE);
+            } else {
+                context.goTo(ScreenId.COMPANY_HQ);
+            }
+            MarineOpsPanelPlugin plugin = new MarineOpsPanelPlugin(context, null);
+            PositionAPI position = position(size[0], size[1]);
+            plugin.positionChanged(position);
+            plugin.setOnBack(() -> context.finished = true);
+            play(plugin, position, context, input, sound, source, size, script);
             BattleSimulation last = context.getBattleSimulation();
             if (last != null) {
                 System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
@@ -186,7 +200,8 @@ public final class PlayBattleMain {
         System.exit(status);
     }
 
-    private static void play(PlayRouter router, Context context, PlayInput input, PlayBattleSound sound, String source,
+    private static void play(MarineOpsPanelPlugin plugin, PositionAPI position, Context context, PlayInput input,
+                             PlayBattleSound sound, String source,
                              int[] size, Deque<Step> script) throws Exception {
         long last = System.nanoTime();
         long clockSince = last;
@@ -237,7 +252,7 @@ public final class PlayBattleMain {
                     if (source != null) {
                         System.out.println("[playBattle] rebuilding " + source);
                         context.setBattleSimulation(HeadlessBattles.build(source));
-                        router.reattach();
+                        plugin.positionChanged(position);
                         awaitingBattle = true;
                     } else if (context.getCurrentScreen() == ScreenId.BATTLE) {
                         context.setBattle(null, null, null);
@@ -246,16 +261,16 @@ public final class PlayBattleMain {
                     last = System.nanoTime();
                 }
             }
-            router.processInput(events);
-            router.advance(dt);
+            plugin.processInput(events);
+            plugin.advance(dt);
             if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
-            router.render(1f);
+            plugin.render(1f);
             if (shot != null) shot(size[0], size[1], shot);
             Display.update();
             Display.sync(60);
         }
-        router.close();
+        plugin.dismiss();
     }
 
     /** The state the game's UI hooks can rely on: a screen-sized, y-up orthographic view with alpha blending. */

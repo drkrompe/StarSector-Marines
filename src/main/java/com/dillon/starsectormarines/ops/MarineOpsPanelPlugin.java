@@ -65,7 +65,12 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      *             planet-menu entry, which starts at mission select.
      */
     public MarineOpsPanelPlugin(PlanetAPI planet, Consumer<MarineOpsContext> seed) {
-        this.ctx = new MarineOpsContext(planet);
+        this(new MarineOpsContext(planet), seed);
+    }
+
+    /** Over a context of the host's own, which {@code playBattle} keeps its routes inside. */
+    MarineOpsPanelPlugin(MarineOpsContext ctx, Consumer<MarineOpsContext> seed) {
+        this.ctx = ctx;
         UiSpriteCache.shared().enter(uiImages);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());

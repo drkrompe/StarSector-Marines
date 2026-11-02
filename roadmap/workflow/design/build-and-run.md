@@ -41,12 +41,16 @@ touch packaging.
 
 ## Playing a battle without the game
 
-`gradlew.bat playBattle` opens the mod's real mission screens in a window of
-their own, with no game booted, for a playtest in seconds rather than a launch
-and a campaign (`PlayBattleMain`). It starts on the debug catalog, with every
-mission unlocked, and a mission runs through its real briefing, with the debug
-kit and company choices, battle, debrief and back. `-Pbattle=<source>` jumps
-straight into one battle instead. It needs the install only for its jars, natives
+`gradlew.bat playBattle` opens the mod's real screens in a window of their own,
+with no game booted, for a playtest in seconds rather than a launch and a campaign
+(`PlayBattleMain`). It hosts `MarineOpsPanelPlugin` itself, over a stand-in campaign
+(`PlayCompany`, through `CampaignBackend`): a veteran company aboard the converted
+Second Wind, with credits and stores that do not run out and the cheats on. It
+starts on the company's HQ, from which the rooms and, by Debug Missions, the catalog
+with every mission unlocked are all reachable, and a mission runs through its real
+briefing, with the debug kit and company choices, battle, debrief and back.
+`-Pbattle=<source>` jumps straight into one battle instead. It needs the install
+only for its jars, natives
 and vanilla assets, and no `deployMod`. Windows only for now: the game's Mac
 natives do not load on the Mac's JDK. It does not run
 `compileTestJava`: `compilePlayBattle` builds its `Play*` classes with the test
@@ -62,9 +66,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
   Closing the window always quits.
-- **Only the mission screens are hosted** (`PlayRouter`). A route to the mission
-  board or a company room, the catalog's Back among them, lands on the catalog,
-  until `campaign-backend.md` moves what those rooms read.
+- **What is not there:** the stand-in has no planet, so the mission board and a
+  planet's stationing screens land on HQ. Nothing advances or saves: a run starts
+  over, and the clock stands at day zero. What else the rooms cannot yet read waits
+  on `campaign-backend.md`.
 - **`-Pwindow=<w>x<h>`** changes the window from 1920x1080. A window as large as
   the desktop has no title bar. `-Dbattle.*` and `-Dmarines.*` switches are
   forwarded, so `-Dmarines.dev=true` gives the developer HUD.

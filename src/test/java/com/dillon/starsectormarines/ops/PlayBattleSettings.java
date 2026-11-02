@@ -84,6 +84,7 @@ final class PlayBattleSettings {
             }
             case "openStream" -> { return Files.newInputStream(resolve((String) args[0])); }
             case "loadText" -> { return Files.readString(resolve((String) args[0])); }
+            case "getHullSpec" -> { if (PlayCompany.HULL_ID.equals(args[0])) return PlayCompany.hull(); else return method.invoke(underneath, args); }
             case "loadJSON" -> {
                 // The game's JSON allows # comment lines.
                 return new JSONObject(Files.readString(resolve((String) args[0])).lines()

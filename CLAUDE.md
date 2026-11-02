@@ -108,7 +108,8 @@ The full procedure (Drive layout, pruning, previews, the picks page and its
 - `gradlew.bat deployMod` syncs `mod/` into the game (needs `ffmpeg` for sounds);
   `gradlew.bat runStarsector` deploys and launches it, recording the exit status
   and JVM output under `build/starsector-run/`; `gradlew.bat packageRelease`
-  builds the public zip. `gradlew.bat playBattle` plays the mission screens, or one
+  builds the public zip. `gradlew.bat playBattle` plays the company's screens over a
+  stand-in campaign, or one
   battle with `-Pbattle=<source>`, in a window with no game booted: a playtest, not a
   final check.
   Details, crash triage and flags: `build-and-run.md`.
