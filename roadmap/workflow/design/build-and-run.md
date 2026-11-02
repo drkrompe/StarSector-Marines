@@ -41,22 +41,30 @@ touch packaging.
 
 ## Playing a battle without the game
 
-`gradlew.bat playBattle -Pbattle=<source>` opens the real `BattleScreen` in a
-window of its own, with no game booted, for a playtest in seconds rather than a
-launch and a campaign (`PlayBattleMain`). It needs the install only for its
-jars, natives and vanilla assets, and no `deployMod`. Windows only for now: the
-game's Mac natives do not load on the Mac's JDK. It does not run
+`gradlew.bat playBattle` opens the mod's real mission screens in a window of
+their own, with no game booted, for a playtest in seconds rather than a launch
+and a campaign (`PlayBattleMain`). It starts on the debug catalog, with every
+mission unlocked, and a mission runs through its real briefing, with the debug
+kit and company choices, battle, debrief and back. `-Pbattle=<source>` jumps
+straight into one battle instead. It needs the install only for its jars, natives
+and vanilla assets, and no `deployMod`. Windows only for now: the game's Mac
+natives do not load on the Mac's JDK. It does not run
 `compileTestJava`: `compilePlayBattle` builds its `Play*` classes with the test
 tree as a javac source path, so only the few dozen test sources they reach
 compile. A new `Play*` class or helper needs nothing more; one found only by
 reflection would not compile, and fails at run time with `NoClassDefFoundError`.
 
-- **Sources:** `HeadlessBattles.build`'s (`relief`, the default; `thunder-run`,
+- **`-Pbattle` sources:** `HeadlessBattles.build`'s (`relief`, `thunder-run`,
   `cordon`, `salvage-rights`, `cold-start`, `working-passage`, each with its
   `:key=value` options; `fixture:<path>`), or the bare name of a fixture in
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
-- **Controls** are the battle's own. F9 rebuilds the battle. Closing the window
-  or continuing from a finished battle quits, printing the tick and the winner.
+- **Controls** are the screens' own. In a catalog mission F9 leaves the battle for
+  the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
+  continuing from a finished battle quits, printing the tick and the winner.
+  Closing the window always quits.
+- **Only the mission screens are hosted** (`PlayRouter`). A route to the mission
+  board or a company room, the catalog's Back among them, lands on the catalog,
+  until `campaign-backend.md` moves what those rooms read.
 - **`-Pwindow=<w>x<h>`** changes the window from 1920x1080. A window as large as
   the desktop has no title bar. `-Dbattle.*` and `-Dmarines.*` switches are
   forwarded, so `-Dmarines.dev=true` gives the developer HUD.

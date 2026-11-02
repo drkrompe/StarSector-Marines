@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -32,8 +33,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -61,22 +64,25 @@ import static org.lwjgl.opengl.GL11.glReadPixels;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 /**
- * {@code gradlew playBattle -Pbattle=<source>}: the real {@link BattleScreen} in a window of its own, with no game
- * running, for jumping straight into a battle to playtest it. It takes everything {@code MarineOpsPanelPlugin} would
- * give the screen: a window, a frame loop, input events, and the settings and sound the game would answer with.
+ * {@code gradlew playBattle}: the mod's real mission screens in a window of their own, with no game running. It opens
+ * on the debug catalog, and a mission runs through its real briefing, battle and results ({@link PlayRouter}), or
+ * {@code -Pbattle=<source>} jumps straight into one battle. It gives the screens what the game would: a window, a frame
+ * loop, input events, settings, sound and saved data ({@code CampaignBackend}).
  *
  * <p>Sources are {@link HeadlessBattles#build}'s, or the name of a checked-in fixture. The simulation keeps the live
  * game's asynchronous defaults, unlike the evidence tasks, so what is felt here is what plays in the game. F9 rebuilds
- * the battle; closing the window or continuing from a finished battle quits. There is no campaign behind it and
- * nothing settles. {@code -Psilent} turns the sound off and {@code -Pvolume=<0..1>} sets its level.
+ * a named battle, or leaves a catalog mission's battle for the catalog. Closing the window quits, as does continuing
+ * from a named battle, which has no mission to settle. {@code -Psilent} turns the sound off and
+ * {@code -Pvolume=<0..1>} sets its level.
  *
  * <p><b>Not a final check.</b> The game hands the screen a polluted GL state and refuses file access to shipped code;
  * this does neither, so something can work here and still fail in the game.
  *
- * <p>{@code -PplayScript=<file>} drives a run with no one at the keyboard, one line per step, timed in seconds from
- * when the battle starts playing: {@code <seconds> move <x> <y>}, {@code <seconds> click <x> <y> [right]},
- * {@code <seconds> key <NAME>} (an LWJGL key name), {@code <seconds> shot <name>} (a PNG in {@code build/play-battle})
- * and {@code <seconds> quit}.
+ * <p>{@code -PplayScript=<file>} drives a run with no one at the keyboard, one line per step: {@code <seconds> move
+ * <x> <y>}, {@code <seconds> click <x> <y> [right]}, {@code <seconds> key <NAME>} (an LWJGL key name),
+ * {@code <seconds> shot <name>} (a PNG in {@code build/play-battle}), {@code <seconds> quit}, and {@code <seconds>
+ * battle}, which holds the script until a battle is playing. Seconds count from the window opening, or from the last
+ * battle starting to play; a named battle waits for that before its first step.
  */
 public final class PlayBattleMain {
 
@@ -90,15 +96,18 @@ public final class PlayBattleMain {
     private PlayBattleMain() {
     }
 
-    /** No campaign to write a result back to: the player continuing from a finished battle ends the run instead. */
-    private static final class Context extends MarineOpsContext {
+    /** A battle named up front has no mission to settle: continuing from it ends the run instead. */
+    private static final class Context extends PlayRouter.Context {
+        private final boolean direct;
         boolean finished;
 
-        Context() {
-            super(null);
+        Context(Map<ScreenId, Screen> screens, boolean direct) {
+            super(screens);
+            this.direct = direct;
         }
 
         @Override boolean beginBattleSettlement() {
+            if (!direct) return super.beginBattleSettlement();
             finished = true;
             return false;
         }
@@ -110,7 +119,8 @@ public final class PlayBattleMain {
         // What the game writes to starsector.log: a fallback logged here is otherwise invisible.
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.WARN);
-        String source = sourceOf(System.getProperty("play.battle", "relief").strip());
+        String battle = System.getProperty("play.battle", "").strip();
+        String source = battle.isEmpty() ? null : sourceOf(battle);
         int[] size = windowSize(System.getProperty("play.window", ""));
         Path project = Path.of("");
         Path core = Path.of(System.getProperty("starsectorDir"), "starsector-core");
@@ -129,10 +139,18 @@ public final class PlayBattleMain {
         CompanyOfficer.loadBuiltins();
         OperationRadio.loadBuiltins();
 
-        long started = System.nanoTime();
-        System.out.println("[playBattle] building " + source);
-        BattleSimulation sim = HeadlessBattles.build(source);
-        System.out.println("[playBattle] built in " + (System.nanoTime() - started) / 1_000_000 + " ms");
+        // The catalog lists its missions only with the cheats on, and they are read from the save.
+        Map<String, Object> saved = new HashMap<>();
+        CampaignBackend.useSavedData(() -> saved);
+        Cheats.setEnabled(true);
+
+        BattleSimulation sim = null;
+        if (source != null) {
+            long started = System.nanoTime();
+            System.out.println("[playBattle] building " + source);
+            sim = HeadlessBattles.build(source);
+            System.out.println("[playBattle] built in " + (System.nanoTime() - started) / 1_000_000 + " ms");
+        }
 
         openWindow(size[0], size[1], source);
         int status = 0;
@@ -143,15 +161,19 @@ public final class PlayBattleMain {
                         Float.parseFloat(System.getProperty("play.volume", "1")));
             }
             if (sound != null) Global.setSoundPlayer(sound);
-            Context context = new Context();
-            context.setBattleSimulation(sim);
-            BattleScreen screen = new BattleScreen();
-            PositionAPI position = position(size[0], size[1]);
-            screen.attach(position, context, () -> context.finished = true);
-            play(screen, position, context, input, sound, source, size, script);
+            Map<ScreenId, Screen> screens = PlayRouter.screens();
+            Context context = new Context(screens, source != null);
+            if (sim != null) context.setBattleSimulation(sim);
+            context.goTo(sim != null ? ScreenId.BATTLE : ScreenId.DEBUG_MISSIONS);
+            PlayRouter router = new PlayRouter(screens, context, position(size[0], size[1]),
+                    () -> context.finished = true);
+            router.sync();
+            play(router, context, input, sound, source, size, script);
             BattleSimulation last = context.getBattleSimulation();
-            System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
-                    + (last.isComplete() ? ", winner " + last.getWinner() : ", unfinished"));
+            if (last != null) {
+                System.out.println("[playBattle] ended at tick " + last.getSimTickIndex()
+                        + (last.isComplete() ? ", winner " + last.getWinner() : ", unfinished"));
+            }
         } catch (Throwable failure) {
             failure.printStackTrace();
             status = 1;
@@ -164,10 +186,12 @@ public final class PlayBattleMain {
         System.exit(status);
     }
 
-    private static void play(BattleScreen screen, PositionAPI position, Context context, PlayInput input,
-                             PlayBattleSound sound, String source, int[] size, Deque<Step> script) throws Exception {
+    private static void play(PlayRouter router, Context context, PlayInput input, PlayBattleSound sound, String source,
+                             int[] size, Deque<Step> script) throws Exception {
         long last = System.nanoTime();
-        long playingSince = 0L;
+        long clockSince = last;
+        // With a battle named up front, a script's clock waits out its loading screen, as a `battle` step does later.
+        boolean awaitingBattle = source != null;
         boolean quit = false;
         while (!quit && !context.finished && !Display.isCloseRequested()) {
             long now = System.nanoTime();
@@ -175,22 +199,18 @@ public final class PlayBattleMain {
             last = now;
 
             List<InputEventAPI> events = new ArrayList<>(input.poll());
-            for (InputEventAPI event : events) {
-                if (event.isKeyDownEvent() && !event.isRepeat() && event.getEventValue() == Keyboard.KEY_F9) {
-                    event.consume();
-                    System.out.println("[playBattle] rebuilding " + source);
-                    context.setBattleSimulation(HeadlessBattles.build(source));
-                    screen.attach(position, context, () -> context.finished = true);
-                    playingSince = 0L;
-                    last = System.nanoTime();
+            if (awaitingBattle) {
+                BattleSimulation battle = context.getBattleSimulation();
+                if (battle != null && battle.getSimTickIndex() > 0) {
+                    awaitingBattle = false;
+                    clockSince = now;
                 }
             }
-            // A script's clock starts when the loading screen is done, however long that took.
-            if (playingSince == 0L && context.getBattleSimulation().getSimTickIndex() > 0) playingSince = now;
             String shot = null;
-            while (playingSince != 0L && !script.isEmpty() && script.peek().seconds() <= (now - playingSince) / 1e9f) {
+            while (!awaitingBattle && !script.isEmpty() && script.peek().seconds() <= (now - clockSince) / 1e9f) {
                 String[] words = script.poll().words();
                 switch (words[0]) {
+                    case "battle" -> awaitingBattle = true;
                     case "move" -> events.add(input.move(Integer.parseInt(words[1]), Integer.parseInt(words[2]), 0, 0));
                     case "click" -> {
                         int x = Integer.parseInt(words[1]);
@@ -211,16 +231,31 @@ public final class PlayBattleMain {
                 }
             }
 
-            screen.processInput(events);
-            screen.advance(dt);
+            for (InputEventAPI event : events) {
+                if (event.isKeyDownEvent() && !event.isRepeat() && event.getEventValue() == Keyboard.KEY_F9) {
+                    event.consume();
+                    if (source != null) {
+                        System.out.println("[playBattle] rebuilding " + source);
+                        context.setBattleSimulation(HeadlessBattles.build(source));
+                        router.reattach();
+                        awaitingBattle = true;
+                    } else if (context.getCurrentScreen() == ScreenId.BATTLE) {
+                        context.setBattle(null, null, null);
+                        context.goTo(ScreenId.DEBUG_MISSIONS);
+                    }
+                    last = System.nanoTime();
+                }
+            }
+            router.processInput(events);
+            router.advance(dt);
             if (sound != null) sound.update(dt);
             beginFrame(size[0], size[1]);
-            screen.render(1f);
+            router.render(1f);
             if (shot != null) shot(size[0], size[1], shot);
             Display.update();
             Display.sync(60);
         }
-        screen.detach();
+        router.close();
     }
 
     /** The state the game's UI hooks can rely on: a screen-sized, y-up orthographic view with alpha blending. */
@@ -249,7 +284,7 @@ public final class PlayBattleMain {
             System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
         }
         Display.setDisplayMode(new DisplayMode(width, height));
-        Display.setTitle("Starsector Marines: " + source + " (F9 restarts)");
+        Display.setTitle("Starsector Marines" + (source == null ? "" : ": " + source));
         Display.setVSyncEnabled(true);
         Display.create(new PixelFormat(8, 24, 8));
         Keyboard.enableRepeatEvents(true);
