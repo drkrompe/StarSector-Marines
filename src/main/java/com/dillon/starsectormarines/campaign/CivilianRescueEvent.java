@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -157,7 +158,7 @@ public final class CivilianRescueEvent {
 
     private static CargoAPI playerCargo() {
         CampaignFleetAPI fleet = Global.getSector() != null
-                ? Global.getSector().getPlayerFleet() : null;
+                ? CampaignBackend.playerFleet() : null;
         return fleet != null ? fleet.getCargo() : null;
     }
 }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -275,7 +276,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
 
         private static CargoAPI playerCargo() {
             if (Global.getSector() == null) return null;
-            CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+            CampaignFleetAPI fleet = CampaignBackend.playerFleet();
             return fleet != null ? fleet.getCargo() : null;
         }
     }

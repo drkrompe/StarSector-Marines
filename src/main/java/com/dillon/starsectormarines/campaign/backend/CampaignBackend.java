@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.backend;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 
 import java.util.Map;
 
@@ -23,11 +24,22 @@ public final class CampaignBackend {
         Map<String, Object> data();
     }
 
+    /**
+     * The fleet the company travels with, whose members are its ships and whose cargo is its purse and stores. The
+     * game's own type: 45 files read members and cargo through it, and tests already stand in for it.
+     */
+    public interface CompanyFleet {
+        /** The fleet, or null when no campaign is running. */
+        CampaignFleetAPI fleet();
+    }
+
     /** The game's answers, read afresh each time since a sector comes and goes with each save. */
     private static final SavedData GAME_SAVED_DATA =
             () -> Global.getSector() == null ? null : Global.getSector().getPersistentData();
 
     private static volatile SavedData savedData = GAME_SAVED_DATA;
+    private static volatile CompanyFleet companyFleet =
+            () -> Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
 
     private CampaignBackend() {
     }
@@ -40,5 +52,15 @@ public final class CampaignBackend {
     /** Answers saved data from {@code backend} from now on, for a host with no game running. */
     public static void useSavedData(SavedData backend) {
         savedData = backend;
+    }
+
+    /** {@link CompanyFleet#fleet} of the installed backend. */
+    public static CampaignFleetAPI playerFleet() {
+        return companyFleet.fleet();
+    }
+
+    /** Answers the company's fleet from {@code backend} from now on, for a host with no game running. */
+    public static void useCompanyFleet(CompanyFleet backend) {
+        companyFleet = backend;
     }
 }

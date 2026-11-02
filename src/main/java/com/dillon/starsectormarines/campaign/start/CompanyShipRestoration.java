@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.CompanyShipDesignation;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.Map;
 
@@ -83,7 +82,7 @@ public final class CompanyShipRestoration {
     }
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster, Work work) {
         var state = state(ship);
-        var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
+        var fleet = CampaignBackend.playerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
         boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
                 && fleet.getFleetData().getMembersListCopy().contains(ship);
@@ -95,7 +94,7 @@ public final class CompanyShipRestoration {
     public static String repair(FleetMemberAPI ship, MarineRoster roster, Work work) {
         var offer = offer(ship, roster, work);
         if (offer.refusal() != null) return offer.refusal();
-        Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(work.price);
+        CampaignBackend.playerFleet().getCargo().getCredits().subtract(work.price);
         CampaignBackend.savedData().put(KEY + ship.getId() + work, true);
         return null;
     }

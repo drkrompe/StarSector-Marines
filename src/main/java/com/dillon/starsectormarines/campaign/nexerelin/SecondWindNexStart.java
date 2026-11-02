@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.nexerelin;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.EveryFrameScript;
@@ -80,8 +81,8 @@ public final class SecondWindNexStart extends CustomStart {
         @Override public void advance(float amount) {
             if (done) return;
             done = true;
-            if (Global.getSector().getPlayerFleet() != null)
-                CerberusCompanyStart.approachDestination(Global.getSector().getPlayerFleet());
+            if (CampaignBackend.playerFleet() != null)
+                CerberusCompanyStart.approachDestination(CampaignBackend.playerFleet());
         }
     }
 }

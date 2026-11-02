@@ -151,8 +151,8 @@ public final class CerberusCompanyStart implements Script {
     }
     public static FleetMemberAPI startingShip() {
         String id = startingShipId();
-        if (id == null || Global.getSector().getPlayerFleet() == null) return null;
-        return Global.getSector().getPlayerFleet().getFleetData().getMembersListCopy().stream()
+        if (id == null || CampaignBackend.playerFleet() == null) return null;
+        return CampaignBackend.playerFleet().getFleetData().getMembersListCopy().stream()
                 .filter(m -> id.equals(m.getId())).findFirst().orElse(null);
     }
     public static PreparationDepot depot() {
@@ -264,7 +264,7 @@ public final class CerberusCompanyStart implements Script {
         return planet == null ? null : planet.getStarSystem();
     }
     public static String instructions() {
-        var script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        var script = MarineRosterScript.getInstance();
         if (script != null && script.roster().companyShipId() != null) {
             if (!script.roster().officerInductionRequired())
                 return Strings.get("openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst");

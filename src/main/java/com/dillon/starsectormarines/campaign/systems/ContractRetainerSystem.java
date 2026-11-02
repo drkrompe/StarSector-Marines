@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
@@ -78,7 +79,7 @@ public final class ContractRetainerSystem implements CampaignSystem {
 
     private static boolean addPlayerCredits(int credits) {
         if (Global.getSector() == null) return false;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet == null || fleet.getCargo() == null) return false;
         fleet.getCargo().getCredits().add(credits);
         return true;

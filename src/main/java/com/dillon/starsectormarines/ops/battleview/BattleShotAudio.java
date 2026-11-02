@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.fs.starfarer.api.Global;
@@ -88,11 +89,11 @@ public final class BattleShotAudio {
     }
 
     private static Vector2f campaignAnchor() {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null
-                || Global.getSector().getPlayerFleet().getLocation() == null) {
+        if (CampaignBackend.playerFleet() == null
+                || CampaignBackend.playerFleet().getLocation() == null) {
             return null;
         }
-        return new Vector2f(Global.getSector().getPlayerFleet().getLocation());
+        return new Vector2f(CampaignBackend.playerFleet().getLocation());
     }
 
     /**

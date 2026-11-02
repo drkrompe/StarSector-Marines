@@ -26,7 +26,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     }
     @Override protected Map<String, Object> props() {
         var planet = CerberusCompanyStart.destination();
-        var cargo = Global.getSector().getPlayerFleet().getCargo();
+        var cargo = CampaignBackend.playerFleet().getCargo();
         return model(CompanyPrologue.page(CampaignBackend.savedData()),
                 planet == null ? null : planet.getName(),
                 planet != null && "jangala".equals(planet.getId()) && ArrivalCinematic.available(),

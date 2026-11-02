@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.flyby;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -95,7 +96,7 @@ public final class PlayerFleetWings {
      */
     public static List<CarrierBay> committableCarriers() {
         if (Global.getSector() == null) return new ArrayList<>();
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet == null || fleet.getFleetData() == null) return new ArrayList<>();
 
         List<CarrierBay> out = new ArrayList<>();

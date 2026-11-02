@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -103,8 +104,7 @@ public interface CompanyMeans {
     }
 
     private static CargoAPI hold() {
-        if (Global.getSector() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         return fleet == null ? null : fleet.getCargo();
     }
 }

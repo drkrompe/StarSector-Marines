@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
@@ -664,7 +665,7 @@ public final class MissionLaunch {
     /** A prepared briefing cannot retain a ship sold or lost before launch. */
     private static void requireOwnedPowerSources(Mission mission, List<FleetMemberAPI> committed) {
         if(mission.source.isDebug() || committed==null || committed.isEmpty() || Global.getSector()==null)return;
-        var fleet=Global.getSector().getPlayerFleet();
+        var fleet=CampaignBackend.playerFleet();
         var owned=fleet==null || fleet.getFleetData()==null?List.<FleetMemberAPI>of():fleet.getFleetData().getMembersListCopy();
         for(var source:committed)if(source==null || owned.stream().noneMatch(member->member.getId().equals(source.getId())))
             throw new IllegalStateException("A committed support ship is no longer in your fleet. Review the support commitment.");

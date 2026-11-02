@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractReputation;
@@ -73,7 +74,7 @@ public final class StationingWithdrawalService {
         @Override
         public boolean addMarines(int count) {
             if (Global.getSector() == null) return false;
-            CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+            CampaignFleetAPI fleet = CampaignBackend.playerFleet();
             if (fleet == null || fleet.getCargo() == null) return false;
             fleet.getCargo().addMarines(count);
             return true;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -177,8 +178,8 @@ public final class AgreusArcCampaign {
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
         if (AgreusArcProgress.smallWar(o.missionId)) {
-            if (o.smallWar == null || Global.getSector().getPlayerFleet() == null) return -1;
-            var credits = Global.getSector().getPlayerFleet().getCargo().getCredits();
+            if (o.smallWar == null || CampaignBackend.playerFleet() == null) return -1;
+            var credits = CampaignBackend.playerFleet().getCargo().getCredits();
             return settleSmallWar(p, o, credits::add);
         }
         if (AgreusArcProgress.yardOwners(o.missionId)) {

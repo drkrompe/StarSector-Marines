@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
@@ -155,7 +156,7 @@ public final class ShepherdRecoveryCampaign {
     static void begin(Mission m){var p=requireCurrent(m);if(!p.begin(m.id,m.targetPlanetName))throw new IllegalStateException("Recovery already launched");CampaignStateScript.getInstance().state().shepherdRecovery=p;}
     static int settle(MissionOutcome o){var p=current();if(p==null||o==null||o.missionSource!=MissionSource.STORY||(!ShepherdRecoveryProgress.workingPassage(o.missionId)&&!ShepherdRecoveryProgress.coldStart(o.missionId)&&o.salvageRights==null))return -1;
         if (ShepherdRecoveryProgress.workingPassage(o.missionId)) {
-            if(o.workingPassage==null || o.coldStart!=null || o.salvageRights!=null || Global.getSector()==null || Global.getSector().getPlayerFleet()==null)return -1;
+            if(o.workingPassage==null || o.coldStart!=null || o.salvageRights!=null || CampaignBackend.playerFleet() == null)return -1;
             if(!p.matches(o.missionId))return -1;
             var r=o.workingPassage;
             FleetMemberAPI ship=o.victory?Global.getFactory().createFleetMember(FleetMemberType.SHIP,"shepherd_Frontier"):null;
@@ -164,7 +165,7 @@ public final class ShepherdRecoveryCampaign {
                 public String memberId(){return ship.getId();}
                 public int minimumCrew(){return crew;}
                 public void transfer(){
-                    var fleet=Global.getSector().getPlayerFleet();
+                    var fleet=CampaignBackend.playerFleet();
                     ship.setShipName(Strings.get("morrowShipName"));
                     fleet.getFleetData().addFleetMember(ship);
                     try { fleet.getCargo().addCrew(crew); }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.MechPatternInventory;
@@ -92,8 +93,7 @@ public final class LootSettlementService {
     }
 
     private static CargoAPI playerCargo() {
-        if (Global.getSector() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         return fleet != null ? fleet.getCargo() : null;
     }
 }

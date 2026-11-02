@@ -1,6 +1,6 @@
 # Campaign backend
 
-Status: IN PROGRESS — saved data moved; company fleet, purse, markets, news and world basics remain
+Status: IN PROGRESS — saved data and the company fleet moved; markets, news and world basics remain
 
 Written: 2026-11-02
 
@@ -11,9 +11,11 @@ Read `campaign-nouns.md`, Ownership. The tool it serves is in `build-and-run.md`
 Put what the mod's screens and rules ask of the running campaign behind
 `CampaignBackend`, so a stand-in can answer them and `playBattle` can host the
 company's screens with no game booted, including an infinite economy. The shipped
-mod keeps the game's answers. This is not a wrapper around the game's sector: where
-it can, a family answers in the mod's own terms, because returning `FleetMemberAPI`
-or `MarketAPI` would only make a stand-in implement the game's interfaces.
+mod keeps the game's answers. This is not a wrapper around the game's sector: a
+family answers in the mod's own terms where a few files ask, because returning a
+game type makes a stand-in implement the game's interfaces. The company fleet is the
+exception: 45 files read its members and cargo, so it stays `CampaignFleetAPI` and a
+stand-in answers with proxies, as the tests already do.
 
 ## Families
 
@@ -23,8 +25,7 @@ and each gets a pass in the real game: much of this code has no headless coverag
 | Family | Reads today | Status |
 | --- | --- | --- |
 | Saved data | `getPersistentData` | Moved, but for four files that hold a sector of their own |
-| Company fleet | `getPlayerFleet`, fleet members, flagship | Not started |
-| Purse and cargo | credits, marines, cargo | Not started |
+| Company fleet, with its purse and cargo | `getPlayerFleet`, then its members and cargo | Moved, but for seven files that hold a sector or are a rule command |
 | Markets | `getEconomy`, `getMarket`, `getMarketsCopy` | Not started |
 | News | intel, `getCampaignUI` messages | Not started |
 | World basics | clock, factions | Not started |

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -50,8 +51,7 @@ public final class LoadoutCardInventory {
     }
 
     private static CargoAPI playerCargo() {
-        if (Global.getSector() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         return fleet != null ? fleet.getCargo() : null;
     }
 }

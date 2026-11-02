@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.DebugOnly;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -73,7 +74,7 @@ public final class DebugVanillaRaidSpawnerTargets {
      */
     public static MarketAPI playerTarget() {
         if (Global.getSector() == null || Global.getSector().getEconomy() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         LocationAPI here = fleet != null ? fleet.getContainingLocation() : null;
         Vector2f from = fleet != null ? fleet.getLocationInHyperspace() : null;
 

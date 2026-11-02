@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
@@ -538,8 +539,8 @@ public final class MissionResolver {
                 Global.getSector().getCampaignUI().addMessage(Strings.get("nexInvasionNotApplied"));
             }
         }
-        CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null
-                ? Global.getSector().getPlayerFleet().getCargo()
+        CargoAPI cargo = CampaignBackend.playerFleet() != null
+                ? CampaignBackend.playerFleet().getCargo()
                 : null;
 
         if (SupplyRouteCampaign.owns(outcome.missionId) && (cargo == null || SupplyRouteCampaign.settle(outcome) < 0)) {

@@ -39,8 +39,8 @@ public final class CompanyYard {
         return null;
     }
     public static String refusal(FleetMemberAPI member, MarketAPI market) {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return Strings.get("openingCompanyYardNoPlayerFleet");
-        var fleet = Global.getSector().getPlayerFleet();
+        if (CampaignBackend.playerFleet() == null) return Strings.get("openingCompanyYardNoPlayerFleet");
+        var fleet = CampaignBackend.playerFleet();
         return refusal(fleet.getFleetData().getMembersListCopy().contains(member),
                 MercenaryCompanyConversion.compatible(member), member != null && member.isMothballed(),
                 MercenaryCompanyConversion.installed(member), accessible(market) && market == dockedMarket(),
@@ -73,8 +73,8 @@ public final class CompanyYard {
         member.updateStats();
         FoundingReserve.consume(CampaignBackend.savedData(), member.getId(), reserved);
         int cash = cashCost(reserved);
-        if (cash > 0) Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(cash);
-        Global.getSector().getPlayerFleet().getFleetData().setSyncNeeded();
+        if (cash > 0) CampaignBackend.playerFleet().getCargo().getCredits().subtract(cash);
+        CampaignBackend.playerFleet().getFleetData().setSyncNeeded();
         CerberusCompanyStart.establishDepot(member, market);
         return null;
     }

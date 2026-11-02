@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -36,8 +37,7 @@ public final class CampaignCommandPowerResources implements CommandPowerResource
     }
 
     private static CargoAPI cargo() {
-        if (Global.getSector() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         return fleet == null ? null : fleet.getCargo();
     }
 }

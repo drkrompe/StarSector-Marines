@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeep.Cause;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.campaign.start.SecondWindLoss;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.fs.starfarer.api.Global;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,7 +30,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
     }
     @Override protected Map<String, Object> props() {
         SecondWindLoss loss = SecondWindKeeper.loss();
-        int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
+        int credits = (int) CampaignBackend.playerFleet().getCargo().getCredits().get();
         return model(loss == null ? Cause.BATTLE : loss.cause(),
                 loss == null || loss.ship() == null ? null : loss.ship().getShipName(), credits,
                 loss == null ? 0 : loss.bill(), loss == null ? null : loss.dMod(), this::buy, () -> dismissDialog.run());

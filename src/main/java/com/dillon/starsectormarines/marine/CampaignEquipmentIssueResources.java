@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -44,7 +44,7 @@ public final class CampaignEquipmentIssueResources implements EquipmentIssueReso
     }
 
     private static CargoAPI cargo() {
-        return Global.getSector() != null && Global.getSector().getPlayerFleet() != null
-                ? Global.getSector().getPlayerFleet().getCargo() : null;
+        return CampaignBackend.playerFleet() != null
+                ? CampaignBackend.playerFleet().getCargo() : null;
     }
 }

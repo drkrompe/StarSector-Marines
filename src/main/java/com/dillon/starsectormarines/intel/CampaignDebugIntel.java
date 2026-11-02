@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -223,7 +224,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             ui.addSectionHeading(Strings.get("debugPowerSuitHeading"), Color.WHITE,
                     new Color(40, 40, 40), Alignment.LMID, 14f);
             ui.addPara(Strings.get("debugPowerSuitLearningNote"), Color.LIGHT_GRAY, 8f);
-            boolean rosterAvailable = Global.getSector() != null && MarineRosterScript.getInstance() != null;
+            boolean rosterAvailable = MarineRosterScript.getInstance() != null;
             ui.addButton(Strings.get("debugPowerSuitLearnRecovered"), BTN_LEARN_RECOVERED_SUITS,
                     320f, 24f, 8f).setEnabled(rosterAvailable);
             ui.addButton(Strings.get("debugPowerSuitLearnMilitary"), BTN_LEARN_MILITARY_SUITS,
@@ -418,8 +419,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     /** Player's current star system, or null if in hyperspace / between systems. */
     private static StarSystemAPI currentPlayerSystem() {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return null;
-        LocationAPI loc = Global.getSector().getPlayerFleet().getContainingLocation();
+        if (CampaignBackend.playerFleet() == null) return null;
+        LocationAPI loc = CampaignBackend.playerFleet().getContainingLocation();
         return (loc instanceof StarSystemAPI) ? (StarSystemAPI) loc : null;
     }
 
@@ -489,7 +490,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
         if (BTN_LEARN_RECOVERED_SUITS.equals(buttonId) || BTN_LEARN_MILITARY_SUITS.equals(buttonId)) {
             if (!DevConfig.CAMPAIGN_DEBUG_INTEL) return;
-            MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+            MarineRosterScript rosterScript = MarineRosterScript.getInstance();
             if (rosterScript == null) {
                 lastSuitLearnResult = Strings.get("debugPowerSuitNoRoster");
             } else {

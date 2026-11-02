@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Reclamation;
 import com.dillon.starsectormarines.ops.CompanyShipDesignation;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -67,12 +66,12 @@ public final class CompanyWorkshopRestoration {
         return null;
     }
     private static CargoAPI cargo() {
-        return Global.getSector() == null || Global.getSector().getPlayerFleet() == null
-                ? null : Global.getSector().getPlayerFleet().getCargo();
+        return CampaignBackend.playerFleet() == null
+                ? null : CampaignBackend.playerFleet().getCargo();
     }
     private static boolean ownedHome(FleetMemberAPI ship, MarineRoster roster) {
-        return ship != null && Global.getSector() != null && Global.getSector().getPlayerFleet() != null
-                && Global.getSector().getPlayerFleet().getFleetData().getMembersListCopy().contains(ship)
+        return ship != null && CampaignBackend.playerFleet() != null
+                && CampaignBackend.playerFleet().getFleetData().getMembersListCopy().contains(ship)
                 && roster != null && ship.getId().equals(roster.companyShipId());
     }
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster) {

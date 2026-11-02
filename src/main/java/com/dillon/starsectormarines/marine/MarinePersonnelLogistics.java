@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -119,8 +119,8 @@ public final class MarinePersonnelLogistics {
     }
 
     private static CargoAPI playerCargo() {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return null;
-        return Global.getSector().getPlayerFleet().getCargo();
+        if (CampaignBackend.playerFleet() == null) return null;
+        return CampaignBackend.playerFleet().getCargo();
     }
 
     public record PersonnelDrawResult(int reservesAssigned, int cargoMarinesConsumed) {

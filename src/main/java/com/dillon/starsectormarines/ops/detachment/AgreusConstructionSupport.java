@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import com.fs.starfarer.api.Global;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +40,7 @@ public final class AgreusConstructionSupport {
     public static void requireLive(List<CommandPower> powers, float supplies) {
         if (!selected(powers))
             throw new IllegalStateException("Commit a working company Shepherd and select Ship on Station in Support.");
-        var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
+        var fleet = CampaignBackend.playerFleet();
         var live = sources(fleet == null || fleet.getFleetData() == null ? List.of()
                 : fleet.getFleetData().getMembersListCopy());
         for (var power : powers) if (power instanceof ShipOnStation ship) {

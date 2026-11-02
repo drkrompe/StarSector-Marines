@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -90,8 +91,7 @@ public final class DetachmentResolver {
      * canonical briefing's member-level commitment surface.
      */
     private static List<FleetMemberAPI> committedShips() {
-        if (Global.getSector() == null) return Collections.emptyList();
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet == null || fleet.getFleetData() == null) return Collections.emptyList();
         return new ArrayList<>(fleet.getFleetData().getMembersListCopy());
     }

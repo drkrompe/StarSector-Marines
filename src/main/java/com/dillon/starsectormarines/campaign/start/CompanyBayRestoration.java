@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 /** Saved interior condition belongs to the original hull, independent of vanilla hull repairs. */
@@ -37,9 +36,9 @@ public final class CompanyBayRestoration {
 
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster) {
         BoatBayState state = state(ship);
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null)
+        if (CampaignBackend.playerFleet() == null)
             return new Offer(false, 0, Strings.get("openingCompanyBayRestorationNoPlayerFleet"));
-        var fleet = Global.getSector().getPlayerFleet();
+        var fleet = CampaignBackend.playerFleet();
         int credits = (int) fleet.getCargo().getCredits().get();
         boolean owned = ship != null && fleet.getFleetData().getMembersListCopy().contains(ship);
         return new Offer(state == BoatBayState.DAMAGED, credits, refusal(owned, state,
@@ -52,7 +51,7 @@ public final class CompanyBayRestoration {
     public static String repair(FleetMemberAPI ship, MarineRoster roster) {
         String refused = offer(ship, roster).refusal();
         if (refused != null) return refused;
-        Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(CREDIT_COST);
+        CampaignBackend.playerFleet().getCargo().getCredits().subtract(CREDIT_COST);
         markRestored(ship);
         return null;
     }

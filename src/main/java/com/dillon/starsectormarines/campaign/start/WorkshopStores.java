@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
@@ -25,9 +26,8 @@ public final class WorkshopStores {
         return current(Purpose.GENERAL);
     }
     public static WorkshopStores current(Purpose purpose) {
-        var sector = Global.getSector();
-        CargoAPI cargo = sector != null && sector.getPlayerFleet() != null
-                ? sector.getPlayerFleet().getCargo() : null;
+        CargoAPI cargo = CampaignBackend.playerFleet() != null
+                ? CampaignBackend.playerFleet().getCargo() : null;
         return new WorkshopStores(cargo, CerberusCompanyStart.accessibleDepot(), purpose);
     }
 

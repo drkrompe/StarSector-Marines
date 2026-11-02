@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.CompanyYardReview.Stage;
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
         return List.of("prologue-root", "prologue-next", "prologue-skip", "prologue-dialogue");
     }
     @Override protected Map<String, Object> props() {
-        int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
+        int credits = (int) CampaignBackend.playerFleet().getCargo().getCredits().get();
         String refusal = review.stage() == Stage.COST ? CompanyYard.refusal(ship, CompanyYard.dockedMarket()) : null;
         return model(review.stage(), ship.getShipName(), credits, CompanyYard.reservedCredits(ship),
                 refusal, review.failure(), CerberusCompanyStart.depot() != null,

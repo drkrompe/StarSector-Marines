@@ -15,34 +15,45 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * A family moved behind {@link CampaignBackend} stays moved: shipped code asks the seam, not the sector, or a host with
- * no game finds a screen that cannot run. A file listed here still holds a sector of its own; the list only shrinks.
+ * no game finds a screen that cannot run. A file listed here still holds a sector of its own; the lists only shrink.
  */
 class CampaignBackendBoundaryTest {
 
     private static final Path SOURCES = Path.of("src/main/java");
-    private static final String SAVED_DATA = "getPersistentData()";
-    private static final Set<String> SAVED_DATA_ALLOWED = Set.of(
-            "com/dillon/starsectormarines/campaign/backend/CampaignBackend.java",
-            "com/dillon/starsectormarines/campaign/start/CerberusCompanyStart.java",
-            "com/dillon/starsectormarines/campaign/start/CompanyProloguePresenter.java",
-            "com/dillon/starsectormarines/campaign/start/SecondWindKeeper.java",
-            "com/dillon/starsectormarines/ops/CompanyPrologueScreen.java");
+    private static final String BACKEND = "com/dillon/starsectormarines/campaign/backend/CampaignBackend.java";
+    private static final String CERBERUS = "com/dillon/starsectormarines/campaign/start/CerberusCompanyStart.java";
+    private static final String PROLOGUE = "com/dillon/starsectormarines/campaign/start/CompanyProloguePresenter.java";
+    private static final String KEEPER = "com/dillon/starsectormarines/campaign/start/SecondWindKeeper.java";
 
     @Test
     void savedDataIsAskedOfTheBackend() throws IOException {
-        Set<String> found;
+        assertEquals(new TreeSet<>(Set.of(BACKEND, CERBERUS, PROLOGUE, KEEPER,
+                        "com/dillon/starsectormarines/ops/CompanyPrologueScreen.java")),
+                filesCalling("getPersistentData()"));
+    }
+
+    @Test
+    void theCompanyFleetIsAskedOfTheBackend() throws IOException {
+        assertEquals(new TreeSet<>(Set.of(BACKEND, CERBERUS, PROLOGUE, KEEPER,
+                        "com/dillon/starsectormarines/campaign/OfficerMoodReader.java",
+                        "com/dillon/starsectormarines/ops/CompanyViewAbility.java",
+                        "com/dillon/starsectormarines/ops/event/PlayerEventPresenter.java",
+                        "com/fs/starfarer/api/impl/campaign/rulecmd/CompanyYardCMD.java")),
+                filesCalling("getPlayerFleet()"));
+    }
+
+    private static Set<String> filesCalling(String call) throws IOException {
         try (Stream<Path> files = Files.walk(SOURCES)) {
-            found = files.parallel().filter(file -> file.toString().endsWith(".java"))
-                    .filter(CampaignBackendBoundaryTest::asksSavedData)
+            return files.parallel().filter(file -> file.toString().endsWith(".java"))
+                    .filter(file -> contains(file, call))
                     .map(file -> SOURCES.relativize(file).toString().replace('\\', '/'))
                     .collect(Collectors.toCollection(TreeSet::new));
         }
-        assertEquals(new TreeSet<>(SAVED_DATA_ALLOWED), found);
     }
 
-    private static boolean asksSavedData(Path file) {
+    private static boolean contains(Path file, String call) {
         try {
-            return Files.readString(file).contains(SAVED_DATA);
+            return Files.readString(file).contains(call);
         } catch (IOException failure) {
             throw new UncheckedIOException(failure);
         }

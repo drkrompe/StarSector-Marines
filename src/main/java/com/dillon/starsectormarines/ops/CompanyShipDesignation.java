@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
@@ -150,8 +151,7 @@ public final class CompanyShipDesignation {
     }
 
     private static CargoAPI holds() {
-        if (Global.getSector() == null) return null;
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         return fleet == null ? null : fleet.getCargo();
     }
 
@@ -284,8 +284,7 @@ public final class CompanyShipDesignation {
     }
 
     private static List<FleetMemberAPI> ranked(boolean includeLaidUp) {
-        if (Global.getSector() == null) return List.of();
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet == null || fleet.getFleetData() == null) return List.of();
         List<FleetMemberAPI> found = new ArrayList<>();
         for (FleetMemberAPI member : fleet.getFleetData().getMembersListCopy()) {

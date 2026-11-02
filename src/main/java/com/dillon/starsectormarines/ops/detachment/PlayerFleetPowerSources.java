@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -33,8 +34,7 @@ public final class PlayerFleetPowerSources {
 
     /** Power-bearing members in fleet order. Empty outside campaign. */
     public static List<SourceShip> committableShips() {
-        if (Global.getSector() == null) return Collections.emptyList();
-        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        CampaignFleetAPI fleet = CampaignBackend.playerFleet();
         if (fleet == null || fleet.getFleetData() == null) return Collections.emptyList();
 
         List<SourceShip> out = new ArrayList<>();

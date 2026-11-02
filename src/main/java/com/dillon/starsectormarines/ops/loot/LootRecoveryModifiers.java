@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Trait;
 import com.fs.starfarer.api.Global;
@@ -25,7 +26,7 @@ public final class LootRecoveryModifiers {
         int rigCount = 0;
         int gantryCount = 0;
         if (Global.getSector() != null) {
-            CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+            CampaignFleetAPI fleet = CampaignBackend.playerFleet();
             if (fleet != null && fleet.getFleetData() != null) {
                 for (FleetMemberAPI member : fleet.getFleetData().getMembersListCopy()) {
                     if (member == null) continue;

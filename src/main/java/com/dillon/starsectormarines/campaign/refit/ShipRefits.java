@@ -88,7 +88,7 @@ public final class ShipRefits {
 
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
         var condition = condition(ship);
-        var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
+        var fleet = CampaignBackend.playerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
         var cargo = new LinkedHashMap<String, Integer>();
         for (String commodity : order.cores().keySet())
@@ -105,7 +105,7 @@ public final class ShipRefits {
     public static String purchase(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
         var offer = offer(ship, roster, order);
         if (offer.refusal() != null) return offer.refusal();
-        var fleetCargo = Global.getSector().getPlayerFleet().getCargo();
+        var fleetCargo = CampaignBackend.playerFleet().getCargo();
         fleetCargo.getCredits().subtract(order.price);
         for (var need : order.cores().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
         CampaignBackend.savedData().put(KEY + ship.getId() + order.receipt, true);
