@@ -406,14 +406,15 @@ Rooms have left this material for the base game's. A room's screen is near-black
 with a faint blue grid behind everything (`grid-lines`), its panels are dark boxes
 with a thin blue line and no relief, a header stands forward in a brighter line with
 cut corners, and its text is the game's white-grey, pale blue and gold. The housing
-language below survives only in the battle and developer sheets. A button takes the base game's look so the
+language below survives only in the battle and developer sheets, and the console's
+SVG plates take the same blues. A button takes the base game's look so the
 mod's screens read as part of it: a flat teal plate with no border or relief,
 `corner-cut` at two opposite corners, in the colours of the game's `buttonBgDark`
 and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
 both top corners and a filter is a hollow outline that fills gold when chosen, as
 the market's and intel screen's are. `corner-cut` is painting only: layout and
 hit-testing keep the rectangle, and a cut box draws no gradient or bevel. A card is
-a button to the pointer but keeps its square frame. Battle glass keeps its own
+a button to the pointer but keeps its square frame and a dark fill with a teal line. Battle glass keeps its own
 buttons.
 
 The standard shipboard theme evokes a late-1990s military computer: gunmetal
