@@ -48,6 +48,8 @@ public final class VehicleControlComponent {
     public float sinceReplan;
     /** True when last tick's carrot pinned to the trajectory end (consumed) — forces a replan. */
     public boolean trajCarrotAtEnd;
+    /** True when {@link #trajectory} was planned from beyond the corridor's drift band, so it already leads back. */
+    public boolean plannedOffCorridor;
     /** Consecutive on-grid seconds for which the rolling planner has returned no executable forward trajectory. */
     public float localPlanFailureTime;
     /** True after the immediate re-route attempt for the current uninterrupted local-plan failure. */
