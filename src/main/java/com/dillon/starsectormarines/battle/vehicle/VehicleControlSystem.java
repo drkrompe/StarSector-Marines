@@ -846,9 +846,17 @@ public final class VehicleControlSystem {
         body.tick(ahead.x, ahead.y, -VehicleController.WALL_REVERSE_SPEED
                 * grid.groundSpeedMultiplier(body.x, body.y), dt);
 
+        // The room this reverse was promised is measured straight back: a nose swinging into a corner beside it is no
+        // reason to stay, and refused it would stand there. It backs off some other way until it has room to swing.
         if (applySweep(body, type, prevX, prevY, prevFacing, false)) {
-            endReverseRecovery(s);
-            return;
+            float back = VehicleController.WALL_REVERSE_SPEED * grid.groundSpeedMultiplier(prevX, prevY) * dt;
+            Pose from = new Pose(prevX, prevY, prevFacing);
+            Pose step = VehicleController.clearReverseStep(from, back, type, grid);
+            applyPose(body, step == null ? from : step);
+            if (step == null) {
+                endReverseRecovery(s);
+                return;
+            }
         }
 
         s.reverseRemaining -= (float) Math.hypot(body.x - prevX, body.y - prevY);

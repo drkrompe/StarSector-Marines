@@ -430,6 +430,9 @@ public final class VehicleController {
         return dl2 < inner2 || dr2 < inner2;
     }
 
+    /** Yaw (degrees) tried on a {@link #clearReverseStep}, in order. */
+    private static final float[] REVERSE_STEP_YAW_DEG = {0f, 1f, -1f};
+
     /**
      * Achievable straight-back distance (cells) before the footprint would hit a
      * wall or leave the grid — the "back up to where you can, accounting for
@@ -456,6 +459,21 @@ public final class VehicleController {
             dist = nd;
         }
         return dist;
+    }
+
+    /**
+     * A clear {@code back} cells of reverse from {@code from} when its steered one is refused: straight back, or failing
+     * that a slight arc either way, which opens a hull lying along a corner too close for a straight line to hold.
+     * {@code null} when none is clear.
+     */
+    static Pose clearReverseStep(Pose from, float back, VehicleType type, NavigationGrid grid) {
+        for (float yaw : REVERSE_STEP_YAW_DEG) {
+            double rad = Math.toRadians(from.facingDeg);
+            Pose to = new Pose(from.x + (float) Math.sin(rad) * back, from.y - (float) Math.cos(rad) * back,
+                    from.facingDeg + yaw);
+            if (VehicleTerrainMotion.isSweepFeasible(from, to, type.visualLengthCells, type.visualWidthCells, grid)) return to;
+        }
+        return null;
     }
 
     /** Highest index whose cell is in-bounds — the route's last on-grid waypoint (outbound's true last is the off-map exit). {@code -1} if none. */

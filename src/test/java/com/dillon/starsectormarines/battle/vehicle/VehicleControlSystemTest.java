@@ -160,6 +160,42 @@ class VehicleControlSystemTest {
     }
 
     /**
+     * The captured stall (The Burn, seed 202): a tank with a house's corner at its front right, a hair clear, its way
+     * on behind it. It has no plan from that pose, cannot pivot through the corner, and has clear ground straight back;
+     * but its reverse steers the nose toward the route, into the corner, and was refused before it had moved. It stood
+     * there for minutes, every order given up and given again.
+     */
+    @Test
+    void aHullWhoseSteeredReverseIsHeldBacksOffStraight() {
+        NavigationGrid grid = new NavigationGrid(100, 240);
+        carve(grid, 0, 0, 99, 239);
+        for (int x = 66; x <= 72; x++) if (x != 68) grid.setWalkable(x, 209, false);
+        grid.setWalkable(66, 208, false);
+        grid.setWalkable(70, 208, false);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(100, 240));
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(100, 240), null);
+        ConvoyService convoy = roster.convoy();
+        float[] xs = {64.5f, 61.83f, 60.62f, 63.24f};
+        float[] ys = {210.5f, 207.83f, 204.62f, 164.55f};
+        VehicleMission mission = new VehicleMission(xs, ys, xs, ys, 0f, 4);
+        long id = convoy.spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER, mission);
+        GroundBody body = convoy.body(id);
+        float startX = 64.08222f, startY = 210.74971f;
+        body.teleport(startX, startY, -79.06138f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        boolean moved = false;
+        for (int i = 0; i < 400 && !moved; i++) {
+            controls.tick(id, 0.05f, xs, ys, VehicleLeg.MOVE_ORDER);
+            moved = Math.hypot(body.x - startX, body.y - startY) > 1f;
+        }
+
+        assertTrue(moved, "it backs clear of the corner (held at " + body.x + "," + body.y + " @ "
+                + body.facingDegrees + ", reverses " + convoy.control(id).planlessReverses + ")");
+    }
+
+    /**
      * The captured stall (urban Road frozen 11): a dozer in a street, its tail against a house wall it had swung past
      * and the wall behind it, its route turning away from the house. Planned on its breach view, where that wall is
      * open, the turn swings its tail into it, so the step was refused every tick; with nothing clear behind it could
