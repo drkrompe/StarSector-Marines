@@ -314,6 +314,149 @@ class VehicleControlSystemTest {
     }
 
     /** The town's loading yard round the stuck truck, x 272-306 and y 88-114, with the lane west out of it. */
+    @Test
+    void aHullDrivesRoundAHullStandingOnItsRoute() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {20.5f, 20.5f}, ys = {4f, 36f};
+        long id = hull(convoy, VehicleType.MILITIA_TECHNICAL, 20.5f, 4f, 0f);
+        long parked = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 18f, 90f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        GroundBody body = convoy.body(id), other = convoy.body(parked);
+        float[] contact = new float[3];
+
+        boolean arrived = false;
+        for (int i = 0; i < 1200 && !arrived; i++) {
+            controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+            arrived = controls.consumeArrived(id);
+            assertFalse(HullContact.overlap(body.x, body.y, body.facingDegrees,
+                    VehicleType.MILITIA_TECHNICAL.visualLengthCells / 2f, VehicleType.MILITIA_TECHNICAL.visualWidthCells / 2f,
+                    other.x, other.y, other.facingDegrees,
+                    VehicleType.BREAKTHROUGH_TANK.visualLengthCells / 2f, VehicleType.BREAKTHROUGH_TANK.visualWidthCells / 2f,
+                    0f, contact), "drove into the standing hull at " + body.x + "," + body.y);
+        }
+        assertTrue(arrived, "stopped at " + body.x + "," + body.y);
+    }
+
+    @Test
+    void aHullHeldShortOfADestinationAnotherHasTakenArrivesWhereItIs() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {20.5f, 20.5f}, ys = {4f, 20f};
+        long id = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 15f, 0f);
+        hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 20f, 0f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertFalse(controls.consumeArrived(id), "not held yet");
+
+        convoy.control(id).hullHold = VehicleController.DESTINATION_TAKEN_SECONDS;
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertTrue(controls.consumeArrived(id));
+        assertEquals(0f, convoy.body(id).speed);
+    }
+
+    @Test
+    void aHullHeldOnItsWayPastADestinationStillFreeDoesNotArrive() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {20.5f, 20.5f}, ys = {4f, 26f};
+        long id = hull(convoy, VehicleType.MILITIA_TECHNICAL, 20.5f, 17f, 0f);
+        hull(convoy, VehicleType.MILITIA_TECHNICAL, 20.5f, 20.5f, 0f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        convoy.control(id).hullHold = VehicleController.DESTINATION_TAKEN_SECONDS;
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertFalse(controls.consumeArrived(id));
+    }
+
+    @Test
+    void aHullHeldNoseToAHullBacksOffForRoom() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {20.5f, 20.5f}, ys = {4f, 36f};
+        long id = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 14f, 0f);
+        hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 18.2f, 0f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertEquals(VehicleControlComponent.Recovery.NONE, convoy.control(id).recovery);
+        convoy.control(id).hullHold = VehicleController.HULL_BACK_OFF_SECONDS;
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertEquals(VehicleControlComponent.Recovery.REVERSING, convoy.control(id).recovery);
+        assertEquals(0f, convoy.control(id).hullHold);
+    }
+
+    @Test
+    void aHullBacksOffAHullNoFurtherThanItsClearanceAllows() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        float tail = 14f - VehicleType.BREAKTHROUGH_TANK.visualLengthCells / 2f;
+        for (int x = 0; x < 40; x++) grid.setWalkable(x, (int) tail - 2, false);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {20.5f, 20.5f}, ys = {4f, 36f};
+        long id = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 14f, 0f);
+        hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 18.2f, 0f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        convoy.control(id).hullHold = VehicleController.HULL_BACK_OFF_SECONDS;
+        GroundBody body = convoy.body(id);
+        float clearance = HybridAStarPlanner.PLANNER_CLEARANCE;
+
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertEquals(VehicleControlComponent.Recovery.REVERSING, convoy.control(id).recovery);
+        for (int i = 0; i < 300 && convoy.control(id).recovery == VehicleControlComponent.Recovery.REVERSING; i++) {
+            controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+            assertTrue(VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
+                    VehicleType.BREAKTHROUGH_TANK.visualLengthCells + clearance,
+                    VehicleType.BREAKTHROUGH_TANK.visualWidthCells + clearance, grid), "backed into its clearance");
+        }
+        assertEquals(VehicleControlComponent.Recovery.NONE, convoy.control(id).recovery);
+        assertEquals(0, convoy.control(id).recoveryAttempts);
+    }
+
+    @Test
+    void aHullInsideItsClearanceBesideAWallPlansOutOnItsBareFootprint() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+        // A wall along its left flank, a tenth of a cell off the chassis: inside the clearance, not touching.
+        int wallX = 20;
+        for (int y = 0; y < 40; y++) grid.setWalkable(wallX, y, false);
+        float x = wallX + 1f + tank.visualWidthCells / 2f + .1f;
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        float[] xs = {x, x}, ys = {6f, 36f};
+        long id = hull(convoy, tank, x, 6f, 0f);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        assertFalse(VehicleFootprint.isPoseFeasible(x, 6f, 0f, tank.visualLengthCells + HybridAStarPlanner.PLANNER_CLEARANCE,
+                tank.visualWidthCells + HybridAStarPlanner.PLANNER_CLEARANCE, grid));
+        controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertTrue(convoy.control(id).hasTrajectory());
+        assertEquals(0f, convoy.control(id).localPlanFailureTime);
+        for (int i = 0; i < 90; i++) controls.tick(id, 1f / 30f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertTrue(convoy.body(id).y > 7f, "still at " + convoy.body(id).y);
+    }
+
+    private static long hull(ConvoyService convoy, VehicleType type, float x, float y, float facing) {
+        VehicleMission mission = new VehicleMission(new float[]{x, x}, new float[]{y, y + 1f},
+                new float[]{x, x}, new float[]{y + 1f, y}, 0f, 0);
+        mission.state = VehicleState.DEPLOYED;
+        long id = convoy.spawn(type, Faction.DEFENDER, mission);
+        convoy.body(id).teleport(x, y, facing);
+        convoy.body(id).speed = 0f;
+        return id;
+    }
+
     private static NavigationGrid capturedYardGrid() {
         NavigationGrid grid = new NavigationGrid(320, 130);
         String[] northToSouth = {

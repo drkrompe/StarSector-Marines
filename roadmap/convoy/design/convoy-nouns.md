@@ -248,6 +248,33 @@ a column backed into trucks coming out, a truck inching a parked car along a
 road it cannot leave): neither planner reverses out, so the pair is let through
 each other, as hulls drove before there was contact, until they are clear.
 
+**A hull's driver sees hulls standing in its way** (`StandingHulls`). The rolling
+planner reads terrain, so without this most jams were a hull driving straight at
+another that had stopped, and most of those ended with one parked on top of the
+other. A friendly hull slower than a walking crawl counts as standing; a moving
+one will have moved by the time this one gets there, and a hostile one is rammed.
+- **Round it.** A plan that would come within the skin of a standing hull is
+  searched again keeping clear of it, aiming past it where it stands on the
+  rolling goal. Where no way round exists the hull keeps its first plan and queues
+  behind, so the search is only asked again after a second.
+- **The destination is taken.** A hull on a move-order leg held for a second and a
+  half by a standing hull, within ten cells of a route end where a standing hull
+  leaves no room to park, has arrived where it is.
+- **Back off.** Held for two seconds, a hull backs straight off a couple of cells
+  for the room to swing round. It stops short of the planner's clearance, and it
+  spends none of the recovery ladder's attempts.
+
+Contact tells the driver it is held (`VehicleControlComponent.hullHold`), counted
+only while the speed taken is for a standing hull: a follower keeping the pace of
+a moving hull is not held. The jam remains the backstop.
+
+**A hull inside the planner's clearance plans out on its bare footprint.** A shove,
+a back-off or a corner can leave the chassis clear and the padded footprint not,
+and the padded planner has no way forward from there however open the ground
+ahead. So when it refuses for that reason the search runs once more without the
+padding. Motion is swept on the bare footprint anyway, so hard ground is still
+never crossed.
+
 A vehicle **is** an ordinary squad contact. It is believed in, it counts in the
 contact picture, it moves doctrine and it raises the alert level, because an APC
 bearing down is a warning exactly as much as a rifleman stepping into view. The

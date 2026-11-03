@@ -141,6 +141,15 @@ public final class VehicleControlComponent {
     /** In-flight proof; advanced every tick independently of the failed-retry cadence. */
     public ProgressiveVehicleRecovery pendingRecovery;
 
+    /** Seconds in a row {@code HullContactSystem} has taken this hull's speed for a hull standing in its way. */
+    public float hullHold;
+    /** Set by {@code HullContactSystem} while it walks the pairs, and turned into {@link #hullHold} when it has. */
+    public boolean heldThisTick;
+    /** Seconds before this hull searches again beyond its ordinary plan, after finding nothing there. */
+    public float secondPlanWait;
+    /** True while a back-off from a hull is running: it stops short of the planner's clearance, or it would be pinned. */
+    public boolean reverseKeepsClearance;
+
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by the control system's {@code consumeArrived}. */
     public boolean arrived;
 

@@ -8,9 +8,11 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullContact;
 import com.dillon.starsectormarines.battle.vehicle.HullShove;
 import com.dillon.starsectormarines.battle.vehicle.HullRam;
+import com.dillon.starsectormarines.battle.vehicle.StandingHulls;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +32,10 @@ import java.util.Set;
  * past each other both get somewhere. Neither planner reverses out of that, so the pair is let through each other, as hulls drove
  * before there was contact, until they are clear. That is the backstop, not the rule: a meet that can be
  * passed is passed long before it.
+ *
+ * <p>Taking a hull's speed for a friendly hull standing in its way is also how that hull's driver learns it is held
+ * ({@link VehicleControlComponent#hullHold}): the planner reads terrain, not hulls, so nothing else tells it. A
+ * follower taking the pace of a hull that is moving is not held.
  *
  * <p>A wreck is not a hull here: it is left where it died, and a live hull passing it is not stopped by it.
  * Serial; the convoy is a handful of hulls, so the pair walk is all of them against all of them.
@@ -83,6 +89,12 @@ public final class HullContactSystem {
                 if (live(ids[j])) resolve(ids[i], ids[j]);
             }
         }
+        for (long id : ids) {
+            VehicleControlComponent control = convoy.control(id);
+            if (control == null) continue;
+            control.hullHold = control.heldThisTick ? control.hullHold + BattleSimulation.TICK_DT : 0f;
+            control.heldThisTick = false;
+        }
         Set<Long> swap = touched;
         touched = touching;
         touching = swap;
@@ -129,6 +141,7 @@ public final class HullContactSystem {
         }
 
         // Yield: a follower takes the pace of the hull ahead; head-on, one waits and the other crawls.
+        float aSpeed = ba.speed, bSpeed = bb.speed;
         boolean headOn = aClosing > 0f && bClosing > 0f;
         if (headOn) {
             boolean aYields = HullContact.yields(ma, a, mb, b);
@@ -138,6 +151,10 @@ public final class HullContactSystem {
         } else {
             ba.speed = HullContact.yieldSpeed(ba.speed, aInto, -bClosing);
             bb.speed = HullContact.yieldSpeed(bb.speed, bInto, -aClosing);
+        }
+        if (!hostile) {
+            if (Math.abs(ba.speed) < Math.abs(aSpeed) && Math.abs(bb.speed) < StandingHulls.STANDING_SPEED) held(a);
+            if (Math.abs(bb.speed) < Math.abs(bSpeed) && Math.abs(ba.speed) < StandingHulls.STANDING_SPEED) held(b);
         }
 
         // Along the contact the lighter hull is shoved most of the way: that is physics.
@@ -232,6 +249,11 @@ public final class HullContactSystem {
             roster.stagger().stagger(id, Math.max(1, Math.round(HullRam.STALL_SECONDS / BattleSimulation.TICK_DT)),
                     Cause.STALLED);
         }
+    }
+
+    private void held(long id) {
+        VehicleControlComponent control = convoy.control(id);
+        if (control != null) control.heldThisTick = true;
     }
 
     /** The hull's forward against the unit normal ({@code cos}). */

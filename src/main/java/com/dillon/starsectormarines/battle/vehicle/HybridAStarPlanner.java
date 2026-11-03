@@ -75,19 +75,49 @@ public final class HybridAStarPlanner {
                 maxIterations, type, grid, REJECT_INVALID_PLANNER_START);
     }
 
+    /**
+     * {@link #planLocal(Pose, Pose, float, int, int, int, int, int, VehicleType, NavigationGrid)} keeping clear of
+     * {@code hulls} as well as terrain. A Reeds-Shepp shortcut is not tried: the lattice alone is judged against them.
+     */
+    static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
+                               int winMinX, int winMinY, int winMaxX, int winMaxY,
+                               int maxIterations, VehicleType type, NavigationGrid grid, StandingHulls hulls) {
+        return planLocal(start, goal, goalRadiusCells, winMinX, winMinY, winMaxX, winMaxY,
+                maxIterations, type, grid, REJECT_INVALID_PLANNER_START, hulls, PLANNER_CLEARANCE);
+    }
+
+    /**
+     * {@link #planLocal(Pose, Pose, float, int, int, int, int, int, VehicleType, NavigationGrid)} on the bare footprint,
+     * for a hull already inside the planner's clearance: its padded footprint has no way forward by definition.
+     */
+    static float[][] planLocalBare(Pose start, Pose goal, float goalRadiusCells,
+                                   int winMinX, int winMinY, int winMaxX, int winMaxY,
+                                   int maxIterations, VehicleType type, NavigationGrid grid) {
+        return planLocal(start, goal, goalRadiusCells, winMinX, winMinY, winMaxX, winMaxY,
+                maxIterations, type, grid, REJECT_INVALID_PLANNER_START, null, 0f);
+    }
+
     /** Explicit policy seam for paired unit evidence; does not mutate a process-global switch. */
     static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
                                int winMinX, int winMinY, int winMaxX, int winMaxY,
                                int maxIterations, VehicleType type, NavigationGrid grid,
                                boolean rejectInvalidStart) {
+        return planLocal(start, goal, goalRadiusCells, winMinX, winMinY, winMaxX, winMaxY,
+                maxIterations, type, grid, rejectInvalidStart, null, PLANNER_CLEARANCE);
+    }
+
+    private static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
+                                       int winMinX, int winMinY, int winMaxX, int winMaxY,
+                                       int maxIterations, VehicleType type, NavigationGrid grid,
+                                       boolean rejectInvalidStart, StandingHulls hulls, float clearance) {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return null;
         BicycleBody bicycle = (BicycleBody) body;
         float turnRadius = bicycle.minTurnRadiusCells();
         float wheelbase = bicycle.getWheelbaseCells();
         float maxSteerRad = bicycle.getMaxSteeringRad();
-        float vLen = type.visualLengthCells + PLANNER_CLEARANCE;
-        float vWid = type.visualWidthCells + PLANNER_CLEARANCE;
+        float vLen = type.visualLengthCells + clearance;
+        float vWid = type.visualWidthCells + clearance;
         int gridW = grid.getWidth(), gridH = grid.getHeight();
 
         int minX = Math.max(0, winMinX), minY = Math.max(0, winMinY);
@@ -173,7 +203,7 @@ public final class HybridAStarPlanner {
                 break;
             }
 
-            if (iterations % ANALYTIC_EXPANSION_INTERVAL == 0) {
+            if (hulls == null && iterations % ANALYTIC_EXPANSION_INTERVAL == 0) {
                 float distToGoal = (float) Math.sqrt(distSqToGoal);
                 if (distToGoal < ANALYTIC_RANGE_FACTOR * turnRadius) {
                     Pose curPose = new Pose(current.x, current.y, current.headingDeg);
@@ -209,6 +239,7 @@ public final class HybridAStarPlanner {
                 if (!VehicleTerrainMotion.isSweepFeasible(
                         new Pose(current.x, current.y, current.headingDeg),
                         new Pose(nx, ny, newHeadingDeg), vLen, vWid, grid)) continue;
+                if (hulls != null && hulls.blocks(nx, ny, newHeadingDeg)) continue;
 
                 int nhb = headingBinFor(newHeadingDeg);
                 int nKey = stateIndex(ncx, ncy, nhb, gridW);
