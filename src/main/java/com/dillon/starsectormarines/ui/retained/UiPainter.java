@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.retained.style.GridLines;
 import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
 
 import java.awt.Color;
@@ -43,6 +44,15 @@ final class UiPainter {
         if (background != null && rect.width() > 0f && rect.height() > 0f) {
             if (cut) fillCut(target, element, rect, inheritedClip, background, elementAlpha);
             else target.fill(rect, background, elementAlpha);
+        }
+        GridLines grid = element.gridLines();
+        if (grid != null) {
+            for (float x = rect.x() + grid.spacing(); x < rect.right(); x += grid.spacing()) {
+                target.fill(new Rect(x, rect.y(), 1f, rect.height()), grid.color(), elementAlpha);
+            }
+            for (float y = rect.y() + grid.spacing(); y < rect.bottom(); y += grid.spacing()) {
+                target.fill(new Rect(rect.x(), y, rect.width(), 1f), grid.color(), elementAlpha);
+            }
         }
         // A gradient and a bevel are rectangles, so a cut box has neither.
         if (!cut && element.backgroundImage() != null && rect.width() > 0f && rect.height() > 0f) {

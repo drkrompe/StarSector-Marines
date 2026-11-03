@@ -47,6 +47,7 @@ public final class ComputedStyle {
         values.put(StyleProperty.BACKGROUND_COLOR, null);
         values.put(StyleProperty.BACKGROUND_IMAGE, null);
         values.put(StyleProperty.CORNER_CUT, CornerCut.NONE);
+        values.put(StyleProperty.GRID_LINES, null);
         values.put(StyleProperty.COLOR, null);
         values.put(StyleProperty.TEXT_SHADOW, null);
         values.put(StyleProperty.FONT_FAMILY, null);
@@ -180,6 +181,10 @@ public final class ComputedStyle {
 
     public CornerCut cornerCut() {
         return (CornerCut) value(StyleProperty.CORNER_CUT);
+    }
+
+    public GridLines gridLines() {
+        return (GridLines) value(StyleProperty.GRID_LINES);
     }
 
     public Color color() {

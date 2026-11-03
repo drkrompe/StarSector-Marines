@@ -92,6 +92,7 @@ public final class StyleDeclaration {
             case BORDER_STYLE -> value instanceof UiBorderStyle;
             case BACKGROUND_IMAGE -> value == null || value instanceof LinearGradient;
             case CORNER_CUT -> value instanceof CornerCut;
+            case GRID_LINES -> value == null || value instanceof GridLines;
             case FONT_FAMILY -> value == null || value instanceof String || value instanceof BitmapFont;
             case TEXT_ALIGN -> value instanceof UiTextAlign;
             case WHITE_SPACE -> value instanceof UiWhiteSpace;

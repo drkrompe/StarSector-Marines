@@ -84,15 +84,15 @@
      berth the hull lacks, rather than wondering where a page went. */
   #marine-ops-page-routes .page-nav-absent {
     background-color: #12181c;
-    border-color: #2b3238;
-    color: #55626b;
+    border-color: #1e323e;
+    color: #565d64;
     opacity: 0.55;
   }
 
   #marine-ops-page-routes .page-nav-absent:hover {
     background-color: #12181c;
-    border-color: #2b3238;
-    color: #55626b;
+    border-color: #1e323e;
+    color: #565d64;
   }
 
   /* A room aboard a ship still being laid out. Told apart from one she does not
@@ -101,14 +101,14 @@
   #marine-ops-page-routes .page-nav-waiting {
     background-color: #101a22;
     border-color: #2d4250;
-    color: #6f8797;
+    color: #757f88;
     opacity: 0.8;
   }
 
   #marine-ops-page-routes .page-nav-waiting:hover {
     background-color: #101a22;
     border-color: #2d4250;
-    color: #6f8797;
+    color: #757f88;
   }
 
   #marine-ops-page-context {

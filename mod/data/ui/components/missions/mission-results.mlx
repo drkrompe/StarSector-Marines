@@ -113,7 +113,7 @@
   .reward-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12e8; }
   .reward-hidden { display: none; }
   .reward-space { height: 0px; flex-grow: 1; }
-  .reward-dialog { width: 900px; height: 420px; padding: 24px; gap: 14px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .reward-dialog { width: 900px; height: 420px; padding: 24px; gap: 14px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #0d1d25; }
   .reward-eyebrow { height: 20px; }
   .reward-title { height: 32px; }
   .reward-conversation { flex-direction: row; height: 118px; gap: 22px; align-items: center; }
@@ -176,7 +176,7 @@
   .results-outcome { height: 62px; padding: 15px 12px; }
   .results-mission-name { height: 30px; }
   .result-rows { display: grid; width: 100%; height: 0px; flex-grow: 1; gap: 6px; padding: 7px; overflow: scroll; }
-  .result-row { flex-direction: column; width: 195px; height: 84px; padding: 7px; gap: 6px; background-color: #182228; border-color: #46545e; }
+  .result-row { flex-direction: column; width: 195px; height: 84px; padding: 7px; gap: 6px; background-color: #182228; border-color: #325368; }
   .result-row .heading { width: 100%; height: 18px; }
   .result-value { width: 100%; min-height: 42px; flex-grow: 0; text-align: left; white-space: normal; }
   .personnel-heading { height: 50px; padding: 9px; }
@@ -192,7 +192,7 @@
   #salvage-conversation-status { width: 0px; flex-grow: 1; height: 20px; }
   .salvage-play { width: 76px; height: 24px; padding: 0px; text-align: center; }
   .salvage-turns { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .salvage-turn { flex-direction: row; height: 78px; gap: 12px; padding: 5px; background-color: #18201e; }
+  .salvage-turn { flex-direction: row; height: 78px; gap: 12px; padding: 5px; background-color: #09151b; }
   .salvage-portrait { width: 68px; height: 68px; }
   .salvage-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
   .salvage-speaker { height: 18px; }

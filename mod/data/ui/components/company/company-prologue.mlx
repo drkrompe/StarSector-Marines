@@ -32,7 +32,7 @@
   </div>
 </template>
 <style>
-.prologue-root { flex-direction: column; padding: 24px; gap: 18px; background-color: #101315; overflow: hidden; }
+.prologue-root { flex-direction: column; padding: 24px; gap: 18px; background-color: #060d11; overflow: hidden; }
 .prologue-header { flex-direction: row; height: 62px; align-items: center; padding: 12px; gap: 20px; border-width: 2px; }
 #prologue-heading { flex-grow: 1; }
 .prologue-body { flex-direction: row; flex-grow: 1; gap: 24px; overflow: hidden; }

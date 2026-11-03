@@ -243,7 +243,7 @@
   .issue-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
   #barracks-issue-stock-title { width: 92px; height: 18px; }
   .issue-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }
-  .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 2px 4px; gap: 5px; background-color: #121719; border-width: 1px; border-color: #39423a; }
+  .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 2px 4px; gap: 5px; background-color: #071014; border-width: 1px; border-color: #274050; }
   .issue-stock-icon { width: 16px; height: 16px; }
   .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
   #barracks-room-title { width: 326px; height: auto; white-space: normal; }
@@ -252,15 +252,15 @@
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
   .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
-  .muted { color: #a5b0a9; } .warm { color: #dfc588; } .wrap { white-space: normal; }
+  .muted { color: #9ba8b5; } .warm { color: #dfc588; } .wrap { white-space: normal; }
   .rail-note { height: 46px; }
   .command-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .command-entry { flex-direction: column; width: 100%; gap: 3px; }
   .command-assign { width: 100%; height: 28px; font-family: heading; text-align: center; }
-  .command-assign-ready { color: #fff0c2; background-color: #42533d; border-color: #dfc588; border-width: 1px; }
+  .command-assign-ready { color: #fff0c2; background-color: #183645; border-color: #dfc588; border-width: 1px; }
   .command-reason { width: 100%; height: 38px; }
-  .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #242b28; border-color: #60685c; }
-  .command-card.selected, .formation.selected { background-color: #393b2e; border-color: #dfc588; }
+  .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #0d1d25; border-color: #3e6680; }
+  .command-card.selected, .formation.selected { background-color: #122934; border-color: #dfc588; }
   .command-card:hover { border-color: #dfc588; }
   .commander-badge { flex-direction: column; align-items: center; width: 62px; height: 92px; gap: 4px; pointer-events: none; }
   .commander-portrait-frame { width: 62px; height: 62px; }
@@ -268,7 +268,7 @@
   /* An unspent training point: a gold diamond pinned to the portrait's corner. */
   .training-point { position: absolute; left: 38px; top: 0px; width: 24px; height: 24px; pointer-events: none; }
   .commander-level { width: 62px; height: 16px; text-align: center; font-family: compact; }
-  .xp-track { flex-direction: row; height: 6px; border-width: 1px; border-color: #586154; background-color: #101512; }
+  .xp-track { flex-direction: row; height: 6px; border-width: 1px; border-color: #3a5f77; background-color: #060e12; }
   .xp-fill { height: 100%; background-color: #dfc588; }
   .commander-xp { width: 58px; }
   .commander-copy { flex-direction: column; width: 0px; height: 92px; flex-grow: 1; gap: 4px; }
@@ -280,15 +280,15 @@
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 258px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
-  .formation.selected { border-color: #dfc588; background-color: #383c2d; }
-  .formation-select { flex-direction: column; width: 100%; height: 208px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
-  .formation-select:hover { background-color: #303b30; }
-  .formation.selected .formation-select { background-color: #383c2d; }
+  .formation { flex-direction: column; width: 260px; height: 258px; gap: 6px; padding: 8px; border-width: 2px; border-color: #3a5f77; background-color: #0c1b23; }
+  .formation.selected { border-color: #dfc588; background-color: #122935; }
+  .formation-select { flex-direction: column; width: 100%; height: 208px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #0c1b23; }
+  .formation-select:hover { background-color: #112732; }
+  .formation.selected .formation-select { background-color: #122935; }
   .formation.stationed .formation-select { opacity: 1; }
   .formation-header { flex-direction: row; align-items: center; height: 24px; gap: 6px; }
-  .card-check { width: 20px; height: 20px; text-align: center; border-width: 1px; border-color: #718068; color: #b6c1ad; }
-  .formation.selected .card-check { background-color: #dfc588; color: #20261e; border-color: #dfc588; }
+  .card-check { width: 20px; height: 20px; text-align: center; border-width: 1px; border-color: #4b7b9b; color: #a9b8c5; }
+  .formation.selected .card-check { background-color: #dfc588; color: #202325; border-color: #dfc588; }
   .formation-name { width: 0px; flex-grow: 1; height: 20px; }
   .card-strength { width: 54px; height: 20px; text-align: right; }
   .card-personnel { height: 16px; font-family: body; }
@@ -301,19 +301,19 @@
   .fill-icon { width: 18px; height: 18px; }
   .fill-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
-  .good { color: #a8cd99; }
+  .good { color: #a9b8c5; }
   .formation-muster { width: 260px; height: 78px; pointer-events: none; }
-  .raise-tile { border-color: #3d4a40; background-color: #151b17; }
-  .raise-tile:hover { border-color: #dfc588; background-color: #1f2a21; }
+  .raise-tile { border-color: #2b4658; background-color: #081217; }
+  .raise-tile:hover { border-color: #dfc588; background-color: #0c1b23; }
   .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }
   .raise-squad-heading { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 6px; }
   .raise-squad-title { width: 0px; flex-grow: 1; height: 20px; }
   .raise-squad-middle { flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 0px; flex-grow: 1; gap: 6px; }
-  .raise-squad-emblem { flex-direction: row; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 0px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
+  .raise-squad-emblem { flex-direction: row; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 0px; border-width: 2px; border-color: #3a5f77; background-color: #0b181f; }
   .raise-squad-emblem-icon { width: 32px; height: 32px; }
   .raise-squad:hover .raise-squad-emblem { border-color: #dfc588; }
   .raise-squad-copy { width: 100%; height: 34px; text-align: center; }
-  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 28px; padding: 0px 6px; gap: 6px; border-width: 1px; border-color: #46554b; background-color: #101512; overflow: hidden; }
+  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 28px; padding: 0px 6px; gap: 6px; border-width: 1px; border-color: #315166; background-color: #060e12; overflow: hidden; }
   .raise-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 4px; }
   .raise-cost-icon { width: 22px; height: 22px; pointer-events: none; }
   .raise-cost-count { width: 0px; flex-grow: 1; height: 18px; color: #dfc588; }
@@ -324,13 +324,13 @@
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .barracks-surface { flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { height: 0px; flex-grow: 1; }
-  .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #0d1d25; }
   .guide-callout.hidden { display: none; }
   .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
   .guide-heading { height: 44px; white-space: normal; overflow: scroll; }
   .guide-dialogue { flex-direction: row; height: 116px; gap: 12px; }
-  .guide-portrait { width: 96px; height: 96px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
+  .guide-portrait { width: 96px; height: 96px; border-width: 2px; border-color: #5993b8; pointer-events: none; }
   .guide-text { width: 0px; flex-grow: 1; height: 116px; overflow: scroll; }
   #guide-status { height: 42px; overflow: scroll; }
   #guide-controls { height: 40px; }
@@ -346,7 +346,7 @@
   .recruit-icon { width: 32px; height: 28px; pointer-events: none; }
   .recruit-count { width: 54px; height: 20px; pointer-events: none; }
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
-  .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
+  .command-feedback { height: 30px; padding: 6px 9px; color: #b3c3d1; background-color: #071014; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
   .officer-header { flex-direction: row; align-items: start; height: 124px; gap: 16px; }
   .officer-portrait-frame { width: 110px; height: 108px; }
@@ -385,8 +385,8 @@
   .roster-sort { height: 28px; padding: 0px; text-align: left; font-family: heading; }
   .roster-sort.active { color: #dfc588; border-color: #dfc588; }
   .roster-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
-  .roster-row { flex-direction: row; align-items: center; height: 40px; gap: 8px; padding: 0px 8px; background-color: #1c241e; }
-  .roster-row-alt { background-color: #222b24; }
+  .roster-row { flex-direction: row; align-items: center; height: 40px; gap: 8px; padding: 0px 8px; background-color: #0b181e; }
+  .roster-row-alt { background-color: #0d1c24; }
   #roster-sort-name, .roster-name { width: 180px; }
   #roster-sort-squad, .roster-squad { width: 100px; }
   #roster-sort-status, .roster-status { width: 130px; }
@@ -399,9 +399,9 @@
   .roster-name { font-family: heading; }
   .roster-cell { flex-direction: row; align-items: center; height: 24px; gap: 3px; }
   .roster-steps { flex-direction: row; align-items: center; width: 76px; height: 12px; gap: 3px; }
-  .roster-step { width: 16px; height: 10px; border-width: 1px; border-color: #46554b; }
-  .roster-step-on { background-color: #a8cd99; border-color: #a8cd99; }
-  .roster-step-off { background-color: #121719; }
+  .roster-step { width: 16px; height: 10px; border-width: 1px; border-color: #315166; }
+  .roster-step-on { background-color: #3c87ad; border-color: #75c0f1; }
+  .roster-step-off { background-color: #071014; }
   .roster-step-median { border-color: #f2d27a; border-width: 2px; }
   .roster-step-label { width: 0px; flex-grow: 1; height: 20px; padding: 0px 0px 0px 6px; font-family: body; }
   .hidden { display: none; }

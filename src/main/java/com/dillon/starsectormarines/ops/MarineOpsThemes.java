@@ -19,35 +19,42 @@ final class MarineOpsThemes {
         return theme("""
                 :root {
                     font-family: body;
-                    color: #e4e7df;
-                    background-color: #111516;
+                    color: #c6d8e7;
+                    background-color: #03090d;
                 }
                 .heading { font-family: heading; }
                 .title { font-family: title; }
+                /* The base game's screen: near-black with a faint blue grid behind everything,
+                   and panels that are dark boxes on it with a thin blue line round them. A header
+                   stands forward in a brighter line with cut corners; nothing has relief. */
                 .panel {
-                    background-color: #292f30;
-                    border-color: #727b79;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 18%, #00000024 100%);
+                    background-color: #050f14a6;
+                    border-color: #335060;
+                    border-style: solid;
+                    background-image: none;
                 }
                 .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root,
-                .mech-lab-root, .boat-deck-root {
-                    border-color: #727b79;
-                    border-style: outset;
+                .mech-lab-root, .boat-deck-root, .store-root, .transfer-root,
+                .ship-view-root, .barracks-root {
+                    background-color: #03090d;
+                    border-color: #335060;
+                    border-style: solid;
+                    grid-lines: 32px #46c8ff1c;
                 }
                 .surface-dark {
-                    background-color: #101919;
+                    background-color: #02070af2;
                     background-image: none;
-                    border-style: inset;
+                    border-color: #335060;
+                    border-style: solid;
                 }
-                .tone-edge { color: #a7ccc4; }
-                .heading.tone-edge, .title.tone-edge { color: #d3d0c5; }
-                .tone-muted { color: #a0ada8; }
-                .tone-accent { color: #edc273; }
-                .tone-good { color: #78d494; }
-                .tone-danger { color: #e98b83; }
+                .tone-edge { color: #aadeff; }
+                .heading.tone-edge, .title.tone-edge { color: #cbf5ff; }
+                .tone-muted { color: #9caab6; }
+                .tone-accent { color: #ffd700; }
+                .tone-good { color: #9bff00; }
+                .tone-danger { color: #ff6400; }
                 /* The base game's action button: a flat teal plate with no border, cut at two
                    opposite corners, with its colours from the game's settings (buttonBgDark over
                    the dark screen, buttonText). A plate keeps its border's width, transparent, so
@@ -67,15 +74,15 @@ final class MarineOpsThemes {
                 button:hover { background-color: #24637a; }
                 button:active { background-color: #0e2d37; }
                 button:focus-visible { border-color: #aadeff; }
-                button:disabled { background-color: #364c52; color: #84989f; opacity: 1; }
+                button:disabled { background-color: #364c52; color: #84909a; opacity: 1; }
                 .doctrine-card-active:disabled, .member-card:disabled { opacity: 1; }
                 .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
-                .edge-surface { background-color: #253b38; border-color: #a7ccc4; }
+                .edge-surface { background-color: #253b38; border-color: #77c4f6; }
                 .formation-select { background-color: transparent; background-image: none; }
-                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #d5deea; }
+                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #c7d8e8; }
                 .spec-card.spec-sheet-armor { border-color: #dfb84d; }
                 .spec-card:hover { background-color: #0e1a26; }
                 .spec-card.selected { background-color: #16242f; border-color: #f2cf68; border-style: solid; }
@@ -92,69 +99,71 @@ final class MarineOpsThemes {
                 #marine-ops-page-routes .page-nav-current { background-color: #43798b; color: #dff4ff; }
                 #marine-ops-page-routes .page-nav-current:hover { background-color: #4e8a9e; }
                 .console-header {
-                    background-color: #343634;
-                    border-color: #82857c;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff10 0%, #ffffff00 18%, #00000026 100%);
+                    background-color: #071720e6;
+                    border-color: #82d6ff;
+                    border-style: solid;
+                    background-image: none;
+                    corner-cut: 0px 10px 0px 10px;
                 }
                 .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
                 .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
                 .console-section, .mission-briefing-root .section-heading-row {
-                    background-color: #303430;
-                    border-color: #6f736c;
-                    border-style: outset;
+                    background-color: #050f14d9;
+                    border-color: #335060;
+                    border-style: solid;
+                    background-image: none;
                 }
                 .console-readout {
-                    background-color: #202b27;
-                    border-color: #56675c;
-                    border-style: inset;
+                    background-color: #02070af2;
+                    border-color: #2c6a7e;
+                    border-style: solid;
                     background-image: none;
                 }
                 .console-well, .mission-detail-image-wrap, .commitment-section {
-                    background-color: #101a16;
-                    border-color: #69786b;
-                    border-style: inset;
+                    background-color: #02070af2;
+                    border-color: #335060;
+                    border-style: solid;
                     background-image: none;
                 }
-                .mission-glyph { background-color: #121d18; border-color: #65766a; border-style: inset; }
+                .mission-glyph { background-color: #02070a; border-color: #2c6a7e; border-style: solid; }
                 .debug-drawer-toggle { color: #edc273; border-color: #b99b63; }
-                .debug-control-value { color: #d6d5a3; }
+                .debug-control-value { color: #bbcbda; }
                 .mission-card.selected, .client-card.selected, .tier-step.selected {
                     background-color: #1f4552; border-color: #aadeff; border-style: solid; background-image: none;
                 }
                 /* Debug launcher cards: flat readout plates with a sunk badge, lit gold when chosen. */
                 .debug-card {
-                    background-color: #1f2826; border-color: #4f5d57; border-style: solid;
-                    background-image: linear-gradient(to bottom, #ffffff0a 0%, #ffffff00 35%, #00000020 100%);
+                    background-color: #0c1b22; border-color: #375a71; border-style: solid;
+                    background-image: none;
                 }
-                .debug-card:hover { background-color: #2b3734; border-color: #8d9a92; }
-                .debug-card:active { background-color: #151c1a; border-style: solid; }
+                .debug-card:hover { background-color: #10252f; border-color: #5d98bf; }
+                .debug-card:active { background-color: #081218; border-style: solid; }
                 .debug-card.selected { background-color: #332e1e; border-color: #edc273; border-style: solid; color: #ffe1a0; }
-                .debug-card-badge { background-color: #0f1714; border-color: #5d6d63; border-style: inset; }
+                .debug-card-badge { background-color: #0f1714; border-color: #406984; border-style: solid; }
                 .debug-card.selected .debug-card-badge { background-color: #1d180b; border-color: #b99b63; }
                 .console-command-rail { background-color: transparent; border-color: transparent; background-image: none; }
                 .console-command-signal, .console-toggle-lamp, .console-tier-lamp {
-                    background-color: #1a231a; border-color: #6b7562; border-style: inset;
+                    background-color: #0a171d; border-color: #45728f; border-style: solid;
                     background-image: none;
                 }
-                .console-command-rail .good-surface .console-command-signal { background-color: #a6c788; }
+                .console-command-rail .good-surface .console-command-signal { background-color: #3a83a7; }
                 .console-command-rail .briefing-blocked .console-command-signal { background-color: #e98b83; }
-                .console-command-rail .good-surface { color: #e8d9a7; }
+                .console-command-rail .good-surface { color: #c2d3e3; }
                 .console-command-rail .briefing-blocked { color: #e98b83; }
                 .mission-briefing-root .choice-row, .mission-briefing-root .tier-step, .debug-air-row button {
-                    background-color: #303a32; border-color: #76816e; border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 12%, #00000020 100%);
+                    background-color: #112732; border-color: #4d7e9e; border-style: solid;
+                    background-image: none;
                 }
                 .mission-briefing-root .choice-row.selected, .mission-briefing-root .tier-step.selected,
                 .debug-air-row button.selected {
-                    background-color: #20291f; border-color: #a89b70; border-style: inset;
-                    background-image: none; color: #e9d29b;
+                    background-color: #0c1b22; border-color: #5f9dc5; border-style: solid;
+                    background-image: none; color: #becedd;
                 }
-                .debug-drawer-toggle.expanded { background-color: #20291f; background-image: none; border-style: inset; }
+                .debug-drawer-toggle.expanded { background-color: #0c1b22; background-image: none; border-style: solid; }
                 .mission-briefing-root .choice-row:hover, .mission-briefing-root .tier-step:hover,
-                .debug-air-row button:hover { background-color: #424d3c; }
+                .debug-air-row button:hover { background-color: #173442; }
                 .mission-briefing-root .choice-row:active, .mission-briefing-root .tier-step:active,
-                .debug-air-row button:active { background-color: #182219; border-style: inset; }
+                .debug-air-row button:active { background-color: #0a161c; border-style: solid; }
                 .mission-briefing-root .choice-row:focus-visible, .mission-briefing-root .tier-step:focus-visible,
                 .debug-air-row button:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 .tier-step.selected .console-tier-lamp {
@@ -162,10 +171,10 @@ final class MarineOpsThemes {
                 }
 
                 .mission-briefing-root .spec-sheet {
-                    background-color: #141e19; border-color: #b9a16b; color: #e4e7df;
+                    background-color: #081318; border-color: #b9a16b; color: #cee1f1;
                 }
                 .mission-briefing-root .spec-sheet-title { color: #edc273; }
-                .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #a0ada8; }
+                .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #98a5b1; }
 
                 /* The base game's two other button shapes. A tab is cut at both top corners and
                    lights when chosen, as the market's Sell and Buy do; a filter is a hollow outline
@@ -203,9 +212,9 @@ final class MarineOpsThemes {
                 .console-toggle-lamp { width: 6px; height: 6px; border-width: 1px; pointer-events: none; }
                 .console-toggle.selected .console-toggle-lamp,
                 .page-nav-current .console-toggle-lamp { background-color: #edc273; border-color: #edc273; }
-                .spec-sheet { background-color: #141e19; border-color: #b9a16b; color: #e4e7df; }
+                .spec-sheet { background-color: #081318; border-color: #b9a16b; color: #cee1f1; }
                 .spec-sheet-title { color: #edc273; }
-                .spec-sheet-subtitle, .spec-sheet-stat-label { color: #a0ada8; }
+                .spec-sheet-subtitle, .spec-sheet-stat-label { color: #98a5b1; }
                 .console-key-legend {
                     width: 0px; flex-grow: 1; height: auto; padding: 0px;
                     font-family: body; text-align: center; overflow: hidden; pointer-events: none;
@@ -219,8 +228,8 @@ final class MarineOpsThemes {
                     background-image: none; border-style: solid; border-width: 1px;
                     font-family: heading; text-align: center;
                 }
-                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
-                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8995a0; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #c7d8e8; }
                 .spec-tab:active { background-color: #060d14; border-style: solid; }
                 .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
                 /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
@@ -228,7 +237,7 @@ final class MarineOpsThemes {
                 .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
                 .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
                 .spec-action:active { background-color: #100d04; border-style: solid; }
-                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #a9b8c5; }
                 .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 /* Battle glass: the battle HUD draws on the field itself, with no panel behind it, so
                    the fight shows through. A document's root opts in with hud-glass. Text keeps a
@@ -383,12 +392,12 @@ final class MarineOpsThemes {
                     new Color(0xFF, 0xE4, 0x5C), Color.WHITE,
                     new Color(0xC4, 0xD1, 0xDF));
         }
-        return new CanvasPalette(new Color(0x3C, 0x44, 0x44),
-                new Color(0x49, 0x44, 0x31), new Color(0x3D, 0x2A, 0x26),
-                new Color(0x13, 0x2B, 0x22), new Color(0xA7, 0xCC, 0xC4),
-                new Color(0x72, 0x7B, 0x79), new Color(0x78, 0xD4, 0x94),
-                new Color(0xED, 0xC2, 0x73), new Color(0xE4, 0xE7, 0xDF),
-                new Color(0xA0, 0xAD, 0xA8));
+        return new CanvasPalette(new Color(0x17, 0x42, 0x4F),
+                new Color(0x43, 0x79, 0x8B), new Color(0x4D, 0x2A, 0x26),
+                new Color(0x1E, 0x5A, 0x3A), new Color(0xAA, 0xDE, 0xFF),
+                new Color(0x33, 0x50, 0x60), new Color(0x9B, 0xFF, 0x00),
+                new Color(0xFF, 0xD7, 0x00), new Color(0xDC, 0xDC, 0xDC),
+                new Color(0x9F, 0xB2, 0xBA));
     }
 
     private static UiTheme theme(String css) {

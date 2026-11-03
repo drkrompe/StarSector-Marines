@@ -132,7 +132,7 @@
   .inspector-primary { color: #78d494; }
   .inspector-armor { color: #6ed7ff; }
   .inspector-special { color: #ffd464; }
-  .inspector-system { color: #c79ce8; }
+  .inspector-system { color: #a0aeba; }
   .inspector-caveat { height: 18px; }
   .deployment-roster { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .roster-heading { flex-direction: row; height: 60px; padding: 9px; border-width: 1px; }
@@ -168,7 +168,7 @@
   .deployment-member.vacant { opacity: 0.42; background-color: #0c121a; }
   .deployment-member-line { flex-direction: row; width: 100%; height: 12px; gap: 3px; font-family: compact; }
   .deployment-member-name { width: 0px; height: 12px; flex-grow: 1; color: #c8e0ff; }
-  .deployment-member-equipment { width: 46px; height: 12px; text-align: right; color: #aebdce; }
+  .deployment-member-equipment { width: 46px; height: 12px; text-align: right; color: #a8b7c4; }
   .member-meter-track { width: 100%; height: 2px; background-color: #172231; }
   .member-meter-fill { height: 100%; }
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
@@ -182,9 +182,9 @@
   .summary-value { min-height: 28px; white-space: normal; }
   .deployment-note { height: 52px; padding: 7px; }
   .roster-heading { height: 54px; padding: 7px 9px; }
-  .deployment-squad-card { width: 450px; height: 266px; background-color: #252b30; border-color: #64717b; }
-  .deployment-squad-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .deployment-squad-card { width: 450px; height: 266px; background-color: #0d1e26; border-color: #44708d; }
+  .deployment-squad-card:hover { background-color: #142c39; border-color: #65a7d1; }
   .deployment-squad-card.selected { background-color: #253b42; border-color: #d4b569; }
-  .deployment-fireteam { background-color: #151e23; border-color: #485861; }
-  .deployment-member { background-color: #202a30; border-color: #43535c; }
+  .deployment-fireteam { background-color: #151e23; border-color: #34566c; }
+  .deployment-member { background-color: #0d1d25; border-color: #315165; }
 </style>

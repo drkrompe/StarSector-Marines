@@ -462,8 +462,8 @@
   #kit-picker-title { height: 27px; }
   #kit-picker-subtitle { height: 18px; }
   .kit-picker-close { width: 120px; height: 36px; border-width: 2px; font-family: heading; text-align: center; }
-  .kit-picker-grid { display: grid; height: 0px; flex-grow: 1; gap: 14px; padding: 12px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
-  .kit-picker-bay-grid { display: grid; height: 0px; flex-grow: 1; gap: 12px; padding: 12px 20px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
+  .kit-picker-grid { display: grid; height: 0px; flex-grow: 1; gap: 14px; padding: 12px 24px; border-width: 3px; border-style: inset; border-color: #2c485a; background-color: #06090b; overflow: scroll; }
+  .kit-picker-bay-grid { display: grid; height: 0px; flex-grow: 1; gap: 12px; padding: 12px 20px; border-width: 3px; border-style: inset; border-color: #2c485a; background-color: #06090b; overflow: scroll; }
   .debug-kit-option { flex-direction: column; width: 250px; height: 214px; padding: 6px; gap: 4px; border-width: 2px; border-color: #2a5566; background-color: #09131d; }
   .debug-kit-option:hover { background-color: #0e1a26; border-color: #53c6e8; }
   .debug-kit-option.selected { background-color: #16242f; border-color: #f2cf68; }
@@ -474,7 +474,7 @@
   .debug-kit-commander.fielded { border-color: #78d494; }
   .debug-kit-commander-portrait { width: 44px; height: 44px; pointer-events: none; }
   .debug-kit-commander-summary { width: 0px; flex-grow: 1; height: auto; white-space: normal; pointer-events: none; }
-  .kit-picker-commander { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; padding: 16px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; }
+  .kit-picker-commander { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; padding: 16px 24px; border-width: 3px; border-style: inset; border-color: #2c485a; background-color: #06090b; }
   .kit-commander-bar { flex-direction: row; align-items: center; height: 92px; padding: 8px; gap: 14px; border-width: 1px; }
   .kit-commander-portrait { width: 72px; height: 72px; pointer-events: none; }
   .kit-commander-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
@@ -550,7 +550,7 @@
   .mission-captain-list .choice-icon { width: 46px; height: 46px; }
   .mission-term-actions { flex-direction: column; height: 100px; gap: 6px; }
   .mission-term-actions button { flex-direction: column; width: auto; flex-grow: 0; padding: 6px; gap: 4px; border-width: 1px; text-align: center; height: 38px; }
-  .mission-term-actions .choice-row.selected { background-color: #35433f; border-color: #f2cf68; border-width: 2px; }
+  .mission-term-actions .choice-row.selected { background-color: #142d39; border-color: #f2cf68; border-width: 2px; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 12px; gap: 5px; border-width: 0px; overflow: hidden; }
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 16px; overflow: scroll; }
   .briefing-section { flex-direction: column; padding: 0px; gap: 8px; border-width: 0px; background-color: transparent; }
@@ -572,7 +572,7 @@
   #mission-replenish.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   /* Deploy's warning lamps: a dim row of checks; a failed one lights amber, as the field bricks do. */
   .deploy-lamps { flex-direction: row; align-items: center; height: 30px; gap: 6px; }
-  .deploy-lamp { flex-direction: row; align-items: center; width: 150px; height: 28px; padding: 2px 6px; gap: 5px; border-width: 1px; border-color: #2c3733; background-color: #141b19; opacity: 0.4; }
+  .deploy-lamp { flex-direction: row; align-items: center; width: 150px; height: 28px; padding: 2px 6px; gap: 5px; border-width: 1px; border-color: #203442; background-color: #081217; opacity: 0.4; }
   .deploy-lamp-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
   .deploy-lamp-icon { width: 20px; height: 20px; pointer-events: none; }
   .deploy-lamp-label { width: 0px; flex-grow: 1; height: 18px; font-family: heading; overflow: hidden; pointer-events: none; }
@@ -583,12 +583,12 @@
   .briefing-speaker { flex-direction: row; align-items: center; height: 144px; padding: 7px; gap: 10px; border-width: 1px; overflow: hidden; }
   #mission-briefing-speaker-name { font-family: title; }
   .mission-comms-slot { height: auto; flex-direction: column; }
-  .briefing-speaker.speaking { border-color: #73a69d; }
+  .briefing-speaker.speaking { border-color: #5d99c0; }
   .briefing-speaker-portrait { width: 140px; height: 140px; border-width: 1px; pointer-events: none; }
   .briefing-speaker-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 112px; gap: 6px; }
   .briefing-speaker-copy .label { height: auto; white-space: normal; }
-  .briefing-speaker-status { color: #82928a; }
-  .speaking .briefing-speaker-status { color: #9dc7b8; }
+  .briefing-speaker-status { color: #7e8993; }
+  .speaking .briefing-speaker-status { color: #a6b5c2; }
   .mission-overview-copy { height: 634px; }
   .mission-overview.narrated .mission-overview-copy { height: 0px; flex-grow: 1; }
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
@@ -621,7 +621,7 @@
   .field-absent { position: absolute; width: 0px; height: 0px; overflow: hidden; }
   .field-bricks { flex-direction: column; align-items: center; justify-content: center; width: 0px; flex-grow: 1; height: 66px; gap: 4px; pointer-events: none; }
   /* A brick is dark until it has something to say: lift short lights the weight red, any refusal lights the warning amber and the briefing breathes it. */
-  .brick { width: 26px; height: 26px; padding: 2px; border-width: 1px; border-color: #2c3733; background-color: #141b19; opacity: 0.45; }
+  .brick { width: 26px; height: 26px; padding: 2px; border-width: 1px; border-color: #203442; background-color: #081217; opacity: 0.45; }
   .brick-lift.brick-lit { background-color: #c8473a; border-color: #f08a7a; opacity: 1; }
   .brick-warn { opacity: 0.25; }
   .brick-warn.brick-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
@@ -639,11 +639,11 @@
   .lift-carrier-image { width: 44px; height: 44px; pointer-events: none; }
   .lift-carrier-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 34px; gap: 2px; pointer-events: none; }
   .lift-carrier-role, .lift-carrier-name { height: 15px; white-space: nowrap; overflow: hidden; }
-  .weight-chip { width: 36px; height: 26px; padding: 2px; border-width: 1px; border-color: #1d2622; pointer-events: none; }
-  .weight-light { background-color: #8fc7a0; }
+  .weight-chip { width: 36px; height: 26px; padding: 2px; border-width: 1px; border-color: #16242d; pointer-events: none; }
+  .weight-light { background-color: #3980a4; }
   .weight-medium { background-color: #e3c04e; }
   .weight-heavy { background-color: #f08a3a; }
-  .weight-none { background-color: #3a4440; }
+  .weight-none { background-color: #152e3b; }
   .weight-symbol { width: 32px; height: 22px; pointer-events: none; }
   /* 03 Command deck: compact keys. */
   .command-power-list { display: grid; height: 54px; gap: 6px; overflow: scroll; width: 100%; }

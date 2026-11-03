@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ui.retained.style.Length;
 import com.dillon.starsectormarines.ui.retained.style.StyleDeclaration;
 import com.dillon.starsectormarines.ui.retained.style.StyleProperty;
 import com.dillon.starsectormarines.ui.retained.style.CornerCut;
+import com.dillon.starsectormarines.ui.retained.style.GridLines;
 import com.dillon.starsectormarines.ui.retained.style.LinearGradient;
 import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
@@ -603,6 +604,10 @@ public final class UiElement {
 
     public CornerCut cornerCut() {
         return computedStyle == null ? CornerCut.NONE : computedStyle.cornerCut();
+    }
+
+    public GridLines gridLines() {
+        return computedStyle == null ? null : computedStyle.gridLines();
     }
 
     public LinearGradient backgroundImage() {

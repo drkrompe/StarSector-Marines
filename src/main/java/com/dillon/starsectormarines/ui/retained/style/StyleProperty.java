@@ -37,6 +37,7 @@ public enum StyleProperty {
     BACKGROUND_COLOR("background-color", false, false, true, true),
     BACKGROUND_IMAGE("background-image", false, false, true, false),
     CORNER_CUT("corner-cut", false, false, true, false),
+    GRID_LINES("grid-lines", false, false, true, false),
     COLOR("color", true, false, true, true),
     TEXT_SHADOW("text-shadow", true, false, true, false),
     FONT_FAMILY("font-family", true, true, true, false),

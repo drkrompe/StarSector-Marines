@@ -248,17 +248,17 @@
   .aux-hidden { display: none; }
   .aux-hidden-part { display: none; }
   .aux-space { height: 0px; flex-grow: 1; }
-  .aux-letter { width: 980px; height: 400px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
+  .aux-letter { width: 980px; height: 400px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #0c1a21; }
   .aux-heading { flex-direction: row; height: 64px; gap: 14px; align-items: center; }
   .aux-crest { width: 60px; height: 60px; pointer-events: none; }
   .aux-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .aux-title { height: 22px; }
   .aux-from { height: 18px; }
   .aux-part { height: auto; white-space: normal; }
-  .aux-grants { padding: 8px; border-width: 1px; border-color: #8c815d; background-color: #26302b; }
+  .aux-grants { padding: 8px; border-width: 1px; border-color: #4f83a4; background-color: #0e2029; }
   .aux-controls { flex-direction: row; height: 34px; gap: 12px; }
-  .handover-letter { width: 1120px; height: 500px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
-  .handover-tab-current { border-color: #e6d28c; background-color: #34402f; }
+  .handover-letter { width: 1120px; height: 500px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #0c1a21; }
+  .handover-tab-current { border-color: #e6d28c; background-color: #132a36; }
   .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
   .hq-wings { min-height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
@@ -266,7 +266,7 @@
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .command-deck { height: 372px; flex-grow: 0; overflow: hidden; border-width: 1px; border-color: #3a3424; background-color: #0b0c0a; }
+  .command-deck { height: 372px; flex-grow: 0; overflow: hidden; border-width: 1px; border-color: #3a3424; background-color: #04080b; }
   .deck-canvas { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .rating-block { flex-direction: column; width: 260px; flex-grow: 0; gap: 4px; }
   .rating-line { flex-direction: row; align-items: center; height: 25px; gap: 12px; }
@@ -275,7 +275,7 @@
   .adjutant-block { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
   .assessment-copy { font-family: body; height: auto; white-space: normal; }
   #company-hq-deck .deck-station { position: absolute; flex-direction: column; align-items: flex-start; padding: 8px; }
-  #company-hq-deck .deck-station-label { height: 18px; width: auto; padding: 1px 6px; background-color: #07090ad8; color: #e6d28c; opacity: 0; }
+  #company-hq-deck .deck-station-label { height: 18px; width: auto; padding: 1px 6px; background-color: #030608d8; color: #e6d28c; opacity: 0; }
   #company-hq-deck .deck-station:hover .deck-station-label { opacity: 1; }
   #company-hq-deck .deck-station:focus-visible .deck-station-label { opacity: 1; }
   .holo-markers { position: absolute; left: 0px; top: 0px; width: 0px; height: 0px; }
@@ -294,7 +294,7 @@
   .board-heading { flex-direction: row; align-items: center; height: 58px; flex-grow: 0; padding: 6px 10px; gap: 18px; border-width: 2px; }
   .board-columns { flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; height: 0px; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
-  .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 286px; flex-grow: 0; }
+  .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #4f83a4; height: 286px; flex-grow: 0; }
   .opening-unavailable { height: 320px; }
   .opening-guide-hidden { display: none; }
   .opening-contact { flex-direction: row; height: 64px; gap: 9px; align-items: center; }
@@ -315,8 +315,8 @@
   .action-tabs { flex-direction: row; height: 30px; flex-grow: 0; gap: 6px; }
   .action-tab { width: 170px; height: 20px; padding: 4px 8px; border-width: 1px; text-align: center; font-family: heading; }
   .action-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
-  .action-row { flex-direction: row; align-items: center; height: 44px; flex-grow: 0; padding: 0px 8px 0px 0px; gap: 10px; border-width: 1px; border-color: #3d4a4d; background-color: #1a2224; }
-  .action-row.selected { border-color: #e6d28c; background-color: #2c2c20; }
+  .action-row { flex-direction: row; align-items: center; height: 44px; flex-grow: 0; padding: 0px 8px 0px 0px; gap: 10px; border-width: 1px; border-color: #2c485a; background-color: #0a171d; }
+  .action-row.selected { border-color: #e6d28c; background-color: #0e1f27; }
   .action-select { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 42px; padding: 0px 10px; gap: 14px; text-align: left; }
   .action-kicker { width: 140px; height: 18px; }
   .action-title { width: 0px; flex-grow: 1; height: 20px; }
@@ -324,7 +324,7 @@
   .action-act { width: 130px; height: 20px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
   .action-note { width: 146px; height: 18px; text-align: center; }
   .action-footnote { height: 20px; padding: 2px 4px; }
-  .detail-item { flex-direction: column; align-items: flex-start; padding: 10px; gap: 8px; border-width: 1px; border-color: #8c815d; height: auto; flex-grow: 0; }
+  .detail-item { flex-direction: column; align-items: flex-start; padding: 10px; gap: 8px; border-width: 1px; border-color: #4f83a4; height: auto; flex-grow: 0; }
   .detail-item .label { width: 100%; }
   .detail-kicker { height: 18px; }
   .detail-title { font-family: title; height: auto; white-space: normal; }
@@ -342,7 +342,7 @@
   .wire-headline { width: 0px; flex-grow: 1; height: 18px; }
   .column-header { height: 20px; padding: 2px 3px; }
   .post-list { flex-direction: column; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .post-card { flex-direction: column; align-items: stretch; height: 132px; padding: 8px; gap: 7px; border-width: 2px; background-color: #20282d; border-color: #526065; }
+  .post-card { flex-direction: column; align-items: stretch; height: 132px; padding: 8px; gap: 7px; border-width: 2px; background-color: #0c1b23; border-color: #395e76; }
   .post-body { flex-direction: column; height: 84px; flex-grow: 0; gap: 7px; overflow: hidden; }
   .post-kicker { height: 16px; }
   .post-headline { min-height: 26px; white-space: normal; }
@@ -367,11 +367,11 @@
   #company-hq-focus-slug { width: 0px; flex-grow: 1; min-height: 18px; white-space: normal; }
   .focus-kicker { height: 14px; }
   .focus-headline { min-height: 25px; white-space: normal; }
-  .focus-source { min-height: 26px; padding: 5px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; font-family: compact; }
+  .focus-source { min-height: 26px; padding: 5px; border-width: 1px; border-color: #497997; white-space: normal; width: 220px; font-family: compact; }
   .focus-detail { min-height: 40px; white-space: normal; width: 0px; flex-grow: 1; padding: 0px; }
   .focus-caution { min-height: 16px; white-space: normal; }
   .rumor-story { border-color: #b09a64; }
-  .news-rundown { flex-direction: column; width: auto; padding: 6px; gap: 5px; border-width: 0px; overflow: hidden; height: 0px; flex-grow: 1; background-color: #1a2426; }
+  .news-rundown { flex-direction: column; width: auto; padding: 6px; gap: 5px; border-width: 0px; overflow: hidden; height: 0px; flex-grow: 1; background-color: #0b181f; }
   #company-hq-rundown-heading { height: 18px; width: 0px; flex-grow: 1; }
   #company-hq-rundown-count { height: 16px; width: 220px; text-align: right; }
   .channel-tabs { display: flex; height: 30px; gap: 6px; overflow: hidden; flex-direction: row; }

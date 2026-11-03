@@ -20,15 +20,15 @@
 </template>
 <style>
   .doll-slot { flex-direction: row; width: 100%; height: 128px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
-  .doll-slot.selected { background-color: #2a3632; border-color: #dfc588; }
+  .doll-slot.selected { background-color: #10242e; border-color: #dfc588; }
   .slot-row-content { flex-direction: row; align-items: center; width: 100%; height: 100%; gap: 3px; }
   .slot-select-button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 100%; padding: 2px; gap: 4px; border-width: 0px; background-color: transparent; text-align: left; }
   .slot-row-copy { flex-direction: column; width: 0px; height: 70px; flex-grow: 1; gap: 2px; }
   .slot-row-header { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 3px; }
   .slot-name { width: 0px; flex-grow: 1; height: 16px; }
   .slot-badge { width: 54px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
-  .slot-badge.armed { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
-  .slot-badge.locked { background-color: #20241f; border-color: #4b5446; color: #8d9687; }
+  .slot-badge.armed { background-color: #0e1f28; border-color: #5184a6; color: #bbcbda; }
+  .slot-badge.locked { background-color: #0b191f; border-color: #315166; color: #838f99; }
   .slot-badge.required { width: 70px; background-color: #3a1212; border-color: #e98b83; color: #ffb3aa; }
   .slot-telemetry { font-family: body; height: 15px; }
   .slot-component { height: 16px; }

@@ -51,8 +51,8 @@
   .loadout-team-heading { height: 20px; text-align: center; }
   .loadout-team-rows { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; }
   .loadout-team-row { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; }
-  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #171d1e; overflow: hidden; }
-  .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
+  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #091419; overflow: hidden; }
+  .loadout-billet.selected { border-color: #e0b957; background-color: #112630; }
   .loadout-member-name { height: 16px; overflow: hidden; font-family: heading; }
   .loadout-member-head { flex-direction: row; height: 76px; gap: 6px; }
   .loadout-member-portrait { width: 76px; height: 76px; pointer-events: none; border-width: 1px; border-color: #050809; background-color: #0c1213; }
@@ -60,11 +60,11 @@
      frame with its slot's name over its brick; an empty slot fades into the card, a changing one is brass. */
   /* A pit sunk into the card: the bevel puts its lip in shadow at the top and left and catches the
      light at the bottom and right, and the floor darkens under the top lip. */
-  .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 0px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
-  .loadout-part { flex-direction: column; justify-content: center; height: 0px; flex-grow: 1; gap: 1px; padding: 0px 4px; border-width: 2px; border-style: outset; border-color: #3a4745; background-color: #1b2427; }
-  .loadout-part.empty { border-style: solid; background-color: #1b242755; border-color: #2a333360; }
+  .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 0px; border-width: 3px; border-style: inset; border-color: #2c485a; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
+  .loadout-part { flex-direction: column; justify-content: center; height: 0px; flex-grow: 1; gap: 1px; padding: 0px 4px; border-width: 2px; border-style: outset; border-color: #294456; background-color: #0b181f; }
+  .loadout-part.empty { border-style: solid; background-color: #0b181f55; border-color: #1e313e60; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
-  .loadout-part-label { height: 13px; color: #8b9aaf; pointer-events: none; }
+  .loadout-part-label { height: 13px; color: #8995a0; pointer-events: none; }
   /* A brick is the one size every fitting room draws hardware at (FittingBricks: 40px on a
      1080-line document); a mount is 1x2, one row of two. */
   .loadout-part-bricks { flex-direction: row; align-items: center; height: 42px; gap: 6px; pointer-events: none; }
