@@ -235,6 +235,7 @@
 
 <style>
   .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
+  .doc-narrow .header-stock-slot { width: 220px; }
   .barracks-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -398,6 +399,15 @@
   .roster-name, .roster-squad, .roster-status, .roster-armor, .roster-service { height: 20px; font-family: body; }
   .roster-name { font-family: heading; }
   .roster-cell { flex-direction: row; align-items: center; height: 24px; gap: 3px; }
+  /* Short of width the columns all stay, and the bars speak for their words. */
+  .doc-narrow #roster-sort-name, .doc-narrow .roster-name { width: 116px; }
+  .doc-narrow #roster-sort-squad, .doc-narrow .roster-squad { width: 72px; }
+  .doc-narrow #roster-sort-status, .doc-narrow .roster-status { width: 72px; }
+  .doc-narrow #roster-sort-aptitude, .doc-narrow .roster-aptitude { width: 84px; }
+  .doc-narrow #roster-sort-band, .doc-narrow .roster-band { width: 84px; }
+  .doc-narrow #roster-sort-weapon, .doc-narrow .roster-weapon { width: 84px; }
+  .doc-narrow #roster-sort-service, .doc-narrow .roster-service { width: 100px; }
+  .doc-narrow .roster-step-label { display: none; }
   .roster-steps { flex-direction: row; align-items: center; width: 76px; height: 12px; gap: 3px; }
   .roster-step { width: 16px; height: 10px; border-width: 1px; border-color: #315166; }
   .roster-step-on { background-color: #3c87ad; border-color: #75c0f1; }

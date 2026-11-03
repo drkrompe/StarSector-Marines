@@ -92,7 +92,7 @@ final class PlayBattleSettings {
             }
             case "getScreenWidth" -> { return (float) screenWidth; }
             case "getScreenHeight" -> { return (float) screenHeight; }
-            case "getScreenScaleMult" -> { return 1f; }
+            case "getScreenScaleMult" -> { return PlayInput.UI_SCALE; }
             case "getMouseX" -> { return mouseX.getAsInt(); }
             case "getMouseY" -> { return mouseY.getAsInt(); }
             case "hashCode" -> { return System.identityHashCode(proxy); }

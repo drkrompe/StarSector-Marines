@@ -74,9 +74,20 @@
   .loadout-member-stats { flex-direction: column; width: 0px; flex-grow: 1; height: 75px; }
   .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; }
   .loadout-stat-label { width: 40px; }
+  /* Short of height a billet keeps every stat and draws its kit small, without slot names or a portrait; its bricks and hovers still say what each is. */
+  .doc-short .loadout-member-portrait { display: none; }
+  .doc-short .loadout-member-parts { gap: 2px; }
+  .doc-short .loadout-part-label { display: none; }
+  .doc-short .loadout-part-bricks { height: 22px; }
+  .doc-short .loadout-part-brick { width: 34px; height: 22px; }
+  .doc-short .loadout-part-brick-change { width: 50px; height: 22px; }
   .loadout-stat-before { width: 0px; flex-grow: 1; text-align: right; }
   .loadout-stat-arrow { width: 10px; height: 10px; pointer-events: none; }
   .loadout-stat-arrow.loadout-stat-arrow-absent { opacity: 0; }
   .loadout-stat-after { width: 30px; text-align: right; }
+  .doc-narrow .loadout-member-stat { gap: 0px; }
+  .doc-narrow .loadout-stat-label { width: 26px; overflow: hidden; }
+  .doc-narrow .loadout-stat-arrow { width: 8px; }
+  .doc-narrow .loadout-stat-after { width: 26px; }
   .loadout-hidden { display: none; }
 </style>

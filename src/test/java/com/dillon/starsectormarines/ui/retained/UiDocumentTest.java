@@ -18,6 +18,20 @@ class UiDocumentTest {
     private static final float EPSILON = 0.001f;
 
     @Test
+    void theRootIsMarkedWhileItsPageHasLessRoomThanThePresentationWasSetOutFor() {
+        var root = new UiElement("root");
+        var document = new UiDocument(root);
+        document.layout(UiDocument.NARROW_BELOW, UiDocument.SHORT_BELOW);
+        assertFalse(root.hasClass(UiDocument.NARROW_CLASS));
+        assertFalse(root.hasClass(UiDocument.SHORT_CLASS));
+        document.layout(UiDocument.NARROW_BELOW - 1f, UiDocument.SHORT_BELOW - 1f);
+        assertTrue(root.hasClass(UiDocument.NARROW_CLASS));
+        assertTrue(root.hasClass(UiDocument.SHORT_CLASS));
+        document.layout(UiDocument.NARROW_BELOW, UiDocument.SHORT_BELOW);
+        assertFalse(root.hasClass(UiDocument.NARROW_CLASS), "A page given its room back returns to its full layout");
+    }
+
+    @Test
     void autoColumnsEncloseNestedChildrenAndKeepScrollAndExplicitCollapse() {
         var name = new UiElement("name").preferredHeight(16);
         var body = new UiElement("body").preferredHeight(64);

@@ -21,6 +21,9 @@ final class PlayInput {
     private long lastClickNanos;
     private int lastClickX;
     private int lastClickY;
+    /** {@code -PplayUiScale=1.5}: what the game's UI scale setting would be. */
+    static final float UI_SCALE = Float.parseFloat(System.getProperty("play.uiScale", "1"));
+
     private int pointerX;
     private int pointerY;
 
@@ -36,10 +39,10 @@ final class PlayInput {
     List<InputEventAPI> poll() {
         List<InputEventAPI> events = new ArrayList<>();
         while (Mouse.next()) {
-            int x = Mouse.getEventX();
-            int y = Mouse.getEventY();
-            int dx = Mouse.getEventDX();
-            int dy = Mouse.getEventDY();
+            int x = Math.round(Mouse.getEventX() / UI_SCALE);
+            int y = Math.round(Mouse.getEventY() / UI_SCALE);
+            int dx = Math.round(Mouse.getEventDX() / UI_SCALE);
+            int dy = Math.round(Mouse.getEventDY() / UI_SCALE);
             if (dx != 0 || dy != 0) events.add(move(x, y, dx, dy));
             if (Mouse.getEventDWheel() != 0) {
                 events.add(new Event(InputEventType.MOUSE_SCROLL, Mouse.getEventDWheel(), '\0', x, y, 0, 0, false, false));

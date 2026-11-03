@@ -20,6 +20,14 @@ import java.util.function.Supplier;
  */
 public final class UiDocument {
 
+    /** On the root of a page laid out in less width than this; a stylesheet answers it as a media query would. */
+    public static final String NARROW_CLASS = "doc-narrow";
+    public static final float NARROW_BELOW = 1600f;
+    /** @see #NARROW_CLASS */
+    public static final String SHORT_CLASS = "doc-short";
+    public static final float SHORT_BELOW = 840f;
+
+
     private final UiElement root;
     private final StyleResolver styles = new StyleResolver();
     private final UiTextMeasurer text = new UiTextMeasurer(styles);
@@ -141,6 +149,9 @@ public final class UiDocument {
     public void layout(float width, float height) {
         validateInteractionReferences();
         viewport = new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height));
+        // A page set out for the reference space has to give ground in less of it, as at a large UI scale.
+        root.classed(NARROW_CLASS, viewport.width() < NARROW_BELOW);
+        root.classed(SHORT_CLASS, viewport.height() < SHORT_BELOW);
         styles.resolve(root);
         layout.layout(root, viewport.width(), viewport.height());
         layoutPasses++;

@@ -7,12 +7,14 @@
         <div id="loadout-squad-cards" class="loadout-squad-cards">
           <armory-card-chip each="card in inspection.cards" key="{card.id}" chip="{card}" />
         </div>
+        <div id="loadout-squad-actions" class="loadout-squad-actions">
         <div id="loadout-inspection" class="loadout-inspection">
           <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
           <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
         </div>
         <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">{i18n.openingUiFleetArmoryAProperIssueResumeCastleSTwo}</button>
         <button id="armory-test-loadout" class="loadout-range-action spec-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
+        </div>
       </div>
       <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
       <armory-squad-view inspection="{inspection}" layout="loadout-billets" />
@@ -26,6 +28,11 @@
   .loadout-squad-head { flex-direction: row; height: 56px; gap: 12px; align-items: center; }
   /* Two 288px chips with their own padding and border (298px each) and the gap between. */
   .loadout-squad-cards { flex-direction: row; width: 604px; height: 54px; gap: 8px; }
+  .loadout-squad-actions { flex-direction: row; width: 0px; flex-grow: 1; gap: 12px; align-items: center; }
+  /* Short of width the squad's actions take their own line, so they stay on the page. */
+  .doc-narrow .loadout-squad-head { flex-direction: column; align-items: start; height: 94px; gap: 4px; }
+  .doc-narrow .loadout-squad-actions { width: 100%; height: 36px; flex-grow: 0; }
+  .doc-narrow .loadout-range-hint { min-height: 0px; height: 16px; overflow: hidden; }
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 18px; padding: 1px 0px; }
   .loadout-range-hint { min-height: 36px; white-space: normal; }

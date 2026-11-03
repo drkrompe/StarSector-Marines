@@ -180,6 +180,7 @@
 
 <style>
   .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
+  .doc-narrow .header-stock-slot { width: 480px; }
   .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -217,6 +218,8 @@
   .squad-slot { width: 56px; height: 56px; border-width: 1px; border-color: #284253; }
   .picker-assets { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 5px; overflow: hidden; }
   .mech-list { flex-direction: row; align-items: start; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  /* Too narrow for the pads side by side, and the list only scrolls down. */
+  .doc-narrow .mech-list { flex-direction: column; }
   .mech-row { flex-direction: row; width: 360px; height: 120px; padding: 8px; gap: 10px; border-width: 1px; text-align: left; }
   .mech-row.vacant { border-color: #6a5a30; }
   .mech-card-preview { width: 90px; height: 100px; border-width: 1px; border-color: #284253; }
@@ -301,6 +304,11 @@
   .reserve-recall.blocked { opacity: 0.5; }
   .garage-back { width: 86px; height: 19px; padding: 0px 6px; font-family: heading; text-align: center; }
   .garage-status { width: 0px; flex-grow: 1; text-align: right; }
+  /* Short of width the bay's name gives ground, so its actions stay on the page. */
+  .doc-narrow #mech-garage-title { width: 220px; }
+  .doc-narrow .garage-status { opacity: 0; }
+  .doc-narrow .garage-back { width: 64px; }
+  .doc-narrow .garage-scrap { width: 84px; }
   .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
   .overview-rail { flex-direction: row; align-items: center; width: 100%; height: 76px; gap: 5px; }
   .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }

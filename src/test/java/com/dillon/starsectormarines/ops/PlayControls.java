@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 
@@ -74,6 +75,36 @@ final class PlayControls {
         for (Live each : live) collect(each.document().root(), ids);
         ids.removeIf(id -> find(id) == null);
         return String.join(" ", ids);
+    }
+
+    /** Every control a player could not fully reach on this frame: off the page, or cut off by a box that cannot scroll. */
+    String audit() {
+        TreeSet<String> found = new TreeSet<>();
+        for (Live each : live) {
+            var page = each.document().root().box().borderBox();
+            audit(each.document().root(), page.x(), page.y(), page.right(), page.bottom(), found);
+        }
+        return found.isEmpty() ? "all controls reachable" : String.join("\n  ", found);
+    }
+
+    private static void audit(UiElement element, float left, float top, float right, float bottom, TreeSet<String> found) {
+        if (!element.displayed()) return;
+        var box = element.box().borderBox();
+        if ((element.clickable() || element.disabled()) && box.width() > 0f && box.height() > 0f) {
+            float over = Math.max(Math.max(left - box.x(), top - box.y()), Math.max(box.right() - right, box.bottom() - bottom));
+            if (over > 1f) {
+                found.add((element.id() == null ? element.classes() : element.id()) + " cut off by " + Math.round(over) + "px");
+            }
+        }
+        // What a scrolling box hides is one wheel away.
+        if (element.overflow() == Overflow.SCROLL) return;
+        for (UiElement child : element.children()) {
+            if (element.overflow() == Overflow.VISIBLE) {
+                audit(child, left, top, right, bottom, found);
+            } else {
+                audit(child, Math.max(left, box.x()), Math.max(top, box.y()), Math.min(right, box.right()), Math.min(bottom, box.bottom()), found);
+            }
+        }
     }
 
     private static void collect(UiElement element, TreeSet<String> ids) {

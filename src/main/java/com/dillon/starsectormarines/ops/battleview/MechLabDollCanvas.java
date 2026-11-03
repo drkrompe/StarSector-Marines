@@ -301,7 +301,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
             if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
             else if (preview instanceof VehicleType type) {
-                drawBareVehicle(context, type, width * SCHEMATIC_SHARE, height, elapsedSeconds.getAsDouble(), true);
+                drawBareVehicle(context, type, panelWidth(VehicleDoll.sockets(type), width), height, elapsedSeconds.getAsDouble(), true);
             }
         }
     }
@@ -313,7 +313,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * hull's ({@link #drawBareVehicle}).
      */
     private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
-        drawBareChassis(c, variant, width * SCHEMATIC_SHARE, height, assets.get(), elapsedSeconds.getAsDouble(), true);
+        drawBareChassis(c, variant, panelWidth(MechFittingLayout.forVariant(variant).sockets(), width), height,
+                assets.get(), elapsedSeconds.getAsDouble(), true);
     }
 
     /**
@@ -625,7 +626,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                     MechDeploymentSpec deployment, SocketId selectedSocket,
                                     MechWeaponComponent candidate,
                                     float canvasWidth, float canvasHeight) {
-        float panelWidth = canvasWidth * SCHEMATIC_SHARE;
+        float panelWidth = panelWidth(layout.sockets(), canvasWidth);
         drawSchematicPanel(c, panelWidth, canvasHeight);
         List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, canvasHeight);
         SocketDropTarget core = null;
@@ -727,9 +728,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
      */
     private void drawVehicleSchematic(CanvasContext c, VehicleType type, List<VehicleRack.Placement> rack,
                                       float canvasWidth, float canvasHeight) {
-        float panelWidth = canvasWidth * SCHEMATIC_SHARE;
-        drawSchematicPanel(c, panelWidth, canvasHeight);
         List<SocketDef> sockets = VehicleDoll.sockets(type);
+        float panelWidth = panelWidth(sockets, canvasWidth);
+        drawSchematicPanel(c, panelWidth, canvasHeight);
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, canvasHeight);
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
@@ -959,6 +960,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     static final float SCHEMATIC_MARGIN = 18f;
     static final float SCHEMATIC_GAP_X = 26f;
     static final float SCHEMATIC_GAP_Y = 30f;
+    /** What the gaps and margins close to on a small page, as at a large UI scale, before a card would leave the panel. */
+    private static final float SCHEMATIC_TIGHT_GAP = 6f;
+    private static final float SCHEMATIC_TIGHT_MARGIN = 4f;
     private static final Color PANEL = new Color(0x05, 0x08, 0x0a, 214);
     private static final Color PANEL_GRID = new Color(0x5e, 0x96, 0xd2, 20);
     private static final Color PANEL_EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
@@ -979,7 +983,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
      * ahead-right), a shoulder either side, and the auxiliary compartment behind it (two flank bays
      * side by side where the chassis has them). Every card
-     * keeps its fixed brick size; the rows are centred in the panel.
+     * keeps its fixed brick size; the rows are centred in the panel, and their gaps close up where
+     * the panel is too small for them.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
         EnumMap<SocketId, SocketDef> byId = new EnumMap<>(SocketId.class);
@@ -1000,31 +1005,61 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float backH = Math.max(cardHeight(bay), cardHeight(secondBay));
         SocketDef plating = byId.get(SocketId.PLATING);
         float platingH = cardHeight(plating);
-        float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f)
-                + (platingH > 0f ? SCHEMATIC_GAP_Y + platingH : 0f);
-        float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
+        int fullGaps = (armsH > 0f ? 1 : 0) + (backH > 0f ? 1 : 0) + (platingH > 0f ? 1 : 0);
+        // Too short for its own row, the armor point stands beside a lone compartment.
+        boolean platingBeside = plating != null && bay != null && secondBay == null
+                && armsH + coreH + backH + platingH + fullGaps * SCHEMATIC_TIGHT_GAP + 2f * SCHEMATIC_TIGHT_MARGIN > panelHeight;
+        int rowGaps = platingBeside ? fullGaps - 1 : fullGaps;
+        float cards = armsH + coreH + backH + (platingBeside ? 0f : platingH);
+        float gapY = rowGaps == 0 ? SCHEMATIC_GAP_Y : closed(SCHEMATIC_GAP_Y, (panelHeight - cards - 2f * SCHEMATIC_MARGIN) / rowGaps);
+        float gapX = closed(SCHEMATIC_GAP_X, (panelWidth - minimumRowWidth(sockets) + 2f * SCHEMATIC_TIGHT_GAP - 2f * SCHEMATIC_TIGHT_MARGIN) * 0.5f);
+        float total = cards + rowGaps * gapY;
+        float top = Math.max(SCHEMATIC_TIGHT_MARGIN, (panelHeight - total) * 0.5f);
         float centerX = panelWidth * 0.5f;
-        float coreY = top + armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH * 0.5f;
+        float coreY = top + armsH + (armsH > 0f ? gapY : 0f) + coreH * 0.5f;
 
         List<SocketDropTarget> targets = new ArrayList<>();
         place(targets, byId.get(SocketId.CORE), centerX, coreY);
         float armsY = top + armsH * 0.5f;
         place(targets, byId.get(SocketId.ARMS), centerX, armsY);
-        place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
-        place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
-        place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
-        place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
-        float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;
+        place(targets, leftArm, centerX - gapX * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
+        place(targets, rightArm, centerX + gapX * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
+        place(targets, left, centerX - coreW * 0.5f - gapX - cardWidth(left) * 0.5f, coreY);
+        place(targets, right, centerX + coreW * 0.5f + gapX + cardWidth(right) * 0.5f, coreY);
+        float backY = coreY + coreH * 0.5f + gapY + backH * 0.5f;
         if (secondBay == null) {
             place(targets, bay, centerX, backY);
         } else {
-            place(targets, bay, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(bay) * 0.5f, backY);
-            place(targets, secondBay, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(secondBay) * 0.5f, backY);
+            place(targets, bay, centerX - gapX * 0.5f - cardWidth(bay) * 0.5f, backY);
+            place(targets, secondBay, centerX + gapX * 0.5f + cardWidth(secondBay) * 0.5f, backY);
         }
         // The armor point stands last, under everything: it covers the frame and is wired to nothing.
-        float frameY = (backH > 0f ? backY + backH * 0.5f : coreY + coreH * 0.5f) + SCHEMATIC_GAP_Y + platingH * 0.5f;
-        place(targets, plating, centerX, frameY);
+        float frameY = (backH > 0f ? backY + backH * 0.5f : coreY + coreH * 0.5f) + gapY + platingH * 0.5f;
+        if (platingBeside) place(targets, plating, centerX + cardWidth(bay) * 0.5f + gapX + cardWidth(plating) * 0.5f, backY);
+        else place(targets, plating, centerX, frameY);
         return List.copyOf(targets);
+    }
+
+    /** The panel for a canvas: its share, or as much more as the widest row needs, the machine behind it giving way. */
+    static float panelWidth(List<SocketDef> sockets, float canvasWidth) {
+        return Math.min(canvasWidth, Math.max(canvasWidth * SCHEMATIC_SHARE,
+                minimumRowWidth(sockets) + 2f * SCHEMATIC_TIGHT_MARGIN));
+    }
+
+    /** The widest row with its gaps closed, centred on the core as the rows are. */
+    private static float minimumRowWidth(List<SocketDef> sockets) {
+        EnumMap<SocketId, SocketDef> byId = new EnumMap<>(SocketId.class);
+        for (SocketDef socket : sockets) byId.put(socket.id(), socket);
+        float shoulders = cardWidth(byId.get(SocketId.CORE)) + 2f * SCHEMATIC_TIGHT_GAP
+                + 2f * Math.max(cardWidth(byId.get(SocketId.LEFT_SHOULDER)), cardWidth(byId.get(SocketId.RIGHT_SHOULDER)));
+        float arms = SCHEMATIC_TIGHT_GAP + 2f * Math.max(cardWidth(byId.get(SocketId.LEFT_ARM)), cardWidth(byId.get(SocketId.RIGHT_ARM)));
+        float bays = SCHEMATIC_TIGHT_GAP + 2f * Math.max(cardWidth(byId.get(SocketId.AUXILIARY)), cardWidth(byId.get(SocketId.AUXILIARY_2)));
+        return Math.max(shoulders, Math.max(arms, bays));
+    }
+
+    /** A gap at its full size where there is room for it, down to the tight one. */
+    private static float closed(float full, float room) {
+        return Math.max(SCHEMATIC_TIGHT_GAP, Math.min(full, room));
     }
 
     private static float cardWidth(SocketDef socket) {

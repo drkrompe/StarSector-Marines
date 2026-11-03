@@ -326,7 +326,10 @@
   .actions-column { width: 0px; flex-grow: 1; }
   .detail-column { width: 640px; flex-grow: 0; gap: 8px; }
   .action-tabs { flex-direction: row; height: 30px; flex-grow: 0; gap: 6px; }
+  .doc-short .command-deck { height: 190px; }
+  .doc-short #company-hq-deck .deck-station { padding: 0px; }
   .action-tab { width: 170px; height: 20px; padding: 4px 8px; border-width: 1px; text-align: center; font-family: heading; }
+  .doc-narrow .action-tab { width: 0px; flex-grow: 1; }
   .action-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .action-row { flex-direction: row; align-items: center; height: 44px; flex-grow: 0; padding: 0px 8px 0px 0px; gap: 10px; border-width: 1px; border-color: #2c485a; background-color: #0a171d; }
   .action-row.selected { border-color: #e6d28c; background-color: #0e1f27; }

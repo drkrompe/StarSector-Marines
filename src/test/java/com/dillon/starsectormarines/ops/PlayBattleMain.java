@@ -87,7 +87,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
  * this does neither, so something can work here and still fail in the game.
  *
  * <p>{@code -PplayScript=<file>} drives a run with no one at the keyboard, one line per step: {@code <seconds> move
- * <x> <y>}, {@code <seconds> click <x> <y> [right]}, {@code <seconds> key <NAME>} (an LWJGL key name),
+ * <x> <y>}, {@code <seconds> click <x> <y> [right]}, {@code <seconds> audit <label>} (controls a player could not fully reach), {@code <seconds> key <NAME>} (an LWJGL key name),
  * {@code <seconds> press <id>} (a control by its markup id, holding the script until it is there and enabled and
  * shifting later steps by the wait), {@code <seconds> ids} (prints what can be pressed), {@code <seconds> shot <name>}
  * (a PNG in {@code build/play-battle}), {@code <seconds> quit}, and {@code <seconds> battle}, which holds the script
@@ -296,6 +296,8 @@ public final class PlayBattleMain {
         String battle = System.getProperty("play.battle", "").strip();
         String source = battle.isEmpty() ? null : sourceOf(battle);
         int[] size = windowSize(System.getProperty("play.window", ""));
+        // The game at a UI scale: the same pixels, with everything laid out in a smaller space.
+        int[] logical = {Math.round(size[0] / PlayInput.UI_SCALE), Math.round(size[1] / PlayInput.UI_SCALE)};
         Path project = Path.of("");
         Path core = Path.of(System.getProperty("starsectorDir"), "starsector-core");
         Deque<Step> script = script(System.getProperty("play.script", ""));
@@ -309,7 +311,7 @@ public final class PlayBattleMain {
         InstalledWeaponSlots.install();
         PlayInput input = new PlayInput();
         Global.setSettings(new PlayBattleSettings(List.of(project.resolve("mod"), core, project.resolve("src/test/resources")), Global.getSettings(),
-                size[0], size[1], input::pointerX, input::pointerY).settings());
+                logical[0], logical[1], input::pointerX, input::pointerY).settings());
         Global.setSoundPlayer(PlayBattleSettings.silence());
         // What the mod plugin loads at application start for the voices. Without them a battle has no radio or subtitles.
         WaylineNarration.loadBuiltins();
@@ -342,7 +344,7 @@ public final class PlayBattleMain {
             if (sound != null) Global.setSoundPlayer(sound);
             // The game installs these at application load, which the window never runs.
             UiSounds.install(new UiSounds(id -> Global.getSoundPlayer().playUISound(id, 1f, 1f), System::nanoTime));
-            Host host = new Host(position(size[0], size[1]), source != null);
+            Host host = new Host(position(logical[0], logical[1]), source != null);
             host.open(PlayCompany.docked(), sim);
             play(host, input, sound, source, size, script, diagnosis);
             BattleSimulation last = host.battle();
@@ -434,6 +436,7 @@ public final class PlayBattleMain {
                         pressed = true;
                     }
                     case "ids" -> System.out.println("[playBattle] " + host.screen() + ": " + controls.list());
+                    case "audit" -> System.out.println("[playBattle] audit " + words[1] + ":\n  " + controls.audit());
                     case "move" -> events.add(input.move(Integer.parseInt(words[1]), Integer.parseInt(words[2]), 0, 0));
                     case "click" -> {
                         int x = Integer.parseInt(words[1]);
@@ -500,8 +503,9 @@ public final class PlayBattleMain {
     }
 
     /** The state the game's UI hooks can rely on: a screen-sized, y-up orthographic view with alpha blending. */
-    private static void beginFrame(int width, int height) {
-        glViewport(0, 0, width, height);
+    private static void beginFrame(int pixelWidth, int pixelHeight) {
+        int width = Math.round(pixelWidth / PlayInput.UI_SCALE), height = Math.round(pixelHeight / PlayInput.UI_SCALE);
+        glViewport(0, 0, pixelWidth, pixelHeight);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0, width, 0, height, -1, 1);

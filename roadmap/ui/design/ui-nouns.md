@@ -225,6 +225,14 @@ may intentionally trigger responsive tracks, bounded scrolling, or a denser
 composition. Paint, clips, canvas output, and input all share the same document-to-
 host transform.
 
+The layout engine has no media queries, so the document answers for them: while its
+page is under 1600 wide or 840 tall the root carries `doc-narrow` or `doc-short`, and
+a stylesheet gives ground with `.doc-narrow ...` rules placed after the rule they
+override. At 1920x1080 that is 125% UI scale and up for width and 133% and up for
+height; 100% never sees either. A screen keeps its controls by dropping words a hover
+or icon also gives, never by shrinking below reach. The fitting schematic is the same
+idea in canvas: its gaps close and its panel widens over the machine.
+
 A headless image is a document-pixel raster, so it requires no fourth layout
 space. Its target consumes document coordinates directly; requested viewport
 dimensions and controlled fixture state make the result reproducible.

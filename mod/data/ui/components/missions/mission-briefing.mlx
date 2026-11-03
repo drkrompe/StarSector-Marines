@@ -572,6 +572,13 @@
   #mission-replenish.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   /* Deploy's warning lamps: a dim row of checks; a failed one lights amber, as the field bricks do. */
   .deploy-lamps { flex-direction: row; align-items: center; height: 30px; gap: 6px; }
+  /* Short of width the lamps keep their icons and their hovers, so Deploy stays on the page. */
+  .doc-narrow .deploy-lamp { width: 34px; }
+  .doc-narrow .deploy-lamp-label { display: none; }
+  .doc-narrow #mission-deployment-status { width: 110px; }
+  .doc-narrow .mission-briefing-actions { gap: 6px; }
+  .doc-narrow .mission-briefing-actions button { width: 124px; }
+  .doc-narrow #mission-briefing-back { width: 84px; }
   .deploy-lamp { flex-direction: row; align-items: center; width: 150px; height: 28px; padding: 2px 6px; gap: 5px; border-width: 1px; border-color: #203442; background-color: #081217; opacity: 0.4; }
   .deploy-lamp-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
   .deploy-lamp-icon { width: 20px; height: 20px; pointer-events: none; }

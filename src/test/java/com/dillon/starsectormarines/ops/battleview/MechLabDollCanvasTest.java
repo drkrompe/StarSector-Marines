@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -46,6 +47,20 @@ class MechLabDollCanvasTest {
         assertEquals(34f, pad.top());
         assertEquals(7f, pad.width());
         assertEquals(5f, pad.height());
+    }
+
+    @Test
+    void schematicKeepsEveryCardOnASmallPageByClosingItsGaps() {
+        for (MechVariant variant : MechVariant.values()) {
+            List<SocketDef> sockets = MechFittingLayout.forVariant(variant).sockets();
+            float panel = MechLabDollCanvas.panelWidth(sockets, 452f);
+            assertTrue(panel <= 452f, "the panel stays on the canvas on " + variant);
+            for (MechLabDollCanvas.SocketDropTarget target : MechLabDollCanvas.schematicTargets(sockets, panel, 540f)) {
+                assertTrue(target.left() >= 0f && target.left() + target.width() <= panel,
+                        target.id() + " across the panel on " + variant);
+                assertTrue(target.top() >= 0f && target.bottom() <= 540f, target.id() + " down the panel on " + variant);
+            }
+        }
     }
 
     @Test
