@@ -34,6 +34,8 @@ public final class CompanyHqScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> voiceOverLabel =
             reactor.signal(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
+    private final MutableSignal<String> voiceOverHintClasses =
+            reactor.signal(CompanyHqViewModel.voiceOverHintClasses(false));
     private final MutableSignal<String> voiceOverClasses =
             reactor.signal(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
@@ -107,6 +109,7 @@ public final class CompanyHqScreen implements Screen {
         // Another save may have been loaded since this screen last built.
         voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
         props.put("voiceOverLabel", voiceOverLabel);
+        props.put("voiceOverHintClasses", voiceOverHintClasses);
         voiceOverClasses.set(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
         props.put("voiceOverClasses", voiceOverClasses);
         props.put("voiceOverAction", (Runnable) this::toggleVoiceOver);
@@ -237,7 +240,11 @@ public final class CompanyHqScreen implements Screen {
         }
         if (intelTerminal.place() && viewport != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
         intelTerminal.advance(dt);
-        if (markupInstance != null) markupInstance.flush();
+        if (markupInstance != null) {
+            voiceOverHintClasses.set(CompanyHqViewModel.voiceOverHintClasses(
+                    markupInstance.requireElement("company-hq-voice-over").hovered()));
+            markupInstance.flush();
+        }
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.HQ, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();

@@ -3583,6 +3583,7 @@
     "openingUiCompanyHqDebugMissions": "Debug missions",
     "openingUiCompanyHqVoiceOverOn": "Voice-over: On",
     "openingUiCompanyHqVoiceOverOff": "Voice-over: Off",
+    "openingUiCompanyHqVoiceOverHint": "Off means no voiced dialogue anywhere: battle radio and marine barks, briefings, debriefs and cinematics. Subtitles still show, and music and sound effects keep playing. Saved with this game.",
     "openingUiCompanyHqStationSituation": "SITUATION BOARD",
     "openingUiCompanyHqStationComms": "COMMS // INTEL",
     "openingUiCompanyHqStationCastle": "CASTLE // ADJUTANT",
