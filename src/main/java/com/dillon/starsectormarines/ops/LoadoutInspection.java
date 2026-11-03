@@ -2,11 +2,11 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 
+import com.dillon.starsectormarines.marine.EnlistedRank;
 import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
-import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
@@ -64,6 +64,10 @@ final class LoadoutInspection {
         List<Map<String, Object>> teams = new ArrayList<>();
         MarineSoldier focused = selected < members.size() ? roster.soldierById(members.get(selected)) : null;
         MarineSoldier leader = roster.squadLeader(squad);
+        MarineSoldier squadmate = members.stream().map(roster::soldierById).filter(Objects::nonNull).findFirst().orElse(null);
+        // The comparison is of a healthy squad against the cards: an empty seat reads as what it is issued.
+        SquadEquipmentPreview issued = squad == null ? null : roster.previewSquadEquipment(
+                squad.id(), squad.weaponDoctrineId(), squad.armorDoctrineId());
         String[] labels = {Strings.get("openingLoadoutAlpha"), Strings.get("openingLoadoutBravo"), Strings.get("openingLoadoutCharlie")};
         int changed = 0;
         for (int team = 0; team < 3; team++) {
@@ -73,10 +77,11 @@ final class LoadoutInspection {
                 for (int column = 0; column < 2; column++) {
                     int slot = row * 2 + column, index = team * 4 + slot;
                     MarineSoldier soldier = index < members.size() ? roster.soldierById(members.get(index)) : null;
-                    FireTeamBillet before = current(soldier), after = proposed(preview, index);
+                    FireTeamBillet before = soldier != null ? current(soldier) : proposed(issued, index);
+                    FireTeamBillet after = proposed(preview, index);
                     boolean differs = after != null && !same(before, after);
                     if (differs) changed++;
-                    billets.add(billet(index, soldier, soldier != null && soldier == leader,
+                    billets.add(billet(index, soldier, soldier != null ? soldier : squadmate, soldier != null && soldier == leader,
                             before, after, differs, index == selected, select));
                 }
                 Map<String, Object> line = new LinkedHashMap<>();
@@ -90,9 +95,8 @@ final class LoadoutInspection {
             teams.add(group);
         }
         return Map.of("teams", teams,
-                "title", focused == null ? Strings.get("openingLoadoutVacantBilletPlannedEquipment")
-                        : Strings.join("separatorPath", title(focused, focused == leader, current(focused)),
-                        String.valueOf(focused.status())),
+                "title", title(focused, focused != null && focused == leader,
+                        focused != null ? current(focused) : proposed(issued, selected)),
                 "scope", Strings.format("openingLoadoutSquadScope", changed));
     }
 
@@ -172,7 +176,8 @@ final class LoadoutInspection {
         return null;
     }
 
-    private static Map<String, Object> billet(int index, MarineSoldier soldier, boolean leadsSquad,
+    /** {@code firer} is whose hands the stats are read in: the seat's marine, or a squadmate for an empty seat. */
+    private static Map<String, Object> billet(int index, MarineSoldier soldier, MarineSoldier firer, boolean leadsSquad,
                                               FireTeamBillet before, FireTeamBillet after, boolean differs,
                                               boolean selected, IntConsumer select) {
         String id = "loadout-billet:" + index;
@@ -180,29 +185,25 @@ final class LoadoutInspection {
         billet.put("index", index);
         billet.put("portraitId", portraitId(index));
         billet.put("kit", after != null ? after : before);
-        // A marine is read by place in the squad, not by name: rank and role, and their
-        // status only when they are not fit for duty. Whether the kit changes shows on its lines.
-        boolean fit = soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE;
-        String title = soldier == null ? Strings.get("openingLoadoutVacant")
-                : title(soldier, leadsSquad, after != null ? after : before);
-        billet.put("name", fit || soldier == null ? title
-                : Strings.join("separatorDot", title, String.valueOf(soldier.status())));
-        billet.put("nameClasses", "loadout-member-name label " + (soldier == null ? "tone-muted" : fit ? "tone-edge" : "tone-danger"));
+        // A marine is read by place in the squad, not by name: rank and role, whether fit,
+        // wounded or not there at all. Whether the kit changes shows on its lines.
+        billet.put("name", title(soldier, leadsSquad, after != null ? after : before));
+        billet.put("nameClasses", "loadout-member-name label tone-edge");
         billet.put("classes", "loadout-billet" + (selected ? " selected" : "") + (differs ? " changes" : ""));
         billet.put("select", (Runnable) () -> select.accept(index));
         List<Map<String, Object>> parts = new ArrayList<>();
         for (int part = 0; part < PARTS; part++) parts.add(part(index, part, before, after));
         billet.put("parts", parts);
-        billet.put("stats", stats(id, before, after, soldier));
+        billet.put("stats", stats(id, before, after, firer));
         return billet;
     }
 
-    /** "Cpl. Squad Leader", "Mar. Rifleman": the marine's rank, then what their billet does. */
+    /** "Cpl. Squad Leader", "Mar. Rifleman": the marine's rank, then what their billet does. An empty seat is a marine's. */
     private static String title(MarineSoldier soldier, boolean leadsSquad, FireTeamBillet kit) {
         String role = leadsSquad ? Strings.get("openingLoadoutSquadLeader")
                 : kit != null ? BilletRoles.label(kit.name()) : null;
-        String rank = soldier.enlistedRank().abbreviation();
-        return role == null ? soldier.enlistedRank().displayName() : rank + " " + role;
+        EnlistedRank rank = soldier != null ? soldier.enlistedRank() : EnlistedRank.MARINE;
+        return role == null ? rank.displayName() : rank.abbreviation() + " " + role;
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
