@@ -43,6 +43,12 @@ public final class ShipBackdrop {
     /** Where the planet hangs, as fractions of the page from its lower left, and its radius in page heights. */
     private static final float PLANET_X = 0.84f, PLANET_Y = 0.38f, PLANET_RADIUS = 0.5f;
 
+    /**
+     * A spec's spin suits a world the size of a map marker. Hung this large, the same
+     * rate has its surface sliding by, so behind the hull it is a tenth of that (owner).
+     */
+    private static final float SPIN_SCALE = 0.1f;
+
     /** How a world looks, in the terms of its planet spec. */
     record Planet(String texture, String clouds, float tilt, float pitch, float spin, float cloudSpin,
                   Color tint, Color cloudTint, Color atmosphere, float atmosphereReach) {
@@ -76,7 +82,7 @@ public final class ShipBackdrop {
         if (texture == null || texture.isBlank()) return null;
         String clouds = spec.getCloudTexture();
         return new Planet(texture, clouds == null || clouds.isBlank() ? null : clouds,
-                spec.getTilt(), spec.getPitch(), spec.getRotation(), spec.getCloudRotation(),
+                spec.getTilt(), spec.getPitch(), spec.getRotation() * SPIN_SCALE, spec.getCloudRotation() * SPIN_SCALE,
                 spec.getPlanetColor(), spec.getCloudColor(), spec.getAtmosphereColor(),
                 spec.getAtmosphereThickness() * 0.25f);
     }
