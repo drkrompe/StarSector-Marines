@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.audio.VoiceOver;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
@@ -649,7 +650,7 @@ public final class MarineBarks {
     /** Called every rendered frame; plays each tick's barks once. */
     public static void play(BattleSimulation sim) {
         for (Play p : MIXES.computeIfAbsent(sim, ignored -> new Mix()).hear(sim)) {
-            if (UNPLAYABLE.contains(p.soundId())) continue;
+            if (UNPLAYABLE.contains(p.soundId()) || !VoiceOver.enabled()) continue;
             try {
                 Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
                         new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),

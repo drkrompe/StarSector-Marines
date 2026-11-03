@@ -37,6 +37,7 @@ public final class CompanyOfficer {
 
     public CompanyOfficer() {
         this(builtins, new Random(), line -> {
+            if (!VoiceOver.enabled()) return null;
             try {
                 return Global.getSoundPlayer().playUISound(line.id(), 1f, 1f);
             } catch (RuntimeException failure) {

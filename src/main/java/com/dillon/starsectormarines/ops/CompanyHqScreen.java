@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.audio.VoiceOver;
 import com.dillon.starsectormarines.marine.HegemonyAuxiliaryWarrant;
 import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -30,6 +32,8 @@ public final class CompanyHqScreen implements Screen {
             "data/ui/components/company/company-hq.mlx");
 
     private final Reactor reactor = new Reactor();
+    private final MutableSignal<String> voiceOverLabel =
+            reactor.signal(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final HqActionDesk actionDesk = new HqActionDesk(reactor, newsDesk);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
@@ -98,6 +102,10 @@ public final class CompanyHqScreen implements Screen {
         Map<String, Object> props = viewModel.props();
         props.put("debugAction", (Runnable) () -> { if (Cheats.enabled()) context.goTo(ScreenId.DEBUG_MISSIONS); });
         props.put("debugClasses", Cheats.enabled() ? "hq-debug console-action" : "hq-debug-hidden");
+        // Another save may have been loaded since this screen last built.
+        voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
+        props.put("voiceOverLabel", voiceOverLabel);
+        props.put("voiceOverAction", (Runnable) this::toggleVoiceOver);
         newsDesk.put(props);
         actionDesk.put(props);
         auxiliary.put(props);
@@ -202,6 +210,11 @@ public final class CompanyHqScreen implements Screen {
 
     private void onStore() {
         if (context != null) context.openStore();
+    }
+
+    private void toggleVoiceOver() {
+        VoiceOver.setEnabled(!VoiceOver.enabled());
+        voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
     }
 
     private void onClose() {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.cinematic;
 
+import com.dillon.starsectormarines.battle.audio.VoiceOver;
 import com.dillon.starsectormarines.cinematic.CaptionTrack.Page;
 import com.dillon.starsectormarines.cinematic.CinematicSequence.Scheduled;
 import com.dillon.starsectormarines.cinematic.CinematicShot.Detail;
@@ -234,6 +235,7 @@ public final class CinematicScreen implements Screen {
     }
 
     private SoundAPI play(String sound, float volume) {
+        if (!VoiceOver.filmCuePlays(sound)) return null;
         try {
             SoundAPI playing = Global.getSoundPlayer().playUISound(sound, 1f, volume);
             if (playing != null) heard.add(playing);

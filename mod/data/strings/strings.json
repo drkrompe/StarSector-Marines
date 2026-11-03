@@ -3581,6 +3581,8 @@
 
     # Static company UI labels; MLX reads these through {i18n.key}.
     "openingUiCompanyHqDebugMissions": "Debug missions",
+    "openingUiCompanyHqVoiceOverOn": "Voice-over: On",
+    "openingUiCompanyHqVoiceOverOff": "Voice-over: Off",
     "openingUiCompanyHqStationSituation": "SITUATION BOARD",
     "openingUiCompanyHqStationComms": "COMMS // INTEL",
     "openingUiCompanyHqStationCastle": "CASTLE // ADJUTANT",

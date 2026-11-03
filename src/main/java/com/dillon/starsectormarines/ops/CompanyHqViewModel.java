@@ -206,6 +206,8 @@ final class CompanyHqViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("debugAction", (Runnable) () -> { });
         props.put("debugClasses", "hq-debug-hidden");
+        props.put("voiceOverAction", (Runnable) () -> { });
+        props.put("voiceOverLabel", voiceOverLabel(true));
         props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("handover", AgreusHandoverDesk.hidden());
@@ -268,6 +270,8 @@ final class CompanyHqViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("debugAction", (Runnable) () -> { });
         props.put("debugClasses", "hq-debug-hidden");
+        props.put("voiceOverAction", (Runnable) () -> { });
+        props.put("voiceOverLabel", voiceOverLabel(true));
         props.put("purpose", Strings.get("companyHqPurpose"));
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));
@@ -401,6 +405,10 @@ final class CompanyHqViewModel {
             case LOST -> Strings.get("companyHqNewsArchiveLost");
             case NONE -> Strings.get("companyHqNewsArchiveUnknown");
         };
+    }
+
+    static String voiceOverLabel(boolean on) {
+        return Strings.get(on ? "openingUiCompanyHqVoiceOverOn" : "openingUiCompanyHqVoiceOverOff");
     }
 
     private static String ratingLabel(CompanyRating rating) {
