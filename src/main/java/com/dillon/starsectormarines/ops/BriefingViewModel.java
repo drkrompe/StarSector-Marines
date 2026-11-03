@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ops.battleview.SquadMuster;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -710,10 +711,11 @@ final class BriefingViewModel {
     }
 
     /** Draws every squad tile's muster. */
-    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
+    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props,
+                               ArmoryLoadoutPreviewComposer.Assets marineSprites) {
         for (SquadPicture squad : fieldSquads(props)) {
             document.canvases().set(markup.requireElement(squad.id() + "-muster"),
-                    new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD));
+                    new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD, marineSprites));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.command.HivePosture;
@@ -286,6 +287,7 @@ public class BriefingScreen implements Screen {
     private final DebugKitPicker kitPicker = new DebugKitPicker();
     /** The mech set the debug bay pictures draw from, released when the briefing closes. */
     private final DebugBayPreviewAssets bayPreviews = new DebugBayPreviewAssets();
+    private final ArmoryPreviewAssets marineSprites = new ArmoryPreviewAssets();
     /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
     private DebugBaySlot[] debugBay;
 
@@ -421,7 +423,7 @@ public class BriefingScreen implements Screen {
             BriefingSurvey.install(built, candidate, props);
             BriefingLift.install(built, candidate, props);
             BriefingAir.install(built, candidate, props);
-            BriefingViewModel.installMusters(built, candidate, props);
+            BriefingViewModel.installMusters(built, candidate, props, marineSprites);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -2782,6 +2784,7 @@ public class BriefingScreen implements Screen {
         input = null;
         kitPicker.close();
         bayPreviews.release();
+        marineSprites.release();
     }
 
     private WaylineNarration.Line displayedBriefingNarration() {

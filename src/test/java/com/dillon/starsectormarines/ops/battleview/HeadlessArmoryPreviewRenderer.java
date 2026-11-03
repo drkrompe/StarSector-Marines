@@ -239,6 +239,11 @@ public final class HeadlessArmoryPreviewRenderer {
                             ? optionalSprite(armorRoot + "shoulder-left.png") : null,
                     articulatedShoulders
                             ? optionalSprite(armorRoot + "shoulder-right.png") : null);
+            if (family.hasDownedArt()) {
+                for (int pose = 0; pose < LayeredUnitAssets.DOWNED_POSES; pose++) {
+                    loaded.registerDowned(optionalSprite(armorRoot + "downed-" + pose + ".png"));
+                }
+            }
             for (SpecialEquipmentDef def : SpecialEquipmentRegistry.installed().all()) {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {

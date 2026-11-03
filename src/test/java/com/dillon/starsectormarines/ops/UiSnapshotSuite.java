@@ -1407,7 +1407,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             BriefingSurvey.install(document, instance, props);
             BriefingLift.install(document, instance, props);
             BriefingAir.install(document, instance, props);
-            BriefingViewModel.installMusters(document, instance, props);
+            BriefingViewModel.installMusters(document, instance, props,
+                    new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
                         MechLabDollCanvas::headlessAssets);
@@ -2048,7 +2049,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 document.theme(MarineOpsThemes.standard());
                 var guide = BarracksGuideCallout.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-                BarracksCardBindings bindings = new BarracksCardBindings();
+                BarracksCardBindings bindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -2281,7 +2282,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             var guide = BarracksGuideCallout.bind(document, instance, model.command(), model.command()::showOverview);
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-            BarracksCardBindings cardBindings = new BarracksCardBindings();
+            BarracksCardBindings cardBindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             cardBindings.update(document, instance, model, hints);
             Consumer<String> click = id -> {
                 clickBarracksFlow(document, instance, id);
@@ -2364,6 +2365,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 .findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
+        postBattle.put(squad.memberIds().get(7), MarineSoldierStatus.KIA);
+        postBattle.put(squad.memberIds().get(9), MarineSoldierStatus.KIA);
         if (companyRoster) {
             // A service record that varies across the company, so the SERVICE column reads.
             List<MarineSoldier> all = roster.soldiers();
@@ -2390,7 +2393,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-            new BarracksCardBindings().update(document, instance, viewModel, hints);
+            new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets()).update(document, instance, viewModel, hints);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -161,7 +162,7 @@ class BarracksCommandModelTest {
                 assertTrue(model.selected().isEmpty(), "With every squad in view selected, the toggle deselects");
 
                 var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-                var bindings = new BarracksCardBindings();
+                var bindings = new BarracksCardBindings(new ArmoryPreviewAssets());
                 bindings.update(document, instance, model, hints);
                 long canvasRevision = document.canvases().revision();
                 click(document, instance, "barracks-select-all");

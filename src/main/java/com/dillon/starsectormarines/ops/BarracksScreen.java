@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -53,6 +54,7 @@ public final class BarracksScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private SpecSheetBinder specSheets;
     private BarracksCardBindings cardBindings;
+    private final ArmoryPreviewAssets marineSprites = new ArmoryPreviewAssets();
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
@@ -114,7 +116,7 @@ public final class BarracksScreen implements Screen {
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
             candidateSheets.bindLive(candidate.requireElement("barracks-recruit-stock"), viewModel.command()::recruitSheet);
             candidateSheets.bindLive(candidate.requireElement("barracks-fill-selected"), viewModel.command()::fillSelectedSheet);
-            candidateCards = new BarracksCardBindings();
+            candidateCards = new BarracksCardBindings(marineSprites);
             candidateCards.update(built, candidate, viewModel, candidateSheets);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -232,6 +234,7 @@ public final class BarracksScreen implements Screen {
         if (specSheets != null) specSheets.clear();
         specSheets = null;
         cardBindings = null;
+        marineSprites.release();
         guide = null;
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
