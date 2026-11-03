@@ -34,7 +34,7 @@ class SquadFireTeamStructureTest {
     }
 
     @Test
-    void teamsConsolidateRatherThanHollowOutWhenUndermanned() {
+    void teamsFillInBilletOrderWhenUndermanned() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE + 1);
         MarineSquad squad = roster.squads().get(0);

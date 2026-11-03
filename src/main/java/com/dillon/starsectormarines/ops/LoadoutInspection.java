@@ -60,7 +60,7 @@ final class LoadoutInspection {
     static Map<String, Object> project(MarineRoster roster, MarineSquad squad,
                                        SquadEquipmentPreview preview, int selected,
                                        IntConsumer select) {
-        List<String> members = squad == null ? List.of() : roster.manningMemberIds(squad);
+        List<String> members = squad == null ? List.of() : roster.seatedMemberIds(squad);
         List<Map<String, Object>> teams = new ArrayList<>();
         MarineSoldier focused = selected < members.size() ? roster.soldierById(members.get(selected)) : null;
         MarineSoldier leader = roster.squadLeader(squad);

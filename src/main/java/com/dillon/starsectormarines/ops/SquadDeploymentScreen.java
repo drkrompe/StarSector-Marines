@@ -165,7 +165,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
     }
 
     private List<FireTeamRow> fireTeams(MarineSquad squad, boolean selected) {
-        List<String> manning = roster.manningMemberIds(squad);
+        List<String> manning = roster.seatedMemberIds(squad);
         List<FireTeamRow> teams = new ArrayList<>(MarineSquad.TEAMS_PER_SQUAD);
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             List<MemberRow> members = new ArrayList<>(MarineSquad.TEAM_SIZE);

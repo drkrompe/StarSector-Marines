@@ -1889,7 +1889,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 var members = roster.manningMemberIds(squad);
                 EquipmentTestFixtures.issueLauncher(roster.soldierById(members.get(0)));
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
-                        members.get(11), MarineSoldierStatus.KIA), 100f, 2f);
+                        members.get(6), MarineSoldierStatus.KIA), 100f, 2f);
                 editor.refresh(); editorMarkup.flush();
                 LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -2509,7 +2509,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (!pickerOpen) {
             Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
             postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
-            postBattle.put(squad.memberIds().get(MarineSquad.CAPACITY - 1),
+            postBattle.put(squad.memberIds().get(6),
                     MarineSoldierStatus.KIA);
             roster.applySoldierOutcome(postBattle, 100f, 1.25f);
             roster.recruitToSquad(roster.reserveSquad().id());

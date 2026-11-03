@@ -117,7 +117,8 @@ class MarinePersonnelLogisticsTest {
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         MarineSquad line = roster.squads().get(0);
         Map<String, MarineSoldierStatus> losses = new LinkedHashMap<>();
-        losses.put(line.memberIds().get(0), MarineSoldierStatus.KIA);
+        String lost = line.memberIds().get(0);
+        losses.put(lost, MarineSoldierStatus.KIA);
         losses.put(line.memberIds().get(4), MarineSoldierStatus.MIA);
         roster.applySoldierOutcome(losses, 20f, 3f);
         MarineSoldier reserve = roster.recruitToSquad(roster.reserveSquad().id());
@@ -130,9 +131,9 @@ class MarinePersonnelLogisticsTest {
         assertEquals(1, result.cargoMarinesConsumed());
         assertEquals(0, roster.vacancies(line));
         assertEquals(0f, quantity[0]);
-        assertTrue(roster.teamMemberIds(line, 2).contains(reserve.id()),
-                "replacement personnel occupy current fire-team billets");
-        assertFalse(roster.manningMemberIds(line).contains(line.memberIds().get(0)));
+        assertTrue(roster.teamMemberIds(line, 0).contains(reserve.id()),
+                "the first replacement takes the earliest seat a loss left empty");
+        assertFalse(roster.manningMemberIds(line).contains(lost));
     }
 
     @Test

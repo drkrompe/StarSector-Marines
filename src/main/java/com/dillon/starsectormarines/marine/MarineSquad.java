@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -103,7 +104,17 @@ public final class MarineSquad implements Serializable {
     public String leaderSoldierId() { return leaderSoldierId; }
     public long stationingContractId() { return stationingContractId; }
     public boolean stationed() { return stationingContractId > 0L; }
-    public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
+    /** Everyone on the squad's roll, living and lost, in roll order. */
+    public List<String> memberIds() {
+        List<String> roll = new ArrayList<>(memberIds);
+        roll.removeIf(Objects::isNull);
+        return Collections.unmodifiableList(roll);
+    }
+
+    /** The raw roll: its first twelve entries are the seats, and a null is a seat its holder left. */
+    List<String> places() { return Collections.unmodifiableList(memberIds); }
+
+    void settlePlaces(List<String> places) { memberIds = new ArrayList<>(places); }
     public String teamTemplateCardId(int teamIndex) {
         return teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD
                 ? teamTemplateCardIds[teamIndex] : null;
@@ -113,16 +124,16 @@ public final class MarineSquad implements Serializable {
     public String armorDoctrineId() { return armorDoctrineId; }
 
     /**
-     * Historical-roll fire-team position. Current campaign formations use
-     * {@link MarineRoster#teamIndexOf(MarineSquad, String)} so KIA/MIA records do not occupy a
-     * replacement billet.
+     * Raw-roll fire-team position. Current campaign formations use
+     * {@link MarineRoster#teamIndexOf(MarineSquad, String)}, which seats a recruit in the place
+     * a lost marine left.
      */
     public int teamIndexOf(String soldierId) {
         int billet = memberIds.indexOf(soldierId);
         return billet < 0 ? -1 : billet / TEAM_SIZE;
     }
 
-    /** Historical-roll slice; current formations use {@link MarineRoster#teamMemberIds}. */
+    /** Raw-roll slice; current formations use {@link MarineRoster#teamMemberIds}. */
     public List<String> teamMembers(int teamIndex) {
         if (teamIndex < 0 || teamIndex >= TEAMS_PER_SQUAD) return Collections.emptyList();
         int from = Math.min(teamIndex * TEAM_SIZE, memberIds.size());
@@ -138,7 +149,18 @@ public final class MarineSquad implements Serializable {
 
     boolean remove(String soldierId) {
         if (soldierId != null && soldierId.equals(leaderSoldierId)) leaderSoldierId = null;
-        return memberIds.remove(soldierId);
+        int place = memberIds.indexOf(soldierId);
+        if (soldierId == null || place < 0) return false;
+        if (reserve() || place >= CAPACITY) {
+            memberIds.remove(place);
+            return true;
+        }
+        // Whoever sits behind keeps their seat.
+        memberIds.set(place, null);
+        while (!memberIds.isEmpty() && memberIds.get(memberIds.size() - 1) == null) {
+            memberIds.remove(memberIds.size() - 1);
+        }
+        return true;
     }
 
     void setName(String value) {

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
@@ -706,9 +707,10 @@ public class MarineRoster implements Serializable {
     }
 
     /**
-     * Current billet holders in stable roster order. Permanent casualty records remain on the
-     * squad's historical roll, but do not displace a later replacement from a fire-team slot.
-     * WIA marines remain here because their billet is still theirs while they recover.
+     * Every current billet holder, closed up: use it to ask who is in the squad, and
+     * {@link #seatedMemberIds} to ask where they sit. Permanent casualty records remain on the
+     * squad's roll. WIA marines remain here because their billet is still theirs while they
+     * recover.
      */
     public List<String> manningMemberIds(MarineSquad squad) {
         if (squad == null) return Collections.emptyList();
@@ -723,20 +725,76 @@ public class MarineRoster implements Serializable {
         return Collections.unmodifiableList(result);
     }
 
-    /** Members of one current fire team in billet order. */
+    /**
+     * A squad's twelve seats, null where nobody sits. A marine keeps a seat for as long as they
+     * hold it: a casualty or a transfer leaves it empty, and nobody behind moves up, so a seat's
+     * fire team and kit stay what they were until a replacement takes it.
+     */
+    public List<String> seatedMemberIds(MarineSquad squad) {
+        if (squad == null) return Collections.nCopies(MarineSquad.CAPACITY, null);
+        return Collections.unmodifiableList(seats(squad.places(), this::mansASeat));
+    }
+
+    private boolean mansASeat(String soldierId) {
+        MarineSoldier soldier = soldierById(soldierId);
+        return soldier != null && (soldier.status() == MarineSoldierStatus.ACTIVE
+                || soldier.status() == MarineSoldierStatus.WIA);
+    }
+
+    /**
+     * The seats a roll describes. A manning marine among its first twelve places sits there, and
+     * a later one, a replacement, takes the earliest seat left empty.
+     */
+    static List<String> seats(List<String> places, Predicate<String> manning) {
+        List<String> seats = new ArrayList<>(Collections.nCopies(MarineSquad.CAPACITY, null));
+        List<String> replacements = new ArrayList<>();
+        for (int place = 0; place < places.size(); place++) {
+            String id = places.get(place);
+            if (id == null || !manning.test(id)) continue;
+            if (place < MarineSquad.CAPACITY) seats.set(place, id);
+            else replacements.add(id);
+        }
+        for (String replacement : replacements) {
+            int empty = seats.indexOf(null);
+            if (empty < 0) break;
+            seats.set(empty, replacement);
+        }
+        return seats;
+    }
+
+    /**
+     * Writes replacements into the places they sit in, so a later loss cannot move them: the
+     * lost marine's record goes to the end of the roll.
+     */
+    private void settleSeats(MarineSquad squad) {
+        List<String> places = squad.places();
+        List<String> seats = seats(places, this::mansASeat);
+        List<String> settled = new ArrayList<>(seats);
+        for (int place = 0; place < MarineSquad.CAPACITY; place++) {
+            if (seats.get(place) == null && place < places.size()) settled.set(place, places.get(place));
+        }
+        for (String id : places) {
+            if (id != null && !settled.contains(id)) settled.add(id);
+        }
+        while (!settled.isEmpty() && settled.get(settled.size() - 1) == null) {
+            settled.remove(settled.size() - 1);
+        }
+        squad.settlePlaces(settled);
+    }
+
+    /** The four seats of one fire team in billet order, null where nobody sits. */
     public List<String> teamMemberIds(MarineSquad squad, int teamIndex) {
         if (teamIndex < 0 || teamIndex >= MarineSquad.TEAMS_PER_SQUAD) {
             return Collections.emptyList();
         }
-        List<String> members = manningMemberIds(squad);
-        int from = Math.min(teamIndex * MarineSquad.TEAM_SIZE, members.size());
-        int to = Math.min(from + MarineSquad.TEAM_SIZE, members.size());
-        return Collections.unmodifiableList(new ArrayList<>(members.subList(from, to)));
+        int from = teamIndex * MarineSquad.TEAM_SIZE;
+        return Collections.unmodifiableList(new ArrayList<>(
+                seatedMemberIds(squad).subList(from, from + MarineSquad.TEAM_SIZE)));
     }
 
-    /** Current fire-team index, excluding historical KIA/MIA records from billet order. */
+    /** Current fire-team index: the team of the seat the marine holds. */
     public int teamIndexOf(MarineSquad squad, String soldierId) {
-        int billet = manningMemberIds(squad).indexOf(soldierId);
+        int billet = soldierId == null ? -1 : seatedMemberIds(squad).indexOf(soldierId);
         return billet < 0 ? -1 : billet / MarineSquad.TEAM_SIZE;
     }
 
@@ -1146,14 +1204,15 @@ public class MarineRoster implements Serializable {
     /**
      * Dresses every occupied seat of every line squad in what its cards issue that seat.
      * A marine's kit is never authored on its own: it follows the squad's two cards and
-     * the seat the marine holds, so a replacement, a transfer or a casualty that moves
-     * everyone up a seat leaves nobody in kit their cards do not describe. Cards are read
+     * the seat the marine holds, so a replacement takes what its seat is issued, and what a
+     * lost marine carried is missing until one does. Cards are read
      * here without the access check that gates assigning them, because a squad keeps the
      * cards it already holds.
      */
     private void conformKit() {
         for (MarineSquad squad : squads) {
             if (squad == null || squad.reserve()) continue;
+            settleSeats(squad);
             SquadWeaponDoctrine weapons = armory.weaponDoctrineById(squad.weaponDoctrineId());
             SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
             if (weapons == null || plan == null) continue;
@@ -1164,9 +1223,10 @@ public class MarineRoster implements Serializable {
                 continue;
             }
             List<SquadEquipmentBillet> billets = billets(weapons, armor, squad.primaryGrades());
-            List<String> memberIds = manningMemberIds(squad);
-            for (int index = 0; index < memberIds.size() && index < billets.size(); index++) {
-                MarineSoldier soldier = soldierById(memberIds.get(index));
+            List<String> seats = seatedMemberIds(squad);
+            for (int index = 0; index < seats.size() && index < billets.size(); index++) {
+                MarineSoldier soldier = soldierById(seats.get(index));
+                if (soldier == null) continue;
                 SquadEquipmentBillet billet = billets.get(index);
                 soldier.setPrimary(billet.primaryId(), billet.grade());
                 soldier.setSpecialEquipment(billet.specialEquipmentId());
@@ -1362,8 +1422,8 @@ public class MarineRoster implements Serializable {
      * time someone is hurt.
      *
      * <p>Kit is settled first: every seat is dressed from its squad's cards
-     * ({@link #conformKit()}), because a membership change moves marines between
-     * seats and issued armour sets the band the stripes follow.
+     * ({@link #conformKit()}), because a membership change fills or empties seats
+     * and issued armour sets the band the stripes follow.
      *
      * <p>Public because issued armour is one of the inputs: a refit changes a
      * marine's band and therefore whether their squad leader wears sergeant's

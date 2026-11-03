@@ -43,15 +43,14 @@ compatibility, not ordinary campaign setup.
 Two pieces of squad structure are **derived, not authored**, and nothing should
 write them directly:
 
-- **Fire-team membership** — `MarineSquad.teamIndexOf` is roster position over
-  `TEAM_SIZE`. Storing it would be a second source of truth to keep in sync on
-  every transfer; deriving it also means an under-strength squad consolidates
-  into fewer full teams instead of keeping hollow ones.
+- **Fire-team membership** — `MarineRoster.teamIndexOf` is seat over `TEAM_SIZE`.
+  Storing it would be a second source of truth to keep in sync on every transfer.
+  A marine keeps a seat while holding it (`MarineRoster.seatedMemberIds`), so an
+  under-strength squad keeps hollow teams until replacements take the empty seats.
 - **Seat kit** — what each marine carries is what the squad's two cards issue the
   seat they hold. `MarineRoster.refreshLeadership` dresses every seat from the
-  cards first (`conformKit`), so a replacement, a transfer, or a casualty that
-  moves everyone up a seat can never leave a marine in kit the cards do not
-  describe. Never set a squad member's kit directly; change the squad's cards.
+  cards first (`conformKit`), so a replacement takes what its seat is issued and
+  nobody is left in kit the cards do not describe. Never set a squad member's kit directly; change the squad's cards.
 - **Enlisted rank and the squad leader** — `MarineRoster.refreshLeadership`
   re-derives both after any membership, fitness, **or issued-armour** change,
   and `readResolve` calls it too. Rank follows the billet, so a new mutator that

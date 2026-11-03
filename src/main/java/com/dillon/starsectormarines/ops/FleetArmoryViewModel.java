@@ -324,7 +324,7 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         if (squad == null || squad.stationed()) return Strings.get("armoryRangeAway");
-        List<String> members = roster.manningMemberIds(squad);
+        List<String> members = roster.seatedMemberIds(squad);
         int index = inspectedBillet.get();
         MarineSoldier soldier = index >= 0 && index < members.size()
                 ? roster.soldierById(members.get(index)) : null;
@@ -338,7 +338,7 @@ public final class FleetArmoryViewModel {
         if (!rangeUnavailableReason().isEmpty()) return null;
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         int index = inspectedBillet.get();
-        MarineSoldier soldier = roster.soldierById(roster.manningMemberIds(squad).get(index));
+        MarineSoldier soldier = roster.soldierById(roster.seatedMemberIds(squad).get(index));
         FireTeamBillet kit = asFireTeamBillet(squadEquipmentPreview.get().billet(index));
         MarineArmorCatalogDef armor = kit.armorDef();
         MarineLoadout loadout = MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,

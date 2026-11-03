@@ -22,6 +22,11 @@ derived four-marine **fire teams**, determined by squad billet order. A fire
 team is an equipment, lift, and battle-maneuver unit; it is not a separately
 selected campaign formation or a second persistent identity.
 
+A marine holds a **seat** for as long as they serve in it. A casualty or a transfer
+leaves the seat empty and nobody behind moves up, so an understrength squad keeps
+hollow teams, and what the lost marine's seat is issued is missing from the squad
+until a replacement takes the earliest empty seat.
+
 A power-suit marine is an existing named marine issued a POWER_SUIT armor pattern,
 not a second personnel category or roster. Refitting preserves identity, career,
 status, squad, billet, and home command. Both armor classes retain the same

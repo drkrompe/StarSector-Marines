@@ -332,9 +332,7 @@ crests, commodity icons and the same command-power symbols in briefing and battl
 A squad's **muster** draws each billet with the battle's own sprites, in that marine's
 kit: standing when ready, lying in its armour's fallen pose with a cross when wounded,
 and a vacant billet is left empty under a red cross, so a squad's losses read from the
-shape of its ranks. A lost marine's seat stays empty where it stood until a recruit takes
-the earliest such seat; this is the picture only, since fire teams in battle and the
-Armory's seats follow the roster's closed-up manning order.
+shape of its ranks.
 Essential state, cost, scope and consequences stay visible; existing spec sheets
 and contextual hints own secondary detail. Presentation never supplies another
 catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at

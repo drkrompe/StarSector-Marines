@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -22,8 +21,7 @@ import java.util.function.Predicate;
 /**
  * Current twelve-billet formation, detached from the campaign roster. WIA
  * personnel retain their places, and a marine lost to MIA or KIA leaves the seat
- * empty where it stood until a recruit takes it. This is the picture only: fire
- * teams in battle and the Armory follow the roster's closed-up manning order.
+ * empty where it stood until a replacement takes it.
  */
 public record SquadMuster(String squadId, String squadName, boolean stationed,
                           List<Billet> billets, int readyCount, int woundedCount,
@@ -88,7 +86,7 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null || squad.reserve()) return null;
 
-        List<String> members = roster.manningMemberIds(squad);
+        List<String> members = roster.seatedMemberIds(squad);
         List<Billet> billets = new ArrayList<>(MarineSquad.CAPACITY);
         int ready = 0;
         int wounded = 0;
@@ -115,9 +113,7 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
                     new FireTeamBillet(marine.name(), marine.primaryId(), marine.primaryGrade(),
                             marine.specialEquipmentId(), marine.armorDef().id())));
         }
-        // The medic is chosen in manning order, as the battle chooses it, before seats open gaps.
         markMedic(roster, squad, billets);
-        billets = seated(billets, seats(squad.memberIds(), id -> members.contains(id)));
 
         int missing = 0;
         int killed = 0;
@@ -128,43 +124,6 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         return new SquadMuster(squad.id(), squad.name(), squad.stationed(), billets,
                 ready, wounded, MarineSquad.CAPACITY - ready - wounded,
                 missing, killed, earliest);
-    }
-
-    /**
-     * The twelve seats of a squad, null where nobody sits. {@code memberIds} keeps its lost
-     * marines in place, so a manning marine among the first twelve sits where it always stood,
-     * and a later one, a recruit, takes the earliest seat left empty.
-     */
-    static List<String> seats(List<String> memberIds, Predicate<String> manning) {
-        List<String> seats = new ArrayList<>(Collections.nCopies(MarineSquad.CAPACITY, null));
-        List<String> recruits = new ArrayList<>();
-        for (int index = 0; index < memberIds.size(); index++) {
-            String id = memberIds.get(index);
-            if (!manning.test(id)) continue;
-            if (index < MarineSquad.CAPACITY) seats.set(index, id);
-            else recruits.add(id);
-        }
-        for (String recruit : recruits) {
-            int empty = seats.indexOf(null);
-            if (empty < 0) break;
-            seats.set(empty, recruit);
-        }
-        return seats;
-    }
-
-    /** {@code manned} moved to the seats its marines sit in, with a vacant billet in every other. */
-    private static List<Billet> seated(List<Billet> manned, List<String> seats) {
-        List<Billet> placed = new ArrayList<>(MarineSquad.CAPACITY);
-        for (int seat = 0; seat < MarineSquad.CAPACITY; seat++) {
-            String id = seats.get(seat);
-            Billet billet = id == null ? null : manned.stream()
-                    .filter(b -> id.equals(b.marineId())).findFirst().orElse(null);
-            placed.add(billet == null
-                    ? new Billet(seat, null, Strings.get("battleMusterVacant"), "", State.VACANT, -1f, false, false)
-                    : new Billet(seat, billet.marineId(), billet.name(), billet.rankLabel(), billet.state(),
-                            billet.recoveryDays(), billet.leader(), billet.medic(), billet.kit()));
-        }
-        return placed;
     }
 
     /**

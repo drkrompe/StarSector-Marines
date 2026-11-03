@@ -35,12 +35,12 @@ class SquadKitFollowsCardsTest {
         assertWearsItsCards(roster, squad);
     }
 
-    @Test void aCasualtyMovesEveryoneUpASeatAndTheKitFollowsTheSeat() {
+    @Test void aCasualtyMovesNobodyAndTheRestKeepTheirSeatsKit() {
         MarineRoster roster = carded();
         MarineSquad squad = lineSquad(roster);
-        String movesUp = roster.manningMemberIds(squad).get(1);
+        String behind = roster.manningMemberIds(squad).get(1);
         roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA), 0f, 0f);
-        assertEquals(movesUp, roster.manningMemberIds(squad).get(0));
+        assertEquals(behind, roster.seatedMemberIds(squad).get(1));
         assertWearsItsCards(roster, squad);
     }
 
@@ -76,9 +76,10 @@ class SquadKitFollowsCardsTest {
     private static void assertWearsItsCards(MarineRoster roster, MarineSquad squad) {
         SquadEquipmentPreview cards = roster.previewSquadEquipment(
                 squad.id(), squad.weaponDoctrineId(), squad.armorDoctrineId());
-        List<String> seats = roster.manningMemberIds(squad);
+        List<String> seats = roster.seatedMemberIds(squad);
         for (int seat = 0; seat < seats.size(); seat++) {
             MarineSoldier soldier = roster.soldierById(seats.get(seat));
+            if (soldier == null) continue;
             SquadEquipmentBillet billet = cards.billet(seat);
             assertEquals(billet.primaryId(), soldier.primaryId(), "seat " + seat);
             assertEquals(billet.specialEquipmentId(), soldier.specialEquipmentId(), "seat " + seat);
