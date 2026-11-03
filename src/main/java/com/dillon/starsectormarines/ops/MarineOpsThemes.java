@@ -236,6 +236,14 @@ final class MarineOpsThemes {
                 }
                 /* The console keys' lamps and grips: a base-game button is its plate and its words. */
                 .console-key-grip, .console-command-signal, button .console-toggle-lamp { display: none; }
+                /* An on/off key keeps its lamp, dark when off and lit when on, so its state reads
+                   at a glance (owner). A key that only does something once has none. */
+                button.led-key { flex-direction: row; align-items: center; padding-left: 8px; }
+                button.led-key .console-command-signal {
+                    display: flex; width: 8px; height: 8px; border-width: 1px; border-style: solid;
+                    background-color: #071720; border-color: #45728f; pointer-events: none;
+                }
+                button.led-key.led-on .console-command-signal { background-color: #ffd98a; border-color: #edc273; }
                 /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
                    in the cards' own navy and edge colours rather than the console's. After the
                    console block so a surface that also carries a console class takes these. */

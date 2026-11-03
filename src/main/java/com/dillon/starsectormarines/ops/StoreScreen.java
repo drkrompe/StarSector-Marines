@@ -123,8 +123,8 @@ public final class StoreScreen implements Screen {
     /** The "[Cheat] Free Licenses" key, shown only while the mission board's Debug key is on. */
     static void putFreeLicenses(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
         props.put("freeRailClasses", "store-cheat-rail console-command-rail" + (available ? "" : " hidden"));
-        // A lit key, as the board's keys are: the theme lights a command key's lamp on its good surface.
-        props.put("freeKeyClasses", on ? "good-surface" : "");
+        // An on/off key: the theme shows its lamp, and lights it on led-on.
+        props.put("freeKeyClasses", on ? "led-key led-on good-surface" : "led-key");
         props.put("freeLabel", Strings.get("storeCheatFreeLicenses"));
         props.put("freeAction", toggle);
         props.put("takeAllLabel", Strings.get("storeCheatUnlockEverything"));

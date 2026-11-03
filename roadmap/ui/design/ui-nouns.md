@@ -313,7 +313,9 @@ the retained model.
 
 Player surfaces share the briefing's metal housing, dark instrument wells and
 restrained amber, green and red status accents. Raised command keys perform an
-action; inset selections and small lamps communicate a latched choice. Room
+action; inset selections and small lamps communicate a latched choice. A key
+that switches something on and off (`led-key`), such as Cheat or Voice-over,
+keeps a lamp beside its words, dark when off and lit when on (`led-on`). Room
 navigation uses the same vocabulary, with absent and preparing rooms still
 visibly distinct. Mechanical SVG plates frame major sections rather than adding
 ornament to every data item. Battle overlays retain their bounded footprint and

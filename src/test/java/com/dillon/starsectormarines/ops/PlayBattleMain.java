@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -339,6 +340,8 @@ public final class PlayBattleMain {
                         Float.parseFloat(System.getProperty("play.volume", "1")));
             }
             if (sound != null) Global.setSoundPlayer(sound);
+            // The game installs these at application load, which the window never runs.
+            UiSounds.install(new UiSounds(id -> Global.getSoundPlayer().playUISound(id, 1f, 1f), System::nanoTime));
             Host host = new Host(position(size[0], size[1]), source != null);
             host.open(PlayCompany.docked(), sim);
             play(host, input, sound, source, size, script, diagnosis);

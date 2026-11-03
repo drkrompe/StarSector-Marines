@@ -1,4 +1,4 @@
-<template props="voiceOverAction,voiceOverLabel,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
+<template props="voiceOverAction,voiceOverLabel,voiceOverClasses,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
   <div id="company-hq-root" class="company-hq-root">
 
     <div id="company-hq-main" class="company-hq-main">
@@ -37,7 +37,10 @@
             <div id="company-hq-strip-runway" class="{runwayClasses}">{runway}</div>
             <div id="company-hq-strip-cash" class="label tone-muted strip-cash">{cash}</div>
           </div>
-          <button id="company-hq-voice-over" class="hq-voice-over console-action" onclick="{voiceOverAction}">{voiceOverLabel}</button>
+          <button id="company-hq-voice-over" class="{voiceOverClasses}" onclick="{voiceOverAction}">
+            <div id="company-hq-voice-over-signal" class="console-command-signal" />
+            <div id="company-hq-voice-over-legend" class="console-key-legend">{voiceOverLabel}</div>
+          </button>
           <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">{i18n.openingUiCompanyHqDebugMissions}</button>
         </div>
         <div id="company-hq-board-columns" class="board-columns">

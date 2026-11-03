@@ -547,14 +547,14 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putReplayToggle(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
-        // A lit key, as Brief & Deploy is: the theme lights a command key's lamp on its good surface.
-        props.put("replayKeyClasses", !available ? "hidden" : on ? "good-surface" : "");
+        // An on/off key: the theme shows its lamp, and lights it on led-on.
+        props.put("replayKeyClasses", !available ? "hidden" : on ? "led-key led-on good-surface" : "led-key");
         props.put("replayToggleLabel", Strings.get("replayCompletedToggle"));
         props.put("replayToggleAction", toggle);
     }
 
     static void putCheatsToggle(Map<String, Object> props, boolean on, Runnable toggle) {
-        props.put("cheatsKeyClasses", on ? "good-surface" : "");
+        props.put("cheatsKeyClasses", on ? "led-key led-on good-surface" : "led-key");
         props.put("cheatsLabel", Strings.get("cheatsToggle"));
         props.put("cheatsAction", toggle);
     }

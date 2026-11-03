@@ -34,6 +34,8 @@ public final class CompanyHqScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> voiceOverLabel =
             reactor.signal(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
+    private final MutableSignal<String> voiceOverClasses =
+            reactor.signal(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final HqActionDesk actionDesk = new HqActionDesk(reactor, newsDesk);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
@@ -105,6 +107,8 @@ public final class CompanyHqScreen implements Screen {
         // Another save may have been loaded since this screen last built.
         voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
         props.put("voiceOverLabel", voiceOverLabel);
+        voiceOverClasses.set(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
+        props.put("voiceOverClasses", voiceOverClasses);
         props.put("voiceOverAction", (Runnable) this::toggleVoiceOver);
         newsDesk.put(props);
         actionDesk.put(props);
@@ -215,6 +219,7 @@ public final class CompanyHqScreen implements Screen {
     private void toggleVoiceOver() {
         VoiceOver.setEnabled(!VoiceOver.enabled());
         voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
+        voiceOverClasses.set(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
     }
 
     private void onClose() {
