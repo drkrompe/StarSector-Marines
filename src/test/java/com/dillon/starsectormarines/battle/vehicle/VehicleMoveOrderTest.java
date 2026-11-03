@@ -217,7 +217,7 @@ class VehicleMoveOrderTest {
         // permanent hold, rather than a poked field.
         wallBoxAround(rig.grid(), 20, 30, 4);
         // Before it is given up the whole recovery ladder has its turn: the reroute, a back-off and a wheeled hull's
-        // last-resort pivot; the second back-off that gets it nowhere gives it up.
+        // last-resort pivot; the failure clock runs on through back-offs that get it nowhere, and gives it up.
         run(rig, 3f * VehicleMoveOrderSystem.GIVE_UP_SECONDS);
 
         assertNull(rig.orders().activeOrder(rig.id()),

@@ -252,6 +252,7 @@ public final class VehicleControlSystem {
         s.trajCarrotAtEnd = false;
         s.localPlanFailureTime = 0f;
         s.localPlanFailureRerouteAttempted = false;
+        s.planlessHold = 0f;
         s.dockingPath = null;
         s.dockingStartPose = null;
         s.dockingProgressCells = 0f;
@@ -418,7 +419,6 @@ public final class VehicleControlSystem {
             boolean pivotsFirst = !s.brushing && NeutralPivot.onRoutes(type);
             if (pivotsFirst && pivotTracks(mission, body, type, s, xs, ys, dt)) return;
             if (leg.mayTurnAroundOntoRoute() && tryEngageDepartureTurnaround(body, type, s)) {
-                s.localPlanFailureTime = 0f;
                 advanceDocking(mission, body, type, s, dt);
                 return;
             }
@@ -431,8 +431,8 @@ public final class VehicleControlSystem {
             // the hull came and plan again from there. Without it a truck nosed into a building stood all battle,
             // since the committed reverse otherwise starts only from a followed trajectory's stall or wall contact.
             if (planlessReverseDue(mission, s) && beginReverseRecovery(body, type, s)) {
-                countPlanlessReverse(body, s);
-                s.localPlanFailureTime = 0f;
+                if (countPlanlessReverse(body, s)) s.localPlanFailureTime = 0f;
+                s.planlessHold = 0f;
                 s.localPlanFailureRerouteAttempted = false;
                 return;
             }
@@ -447,6 +447,7 @@ public final class VehicleControlSystem {
             }
             if (s.brushing) endPivotTracking(body, s);
             s.localPlanFailureTime += dt;
+            s.planlessHold += dt;
             body.speed = 0f;
             if (!recoveryWorked && s.pendingRecovery == null && !s.localPlanFailureRerouteAttempted
                     && s.localPlanFailureTime >= VehicleController.LOCAL_PLAN_FAILURE_REROUTE_SEC) {
@@ -457,8 +458,7 @@ public final class VehicleControlSystem {
             return;
         }
         if (s.trajectory != null) {
-            s.localPlanFailureTime = 0f;
-            s.localPlanFailureRerouteAttempted = false;
+            clearPlanFailure(body, s);
             if (s.pivotTracking || s.pivotDirection != 0 || s.brushing) endPivotTracking(body, s);
         }
 
@@ -584,8 +584,7 @@ public final class VehicleControlSystem {
                                 VehicleControlComponent s, float[] xs, float[] ys, float dt) {
         if (!pivotTrack(mission, body, type, s, xs, ys, dt, false)) return false;
         s.pivotTracking = true;
-        s.localPlanFailureTime = 0f;
-        s.localPlanFailureRerouteAttempted = false;
+        clearPlanFailure(body, s);
         return true;
     }
 
@@ -791,20 +790,40 @@ public final class VehicleControlSystem {
     /**
      * Counts a planless back-off: the count starts again where a hull has got {@link VehicleController#PLANLESS_CLEAR}
      * cells clear of where the last run of them began, so only back-offs that get it nowhere add up.
+     *
+     * @return whether it got clear of an earlier run, which is real progress and restarts the failure clock
      */
-    static void countPlanlessReverse(GroundBody body, VehicleControlComponent s) {
-        if (s.planlessReverses == 0 || Math.hypot(body.x - s.planlessAnchorX, body.y - s.planlessAnchorY)
-                > VehicleController.PLANLESS_CLEAR) {
+    static boolean countPlanlessReverse(GroundBody body, VehicleControlComponent s) {
+        boolean clear = s.planlessReverses > 0 && clearOfBackOffs(body, s);
+        if (s.planlessReverses == 0 || clear) {
             s.planlessReverses = 0;
             s.planlessAnchorX = body.x;
             s.planlessAnchorY = body.y;
         }
         s.planlessReverses++;
+        return clear;
+    }
+
+    private static boolean clearOfBackOffs(GroundBody body, VehicleControlComponent s) {
+        return Math.hypot(body.x - s.planlessAnchorX, body.y - s.planlessAnchorY) > VehicleController.PLANLESS_CLEAR;
+    }
+
+    /**
+     * A plan or a pivot was found. It ends the failure unless the hull is still where its back-offs began: a short plan
+     * from a backed-off pose that drives it up to the same refusal is no progress, and restarting the clock on it would
+     * keep the hull from its last rung and its order from being given up.
+     */
+    static void clearPlanFailure(GroundBody body, VehicleControlComponent s) {
+        s.planlessHold = 0f;
+        if (s.planlessReverses > 0 && !clearOfBackOffs(body, s)) return;
+        s.planlessReverses = 0;
+        s.localPlanFailureTime = 0f;
+        s.localPlanFailureRerouteAttempted = false;
     }
 
     static boolean planlessReverseDue(VehicleMission mission, VehicleControlComponent s) {
         return mission.speedCap > 0f && s.localPlanFailureRerouteAttempted && s.pendingRecovery == null
-                && s.localPlanFailureTime >= VehicleController.PLANLESS_REVERSE_SECONDS;
+                && s.planlessHold >= VehicleController.PLANLESS_REVERSE_SECONDS;
     }
 
     /**
@@ -976,7 +995,12 @@ public final class VehicleControlSystem {
             mission.outboundX = full[0];
             mission.outboundY = full[1];
         }
+        float failure = s.localPlanFailureTime, hold = s.planlessHold;
+        boolean rerouted = s.localPlanFailureRerouteAttempted;
         initCorridor(s, full[0], full[1], false);
+        s.localPlanFailureTime = failure;
+        s.planlessHold = hold;
+        s.localPlanFailureRerouteAttempted = rerouted;
         // Installing a corridor is not physical progress. Seed the new route's
         // baseline here so its first forward tick cannot immediately clear the
         // tried-bearing history before the truck has actually escaped.

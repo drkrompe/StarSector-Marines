@@ -262,7 +262,7 @@ public final class VehicleMoveOrderSystem {
         // the whole experience on an ordered one, so an order that has stopped
         // converging is given up rather than parked.
         VehicleControlComponent s = convoy.control(id);
-        if (s.localPlanFailureTime >= GIVE_UP_SECONDS || s.planlessReverses >= VehicleController.PLANLESS_GIVE_UP) {
+        if (s.localPlanFailureTime >= GIVE_UP_SECONDS) {
             s.planlessReverses = 0;
             service.refuse(id, order.requestedX(), order.requestedY(), Refusal.GAVE_UP);
         }

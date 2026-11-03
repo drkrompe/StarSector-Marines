@@ -801,7 +801,11 @@ it stands: once its reroute has been tried and it has held two seconds planless
 (not held there by its driver), it backs off as far as is clear behind and
 plans again from there, before a wheeled hull's last-resort pivot (a truck
 nosed into a house in a town's loading yard otherwise stood all battle, its
-convoy waiting behind it). Loss of corridor progress invokes a cost-field
+convoy waiting behind it). A back-off is not progress until the hull has got
+six cells clear of where its run of them began: until then the failure clock
+runs on through the back-offs, the short plans they find and any reroute, so
+the pivot, brushing and the order's give-up all still come at their times.
+Loss of corridor progress invokes a cost-field
 reroute around the failing area, with failed areas excluded for that travel leg
 so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;

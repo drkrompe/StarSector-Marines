@@ -232,13 +232,79 @@ class VehicleControlSystemTest {
         assertTrue(ground, "through the wall that held its tail");
     }
 
+    /**
+     * A slit through growth two cells wide, which a tank a little wider can only pass by brushing, with clear ground
+     * behind. Its back-offs, turnarounds and the short plans they find must not keep it from the brushing that is the
+     * last rung before its order is given up: with their resets of the failure clock it never comes at all.
+     */
+    @Test
+    void aHullWithRoomBehindItStillReachesItsLastRung() {
+        NavigationGrid grid = new NavigationGrid(44, 22);
+        carve(grid, 0, 0, 43, 21);
+        for (int x = 24; x <= 27; x++) {
+            for (int y = 0; y <= 21; y++) {
+                if (y == 10 || y == 11) continue;
+                grid.setWalkable(x, y, false);
+                grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
+                grid.setTag(x, y, NavigationGrid.CellTag.CRUSHABLE, true);
+            }
+        }
+        NavigationService navigation = new NavigationService(grid, new CellTopology(44, 22));
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(44, 22), null);
+        ConvoyService convoy = roster.convoy();
+        float[] xs = {17.5f, 40.5f};
+        float[] ys = {11f, 11f};
+        VehicleMission mission = new VehicleMission(xs, ys, xs, ys, 0f, 4);
+        long id = convoy.spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER, mission);
+        GroundBody body = convoy.body(id);
+        body.teleport(17.5f, 11f, -90f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        controls.setBrush(new SoftBrush(SoftBrush.NO_PROPS));
+
+        boolean brushed = false;
+        float seconds = 0f, mostClock = 0f;
+        for (; seconds < 60f && (!brushed || body.x < 30f); seconds += 0.05f) {
+            controls.tick(id, 0.05f, xs, ys, VehicleLeg.MOVE_ORDER);
+            brushed |= convoy.control(id).brushing;
+            mostClock = Math.max(mostClock, convoy.control(id).localPlanFailureTime);
+        }
+
+        assertTrue(brushed, "it brushes (held at " + body.x + "," + body.y + " after " + seconds + " s, failure clock "
+                + "reached " + mostClock + ", " + convoy.control(id).recoveryAttempts + " back-offs)");
+        assertTrue(body.x >= 30f, "and through the slit (held at " + body.x + "," + body.y + ")");
+    }
+
+    @Test
+    void aPlanFromWhereItsBackOffsBeganDoesNotEndTheFailure() {
+        VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
+                new float[]{1f, 0f}, new float[]{0f, 0f}, 0f, 4);
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(40, 40), null);
+        ConvoyService convoy = roster.convoy();
+        GroundBody body = convoy.body(convoy.spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, mission));
+        body.teleport(10f, 10f, 0f);
+        VehicleControlComponent s = new VehicleControlComponent();
+        s.localPlanFailureTime = 3f;
+        s.planlessHold = 1f;
+
+        assertFalse(VehicleControlSystem.countPlanlessReverse(body, s), "a first back-off is no progress yet");
+        VehicleControlSystem.clearPlanFailure(body, s);
+        assertEquals(3f, s.localPlanFailureTime, "a short plan where it stands keeps the clock");
+        assertEquals(0f, s.planlessHold, "though it spaces the next back-off afresh");
+
+        body.teleport(10f, 10f + VehicleController.PLANLESS_CLEAR + 1f, 0f);
+        VehicleControlSystem.clearPlanFailure(body, s);
+        assertEquals(0f, s.localPlanFailureTime, "a plan that has got it clear ends the failure");
+        assertEquals(0, s.planlessReverses);
+    }
+
     @Test
     void aHeldTruckDoesNotBackOff() {
         VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
                 new float[]{1f, 0f}, new float[]{0f, 0f}, 0f, 4);
         VehicleControlComponent s = new VehicleControlComponent();
         s.localPlanFailureRerouteAttempted = true;
-        s.localPlanFailureTime = VehicleController.PLANLESS_REVERSE_SECONDS;
+        s.planlessHold = VehicleController.PLANLESS_REVERSE_SECONDS;
         assertTrue(VehicleControlSystem.planlessReverseDue(mission, s));
         mission.speedCap = 0f;
         assertFalse(VehicleControlSystem.planlessReverseDue(mission, s), "held by its driver, it waits");
