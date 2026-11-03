@@ -39,10 +39,13 @@ final class UiPainter {
         target.clip(inheritedClip);
         Rect rect = element.box().borderBox();
         Color background = element.paintedBackground();
+        boolean cut = !element.cornerCut().none();
         if (background != null && rect.width() > 0f && rect.height() > 0f) {
-            target.fill(rect, background, elementAlpha);
+            if (cut) fillCut(target, element, rect, inheritedClip, background, elementAlpha);
+            else target.fill(rect, background, elementAlpha);
         }
-        if (element.backgroundImage() != null && rect.width() > 0f && rect.height() > 0f) {
+        // A gradient and a bevel are rectangles, so a cut box has neither.
+        if (!cut && element.backgroundImage() != null && rect.width() > 0f && rect.height() > 0f) {
             // Gradients have no intrinsic dimensions; CSS sizes them to the padding box.
             Rect area = element.box().paddingBox();
             if (area.width() > 0f && area.height() > 0f) {
@@ -58,7 +61,9 @@ final class UiPainter {
         }
         if (element.borderColor() != null && element.borderWidth() > 0f
                 && rect.width() > 0f && rect.height() > 0f) {
-            if (element.borderStyle() == UiBorderStyle.SOLID) {
+            if (cut) {
+                strokeCut(target, element, rect, inheritedClip, elementAlpha);
+            } else if (element.borderStyle() == UiBorderStyle.SOLID) {
                 target.outline(rect, element.borderColor(), element.borderWidth(), elementAlpha);
             } else {
                 CanvasMetrics metrics = new CanvasMetrics(rect,
@@ -111,6 +116,39 @@ final class UiPainter {
                 target.clip(thumbClip);
                 target.fill(thumb, SCROLL_THUMB, elementAlpha);
             }
+        }
+    }
+
+    private static void fillCut(UiPaintTarget target, UiElement element, Rect rect, Rect inheritedClip,
+                                Color color, float alpha) {
+        CanvasMetrics metrics = new CanvasMetrics(rect, 1, 1, target.devicePixelRatio());
+        Rect visible = canvasVisibleBounds(metrics, inheritedClip.intersect(rect));
+        if (visible == null) return;
+        CanvasContext canvas = target.canvasContext(metrics, visible, alpha);
+        float[] p = element.cornerCut().outline(rect.width(), rect.height());
+        float w = rect.width();
+        float h = rect.height();
+        // The outline is convex, so a fan from its first point covers it once.
+        for (int i = 2; i + 3 < p.length; i += 2) {
+            canvas.fillQuad(p[0] / w, p[1] / h, p[i] / w, p[i + 1] / h,
+                    p[i + 2] / w, p[i + 3] / h, p[i + 2] / w, p[i + 3] / h, color);
+        }
+    }
+
+    private static void strokeCut(UiPaintTarget target, UiElement element, Rect rect, Rect inheritedClip, float alpha) {
+        if (element.borderColor().getAlpha() == 0) return;
+        CanvasMetrics metrics = new CanvasMetrics(rect, Math.max(1, Math.round(rect.width())),
+                Math.max(1, Math.round(rect.height())), target.devicePixelRatio());
+        Rect visible = canvasVisibleBounds(metrics, inheritedClip.intersect(rect));
+        if (visible == null) return;
+        CanvasContext canvas = target.canvasContext(metrics, visible, alpha);
+        float inset = element.borderWidth() / 2f;
+        float[] p = element.cornerCut().outline(rect.width() - inset * 2f, rect.height() - inset * 2f);
+        for (int i = 0; i < p.length; i += 2) {
+            int next = (i + 2) % p.length;
+            canvas.line((p[i] + inset) / metrics.scaleX(), (p[i + 1] + inset) / metrics.scaleY(),
+                    (p[next] + inset) / metrics.scaleX(), (p[next + 1] + inset) / metrics.scaleY(),
+                    element.borderColor(), element.borderWidth());
         }
     }
 

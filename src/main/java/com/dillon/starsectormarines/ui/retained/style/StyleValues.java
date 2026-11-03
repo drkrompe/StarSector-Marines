@@ -46,6 +46,7 @@ final class StyleValues {
             case BORDER_WIDTH -> parseBorderWidth(value);
             case BORDER_STYLE -> parseBorderStyle(value);
             case BACKGROUND_IMAGE -> LinearGradient.parse(value);
+            case CORNER_CUT -> CornerCut.parse(value);
             case GAP, PADDING -> throw new IllegalArgumentException("Shorthands expand in StyleDeclaration");
             case OVERFLOW -> parseOverflow(value);
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
