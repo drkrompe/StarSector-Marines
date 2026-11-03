@@ -16,6 +16,7 @@ final class NestClutterRenderSystem implements RenderSystem {
     static final float GLOW_DEPTH = 0.4f, GLOW_HZ = 0.35f;
 
     private final BattleSprites sprites;
+    private final NestClutter.Layout clutter = new NestClutter.Layout();
 
     NestClutterRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -33,7 +34,7 @@ final class NestClutterRenderSystem implements RenderSystem {
         ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float clock = Float.isFinite(ctx.animationTimeSeconds) ? ctx.animationTimeSeconds : 0f;
-        for (NestClutter.Item it : NestClutter.of(ctx.sim)) {
+        for (NestClutter.Item it : clutter.of(ctx.sim)) {
             if (!view.visible(it.x(), it.y(), 2f)) continue;
             String base = "graphics/structures/" + it.kind().name + "-" + it.variant();
             ShuttleSpriteCache body = sprites.spriteByPath(base + ".png");

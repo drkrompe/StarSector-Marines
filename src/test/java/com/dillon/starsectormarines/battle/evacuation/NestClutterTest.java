@@ -7,6 +7,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NestClutterTest {
@@ -46,12 +48,31 @@ class NestClutterTest {
         List<float[]> colonies = List.of(new float[]{23f, 20f}, new float[]{17f, 20f});
         List<NestTrails.Trail> roots = List.of(new NestTrails.Trail(21f, 20f, 20f, 40f, 0.6f, 0.3f, 9L, 1f, 1f));
         List<NestClutter.Item> out = new ArrayList<>();
-        NestClutter.mouth(20f, 20f, 5L, 4, colonies, roots, out);
+        float[][] lines = NestClutter.centrelines(roots);
+        NestClutter.mouth(20f, 20f, 5L, 4, colonies, roots, lines, out);
         assertEquals(4, out.size());
         for (NestClutter.Item it : out) {
             for (float[] c : colonies) assertTrue(Math.hypot(c[0] - it.x(), c[1] - it.y()) >= NestClutter.COLONY_CLEAR);
-            assertFalse(NestClutter.onRoot(it.x(), it.y(), roots), "off its roots");
+            assertFalse(NestClutter.onRoot(it.x(), it.y(), roots, lines), "off its roots");
         }
+    }
+
+    @Test
+    void aLayoutLaysAgainOnlyWhenTheNestChanges() {
+        NestClutter.Layout layout = new NestClutter.Layout();
+        List<NestTrails.Trail> roots = List.of(root(1f, 1f));
+        List<NestClutter.Mouth> mouths = List.of(new NestClutter.Mouth(20f, 20f, 5L, 2, List.of(new float[]{23f, 20f})));
+        List<NestClutter.Item> laid = layout.of(roots, mouths);
+        assertFalse(laid.isEmpty());
+
+        assertSame(laid, layout.of(List.of(root(1f, 1f)),
+                List.of(new NestClutter.Mouth(20f, 20f, 5L, 2, List.of(new float[]{23f, 20f})))), "the same nest");
+        assertNotSame(laid, layout.of(List.of(root(1f, 0.5f)), mouths), "a root thinner");
+        laid = layout.of(roots, mouths);
+        assertNotSame(laid, layout.of(roots, List.of(new NestClutter.Mouth(20f, 20f, 5L, 4, List.of(new float[]{23f, 20f})))),
+                "a bore a tier up");
+        laid = layout.of(roots, mouths);
+        assertNotSame(laid, layout.of(roots, List.of(new NestClutter.Mouth(20f, 20f, 5L, 2, List.of()))), "a colony gone");
     }
 
     @Test

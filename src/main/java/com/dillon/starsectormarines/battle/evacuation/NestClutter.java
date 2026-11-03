@@ -49,11 +49,34 @@ public final class NestClutter {
 
     private NestClutter() { }
 
-    /** Every piece the battle's nests have laid now. */
-    public static List<Item> of(BattleSimulation sim) {
-        List<Item> out = new ArrayList<>();
-        List<NestTrails.Trail> roots = NestTrails.of(sim);
-        for (NestTrails.Trail t : roots) along(t, out);
+    /**
+     * A drawer's clutter, laid again only when the nest has changed, since a frame reads it and laying it costs a
+     * centreline per root. A growing root's pieces step with {@link NestTrails#signature}, too finely to see.
+     */
+    public static final class Layout {
+        private long signature;
+        private List<Item> items;
+
+        /** Every piece the battle's nests have laid now. */
+        public List<Item> of(BattleSimulation sim) {
+            return of(NestTrails.of(sim), mouths(sim));
+        }
+
+        List<Item> of(List<NestTrails.Trail> roots, List<Mouth> mouths) {
+            long now = signature(roots, mouths);
+            if (items == null || now != signature) {
+                items = lay(roots, mouths);
+                signature = now;
+            }
+            return items;
+        }
+    }
+
+    /** A bore's mouth that keeps pieces: its centre, its seed, how many it keeps, and its living colonies' centres. */
+    record Mouth(float x, float y, long seed, int count, List<float[]> colonies) { }
+
+    private static List<Mouth> mouths(BattleSimulation sim) {
+        List<Mouth> out = new ArrayList<>();
         SwarmBores bores = sim.swarmBores();
         if (bores == null) return out;
         for (SwarmBore bore : bores.bores()) {
@@ -65,10 +88,36 @@ public final class NestClutter {
                 if (sim.resolveUnit(id) == 0L || !sim.world().isAlive(id)) continue;
                 colonies.add(new float[]{sim.world().cellX(id) + 0.5f, sim.world().cellY(id) + 0.5f});
             }
-            mouth(bore.x() + 0.5f, bore.y() + 0.5f, SwarmBores.mix(0xC1077E7L ^ bore.number()), count, colonies, roots,
-                    out);
+            out.add(new Mouth(bore.x() + 0.5f, bore.y() + 0.5f, SwarmBores.mix(0xC1077E7L ^ bore.number()), count,
+                    colonies));
         }
         return out;
+    }
+
+    /** A cheap fingerprint of all that lays the pieces. */
+    static long signature(List<NestTrails.Trail> roots, List<Mouth> mouths) {
+        long h = NestTrails.signature(roots);
+        for (Mouth m : mouths) {
+            h = h * 31 + m.seed();
+            h = h * 31 + m.count();
+            for (float[] c : m.colonies()) h = h * 31 + Float.floatToIntBits(c[0]) * 17L + Float.floatToIntBits(c[1]);
+        }
+        return h;
+    }
+
+    private static List<Item> lay(List<NestTrails.Trail> roots, List<Mouth> mouths) {
+        List<Item> out = new ArrayList<>();
+        for (NestTrails.Trail t : roots) along(t, out);
+        float[][] lines = centrelines(roots);
+        for (Mouth m : mouths) mouth(m.x(), m.y(), m.seed(), m.count(), m.colonies(), roots, lines, out);
+        return out;
+    }
+
+    /** Each of {@code roots}' centrelines, in its order. */
+    static float[][] centrelines(List<NestTrails.Trail> roots) {
+        float[][] lines = new float[roots.size()][];
+        for (int i = 0; i < lines.length; i++) lines[i] = NestTrails.centreline(roots.get(i));
+        return lines;
     }
 
     /** The pieces beside one root, appended to {@code out}. */
@@ -97,11 +146,11 @@ public final class NestClutter {
     }
 
     /**
-     * Up to {@code count} pieces round a mouth at (bx, by), clear of {@code colonies} and {@code roots}, appended to
-     * {@code out}.
+     * Up to {@code count} pieces round a mouth at (bx, by), clear of {@code colonies} and {@code roots}, whose
+     * {@link #centrelines} are {@code lines}, appended to {@code out}.
      */
     static void mouth(float bx, float by, long seed, int count, List<float[]> colonies, List<NestTrails.Trail> roots,
-                      List<Item> out) {
+                      float[][] lines, List<Item> out) {
         long h = seed;
         int laid = 0;
         for (int tries = 0; laid < count && tries < count * MOUTH_TRIES; tries++) {
@@ -110,16 +159,17 @@ public final class NestClutter {
             float r = MOUTH_IN + (MOUTH_OUT - MOUTH_IN) * SwarmBores.unit(SwarmBores.mix(h ^ 0xA5L));
             float x = bx + (float) Math.cos(a) * r, y = by + (float) Math.sin(a) * r;
             if (near(x, y, colonies, COLONY_CLEAR) || nearItems(x, y, out, laid, COLONY_CLEAR)
-                    || onRoot(x, y, roots)) continue;
+                    || onRoot(x, y, roots, lines)) continue;
             out.add(new Item(kind(SwarmBores.mix(h ^ 0x6B1DL)), variant(SwarmBores.mix(h ^ 0x7A21L)), x, y));
             laid++;
         }
     }
 
     /** Whether (x, y) lies within {@link #ROOT_CLEAR} of the edge of any of {@code roots} as far as each has dug. */
-    static boolean onRoot(float x, float y, List<NestTrails.Trail> roots) {
-        for (NestTrails.Trail t : roots) {
-            float[] pts = NestTrails.centreline(t);
+    static boolean onRoot(float x, float y, List<NestTrails.Trail> roots, float[][] lines) {
+        for (int r = 0; r < lines.length; r++) {
+            NestTrails.Trail t = roots.get(r);
+            float[] pts = lines[r];
             int n = pts.length / 2 - 1;
             for (int i = 0; i <= n && i <= t.reach() * n; i++) {
                 float hw = NestTrails.laidHalfWidth(t, i / (float) n);
