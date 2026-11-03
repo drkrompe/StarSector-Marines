@@ -15,6 +15,7 @@ public final class NarrationPlayer {
 
     public NarrationPlayer() {
         this(line -> {
+            if (!VoiceOver.enabled()) return null;
             try {
                 return Global.getSoundPlayer().playUISound(line.id(), 1f, 1f);
             } catch (RuntimeException failure) {

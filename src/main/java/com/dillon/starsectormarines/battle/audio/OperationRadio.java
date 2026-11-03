@@ -184,6 +184,7 @@ public final class OperationRadio {
 
     public OperationRadio() {
         this(builtins, new Random(), transmission -> {
+            if (!VoiceOver.enabled()) return null;
             try {
                 return Global.getSoundPlayer().playUISound(transmission.line().id(), 1f, 1f);
             } catch (RuntimeException failure) {

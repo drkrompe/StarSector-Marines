@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.VoiceOver;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -1607,7 +1608,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         LongList deaths = sim.getDeathsThisFrame();
         for (int i = 0, n = deaths.size(); i < n; i++) {
             long u = deaths.getLong(i);
-            if (sim.identity().faction(u) == Faction.MARINE) {
+            if (sim.identity().faction(u) == Faction.MARINE && VoiceOver.enabled()) {
                 Vector2f loc = new Vector2f(
                         sim.world().renderX(u) * AUDIO_WORLD_UNITS_PER_CELL,
                         sim.world().renderY(u) * AUDIO_WORLD_UNITS_PER_CELL);
