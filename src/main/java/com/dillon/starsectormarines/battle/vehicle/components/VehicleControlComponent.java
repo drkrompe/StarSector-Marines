@@ -54,9 +54,12 @@ public final class VehicleControlComponent {
     public float localPlanFailureTime;
     /** True after the immediate re-route attempt for the current uninterrupted local-plan failure. */
     public boolean localPlanFailureRerouteAttempted;
+    /** Seconds braked with no plan since the hull last backed off, which spaces its back-offs. */
+    public float planlessHold;
     /**
-     * Planless back-offs in a row without getting clear of where the first was ({@code VehicleControlSystem}): each
-     * restarts the plan-failure clock, so the count is what says a sealed-in hull has stopped converging.
+     * Planless back-offs in a row without getting clear of where the first was ({@code VehicleControlSystem}). While
+     * there are any, the plan-failure clock carries on through them and through the short plans they find, so the
+     * rungs above them and the order's give-up still come.
      */
     public int planlessReverses;
     /** Where the first of {@link #planlessReverses} began. */
