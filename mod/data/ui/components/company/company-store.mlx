@@ -1,6 +1,5 @@
 <template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,specRows,specNotes,specClasses,partClasses,specTopStyle,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,freeRailClasses,freeKeyClasses,freeLabel,freeAction,takeAllLabel,takeAllAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
       <img id="store-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="store-room-title" class="label heading tone-edge">{roomTitle}</div>
@@ -94,6 +93,7 @@
         </div>
       </div>
     </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
   </div>
 </template>
 

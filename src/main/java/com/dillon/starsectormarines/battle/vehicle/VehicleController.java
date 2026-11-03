@@ -258,6 +258,16 @@ public final class VehicleController {
     static final float REPLAN_INTERVAL_SEC = 0.25f;
     /** Off-corridor drift (cells) that forces an immediate replan rather than waiting out the interval. */
     static final float REPLAN_DRIFT_CELLS = 2.0f;
+
+    /**
+     * Whether being {@code offCorridorCells} off the corridor forces a replan. Only leaving the band does: a plan made
+     * from outside it already leads back, and a hull takes many ticks to get there, so asking again each of those
+     * ticks repeats the search for the same answer. The interval still refreshes such a plan.
+     */
+    static boolean driftForcesReplan(float offCorridorCells, boolean plannedOffCorridor) {
+        return !plannedOffCorridor && offCorridorCells > REPLAN_DRIFT_CELLS;
+    }
+
     /** Fraction of the current trajectory's length that may be consumed before a replan is forced (so we plan the next horizon before running out). */
     static final float REPLAN_CONSUMED_FRACTION = 0.5f;
     /** Brief persistence filter before an on-grid local-plan failure triggers a macro reroute. The vehicle brakes during this window; it never pursues the rejected coarse bend. */

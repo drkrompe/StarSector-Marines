@@ -46,6 +46,7 @@ public final class ComputedStyle {
         values.put(StyleProperty.BORDER_STYLE, UiBorderStyle.SOLID);
         values.put(StyleProperty.BACKGROUND_COLOR, null);
         values.put(StyleProperty.BACKGROUND_IMAGE, null);
+        values.put(StyleProperty.CORNER_CUT, CornerCut.NONE);
         values.put(StyleProperty.COLOR, null);
         values.put(StyleProperty.TEXT_SHADOW, null);
         values.put(StyleProperty.FONT_FAMILY, null);
@@ -175,6 +176,10 @@ public final class ComputedStyle {
 
     public LinearGradient backgroundImage() {
         return (LinearGradient) value(StyleProperty.BACKGROUND_IMAGE);
+    }
+
+    public CornerCut cornerCut() {
+        return (CornerCut) value(StyleProperty.CORNER_CUT);
     }
 
     public Color color() {
