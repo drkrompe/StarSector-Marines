@@ -5,8 +5,11 @@ import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.campaign.start.OpeningPort;
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.OfficerInduction;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.fs.starfarer.api.EveryFrameScript;
@@ -89,6 +92,7 @@ final class PlayCompany {
         roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
                 DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
         roster.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
+        commissionFieldCommander(roster);
         MarineRosterScript script = new MarineRosterScript() {
             @Override public MarineRoster roster() {
                 return roster;
@@ -129,6 +133,26 @@ final class PlayCompany {
                 return factions.computeIfAbsent(id, known -> faction(known, known));
             }
         });
+    }
+
+    /**
+     * The founding field commander, as the game's start adds them, with the lesson already behind the company: one
+     * specialty trained, the rest of the rank's points left to spend, and the line squads under their command. A debug
+     * company has no officers of its own, and a save from before this has none either, so a load comes through here too.
+     */
+    private static void commissionFieldCommander(MarineRoster company) {
+        if (company.size() > 0) return;
+        DebugCompanyStage stage = DebugCompanyStage.VETERAN_COMPANY;
+        MarineCaptain commander = new MarineCaptain("Morgan Hale", OfficerInduction.SABINE_PORTRAIT, stage.officerRank, 0f);
+        company.add(commander);
+        company.beginOfficerInduction(commander);
+        commander.train(OfficerSpecialty.TACTICAL_COVER);
+        List<String> line = DebugCompany.lineSquadIds(company);
+        company.assignCaptainToSquads(commander.id(),
+                line.subList(0, Math.min(line.size(), stage.officerRank.squadCommandCap())));
+        OfficerInduction lesson = company.officerInduction();
+        lesson.introduce(commander);
+        lesson.finish(company);
     }
 
     private static CampaignFleetAPI fleet() {
@@ -178,6 +202,7 @@ final class PlayCompany {
     /** Puts a saved campaign in place. No dialog may still be open over the old one. */
     static void restore(PlaySaves.State state) {
         roster = state.roster;
+        commissionFieldCommander(roster);
         campaign = state.campaign;
         saved = state.saved;
         HELD_CREDITS.set(state.credits);

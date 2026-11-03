@@ -86,6 +86,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   neither of the owner's. `-PplayProfile=owner` or `script` overrides that, which is how
   the owner opens saves a scripted walk left, and how a session opening a window by hand
   stays out of the owner's.
+- **The company** is a veteran one under its founding field commander, Morgan Hale, with
+  the officer lesson behind it; a save from before Hale was added gets Hale on load.
 - **What is not there:** stationing and a colony's screens land on HQ. The worlds have
   nothing on them the mission board does not read, and there is no flight between them. The clock stands
   at day zero and nothing saves: story progress holds for the run and a run starts
