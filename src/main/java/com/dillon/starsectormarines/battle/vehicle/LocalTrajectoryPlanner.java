@@ -55,6 +55,8 @@ public final class LocalTrajectoryPlanner {
      * reachable state count small. A blocked window exhausts well under this.
      */
     static final int LOCAL_MAX_ITERATIONS = 4000;
+    /** How far past its usual horizon, as a multiple of it, a plan round standing hulls may aim to get clear of them. */
+    static final float ROUND_GOAL_REACH = 3f;
 
     private LocalTrajectoryPlanner() {}
 
@@ -80,17 +82,51 @@ public final class LocalTrajectoryPlanner {
         }
     }
 
+    /** {@link #plan} keeping clear of {@code hulls} as well as terrain. */
+    static Trajectory planRound(Pose start, ReferenceCorridor corridor, VehicleType type, NavigationGrid grid,
+                                StandingHulls hulls) {
+        long started = VehicleWorkProfile.start();
+        try {
+            return planInner(start, corridor, type, grid, hulls, false);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_LOCAL_PLAN, started);
+        }
+    }
+
+    /** {@link #plan} on the bare footprint, for a hull already inside the planner's clearance. */
+    static Trajectory planOut(Pose start, ReferenceCorridor corridor, VehicleType type, NavigationGrid grid) {
+        long started = VehicleWorkProfile.start();
+        try {
+            return planInner(start, corridor, type, grid, null, true);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_LOCAL_PLAN, started);
+        }
+    }
+
     private static Trajectory planInner(Pose start, ReferenceCorridor corridor,
                                         VehicleType type, NavigationGrid grid) {
+        return planInner(start, corridor, type, grid, null, false);
+    }
+
+    private static Trajectory planInner(Pose start, ReferenceCorridor corridor, VehicleType type, NavigationGrid grid,
+                                        StandingHulls hulls, boolean bare) {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return null;
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
 
         Pose goal = corridor.targetAhead(start.x, start.y, horizon(turnRadius));
+        // A hull standing on the rolling goal would refuse every plan: aim past it.
+        if (hulls != null) {
+            float ahead = horizon(turnRadius), furthest = ROUND_GOAL_REACH * ahead;
+            while (hulls.blocks(goal.x, goal.y, goal.facingDeg) && ahead < furthest) {
+                ahead += 1f;
+                goal = corridor.targetAhead(start.x, start.y, ahead);
+            }
+        }
         float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS, GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);
 
         boolean routeEnd = samePoint(goal.x, goal.y, corridor.endX(), corridor.endY());
-        Trajectory terminal = routeEnd
+        Trajectory terminal = routeEnd && hulls == null && !bare
                 ? directTerminalTrajectory(start, goal, goalRadius, type, grid)
                 : null;
         if (terminal != null) return terminal;
@@ -103,9 +139,17 @@ public final class LocalTrajectoryPlanner {
         int maxX = (int) Math.ceil(Math.max(start.x, goal.x) + margin);
         int maxY = (int) Math.ceil(Math.max(start.y, goal.y) + margin);
 
-        float[][] refined = HybridAStarPlanner.planLocal(
-                start, goal, goalRadius, minX, minY, maxX, maxY,
-                LOCAL_MAX_ITERATIONS, type, grid);
+        float[][] refined;
+        if (bare) {
+            refined = HybridAStarPlanner.planLocalBare(start, goal, goalRadius, minX, minY, maxX, maxY,
+                    LOCAL_MAX_ITERATIONS, type, grid);
+        } else if (hulls != null) {
+            refined = HybridAStarPlanner.planLocal(start, goal, goalRadius, minX, minY, maxX, maxY,
+                    LOCAL_MAX_ITERATIONS, type, grid, hulls);
+        } else {
+            refined = HybridAStarPlanner.planLocal(start, goal, goalRadius, minX, minY, maxX, maxY,
+                    LOCAL_MAX_ITERATIONS, type, grid);
+        }
         if (refined == null) return null;
         return new Trajectory(refined[0], refined[1], refined[2]);
     }

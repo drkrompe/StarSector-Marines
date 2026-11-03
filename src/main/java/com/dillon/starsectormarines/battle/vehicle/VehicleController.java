@@ -256,6 +256,16 @@ public final class VehicleController {
 
     /** Max sim-seconds a local {@link Trajectory} is tracked before a fresh plan is requested. Keeps the rolling goal marching down the corridor. */
     static final float REPLAN_INTERVAL_SEC = 0.25f;
+    /** Held by another hull this long, seconds, a hull whose destination that hull has taken stops where it is. */
+    static final float DESTINATION_TAKEN_SECONDS = 1.5f;
+    /** Further than this from its destination, cells, a hull held by another is queueing, not arriving. */
+    static final float DESTINATION_TAKEN_CELLS = 10f;
+    /** Held by another hull this long, seconds, a hull backs off for the room to plan round it. */
+    static final float HULL_BACK_OFF_SECONDS = 2f;
+    /** How far a hull backs off another standing nose to it, cells. */
+    static final float HULL_BACK_OFF_CELLS = 2.5f;
+    /** How long a hull waits to search again beyond its ordinary plan, after finding nothing there, seconds. */
+    static final float SECOND_PLAN_RETRY_SECONDS = 1f;
     /** Off-corridor drift (cells) that forces an immediate replan rather than waiting out the interval. */
     static final float REPLAN_DRIFT_CELLS = 2.0f;
 
@@ -440,6 +450,12 @@ public final class VehicleController {
      */
     static float maxReverseDistance(float x, float y, float facingDeg,
                                     VehicleType type, NavigationGrid grid) {
+        return maxReverseDistance(x, y, facingDeg, type.visualLengthCells, type.visualWidthCells, grid);
+    }
+
+    /** {@link #maxReverseDistance(float, float, float, VehicleType, NavigationGrid)} for a footprint of this size. */
+    static float maxReverseDistance(float x, float y, float facingDeg,
+                                    float lengthCells, float widthCells, NavigationGrid grid) {
         float rad = (float) Math.toRadians(facingDeg);
         float bx =  (float) Math.sin(rad);   // reverse axis = −forward = −(−sinθ, cosθ)
         float by = -(float) Math.cos(rad);
@@ -448,7 +464,7 @@ public final class VehicleController {
             float nd = dist + REVERSE_MARCH_STEP;
             if (!VehicleTerrainMotion.isSweepFeasible(new Pose(x + bx * dist, y + by * dist, facingDeg),
                     new Pose(x + bx * nd, y + by * nd, facingDeg),
-                    type.visualLengthCells, type.visualWidthCells, grid)) {
+                    lengthCells, widthCells, grid)) {
                 break;
             }
             dist = nd;

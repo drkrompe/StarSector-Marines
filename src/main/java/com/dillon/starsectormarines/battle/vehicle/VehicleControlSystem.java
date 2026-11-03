@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import java.util.function.LongPredicate;
 
@@ -178,7 +179,7 @@ public final class VehicleControlSystem {
         }
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
-        advance(mission, body, type, s, xs, ys, dt, leg, goalFacingDeg);
+        advance(id, mission, body, type, s, xs, ys, dt, leg, goalFacingDeg);
         if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(previousX, previousY, previousFacing);
         }
@@ -253,6 +254,8 @@ public final class VehicleControlSystem {
         s.localPlanFailureTime = 0f;
         s.localPlanFailureRerouteAttempted = false;
         s.planlessHold = 0f;
+        s.secondPlanWait = 0f;
+        s.reverseKeepsClearance = false;
         s.dockingPath = null;
         s.dockingStartPose = null;
         s.dockingProgressCells = 0f;
@@ -281,7 +284,7 @@ public final class VehicleControlSystem {
      * no safe forward segment remains → off-map coarse-corridor crossing, with a
      * shared wall-stuck reverse stub wrapping the kinematic move.
      */
-    private void advance(VehicleMission mission, GroundBody body, VehicleType type,
+    private void advance(long id, VehicleMission mission, GroundBody body, VehicleType type,
                          VehicleControlComponent s, float[] xs, float[] ys, float dt, VehicleLeg leg,
                          float goalFacingDeg) {
         // Keep the advisory cursor abreast of the pose so remainingLength /
@@ -373,11 +376,29 @@ public final class VehicleControlSystem {
             return;
         }
 
+        // --- Held by a hull that is standing ---------------------------------
+        // Where it was going is taken: this is as near as it gets. Waiting there would only end in the two being let
+        // through each other, one parked on top of the other.
+        if (leg == VehicleLeg.MOVE_ORDER && s.hullHold >= VehicleController.DESTINATION_TAKEN_SECONDS
+                && distToLast <= VehicleController.DESTINATION_TAKEN_CELLS) {
+            float reach = distToLast + 2f * type.visualLengthCells;
+            StandingHulls standing = standingHulls(id, body, type, reach);
+            if (standing != null && standing.take(xs[lastIdx], ys[lastIdx], body.facingDegrees)) {
+                body.speed = 0f;
+                cancelPending(s);
+                s.arrived = true;
+                return;
+            }
+        }
+
         // --- Rolling local-trajectory refresh ------------------------------
         s.sinceReplan += dt;
+        s.secondPlanWait = Math.max(0f, s.secondPlanWait - dt);
         if (needsReplan(body, s)) {
             Pose pose = new Pose(body.x, body.y, body.facingDegrees);
             s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, planningGrid(type));
+            s.trajectory = s.trajectory != null ? planRoundStandingHulls(id, pose, body, type, s, s.trajectory)
+                    : planOutOfClearance(pose, type, s);
             s.plannedOffCorridor = s.corridor.offCorridorDistance(body.x, body.y) > VehicleController.REPLAN_DRIFT_CELLS;
             s.trajProgress = 0f;
             s.sinceReplan = 0f;
@@ -460,6 +481,13 @@ public final class VehicleControlSystem {
         if (s.trajectory != null) {
             clearPlanFailure(body, s);
             if (s.pivotTracking || s.pivotDirection != 0 || s.brushing) endPivotTracking(body, s);
+        }
+
+        // Nose up against a standing hull, a forward plan cannot swing clear of it. Back off for the room to.
+        if (s.trajectory != null && s.hullHold >= VehicleController.HULL_BACK_OFF_SECONDS
+                && beginHullBackOff(body, type, s)) {
+            s.hullHold = 0f;
+            return;
         }
 
         // --- Track (trajectory if we have one, else the coarse corridor) ---
@@ -556,6 +584,80 @@ public final class VehicleControlSystem {
      * to its end or past the consume fraction), or the body has just drifted off
      * the advisory corridor.
      */
+    /**
+     * The plan to follow given the hulls standing near: {@code plan} where it misses them, else one that goes round them
+     * ({@link StandingHulls}). Where nothing does the hull drives on as it is and queues behind them, so a search that
+     * has failed is not asked again for {@link VehicleController#PLAN_ROUND_RETRY_SECONDS}. A plan that misses them costs
+     * no search.
+     */
+    private Trajectory planRoundStandingHulls(long id, Pose pose, GroundBody body, VehicleType type,
+                                              VehicleControlComponent s, Trajectory plan) {
+        if (s.secondPlanWait > 0f) return plan;
+        StandingHulls standing = standingHulls(id, body, type, plan.lengthCells() + 2f * type.visualLengthCells);
+        if (standing == null || !standing.crossedBy(plan)) return plan;
+        Trajectory round = LocalTrajectoryPlanner.planRound(pose, s.corridor, type, planningGrid(type), standing);
+        if (round != null) return round;
+        s.secondPlanWait = VehicleController.SECOND_PLAN_RETRY_SECONDS;
+        return plan;
+    }
+
+    /**
+     * A hull inside the planner's clearance has no padded way forward from where it stands, however open the ground
+     * ahead: a shove or a corner put it there and nothing else takes it out. It plans out on the bare footprint, which
+     * its motion is swept on anyway, so hard ground is still never crossed. A search that fails waits, since the
+     * padded refusal it follows is cheap and comes every tick.
+     */
+    private Trajectory planOutOfClearance(Pose pose, VehicleType type, VehicleControlComponent s) {
+        if (s.secondPlanWait > 0f) return null;
+        NavigationGrid grid = planningGrid(type);
+        float clearance = HybridAStarPlanner.PLANNER_CLEARANCE;
+        if (VehicleFootprint.isPoseFeasible(pose.x, pose.y, pose.facingDeg, type.visualLengthCells + clearance,
+                type.visualWidthCells + clearance, grid)) return null;
+        if (!VehicleFootprint.isPoseFeasible(pose.x, pose.y, pose.facingDeg, type.visualLengthCells,
+                type.visualWidthCells, grid)) return null;
+        Trajectory out = LocalTrajectoryPlanner.planOut(pose, s.corridor, type, grid);
+        if (out == null) s.secondPlanWait = VehicleController.SECOND_PLAN_RETRY_SECONDS;
+        return out;
+    }
+
+    /**
+     * Backs a hull off another standing nose to it, for the room to plan round that hull. Goes straight back no further
+     * than its planner's clearance stays clear of the ground, or the room it gained would be a pose it cannot plan from.
+     * Not one of the ladder's attempts: those are for ground that cannot be driven, and spending them here would leave
+     * a hull nothing when it meets some.
+     */
+    private boolean beginHullBackOff(GroundBody body, VehicleType type, VehicleControlComponent s) {
+        float clearance = HybridAStarPlanner.PLANNER_CLEARANCE;
+        float room = VehicleController.maxReverseDistance(body.x, body.y, body.facingDegrees,
+                type.visualLengthCells + clearance, type.visualWidthCells + clearance, motionGrid(type));
+        if (room < VehicleController.MIN_USEFUL_REVERSE_CELLS) return false;
+        cancelPending(s);
+        s.reverseRemaining = Math.min(room, VehicleController.HULL_BACK_OFF_CELLS);
+        s.reverseKeepsClearance = true;
+        s.recovery = VehicleControlComponent.Recovery.REVERSING;
+        s.trajectory = null;
+        return true;
+    }
+
+    /** The friendly hulls standing within {@code reach} cells of this one, or {@code null} for none. */
+    private StandingHulls standingHulls(long id, GroundBody body, VehicleType type, float reach) {
+        StandingHulls standing = null;
+        Faction side = convoy.faction(id);
+        for (long other : convoy.entityIds()) {
+            if (other == id) continue;
+            GroundBody hull = convoy.body(other);
+            VehicleMission mission = convoy.mission(other);
+            VehicleType otherType = convoy.vehicleType(other);
+            if (hull == null || mission == null || otherType == null || !mission.isVisible()
+                    || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE) continue;
+            if (Math.abs(hull.speed) >= StandingHulls.STANDING_SPEED || body.distanceTo(hull.x, hull.y) > reach) continue;
+            if (side != null && side.hostileTo(convoy.faction(other))) continue;
+            if (standing == null) standing = new StandingHulls(new Pose(body.x, body.y, body.facingDegrees), type);
+            standing.add(hull.x, hull.y, hull.facingDegrees, otherType.visualLengthCells, otherType.visualWidthCells);
+        }
+        return standing;
+    }
+
     private boolean needsReplan(GroundBody body, VehicleControlComponent s) {
         // Following the corridor by pivot or brushing is a plan of its own; asking the forward planner every tick
         // would only repeat its refusal.
@@ -862,6 +964,16 @@ public final class VehicleControlSystem {
         Pose ahead = s.corridor.targetAhead(body.x, body.y, horizon);
 
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        if (s.reverseKeepsClearance) {
+            float back = VehicleController.WALL_REVERSE_SPEED * grid.groundSpeedMultiplier(body.x, body.y) * dt;
+            double rad = Math.toRadians(body.facingDegrees);
+            applyPose(body, new Pose(body.x + (float) Math.sin(rad) * back, body.y - (float) Math.cos(rad) * back,
+                    body.facingDegrees));
+            body.speed = -back / dt;
+            s.reverseRemaining -= back;
+            if (s.reverseRemaining <= 0f) endReverseRecovery(s);
+            return;
+        }
         body.tick(ahead.x, ahead.y, -VehicleController.WALL_REVERSE_SPEED
                 * grid.groundSpeedMultiplier(body.x, body.y), dt);
 
@@ -885,7 +997,9 @@ public final class VehicleControlSystem {
     /** Exit the reverse maneuver and force a fresh forward plan from the new, roomier pose. */
     private void endReverseRecovery(VehicleControlComponent s) {
         s.recovery = VehicleControlComponent.Recovery.NONE;
+        s.reverseKeepsClearance = false;
         s.trajectory = null;
+        s.secondPlanWait = 0f;
         s.sinceReplan = VehicleController.REPLAN_INTERVAL_SEC; // replan on the next forward tick
         s.wallStuckTime = 0f;
     }
