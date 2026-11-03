@@ -43,6 +43,8 @@ final class MarineOpsThemes {
                     border-style: solid;
                     grid-lines: 32px #46c8ff1c;
                 }
+                /* Spoken lines over a battle hold a firm backing, whatever ground is under them. */
+                #company-subtitle, #story-subtitle { background-color: #050f14f0; }
                 .surface-dark {
                     background-color: #02070af2;
                     background-image: none;
