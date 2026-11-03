@@ -19,58 +19,72 @@ final class MarineOpsThemes {
         return theme("""
                 :root {
                     font-family: body;
-                    color: #e4e7df;
-                    background-color: #111516;
+                    color: #c6d8e7;
+                    background-color: #03090d;
                 }
                 .heading { font-family: heading; }
                 .title { font-family: title; }
+                /* The base game's screen: near-black with a faint blue grid behind everything,
+                   and panels that are dark boxes on it with a thin blue line round them. A header
+                   stands forward in a brighter line with cut corners; nothing has relief. */
                 .panel {
-                    background-color: #292f30;
-                    border-color: #727b79;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 18%, #00000024 100%);
+                    background-color: #050f14a6;
+                    border-color: #335060;
+                    border-style: solid;
+                    background-image: none;
                 }
                 .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root,
-                .mech-lab-root, .boat-deck-root {
-                    border-color: #727b79;
-                    border-style: outset;
+                .mech-lab-root, .boat-deck-root, .store-root, .transfer-root,
+                .ship-view-root, .barracks-root {
+                    background-color: #03090d;
+                    border-color: #335060;
+                    border-style: solid;
+                    grid-lines: 32px #46c8ff1c;
                 }
+                /* Spoken lines over a battle hold a firm backing, whatever ground is under them. */
+                #company-subtitle, #story-subtitle { background-color: #050f14f0; }
                 .surface-dark {
-                    background-color: #101919;
+                    background-color: #02070af2;
                     background-image: none;
-                    border-style: inset;
+                    border-color: #335060;
+                    border-style: solid;
                 }
-                .tone-edge { color: #a7ccc4; }
-                .heading.tone-edge, .title.tone-edge { color: #d3d0c5; }
-                .tone-muted { color: #a0ada8; }
-                .tone-accent { color: #edc273; }
-                .tone-good { color: #78d494; }
-                .tone-danger { color: #e98b83; }
+                .tone-edge { color: #aadeff; }
+                .heading.tone-edge, .title.tone-edge { color: #cbf5ff; }
+                .tone-muted { color: #9caab6; }
+                .tone-accent { color: #ffd700; }
+                .tone-good { color: #9bff00; }
+                .tone-danger { color: #ff6400; }
+                /* The base game's action button: a flat teal plate with no border, cut at two
+                   opposite corners, with its colours from the game's settings (buttonBgDark over
+                   the dark screen, buttonText). A plate keeps its border's width, transparent, so
+                   no layout moves, and a state is a change of fill, not a change of relief. */
                 button {
-                    color: #e4e7df;
-                    background-color: #3c4444;
-                    border-color: #8d9690;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff1b 0%, #ffffff06 46%, #00000010 48%, #00000030 100%);
+                    color: #aadeff;
+                    background-color: #17424f;
+                    border-color: transparent;
+                    border-style: solid;
+                    background-image: none;
+                    corner-cut: 0px 7px 0px 7px;
                     transition: background-color 140ms ease-out, border-color 140ms ease-out,
                                 opacity 100ms linear;
                 }
-                button.selected { background-color: #494431; border-color: #edc273; border-style: inset; }
-                button.power-armed { background-color: #4a3c20; border-color: #edc273; color: #edc273; border-style: inset; }
-                button:hover { background-color: #505b58; }
-                button:active { background-color: #222c2a; border-style: inset; }
-                button:focus-visible { border-color: #ffe1a0; border-style: solid; }
-                button:disabled { opacity: 0.38; }
+                button.selected { background-color: #43798b; color: #dff4ff; }
+                button.power-armed { background-color: #6a4a12; color: #ffd200; }
+                button:hover { background-color: #24637a; }
+                button:active { background-color: #0e2d37; }
+                button:focus-visible { border-color: #aadeff; }
+                button:disabled { background-color: #364c52; color: #84909a; opacity: 1; }
                 .doctrine-card-active:disabled, .member-card:disabled { opacity: 1; }
                 .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
-                .edge-surface { background-color: #253b38; border-color: #a7ccc4; }
+                .edge-surface { background-color: #253b38; border-color: #77c4f6; }
                 .formation-select { background-color: transparent; background-image: none; }
-                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #d5deea; }
+                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #c7d8e8; }
                 .spec-card.spec-sheet-armor { border-color: #dfb84d; }
                 .spec-card:hover { background-color: #0e1a26; }
                 .spec-card.selected { background-color: #16242f; border-color: #f2cf68; border-style: solid; }
@@ -82,110 +96,76 @@ final class MarineOpsThemes {
                 .doctrine-issue-button:disabled { background-color: transparent; background-image: none; border-color: transparent; }
                 .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
-                #marine-ops-page-nav {
-                    background-color: #343634;
-                    border-color: #82857c;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff10 0%, #ffffff00 18%, #00000026 100%);
-                }
-                #marine-ops-page-context {
-                    background-color: #111b18;
-                    color: #b8c9ad;
-                    border-color: #727d73;
-                    border-style: inset;
-                }
-                #marine-ops-page-routes .page-nav-current {
-                    background-color: #393323;
-                    border-color: #edc273;
-                    color: #ffda8b;
-                    border-style: inset;
-                    background-image: linear-gradient(to bottom, #00000050 0%, #00000000 100%);
-                }
-                #marine-ops-page-routes .page-nav-current:hover { background-color: #50452e; }
+                #marine-ops-page-nav { background-color: transparent; background-image: none; }
+                #marine-ops-page-context { color: #aadeff; background-color: transparent; }
+                #marine-ops-page-routes .page-nav-current { background-color: #43798b; color: #dff4ff; }
+                #marine-ops-page-routes .page-nav-current:hover { background-color: #4e8a9e; }
                 .console-header {
-                    background-color: #343634;
-                    border-color: #82857c;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff10 0%, #ffffff00 18%, #00000026 100%);
+                    background-color: #071720e6;
+                    border-color: #82d6ff;
+                    border-style: solid;
+                    background-image: none;
+                    corner-cut: 0px 10px 0px 10px;
                 }
                 .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
                 .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
                 .console-section, .mission-briefing-root .section-heading-row {
-                    background-color: #303430;
-                    border-color: #6f736c;
-                    border-style: outset;
+                    background-color: #050f14d9;
+                    border-color: #335060;
+                    border-style: solid;
+                    background-image: none;
                 }
                 .console-readout {
-                    background-color: #202b27;
-                    border-color: #56675c;
-                    border-style: inset;
+                    background-color: #02070af2;
+                    border-color: #2c6a7e;
+                    border-style: solid;
                     background-image: none;
                 }
                 .console-well, .mission-detail-image-wrap, .commitment-section {
-                    background-color: #101a16;
-                    border-color: #69786b;
-                    border-style: inset;
+                    background-color: #02070af2;
+                    border-color: #335060;
+                    border-style: solid;
                     background-image: none;
                 }
-                .mission-glyph { background-color: #121d18; border-color: #65766a; border-style: inset; }
+                .mission-glyph { background-color: #02070a; border-color: #2c6a7e; border-style: solid; }
                 .debug-drawer-toggle { color: #edc273; border-color: #b99b63; }
-                .debug-control-value { color: #d6d5a3; }
+                .debug-control-value { color: #bbcbda; }
                 .mission-card.selected, .client-card.selected, .tier-step.selected {
-                    background-color: #494431;
-                    border-color: #edc273;
-                    border-style: inset;
-                    color: #ffe1a0;
+                    background-color: #1f4552; border-color: #aadeff; border-style: solid; background-image: none;
                 }
-                .mission-card:hover, .client-card:hover { background-color: #505b58; }
-                .mission-card:active, .client-card:active { background-color: #222c2a; }
                 /* Debug launcher cards: flat readout plates with a sunk badge, lit gold when chosen. */
                 .debug-card {
-                    background-color: #1f2826; border-color: #4f5d57; border-style: solid;
-                    background-image: linear-gradient(to bottom, #ffffff0a 0%, #ffffff00 35%, #00000020 100%);
+                    background-color: #0c1b22; border-color: #375a71; border-style: solid;
+                    background-image: none;
                 }
-                .debug-card:hover { background-color: #2b3734; border-color: #8d9a92; }
-                .debug-card:active { background-color: #151c1a; border-style: solid; }
+                .debug-card:hover { background-color: #10252f; border-color: #5d98bf; }
+                .debug-card:active { background-color: #081218; border-style: solid; }
                 .debug-card.selected { background-color: #332e1e; border-color: #edc273; border-style: solid; color: #ffe1a0; }
-                .debug-card-badge { background-color: #0f1714; border-color: #5d6d63; border-style: inset; }
+                .debug-card-badge { background-color: #0f1714; border-color: #406984; border-style: solid; }
                 .debug-card.selected .debug-card-badge { background-color: #1d180b; border-color: #b99b63; }
-                .console-command-rail {
-                    background-color: #101713; border-color: #697368; border-style: inset;
-                    background-image: none;
-                }
-                .console-command-rail button, .debug-drawer-toggle, .mission-briefing-root .debug-control-row button {
-                    color: #dfe3d4; background-color: #3c453e; border-color: #919887;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
-                }
-                .console-command-rail button:hover, .debug-drawer-toggle:hover, .mission-briefing-root .debug-control-row button:hover { background-color: #525d4e; }
-                .console-command-rail button:active, .debug-drawer-toggle:active, .mission-briefing-root .debug-control-row button:active {
-                    background-color: #222b24; border-style: inset;
-                }
-                .console-command-rail button:focus-visible, .debug-drawer-toggle:focus-visible, .mission-briefing-root .debug-control-row button:focus-visible {
-                    border-color: #ffe1a0; border-style: solid;
-                }
+                .console-command-rail { background-color: transparent; border-color: transparent; background-image: none; }
                 .console-command-signal, .console-toggle-lamp, .console-tier-lamp {
-                    background-color: #1a231a; border-color: #6b7562; border-style: inset;
+                    background-color: #0a171d; border-color: #45728f; border-style: solid;
                     background-image: none;
                 }
-                .console-command-rail .good-surface .console-command-signal { background-color: #a6c788; }
+                .console-command-rail .good-surface .console-command-signal { background-color: #3a83a7; }
                 .console-command-rail .briefing-blocked .console-command-signal { background-color: #e98b83; }
-                .console-command-rail .good-surface { color: #e8d9a7; }
+                .console-command-rail .good-surface { color: #c2d3e3; }
                 .console-command-rail .briefing-blocked { color: #e98b83; }
                 .mission-briefing-root .choice-row, .mission-briefing-root .tier-step, .debug-air-row button {
-                    background-color: #303a32; border-color: #76816e; border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 12%, #00000020 100%);
+                    background-color: #112732; border-color: #4d7e9e; border-style: solid;
+                    background-image: none;
                 }
                 .mission-briefing-root .choice-row.selected, .mission-briefing-root .tier-step.selected,
                 .debug-air-row button.selected {
-                    background-color: #20291f; border-color: #a89b70; border-style: inset;
-                    background-image: none; color: #e9d29b;
+                    background-color: #0c1b22; border-color: #5f9dc5; border-style: solid;
+                    background-image: none; color: #becedd;
                 }
-                .debug-drawer-toggle.expanded { background-color: #20291f; background-image: none; border-style: inset; }
+                .debug-drawer-toggle.expanded { background-color: #0c1b22; background-image: none; border-style: solid; }
                 .mission-briefing-root .choice-row:hover, .mission-briefing-root .tier-step:hover,
-                .debug-air-row button:hover { background-color: #424d3c; }
+                .debug-air-row button:hover { background-color: #173442; }
                 .mission-briefing-root .choice-row:active, .mission-briefing-root .tier-step:active,
-                .debug-air-row button:active { background-color: #182219; border-style: inset; }
+                .debug-air-row button:active { background-color: #0a161c; border-style: solid; }
                 .mission-briefing-root .choice-row:focus-visible, .mission-briefing-root .tier-step:focus-visible,
                 .debug-air-row button:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 .tier-step.selected .console-tier-lamp {
@@ -193,58 +173,56 @@ final class MarineOpsThemes {
                 }
 
                 .mission-briefing-root .spec-sheet {
-                    background-color: #141e19; border-color: #b9a16b; color: #e4e7df;
+                    background-color: #081318; border-color: #b9a16b; color: #cee1f1;
                 }
                 .mission-briefing-root .spec-sheet-title { color: #edc273; }
-                .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #a0ada8; }
+                .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #98a5b1; }
 
-                /* Shared command keys and latching selectors; dimensions belong to each surface. */
-                .console-action, .slot-strip-action, .fabricate-action,
-                #marine-ops-page-routes button,
-                .console-toggle, .fire-team-tab, .equipment-picker-tab,
-                .supply-filter, .catalog-filter-pill,
-                .team-tab {
-                    color: #dfe3d4; background-color: #3c453e; border-color: #919887;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
+                /* The base game's two other button shapes. A tab is cut at both top corners and
+                   lights when chosen, as the market's Sell and Buy do; a filter is a hollow outline
+                   that fills gold when chosen, as the intel screen's are. Any other command key is
+                   the plain action button above. */
+                .console-toggle, .fire-team-tab, .equipment-picker-tab, .team-tab {
+                    corner-cut: 7px 7px 0px 0px;
                 }
-                .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
-                #marine-ops-page-routes button:hover,
-                .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
-                .supply-filter:hover, .catalog-filter-pill:hover,
-                .team-tab:hover { background-color: #525d4e; }
-                .console-action:active, .slot-strip-action:active, .fabricate-action:active,
-                #marine-ops-page-routes button:active,
-                .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
-                .supply-filter:active, .catalog-filter-pill:active,
-                .team-tab:active { background-color: #222b24; border-style: inset; }
-                .console-action:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
-                #marine-ops-page-routes button:focus-visible,
-                .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
-                .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
-                .team-tab:focus-visible { border-color: #ffe1a0; border-style: solid; }
-                .console-toggle.selected, .fire-team-tab.selected, .equipment-picker-tab.selected,
-                .supply-filter.selected, .catalog-filter-pill.selected,
-                .team-tab.selected {
-                    background-color: #20291f; border-color: #a89b70; color: #e9d29b;
-                    border-style: inset; background-image: none;
+                .supply-filter, .catalog-filter-pill {
+                    corner-cut: 0px; background-color: #00000080; color: #e8f4f8; border-color: #2c6a7e;
                 }
+                .supply-filter:hover, .catalog-filter-pill:hover { background-color: #17424f; }
+                .supply-filter:active, .catalog-filter-pill:active { background-color: #0e2d37; }
+                .supply-filter.selected, .catalog-filter-pill.selected {
+                    background-color: #6e5400; border-color: #c9a227; color: #ffd200;
+                }
+                button.good-surface { background-color: #1e5a3a; color: #a3ef80; border-color: transparent; }
+                button.good-surface:hover { background-color: #2a7a4e; }
+                button.warning-surface { background-color: #5a4610; color: #ffd200; border-color: transparent; }
+                button.warning-surface:hover { background-color: #755c15; }
+                button.danger-surface { background-color: #4d2a26; color: #f0a1a1; border-color: transparent; }
+                button.danger-surface:hover { background-color: #663732; }
+                /* Cards are buttons to the pointer, not to the eye: they keep their own square frame. */
+                .spec-card, .doctrine-card-active, .member-card, .formation-select, .mission-card,
+                .client-card, .debug-card, .debug-kit-card, .stationing-card, .deck-station, .deck-marker,
+                .specialty-node, .kit-specialty-node, .systems-row, .systems-core-row, .choice-row, .tier-step,
+                .doctrine-issue-button, .slot-select-button, .command-card { corner-cut: 0px; }
+                .mission-card, .client-card, .command-card { background-color: #131d21; border-color: #2c6a7e; }
+                .mission-card:hover, .client-card:hover, .command-card:hover { background-color: #1a2e36; border-color: #2c6a7e; }
+                .command-card.selected { background-color: #1f4552; border-color: #aadeff; }
                 /* A command key's label sits in the middle of the key; set here so no screen has to. */
-                .console-action { text-align: center; }
-                .console-action.danger-surface { color: #e98b83; border-color: #a4756c; }
-                .console-action.good-surface { color: #e8d9a7; }
+                .console-action { text-align: center; font-family: body; }
+                .console-action.danger-surface { color: #f0a1a1; background-color: #4d2a26; border-color: transparent; }
+                .console-action.good-surface { color: #dff4ff; background-color: #1f6b7f; border-color: transparent; }
                 .console-toggle-lamp { width: 6px; height: 6px; border-width: 1px; pointer-events: none; }
                 .console-toggle.selected .console-toggle-lamp,
                 .page-nav-current .console-toggle-lamp { background-color: #edc273; border-color: #edc273; }
-                .spec-sheet { background-color: #141e19; border-color: #b9a16b; color: #e4e7df; }
+                .spec-sheet { background-color: #081318; border-color: #b9a16b; color: #cee1f1; }
                 .spec-sheet-title { color: #edc273; }
-                .spec-sheet-subtitle, .spec-sheet-stat-label { color: #a0ada8; }
+                .spec-sheet-subtitle, .spec-sheet-stat-label { color: #98a5b1; }
                 .console-key-legend {
                     width: 0px; flex-grow: 1; height: auto; padding: 0px;
-                    font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
+                    font-family: body; text-align: center; overflow: hidden; pointer-events: none;
                 }
-                .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
-                .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
+                /* The console keys' lamps and grips: a base-game button is its plate and its words. */
+                .console-key-grip, .console-command-signal, button .console-toggle-lamp { display: none; }
                 /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
                    in the cards' own navy and edge colours rather than the console's. After the
                    console block so a surface that also carries a console class takes these. */
@@ -252,8 +230,8 @@ final class MarineOpsThemes {
                     background-image: none; border-style: solid; border-width: 1px;
                     font-family: heading; text-align: center;
                 }
-                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
-                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8995a0; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #c7d8e8; }
                 .spec-tab:active { background-color: #060d14; border-style: solid; }
                 .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
                 /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
@@ -261,7 +239,7 @@ final class MarineOpsThemes {
                 .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
                 .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
                 .spec-action:active { background-color: #100d04; border-style: solid; }
-                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #a9b8c5; }
                 .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 /* Battle glass: the battle HUD draws on the field itself, with no panel behind it, so
                    the fight shows through. A document's root opts in with hud-glass. Text keeps a
@@ -270,12 +248,17 @@ final class MarineOpsThemes {
                    does. Last in the sheet, so it wins over the console button rules above. */
                 .hud-glass { text-shadow: #000000d9; background-color: transparent; background-image: none; }
                 .hud-glass button {
+                    corner-cut: 0px;
                     color: #e4e9e4; background-color: #0a0e1040; background-image: none;
                     border-style: solid; border-color: #c3cec933;
                 }
                 .hud-glass button:hover { background-color: #ffffff17; border-color: #c3cec9aa; }
                 .hud-glass button:active { background-color: #00000066; border-style: solid; }
                 .hud-glass button:focus-visible { border-color: #ffe1a0; }
+                .hud-glass .console-action { font-family: heading; }
+                .hud-glass button:disabled { background-color: #0a0e1040; color: #e4e9e4; opacity: 0.38; }
+                .hud-glass button.good-surface { background-color: #132b22; border-color: #78d494; color: #e4e9e4; }
+                .hud-glass button.warning-surface { background-color: #332b1c; border-color: #ffd464; }
                 .hud-glass button.selected, .hud-glass button.power-armed,
                 .hud-glass .doctrine-card-active, .hud-glass .pick-selected, .hud-glass .ship-selected {
                     background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464; border-style: solid;
@@ -411,12 +394,12 @@ final class MarineOpsThemes {
                     new Color(0xFF, 0xE4, 0x5C), Color.WHITE,
                     new Color(0xC4, 0xD1, 0xDF));
         }
-        return new CanvasPalette(new Color(0x3C, 0x44, 0x44),
-                new Color(0x49, 0x44, 0x31), new Color(0x3D, 0x2A, 0x26),
-                new Color(0x13, 0x2B, 0x22), new Color(0xA7, 0xCC, 0xC4),
-                new Color(0x72, 0x7B, 0x79), new Color(0x78, 0xD4, 0x94),
-                new Color(0xED, 0xC2, 0x73), new Color(0xE4, 0xE7, 0xDF),
-                new Color(0xA0, 0xAD, 0xA8));
+        return new CanvasPalette(new Color(0x17, 0x42, 0x4F),
+                new Color(0x43, 0x79, 0x8B), new Color(0x4D, 0x2A, 0x26),
+                new Color(0x1E, 0x5A, 0x3A), new Color(0xAA, 0xDE, 0xFF),
+                new Color(0x33, 0x50, 0x60), new Color(0x9B, 0xFF, 0x00),
+                new Color(0xFF, 0xD7, 0x00), new Color(0xDC, 0xDC, 0xDC),
+                new Color(0x9F, 0xB2, 0xBA));
     }
 
     private static UiTheme theme(String css) {

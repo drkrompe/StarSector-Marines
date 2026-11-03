@@ -15,11 +15,11 @@
   .performance-meter { flex-direction: row; align-items: center; width: 100%; height: 25px; padding: 0px 2px; gap: 4px; }
   .meter-label { width: 94px; height: 16px; }
   .meter-value { width: 120px; height: 16px; text-align: right; }
-  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 10px; padding: 0px; background-color: #121719; border-width: 1px; }
-  .meter-fill { position: absolute; top: 0px; height: 100%; background-color: #acae96; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 10px; padding: 0px; background-color: #071014; border-width: 1px; }
+  .meter-fill { position: absolute; top: 0px; height: 100%; background-color: #377b9d; }
   .meter-gain { position: absolute; top: 0px; height: 100%; }
   .meter-deficit { position: absolute; top: 0px; height: 100%; background-color: #5a2424; }
-  .meter-stock { position: absolute; top: 0px; width: 2px; height: 100%; background-color: #e8e4cc; }
+  .meter-stock { position: absolute; top: 0px; width: 2px; height: 100%; background-color: #48a3d0; }
   .meter-ghost { position: absolute; top: 0px; height: 100%; }
   .meter-ghost.gain { background-color: #f2f0dc; opacity: 0.55; }
   .meter-ghost.loss { background-color: #ff5a4a; opacity: 0.75; }

@@ -67,8 +67,8 @@
   .refit-choices { flex-direction: column; width: 600px; }
   .refit-option { flex-direction: row; gap: 6px; }
   .refit-option-tab { flex-direction: column; align-items: center; width: 60px; padding: 0px; gap: 4px; }
-  .refit-option-caption { width: 58px; height: 14px; padding: 12px 0px 0px 0px; color: #8b9aaf; text-align: center; }
-  .refit-option-letter { width: 58px; height: 32px; font-family: display; color: #d5deea; text-align: center; }
+  .refit-option-caption { width: 58px; height: 14px; padding: 12px 0px 0px 0px; color: #8995a0; text-align: center; }
+  .refit-option-letter { width: 58px; height: 32px; font-family: display; color: #c7d8e8; text-align: center; }
   .refit-option-tab.selected .refit-option-letter { color: #f2cf68; }
   .refit-paths { flex-direction: column; height: 546px; gap: 12px; }
   .refit-squad-column { flex-direction: column; width: 0px; flex-grow: 1; }

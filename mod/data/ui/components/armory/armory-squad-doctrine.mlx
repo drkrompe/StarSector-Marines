@@ -51,21 +51,21 @@
   /* The tiers as the Mech Lab's stores filter them: a pill each, its chevrons on the tier's tone. */
   #loadout-filter-list { flex-direction: row; height: 34px; gap: 3px; }
   .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
-  .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
+  .supply-filter.selected { background-color: #142d39; border-color: #74bfef; color: #c7d8e8; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 0px; gap: 5px; border-width: 0px; overflow: hidden; }
   .picker-hidden { display: none; }
   /* The catalogue is stores, as the Mech Lab keeps them: a black pit sunk into the panel, its lip
      in shadow at the top and left and lit at the bottom and right, the floor darkening under the
      top lip, and the cards standing proud of it with black showing on every side. */
-  .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; padding: 10px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 6%); overflow: scroll; }
+  .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; padding: 10px 24px; border-width: 3px; border-style: inset; border-color: #2c485a; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 6%); overflow: scroll; }
 
   .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }
   .cargo-costs.empty { height: 0px; gap: 0px; }
   .cargo-cost { width: 236px; height: 25px; flex-direction: row; padding: 2px 4px; gap: 4px; border-width: 1px; border-color: #50677e; background-color: #101a25; }
   .cargo-cost.short { border-color: #a95252; background-color: #261616; color: #f09a9a; }
   .cargo-cost-icon { width: 19px; height: 19px; }
-  .cargo-cost-label { width: 0px; height: 19px; flex-grow: 1; padding: 2px 0px; color: #b8c6d6; }
+  .cargo-cost-label { width: 0px; height: 19px; flex-grow: 1; padding: 2px 0px; color: #b0c0cd; }
   .cargo-cost.short .cargo-cost-label { color: #f09a9a; }
   #squad-equip-row { flex-direction: row; gap: 7px; }
   .transaction-result-empty { width: 0px; flex-grow: 1; height: 0px; }

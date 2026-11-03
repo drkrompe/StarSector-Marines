@@ -91,7 +91,7 @@
   .stationing-term-controls button { width: 54px; padding: 15px; border-width: 1px; font-family: title; text-align: center; }
   .stationing-retainer { flex-direction: column; height: 84px; padding: 10px; gap: 9px; border-width: 1px; }
   .stationing-notice { flex-direction: column; height: 112px; padding: 11px; gap: 10px; border-width: 1px; }
-  .stationing-notice.neutral { border-color: #263b51; color: #8b9aaf; }
+  .stationing-notice.neutral { border-color: #263b51; color: #8995a0; }
   .stationing-notice.warning { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
   .stationing-notice.danger { background-color: #3d2a26; border-color: #e98b83; color: #e98b83; }
   .stationing-formation { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
@@ -118,16 +118,16 @@
   .mission-flow-actions button { height: 32px; padding: 5px 10px; }
   .stationing-overview { width: 390px; gap: 7px; }
   .stationing-overview-rows { height: 210px; padding: 5px; }
-  .stationing-overview-row { height: 34px; padding: 7px; border-color: #46545e; }
-  .stationing-term-controls { height: 54px; padding: 8px; align-items: center; background-color: #182228; border-color: #4c5b64; }
+  .stationing-overview-row { height: 34px; padding: 7px; border-color: #325368; }
+  .stationing-term-controls { height: 54px; padding: 8px; align-items: center; background-color: #182228; border-color: #365970; }
   .stationing-retainer { height: 72px; padding: 8px; gap: 6px; }
   .stationing-notice .label { white-space: normal; }
   .formation-heading { height: 56px; padding: 7px 9px; }
   .formation-summary { width: 360px; padding: 10px 4px; }
   .captain-strip { height: 98px; overflow: scroll; }
-  .captain-card { width: 280px; height: 74px; gap: 6px; background-color: #252b30; border-color: #64717b; }
-  .stationing-squad-card { width: 345px; height: 74px; gap: 6px; background-color: #252b30; border-color: #64717b; }
-  .captain-card:hover, .stationing-squad-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .captain-card { width: 280px; height: 74px; gap: 6px; background-color: #0d1e26; border-color: #44708d; }
+  .stationing-squad-card { width: 345px; height: 74px; gap: 6px; background-color: #0d1e26; border-color: #44708d; }
+  .captain-card:hover, .stationing-squad-card:hover { background-color: #142c39; border-color: #65a7d1; }
   .captain-card.selected, .stationing-squad-card.selected { background-color: #253b42; border-color: #d4b569; }
   .stationing-term-copy { height: 48px; }
   .stationing-term-copy .heading { height: 16px; }

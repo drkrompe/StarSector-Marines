@@ -46,6 +46,8 @@ final class StyleValues {
             case BORDER_WIDTH -> parseBorderWidth(value);
             case BORDER_STYLE -> parseBorderStyle(value);
             case BACKGROUND_IMAGE -> LinearGradient.parse(value);
+            case CORNER_CUT -> CornerCut.parse(value);
+            case GRID_LINES -> parseGridLines(value);
             case GAP, PADDING -> throw new IllegalArgumentException("Shorthands expand in StyleDeclaration");
             case OVERFLOW -> parseOverflow(value);
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
@@ -56,6 +58,24 @@ final class StyleValues {
             case OPACITY -> opacity(value);
             case TRANSITION -> parseTransitions(value);
         };
+    }
+
+    private static GridLines parseGridLines(String value) {
+        if (value.equalsIgnoreCase("none")) return null;
+        String[] parts = value.trim().split("\\s+");
+        if (parts.length != 2 || !parts[0].endsWith("px")) {
+            throw new UiStyleException("grid-lines takes none or a pixel spacing and a color: " + value);
+        }
+        float spacing;
+        try {
+            spacing = Float.parseFloat(parts[0].substring(0, parts[0].length() - 2));
+        } catch (NumberFormatException failure) {
+            throw new UiStyleException("grid-lines takes none or a pixel spacing and a color: " + value);
+        }
+        if (!(spacing >= 1f) || !Float.isFinite(spacing)) {
+            throw new UiStyleException("grid-lines spacing must be at least one pixel: " + value);
+        }
+        return new GridLines(spacing, parseColor(parts[1]));
     }
 
     private static UiDisplay parseDisplay(String value) {

@@ -84,15 +84,15 @@
   .loot-summary { height: 78px; padding: 8px 10px; gap: 10px; }
   .loot-summary-copy { width: 470px; gap: 6px; }
   .loot-instructions { padding: 10px; white-space: normal; }
-  .loot-card { width: 350px; height: 118px; padding: 8px; gap: 9px; align-items: flex-start; background-color: #252b30; border-color: #64717b; }
-  .loot-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .loot-card { width: 350px; height: 118px; padding: 8px; gap: 9px; align-items: flex-start; background-color: #0d1e26; border-color: #44708d; }
+  .loot-card:hover { background-color: #142c39; border-color: #65a7d1; }
   .loot-card.selected { background-color: #253b42; border-color: #d4b569; }
   .loot-icon { width: 68px; height: 68px; }
   .loot-card-copy { gap: 5px; }
   .loot-settlement { height: 68px; padding: 8px 10px; }
   .settlement-cell { width: 360px; gap: 5px; }
   #mission-loot-hold { width: 520px; }
-  .loot-check { width: 22px; height: 22px; padding: 4px; border-width: 1px; border-color: #91a9b8; background-color: #161b1f; }
+  .loot-check { width: 22px; height: 22px; padding: 4px; border-width: 1px; border-color: #65a7d1; background-color: #081318; }
   .loot-check-mark { width: 12px; height: 12px; opacity: 0; }
   .loot-check.checked { border-color: #d4b569; }
   .loot-check.checked .loot-check-mark { opacity: 1; background-color: #78d494; }

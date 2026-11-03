@@ -1,6 +1,5 @@
 <template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,specRows,specNotes,specClasses,partClasses,specTopStyle,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,freeRailClasses,freeKeyClasses,freeLabel,freeAction,takeAllLabel,takeAllAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
       <img id="store-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="store-room-title" class="label heading tone-edge">{roomTitle}</div>
@@ -94,6 +93,7 @@
         </div>
       </div>
     </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
   </div>
 </template>
 
@@ -109,11 +109,11 @@
   .store-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
   .store-categories { flex-direction: column; width: 270px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .store-category-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .store-cat { flex-direction: row; width: 100%; height: 28px; gap: 8px; padding: 0px 8px 0px 0px; border-width: 1px; text-align: left; align-items: center; background-color: #20282d; border-color: #526065; }
-  .store-cat.section { height: 46px; background-color: #2a3238; border-color: #6a7a80; font-family: heading; }
+  .store-cat { flex-direction: row; width: 100%; height: 28px; gap: 8px; padding: 0px 8px 0px 0px; border-width: 1px; text-align: left; align-items: center; background-color: #0c1b23; border-color: #395e76; }
+  .store-cat.section { height: 46px; background-color: #0f232c; border-color: #497897; font-family: heading; }
   .store-cat.slot { padding: 0px 8px 0px 14px; }
   .store-cat-strip { width: 5px; height: 100%; pointer-events: none; }
-  .store-cat-strip.sec-MARINE { background-color: #8fcf8a; }
+  .store-cat-strip.sec-MARINE { background-color: #3a82a6; }
   .store-cat-strip.sec-MECHS { background-color: #e8b45a; }
   .store-cat-strip.sec-BOATS { background-color: #72bde8; }
   .store-cat.selected { background-color: #183b50; border-color: #ffd464; }
@@ -124,7 +124,7 @@
   .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 36px; white-space: normal; }
   .store-offer-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .store-row { flex-direction: row; align-items: center; width: 100%; height: 74px; padding: 8px 10px; gap: 10px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; }
+  .store-row { flex-direction: row; align-items: center; width: 100%; height: 74px; padding: 8px 10px; gap: 10px; border-width: 2px; text-align: left; background-color: #0c1b23; border-color: #395e76; }
   .store-row.selected { background-color: #183b50; border-color: #ffd464; }
   .store-row.acquired { opacity: 0.55; border-color: #4f9a68; }
   .store-offer-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
@@ -163,8 +163,8 @@
   .store-spec-track.none { display: none; }
   .store-spec-fill { height: 5px; background-color: #e2965c; }
   .store-spec-notes { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .store-spec-note { width: 100%; height: auto; white-space: normal; color: #b9c4cf; }
-  .store-spec-note.lead { color: #e6d8b4; }
+  .store-spec-note { width: 100%; height: auto; white-space: normal; color: #afbecc; }
+  .store-spec-note.lead { color: #c2d4e3; }
   .store-selected-detail { width: 100%; height: auto; padding: 10px 12px; border-width: 2px; white-space: normal; }
   .store-verdict-bar { flex-direction: row; height: 66px; padding: 8px 10px; gap: 16px; border-width: 2px; align-items: center; }
   .store-verdict-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }

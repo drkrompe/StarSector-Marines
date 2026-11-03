@@ -1,6 +1,5 @@
 <template props="resourceStock,roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,costLabel,costClasses,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="transfer-root" class="transfer-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="transfer-room-bar" class="panel transfer-room-bar console-header">
       <img id="ship-transfer-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="transfer-room-title" class="label heading tone-edge">{roomTitle}</div>
@@ -56,6 +55,7 @@
         </div>
       </div>
     </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
   </div>
 </template>
 
@@ -72,17 +72,17 @@
   .fleet-rail { flex-direction: column; width: 306px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 22px; }
   .fleet-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .transfer-row { flex-direction: row; width: 100%; height: 118px; padding: 9px; gap: 8px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; align-items: center; }
+  .transfer-row { flex-direction: row; width: 100%; height: 118px; padding: 9px; gap: 8px; border-width: 2px; text-align: left; background-color: #0c1b23; border-color: #395e76; align-items: center; }
   .transfer-row.selected { background-color: #183b50; border-color: #ffd464; }
   .transfer-row.current { border-color: #4f9a68; }
-  .transfer-row.unsupported { opacity: 0.55; border-color: #3a4452; }
+  .transfer-row.unsupported { opacity: 0.55; border-color: #294455; }
   .ship-name { height: auto; white-space: normal; }
   .ship-hull, .ship-detail, .ship-cost { height: auto; white-space: normal; }
   .transfer-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 9px; overflow: hidden; border-width: 2px; }
   .selected-heading { flex-direction: row; height: 70px; padding: 8px 10px; gap: 8px; align-items: center; border-width: 2px; }
   .selected-copy { flex-direction: column; height: 52px; width: 0px; flex-grow: 1; gap: 6px; }
   .selected-name { height: 25px; font-family: title; }
-  .transfer-commit { width: 254px; height: 42px; padding: 5px; border-width: 3px; border-color: #ffd464; background-color: #343c3e; }
+  .transfer-commit { width: 254px; height: 42px; padding: 5px; border-width: 3px; border-color: #ffd464; background-color: #132a35; }
   .transfer-commit.current { border-color: #31485f; opacity: 0.6; }
   .transfer-commit.unaffordable { border-color: #c44b4b; opacity: 0.55; }
   .commit-label { height: auto; text-align: center; white-space: normal; }
@@ -93,8 +93,8 @@
   .transfer-cost.short { color: #c44b4b; }
   .facilities-panel { flex-direction: column; height: 184px; padding: 9px; gap: 8px; border-width: 2px; }
   .facility-cells { display: grid; height: 156px; flex-grow: 0; gap: 8px; overflow: scroll; }
-  .facility-cell { flex-direction: column; width: 236px; height: 58px; padding: 7px; gap: 6px; border-width: 1px; border-color: #526065; background-color: #20282d; }
-  .facility-cell.absent { opacity: 0.5; border-color: #3a4452; }
+  .facility-cell { flex-direction: column; width: 236px; height: 58px; padding: 7px; gap: 6px; border-width: 1px; border-color: #395e76; background-color: #0c1b23; }
+  .facility-cell.absent { opacity: 0.5; border-color: #294455; }
   .facility-cell.better { border-color: #4f9a68; }
   .facility-cell.worse { border-color: #c44b4b; background-color: #331c1c; }
   .facility-label { height: 15px; }

@@ -27,7 +27,7 @@
   .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
   .card-chip-icon { width: 44px; height: 44px; pointer-events: none; }
   .card-chip-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
-  .card-chip-kind { height: 14px; color: #8b9aaf; }
+  .card-chip-kind { height: 14px; color: #8995a0; }
   .card-chip-weapon .card-chip-kind { color: #53c6e8; }
   .card-chip-armor .card-chip-kind { color: #dfb84d; }
   .card-chip-name { height: 18px; color: #eaf3ff; overflow: hidden; }

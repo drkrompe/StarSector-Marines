@@ -20,9 +20,9 @@
 </template>
 <style>
   .preparation-overlay, .preparation-shade { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
-  .preparation-callout { position: absolute; flex-direction: column; width: 500px; height: 364px; padding: 12px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #202d28; pointer-events: auto; }
+  .preparation-callout { position: absolute; flex-direction: column; width: 500px; height: 364px; padding: 12px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #0d1d25; pointer-events: auto; }
   .preparation-heading { flex-direction: row; align-items: start; height: 106px; gap: 12px; }
-  .preparation-portrait { width: 84px; height: 84px; border-width: 2px; border-color: #8a967f; }
+  .preparation-portrait { width: 84px; height: 84px; border-width: 2px; border-color: #5993b8; }
   .preparation-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .preparation-speaker { white-space: normal; min-height: 36px; font-family: heading; color: #dfc588; }
   .preparation-title { min-height: 38px; white-space: normal; font-family: heading; }
@@ -30,7 +30,7 @@
   .preparation-copy { white-space: normal; overflow: scroll; }
   .preparation-copy-fill { height: 0px; flex-grow: 1; }
   .preparation-actions { flex-direction: row; height: 42px; gap: 10px; }
-  .preparation-button { text-align: center; white-space: normal; width: 160px; min-height: 40px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
+  .preparation-button { text-align: center; white-space: normal; width: 160px; min-height: 40px; border-width: 1px; border-color: #dfc588; background-color: #142e3b; font-family: heading; }
   .preparation-corner { width: 110px; min-height: 30px; height: 30px; }
   .preparation-hidden { display: none; }
 </style>

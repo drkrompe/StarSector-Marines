@@ -4,7 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
+Updated: 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
+
+Earlier 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
 it and follows its orders.
 
@@ -109,6 +111,10 @@ them.
   spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
   from Equipment or a squad inspection rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
+- The **page bar** is the shell's persistent navigation, at the foot of every room:
+  the base game's own bottom-menu holder image (`tripad_bot_left_button_widget2.png`,
+  read from the game, never copied into the mod), one to one, with one route in each
+  of its seven slots. Eight routes would need a new holder.
 - A **page route** is one button on the shell's persistent navigation, and a
   route that names a compartment is answered by the ship rather than by the page:
   a hull that has no such place shows the button greyed and unreachable, and one
@@ -395,6 +401,20 @@ floats over the battle, and a halo keeps a pale label readable over pale ground 
 any direction.
 
 ## Console materials
+
+Rooms have left this material for the base game's. A room's screen is near-black
+with a faint blue grid behind everything (`grid-lines`), its panels are dark boxes
+with a thin blue line and no relief, a header stands forward in a brighter line with
+cut corners, and its text is the game's white-grey, pale blue and gold. The housing
+language below survives only in the battle and developer sheets. A button takes the base game's look so the
+mod's screens read as part of it: a flat teal plate with no border or relief,
+`corner-cut` at two opposite corners, in the colours of the game's `buttonBgDark`
+and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
+both top corners and a filter is a hollow outline that fills gold when chosen, as
+the market's and intel screen's are. `corner-cut` is painting only: layout and
+hit-testing keep the rectangle, and a cut box draws no gradient or bevel. A card is
+a button to the pointer but keeps its square frame. Battle glass keeps its own
+buttons.
 
 The standard shipboard theme evokes a late-1990s military computer: gunmetal
 housings, raised keys, recessed instrument readouts, muted phosphor text, and
