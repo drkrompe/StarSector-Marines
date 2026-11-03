@@ -377,6 +377,7 @@ public final class VehicleControlSystem {
         if (needsReplan(body, s)) {
             Pose pose = new Pose(body.x, body.y, body.facingDegrees);
             s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, planningGrid(type));
+            s.plannedOffCorridor = s.corridor.offCorridorDistance(body.x, body.y) > VehicleController.REPLAN_DRIFT_CELLS;
             s.trajProgress = 0f;
             s.sinceReplan = 0f;
             s.trajCarrotAtEnd = false;
@@ -552,8 +553,8 @@ public final class VehicleControlSystem {
     /**
      * Decide whether to request a fresh local plan this tick: no current plan,
      * the replan interval elapsed, the current plan is consumed (carrot pinned
-     * to its end or past the consume fraction), or the body has drifted off the
-     * advisory corridor.
+     * to its end or past the consume fraction), or the body has just drifted off
+     * the advisory corridor.
      */
     private boolean needsReplan(GroundBody body, VehicleControlComponent s) {
         // Following the corridor by pivot or brushing is a plan of its own; asking the forward planner every tick
@@ -564,8 +565,7 @@ public final class VehicleControlSystem {
         if (s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC) return true;
         if (s.trajCarrotAtEnd) return true;
         if (s.trajProgress >= s.trajectory.lengthCells() * VehicleController.REPLAN_CONSUMED_FRACTION) return true;
-        if (s.corridor.offCorridorDistance(body.x, body.y) > VehicleController.REPLAN_DRIFT_CELLS) return true;
-        return false;
+        return VehicleController.driftForcesReplan(s.corridor.offCorridorDistance(body.x, body.y), s.plannedOffCorridor);
     }
 
     /**
