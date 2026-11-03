@@ -34,7 +34,7 @@
     white-space: nowrap;
     overflow: hidden;
   }
-  .flag-off { color: #4f5c55; border-color: #2c3732; }
-  .flag-on { color: #ffe1d8; border-color: #f06a5e; background-color: #6a221c; }
+  .flag-off { color: #68b210; border-color: #2c3732; }
+  .flag-on { color: #ff6400; border-color: #ff6400; background-color: #ff6400; }
   .flag-wide { flex-grow: 1.5; }
 </style>

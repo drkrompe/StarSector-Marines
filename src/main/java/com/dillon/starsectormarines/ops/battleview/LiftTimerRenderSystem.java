@@ -26,8 +26,8 @@ public final class LiftTimerRenderSystem implements RenderSystem {
     private static final float LIFT_CELLS = 3.5f;
     private static final float MIN_LIFT_PX = 40f;
     private static final float BAR_HEIGHT = 3f;
-    private static final Color PAPER = new Color(229, 227, 215);
-    private static final Color MUTED = new Color(180, 188, 185);
+    private static final Color PAPER = new Color(155, 255, 0);
+    private static final Color MUTED = new Color(104, 178, 16);
 
     @Override public RenderLayer layer() { return RenderLayer.MISSION_MARKERS; }
 

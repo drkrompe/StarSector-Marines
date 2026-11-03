@@ -43,7 +43,7 @@ final class BattlePowerOverlayModel {
     private static final String CHIP_REFUSED = "pick-chip pick-refused";
     private static final String NORMAL_STYLE = "";
     private static final String ARMED_STYLE =
-            "background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464;";
+            "background-color: #cdff6e24; border-color: #cdff6e99; color: #cdff6e;";
 
     private final MutableSignal<String> commandPoints;
     private final MutableSignal<String> commandPointFillStyle;

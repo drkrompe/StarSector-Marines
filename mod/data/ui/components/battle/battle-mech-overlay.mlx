@@ -87,7 +87,7 @@
     height: 18px;
     flex-grow: 1;
     padding: 6px 0px;
-    color: #c5d6cb;
+    color: #9bff00;
   }
 
   .doctrine-state {
@@ -100,15 +100,15 @@
   }
 
   .doctrine-state-default {
-    color: #78d494;
-    border-color: #78d49466;
-    background-color: #78d4941a;
+    color: #9bff00;
+    border-color: #9bff0066;
+    background-color: #9bff001a;
   }
 
   .doctrine-state-overridden {
-    color: #ffd464;
-    border-color: #d6c27a99;
-    background-color: #d6c27a24;
+    color: #9bff00;
+    border-color: #cdff6e99;
+    background-color: #cdff6e24;
   }
 
   .mech-summary {
@@ -127,7 +127,7 @@
     height: 15px;
     flex-grow: 1;
     padding: 8px 0px;
-    color: #a0ada8;
+    color: #9bff00;
   }
 
   .mech-doctrine-summary {
@@ -138,8 +138,8 @@
   }
 
   .doctrine-summary-line { width: 100%; height: 14px; text-align: right; }
-  .doctrine-deployed { color: #a0ada8; }
-  .doctrine-effective { color: #a7ccc4; }
+  .doctrine-deployed { color: #9bff00; }
+  .doctrine-effective { color: #9bff00; }
 
   .section-heading-row {
     width: 100%;
@@ -151,14 +151,14 @@
     width: 0px;
     height: 13px;
     flex-grow: 1;
-    color: #a0ada8;
+    color: #9bff00;
   }
 
   .section-scope {
     width: 120px;
     height: 13px;
     text-align: right;
-    color: #829083;
+    color: #9bff00;
   }
 
   .attachment-row {
@@ -181,14 +181,14 @@
   }
 
   .attachment-state-free {
-    color: #a0ada8;
-    border-color: #56675c;
+    color: #9bff00;
+    border-color: #68b210;
     background-color: #303a32f2;
   }
 
   .attachment-state-attached {
-    color: #a7ccc4;
-    border-color: #a7ccc4;
+    color: #9bff00;
+    border-color: #68b210;
     background-color: #173548;
   }
 
@@ -197,13 +197,13 @@
     height: 18px;
     padding: 6px;
     border-width: 1px;
-    border-color: #727b79;
+    border-color: #68b210;
     font-family: heading;
     text-align: center;
-    color: #c1cbc3;
+    color: #9bff00;
   }
 
-  .attachment-detach:hover { border-color: #a7ccc4; color: #c5d6cb; }
+  .attachment-detach:hover { border-color: #68b210; color: #9bff00; }
 
   .doctrine-cards {
     width: 100%;
@@ -221,27 +221,27 @@
     padding: 5px;
     gap: 3px;
     border-width: 1px;
-    border-color: #56675c;
+    border-color: #68b210;
     background-color: #303a32f2;
-    color: #c1cbc3;
+    color: #9bff00;
     text-align: left;
     overflow: hidden;
   }
 
-  .doctrine-card:hover { background-color: #46524a; border-color: #a7ccc4; }
+  .doctrine-card:hover { background-color: #68b210; border-color: #68b210; }
   .doctrine-card:active { background-color: #222b24; }
-  .doctrine-card-deployed { border-color: #3f7354; }
+  .doctrine-card-deployed { border-color: #68b210; }
   .doctrine-card-long-range { padding: 5px 0px; flex-grow: 1.12; }
   .doctrine-card-active {
-    border-color: #ffd464;
+    border-color: #cdff6e;
     background-color: #3a3018;
-    color: #ffd464;
+    color: #cdff6e;
   }
 
-  .doctrine-name { width: 100%; height: 16px; color: #c5d6cb; }
-  .doctrine-meta { width: 100%; height: 13px; color: #a0ada8; }
-  .doctrine-card-active .doctrine-name { color: #ffd464; }
-  .doctrine-card-active .doctrine-meta { color: #bcae82; }
+  .doctrine-name { width: 100%; height: 16px; color: #9bff00; }
+  .doctrine-meta { width: 100%; height: 13px; color: #9bff00; }
+  .doctrine-card-active .doctrine-name { color: #cdff6e; }
+  .doctrine-card-active .doctrine-meta { color: #cdff6e; }
 
   .mech-footer {
     width: 100%;
@@ -255,7 +255,7 @@
     height: 14px;
     flex-grow: 1;
     padding: 5px 0px;
-    color: #829083;
+    color: #9bff00;
   }
 
   .mech-default {
@@ -263,11 +263,11 @@
     height: 14px;
     padding: 5px 6px;
     border-width: 1px;
-    border-color: #727b79;
+    border-color: #68b210;
     font-family: heading;
     text-align: center;
-    color: #c1cbc3;
+    color: #9bff00;
   }
 
-  .mech-default:hover { border-color: #a7ccc4; color: #c5d6cb; }
+  .mech-default:hover { border-color: #68b210; color: #9bff00; }
 </style>

@@ -18,11 +18,11 @@
     padding: 0px 7px;
     font-family: heading;
     text-align: center;
-    color: #c9c8b9;
+    color: #9bff00;
     background-color: #252721ed;
     border-width: 1px;
-    border-color: #6c6c5f;
+    border-color: #68b210;
   }
-  .direct-toggle:hover { color: #f0dfaa; background-color: #393a2f; border-color: #aaa077; }
-  .direct-toggle:disabled { color: #858779; border-color: #53574c; }
+  .direct-toggle:hover { color: #cdff6e; background-color: #393a2f; border-color: #68b210; }
+  .direct-toggle:disabled { color: #9bff00; border-color: #68b210; }
 </style>

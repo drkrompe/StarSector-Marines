@@ -43,17 +43,17 @@
     height: 34px;
     padding: 8px 10px;
     border-width: 1px;
-    border-color: #727b79;
+    border-color: #68b210;
     background-color: #141e19ee;
     font-family: heading;
     text-align: center;
-    color: #c1cbc3;
+    color: #9bff00;
   }
 
   .battle-exit-action:hover {
-    background-color: #46524a;
-    border-color: #a7ccc4;
-    color: #e4e7df;
+    background-color: #68b210;
+    border-color: #68b210;
+    color: #cdff6e;
   }
 
   .battle-exit-action:active { background-color: #222b24; }
@@ -64,14 +64,14 @@
 
   .battle-retry-action {
     width: 216px;
-    border-color: #a7ccc4;
-    color: #e4e7df;
+    border-color: #68b210;
+    color: #9bff00;
   }
 
   .battle-retry-action:disabled {
-    border-color: #4a524e;
+    border-color: #68b210;
     background-color: #141e19ee;
-    color: #6f7872;
+    color: #68b210;
   }
 
   .battle-retreat-confirm {
@@ -93,14 +93,14 @@
     width: 428px;
     height: 16px;
     padding: 2px 6px;
-    color: #e7b5b5;
+    color: #ff6400;
   }
 
   .retreat-detail {
     width: 428px;
     height: 16px;
     padding: 2px 6px;
-    color: #c1cbc3;
+    color: #9bff00;
   }
 
   .retreat-buttons {
@@ -120,16 +120,16 @@
 
   .retreat-cancel {
     width: 66px;
-    border-color: #65756b;
+    border-color: #68b210;
     background-color: #303a32;
-    color: #c1cbc3;
+    color: #9bff00;
   }
 
   .retreat-restart {
     width: 226px;
-    border-color: #a7ccc4;
+    border-color: #68b210;
     background-color: #303a32;
-    color: #e4e7df;
+    color: #9bff00;
   }
 
   .retreat-restart-hidden {
@@ -138,33 +138,33 @@
 
   .retreat-confirm-action {
     width: 96px;
-    border-color: #b45e5e;
+    border-color: #ff6400;
     background-color: #3b1b20;
-    color: #f0a1a1;
+    color: #ff6400;
   }
 
   .retreat-restart:hover {
-    border-color: #d6efe9;
-    background-color: #46524a;
+    border-color: #9bff00;
+    background-color: #68b210;
   }
 
   .retreat-cancel:hover {
-    border-color: #a7ccc4;
-    background-color: #46524a;
+    border-color: #68b210;
+    background-color: #68b210;
   }
 
   .retreat-confirm-action:hover {
-    border-color: #ef8f8f;
-    background-color: #5b252c;
-    color: #ffd0d0;
+    border-color: #ff6400;
+    background-color: #ff6400;
+    color: #ff6400;
   }
 
   .retreat-restart:active, .retreat-cancel:active { background-color: #222b24; }
-  .retreat-confirm-action:active { background-color: #762e38; }
+  .retreat-confirm-action:active { background-color: #ff6400; }
 
   .retreat-restart:disabled {
-    border-color: #4a524e;
+    border-color: #68b210;
     background-color: #222b24;
-    color: #6f7872;
+    color: #68b210;
   }
 </style>

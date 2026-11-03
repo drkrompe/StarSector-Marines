@@ -47,24 +47,24 @@
     gap: 8px;
     padding: 16px 20px;
     border-width: 1px;
-    border-color: #727b7966;
+    border-color: #68b21066;
     background-color: #101914ee;
   }
 
-  .loading-title { width: 100%; height: 24px; color: #e6e7da; }
-  .loading-area { width: 100%; height: 16px; color: #a0ada8; }
+  .loading-title { width: 100%; height: 24px; color: #9bff00; }
+  .loading-area { width: 100%; height: 16px; color: #9bff00; }
   .loading-track {
     width: 100%;
     height: 6px;
     flex-direction: row;
-    background-color: #c3cec91c;
+    background-color: #9bff001c;
   }
-  .loading-progress { height: 6px; background-color: #a7ccc4; }
+  .loading-progress { height: 6px; background-color: #9bff00; }
 
   .loading-status { width: 100%; height: 16px; flex-direction: row; }
   /* The activity dots: one is lit at a time and the lit one walks along, on frame time. */
   .loading-spinner { width: 28px; height: 6px; padding: 5px 0px; flex-direction: row; gap: 5px; }
-  .spin-dot { width: 6px; height: 6px; background-color: #a7ccc4; opacity: 0.22; }
+  .spin-dot { width: 6px; height: 6px; background-color: #9bff00; opacity: 0.22; }
   .spin-lit { opacity: 1; }
-  .loading-stage { width: 0px; flex-grow: 1; height: 16px; padding: 0px 0px 0px 8px; color: #a7ccc4; }
+  .loading-stage { width: 0px; flex-grow: 1; height: 16px; padding: 0px 0px 0px 8px; color: #9bff00; }
 </style>

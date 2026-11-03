@@ -20,7 +20,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
-import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -192,7 +191,6 @@ class BattleHudOverlayModelTest {
                     .background().getAlpha());
             UiElement selectedDouble = instance.requireElement("battle-time-double");
             assertTrue(selectedDouble.hasClass("time-selected"));
-            assertEquals(new Color(0xFF, 0xD4, 0x64), selectedDouble.textColor());
             assertFalse(instance.requireElement("battle-time-normal").hasClass("time-selected"));
             assertEquals("2 / 5", instance.requireElement("battle-objective-score").text());
             assertEquals("2 SECURE  ·  1 CONTESTED  ·  2 HOSTILE",

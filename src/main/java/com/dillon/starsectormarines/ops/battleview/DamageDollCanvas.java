@@ -43,7 +43,7 @@ public final class DamageDollCanvas implements CanvasProducer {
     private static final float FRONT_CENTRE = 60f;
     private static final float BACK_CENTRE = 180f;
     private static final BitmapFont CAPTION_FONT = Fonts.ORBITRON_10;
-    private static final Color CAPTION = new Color(0x8C, 0x99, 0x93);
+    private static final Color CAPTION = new Color(0x68, 0xB2, 0x10);
     static final String DOLL_DIR = "graphics/ui/dolls/";
 
     private static final int LOCATIONS = DollLocation.values().length;
@@ -51,9 +51,9 @@ public final class DamageDollCanvas implements CanvasProducer {
     private static final DollLocation[] PLATES = {
             DollLocation.FRONT, DollLocation.LEFT, DollLocation.RIGHT, DollLocation.REAR};
 
-    static final Color INTACT = new Color(0x6F, 0xD0, 0x8A);
-    static final Color ARMOR_LOW = new Color(0xE3, 0xC0, 0x4E);
-    static final Color STRUCTURE_HIGH = new Color(0xF0, 0x8A, 0x3A);
+    static final Color INTACT = new Color(0x9B, 0xFF, 0x00);
+    static final Color ARMOR_LOW = new Color(0xFF, 0xC8, 0x00);
+    static final Color STRUCTURE_HIGH = new Color(0xFF, 0x64, 0x00);
     static final Color STRUCTURE_LOW = new Color(0xE0, 0x45, 0x3A);
     static final Color DESTROYED = new Color(0x6A, 0x1A, 0x16);
 
@@ -116,10 +116,9 @@ public final class DamageDollCanvas implements CanvasProducer {
             float height = context.metrics().surfaceHeight();
             float top = 0f;
             if (label != null) {
-                SquadMusterCanvas.Palette palette = SquadMusterCanvas.SHIPBOARD;
                 context.text(Fonts.ORBITRON_10, label, (width - Fonts.ORBITRON_10.measureWidth(label)) * .5f, 1f,
-                        palette.caption());
-                context.line(5f, 13f, width - 5f, 13f, palette.rule(), 1f);
+                        CAPTION);
+                context.line(5f, 13f, width - 5f, 13f, CAPTION, 1f);
                 top = LABEL_HEIGHT;
             }
             view.asset.drawParts(context, 0f, top, width, height - top, partColor);

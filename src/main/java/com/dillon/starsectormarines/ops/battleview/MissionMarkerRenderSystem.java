@@ -20,8 +20,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
     static final float OVERVIEW_CELL_PX = 16;
     /** How far a card stays clear of the edge indicators parked against the HUD rail. */
     private static final float EDGE_CLEARANCE = 48;
-    private static final Color PAPER = new Color(229, 227, 215);
-    private static final Color MUTED = new Color(180, 188, 185);
+    private static final Color PAPER = new Color(155, 255, 0);
+    private static final Color MUTED = new Color(104, 178, 16);
 
     @Override public RenderLayer layer() { return RenderLayer.MISSION_MARKERS; }
 

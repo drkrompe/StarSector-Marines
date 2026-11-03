@@ -39,7 +39,7 @@ final class BattleHudOverlayModel {
     private static final String TIME_SELECTED_CLASSES = "time-button time-selected";
     private static final String TIME_STYLE = "";
     private static final String TIME_SELECTED_STYLE =
-            "background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464;";
+            "background-color: #cdff6e24; border-color: #cdff6e99; color: #cdff6e;";
     private static final String OBJECTIVE_PANEL = "objective-panel";
     private static final String OBJECTIVE_PANEL_HIDDEN =
             "objective-panel objective-panel-hidden";

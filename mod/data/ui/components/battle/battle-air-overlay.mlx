@@ -44,20 +44,20 @@
 
 
   .air-header { width: 100%; height: 14px; flex-direction: row; }
-  .air-title { width: 0px; flex-grow: 1; height: 14px; color: #a0ada8; }
+  .air-title { width: 0px; flex-grow: 1; height: 14px; color: #9bff00; }
   .air-status { width: 150px; height: 14px; text-align: right; font-family: heading; overflow: hidden; white-space: nowrap; }
-  .air-status-ready { color: #78d494; }
-  .air-status-flight { color: #ffd464; }
-  .air-status-depleted { color: #d98a78; }
+  .air-status-ready { color: #9bff00; }
+  .air-status-flight { color: #9bff00; }
+  .air-status-depleted { color: #ff6400; }
 
   .air-kinds { width: 100%; flex-direction: column; gap: 3px; }
   .air-kind { width: 100%; height: 14px; flex-direction: row; align-items: center; gap: 6px; }
   .air-void { width: 0px; height: 0px; }
   .air-caption-row { width: 100%; height: 14px; flex-direction: row; }
   .air-caption { width: 100%; height: 14px; overflow: hidden; white-space: nowrap; }
-  .air-caption-sorties { color: #ffd464; }
-  .air-caption-losses { color: #d98a78; }
-  .air-kind-name { width: 62px; height: 14px; color: #c5d6cb; }
+  .air-caption-sorties { color: #9bff00; }
+  .air-caption-losses { color: #ff6400; }
+  .air-kind-name { width: 62px; height: 14px; color: #9bff00; }
   .air-track {
     width: 0px;
     flex-grow: 1;
@@ -67,10 +67,10 @@
     border-color: #00000099;
     background-color: #0000008c;
   }
-  .air-fill-ready { height: 100%; background-color: #78d494; }
-  .air-fill-flight { height: 100%; background-color: #ffd464; }
-  .air-kind-count { width: 30px; height: 14px; text-align: right; color: #c5d6cb; }
-  .air-kind-regen { width: 76px; height: 14px; text-align: right; color: #929e95; overflow: hidden; white-space: nowrap; }
-  .air-kind-regen-none { color: #d98a78; }
+  .air-fill-ready { height: 100%; background-color: #9bff00; }
+  .air-fill-flight { height: 100%; background-color: #cdff6e; }
+  .air-kind-count { width: 30px; height: 14px; text-align: right; color: #9bff00; }
+  .air-kind-regen { width: 76px; height: 14px; text-align: right; color: #9bff00; overflow: hidden; white-space: nowrap; }
+  .air-kind-regen-none { color: #ff6400; }
 
 </style>

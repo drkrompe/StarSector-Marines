@@ -28,29 +28,29 @@
 <style>
   .manual-objectives { width: 344px; height: 374px; padding: 2px 4px; gap: 4px; text-shadow: #000000d9; }
   .manual-heading { width: 100%; height: 18px; flex-direction: row; gap: 8px; align-items: center; }
-  .manual-title { font-family: heading; color: #e9efe9; white-space: nowrap; }
-  .score { width: 0px; flex-grow: 1; text-align: right; font-family: heading; color: #8fe0a8; white-space: nowrap; }
+  .manual-title { font-family: heading; color: #9bff00; white-space: nowrap; }
+  .score { width: 0px; flex-grow: 1; text-align: right; font-family: heading; color: #9bff00; white-space: nowrap; }
   .rule { width: 100%; height: 1px; background-image: linear-gradient(to right, #d6c27acc 0%, #d6c27a40 55%, #d6c27a00 100%); }
   .manual-list { width: 100%; height: 340px; padding-right: 10px; gap: 10px; overflow: scroll; }
   .obj { width: 100%; gap: 2px; padding: 2px 0px; }
   .obj-head { width: 100%; height: 18px; flex-direction: row; gap: 7px; align-items: center; }
   .obj-mark { width: 7px; height: 7px; border-width: 1px; }
-  .obj-name { width: 0px; flex-grow: 1; font-family: heading; color: #f2f5f0; white-space: nowrap; overflow: hidden; }
+  .obj-name { width: 0px; flex-grow: 1; font-family: heading; color: #9bff00; white-space: nowrap; overflow: hidden; }
   .obj-phase { font-family: heading; white-space: nowrap; }
-  .obj-steps { font-family: body; width: 100%; height: 15px; padding-left: 14px; color: #b9d8d0; white-space: nowrap; overflow: hidden; }
-  .obj-instruction { width: 100%; min-height: 32px; padding-left: 14px; white-space: normal; overflow: hidden; color: #e4e9e2; }
+  .obj-steps { font-family: body; width: 100%; height: 15px; padding-left: 14px; color: #9bff00; white-space: nowrap; overflow: hidden; }
+  .obj-instruction { width: 100%; min-height: 32px; padding-left: 14px; white-space: normal; overflow: hidden; color: #9bff00; }
   .obj-progress { width: 100%; height: 16px; padding-left: 14px; flex-direction: row; gap: 8px; align-items: center; }
-  .obj-progress-text { color: #cfd8e2; white-space: nowrap; }
+  .obj-progress-text { color: #9bff00; white-space: nowrap; }
   .obj-track { width: 0px; flex-grow: 1; height: 4px; flex-direction: row; border-width: 1px; border-color: #00000099; background-color: #00000066; }
-  .obj-fill { height: 100%; background-color: #ffd464; background-image: linear-gradient(to bottom, #ffffff55 0%, #ffffff00 70%); }
-  .obj-blocker { width: 100%; min-height: 30px; padding-left: 14px; white-space: normal; overflow: hidden; color: #f5b98c; }
+  .obj-fill { height: 100%; background-color: #cdff6e; background-image: linear-gradient(to bottom, #ffffff55 0%, #ffffff00 70%); }
+  .obj-blocker { width: 100%; min-height: 30px; padding-left: 14px; white-space: normal; overflow: hidden; color: #ffc800; }
   .obj-hidden { display: none; }
-  .obj-active .obj-mark { border-color: #ffd464; background-color: #ffd46455; }
-  .obj-active .obj-phase { color: #ffd464; }
-  .obj-complete .obj-mark { border-color: #78d494; background-color: #78d494; }
-  .obj-complete .obj-phase { color: #8fe0a8; }
-  .obj-complete .obj-fill { background-color: #78d494; }
-  .obj-complete .obj-name { color: #b9c9bd; }
-  .obj-failed .obj-mark { border-color: #e98b83; background-color: #e98b8355; }
-  .obj-failed .obj-phase { color: #f0968d; }
+  .obj-active .obj-mark { border-color: #cdff6e; background-color: #cdff6e55; }
+  .obj-active .obj-phase { color: #cdff6e; }
+  .obj-complete .obj-mark { border-color: #9bff00; background-color: #9bff00; }
+  .obj-complete .obj-phase { color: #9bff00; }
+  .obj-complete .obj-fill { background-color: #9bff00; }
+  .obj-complete .obj-name { color: #9bff00; }
+  .obj-failed .obj-mark { border-color: #ff6400; background-color: #ff640055; }
+  .obj-failed .obj-phase { color: #ff6400; }
 </style>

@@ -74,9 +74,13 @@ them.
   fight, in command mode and under direct control alike, has no box: text and bars
   float on the field with a shadow so the battle shows through. A document opts in
   with `hud-glass` on its root; the theme then turns its buttons into hairlines on a
-  faint smoke that light when hovered and fill gold when chosen, and its rows read
+  faint smoke that light when hovered and fill when chosen, and its rows read
   as fading bands rather than framed cards. A popup that holds reading text, such as
-  a tooltip, keeps a dark glass backing.
+  a tooltip, keeps a dark glass backing. Battle glass speaks the base game's combat
+  neon, where the campaign's screens speak its blue (owner): neon green for what
+  is read, dim neon for what is secondary, a paler neon only for a lit state, amber
+  for caution and orange for danger. Damage dolls and objective markers on the field
+  follow it, a marker's state tones excepted; the subtitle panels are dialogue and do not.
 - A **binding** is an explicit invalidation edge from view-model state to one
   element mutation. It updates retained identity rather than rebuilding the
   document.

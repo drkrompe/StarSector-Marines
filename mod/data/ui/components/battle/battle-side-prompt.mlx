@@ -24,14 +24,14 @@
   .p-glass { width: 100%; height: 100%; padding: 2px; gap: 3px; border-width: 0px; background-color: transparent; }
   .p-hidden { display: none; }
   .p-head { width: 100%; height: 16px; flex-direction: row; gap: 6px; }
-  .p-title { width: 0px; flex-grow: 1; height: 16px; color: #e6e7da; }
-  .p-tag { width: 120px; height: 16px; text-align: right; color: #7fc8e8; }
-  .p-detail { width: 100%; height: 15px; white-space: normal; overflow: hidden; color: #c5d6cb; }
+  .p-title { width: 0px; flex-grow: 1; height: 16px; color: #9bff00; }
+  .p-tag { width: 120px; height: 16px; text-align: right; color: #9bff00; }
+  .p-detail { width: 100%; height: 15px; white-space: normal; overflow: hidden; color: #9bff00; }
   .p-verbs-row { width: 100%; flex-direction: row; gap: 4px; }
   .p-lines { width: 100%; flex-direction: column; gap: 4px; }
   .p-cta { width: 0px; flex-grow: 1; height: 20px; padding: 2px; }
   .p-line { width: 100%; height: 20px; flex-direction: row; gap: 6px; }
   .p-verbs-row .p-cta, .p-line .p-cta { width: 84px; flex-grow: 0; }
-  .p-line-text { width: 0px; flex-grow: 1; height: 20px; padding: 3px 0px; color: #c5d6cb; }
-  .p-verb-name { height: 14px; color: #ffd464; white-space: nowrap; text-align: center; }
+  .p-line-text { width: 0px; flex-grow: 1; height: 20px; padding: 3px 0px; color: #9bff00; }
+  .p-verb-name { height: 14px; color: #9bff00; white-space: nowrap; text-align: center; }
 </style>

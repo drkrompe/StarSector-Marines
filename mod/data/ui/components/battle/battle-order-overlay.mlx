@@ -19,10 +19,10 @@
 <style>
   .order-bar { width: 406px; height: 56px; padding: 6px; gap: 4px; border-width: 1px; border-color: transparent; background-color: transparent; }
   .order-header { height: 12px; flex-direction: row; gap: 6px; }
-  .scope { width: 112px; font-family: compact; color: #c5d6cb; white-space: nowrap; }
-  .hint { flex-grow: 1; font-family: compact; text-align: right; color: #a0ada8; white-space: nowrap; }
+  .scope { width: 112px; font-family: compact; color: #9bff00; white-space: nowrap; }
+  .hint { flex-grow: 1; font-family: compact; text-align: right; color: #9bff00; white-space: nowrap; }
   .order-cards { height: 40px; flex-direction: row; gap: 6px; }
   .order-card { width: 0px; flex-grow: 1; height: 30px; padding: 4px; gap: 2px; border-width: 1px; }
   .order-name { height: 14px; font-family: heading; white-space: nowrap; }
-  .order-detail { height: 12px; font-family: compact; color: #a0ada8; white-space: nowrap; }
+  .order-detail { height: 12px; font-family: compact; color: #9bff00; white-space: nowrap; }
 </style>

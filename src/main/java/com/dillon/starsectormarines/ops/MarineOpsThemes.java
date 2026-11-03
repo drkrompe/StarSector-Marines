@@ -255,36 +255,45 @@ final class MarineOpsThemes {
                 .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #a9b8c5; }
                 .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 /* Battle glass: the battle HUD draws on the field itself, with no panel behind it, so
-                   the fight shows through. A document's root opts in with hud-glass. Text keeps a
-                   shadow so it reads on any ground; a control is a hairline on a faint smoke that
-                   lights when hovered and fills gold when chosen, as a direct-control weapon row
-                   does. Last in the sheet, so it wins over the console button rules above. */
-                .hud-glass { text-shadow: #000000d9; background-color: transparent; background-image: none; }
+                   the fight shows through, and it speaks in the base game's combat neon: bright for
+                   what matters, orange for danger, amber for caution. A document's root opts in with
+                   hud-glass. Text keeps a shadow so it reads on any ground; a control is a hairline on
+                   a faint smoke that lights when hovered and fills when chosen. Last in the sheet, so
+                   it wins over the console button rules above. */
+                .hud-glass { color: #9bff00; text-shadow: #000000d9; background-color: transparent; background-image: none; }
+                .hud-glass .tone-edge { color: #9bff00; }
+                .hud-glass .heading.tone-edge, .hud-glass .title.tone-edge { color: #9bff00; }
+                .hud-glass .tone-muted { color: #68b210; }
+                .hud-glass .tone-accent { color: #cdff6e; }
+                .hud-glass .tone-good { color: #9bff00; }
+                .hud-glass .tone-danger { color: #ff6400; }
                 .hud-glass button {
                     corner-cut: 0px;
-                    color: #e4e9e4; background-color: #0a0e1040; background-image: none;
-                    border-style: solid; border-color: #c3cec933;
+                    color: #9bff00; background-color: #0a0e1040; background-image: none;
+                    border-style: solid; border-color: #68b21033;
                 }
-                .hud-glass button:hover { background-color: #ffffff17; border-color: #c3cec9aa; }
+                .hud-glass button:hover { background-color: #cdff6e17; border-color: #68b210aa; }
                 .hud-glass button:active { background-color: #00000066; border-style: solid; }
-                .hud-glass button:focus-visible { border-color: #ffe1a0; }
+                .hud-glass button:focus-visible { border-color: #ffc800; }
                 .hud-glass .console-action { font-family: heading; }
-                .hud-glass button:disabled { background-color: #0a0e1040; color: #e4e9e4; opacity: 0.38; }
-                .hud-glass button.good-surface { background-color: #132b22; border-color: #78d494; color: #e4e9e4; }
-                .hud-glass button.warning-surface { background-color: #332b1c; border-color: #ffd464; }
+                .hud-glass button:disabled { background-color: #0a0e1040; color: #9bff00; opacity: 0.38; }
+                .hud-glass .member-card:disabled { opacity: 1; }
+                .hud-glass .member-card.member-empty:disabled { opacity: 0.28; }
+                .hud-glass button.good-surface { background-color: #132b22; border-color: #9bff00; color: #cdff6e; }
+                .hud-glass button.warning-surface { background-color: #332b1c; border-color: #cdff6e; }
                 .hud-glass button.selected, .hud-glass button.power-armed,
                 .hud-glass .doctrine-card-active, .hud-glass .pick-selected, .hud-glass .ship-selected {
-                    background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464; border-style: solid;
+                    background-color: #cdff6e24; border-color: #cdff6e99; color: #cdff6e; border-style: solid;
                 }
-                .hud-glass .attachment-state-attached { background-color: #8ee3ff17; border-color: #a7ccc499; }
-                .hud-glass .doctrine-card-deployed { border-color: #78d49466; }
-                .hud-glass .member-leader { border-color: #d6c27a80; }
-                .hud-glass .member-critical { border-color: #e98b8399; }
-                .hud-glass .member-top { border-color: #dfc58899; }
+                .hud-glass .attachment-state-attached { background-color: #9bff0017; border-color: #68b21099; }
+                .hud-glass .doctrine-card-deployed { border-color: #9bff0066; }
+                .hud-glass .member-leader { border-color: #cdff6e80; }
+                .hud-glass .member-critical { border-color: #ff640099; }
+                .hud-glass .member-top { border-color: #cdff6e99; }
                 .hud-glass .member-empty { background-color: transparent; }
-                .hud-glass .pick-refused, .hud-glass .power-disabled { background-color: transparent; border-color: #c3cec91a; }
-                .hud-glass .danger-surface { background-color: #e98b8324; border-color: #e98b8399; color: #f0a1a1; }
-                .hud-glass .danger-surface:hover { background-color: #e98b833d; border-color: #ef8f8f; }
+                .hud-glass .pick-refused, .hud-glass .power-disabled { background-color: transparent; border-color: #68b2101a; }
+                .hud-glass .danger-surface { background-color: #ff640024; border-color: #ff640099; color: #ff6400; }
+                .hud-glass .danger-surface:hover { background-color: #ff64003d; border-color: #ff6400; }
 
                 """);
     }

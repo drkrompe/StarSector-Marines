@@ -33,7 +33,7 @@ import java.util.function.Function;
  */
 public final class BattleDirectControlHudModel {
     /** The flux gauge's resting fill, mech or warship: the violet the game's own flux reads in. */
-    private static final String FLUX_FILL = "#a594f9";
+    private static final String FLUX_FILL = "#9bff00";
     private static final String HIDDEN_ROW = "row row-hidden";
 
     /**
@@ -133,7 +133,7 @@ public final class BattleDirectControlHudModel {
             set("staminaValue", snapshot.sprint().exhausted() ? label("SprintResting")
                     : snapshot.sprint().sprinting() ? label("SprintRunning") : percent(staminaFraction));
             set("staminaStyle", width(staminaFraction) + (snapshot.sprint().exhausted()
-                    ? " background-color: #8a7440;" : ""));
+                    ? " background-color: #cdff6e;" : ""));
             set("weaponsTitle", label(mech ? "WeaponGroups" : ship ? "ShipSystems" : "Weapons"));
             set("exitLabel", copy.apply(exitLabelKey));
             set("pauseLabel", label(paused ? "Paused" : "Pause"));
@@ -180,7 +180,7 @@ public final class BattleDirectControlHudModel {
         set("fluxState", label(venting ? "FluxVenting" : high ? "FluxHigh" : "FluxReserve"));
         set("fluxStateClasses", "state " + (venting ? "state-alarm" : high ? "state-warn" : "state-calm"));
         set("fluxStyle", width(fraction) + " background-color: "
-                + (venting ? "#ef7962" : high ? "#eab152" : FLUX_FILL) + ";");
+                + (venting ? "#ff6400" : high ? "#ffc800" : FLUX_FILL) + ";");
     }
 
     /**
@@ -592,8 +592,8 @@ public final class BattleDirectControlHudModel {
      */
     private static String rowStyle(boolean selected, float opacity) {
         return "opacity: " + (opacity >= 1f ? "1" : String.valueOf(opacity)) + "; background-image: none;"
-                + " border-style: solid; background-color: " + (selected ? "#d6c27a24" : "transparent") + ";"
-                + " border-color: " + (selected ? "#d6c27a99" : "transparent") + ";";
+                + " border-style: solid; background-color: " + (selected ? "#cdff6e24" : "transparent") + ";"
+                + " border-color: " + (selected ? "#cdff6e99" : "transparent") + ";";
     }
 
     /** A warship card: read-only, like the Marine's ability rows. */
@@ -616,9 +616,9 @@ public final class BattleDirectControlHudModel {
 
     private static String toneColor(Tone tone) {
         return switch (tone) {
-            case READY -> "#b6c79b";
-            case BUSY -> "#eab152";
-            case WARN -> "#ef7962";
+            case READY -> "#9bff00";
+            case BUSY -> "#ffc800";
+            case WARN -> "#ff6400";
         };
     }
 

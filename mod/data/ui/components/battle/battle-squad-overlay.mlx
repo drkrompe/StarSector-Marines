@@ -101,14 +101,14 @@
     height: 18px;
     flex-grow: 1;
     padding: 6px 0px;
-    color: #c5d6cb;
+    color: #9bff00;
   }
 
   .squad-strength {
     width: 40px;
     height: 18px;
     padding: 6px 0px;
-    color: #c5d6cb;
+    color: #9bff00;
   }
 
   .squad-morale {
@@ -119,9 +119,9 @@
     padding: 2px 0px;
   }
 
-  .morale-label { width: 100%; height: 13px; text-align: right; color: #a0ada8; }
+  .morale-label { width: 100%; height: 13px; text-align: right; color: #9bff00; }
   .morale-track { width: 100%; height: 3px; background-color: #0000008c; }
-  .morale-fill { height: 100%; background-color: #78d494; }
+  .morale-fill { height: 100%; background-color: #9bff00; }
 
   .fireteam-grid {
     width: 100%;
@@ -144,8 +144,8 @@
   }
 
   .fireteam-header { width: 100%; height: 14px; flex-direction: row; }
-  .fireteam-name { width: 0px; height: 14px; flex-grow: 1; color: #a7ccc4; }
-  .fireteam-strength { width: 26px; height: 14px; text-align: right; color: #a0ada8; }
+  .fireteam-name { width: 0px; height: 14px; flex-grow: 1; color: #9bff00; }
+  .fireteam-strength { width: 26px; height: 14px; text-align: right; color: #9bff00; }
 
   .fireteam-members {
     width: 100%;
@@ -161,17 +161,17 @@
     padding: 2px 3px;
     gap: 2px;
     border-width: 1px;
-    border-color: #56675c;
+    border-color: #68b210;
     background-color: #303a32f2;
     overflow: hidden;
   }
 
-  .member-card:hover { background-color: #46524a; border-color: #a7ccc4; }
-  .member-leader { border-color: #806b35; }
-  .member-leader .member-name { color: #ffd464; }
-  .member-critical { border-color: #8e4d49; }
-  .member-top { border-color: #dfc588; }
-  .member-top .member-name { color: #dfc588; }
+  .member-card:hover { background-color: #68b210; border-color: #68b210; }
+  .member-leader { border-color: #cdff6e; }
+  .member-leader .member-name { color: #cdff6e; }
+  .member-critical { border-color: #68b210; }
+  .member-top { border-color: #cdff6e; }
+  .member-top .member-name { color: #cdff6e; }
   .member-empty { opacity: 0.28; background-color: #101713; }
 
   .member-line {
@@ -181,17 +181,17 @@
     gap: 3px;
     font-family: compact;
   }
-  .member-name { width: 0px; height: 13px; flex-grow: 1; color: #c5d6cb; }
-  .member-primary { width: 38px; height: 13px; text-align: right; color: #78d494; }
+  .member-name { width: 0px; height: 13px; flex-grow: 1; color: #9bff00; }
+  .member-primary { width: 38px; height: 13px; text-align: right; color: #9bff00; }
   .member-special {
     width: 24px;
     height: 13px;
     padding-right: 2px;
     text-align: right;
-    color: #ffd464;
+    color: #9bff00;
   }
   .member-hp-track { width: 100%; height: 3px; background-color: #0000008c; }
-  .member-hp-fill { height: 100%; background-color: #78d494; }
+  .member-hp-fill { height: 100%; background-color: #9bff00; }
 
   .squad-tooltip {
     width: 300px;
@@ -200,7 +200,7 @@
     padding: 7px;
     gap: 5px;
     border-width: 1px;
-    border-color: #c3cec966;
+    border-color: #68b21066;
     background-color: #0a0e10e0;
     overflow: hidden;
   }
@@ -209,12 +209,12 @@
     display: none;
   }
 
-  .tooltip-title { width: 100%; height: 16px; color: #c5d6cb; }
-  .tooltip-team { width: 100%; min-height: 28px; white-space: normal; color: #a0ada8; }
-  .tooltip-line { width: 100%; height: 14px; color: #c1cbc3; }
-  .tooltip-primary { color: #78d494; }
-  .tooltip-special { color: #ffd464; }
-  .tooltip-system { color: #a7ccc4; }
-  .tooltip-profile { color: #c1cbc3; }
-  .tooltip-record { color: #dfc588; }
+  .tooltip-title { width: 100%; height: 16px; color: #9bff00; }
+  .tooltip-team { width: 100%; min-height: 28px; white-space: normal; color: #9bff00; }
+  .tooltip-line { width: 100%; height: 14px; color: #9bff00; }
+  .tooltip-primary { color: #9bff00; }
+  .tooltip-special { color: #9bff00; }
+  .tooltip-system { color: #9bff00; }
+  .tooltip-profile { color: #9bff00; }
+  .tooltip-record { color: #9bff00; }
 </style>

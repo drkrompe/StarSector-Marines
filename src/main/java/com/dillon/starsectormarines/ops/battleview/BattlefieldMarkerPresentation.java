@@ -27,7 +27,7 @@ public final class BattlefieldMarkerPresentation {
     public static final Color PROGRESS = new Color(0xFF, 0xE0, 0x86);
     /** An open side objective: a "may" beside the mission's yellow "must". */
     public static final Color OPTIONAL = new Color(0x7F, 0xC8, 0xE8);
-    public static final Color LABEL = new Color(0xEE, 0xF4, 0xF5);
+    public static final Color LABEL = new Color(0x9B, 0xFF, 0x00);
     public static final Color PLATE = new Color(0x08, 0x10, 0x16, 0xD8);
 
     private static final float MIN_OBJECTIVE_RADIUS_PX = 11f;

@@ -14,14 +14,14 @@
 <style>
   .action-controls { width: 100%; height: 100%; flex-direction: row; gap: 14px; align-items: center; justify-content: end; text-shadow: #000000d9; }
   .action { height: 22px; padding: 0px 2px; flex-direction: row; gap: 6px; align-items: center; }
-  .keycap { height: 18px; padding: 0px 5px; text-align: center; font-family: heading; color: #e9efe9; border-width: 1px; border-color: #b4c0bab3; background-color: #00000080; }
+  .keycap { height: 18px; padding: 0px 5px; text-align: center; font-family: heading; color: #9bff00; border-width: 1px; border-color: #68b210b3; background-color: #00000080; }
   .action-exit { width: 136px; }
   .action-pause { width: 140px; }
   .keycap-tab { width: 40px; }
   .keycap-space { width: 58px; }
-  .action-label { font-family: heading; color: #c3cec9; white-space: nowrap; }
-  .action:hover .action-label { color: #ffffff; }
-  .action:hover .keycap { border-color: #ffffff; }
-  .action-paused .keycap { color: #ffd464; border-color: #ffd464; background-color: #3b301080; }
-  .action-paused .action-label { color: #ffd464; }
+  .action-label { font-family: heading; color: #9bff00; white-space: nowrap; }
+  .action:hover .action-label { color: #cdff6e; }
+  .action:hover .keycap { border-color: #68b210; }
+  .action-paused .keycap { color: #cdff6e; border-color: #cdff6e; background-color: #3b301080; }
+  .action-paused .action-label { color: #cdff6e; }
 </style>

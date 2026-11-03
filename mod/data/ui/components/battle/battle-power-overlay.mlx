@@ -88,30 +88,30 @@
     padding: 3px 5px;
     gap: 1px;
     border-width: 1px;
-    border-color: #56675c;
+    border-color: #68b210;
     background-color: #303a32f2;
     text-align: left;
     overflow: hidden;
   }
 
-  .pick-chip:hover { background-color: #46524a; border-color: #ffd464; }
+  .pick-chip:hover { background-color: #68b210; border-color: #cdff6e; }
   .pick-chip:active { background-color: #222b24; }
-  .pick-selected { background-color: #3a3018; border-color: #ffd464; }
-  .pick-refused { background-color: #1c251fdd; border-color: #445447; }
-  .pick-refused:hover { background-color: #1c251fdd; border-color: #445447; }
-  .pick-name { width: 100%; height: 14px; color: #dfe7e1; }
-  .pick-callsign { width: 100%; height: 13px; color: #b4c0ba; }
-  .pick-weight { width: 100%; height: 13px; color: #a8b6ac; }
-  .pick-state { width: 100%; height: 13px; color: #78d494; }
-  .pick-selected .pick-name { color: #ffd464; }
-  .pick-selected .pick-state { color: #ffd464; }
-  .pick-refused .pick-name { color: #a9b5ab; }
-  .pick-refused .pick-callsign { color: #8c9a90; }
-  .pick-refused .pick-weight { color: #8c9a90; }
-  .pick-refused .pick-state { color: #e8a07e; }
+  .pick-selected { background-color: #3a3018; border-color: #cdff6e; }
+  .pick-refused { background-color: #1c251fdd; border-color: #68b210; }
+  .pick-refused:hover { background-color: #1c251fdd; border-color: #68b210; }
+  .pick-name { width: 100%; height: 14px; color: #9bff00; }
+  .pick-callsign { width: 100%; height: 13px; color: #9bff00; }
+  .pick-weight { width: 100%; height: 13px; color: #9bff00; }
+  .pick-state { width: 100%; height: 13px; color: #9bff00; }
+  .pick-selected .pick-name { color: #cdff6e; }
+  .pick-selected .pick-state { color: #cdff6e; }
+  .pick-refused .pick-name { color: #9bff00; }
+  .pick-refused .pick-callsign { color: #9bff00; }
+  .pick-refused .pick-weight { color: #9bff00; }
+  .pick-refused .pick-state { color: #ff6400; }
 
-  .targeting-label { height: 14px; flex-grow: 1; color: #ffd464; }
-  .targeting-hint { width: 380px; height: 14px; text-align: right; color: #bcae82; }
+  .targeting-label { height: 14px; flex-grow: 1; color: #9bff00; }
+  .targeting-hint { width: 380px; height: 14px; text-align: right; color: #9bff00; }
 
   .power-deck {
     width: 100%;
@@ -132,13 +132,13 @@
     overflow: hidden;
   }
 
-  .resource-title { width: 100%; height: 12px; color: #a0ada8; }
-  .resource-cp { width: 100%; height: 12px; color: #c5d6cb; }
+  .resource-title { width: 100%; height: 12px; color: #9bff00; }
+  .resource-cp { width: 100%; height: 12px; color: #9bff00; }
   .resource-track { width: 100%; height: 3px; background-color: #0000008c; }
-  .resource-fill { height: 100%; background-color: #a7ccc4; }
-  .resource-supplies { width: 100%; height: 14px; flex-direction: row; gap: 4px; color: #a0ada8; }
+  .resource-fill { height: 100%; background-color: #9bff00; }
+  .resource-supplies { width: 100%; height: 14px; flex-direction: row; gap: 4px; color: #9bff00; }
   .resource-supplies-icon { width: 14px; height: 14px; }
-  .resource-supplies-label { width: 0px; height: 14px; flex-grow: 1; color: #a0ada8; }
+  .resource-supplies-label { width: 0px; height: 14px; flex-grow: 1; color: #9bff00; }
 
   .power-cards {
     height: 52px;
@@ -155,28 +155,28 @@
     padding: 6px 7px;
     gap: 5px;
     border-width: 1px;
-    border-color: #56675c;
+    border-color: #68b210;
     background-color: #303a32f2;
-    color: #c1cbc3;
+    color: #9bff00;
     text-align: left;
     overflow: hidden;
   }
 
-  .power-card:hover { background-color: #46524a; border-color: #a7ccc4; }
+  .power-card:hover { background-color: #68b210; border-color: #68b210; }
   .power-card:active { background-color: #222b24; }
-  .power-ready { border-color: #727b79; }
-  .power-disabled { background-color: #1c251fdd; border-color: #445447; }
-  .power-armed { background-color: #3a3018; border-color: #ffd464; color: #ffd464; }
+  .power-ready { border-color: #68b210; }
+  .power-disabled { background-color: #1c251fdd; border-color: #68b210; }
+  .power-armed { background-color: #3a3018; border-color: #cdff6e; color: #cdff6e; }
   .power-heading { flex-direction: row; align-items: center; width: 100%; height: 19px; gap: 5px; }
   .power-symbol { width: 20px; height: 19px; pointer-events: none; }
-  .power-name { width: 0px; flex-grow: 1; height: auto; white-space: normal; font-family: compact; color: #c1cbc3; }
+  .power-name { width: 0px; flex-grow: 1; height: auto; white-space: normal; font-family: compact; color: #9bff00; }
   .power-meta { width: 100%; height: 14px; flex-direction: row; }
-  .power-cost { height: 14px; flex-grow: 1; color: #b7c8b9; }
-  .power-status { width: 46px; height: 14px; text-align: right; color: #78d494; }
-  .power-disabled .power-cost { color: #728074; }
-  .power-disabled .power-name { color: #829083; }
-  .power-disabled .power-status { color: #929e95; }
-  .power-armed .power-name { color: #ffd464; }
-  .power-armed .power-cost { color: #bcae82; }
-  .power-armed .power-status { color: #ffd464; }
+  .power-cost { height: 14px; flex-grow: 1; color: #9bff00; }
+  .power-status { width: 60px; height: 14px; text-align: right; color: #9bff00; }
+  .power-disabled .power-cost { color: #68b210; }
+  .power-disabled .power-name { color: #9bff00; }
+  .power-disabled .power-status { color: #9bff00; }
+  .power-armed .power-name { color: #cdff6e; }
+  .power-armed .power-cost { color: #cdff6e; }
+  .power-armed .power-status { color: #cdff6e; }
 </style>

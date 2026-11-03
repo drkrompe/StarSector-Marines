@@ -293,9 +293,9 @@ final class BattleSquadOverlayModel {
     private MemberTile tile(String id, int team, int slot, MemberState member,
                             long selectedMemberId, boolean memberSelectionEnabled, long topContributor) {
         float hpFraction = member.maxHp() > 0f ? clamp01(member.hp() / member.maxHp()) : 0f;
-        Color hpColor = hpFraction < 0.34f ? new Color(0xE9, 0x8B, 0x83)
-                : hpFraction < 0.67f ? new Color(0xFF, 0xD4, 0x64)
-                : new Color(0x78, 0xD4, 0x94);
+        Color hpColor = hpFraction < 0.34f ? new Color(0xFF, 0x64, 0x00)
+                : hpFraction < 0.67f ? new Color(0xFF, 0xC8, 0x00)
+                : new Color(0x9B, 0xFF, 0x00);
         String classes = "member-card" + (member.leader() ? " member-leader" : "")
                 + (hpFraction < 0.34f ? " member-critical" : "")
                 + (member.entityId() == selectedMemberId ? " member-selected selected" : "")
