@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.battleview.ShipBackdrop;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -67,6 +68,7 @@ public final class ShipViewScreen implements Screen {
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private ShipViewCanvas deck;
+    private ShipBackdrop backdrop;
     private UiElement deckElement;
     private CompanyDeck shownDeck;
     private WorkshopRestorationModel workshop;
@@ -125,7 +127,9 @@ public final class ShipViewScreen implements Screen {
                 if (overlay == null || !overlay.dismiss()) close();
             });
             shownDeck = context.companyDeck();
+            backdrop = ShipBackdrop.at(context.planet);
             deck = new ShipViewCanvas(shownDeck);
+            deck.backdrop(backdrop);
             deckElement = candidate.requireElement("ship-view-deck");
             built.canvases().set(deckElement, deck);
             overlay = new ShipConditionOverlay(built, candidate, survey);
@@ -192,6 +196,7 @@ public final class ShipViewScreen implements Screen {
             shownDeck = context.companyDeck();
             if (shownDeck != null) {
                 deck = new ShipViewCanvas(shownDeck);
+                deck.backdrop(backdrop);
                 refocusPending = true;
                 document.canvases().set(deckElement, deck);
             }
@@ -203,6 +208,7 @@ public final class ShipViewScreen implements Screen {
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.SHIP_VIEW, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
+        if (backdrop != null) backdrop.advance(dt);
         if (deck != null) controls.advance(dt, deck.camera());
         if (overlay != null) overlay.update(dt, shownDeck, deck);
         // The reveal flies the deck and advances that flight itself; once it ends mid-flight nothing

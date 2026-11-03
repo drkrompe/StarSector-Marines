@@ -69,9 +69,13 @@ public final class ShipViewCanvas implements CanvasProducer {
     private static final float HULL_OVERHANG = 1.06f;
 
     private final CompanyDeck ship;
+    private ShipBackdrop backdrop;
     private BattleCamera camera;
     private RoomPurpose focus;
     private Compartment focusedRoom, selectedRoom;
+    /** What to show beyond the hull; without one, the page's own dark shows through. */
+    public void backdrop(ShipBackdrop backdrop) { this.backdrop = backdrop; }
+
     public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; flying = false; }
 
     /** Where the camera stands: zoom and the cell at the centre of the view. */
@@ -246,6 +250,10 @@ public final class ShipViewCanvas implements CanvasProducer {
                 camera.centerOn(room.originX() + room.width() / 2f, room.originY() + room.depth() / 2f);
             }
             focus = null;
+        }
+        if (backdrop != null) {
+            backdrop.draw(context, rect, camera.panCellX() / cellsAcross - 0.5f,
+                    camera.panCellY() / cellsDown - 0.5f);
         }
         drawHull(context, rect, cellsAcross, cellsDown);
 

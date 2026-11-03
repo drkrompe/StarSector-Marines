@@ -158,6 +158,7 @@ class GroundShaderGlEvidence {
                         sourceField(GroundHeightPass.class, "VERTEX_SRC"),
                         sourceField(GroundHeightPass.class, "FRAGMENT_SRC")),
                 new Shader("Creep", CreepShader.VERTEX_SRC, CreepShader.FRAGMENT_SRC),
+                new Shader("BackdropPlanet", BackdropPlanetPass.VERTEX_SRC, BackdropPlanetPass.FRAGMENT_SRC),
                 new Shader("Scorch", ScorchShader.VERTEX_SRC, ScorchShader.FRAGMENT_SRC));
     }
 

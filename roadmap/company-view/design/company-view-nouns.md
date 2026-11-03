@@ -1708,6 +1708,13 @@ and commits use the same current installed-tool quote. A company that changes
 ships receives the new home's benefits, never a discount left over from an old
 screen. `machine-shop-restoration.md` owns this chain's live acceptance.
 
+**Beyond the hull** Engineering shows where the fleet actually is (`ShipBackdrop`):
+the current location's own background art, with the base game's star sprites over it.
+Parked at a world, that world hangs behind the ship, turning, drawn from its planet
+spec (`BackdropPlanetPass`), and the stars barely move. Opened anywhere else, the stars
+stream past the bow. Hyperspace has its own clouds and no stars. This is set dressing:
+it stays dark and shifts only slightly as the camera pans, so the deck stays what is read.
+
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
 room-condition survey. Small SVG glyphs straddle compartment walls with sealed,

@@ -36,6 +36,7 @@ import com.fs.starfarer.api.fleet.RepairTrackerAPI;
 import com.fs.starfarer.api.util.DynamicStatsAPI;
 import com.fs.starfarer.api.util.MutableValue;
 
+import java.awt.Color;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -252,6 +253,17 @@ final class PlayCompany {
 
         Map<String, Object> texture = new HashMap<>();
         texture.put("getTexture", skin);
+        // Vanilla's jungle, so the Engineering backdrop has clouds and air to draw in the window.
+        if ("jungle".equals(type)) {
+            texture.put("getTilt", -40f);
+            texture.put("getPitch", 12f);
+            texture.put("getRotation", -2.6f);
+            texture.put("getCloudRotation", -6f);
+            texture.put("getAtmosphereThickness", 0.32f);
+            texture.put("getAtmosphereColor", new Color(70, 110, 130, 235));
+            texture.put("getCloudTexture", "graphics/planets/clouds_banded01.png");
+            texture.put("getCloudColor", new Color(70, 115, 140, 235));
+        }
         Map<String, Object> planet = new HashMap<>();
         planet.put("getId", id);
         planet.put("getName", name);
