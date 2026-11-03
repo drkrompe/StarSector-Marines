@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
@@ -95,7 +96,7 @@ class CompanyPreparationResumeTest {
             assertNull(CerberusCompanyStart.accessibleDepot());
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
             var recovery = CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++);
-            assertEquals("RETURN TO DEPOT", recovery.actionLabel());
+            assertEquals(Strings.get("openingCompanyPreparationGuideReturnToDepot"), recovery.actionLabel());
             assertTrue(recovery.copy().contains("Jangala"));
             assertEquals(List.of("page-nav-return"), recovery.targets());
             recovery.action().run();
@@ -126,7 +127,7 @@ class CompanyPreparationResumeTest {
             var lift = new PreparationGuide.Lesson(1, "REPAIR OUR FIRST HERMES", "Confirm the work.", List.of(), null, null);
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
             var away = CompanyPreparationGuide.withDepotAccess(roster, lift, () -> exits[0]++);
-            assertEquals("RETURN TO DEPOT", away.actionLabel());
+            assertEquals(Strings.get("openingCompanyPreparationGuideReturnToDepot"), away.actionLabel());
             assertTrue(away.copy().contains("Hermes") && away.copy().contains("Jangala"), away.copy());
             assertFalse(new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats()).fabricate(0).succeeded());
             roster = reload(saved, roster);

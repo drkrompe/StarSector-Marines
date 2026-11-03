@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.ops.loot.LootCandidate;
@@ -36,7 +37,7 @@ class BarracksTurnaroundTest {
         model.equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
         model.navigation(context::openSquadEquipmentFromBarracks, () -> {}, false);
         model.toggle(squad.id());
-        assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
+        assertEquals(Strings.get("openingBarracksCommandEquipmentNew"), value(model, "equipmentLabel"));
         ((Runnable) model.cards().get(0).get("loadout")).run();
         assertEquals(squad.id(), context.takeRequestedArmorySquadId());
         assertNull(context.takeRequestedArmorySquadId());
@@ -44,12 +45,12 @@ class BarracksTurnaroundTest {
         context.returnFromFleetArmoryWorkspace();
         assertEquals(List.of(ScreenId.FLEET_ARMORY, ScreenId.BARRACKS), routes);
         assertTrue(model.selected().contains(squad.id()));
-        assertEquals("EQUIPMENT / NEW", value(model, "equipmentLabel"));
+        assertEquals(Strings.get("openingBarracksCommandEquipmentNew"), value(model, "equipmentLabel"));
         action(model, "equipmentWorkspace");
         assertFalse(roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id));
         CompanyNotices.Notice.FIRST_REFIT.review(roster);
         model.refresh();
-        assertEquals("EQUIPMENT", value(model, "equipmentLabel"));
+        assertEquals(Strings.get("openingBarracksCommandEquipment"), value(model, "equipmentLabel"));
         assertFalse(roster.firstRefit().complete());
     }
 

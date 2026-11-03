@@ -703,7 +703,7 @@ class MechLabViewModelTest {
             binder.update();
             document.advance(0f);
             assertTrue(layer.visible(), "The fabricate button explains itself on hover");
-            assertEquals("BUY", instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
+            assertEquals(Strings.get("openingMechLabFab"), instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
             document.pointerDown(centerX(fab), centerY(fab));
             document.pointerUp(centerX(fab), centerY(fab));
             instance.flush();
@@ -1164,7 +1164,7 @@ class MechLabViewModelTest {
         clock[0] = mech.repairUntilDay() + 1d;
         viewModel.refreshTime();
         assertTrue(viewModel.repair().get().classes().contains("hidden"));
-        assertEquals("OPEN PAD", viewModel.mechRows().get().get(0).status());
+        assertEquals(Strings.get("openingUiMechLabOpenGantry"), viewModel.mechRows().get().get(0).status());
     }
 
     /** Settles a battle that left the mech's legs half gone and its torso armor scratched. */

@@ -195,11 +195,11 @@ final class BriefingViewModel {
         props.put("employerRows", List.of(
                 info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
-        props.put("assignLabel", "ASSIGN SQUADS");
+        props.put("assignLabel", Strings.get("briefingUiAssignSquads"));
         props.put("assignClasses", "briefing-assign-hidden");
         props.put("assignDisabled", true);
         props.put("assignAction", none);
-        props.put("deployLabel", "DEPLOY");
+        props.put("deployLabel", Strings.get("briefingAccept"));
         props.put("deployClasses", "briefing-deploy good-surface");
         props.put("deployDisabled", false);
         props.put("deployAction", none);

@@ -1366,7 +1366,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("assignLabel", "ASSIGN");
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
-        props.put("deployLabel", "DEPLOY");
+        props.put("deployLabel", "Deploy");
         props.put("deploymentStatus", "No landing craft available");
         BriefingViewModel.putLandingCraft(props,
                 Mission.builder().id("no-lift-preview").name("No lift")

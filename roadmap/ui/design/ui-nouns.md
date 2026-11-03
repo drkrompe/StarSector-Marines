@@ -386,7 +386,7 @@ children's height could only overflow its column.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs
-to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
+to authored copy: all caps is a heading treatment, not a global font policy. A room's button label is sentence case, as the base game writes them; headings, station signs, status tags and the battle HUD keep their capitals. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
 For composed controls, `align-items` places row or column children on the cross
 axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
