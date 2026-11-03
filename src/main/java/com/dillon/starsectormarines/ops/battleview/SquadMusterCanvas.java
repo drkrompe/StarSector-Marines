@@ -1,53 +1,49 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.FireTeamBillet;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.Rect;
-import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-/** Three fire teams of four current billet holders, rendered from one scalable SVG cutout. */
+/**
+ * Three fire teams of four current billet holders, each drawn as the battle draws it: standing in
+ * its own kit, lying with a wound, and a vacant place left empty and crossed, so what a squad has
+ * lost reads from the shape of its ranks.
+ */
 public final class SquadMusterCanvas implements CanvasProducer {
 
     public static final int SURFACE_WIDTH = 216;
     public static final int SURFACE_HEIGHT = 96;
 
     private static final String[] TEAM_NAMES = {"ALPHA", "BRAVO", "CHARLIE"};
-    private static final Color READY = new Color(0x80, 0xD0, 0xE6);
-    private static final Color WOUNDED = new Color(0xA2, 0xB2, 0xBE);
-    private static final Color MEDICAL = new Color(0xF3, 0xBC, 0x66);
-    private static final Color VACANT = new Color(0x65, 0x7E, 0x91);
-    private static final Color MEDIC = new Color(0x73, 0xF2, 0x8C);
-    private static final Color CAPTION = new Color(0x8C, 0xAC, 0xBC);
-    private static final Color PANEL = new Color(0x0C, 0x1B, 0x27);
-    private static final Color RULE = new Color(0x24, 0x42, 0x54);
+    /** The standing figure's shoulder width, as a share of its place's height and, where that is the tighter, width. */
+    private static final float SHOULDER_OF_HEIGHT = 1f;
+    private static final float SHOULDER_OF_WIDTH = 0.72f;
 
-    public record Palette(Color ready, Color wounded, Color medical, Color vacant,
-                          Color caption, Color panel, Color rule, Color medic) { }
-    public static final Palette SHIPBOARD = new Palette(new Color(0xBF, 0xCA, 0xAF),
-            new Color(0x98, 0x9E, 0x91), new Color(0xE3, 0xBB, 0x71), new Color(0x68, 0x72, 0x64),
-            new Color(0xA5, 0xB0, 0xA0), new Color(0x16, 0x20, 0x1A), new Color(0x39, 0x46, 0x37),
-            new Color(0x8F, 0xD6, 0x8F));
+    public record Palette(Color lost, Color medical, Color caption, Color panel, Color rule, Color medic) { }
+    public static final Palette SHIPBOARD = new Palette(new Color(0xC8, 0x55, 0x4A),
+            new Color(0xE3, 0xBB, 0x71), new Color(0x8C, 0xAC, 0xBC), new Color(0x0C, 0x1B, 0x27),
+            new Color(0x24, 0x42, 0x54), new Color(0x73, 0xF2, 0x8C));
     private final Palette palette;
 
     private final Supplier<SquadMuster> muster;
-    private final SvgAsset marine;
-    private final SvgAsset vacancy;
+    private final ArmoryLoadoutPreviewComposer.Assets assets;
+    private FireTeamBillet standIn;
 
-    public SquadMusterCanvas(Supplier<SquadMuster> muster) {
-        this(muster, new Palette(READY, WOUNDED, MEDICAL, VACANT, CAPTION, PANEL, RULE, MEDIC));
-    }
-
-    public SquadMusterCanvas(Supplier<SquadMuster> muster, Palette palette) {
+    public SquadMusterCanvas(Supplier<SquadMuster> muster, Palette palette,
+                             ArmoryLoadoutPreviewComposer.Assets assets) {
         this.muster = Objects.requireNonNull(muster, "squad muster supplier");
         this.palette = Objects.requireNonNull(palette, "palette");
-        marine = SvgAsset.load("graphics/ui/formation/marine-cutout.svg");
-        vacancy = SvgAsset.load("graphics/ui/formation/marine-cutout-vacant.svg");
+        this.assets = Objects.requireNonNull(assets, "marine sprites");
     }
 
     @Override
@@ -87,29 +83,29 @@ public final class SquadMusterCanvas implements CanvasProducer {
     }
 
     private void drawBillet(CanvasContext context, SquadMuster.Billet billet, Rect slot) {
-        float iconHeight = Math.max(0f, slot.height() - 3f);
-        float iconWidth = iconHeight * 2f / 3f;
-        float x = slot.x() + (slot.width() - iconWidth) * 0.5f;
-        float y = slot.y() + 1f;
-        Color tint = switch (billet.state()) {
-            case READY -> palette.ready();
-            case WOUNDED -> palette.wounded();
-            case VACANT -> palette.vacant();
-        };
-        context.svg(billet.state() == SquadMuster.State.VACANT ? vacancy : marine,
-                x, y, iconWidth, iconHeight, tint);
-        context.line(slot.x() + 6f, slot.bottom() - 1f,
-                slot.right() - 6f, slot.bottom() - 1f, palette.rule(), 1f);
-
-        if (billet.state() == SquadMuster.State.WOUNDED) {
-            // This stripe and the cross make WIA distinct even without color.
-            context.line(x + iconWidth * 0.22f, y + iconHeight * 0.52f,
-                    x + iconWidth * 0.76f, y + iconHeight * 0.30f, palette.medical(), 2.2f);
-            float badgeX = slot.right() - 8f;
-            float badgeY = slot.bottom() - 10f;
-            context.fillRect(badgeX - 1f, badgeY - 1f, 7f, 7f, palette.panel());
-            context.fillRect(badgeX + 2f, badgeY, 1.8f, 5f, palette.medical());
-            context.fillRect(badgeX, badgeY + 1.6f, 5.8f, 1.8f, palette.medical());
+        float centerX = slot.x() + slot.width() * 0.5f;
+        float centerY = slot.y() + slot.height() * 0.5f;
+        float shoulder = Math.min(slot.height() * SHOULDER_OF_HEIGHT, slot.width() * SHOULDER_OF_WIDTH);
+        float surfaceHeight = context.metrics().surfaceHeight();
+        var sink = new ArmoryFireTeamPreviewCanvas.CanvasSink(context);
+        switch (billet.state()) {
+            case READY -> ArmoryLoadoutPreviewComposer.composeStanding(sink, assets, kit(billet),
+                    centerX, centerY, shoulder, surfaceHeight);
+            case WOUNDED -> {
+                ArmoryLoadoutPreviewComposer.composeLying(sink, assets, kit(billet), centerX, centerY,
+                        slot.width(), slot.height(), surfaceHeight, billet.index());
+                // The cross makes WIA distinct even without color.
+                float badgeX = slot.right() - 8f;
+                float badgeY = slot.bottom() - 10f;
+                context.fillRect(badgeX - 1f, badgeY - 1f, 7f, 7f, palette.panel());
+                context.fillRect(badgeX + 2f, badgeY, 1.8f, 5f, palette.medical());
+                context.fillRect(badgeX, badgeY + 1.6f, 5.8f, 1.8f, palette.medical());
+            }
+            case VACANT -> {
+                float reach = slot.height() * 0.2f;
+                context.line(centerX - reach, centerY - reach, centerX + reach, centerY + reach, palette.lost(), 1.6f);
+                context.line(centerX + reach, centerY - reach, centerX - reach, centerY + reach, palette.lost(), 1.6f);
+            }
         }
         if (billet.medic()) {
             // A filled plate with the cross cut out, top right: the squad medic,
@@ -127,6 +123,16 @@ public final class SquadMusterCanvas implements CanvasProducer {
             context.line(chevronX + 2.5f, slot.y() + 3.5f, chevronX + 5f,
                     slot.y() + 6f, palette.caption(), 1.2f);
         }
+    }
+
+    /** A billet standing in for no marine wears what a new recruit is issued. */
+    private FireTeamBillet kit(SquadMuster.Billet billet) {
+        if (billet.kit() != null) return billet.kit();
+        if (standIn == null) {
+            standIn = new FireTeamBillet(billet.name(), WeaponRegistry.STARTER_PRIMARY_ID,
+                    EquipmentGrade.SERVICE, null, MarineArmorPattern.ARMORLESS.id);
+        }
+        return standIn;
     }
 
     private static float teamGap(float width) { return width / 36f; }

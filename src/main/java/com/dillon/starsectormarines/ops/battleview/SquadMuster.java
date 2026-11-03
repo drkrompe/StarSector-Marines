@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
+import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -33,12 +34,19 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
      * One current place, with plain value labels for ordinary retained hover UI.
      * {@code medic} marks a billet that is a squad medic in battle: every
      * ready marine whose suit carries a field-aid kit, or, in a squad with
-     * none, the one billet Field Medicine promotes.
+     * none, the one billet Field Medicine promotes. {@code kit} is what its marine
+     * wears and carries, null for a vacant place or one standing in for no marine.
      */
     public record Billet(int index, String marineId, String name, String rankLabel,
-                         State state, float recoveryDays, boolean leader, boolean medic) {
+                         State state, float recoveryDays, boolean leader, boolean medic,
+                         FireTeamBillet kit) {
         public Billet {
             Objects.requireNonNull(state, "billet state");
+        }
+
+        public Billet(int index, String marineId, String name, String rankLabel,
+                      State state, float recoveryDays, boolean leader, boolean medic) {
+            this(index, marineId, name, rankLabel, state, recoveryDays, leader, medic, null);
         }
 
         public int teamIndex() { return index / MarineSquad.TEAM_SIZE; }
@@ -101,7 +109,9 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
             billets.add(new Billet(index, marine.id(), marine.name(),
                     marine.enlistedRank().abbreviation(),
                     recovering ? State.WOUNDED : State.READY, days,
-                    marine.id().equals(squad.leaderSoldierId()), false));
+                    marine.id().equals(squad.leaderSoldierId()), false,
+                    new FireTeamBillet(marine.name(), marine.primaryId(), marine.primaryGrade(),
+                            marine.specialEquipmentId(), marine.armorDef().id())));
         }
         markMedic(roster, squad, billets);
 
@@ -166,6 +176,6 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
     private static void markAsMedic(List<Billet> billets, int index) {
         Billet b = billets.get(index);
         billets.set(index, new Billet(b.index(), b.marineId(), b.name(), b.rankLabel(),
-                b.state(), b.recoveryDays(), b.leader(), true));
+                b.state(), b.recoveryDays(), b.leader(), true, b.kit()));
     }
 }

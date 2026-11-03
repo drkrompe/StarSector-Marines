@@ -203,10 +203,23 @@ final class MarineOpsThemes {
                 .spec-card, .doctrine-card-active, .member-card, .formation-select, .mission-card,
                 .client-card, .debug-card, .debug-kit-card, .stationing-card, .deck-station, .deck-marker,
                 .specialty-node, .kit-specialty-node, .systems-row, .systems-core-row, .choice-row, .tier-step,
-                .doctrine-issue-button, .slot-select-button, .command-card { corner-cut: 0px; }
-                .mission-card, .client-card, .command-card { background-color: #131d21; border-color: #2c6a7e; }
-                .mission-card:hover, .client-card:hover, .command-card:hover { background-color: #1a2e36; border-color: #2c6a7e; }
-                .command-card.selected { background-color: #1f4552; border-color: #aadeff; }
+                .doctrine-issue-button, .slot-select-button, .command-card,
+                .deployment-squad-card, .marine-viewer-card, .loot-card, .transfer-row,
+                .captain-card, .stationing-squad-card, .wire-report, .wire-line { corner-cut: 0px; }
+                .mission-card, .client-card, .command-card, .deployment-squad-card, .marine-viewer-card,
+                .loot-card, .transfer-row, .captain-card, .stationing-squad-card, .wire-report, .wire-line {
+                    background-color: #131d21; border-color: #2c6a7e;
+                }
+                .mission-card:hover, .client-card:hover, .command-card:hover, .deployment-squad-card:hover,
+                .marine-viewer-card:hover, .loot-card:hover, .transfer-row:hover, .captain-card:hover,
+                .stationing-squad-card:hover, .wire-report:hover, .wire-line:hover {
+                    background-color: #1a2e36; border-color: #2c6a7e;
+                }
+                .command-card.selected, .deployment-squad-card.selected, .marine-viewer-card.selected,
+                .loot-card.selected, .transfer-row.selected, .captain-card.selected,
+                .stationing-squad-card.selected, .wire-report.selected {
+                    background-color: #1f4552; border-color: #aadeff;
+                }
                 /* A command key's label sits in the middle of the key; set here so no screen has to. */
                 .console-action { text-align: center; font-family: body; }
                 .console-action.danger-surface { color: #f0a1a1; background-color: #4d2a26; border-color: transparent; }

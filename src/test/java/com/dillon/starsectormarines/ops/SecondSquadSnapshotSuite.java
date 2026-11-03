@@ -67,7 +67,8 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(doc::addStyleSheet);
             BriefingViewModel.applyVisibility(markup, props);
-            BriefingViewModel.installMusters(doc, markup, props);
+            BriefingViewModel.installMusters(doc, markup, props,
+                    new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             var guide = new PreparationGuide(doc, () -> SecondSquadPreparation.lesson(mission, roster,
                     SquadFoundingResources.NONE, replay[0], () -> { roster.acknowledgeSecondSquadPreparation(); replay[0] = false; }),
                     () -> {}, loader(context, "data/ui/components/company/preparation-guide.mlx"));
@@ -108,7 +109,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
             var doc = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(doc::addStyleSheet);
-            var bindings = new BarracksCardBindings();
+            var bindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             var hints = new SpecSheetBinder(doc, SpecSheetLayer.install(doc), true);
             bindings.update(doc, markup, vm, hints);
             frame(renderer, doc, "layout.png");

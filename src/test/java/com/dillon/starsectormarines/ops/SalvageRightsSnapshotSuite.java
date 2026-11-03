@@ -299,7 +299,8 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
             BriefingViewModel.applyVisibility(instance, props);
             var document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
-            BriefingViewModel.installMusters(document, instance, props);
+            BriefingViewModel.installMusters(document, instance, props,
+                    new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             comms.update(instance);
             BriefingViewModel.updateNarration(instance, comms.busy());
             for (int turn = 0; turn < turns.size(); turn++) {

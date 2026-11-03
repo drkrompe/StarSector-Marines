@@ -30,7 +30,7 @@ public final class ArmoryFireTeamPreviewCanvas implements CanvasProducer {
                 context.metrics().surfaceWidth(), context.metrics().surfaceHeight());
     }
 
-    private record CanvasSink(CanvasContext context)
+    record CanvasSink(CanvasContext context)
             implements ArmoryLoadoutPreviewComposer.Sink {
         @Override
         public void fillRect(float x, float y, float width, float height, Color color) {

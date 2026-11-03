@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.command.HivePosture;
@@ -286,6 +287,7 @@ public class BriefingScreen implements Screen {
     private final DebugKitPicker kitPicker = new DebugKitPicker();
     /** The mech set the debug bay pictures draw from, released when the briefing closes. */
     private final DebugBayPreviewAssets bayPreviews = new DebugBayPreviewAssets();
+    private final ArmoryPreviewAssets marineSprites = new ArmoryPreviewAssets();
     /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
     private DebugBaySlot[] debugBay;
 
@@ -421,7 +423,7 @@ public class BriefingScreen implements Screen {
             BriefingSurvey.install(built, candidate, props);
             BriefingLift.install(built, candidate, props);
             BriefingAir.install(built, candidate, props);
-            BriefingViewModel.installMusters(built, candidate, props);
+            BriefingViewModel.installMusters(built, candidate, props, marineSprites);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -1256,7 +1258,7 @@ public class BriefingScreen implements Screen {
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcement > 0;
 
-        props.put("assignLabel", debug ? "" : Strings.upper(Strings.get("briefingUiAssignSquads")));
+        props.put("assignLabel", debug ? "" : Strings.get("briefingUiAssignSquads"));
         props.put("assignClasses", debug ? "briefing-assign-hidden" : "");
         props.put("assignDisabled", debug);
         props.put("assignAction", debug ? (Runnable) () -> { }
@@ -1279,10 +1281,10 @@ public class BriefingScreen implements Screen {
                         : Strings.upper(Strings.get("briefingUiBlocked"));
         String recovery = !debug && !transportOk ? ShipsBoatsAboard.recoveryBlocker() : null;
         props.put("deploymentStatus", recovery != null ? recovery : canAccept ? Strings.get("briefingUiReadyToDeploy") : label);
-        props.put("deployLabel", canAccept ? Strings.upper(Strings.get("briefingAccept"))
-                : canReinforce ? Strings.upper(Strings.get("briefingUiReinforce"))
+        props.put("deployLabel", canAccept ? Strings.get("briefingAccept")
+                : canReinforce ? Strings.get("briefingUiReinforce")
                 : !transportOk || !commandOk || readiness == null || readiness.needsPersonnel()
-                        ? Strings.upper(Strings.get("briefingAccept")) : Strings.upper(Strings.get("briefingUiAssignSquads")));
+                        ? Strings.get("briefingAccept") : Strings.get("briefingUiAssignSquads"));
         props.put("deployClasses", "briefing-deploy "
                 + (canAccept ? "good-surface" : canReinforce ? "" : "danger-surface briefing-blocked"));
         props.put("deployDisabled", !canAccept && !canReinforce
@@ -1292,7 +1294,7 @@ public class BriefingScreen implements Screen {
         if (transportOk && survey.peek() == null) {
             boolean failed = surveyCaptureFailure != null || survey.failure() != null;
             props.put("deployDisabled", !failed);
-            props.put("deployLabel", Strings.upper(Strings.get(failed ? "briefingUiRetrySurvey" : "briefingUiPreparing")));
+            props.put("deployLabel", Strings.get(failed ? "briefingUiRetrySurvey" : "briefingUiPreparing"));
             props.put("deploymentStatus", Strings.get(failed ? "briefingUiSurveyFailed" : "briefingUiPreparingArea"));
             props.put("deployAction", (Runnable) this::retrySurvey);
         }
@@ -1301,14 +1303,14 @@ public class BriefingScreen implements Screen {
                         new CampaignCommandPowerResources().availableSupplies()) : null;
         if (constructionBlocker != null && personnelOk && transportOk && commandOk) {
             props.put("deploymentStatus", constructionBlocker);
-            props.put("deployLabel", Strings.upper(Strings.get("briefingUiCheckConstruction")));
+            props.put("deployLabel", Strings.get("briefingUiCheckConstruction"));
             props.put("deployDisabled", true);
             props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
             props.put("deployAction", (Runnable) () -> { });
         }
         if (MissionLaunch.requiresOfficerInduction(mission)) {
             props.put("deploymentStatus", Strings.get("briefingUiFirstCommand"));
-            props.put("deployLabel", Strings.upper(Strings.get("briefingUiMeetCastle")));
+            props.put("deployLabel", Strings.get("briefingUiMeetCastle"));
             props.put("deployDisabled", false);
             props.put("deployClasses", "briefing-deploy");
             props.put("deployAction", (Runnable) ctx::openOfficerInduction);
@@ -1317,7 +1319,7 @@ public class BriefingScreen implements Screen {
         String secondWind = debug ? null : SecondWindKeeper.missionBlocker();
         if (secondWind != null) {
             props.put("deploymentStatus", secondWind);
-            props.put("deployLabel", Strings.upper(Strings.get("briefingUiSecondWindNeeded")));
+            props.put("deployLabel", Strings.get("briefingUiSecondWindNeeded"));
             props.put("deployDisabled", true);
             props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
             props.put("deployAction", (Runnable) () -> { });
@@ -1348,7 +1350,7 @@ public class BriefingScreen implements Screen {
             if (squad != null && !squad.stationed()) vacant += roster.vacancies(squad);
         }
         int fill = Math.min(vacant, replenishable);
-        props.put("replenishLabel", Strings.upper(Strings.format("briefingUiReplenish", fill)));
+        props.put("replenishLabel", Strings.format("briefingUiReplenish", fill));
         props.put("replenishClasses", fill > 0 ? "" : "briefing-assign-hidden");
         props.put("replenishDisabled", fill == 0);
         props.put("replenishAction", (Runnable) () -> replenish(roster, selected));
@@ -2782,6 +2784,7 @@ public class BriefingScreen implements Screen {
         input = null;
         kitPicker.close();
         bayPreviews.release();
+        marineSprites.release();
     }
 
     private WaylineNarration.Line displayedBriefingNarration() {

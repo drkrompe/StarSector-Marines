@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ops.battleview.SquadMuster;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -195,11 +196,11 @@ final class BriefingViewModel {
         props.put("employerRows", List.of(
                 info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
-        props.put("assignLabel", "ASSIGN SQUADS");
+        props.put("assignLabel", Strings.get("briefingUiAssignSquads"));
         props.put("assignClasses", "briefing-assign-hidden");
         props.put("assignDisabled", true);
         props.put("assignAction", none);
-        props.put("deployLabel", "DEPLOY");
+        props.put("deployLabel", Strings.get("briefingAccept"));
         props.put("deployClasses", "briefing-deploy good-surface");
         props.put("deployDisabled", false);
         props.put("deployAction", none);
@@ -710,10 +711,11 @@ final class BriefingViewModel {
     }
 
     /** Draws every squad tile's muster. */
-    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
+    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props,
+                               ArmoryLoadoutPreviewComposer.Assets marineSprites) {
         for (SquadPicture squad : fieldSquads(props)) {
             document.canvases().set(markup.requireElement(squad.id() + "-muster"),
-                    new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD));
+                    new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD, marineSprites));
         }
     }
 

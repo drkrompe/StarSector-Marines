@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -36,7 +37,7 @@ class SupplyRouteCampaignTest {
         assertFalse(convoy.flavor.contains("Rill")); assertFalse(convoy.flavor.contains("commit support"));
         var props = MissionSelectScreen.previewProps();
         MissionSelectScreen.putDetail(props, convoy, () -> {}, () -> {});
-        assertEquals("BRIEF & DEPLOY", props.get("briefLabel")); assertFalse(props.containsKey("choiceSummary"));
+        assertEquals(Strings.get("missionSelectBRIEFDEPLOY"), props.get("briefLabel")); assertFalse(props.containsKey("choiceSummary"));
         assertEquals(convoy.id, SupplyRouteCampaign.offers(p).get(0).id);
         assertEquals("Thunder Run", new SupplyRouteWorkGuide(p, null, () -> {}).markupProperty("mission"));
         assertEquals(-1, p.settle(convoy.id, false, null,

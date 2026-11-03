@@ -121,6 +121,31 @@ public final class ArmoryLoadoutPreviewComposer {
         }
     }
 
+    /** One marine standing in its kit at a canvas point, with nothing drawn behind it. */
+    public static void composeStanding(Sink sink, Assets assets, FireTeamBillet billet,
+                                       float centerX, float centerY, float shoulderPx,
+                                       float surfaceHeight) {
+        drawSoldier(sink, assets, billet, centerX, surfaceHeight - centerY, shoulderPx, surfaceHeight, 0f);
+    }
+
+    /**
+     * One marine lying on its side in its armour's own fallen pose, fitted to a box. A family
+     * with no lying art stands instead, so the marine is never missing from its place.
+     */
+    public static void composeLying(Sink sink, Assets assets, FireTeamBillet billet,
+                                    float centerX, float centerY, float boxWidth, float boxHeight,
+                                    float surfaceHeight, int poseIndex) {
+        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
+        LayeredSpriteCache lying = layered != null ? layered.downed(poseIndex) : null;
+        if (lying == null) {
+            composeStanding(sink, assets, billet, centerX, centerY, boxHeight, surfaceHeight);
+            return;
+        }
+        // Turned a quarter, so the sprite's height runs along the box's width.
+        float scale = Math.min(boxWidth / lying.pxHeight, boxHeight / lying.pxWidth);
+        sink.sprite(lying, centerX, centerY, lying.pxWidth * scale, lying.pxHeight * scale, 90f, WHITE);
+    }
+
     private static void drawEquipmentDoll(Sink sink, Assets assets,
                                           FireTeamBillet billet,
                                           float divider, float height) {

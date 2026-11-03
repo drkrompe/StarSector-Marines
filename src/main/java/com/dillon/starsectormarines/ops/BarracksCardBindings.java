@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.OfficerCareer;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -17,10 +18,15 @@ import java.util.function.Supplier;
 
 /** Bounded keyed-card wiring, shared by the live room and its render walkthrough. */
 final class BarracksCardBindings {
+    private final ArmoryLoadoutPreviewComposer.Assets marineSprites;
     private List<Map<String, Object>> previous;
     private final List<UiElement> targets = new ArrayList<>();
     private List<Map<String, Object>> previousSpecialties;
     private final List<UiElement> specialtyTargets = new ArrayList<>();
+
+    BarracksCardBindings(ArmoryLoadoutPreviewComposer.Assets marineSprites) {
+        this.marineSprites = marineSprites;
+    }
 
     void update(UiDocument document, MarkupInstance instance, BarracksViewModel model, SpecSheetBinder hints) {
         update(document, instance, model.command(), hints);
@@ -37,7 +43,7 @@ final class BarracksCardBindings {
             String id = (String) card.get("squadId");
             UiElement canvas = instance.requireElement((String) card.get("musterId"));
             if (document.canvases().producerOf(canvas) == null) {
-                document.canvases().set(canvas, new SquadMusterCanvas(() -> model.muster(id), SquadMusterCanvas.SHIPBOARD));
+                document.canvases().set(canvas, new SquadMusterCanvas(() -> model.muster(id), SquadMusterCanvas.SHIPBOARD, marineSprites));
             } else {
                 document.canvases().invalidate(canvas);
             }
