@@ -42,6 +42,16 @@ class MarineCaptainMoralOutlookTest {
     }
 
     @Test
+    void repairMovesASavedCaptainOffTheFoundersOldPortraitPath() throws Exception {
+        MarineCaptain captain = captain();
+        captain.setPortraitSprite("graphics/portraits/sabine-hale.png");
+
+        readResolve(captain);
+
+        assertEquals(OfficerInduction.MORGAN_PORTRAIT, captain.portraitSprite());
+    }
+
+    @Test
     void repairAdoptsOneLegacyTraitWithoutInventingCommendation() throws Exception {
         MarineCaptain captain = captain();
         captain.traits().add(Trait.CYNICAL);
