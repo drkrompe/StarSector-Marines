@@ -26,7 +26,7 @@ record CorvusWaylineWorkGuide(CorvusWaylineProgress progress, OpeningBroker.Dest
             case "route" -> chapter == null ? Strings.get("corvusGuideRouteLocal")
                     : destination == null ? Strings.format("corvusGuideRoutePaused", chapter.planetName)
                     : Strings.format("corvusGuideRouteBoard", OpeningBroker.NAME);
-            case "preparation" -> chapter != null ? Strings.format("corvusGuidePreparation", chapter.squads)
+            case "preparation" -> chapter != null ? Strings.get("corvusGuidePreparation")
                     : Strings.get(progress.complete() ? "corvusGuideBroken" : "corvusGuideUnrecognized");
             case "courseDisabled" -> destination == null;
             case "courseAction" -> plotCourse;

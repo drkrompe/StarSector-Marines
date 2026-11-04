@@ -543,6 +543,8 @@ mission meanings and readable labels. A segmented personnel meter compares selec
 ready Marines with the recommendation; it caps its visual fill while retaining exact
 counts, and never becomes a launch gate or a prediction of victory. Experience,
 equipment, command capacity, and support remain separate facts.
+A force recommendation is a briefing fact and nowhere else (owner): the contract board and
+HQ's guides quote no squad count, and being under it is the yellow STRENGTH lamp beside Deploy.
 The force section owns its assignment action. Compact Back and Deploy controls sit
 at the left and right of the bottom rail, outside the scrollable planning area;
 readiness or the existing blocker appears beside Deploy. Reinforcement and assignment

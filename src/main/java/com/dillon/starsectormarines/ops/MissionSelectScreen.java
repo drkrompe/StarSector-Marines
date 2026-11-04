@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.systems.StationingOfferLookup;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -352,10 +351,9 @@ public final class MissionSelectScreen implements Screen {
             Mission mission = missions.get(i);
             String base = "mission-" + i;
             boolean isSelected = selected != null && selected.id.equals(mission.id);
-            int recommended = MissionForceEnvelope.recommendedSquads(mission);
-            String active = machines(mission) + (mission.fieldPresencePolicy.limited()
+            String active = mission.fieldPresencePolicy.limited()
                     ? Strings.format("missionSelectActiveLimit", mission.fieldPresencePolicy.activeSquadLimit())
-                    : "");
+                    : "";
             int multiplier = mission.cashMultiplier & 0xFF;
             if (multiplier <= 0) multiplier = 100;
             long payout = (long) mission.payout * multiplier / 100L;
@@ -367,7 +365,7 @@ public final class MissionSelectScreen implements Screen {
                     Strings.format("missionSelectRowMeta", mission.source == MissionSource.RECURRING
                             ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.REPLAY
                             ? Strings.get("missionSelectReplay") : mission.source == MissionSource.STORY
-                            ? Strings.get("missionSelectStory") : tierName(mission.tier), recommended, active),
+                            ? Strings.get("missionSelectStory") : tierName(mission.tier), active),
                     ShepherdRecoveryProgress.workingPassage(mission.id) ? Strings.get("missionSelectPayoutMorrow")
                             : SupplyRouteCampaign.freight(mission) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
         }
@@ -433,8 +431,7 @@ public final class MissionSelectScreen implements Screen {
                 : Strings.get("missionSelectMISSIONDOSSIER"));
         props.put("detailTitle", present ? mission.name : Strings.get("missionSelectSelectAContract"));
         props.put("detailMeta", present
-                ? Strings.format("missionSelectRecommendation", tierName(mission.tier), MissionForceEnvelope.recommendedSquads(mission))
-                        + machines(mission)
+                ? tierName(mission.tier)
                 : Strings.get("missionSelectChooseARowInTheContractList"));
         props.put("detailFlavor", present ? mission.flavor :
                 Strings.get("missionSelectTheSelectedOperationSScaleFieldPresence"));
@@ -457,7 +454,6 @@ public final class MissionSelectScreen implements Screen {
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
             boolean custody = AgreusArcCampaign.custodyRoute(mission);
             return List.of(
-                    detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelectTermsForce")),
                     detailRow("support", Strings.get("missionSelectHandoverParty"), Strings.get(custody ? "missionSelectTermsPartyCustody" : "missionSelectTermsPartyCompact")),
                     detailRow("claim", Strings.get("missionSelectHandover"), Strings.get("missionSelectTermsClaim")),
                     detailRow("payout", Strings.get("missionSelectVictoryAward"), Strings.get("missionSelectTermsAward")));
@@ -499,12 +495,10 @@ public final class MissionSelectScreen implements Screen {
                         : Strings.get("missionSelect18000CrInspection22000Cr")),
                 detailRow("payout",Strings.get("missionSelectPaymentOnVictory"),Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         if (CorvusWaylineCampaign.isBattle(mission)) return List.of(
-                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.format("missionSelectCorvusForce", MissionForceEnvelope.recommendedSquads(mission))),
                 detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
                 detailRow("opposition", Strings.get("missionSelectSableWakeCrew"), Strings.get("missionSelectOpposition" + mission.risk.name())),
                 detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         if (SupplyRouteCampaign.owns(mission.id)) return List.of(
-                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.get("missionSelect2SquadsRecommendedOnly")),
                 detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
                 detailRow("opposition", Strings.get("missionSelectOpposition"), Strings.get("missionSelectLocalRaidersNoFighterOrMechSupport")),
                 detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), SupplyRouteCampaign.freight(mission) ? Strings.get("missionSelect60004000PerDeliveredCarrier")
@@ -797,11 +791,5 @@ public final class MissionSelectScreen implements Screen {
                 case "action" -> action; default -> null;
             };
         }
-    }
-
-    /** The machines recommended beside the squads, as a suffix; empty for work that names none. */
-    static String machines(Mission mission) {
-        int machines = MissionForceEnvelope.recommendedMachines(mission);
-        return machines > 0 ? Strings.format("missionSelectMachines", machines) : "";
     }
 }
