@@ -26,25 +26,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             roster.campaignLessons().reviewInvestments();
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
             var mission = SecondSquadPreparationTest.junction();
-            var props = BriefingViewModel.campaignPreviewProps(false);
-            props.put("missionTitle", mission.name);
-            props.put("missionKicker", "CAPTURE / HOLD / LOW RISK");
-            props.put("missionFlavor", "Capture Weigh Station, Freight Yard and Junction Dispatch together. Our militia will hold your gains while the company advances.");
-            props.put("rewardValue", "12,000 credits");
-            props.put("personnelSummary", "Two formations / 24 marines aboard");
-            props.put("experienceSummary", "Company infantry / recovered Hound");
-            props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
-            props.put("sourceRows", List.of());
-            props.put("sourceEmpty", "Wayline / contracted heavy lift");
-            props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-sabine", "choice-row selected",
-                    "Morgan Hale", "Lieutenant / 3 squad coordination", false, () -> {}, "graphics/portraits/sabine-hale.png")));
-            props.put("employerRows", List.of(BriefingViewModel.info("heavy-lift", "Mech Support", "Contracted heavy carrier", "")));
-            BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
-            BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
-            BriefingViewModel.putLandingCraft(props, mission, List.of(FittedBoat.standard(ShuttleType.HERMES)), 24, "Second Wind");
-            props.put("preparationClasses", "mission-preparation");
-            BriefingViewModel.putDebugDrawer(props, false, false, () -> {});
-            BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 24, 24);
+            var props = junctionProps(mission);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             props.put("commandSummary", "0 / 5 slots");
@@ -65,6 +47,30 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
                     1920, 1080, props, 1f, false, null)));
             return frames;
         }
+    }
+
+    /** The Junction's briefing as the campaign shows it, with its company and landing craft. */
+    static Map<String, Object> junctionProps(Mission mission) {
+        var props = BriefingViewModel.campaignPreviewProps(false);
+        props.put("missionTitle", mission.name);
+        props.put("missionKicker", "CAPTURE / HOLD / LOW RISK");
+        props.put("missionFlavor", "Capture Weigh Station, Freight Yard and Junction Dispatch together. Our militia will hold your gains while the company advances.");
+        props.put("rewardValue", "12,000 credits");
+        props.put("personnelSummary", "Two formations / 24 marines aboard");
+        props.put("experienceSummary", "Company infantry / recovered Hound");
+        props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
+        props.put("sourceRows", List.of());
+        props.put("sourceEmpty", "Wayline / contracted heavy lift");
+        props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-sabine", "choice-row selected",
+                "Morgan Hale", "Lieutenant / 3 squad coordination", false, () -> {}, "graphics/portraits/sabine-hale.png")));
+        props.put("employerRows", List.of(BriefingViewModel.info("heavy-lift", "Mech Support", "Contracted heavy carrier", "")));
+        BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
+        BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
+        BriefingViewModel.putLandingCraft(props, mission, List.of(FittedBoat.standard(ShuttleType.HERMES)), 24, "Second Wind");
+        props.put("preparationClasses", "mission-preparation");
+        BriefingViewModel.putDebugDrawer(props, false, false, () -> {});
+        BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 24, 24);
+        return props;
     }
 
     private static void putLamps(Map<String, Object> props, MarineRoster roster, Set<String> selected, int ready,

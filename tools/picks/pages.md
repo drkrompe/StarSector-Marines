@@ -27,3 +27,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Heart of the Khettara (Broad Front: bores, combined arms, ridge guns, airbases, story seed) | https://claude.ai/artifact/L5pPsV7nSJW4ghxXL3G9az |
 | Ain Tafrant objectives (Cordon Road: objectives, air base, town, convoys) | https://claude.ai/artifact/AcSpPLfeceyjp9313iMgEE |
 | Laser tank turbine engine (turbine engine loop takes) | https://claude.ai/artifact/9G9Xkx4pj6ozcutQ1DiBh3 |
+| Tutorial wording (Castle's callouts on their rooms; edits in the page db) | https://claude.ai/artifact/7yVMbqWK3DLdZuAPsVRMhY |

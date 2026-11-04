@@ -1402,7 +1402,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 instance.requireElement("mission-plan-sections").scrollTop(10000f);
                 instance.requireElement("mission-overview-copy").scrollTop(10000f);
             }
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
@@ -1422,7 +1422,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (hintTarget != null) {
                 openSpecSheet(document, hints, width, height, uiScale, instance.requireElement(hintTarget));
             }
-            return renderRelative(renderer, document, width, height, uiScale);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, uiScale),
+                    width, height, uiScale);
         }
     }
 
@@ -1542,7 +1543,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
         try (MarkupInstance instance = loader.build(
                 reactor, "company-hq", hqProps)) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             terminal.bind(document, instance);
@@ -1564,7 +1565,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Opening guidance exceeds the detail pane");
                 }
             }
-            return frame;
+            return guided(context, renderer, document, frame, width, height, uiScale);
         }
     }
 
@@ -2028,7 +2029,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().selectCommand(captain.id());
             }
             if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
-            if (state.startsWith("guide-")) {
+            if (state.startsWith("guide-line-")) {
+                // tutorial-copy pages to one line of the walkthrough with its own Next.
+                for (int line = Integer.parseInt(state.substring(11)); line > 0; line--)
+                    ((Runnable) viewModel.command().props().get("guideNext")).run();
+            } else if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
             }
@@ -2251,6 +2256,42 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    /** The callout {@code tutorial-copy} mounts over the next room rendered; null renders the room as it is. */
+    private static Supplier<PreparationGuide.Lesson> guideOverlay;
+
+    private static UiDocument roomDocument(UiElement root) {
+        return guideOverlay == null ? new UiDocument(root) : PreparationGuide.document(root);
+    }
+
+    private static BufferedImage guided(SnapshotContext context, HeadlessUiRenderer renderer, UiDocument document,
+            BufferedImage room, int width, int height, float scale) throws Exception {
+        if (guideOverlay == null) return room;
+        var guide = preparationGuide(context, document, guideOverlay);
+        renderRelative(renderer, document, width, height, scale);
+        guide.update();
+        return renderRelative(renderer, document, width, height, scale);
+    }
+
+    enum UiRoom { HQ, ARMORY, BOATS, BARRACKS, BRIEFING }
+
+    /** A room at 1920x1080 with {@code lesson} over it, through the production callout and spotlight. */
+    static BufferedImage renderRoomWithLesson(SnapshotContext context, HeadlessUiRenderer renderer,
+            UiRoom room, CompanyHqViewModel hq, Map<String, Object> briefing,
+            Supplier<PreparationGuide.Lesson> lesson) throws Exception {
+        guideOverlay = lesson;
+        try {
+            return switch (room) {
+                case HQ -> renderCompanyHq(context, renderer, 1920, 1080, 1f, hq);
+                case ARMORY -> renderFleetArmoryWorkspace(context, renderer, 1920, 1080, true, false, false, false, false, 1f);
+                case BOATS -> renderBoatDeck(context, renderer, 1920, 1080, false);
+                case BARRACKS -> renderBarracks(context, renderer, 1920, 1080);
+                case BRIEFING -> renderMissionBriefing(context, renderer, 1920, 1080, briefing, 1f, false, null);
+            };
+        } finally {
+            guideOverlay = null;
+        }
+    }
+
     private static PreparationGuide preparationGuide(SnapshotContext context, UiDocument document,
             Supplier<PreparationGuide.Lesson> lesson) {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
@@ -2366,6 +2407,8 @@ private static BufferedImage renderBarracks(
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+        // A lesson over this room stands alone: the walkthrough would sit in front of the same board.
+        if (guideOverlay != null) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
         CompanyDeck ship = companyShip(context, List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -2373,12 +2416,13 @@ private static BufferedImage renderBarracks(
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, "shipboard-barracks", props(viewModel, ship))) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets()).update(document, instance, viewModel, hints);
-            return renderRelative(renderer, document, width, height, 1f);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, 1f),
+                    width, height, 1f);
         }
     }
 
@@ -2520,7 +2564,7 @@ private static BufferedImage renderBarracks(
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
             }
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
@@ -2542,7 +2586,8 @@ private static BufferedImage renderBarracks(
                         instance.requireElement(ArmorySpecSheets.firstSpecSheetAnchorId(
                                 viewModel.weaponDoctrineTiles().get())));
             }
-            return renderRelative(renderer, document, width, height, uiScale);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, uiScale),
+                    width, height, uiScale);
         }
     }
 
@@ -3484,7 +3529,7 @@ private static BufferedImage renderBarracks(
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, "boat-deck", props(viewModel, ship, bay, hangars.size()))) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             BoatDeckCanvas bayCanvas = new BoatDeckCanvas(ship, () -> bay,
@@ -3522,7 +3567,8 @@ private static BufferedImage renderBarracks(
                 if (binder.openTarget() != bayElement) throw new IllegalStateException("No spec sheet for " + pointAt);
                 document.advance(0f);
             }
-            return renderRelative(renderer, document, width, height, 1f);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, 1f),
+                    width, height, 1f);
         }
     }
 
@@ -3649,7 +3695,7 @@ private static BufferedImage renderBarracks(
         };
     }
 
-    private static SquadFoundingResources snapshotSquadFoundingResources() {
+    static SquadFoundingResources snapshotSquadFoundingResources() {
         return new SquadFoundingResources() {
             @Override public int available(String commodityId) { return 2_000; }
             @Override public long credits() { return 60_000; }

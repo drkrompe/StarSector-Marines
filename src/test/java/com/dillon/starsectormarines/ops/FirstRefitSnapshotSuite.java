@@ -104,7 +104,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             return new SnapshotArtifact(showPrompt ? "00a-free-technology-prompt.png" : "00-debrief-upgrade-available.png", image);
         }
     }
-    private SnapshotArtifact frame(SnapshotContext context, Reactor reactor, FirstRefitModel model, String file, String clickAfter) throws Exception {
+    SnapshotArtifact frame(SnapshotContext context, Reactor reactor, FirstRefitModel model, String file, String clickAfter) throws Exception {
         return frame(context, reactor, model, file, clickAfter, null);
     }
     private SnapshotArtifact frame(SnapshotContext context, Reactor reactor, FirstRefitModel model, String file, String clickAfter, String hover) throws Exception {
