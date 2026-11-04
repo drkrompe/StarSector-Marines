@@ -296,7 +296,7 @@ people are aboard.
 > the last pressure patch, someone painted SECOND WIND over the old registry and
 > didn't sign it.
 
-`openingCompanyPrologueSabineDidnTAskIfThereWasRoom` — Castle
+`openingCompanyPrologueMorganDidnTAskIfThereWasRoom` — Castle
 > Morgan didn't ask if there was room. She asked where her people should stand.
 > The two she struck off were down the lower shaft when it went dark. She hasn't
 > said their names since, and I haven't asked.
@@ -655,7 +655,7 @@ since the lesson panel speaks only with Castle's portrait)
 **Briefing, voiced** — Zoey (`marines_mara_relief_briefing_01`, the only turn)
 > So you're delivering my transplutonic dust eh? Well, no time for idle chit chat. Our freight checkpoint has been under attack and I'm desperate for help for my people down there. Stop the shooting by shooting them first.
 
-**Briefing, Morgan** (`sabine_relief_briefing_truck`)
+**Briefing, Morgan** (`morgan_relief_briefing_truck`)
 > Shuttle is not flight ready yet Commander, so we'll be ferried from the port to the facility by truck. We're ready when you are.
 
 **Briefing screen, unvoiced** (`waylineBriefingRelief`)
@@ -732,7 +732,7 @@ schedule is a term the player needs, so it follows her briefing as a plain
 - Morgan's landing, capture, strength and regroup reports, each once the net
   can observe its fact.
 
-Morgan has a voice (`art-source/audio/sabine/README.md`): calm and low, without
+Morgan has a voice (`art-source/audio/morgan/README.md`): calm and low, without
 the Eastern European accent the brief asked for, which the recording model does
 not keep. Her Relief briefing turn is recorded. Her muster lines and the
 assignment line stay written, because the exchanges they sit in are written

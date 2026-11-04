@@ -46,7 +46,7 @@ are new work.
 | P4 | RAISING HER | Image + dialog | Four days left on the chalk. | *existing* `raising-her` |
 | P5 | THE DEPARTURE ROSTER | Image + dialog | Nobody voted on the command chair. | *existing* `departure-roster` |
 | P6 | SOMEWHERE TO DOCK | Image + dialog | Castle writes to Nessa after years. Hegemony patrols on the display. | *existing* `somewhere-to-dock` (Nessa memory stays here, see Decisions) |
-| P7 | A WAY TO EARN | Image + dialog | Sabine's twelve asleep beside their rifles. No licence. | *existing* `cargo-billets` |
+| P7 | A WAY TO EARN | Image + dialog | Morgan's twelve asleep beside their rifles. No licence. | *existing* `cargo-billets` |
 | P8 | THE FIRST STEP | Image + dialog | The estimate on top of the old shift roster. | *existing* `yard-estimate` |
 | — | *Campaign travel to Jangala* | — | The player flies there. | — |
 | C1 | CORVUS | Cinematic + voiced hail | Jangala, the Hegemony fleet, civilian traffic, and how small they are. | **new** |
@@ -58,7 +58,7 @@ are new work.
 | Y1 | Yard report | Image + dialog | Nessa held to the estimate; the Wayline bridge. | *existing* `yard-hull` |
 | Y2 | Yard completion | Image + dialog | Old seals on Nessa's wall. | *existing* `berths-fitted` |
 | Y3 | Castle's preparation lessons | Dialog | Instructions in her voice. | *existing* |
-| Y4 | Sabine's induction | Dialog | "Twelve present, Commander. Counted." | *existing* |
+| Y4 | Morgan's induction | Dialog | "Twelve present, Commander. Counted." | *existing* |
 | M1 | Mara's briefing (Relief) | Dialog, voiced | A stranger asking for help. | *existing* |
 | M2 | First payment | Dialog | "Somebody paid us to do exactly what we said we'd do." | *existing* |
 
@@ -257,7 +257,7 @@ Line IDs stay stable, so the numbering skips 5 and 6.
   list for the faction (`hegemony.faction` `illegalCommodities`: drugs, organs,
   heavy armaments, AI cores), read off like a checklist. It sells the universe:
   this is a policed Hegemony system. Castle's answer is literally true; the
-  company has no armaments *for sale*. Sabine's twelve and their rifles sit
+  company has no armaments *for sale*. Morgan's twelve and their rifles sit
   unspoken under it.
 - **Line 7:** the mounts are mentioned in passing as a condition of clearance.
   That is how a professional handles an armed civilian hull.

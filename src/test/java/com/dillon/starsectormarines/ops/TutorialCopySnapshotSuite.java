@@ -98,10 +98,10 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
                 Strings.get("openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd"), List.of("page-nav-barracks"), null, 310)));
         list.add(new Frame("hq-ready.png", UiRoom.HQ, prep(1, "openingCompanyPreparationGuideLetSGetTheCompanyReady",
                 Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"), List.of("page-nav-barracks"),
-                "openingCompanyPreparationGuideMeetSabine", 310)));
+                "openingCompanyPreparationGuideMeetMorgan", 310)));
         list.add(new Frame("boats-one-step.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideOneStepAtATime",
                 Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"), List.of("page-nav-barracks"),
-                "openingCompanyPreparationGuideMeetSabine", 310)));
+                "openingCompanyPreparationGuideMeetMorgan", 310)));
         // First lift, as CampaignLessons.firstLift joins its sentences.
         String wreck = Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes");
         String empty = Strings.get("openingOfficerInductionGuideOurPeopleNeedAWayDownAnd");
@@ -134,7 +134,7 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
 
     private static MarineRoster preparing() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain morgan = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", "graphics/portraits/morgan-hale.png", Rank.LIEUTENANT, 0f);
         roster.add(morgan);
         roster.beginCompanyPreparation(morgan);
         return roster;

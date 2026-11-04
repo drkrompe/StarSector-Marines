@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompanyPreparationTest {
     @Test void aNewCompanysFirstSquadAndFirstBoatCostNothingAndTheNextOnesPay() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine);
-        roster.beginCompanyPreparation(sabine);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan);
+        roster.beginCompanyPreparation(morgan);
         TestPurse purse = new TestPurse(0);
         TestStores hold = new TestStores();
         assertEquals(0, CompanyPreparation.boatPrice(roster, ShuttleType.HERMES));
@@ -43,9 +43,9 @@ class CompanyPreparationTest {
 
     @Test void aCompanyWithoutFreeOrdersStillPaysTheCompleteBillExactly() throws Exception {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine);
-        roster.beginCompanyPreparation(sabine);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan);
+        roster.beginCompanyPreparation(morgan);
         roster.spendFirstSquad();
         roster.boatDeck().spendFirstBoat();
         OfficerInduction induction = roster.officerInduction();
@@ -68,9 +68,9 @@ class CompanyPreparationTest {
         assertTrue(roster.boatDeck().flightReady().isEmpty());
         assertEquals(Step.INTRODUCTION, induction.step(roster));
         assertFalse(induction.finish(roster));
-        induction.introduce(sabine);
+        induction.introduce(morgan);
         assertEquals(Step.SPECIALTY, induction.step(roster));
-        assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
+        assertTrue(morgan.train(OfficerSpecialty.TACTICAL_COVER));
         induction = roundTrip(induction);
         assertTrue(induction.companyPreparation());
         assertEquals(Step.FORMATION, induction.step(roster));
@@ -81,7 +81,7 @@ class CompanyPreparationTest {
         assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
 
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
-        roster.assignCaptainToSquad(sabine.id(), squad.id());
+        roster.assignCaptainToSquad(morgan.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         assertTrue(roundTrip(induction).complete());
@@ -95,15 +95,15 @@ class CompanyPreparationTest {
 
     @Test void understrengthAssignedSquadCannotFinishAndTransferDoesNotMintBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine); roster.beginCompanyPreparation(sabine);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan); roster.beginCompanyPreparation(morgan);
         roster.setCompanyShip("first", "First", 200);
         BoatDeck deck = roster.boatDeck();
         deck.reconcile("first", ShuttleType.HERMES, 2);
         CampaignBoat boat = deck.fabricate(0);
-        roster.officerInduction().introduce(sabine); sabine.train(OfficerSpecialty.TACTICAL_COVER);
+        roster.officerInduction().introduce(morgan); morgan.train(OfficerSpecialty.TACTICAL_COVER);
         MarineSquad squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 11);
-        roster.assignCaptainToSquad(sabine.id(), squad.id());
+        roster.assignCaptainToSquad(morgan.id(), squad.id());
         assertEquals(Step.FORMATION, roster.officerInduction().step(roster));
         deck.reconcile("second", ShuttleType.HERMES, 4);
         assertEquals(1, deck.flightReady().size());
@@ -115,10 +115,10 @@ class CompanyPreparationTest {
 
     @Test void legacyOfficerLessonsAreNotRestartedOrStrippedOfBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine); roster.beginOfficerInduction(sabine);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan); roster.beginOfficerInduction(morgan);
         roster.boatDeck().reconcile("home", ShuttleType.HERMES, 2);
-        roster.beginCompanyPreparation(sabine);
+        roster.beginCompanyPreparation(morgan);
         assertFalse(CompanyPreparation.required(roster));
         assertEquals(Step.INTRODUCTION, roster.officerInduction().step(roster));
         assertEquals(2, roster.boatDeck().flightReady().size());

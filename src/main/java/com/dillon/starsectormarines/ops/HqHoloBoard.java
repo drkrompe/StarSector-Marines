@@ -72,7 +72,7 @@ final class HqHoloBoard {
     private static final int SEGMENTS = 72;
     /** Size of the kind glyph on a label plate, in pixels. */
     private static final float GLYPH = 11f;
-    private static final String[] KEEP_CLEAR = {"castle", "sabine"};
+    private static final String[] KEEP_CLEAR = {"castle", "morgan"};
 
     /** A marker's clickable area and its label's, in banner pixels after the fit. */
     record Hit(Rect marker, Rect label) {

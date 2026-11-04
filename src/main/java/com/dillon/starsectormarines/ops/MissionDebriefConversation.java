@@ -323,7 +323,7 @@ final class MissionDebriefConversation {
     private static final String JANGALA_MISSION = "story_supply_route_thunder_run";
 
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
-    private static final int CASTLE = 0, MARA = 1, SABINE = 2;
+    private static final int CASTLE = 0, MARA = 1, MORGAN = 2;
     /**
      * Castle's opening on the ledger's grade, Zoey's finding over grade and broker, Castle's close on the broker
      * ({@code dust-ledger-dialogue.md}). Every finding names Prell's authority and the Warion post.
@@ -346,9 +346,9 @@ final class MissionDebriefConversation {
     }
     private static WaylineNarration.Line writtenLine(String id, String missionId, String event, int speaker, String text) {
         return new WaylineNarration.Line(id, missionId, event, text, 10f, 10, 15f, List.of(),
-                Strings.get(switch (speaker) { case CASTLE -> "debriefSpeakerCastle"; case SABINE -> "debriefSpeakerSabine";
+                Strings.get(switch (speaker) { case CASTLE -> "debriefSpeakerCastle"; case MORGAN -> "debriefSpeakerMorgan";
                     default -> "debriefSpeakerMara"; }),
-                switch (speaker) { case CASTLE -> CompanyManagementGuide.portrait(); case SABINE -> OfficerInduction.SABINE_PORTRAIT;
+                switch (speaker) { case CASTLE -> CompanyManagementGuide.portrait(); case MORGAN -> OfficerInduction.MORGAN_PORTRAIT;
                     default -> OpeningBroker.PORTRAIT; }, false, false);
     }
 

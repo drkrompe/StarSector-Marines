@@ -89,9 +89,9 @@ public class MarineRoster implements Serializable {
     private OfficerInduction officerInduction;
 
     public OfficerInduction officerInduction() { return officerInduction; }
-    public void beginCompanyPreparation(MarineCaptain sabine) {
+    public void beginCompanyPreparation(MarineCaptain morgan) {
         if (officerInduction != null) return;
-        beginOfficerInduction(sabine);
+        beginOfficerInduction(morgan);
         if (officerInduction != null) {
             officerInduction.prepareCompany();
             boatDeck.requireCommissioning();
@@ -110,10 +110,10 @@ public class MarineRoster implements Serializable {
     }
 
     public boolean officerInductionRequired() { return officerInduction != null && !officerInduction.complete(); }
-    public void beginOfficerInduction(MarineCaptain sabine) {
-        if (officerInduction == null && sabine != null && byId(sabine.id()) == sabine) {
-            officerInduction = new OfficerInduction(sabine.id());
-            sabine.markFounding();
+    public void beginOfficerInduction(MarineCaptain morgan) {
+        if (officerInduction == null && morgan != null && byId(morgan.id()) == morgan) {
+            officerInduction = new OfficerInduction(morgan.id());
+            morgan.markFounding();
         }
     }
 

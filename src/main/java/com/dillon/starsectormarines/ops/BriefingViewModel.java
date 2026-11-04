@@ -44,7 +44,6 @@ final class BriefingViewModel {
 
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("preparationClasses", "briefing-assign-hidden");
         BriefingLift.put(props, null);
         props.put("fieldSquads", List.of());
         props.put("fieldTiles", List.of());
@@ -55,8 +54,6 @@ final class BriefingViewModel {
         props.put("replenishDisabled", true);
         props.put("replenishAction", (Runnable) () -> { });
         props.put("forceSelectedClasses", "label heading tone-edge");
-        props.put("prepareArmory", (Runnable) () -> { });
-        props.put("prepareBarracks", (Runnable) () -> { });
         props.put("screenHeader", Strings.get("briefingVmScreenHeader"));
         props.put("missionDialogue", List.of());
         props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
@@ -260,11 +257,6 @@ final class BriefingViewModel {
 
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
     static void applyVisibility(MarkupInstance markup, Map<String, Object> props) {
-        UiElement preparation = markup.requireElement("mission-preparation");
-        if (preparation.hasClass("briefing-assign-hidden")) {
-            // Button-only hiding styles cannot collapse this toolbar's descendants.
-            preparation.parent().remove(preparation);
-        }
         boolean narrated = Boolean.TRUE.equals(props.get("narrationAvailable"));
         markup.requireElement("mission-overview").classed("narrated", narrated);
         if (narrated) {

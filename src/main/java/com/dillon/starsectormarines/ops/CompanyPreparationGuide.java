@@ -58,7 +58,7 @@ final class CompanyPreparationGuide {
         return new PreparationGuide.Lesson(1, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),
                 waiting ? Strings.get("openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd")
                         : Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"),
-                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"),
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetMorgan"),
                 waiting ? null : context::openOfficerInduction);
     }
 
@@ -72,6 +72,6 @@ final class CompanyPreparationGuide {
         if (!CompanyPreparation.required(roster)) return null;
         return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideOneStepAtATime"),
                 Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"),
-                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"), next);
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetMorgan"), next);
     }
 }

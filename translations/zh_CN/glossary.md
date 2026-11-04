@@ -32,7 +32,7 @@ established names (Hegemony as 霸主) is a translation-review question.
 | cradle (yard) | 船台 | |
 | yard | 船坞 | |
 | depot | 仓库 | |
-| stores / prepaid stores | 物资 / 预付物资 | |
+| stores | 物资 | |
 | bill | 账单 | |
 | credits | 星币 | |
 | scrip (company) | 公司代币 | |

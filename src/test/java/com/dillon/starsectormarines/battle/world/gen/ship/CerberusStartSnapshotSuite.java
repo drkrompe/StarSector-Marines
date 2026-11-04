@@ -324,9 +324,9 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
     /** The starting hull, empty and then with the same berth commissioned. */
     private List<SnapshotArtifact> commissionedHermes(SnapshotContext context, CompanyShip hull) throws Exception {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0f);
-        roster.add(sabine);
-        roster.beginCompanyPreparation(sabine);
+        MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0f);
+        roster.add(morgan);
+        roster.beginCompanyPreparation(morgan);
         BoatDeck boats = roster.boatDeck();
         boats.reconcile("cerberus", ShuttleType.HERMES, 1);
         var workshop = new BoatWorkshop(boats, new TestPurse(60_000));

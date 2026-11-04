@@ -72,17 +72,17 @@ class CompanyPreparationResumeTest {
                     "getEconomy", stub(EconomyAPI.class, Map.of("getMarket", market)))));
             CerberusCompanyStart.conversionPaid(stub(FleetMemberAPI.class, Map.of("getId", "starter")), market);
             var roster = new MarineRoster();
-            var sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-            roster.add(sabine); roster.beginCompanyPreparation(sabine);
+            var morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+            roster.add(morgan); roster.beginCompanyPreparation(morgan);
             assertCaptured(roster, ScreenId.SHIP_TRANSFER);
             roster.setCompanyShip("starter", "Second Wind", 75);
             roster.boatDeck().registerFoundingWrecks("starter");
             roster.boatDeck().reconcile("starter", ShuttleType.HERMES, 1);
             // The company rides up to Relief on Wayline's truck: Morgan and her squad come straight after the ship.
             assertCaptured(roster, ScreenId.BARRACKS);
-            sabine = roster.officerInduction().officer(roster);
-            roster.officerInduction().introduce(sabine);
-            assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
+            morgan = roster.officerInduction().officer(roster);
+            roster.officerInduction().introduce(morgan);
+            assertTrue(morgan.train(OfficerSpecialty.TACTICAL_COVER));
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
                     "Squads are raised in Barracks, so the first formation resumes there");
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
@@ -94,11 +94,11 @@ class CompanyPreparationResumeTest {
             roster = reload(saved, roster);
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(roster.firstSquadFree());
-            sabine = roster.officerInduction().officer(roster);
+            morgan = roster.officerInduction().officer(roster);
             var squad = new SquadFoundingWorkshop(roster, new CampaignSquadFoundingResources()).foundSquad().squad();
             assertNotNull(squad);
             assertCaptured(roster, ScreenId.BARRACKS);
-            roster.assignCaptainToSquad(sabine.id(), squad.id());
+            roster.assignCaptainToSquad(morgan.id(), squad.id());
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
@@ -125,8 +125,8 @@ class CompanyPreparationResumeTest {
     @Test void establishedAndLegacyOfficerOnlyCompaniesKeepTheirRoutes() {
         var roster = new MarineRoster();
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
-        var sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine); roster.beginOfficerInduction(sabine);
+        var morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan); roster.beginOfficerInduction(morgan);
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
     }
 

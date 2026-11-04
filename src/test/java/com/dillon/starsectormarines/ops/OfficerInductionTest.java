@@ -23,11 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OfficerInductionTest {
     private final MarineRoster roster = new MarineRoster();
-    private final MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0f);
+    private final MarineCaptain morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0f);
 
     private OfficerInduction begin() {
-        roster.add(sabine);
-        roster.beginOfficerInduction(sabine);
+        roster.add(morgan);
+        roster.beginOfficerInduction(morgan);
         return roster.officerInduction();
     }
 
@@ -36,25 +36,25 @@ class OfficerInductionTest {
         OfficerInduction induction = begin();
         assertEquals(Step.INTRODUCTION, induction.step(roster));
         assertFalse(induction.finish(roster));
-        induction.introduce(sabine);
+        induction.introduce(morgan);
         assertEquals(Step.SPECIALTY, induction.step(roster));
-        assertTrue(sabine.train(specialty));
-        assertFalse(sabine.train(specialty), "No extra tutorial point");
+        assertTrue(morgan.train(specialty));
+        assertFalse(morgan.train(specialty), "No extra tutorial point");
         induction = roundTrip(induction);
-        assertEquals(sabine.id(), induction.foundingOfficerId());
+        assertEquals(morgan.id(), induction.foundingOfficerId());
         assertEquals(Step.FORMATION, induction.step(roster));
         MarineSquad squad = roster.createSquad();
         assertEquals(Step.FORMATION, induction.step(roster), "Empty formations cannot satisfy induction");
         roster.recruitToSquad(squad.id(), 12);
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
         assertFalse(induction.finish(roster));
-        roster.assignCaptainToSquad(sabine.id(), squad.id());
+        roster.assignCaptainToSquad(morgan.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         induction = roundTrip(induction);
         assertTrue(induction.complete());
         assertFalse(induction.finish(roster), "Final acknowledgement is once only");
-        roster.removeById(sabine.id());
+        roster.removeById(morgan.id());
         assertEquals(Step.COMPLETE, induction.step(roster), "Later losses never re-lock a veteran company");
     }
 
@@ -74,8 +74,8 @@ class OfficerInductionTest {
         assertTrue(roster.officerInductionRequired());
         model.resumeGuide();
         assertTrue(model.guideVisible());
-        assertEquals("command:" + sabine.id(), model.guideTargetId());
-        model.selectCommand(sabine.id());
+        assertEquals("command:" + morgan.id(), model.guideTargetId());
+        model.selectCommand(morgan.id());
         assertTrue(model.guideVisible(), "Officer lesson remains visible in dossier");
         assertEquals("officer-specialty-list", model.guideTargetId(), "the lesson points at the whole tree, not one rank");
         assertEquals(Step.SPECIALTY, roster.officerInduction().step(roster));
@@ -85,8 +85,8 @@ class OfficerInductionTest {
     @Test void onlyReadyHasAReadyButtonAndLeavingTheDossierIsAllFormations() {
         OfficerInduction induction = begin();
         var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
-        model.selectCommand(sabine.id());
-        sabine.train(OfficerSpecialty.TACTICAL_COVER);
+        model.selectCommand(morgan.id());
+        morgan.train(OfficerSpecialty.TACTICAL_COVER);
         assertEquals(Step.FORMATION, induction.step(roster));
         assertEquals("command:all", model.guideTargetId(), "The rail's first entry is the way back to the board");
         assertNull(model.guideCallout().action());
@@ -95,7 +95,7 @@ class OfficerInductionTest {
 
         var squad = roster.createSquad();
         roster.recruitToSquad(squad.id(), 12);
-        roster.assignCaptainToSquads(sabine.id(), Set.of(squad.id()));
+        roster.assignCaptainToSquads(morgan.id(), Set.of(squad.id()));
         assertEquals(Step.READY, induction.step(roster));
         var ready = model.guideCallout();
         assertNull(ready.target(), "Ready is on the callout; no other control is the next step");
@@ -107,15 +107,15 @@ class OfficerInductionTest {
 
     @Test void reopeningPreservesChoicesAndKeepsTheFoundingOfficer() {
         OfficerInduction induction = begin();
-        induction.introduce(sabine);
-        sabine.train(OfficerSpecialty.TACTICAL_COVER);
-        roster.beginOfficerInduction(sabine);
+        induction.introduce(morgan);
+        morgan.train(OfficerSpecialty.TACTICAL_COVER);
+        roster.beginOfficerInduction(morgan);
         assertSame(induction, roster.officerInduction());
         assertEquals(Step.FORMATION, induction.step(roster));
         var other = new MarineCaptain("Another Officer", null, Rank.LIEUTENANT, 0f);
         roster.add(other);
-        assertSame(sabine, induction.officer(roster), "Only the founding officer carries the lesson");
-        assertTrue(sabine.founding());
+        assertSame(morgan, induction.officer(roster), "Only the founding officer carries the lesson");
+        assertTrue(morgan.founding());
         assertFalse(other.founding());
     }
 

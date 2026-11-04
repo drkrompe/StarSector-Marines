@@ -80,8 +80,7 @@ final class CampaignLessons {
                                                        String action, Runnable run) {
         var interactive = new ArrayList<>(targets);
         // Travel, resupply, other work and mission back remain available; leaving is not completion.
-        interactive.addAll(List.of("marine-ops-page-nav", "mission-briefing-back", "mission-prepare-barracks",
-                "mission-prepare-armory", "mission-assign", "mission-deploy", "company-hq-board", "barracks-flow-actions"));
+        interactive.addAll(List.of("marine-ops-page-nav", "mission-briefing-back", "mission-assign", "mission-deploy", "company-hq-board", "barracks-flow-actions"));
         return new PreparationGuide.Lesson(step, title, copy, interactive, action, run, 280);
     }
 }

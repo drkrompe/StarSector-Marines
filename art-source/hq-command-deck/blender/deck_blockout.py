@@ -46,16 +46,16 @@ TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting
 
 # Feet (x, z), height above their own floor, and that floor. A seated stand is the chair's
 # centre; seated figures are measured to the top of the head, and so is a leaning one:
-# Sabine leans on the plot table's right rim, so her head is lower than her standing height.
+# Morgan leans on the plot table's right rim, so her head is lower than her standing height.
 PEOPLE = {
     "castle": (-2.55, 7.35, 1.68, 0.0),
     "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
     "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
-    "sabine": (2.38, 6.85, 1.66, 0.0),
+    "morgan": (2.38, 6.85, 1.66, 0.0),
 }
 # Stand-ins posed rather than drawn as a plain column: their builder, keyed by stand.
-POSED = {"sabine": "leaning"}
+POSED = {"morgan": "leaning"}
 # How far in front of a posed stand's feet its matte starts: the reach of its arms toward the camera.
 POSED_DEPTH = 0.4
 

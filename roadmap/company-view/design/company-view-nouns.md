@@ -1033,8 +1033,7 @@ without a recording; stable beat IDs allow separately auditioned ElevenLabs clip
 using the existing company-officer cast.
 
 Castle does not coach a second squad (owner). A briefing that recommends more than the
-company can field says so through its lamps beside Deploy, and its Prepare row
-links to Barracks.
+company can field says so through its lamps beside Deploy.
 
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.

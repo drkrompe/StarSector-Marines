@@ -10,7 +10,7 @@ The pictures on the company yard screens after the Jangala arrival cinematic
 | Page | Shipped file | Source |
 |---|---|---|
 | Y1 estimate | `mod/graphics/illustrations/company/yard-hull.jpg` | Two layers, packed by `python compose_y1.py --pack`: `yard-hull-bg-v3.png` (yard background, no foreground people, painted over `guides/y1-guide-v7.png`) and `nessa-y1-cutout-v1.png` (Nessa on transparency, placed from `guides/nessa-y1-silhouette.png`). It has no `story-stills` master, so `pack.ps1` leaves it alone. |
-| P7 before conversion | `cargo-billets.jpg` | `cargo-billets-v2.png`, a repaint of the old picture: Sabine's twelve asleep beside their rifles. Copied to `story-stills/cargo-billets.master.png`, packed by `pack.ps1`. |
+| P7 before conversion | `cargo-billets.jpg` | `cargo-billets-v2.png`, a repaint of the old picture: Morgan's twelve asleep beside their rifles. Copied to `story-stills/cargo-billets.master.png`, packed by `pack.ps1`. |
 | Y2 after conversion | `berths-fitted.jpg` | `berths-fitted-v2.png`, the matching after picture of the same hold. Copied to `story-stills/berths-fitted.master.png`. |
 
 Every generation keeps its exact prompt and provenance beside it.

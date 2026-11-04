@@ -167,7 +167,7 @@ final class PlayCompany {
     private static void commissionFieldCommander(MarineRoster company) {
         if (company.size() > 0) return;
         DebugCompanyStage stage = DebugCompanyStage.VETERAN_COMPANY;
-        MarineCaptain commander = new MarineCaptain("Morgan Hale", OfficerInduction.SABINE_PORTRAIT, stage.officerRank, 0f);
+        MarineCaptain commander = new MarineCaptain("Morgan Hale", OfficerInduction.MORGAN_PORTRAIT, stage.officerRank, 0f);
         company.add(commander);
         company.beginOfficerInduction(commander);
         commander.train(OfficerSpecialty.TACTICAL_COVER);

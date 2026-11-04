@@ -114,8 +114,12 @@ public class MarineCaptain implements Serializable {
         return true;
     }
 
+    /** Where the founding officer's portrait lived under her first name; old saves hold this path. */
+    private static final String LEGACY_FOUNDER_PORTRAIT = "graphics/portraits/sabine-hale.png";
+
     /** Repairs legacy/dev saves without guessing when their traits contradict. */
     private Object readResolve() {
+        if (LEGACY_FOUNDER_PORTRAIT.equals(portraitSprite)) portraitSprite = OfficerInduction.MORGAN_PORTRAIT;
         boolean idealist = traits.contains(Trait.IDEALIST);
         boolean cynical = traits.contains(Trait.CYNICAL);
 

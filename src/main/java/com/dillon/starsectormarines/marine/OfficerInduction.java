@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /** New-company introduction. Null on a roster means a grandfathered company. */
 public final class OfficerInduction implements Serializable {
-    public static final String SABINE_PORTRAIT = "graphics/portraits/sabine-hale.png";
+    public static final String MORGAN_PORTRAIT = "graphics/portraits/morgan-hale.png";
 
     /**
      * Derived, never saved. The first lift is not a step: the company rides up to Relief on Wayline's truck, and

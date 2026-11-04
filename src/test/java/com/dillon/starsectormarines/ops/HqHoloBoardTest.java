@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class HqHoloBoardTest {
     private static final String DOC = """
             {"size": [2048, 413], "plate": "p.png",
-             "figures": [{"id": "sabine", "sprite": "s.png", "rect": [1241.8, 138.6, 141, 245]}],
+             "figures": [{"id": "morgan", "sprite": "s.png", "rect": [1241.8, 138.6, 141, 245]}],
              "stations": [],
              "overlays": {"plot": [[1, 2], [3, 4], [5, 6], [7, 8]], "screens": []},
              "camera": {"focal": 990.055, "cx": 1024.0, "cy": -9.429, "height": 2.7},

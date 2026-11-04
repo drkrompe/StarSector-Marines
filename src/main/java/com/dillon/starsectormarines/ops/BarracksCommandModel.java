@@ -745,7 +745,7 @@ public final class BarracksCommandModel {
     private String officerBiography() {
         OfficerInduction induction = roster.officerInduction();
         return selectedOfficer() != null && induction != null && induction.foundingOfficerId().equals(selectedOfficer().id())
-                ? Strings.get("openingBarracksCommandSabineHaleFoundingFieldCommanderAFormer")
+                ? Strings.get("openingBarracksCommandMorganHaleFoundingFieldCommanderAFormer")
                 : "";
     }
     /** The next real control for the one founding commander; READY has none, Ready is on the callout itself. */

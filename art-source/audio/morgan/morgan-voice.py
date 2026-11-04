@@ -1,7 +1,7 @@
-"""Save the approved Sabine Hale preview as a voice, then audition its emotional range.
+"""Save the approved Morgan Hale preview as a voice, then audition its emotional range.
 
-python art-source/audio/sabine/sabine-voice.py --candidate N --create   # one paid request: saves the chosen candidate as a voice
-python art-source/audio/sabine/sabine-voice.py --candidate N --test     # one TTS request per test line on eleven_v4
+python art-source/audio/morgan/morgan-voice.py --candidate N --create   # one paid request: saves the chosen candidate as a voice
+python art-source/audio/morgan/morgan-voice.py --candidate N --test     # one TTS request per test line on eleven_v4
 Neither step retries; neither runs during a build.
 """
 import argparse
@@ -52,12 +52,12 @@ def voice_file(candidate):
 
 
 def create(key, number):
-    VOICE, CANDIDATE = voice_file(number), AUDITION / f"sabine-candidate-{number}.json"
+    VOICE, CANDIDATE = voice_file(number), AUDITION / f"morgan-candidate-{number}.json"
     if VOICE.exists():
         raise SystemExit("voice.json already exists; the voice was already created.")
     candidate = json.loads(CANDIDATE.read_text(encoding="utf-8"))
     design = json.loads((AUDITION / "receipt.json").read_text(encoding="utf-8"))["payload"]
-    payload = dict(voice_name=f"Sabine Hale - Candidate {number}", voice_description=design["voice_description"],
+    payload = dict(voice_name=f"Morgan Hale - Candidate {number}", voice_description=design["voice_description"],
                    generated_voice_id=candidate["generated_voice_id"])
     data, _ = post("https://api.elevenlabs.io/v1/text-to-voice", payload, key)
     voice_id = json.loads(data)["voice_id"]

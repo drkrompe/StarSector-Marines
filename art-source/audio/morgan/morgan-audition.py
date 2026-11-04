@@ -1,7 +1,7 @@
-"""One explicitly authorized Sabine Hale Voice Design preview request; never creates a voice.
+"""One explicitly authorized Morgan Hale Voice Design preview request; never creates a voice.
 
-python art-source/audio/sabine/sabine-audition.py             # dry run: prints the request shape
-python art-source/audio/sabine/sabine-audition.py --generate  # one paid preview request, no retry
+python art-source/audio/morgan/morgan-audition.py             # dry run: prints the request shape
+python art-source/audio/morgan/morgan-audition.py --generate  # one paid preview request, no retry
 """
 import argparse
 import base64
@@ -28,7 +28,7 @@ DESCRIPTION = (
 )
 PASSAGE = (
     "Twelve present, Commander. Counted. First time anyone's paid them to stand watch since the Claim. "
-    "Castle, Sabine. Everyone's down and counted. Moving off the pad. "
+    "Castle, Morgan. Everyone's down and counted. Moving off the pad. "
     "Compound's ours. Kestrel, sit on it. Everyone else, on me. "
     "Castle, we're thin down here. I can hold. I can't push."
 )
@@ -78,7 +78,7 @@ def main():
     receipts = []
     for number, preview in enumerate(result.get("previews", []), 1):
         audio = base64.b64decode(preview["audio_base_64"], validate=True)
-        audio_path = OUT / f"sabine-candidate-{number}.mp3"
+        audio_path = OUT / f"morgan-candidate-{number}.mp3"
         audio_path.write_bytes(audio)
         metadata = {k: v for k, v in preview.items() if k != "audio_base_64"}
         metadata.update(file=audio_path.name, audioSha256=hashlib.sha256(audio).hexdigest(),

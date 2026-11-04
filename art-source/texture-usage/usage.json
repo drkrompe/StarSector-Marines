@@ -43153,7 +43153,7 @@
     }
    }
   },
-  "graphics/portraits/sabine-hale.png": {
+  "graphics/portraits/morgan-hale.png": {
    "sliced": false,
    "sources": {
     "snapshot:castle-campaign": {
@@ -65393,7 +65393,7 @@
     }
    }
   },
-  "graphics/ui/hq-command-deck/sabine.png": {
+  "graphics/ui/hq-command-deck/morgan.png": {
    "sliced": false,
    "sources": {
     "snapshot:first-contract": {

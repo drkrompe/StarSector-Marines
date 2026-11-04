@@ -21,13 +21,13 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
         boolean reliefWon = roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId);
         boolean hasSquad = roster.squads().stream().anyMatch(squad -> !squad.reserve());
         String preparation = !hasSquad
-                ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndSabine")
+                ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndMorgan")
                 : reliefWon ? Strings.get("openingOpeningWorkGuideTheAssaultIsBrokenReturnToVenn")
                 : Strings.get("openingOpeningWorkGuideCastleHasPutUsForwardBringMarines");
         if (roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
             preparation = roster.officerInductionRequired()
                     ? Strings.get("openingOpeningWorkGuideCompleteCastleSPreparationCompanyShipShuttle")
-                    : !reliefWon ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndSabine")
+                    : !reliefWon ? Strings.get("openingOpeningWorkGuideFirstPaidJobYourShuttleAndMorgan")
                     : preparation;
         }
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK

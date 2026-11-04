@@ -1,4 +1,4 @@
-# Sabine Hale
+# Morgan Hale
 
 Approved voice: `voice.json` (ElevenLabs Voice Design candidate 1, recorded on
 `eleven_v4`). Her lines live in the runtime catalogs beside the speakers they
@@ -13,6 +13,6 @@ accent. Delivery comes from per-line directions in `synthesisText`; the voice's
 own baseline is calm, so lines that need strain or warmth must say so.
 
 `audition/` keeps the one preview request and the emotion tests behind that
-decision. `sabine-audition.py` and `sabine-voice.py` are the explicit, paid,
+decision. `morgan-audition.py` and `morgan-voice.py` are the explicit, paid,
 no-retry scripts that produced them; neither runs in a build. Candidate 3 was
 saved for testing and then deleted from the account to free a voice slot.

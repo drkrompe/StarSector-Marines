@@ -2125,7 +2125,7 @@
       "supersedes": []
     },
     {
-      "id": "sabine_relief_briefing_truck",
+      "id": "morgan_relief_briefing_truck",
       "missionId": "story_opening_relief",
       "event": "briefing.05",
       "text": "Shuttle is not flight ready yet Commander, so we'll be ferried from the port to the facility by truck. We're ready when you are.",
@@ -2134,7 +2134,7 @@
       "expiresSeconds": 18,
       "supersedes": [],
       "speaker": "MORGAN HALE / FIELD COMMAND",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiceId": "HxukbcZk1kzjQXromIdh",
       "synthesisText": "[calm, practical] Shuttle is not flight ready yet Commander, so we'll be ferried from the port to the facility by truck. We're ready when you are."
     },
@@ -3820,7 +3820,7 @@
       "terminal": false
     },
     {
-      "id": "marines_sabine_blind_watch_riggers_found",
+      "id": "marines_morgan_blind_watch_riggers_found",
       "missionId": "story_corvus_blind_watch",
       "event": "corvus.blind_watch.riggers_found",
       "textKey": "corvusBlindWatchFieldRiggersFound",
@@ -3831,12 +3831,12 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
     {
-      "id": "marines_sabine_blind_watch_riggers_moving",
+      "id": "marines_morgan_blind_watch_riggers_moving",
       "missionId": "story_corvus_blind_watch",
       "event": "corvus.blind_watch.riggers_moving",
       "textKey": "corvusBlindWatchFieldRiggersMoving",
@@ -3847,7 +3847,7 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
@@ -3964,7 +3964,7 @@
       "terminal": false
     },
     {
-      "id": "marines_sabine_blind_watch_cold_store_working",
+      "id": "marines_morgan_blind_watch_cold_store_working",
       "missionId": "story_corvus_blind_watch",
       "event": "corvus.blind_watch.cold_store_working",
       "textKey": "corvusBlindWatchFieldColdStoreWorking",
@@ -3975,7 +3975,7 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
@@ -6368,7 +6368,7 @@
       "terminal": false
     },
     {
-      "id": "marines_sabine_dust_ledger_cantina_joins",
+      "id": "marines_morgan_dust_ledger_cantina_joins",
       "missionId": "story_corvus_dust_ledger",
       "event": "corvus.dust_ledger.cantina_joins",
       "textKey": "corvusDustLedgerFieldCantinaJoins",
@@ -6379,12 +6379,12 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
     {
-      "id": "marines_sabine_dust_ledger_cantina_held",
+      "id": "marines_morgan_dust_ledger_cantina_held",
       "missionId": "story_corvus_dust_ledger",
       "event": "corvus.dust_ledger.cantina_held",
       "textKey": "corvusDustLedgerFieldCantinaHeld",
@@ -6395,7 +6395,7 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
@@ -6496,7 +6496,7 @@
       "terminal": false
     },
     {
-      "id": "marines_sabine_dust_ledger_spotters",
+      "id": "marines_morgan_dust_ledger_spotters",
       "missionId": "story_corvus_dust_ledger",
       "event": "corvus.dust_ledger.spotters",
       "textKey": "corvusDustLedgerFieldSpotters",
@@ -6507,7 +6507,7 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },
@@ -6528,7 +6528,7 @@
       "terminal": false
     },
     {
-      "id": "marines_sabine_dust_ledger_broker_surrendered",
+      "id": "marines_morgan_dust_ledger_broker_surrendered",
       "missionId": "story_corvus_dust_ledger",
       "event": "corvus.dust_ledger.broker_surrendered",
       "textKey": "corvusDustLedgerFieldBrokerSurrendered",
@@ -6539,7 +6539,7 @@
       "expiresSeconds": 60,
       "supersedes": [],
       "speaker": "MORGAN HALE / SECTION LEAD",
-      "portrait": "graphics/portraits/sabine-hale.png",
+      "portrait": "graphics/portraits/morgan-hale.png",
       "voiced": false,
       "terminal": false
     },

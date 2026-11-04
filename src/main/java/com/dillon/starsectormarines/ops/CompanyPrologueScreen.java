@@ -83,7 +83,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
                 Strings.get("openingCompanyPrologueISignedForEveryOneOfThoseCarriers"),
                 Strings.get("openingCompanyPrologueEveryoneAboardHasAPocketfulOfScrip"),
                 Strings.get("openingCompanyPrologueWeGaveHerTheLowerHabsAirPlant"),
-                Strings.get("openingCompanyPrologueSabineDidnTAskIfThereWasRoom"),
+                Strings.get("openingCompanyPrologueMorganDidnTAskIfThereWasRoom"),
                 Strings.get(arrivalAhead ? "openingCompanyPrologueAnOldFriendIOweHerMore"
                         : "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"),
                 Strings.get("openingCompanyPrologueNessaAnsweredSheSHeldACradle")

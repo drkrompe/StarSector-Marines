@@ -46,8 +46,8 @@
       ]
     },
     {
-      "id": "sabine",
-      "sprite": "graphics/ui/hq-command-deck/sabine.png",
+      "id": "morgan",
+      "sprite": "graphics/ui/hq-command-deck/morgan.png",
       "rect": [
         1241.8,
         138.6,
@@ -61,7 +61,7 @@
       "id": "situation",
       "label": "SITUATION_BOARD",
       "figures": [
-        "sabine"
+        "morgan"
       ],
       "rect": [
         0.3614,

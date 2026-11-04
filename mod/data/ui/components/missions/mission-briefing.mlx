@@ -1,4 +1,4 @@
-<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,preparationClasses,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
+<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -29,11 +29,6 @@
         <img id="mission-debug-toggle-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
       </button>
       <img id="mission-briefing-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
-    </div>
-    <div id="mission-preparation" class="{preparationClasses}">
-      <div id="mission-preparation-label" class="label heading tone-accent">{i18n.briefingPrepHeading}</div>
-      <button id="mission-prepare-armory" onclick="{prepareArmory}">{i18n.briefingPrepRaiseSquad}</button>
-      <button id="mission-prepare-barracks" onclick="{prepareBarracks}">{i18n.briefingPrepBarracks}</button>
     </div>
     <div id="mission-briefing-body" class="mission-briefing-body">
       <div id="mission-overview" class="mission-overview">
@@ -403,9 +398,6 @@
 </template>
 
 <style>
-  .mission-preparation { flex-direction: row; height: 32px; gap: 10px; align-items: center; }
-  #mission-preparation-label { width: 220px; height: 22px; }
-  .mission-preparation button { width: 220px; height: 30px; font-family: heading; text-align: center; }
   .mission-briefing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-briefing-header { flex-direction: row; align-items: center; height: 76px; padding: 8px 10px; gap: 10px; border-width: 2px; }

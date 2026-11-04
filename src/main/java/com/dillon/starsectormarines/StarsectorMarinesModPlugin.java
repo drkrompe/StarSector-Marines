@@ -238,7 +238,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             float currentDay = CampaignClock.dayFloat();
             MarineCaptain starter = new MarineCaptain(
                     "Morgan Hale",
-                    OfficerInduction.SABINE_PORTRAIT,
+                    OfficerInduction.MORGAN_PORTRAIT,
                     Rank.LIEUTENANT,
                     currentDay);
             roster.add(starter);

@@ -31,14 +31,14 @@ REPO = HERE.parent.parent
 SPRITES = "graphics/ui/hq-command-deck"
 OUT_JSON = REPO / "mod/data/ui/hq-command-deck.json"
 # Rows of the guide frame the banner shows, about 5:1 at full width: the commander's
-# feet (row 583) fall inside it; Sabine, nearest the camera, is cut at the shin.
+# feet (row 583) fall inside it; Morgan, nearest the camera, is cut at the shin.
 BAND_TOP, BAND_BOTTOM = 180, 618
 PACKED_WIDTH = 2048
 
 # Stations in screen order. Later stations draw over earlier ones where they overlap,
 # so the table comes first and the people standing at it after.
 STATIONS = [
-    ("situation", "SITUATION_BOARD", ["sabine"], ["plot", "sabine"]),
+    ("situation", "SITUATION_BOARD", ["morgan"], ["plot", "morgan"]),
     ("comms", "COMMS_INTEL", ["comms-left", "comms-right"], ["comms-left", "comms-right", "comms-screens"]),
     ("castle", "CASTLE_ADJUTANT", ["castle"], ["castle"]),
     ("finance", "FINANCE_STANDING", ["quartermaster"], ["quartermaster", "ledger-screen"]),

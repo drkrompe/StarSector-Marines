@@ -100,21 +100,21 @@ class OperationRadioTest {
     private static Catalog withFieldCommand() {
         Catalog base = catalog();
         Map<String, Line> lines = new HashMap<>(base.lines());
-        lines.put("sabine_call", new Line("sabine_call", "command", "Morgan. This is Command.", 1));
-        lines.put("sabine_ack", new Line("sabine_ack", "sabine", "Morgan. Go ahead.", 1));
+        lines.put("morgan_call", new Line("morgan_call", "command", "Morgan. This is Command.", 1));
+        lines.put("morgan_ack", new Line("morgan_ack", "morgan", "Morgan. Go ahead.", 1));
         Map<String, String> handoffs = new HashMap<>();
         Map<String, String> withdraw = new HashMap<>();
         for (Actor actor : base.actors()) {
-            String id = "sabine_handoff_" + actor.id();
-            lines.put(id, new Line(id, "sabine", id, 1));
+            String id = "morgan_handoff_" + actor.id();
+            lines.put(id, new Line(id, "morgan", id, 1));
             handoffs.put(actor.id(), id);
-            String out = "sabine_withdraw_" + actor.id();
-            lines.put(out, new Line(out, "sabine", out, 1));
+            String out = "morgan_withdraw_" + actor.id();
+            lines.put(out, new Line(out, "morgan", out, 1));
             withdraw.put(actor.id(), out);
         }
         lines.put("withdraw", new Line("withdraw", "command", "Fall back.", 1));
-        FieldCommand field = new FieldCommand("sabine", "MORGAN HALE / FIELD COMMAND",
-                "graphics/portraits/sabine-hale.png", "sabine_call", "sabine_ack", handoffs, withdraw);
+        FieldCommand field = new FieldCommand("morgan", "MORGAN HALE / FIELD COMMAND",
+                "graphics/portraits/morgan-hale.png", "morgan_call", "morgan_ack", handoffs, withdraw);
         return new Catalog(base.actors(), Map.of(AssignmentKind.ATTACK_MOVE, "order",
                 AssignmentKind.WITHDRAW, "withdraw"), lines, field);
     }
@@ -148,14 +148,14 @@ class OperationRadioTest {
         net.fieldCommanderDeployed(true);
         net.observe(List.of(order(1, 20), order(2, 30), order(3, 40)));
         var call = net.beginExchange();
-        assertEquals("sabine_call", call.line().id());
+        assertEquals("morgan_call", call.line().id());
         assertEquals("COMPANY COMMAND", call.speaker());
         played.playing = false;
         net.advance(1.3f, true, false, false);
         var ack = net.advance(0.36f, true, false, false);
-        assertEquals("sabine_ack", ack.line().id());
+        assertEquals("morgan_ack", ack.line().id());
         assertEquals("MORGAN HALE / FIELD COMMAND", ack.speaker());
-        assertEquals("graphics/portraits/sabine-hale.png", ack.portrait());
+        assertEquals("graphics/portraits/morgan-hale.png", ack.portrait());
         List<String> rest = new ArrayList<>();
         for (var turn = ack; turn != null; ) {
             played.playing = false;
@@ -165,7 +165,7 @@ class OperationRadioTest {
         }
         assertEquals(3, rest.size());
         assertEquals("order", rest.get(0), "Castle's instruction is the same one a squad would hear");
-        String actor = rest.get(1).replace("sabine_handoff_", "");
+        String actor = rest.get(1).replace("morgan_handoff_", "");
         assertEquals(actor + "_readback", rest.get(2), "The callsign she names is the one that answers");
     }
 
@@ -180,8 +180,8 @@ class OperationRadioTest {
         net.observe(List.of(new Observation(1, new AssignmentKey(AssignmentKind.WITHDRAW, "pad")),
                 new Observation(2, new AssignmentKey(AssignmentKind.WITHDRAW, "pad"))));
         List<String> turns = exchange(net, played);
-        assertEquals("sabine_call", turns.get(0));
-        assertTrue(turns.get(3).startsWith("sabine_withdraw_"), turns.toString());
+        assertEquals("morgan_call", turns.get(0));
+        assertTrue(turns.get(3).startsWith("morgan_withdraw_"), turns.toString());
     }
 
     @Test
@@ -195,14 +195,14 @@ class OperationRadioTest {
         net.observe(List.of(order(1, 20)));
         List<String> single = exchange(net, played);
         assertEquals(4, single.size());
-        assertTrue(single.get(0).endsWith("_call") && !single.get(0).startsWith("sabine"),
+        assertTrue(single.get(0).endsWith("_call") && !single.get(0).startsWith("morgan"),
                 "One squad's new task stays between Castle and that squad");
 
         net.reset();
         net.fieldCommanderDeployed(false);
         net.observe(List.of(order(1, 20), order(2, 30)));
         List<String> absent = exchange(net, played);
-        assertTrue(absent.stream().noneMatch(id -> id.startsWith("sabine")),
+        assertTrue(absent.stream().noneMatch(id -> id.startsWith("morgan")),
                 "She speaks only when she is actually down there: " + absent);
     }
 

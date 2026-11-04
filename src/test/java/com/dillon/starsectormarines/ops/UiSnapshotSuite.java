@@ -2115,9 +2115,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            MarineCaptain sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
-            roster.add(sabine);
-            roster.beginCompanyPreparation(sabine);
+            MarineCaptain morgan = new MarineCaptain("Morgan Hale", "graphics/portraits/morgan-hale.png", Rank.LIEUTENANT, 0f);
+            roster.add(morgan);
+            roster.beginCompanyPreparation(morgan);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
             BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
                     snapshotSquadFoundingResources(), () -> 12,
@@ -2144,7 +2144,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     guide.update();
                 };
                 capture.accept("01-introduction");
-                click.accept("command:" + sabine.id());
+                click.accept("command:" + morgan.id());
                 capture.accept("02-specialties");
                 // Bring the whole tree into the dossier pane, as a player scrolling to the choice would.
                 var pane = instance.requireElement("officer-dossier-scroll");
@@ -2155,14 +2155,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 guide.update();
                 capture.accept("03-scroll-choice");
                 click.accept("officer-specialty-FIELD_MEDICINE-rank-1");
-                if (sabine.career().level(OfficerSpecialty.FIELD_MEDICINE) != 1) {
+                if (morgan.career().level(OfficerSpecialty.FIELD_MEDICINE) != 1) {
                     throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
                 click.accept("command:all");
                 capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
-                if (roster.squads().stream().noneMatch(s -> !s.reserve() && sabine.id().equals(s.homeCaptainId())))
+                if (roster.squads().stream().noneMatch(s -> !s.reserve() && morgan.id().equals(s.homeCaptainId())))
                     throw new IllegalStateException("Raise Squad did not muster a squad under the selected officer");
                 model.refresh(); instance.flush(); document.advance(0f); guide.update();
                 int clicks = 0;
@@ -2649,8 +2649,8 @@ private static BufferedImage renderBarracks(
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
-        var sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
-        roster.add(sabine); roster.beginCompanyPreparation(sabine);
+        var morgan = new MarineCaptain("Morgan Hale", "graphics/portraits/morgan-hale.png", Rank.LIEUTENANT, 0f);
+        roster.add(morgan); roster.beginCompanyPreparation(morgan);
         return renderPreparationRooms(context, renderer, roster, 1f);
     }
 

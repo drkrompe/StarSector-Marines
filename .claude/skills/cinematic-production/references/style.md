@@ -83,7 +83,7 @@ port to a level cradle. A closed crew viewport provides the first perspective.
 Keep the approach heading, window side, light and background flow consistent.
 
 Arrival precedes Nessa's inspection and the limited berthing conversion. The
-passengers include miners, cargo hands and families; Sabine's twelve are a
+passengers include miners, cargo hands and families; Morgan's twelve are a
 distinct escort section. They have reached help, not a restored ship. People
 working in vacuum need sealed rugged industrial suits; boarding/loading belongs
 in a sheltered dock or controlled access area appropriate to the environment.

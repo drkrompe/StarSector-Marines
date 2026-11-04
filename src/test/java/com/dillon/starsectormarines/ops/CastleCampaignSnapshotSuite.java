@@ -24,7 +24,8 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             var frames = new ArrayList<>(UiSnapshotSuite.renderCampaignGantries(context));
             var roster = CampaignLessonsTest.afterCounterattack();
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            var mission = SecondSquadPreparationTest.junction();
+            var mission = Mission.builder().id("supply_route_v1_1_0_0").name("Open the Junction")
+                    .source(MissionSource.STORY).type(MissionType.ASSAULT).tier(OperationTier.FIRST_CONTRACT).build();
             var props = junctionProps(mission);
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
@@ -59,13 +60,12 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
         props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
         props.put("sourceRows", List.of());
         props.put("sourceEmpty", "Wayline / contracted heavy lift");
-        props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-sabine", "choice-row selected",
-                "Morgan Hale", "Lieutenant / 3 squad coordination", false, () -> {}, "graphics/portraits/sabine-hale.png")));
+        props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-morgan", "choice-row selected",
+                "Morgan Hale", "Lieutenant / 3 squad coordination", false, () -> {}, "graphics/portraits/morgan-hale.png")));
         props.put("employerRows", List.of(BriefingViewModel.info("heavy-lift", "Mech Support", "Contracted heavy carrier", "")));
         BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
         BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
         BriefingViewModel.putLandingCraft(props, mission, List.of(FittedBoat.standard(ShuttleType.HERMES)), 24, "Second Wind");
-        props.put("preparationClasses", "mission-preparation");
         BriefingViewModel.putDebugDrawer(props, false, false, () -> {});
         BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 24, 24);
         return props;
