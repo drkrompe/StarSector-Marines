@@ -1549,6 +1549,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             terminal.bind(document, instance);
             terminal.advance(0f);
             terminal.advance(1f);
+            if (navOverlay != null) navOverlay.accept(instance);
             BufferedImage frame = renderRelative(renderer, document, width, height, uiScale);
             if (terminal.place()) frame = renderRelative(renderer, document, width, height, uiScale);
             if (hqProps.get("openingGuide") instanceof OpeningWorkGuide guide && guide.visible()) {
@@ -2258,6 +2259,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     /** The callout {@code tutorial-copy} mounts over the next room rendered; null renders the room as it is. */
     private static Supplier<PreparationGuide.Lesson> guideOverlay;
+    /** What a suite marks on the page bar before the Company HQ is drawn, for a look study of the bar. */
+    static Consumer<MarkupInstance> navOverlay;
 
     private static UiDocument roomDocument(UiElement root) {
         return guideOverlay == null ? new UiDocument(root) : PreparationGuide.document(root);

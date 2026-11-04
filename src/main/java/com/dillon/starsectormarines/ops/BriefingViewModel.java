@@ -131,6 +131,7 @@ final class BriefingViewModel {
         putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
         props.put("deploymentStatus", "Ready to deploy");
+        props.put("deploymentStatusClasses", "label tone-muted");
         props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
         props.put("rewardTerms", "Payable on successful completion");
         putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");

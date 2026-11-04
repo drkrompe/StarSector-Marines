@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -67,8 +69,29 @@ public final class BriefingLiftSnapshotSuite implements SnapshotSuite {
                 hover(context, renderer, "hover-squad-stack.png", true, BriefingLift.read(hermes, 2,
                         List.of(heavy), lance, vehicles, List.of()),
                         "briefing-field-squad-stack"),
+                lampHover(context, renderer, "hover-lamp-grounded.png", "mission-lamp-lift", groundedLamp()),
+                lampHover(context, renderer, "hover-lamp-refused.png", "mission-lamp-lift", DeployWarnings.lift(null, List.of(), 0f,
+                        Strings.get("boatLiftNoShuttle"))),
+                lampHover(context, renderer, "hover-lamp-strength.png", "mission-lamp-undermanned",
+                        DeployWarnings.undermanned(12, 24)),
                 hover(context, renderer, "hover-survey.png", BriefingLift.read(hermes, 2,
                         List.of(heavy), lance, vehicles, List.of()), "mission-survey"));
+    }
+
+    /** One of two shuttles home damaged, the other flying. */
+    private static DeployWarnings.Lamp groundedLamp() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("ship", ShuttleType.HERMES, 2);
+        deck.settleRecovery("battle", Map.of(deck.boats().get(0).id(), 0.5f), List.of(), 0f);
+        return DeployWarnings.lift(null, deck.boats(), 0f, null);
+    }
+
+    private static SnapshotArtifact lampHover(SnapshotContext context, HeadlessUiRenderer renderer, String name,
+                                              String target, DeployWarnings.Lamp lamp) throws Exception {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        props.put("deployLamps", List.of(lamp));
+        return new SnapshotArtifact(name, UiSnapshotSuite.renderMissionBriefing(context, renderer,
+                1920, 1080, props, 1f, false, target));
     }
 
     private static SnapshotArtifact hover(SnapshotContext context, HeadlessUiRenderer renderer, String name,

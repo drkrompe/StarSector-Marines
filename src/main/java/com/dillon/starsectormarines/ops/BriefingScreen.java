@@ -1269,7 +1269,7 @@ public class BriefingScreen implements Screen {
                                 : Strings.upper(Strings.format("briefingUiNeedNoMarines", shortfall))
                         : readiness != null ? Strings.upper(Strings.format("briefingUiAssignShortfall", readiness.selectedShortfall()))
                         : Strings.upper(Strings.get("briefingUiBlocked"));
-        String recovery = !debug && !transportOk ? ShipsBoatsAboard.recoveryBlocker() : null;
+        String recovery = !debug && !transportOk ? ShipsBoatsAboard.noLiftReason() : null;
         props.put("deploymentStatus", recovery != null ? recovery : canAccept ? Strings.get("briefingUiReadyToDeploy") : label);
         props.put("deployLabel", canAccept ? Strings.get("briefingAccept")
                 : canReinforce ? Strings.get("briefingUiReinforce")
@@ -1314,6 +1314,9 @@ public class BriefingScreen implements Screen {
             props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
             props.put("deployAction", (Runnable) () -> { });
         }
+        // A refusal reads as one: the words beside the red key are what clears it.
+        props.put("deploymentStatusClasses", String.valueOf(props.get("deployClasses")).contains("briefing-blocked")
+                ? "label tone-danger" : "label tone-muted");
     }
 
     /**
@@ -1333,7 +1336,9 @@ public class BriefingScreen implements Screen {
                 DeployWarnings.undermanned(readiness.selectedReady(), MissionForceEnvelope.recommendedPersonnel(mission)),
                 DeployWarnings.casualties(roster, selected, day, replenishable),
                 DeployWarnings.damage(lance == null ? List.of() : lance.mechs(), day),
-                DeployWarnings.lift(liftReadout)));
+                DeployWarnings.lift(liftReadout,
+                        mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? List.of() : ShipsBoatsAboard.boats(), day,
+                        isTransportSufficient(mission, lift()) ? null : ShipsBoatsAboard.noLiftReason())));
         int vacant = 0;
         for (String id : selected) {
             MarineSquad squad = roster.squadById(id);

@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CivilizedPort;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 
 import java.util.Map;
@@ -199,6 +202,9 @@ final class MarineOpsPageNav {
     static void refresh(MarkupInstance markup, Page current, Function<RoomPurpose, Aboard> aboard,
                         List<CompanyNotices.Notice> notices) {
         if (markup == null) return;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script == null ? null : script.roster();
+        float day = roster == null ? 0f : CampaignClock.dayFloat();
         for (Page page : Page.values()) {
             if (page.button() == null) continue;
             String id = "page-nav-" + (page == Page.MECH_LAB ? "mech-lab" : page.button());
@@ -207,6 +213,7 @@ final class MarineOpsPageNav {
             markup.requireElement(id)
                     .classed("page-nav-absent", available == Aboard.NO)
                     .classed("page-nav-waiting", available == Aboard.UNKNOWN)
+                    .classed("page-nav-attention", available != Aboard.NO && RoomAttention.needed(page, roster, day))
                     .classed("page-nav-new", available != Aboard.NO
                             && notices.stream().anyMatch(notice -> notice.page == page))
                     .classed("selected", selected)

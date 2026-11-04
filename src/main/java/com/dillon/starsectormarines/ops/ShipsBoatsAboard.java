@@ -108,6 +108,21 @@ public final class ShipsBoatsAboard {
         return Float.isFinite(soonest) ? Strings.format("boatLiftGrounded", Math.ceil(soonest * 10f) / 10d) : null;
     }
 
+    /** Why a briefing with no lift cannot launch, and what clears it. Never null, unlike {@link #recoveryBlocker}. */
+    public static String noLiftReason() {
+        String recovery = recoveryBlocker();
+        return recovery != null ? recovery : Strings.get(berths() > 0 ? "boatLiftNoShuttle" : "boatLiftNoBerths");
+    }
+
+    /** Every boat standing in a berth, flight-ready or not; empty with no deck. */
+    static List<CampaignBoat> boats() {
+        BoatDeck deck = deck();
+        if (deck == null) return List.of();
+        List<CampaignBoat> boats = new ArrayList<>();
+        for (CampaignBoat boat : deck.boats()) if (boat != null) boats.add(boat);
+        return boats;
+    }
+
     /** Refuse stale frozen aircraft at the final campaign launch boundary. */
     static void requireAirworthy(Mission mission, List<FittedBoat> committed) {
         if (mission.source.isDebug() || mission.source == MissionSource.STATIONING) return;
