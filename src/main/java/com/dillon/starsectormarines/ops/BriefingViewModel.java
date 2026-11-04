@@ -55,7 +55,6 @@ final class BriefingViewModel {
         props.put("replenishDisabled", true);
         props.put("replenishAction", (Runnable) () -> { });
         props.put("forceSelectedClasses", "label heading tone-edge");
-        props.put("prepareReplay", (Runnable) () -> { });
         props.put("prepareArmory", (Runnable) () -> { });
         props.put("prepareBarracks", (Runnable) () -> { });
         props.put("screenHeader", Strings.get("briefingVmScreenHeader"));

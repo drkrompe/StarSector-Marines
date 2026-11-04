@@ -711,11 +711,7 @@ public final class MissionResolver {
         int before = deck.vacantBerths().size();
         if (outcome.boatSettlementId == null) deck.lose(ids);
         else {
-            String damaged = deck.settleRecovery(outcome.boatSettlementId, outcome.boatDamage,
-                    ids, CampaignClock.dayFloat());
-            MarineRosterScript script = MarineRosterScript.getInstance();
-            if (damaged != null && script != null)
-                script.roster().campaignLessons().observeBoatDamage(damaged);
+            deck.settleRecovery(outcome.boatSettlementId, outcome.boatDamage, ids, CampaignClock.dayFloat());
         }
         int struck = deck.vacantBerths().size() - before;
         LOG.info("MarineOps: struck " + struck + " lost boat(s) off the deck"

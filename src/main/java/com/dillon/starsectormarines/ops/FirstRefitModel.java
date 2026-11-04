@@ -54,7 +54,7 @@ final class FirstRefitModel {
     }
     PreparationGuide.Lesson guide() {
         if (!FirstRefit.available(roster)) return null;
-        String copy = squadId == null ? "lessonRefitSquad" : path == null ? "lessonRefitCompare" : "lessonRefitClaim";
+        String copy = path == null ? "lessonRefitSquad" : "lessonRefitClaim";
         return CampaignLessons.lesson(path == null ? 0 : 1,
                 "lessonRefitTitle", copy,
                 List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-comparison"),

@@ -780,13 +780,8 @@ increased price requires review, and failed payment changes nothing. The shared
 Available strip stays separate from Cost and Short by. Destruction takes precedence
 over recovery and replacement never inherits the lost aircraft's upgrades.
 
-Castle introduces the first damaged return, including after defeat, through her
-portrait and the actual condition/order controls. Founding induction takes precedence.
-An unfinished receipt survives alternate company/briefing entries and save/load;
-returning after completion explains the ready boat, and a missing boat explains
-replacement. Acknowledging the choice completes the lesson without requiring spending.
-Paying for repairs alone does not acknowledge it. `boat-condition-and-repairs.md`
-retains live campaign acceptance.
+Castle does not narrate a damaged return (owner): the Shuttle Deck's berth clock and the briefing's
+lamps show it. `boat-condition-and-repairs.md` retains live campaign acceptance.
 
 **Who was aboard went down with her.** The marines still aboard on the sortie
 that was lost are fallen, and roll the same outcome as a marine shot on the
@@ -1040,20 +1035,9 @@ with the company; older saves default to an available introduction. Text is comp
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
 
-The first non-debug briefing that recommends at least two squads introduces
-Castle's **From One Squad to Two** reminder after initial induction. It states
-both the recommended strength and the route's permitted depleted minimum,
-counts actual ready personnel, and shows the authoritative one-squad founding
-bill (its price and its marines) with what the company holds and the amount short. Founding includes the initial
-kit; later refits have separate bills. Direct Armory and Barracks routes teach
-raising a squad, assigning its home commander, and selecting it for deployment.
-The reminder never spends cargo or changes launch rules. Explicit acknowledgement
-is saved; leaving to buy stores or raise a squad keeps the unfinished reminder,
-and the briefing can replay it. Existing two-squad companies are told not to
-raise an unnecessary formation. Casualties do not reset acknowledgement.
-The founding bill is indivisible, so a company that cannot yet pay it is never held at the
-reminder: **Not Now** sets it aside, saved with the company, until the company has more
-formations than it did then. The briefing still states the route's own two-squad requirement.
+Castle does not coach a second squad (owner). A briefing that recommends more than the
+company can field says so through its lamps beside Deploy, and its Prepare row
+links to Barracks.
 
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.

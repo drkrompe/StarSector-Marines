@@ -38,14 +38,13 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
         var hull = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20, 68, 75,
                 outline.aspect(), outline, spec.getString("spriteName"), true, BoatBayState.DAMAGED);
         var frames = new ArrayList<SnapshotArtifact>();
-        for (String mode : List.of("damaged", "shortage", "castle", "ready", "expanded", "castle-expanded", "overview")) {
+        for (String mode : List.of("damaged", "shortage", "ready", "expanded", "overview")) {
             try (var strings = new HeadlessStrings(context.modRoot(), text -> mode.contains("expanded")
                     ? OpeningLocalizationSnapshotSuite.expand(text) : text)) {
                 var roster = new MarineRoster(); var boats = roster.boatDeck();
                 boats.reconcile("home", ShuttleType.HERMES, 1);
                 String id = boats.boats().get(0).id();
                 boats.settleRecovery("return", Map.of(id, .75f), List.of(), 10f);
-                roster.campaignLessons().observeBoatDamage(id);
                 float day = mode.equals("ready") ? 12f : 10f;
                 var resources = new TestPurse(mode.equals("shortage") ? 0 : 60_000);
                 var reactor = new Reactor();
@@ -75,12 +74,6 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
                                 new BoatDeckCanvas(ship, () -> bay, model::selectedBerthIndex, () -> 0, n -> n == 0).recovery(model::berthRecovery));
                         document.layout(1920, 1080);
                         BoatDeckCanvas.fitSurface(markup.requireElement("boat-deck-canvas"));
-                        if (mode.startsWith("castle") || mode.equals("ready")) {
-                            var guide = new PreparationGuide(document, () -> CampaignLessons.boats(roster, model), () -> {},
-                                    new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
-                                            List.of("data/ui/components/company/preparation-guide.mlx")));
-                            guide.update();
-                        }
                         var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                                 new HeadlessBattleSceneRenderer(context.modRoot(), true));
                         frames.add(new SnapshotArtifact(mode + ".png", renderer.renderRelative(document, 1920, 1080, 1f,

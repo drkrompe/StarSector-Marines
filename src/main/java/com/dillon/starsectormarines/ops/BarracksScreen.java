@@ -147,8 +147,7 @@ public final class BarracksScreen implements Screen {
     }
 
     private PreparationGuide.Lesson campaignLesson() {
-        var handoff = CampaignLessons.handoff(roster, context, ScreenId.BARRACKS);
-        return handoff != null ? handoff : CampaignLessons.formations(roster, context);
+        return CampaignLessons.handoff(roster, context, ScreenId.BARRACKS);
     }
 
     private Map<String, Object> props() {

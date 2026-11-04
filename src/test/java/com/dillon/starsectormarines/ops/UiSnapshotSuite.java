@@ -2205,7 +2205,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = PreparationGuide.document(instance.root());
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
-            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.foundingLesson(null, null));
+            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.foundingLesson(null));
             frames.add(preparationFrame("00-required-conversion", renderer, document, guide, scale));
         }
         try (MarkupInstance instance = loader.build(reactor, "ship-transfer", properties)) {
@@ -2213,7 +2213,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
             var guide = preparationGuide(context, document, () -> roster.companyShipId() == null
-                    ? CompanyPreparationGuide.ship(roster, model, null) : null);
+                    ? CompanyPreparationGuide.ship(roster, null) : null);
             frames.add(preparationFrame("01-ship", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "transfer-commit");
             if (roster.companyShipId() == null) throw new IllegalStateException("Preparation ship confirmation failed");
