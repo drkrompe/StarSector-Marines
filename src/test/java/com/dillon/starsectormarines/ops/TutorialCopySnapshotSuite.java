@@ -44,10 +44,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         CompanyManagementGuide.install(new JSONObject(Files.readString(context.modRoot().resolve(CompanyManagementGuide.PATH))));
         var frames = new ArrayList<SnapshotArtifact>();
-        for (var frame : new BoatRecoverySnapshotSuite().render(context)) {
-            if (Set.of("castle.png", "ready.png").contains(frame.relativePath().toString()))
-                frames.add(new SnapshotArtifact("boat-recovery-" + frame.relativePath(), frame.image()));
-        }
         try (var strings = new HeadlessStrings(context.modRoot())) {
             var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                     context.modRoot(), context.starsectorCore());
@@ -62,7 +58,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
             refitFrames(context, frames);
             callouts(context, renderer, frames);
             workPanels(context, renderer, frames);
-            secondSquad(context, frames);
         }
         return frames;
     }
@@ -111,15 +106,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
                 fireDepot, List.of("page-nav-return"), "openingCompanyPreparationGuideReturnToDepot", 320)));
         list.add(new Frame("hq-stores-hermes.png", UiRoom.HQ, prep(1, "openingCompanyPreparationGuideOurStoresAreStillReserved",
                 hermesDepot, List.of("page-nav-return"), "openingCompanyPreparationGuideReturnToDepot", 320)));
-        list.add(new Frame("armory-one-step.png", UiRoom.ARMORY, prep(1, "openingCompanyPreparationGuideOneStepAtATime",
-                Strings.get("openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur"), List.of(),
-                "openingCompanyPreparationGuideContinue", 310)));
-        list.add(new Frame("armory-muster.png", UiRoom.ARMORY, prep(2, "openingCompanyPreparationGuideMusterOurFirstSquad",
-                Strings.get("openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty"), List.of("page-nav-barracks"),
-                "openingCompanyPreparationGuideBarracks", 310)));
-        list.add(new Frame("armory-officer.png", UiRoom.ARMORY, prep(3, "openingCompanyPreparationGuideAFormationNeedsItsOfficer",
-                Strings.get("openingCompanyPreparationGuideTheSquadAndItsFieldKitAre"), List.of("page-nav-barracks"),
-                "openingCompanyPreparationGuideBarracks", 310)));
         list.add(new Frame("boats-one-step.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideOneStepAtATime",
                 Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"), List.of("page-nav-barracks"),
                 "openingCompanyPreparationGuideMeetSabine", 310)));
@@ -138,32 +124,10 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
         list.add(new Frame("first-lift-commission-confirm.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideCommissionOurFirstShuttle",
                 empty + confirm + stores, List.of("boat-list"), null, 280)));
         // The handoffs, from Headquarters.
-        list.add(new Frame("hq-handoff-boat-recovery.png", UiRoom.HQ, CampaignLessons.lesson(1, "boatLessonTitle", "boatLessonHandoff",
-                List.of("page-nav-boats"), "boatLessonVisit", NOOP)));
-        list.add(new Frame("hq-handoff-first-lift.png", UiRoom.HQ, CampaignLessons.lesson(1, "lessonFirstLiftTitle", "lessonFirstLiftHandoff",
-                List.of("page-nav-boats"), "boatLessonVisit", NOOP)));
         list.add(new Frame("barracks-handoff-refit.png", UiRoom.BARRACKS, CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff",
                 List.of("barracks-equipment"), "lessonEquipment", NOOP)));
         list.add(new Frame("hq-handoff-gantry.png", UiRoom.HQ, CampaignLessons.lesson(1, "lessonGantryTitle", "lessonGantryHandoff",
                 List.of("page-nav-mech-lab"), "lessonMechLab", NOOP)));
-        list.add(new Frame("hq-investments.png", UiRoom.HQ, CampaignLessons.lesson(2, "lessonInvestmentsTitle", "lessonInvestmentsCopy",
-                List.of("page-nav-boats", "page-nav-engineering"), "lessonContinue", NOOP)));
-        list.add(new Frame("hq-handoff-formation.png", UiRoom.HQ, later(CampaignLessons.lesson(3, "lessonFormationTitle", "lessonFormationHandoff",
-                List.of("page-nav-barracks"), "lessonBarracks", NOOP))));
-        // Boat recovery past the two frames its own suite draws.
-        list.add(new Frame("boats-recovery-gone.png", UiRoom.BOATS, CampaignLessons.lesson(1, "boatLessonTitle", "boatLessonGone",
-                List.of("boat-list"), "lessonContinue", NOOP)));
-        // Two formations, in Barracks.
-        List<String> board = List.of("barracks-command-list", "barracks-formation-board", "barracks-fill-selected", "barracks-missions");
-        list.add(new Frame("barracks-formation-found.png", UiRoom.BARRACKS, later(CampaignLessons.lesson(3, "lessonFormationTitle",
-                "lessonFormationFound", List.of("barracks-raise-squad"), null, null))));
-        list.add(new Frame("barracks-formation-assign.png", UiRoom.BARRACKS, later(CampaignLessons.lesson(3, "lessonFormationTitle",
-                "lessonFormationAssign", board, "lessonBriefing", NOOP))));
-        list.add(new Frame("barracks-formation-recover.png", UiRoom.BARRACKS, later(CampaignLessons.lesson(3, "lessonFormationTitle",
-                "lessonFormationRecover", board, "lessonHeadquarters", NOOP))));
-        list.add(new Frame("barracks-formation-wounded.png", UiRoom.BARRACKS, later(CampaignLessons.lesson(3, "lessonFormationTitle",
-                "lessonFormationWounded", List.of("barracks-command-list", "barracks-formation-board", "barracks-missions"),
-                "lessonHeadquarters", NOOP))));
         for (Frame frame : list) {
             frames.add(new SnapshotArtifact(frame.file(), UiSnapshotSuite.renderRoomWithLesson(context, renderer,
                     frame.room(), hq, null, frame::lesson)));
@@ -174,11 +138,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
                                                 String actionKey, int height) {
         return new PreparationGuide.Lesson(milestone, Strings.get(titleKey), copy, targets,
                 actionKey == null ? null : Strings.get(actionKey), actionKey == null ? null : NOOP, height);
-    }
-
-    private static PreparationGuide.Lesson later(PreparationGuide.Lesson lesson) {
-        return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
-                lesson.actionLabel(), lesson.action(), lesson.height(), NOOP);
     }
 
     private static MarineRoster preparing() {
@@ -193,7 +152,7 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
     private static void workPanels(SnapshotContext context, HeadlessUiRenderer renderer, List<SnapshotArtifact> frames)
             throws Exception {
         MarineRoster fresh = new MarineRoster();
-        frames.add(panel(context, renderer, fresh, "hq-panel-fresh.png"));
+        frames.add(panel(context, renderer, fresh, "hq-panel-paid.png"));
         MarineRoster squad = new MarineRoster();
         squad.bootstrapInitialComplement(12);
         frames.add(panel(context, renderer, squad, "hq-panel-first-squad.png"));
@@ -206,44 +165,5 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
                                           String file) throws Exception {
         return new SnapshotArtifact(file, UiSnapshotSuite.renderCompanyHq(context, renderer, 1920, 1080, 1f,
                 CompanyHqViewModel.openingPreview(roster)));
-    }
-
-    /** The second-squad briefing lesson through its production copy: found, fill, or nothing needed. */
-    private static void secondSquad(SnapshotContext context, List<SnapshotArtifact> frames)
-            throws Exception {
-        var mission = SecondSquadPreparationTest.junction();
-        var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
-                new HeadlessBattleSceneRenderer(context.modRoot(), true));
-        var props = CastleCampaignSnapshotSuite.junctionProps(mission);
-        props.put("commandSummary", "0 / 5 slots");
-        props.put("powerRows", List.of());
-        props.put("deployLamps", List.of());
-        props.put("replenishLabel", "");
-        props.put("replenishClasses", "briefing-assign-hidden");
-        props.put("replenishDisabled", false);
-        var stores = UiSnapshotSuite.snapshotSquadFoundingResources();
-
-        MarineRoster one = new MarineRoster();
-        var first = one.createSquad();
-        one.recruitToSquad(first.id(), 12);
-        frames.add(new SnapshotArtifact("briefing-second-found.png", UiSnapshotSuite.renderRoomWithLesson(context, renderer,
-                UiRoom.BRIEFING, null, props, () -> SecondSquadPreparation.lesson(mission, one, stores, true, NOOP))));
-
-        MarineRoster two = new MarineRoster();
-        var a = two.createSquad();
-        var b = two.createSquad();
-        two.recruitToSquad(a.id(), 12);
-        two.recruitToSquad(b.id(), 12);
-        two.applySoldierOutcome(Map.of(two.squadMembers(b).get(0).id(), MarineSoldierStatus.KIA), 0f, 0.6f);
-        frames.add(new SnapshotArtifact("briefing-second-existing.png", UiSnapshotSuite.renderRoomWithLesson(context, renderer,
-                UiRoom.BRIEFING, null, props, () -> SecondSquadPreparation.lesson(mission, two, stores, true, NOOP))));
-
-        MarineRoster full = new MarineRoster();
-        var c = full.createSquad();
-        var d = full.createSquad();
-        full.recruitToSquad(c.id(), 12);
-        full.recruitToSquad(d.id(), 12);
-        frames.add(new SnapshotArtifact("briefing-second-full.png", UiSnapshotSuite.renderRoomWithLesson(context, renderer,
-                UiRoom.BRIEFING, null, props, () -> SecondSquadPreparation.lesson(mission, full, stores, true, NOOP))));
     }
 }

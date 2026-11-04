@@ -291,8 +291,6 @@ public final class FleetArmoryScreen implements Screen {
     }
 
     private PreparationGuide.Lesson companyLesson() {
-        var founding = CompanyPreparationGuide.armory(roster, context);
-        if (founding != null) return founding;
         if (view == View.FIRST_REFIT && firstRefit.guide() != null) return firstRefit.guide();
         if (CampaignLessons.next(roster) == CampaignLessons.Step.REFIT)
             return CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("armory-first-refit"),

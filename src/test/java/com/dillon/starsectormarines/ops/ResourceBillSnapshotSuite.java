@@ -26,8 +26,6 @@ public final class ResourceBillSnapshotSuite implements SnapshotSuite {
                         frames.add(new SnapshotArtifact("engineering/" + frame.relativePath(), frame.image()));
                     for (var frame : UiSnapshotSuite.renderPreparationResourceBills(context))
                         frames.add(new SnapshotArtifact("preparation/" + frame.relativePath(), frame.image()));
-                    for (var frame : new SecondSquadSnapshotSuite().render(context))
-                        frames.add(new SnapshotArtifact("barracks/" + frame.relativePath(), frame.image()));
                 }
             }
         }

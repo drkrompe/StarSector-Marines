@@ -69,29 +69,27 @@ final class CompanyPreparationGuide {
                 }, 320);
     }
 
-    static PreparationGuide.Lesson ship(ShipTransferViewModel model, MarineOpsContext context) {
-        return ship(roster(), model, context);
+    static PreparationGuide.Lesson ship(MarineOpsContext context) {
+        return ship(roster(), context);
     }
 
-    static PreparationGuide.Lesson ship(MarineRoster roster, ShipTransferViewModel model, MarineOpsContext context) {
-        if (CampaignLessons.next(roster) == CampaignLessons.Step.BOAT_RECOVERY)
-            return CampaignLessons.handoff(roster, context, ScreenId.SHIP_TRANSFER);
+    static PreparationGuide.Lesson ship(MarineRoster roster, MarineOpsContext context) {
         if (!CompanyPreparation.required(roster)) return null;
         if (roster.companyShipId() != null) return handoff(roster, context);
-        if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, model.preparationBill());
+        if (CerberusCompanyStart.pendingDesignation()) return foundingLesson(context);
         return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideChooseOurCompanyShip"),
-                Strings.format("openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd", model.preparationBill()),
-                List.of("transfer-commit", "transfer-fleet-list", "transfer-resource-stock"), null, null, 480);
+                Strings.get("openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd"),
+                List.of("transfer-commit", "transfer-fleet-list"), null, null);
     }
 
-    static PreparationGuide.Lesson foundingLesson(MarineOpsContext context, String bill) {
+    static PreparationGuide.Lesson foundingLesson(MarineOpsContext context) {
         boolean installed = MercenaryCompanyConversion.installed(CerberusCompanyStart.startingShip());
         return new PreparationGuide.Lesson(0, installed ? Strings.get("openingCompanyPreparationGuideOurCompanyCommandVessel") : Strings.get("openingCompanyPreparationGuideMercenaryCompanyConversion"),
-                CerberusCompanyStart.instructions() + (installed && bill != null ? "\n\n" + bill : ""),
-                installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit", "transfer-resource-stock")
+                CerberusCompanyStart.instructions(),
+                installed ? List.of("company-hq-ship", "transfer-fleet-list", "transfer-commit")
                         : List.of("page-nav-return"),
                 installed ? Strings.get("openingCompanyPreparationGuideChooseShip") : null,
-                installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null, installed && bill != null ? 540 : 310);
+                installed ? () -> context.goTo(ScreenId.SHIP_TRANSFER) : null);
     }
 
     static PreparationGuide.Lesson headquarters(MarineOpsContext context) {
@@ -102,7 +100,7 @@ final class CompanyPreparationGuide {
 
     private static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context) {
         Step step = roster.officerInduction().step(roster);
-        if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, null);
+        if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context);
         if (step == Step.SHIP) return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideAHomeForTheCompany"),
                 OfficerInductionGuide.line(Step.SHIP, "Morgan Hale").text(),
                 List.of("company-hq-ship"), Strings.get("openingCompanyPreparationGuideChooseShip"), () -> context.goTo(ScreenId.SHIP_TRANSFER));
@@ -125,24 +123,5 @@ final class CompanyPreparationGuide {
         return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideOneStepAtATime"),
                 Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"),
                 List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"), next);
-    }
-
-    static PreparationGuide.Lesson armory(MarineRoster roster, MarineOpsContext context) {
-        return armory(roster, context::openOfficerInduction);
-    }
-
-    static PreparationGuide.Lesson armory(MarineRoster roster, Runnable next) {
-        if (!CompanyPreparation.required(roster)) return null;
-        Step step = roster.officerInduction().step(roster);
-        if (step == Step.SHIP || step == Step.INTRODUCTION || step == Step.SPECIALTY)
-            return new PreparationGuide.Lesson(step == Step.SHIP ? 0 : 1,
-                    Strings.get("openingCompanyPreparationGuideOneStepAtATime"), Strings.get("openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur"),
-                    List.of(), Strings.get("openingCompanyPreparationGuideContinue"), next);
-        if (step == Step.FORMATION) return new PreparationGuide.Lesson(2, Strings.get("openingCompanyPreparationGuideMusterOurFirstSquad"),
-                Strings.get("openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty"),
-                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
-        return new PreparationGuide.Lesson(3, Strings.get("openingCompanyPreparationGuideAFormationNeedsItsOfficer"),
-                Strings.get("openingCompanyPreparationGuideTheSquadAndItsFieldKitAre"),
-                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideBarracks"), next);
     }
 }

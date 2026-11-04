@@ -23,7 +23,6 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
         try (var strings = new HeadlessStrings(context.modRoot())) {
             var frames = new ArrayList<>(UiSnapshotSuite.renderCampaignGantries(context));
             var roster = CampaignLessonsTest.afterCounterattack();
-            roster.campaignLessons().reviewInvestments();
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
             var mission = SecondSquadPreparationTest.junction();
             var props = junctionProps(mission);

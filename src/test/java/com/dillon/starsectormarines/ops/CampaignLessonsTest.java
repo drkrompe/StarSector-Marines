@@ -62,68 +62,6 @@ class CampaignLessonsTest {
         }
     }
 
-    @Test void deployingTheJunctionClosesTheFormationLessons() throws Exception {
-        try (var strings = new HeadlessStrings(Path.of("mod"))) {
-            var roster = afterCounterattack();
-            roster.campaignLessons().reviewInvestments();
-            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            var mission = SecondSquadPreparationTest.junction();
-            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster));
-            CampaignLessons.deployed(mission, roster);
-            roster = restore(roster);
-            assertTrue(roster.campaignLessons().junctionPrepared());
-            assertTrue(roster.secondSquadPreparationSeen());
-            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
-            assertEquals(24, roster.lineReadySoldiers().size(), "Guidance never creates personnel");
-        }
-    }
-
-    @Test void formationLessonCanBeSetAsideUntilTheCompanyGrowsAndSurvivesSave() throws Exception {
-        try (var strings = new HeadlessStrings(Path.of("mod"))) {
-            var roster = afterCounterattack();
-            roster.campaignLessons().reviewInvestments();
-            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster));
-            var lesson = CampaignLessons.formations(roster, null);
-            assertNotNull(lesson.later(), "A company that cannot pay the founding bill needs a way out");
-            lesson.later().run();
-            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
-            assertNull(CampaignLessons.formations(roster, null));
-            roster = restore(roster);
-            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster), "Setting aside persists");
-            assertEquals(1, roster.squads().stream().filter(sq -> !sq.reserve()).count(), "Guidance creates no squad");
-            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster), "Another formation revives it");
-        }
-    }
-
-    @Test void shortfallOfOnlyWoundedDoesNotSendThePlayerToFillVacancies() throws Exception {
-        try (var strings = new HeadlessStrings(Path.of("mod"))) {
-            var roster = afterCounterattack();
-            roster.campaignLessons().reviewInvestments();
-            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            var wounded = roster.squadMembers(roster.squadById(second.id())).get(0);
-            roster.applySoldierOutcome(Map.of(wounded.id(), MarineSoldierStatus.WIA), 10f, 7f);
-            assertEquals(0, roster.vacancies(second), "Wounded keep their billets");
-
-            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null));
-            assertEquals(LessonCopy.text("lessonFormationWounded"), lesson.copy());
-            assertFalse(lesson.targets().contains("barracks-fill-selected"), "Fill Vacancies is disabled with no vacancy");
-        }
-    }
-
-    @Test void realVacanciesStillPointAtFillVacancies() throws Exception {
-        try (var strings = new HeadlessStrings(Path.of("mod"))) {
-            var roster = afterCounterattack();
-            roster.campaignLessons().reviewInvestments();
-            var second = roster.createSquad(); roster.recruitToSquad(second.id(), 10);
-            assertTrue(roster.vacancies(second) > 0);
-
-            var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null));
-            assertEquals(LessonCopy.text("lessonFormationRecover"), lesson.copy());
-            assertTrue(lesson.targets().contains("barracks-fill-selected"));
-        }
-    }
-
     @Test void deliveryReceiptRequiresCampaignCallAndLandingAndSurvivesSave() throws Exception {
         var roster = afterCounterattack();
         var progress = roster.campaignLessons();

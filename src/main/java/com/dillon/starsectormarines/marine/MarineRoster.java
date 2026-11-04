@@ -75,8 +75,6 @@ public class MarineRoster implements Serializable {
         if (reviewedCompanyNotices == null) reviewedCompanyNotices = new HashSet<>();
         reviewedCompanyNotices.add(id);
     }
-    public boolean secondSquadPreparationSeen() { return secondSquadPreparationSeen; }
-    public void acknowledgeSecondSquadPreparation() { secondSquadPreparationSeen = true; }
     private CampaignLessonProgress campaignLessons;
     public CampaignLessonProgress campaignLessons() {
         if (campaignLessons == null) campaignLessons = new CampaignLessonProgress();
