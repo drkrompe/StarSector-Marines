@@ -830,8 +830,13 @@ it stands: once its reroute has been tried and it has held two seconds planless
 (not held there by its driver), it backs off as far as is clear behind and
 plans again from there, before a wheeled hull's last-resort pivot (a truck
 nosed into a house in a town's loading yard otherwise stood all battle, its
-convoy waiting behind it). A new route does not restart the failure clock of a
-hull with no plan, only a plan does: a commander re-aiming a hull every few
+convoy waiting behind it). One with no room behind drives straight out over its
+nose instead, if that is clear, since with a corner at its tail every turn swings
+into it. A new route does not restart the failure clock of a
+hull with no plan, only a plan does. A plan that has held a hull stuck for 2 s,
+and not got it clear by moving or turning, counts as no plan, so the same rungs
+run for it. A new route's plan gets half a second to prove itself, and ends the
+failure only once it has got the hull clear: a commander re-aiming a hull every few
 seconds otherwise kept it from its last rungs for the rest of a battle. A
 back-off is not progress until the hull has got
 six cells clear of where its run of them began: until then the failure clock

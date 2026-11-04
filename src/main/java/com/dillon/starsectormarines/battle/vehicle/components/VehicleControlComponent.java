@@ -109,6 +109,8 @@ public final class VehicleControlComponent {
     /** Blade push not yet spent as whole structure points; only a bladed hull accrues it. */
     public float bladeCarry;
     /** Position where the vehicle first got stuck; {@link #wallStuckTime} only resets once it moves meaningfully away. */
+    /** Heading when the vehicle first stuck, degrees. */
+    public float stuckOriginFacing;
     public float stuckOriginX, stuckOriginY;
 
     /** Recovery phase; {@code REVERSING} owns the pose until the committed backup completes. */
@@ -149,6 +151,8 @@ public final class VehicleControlComponent {
     public float secondPlanWait;
     /** True while a back-off from a hull is running: it stops short of the planner's clearance, or it would be pinned. */
     public boolean reverseKeepsClearance;
+    /** The committed straight move runs out over the nose: a hull with nothing behind it to back into. */
+    public boolean driveOutForward;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by the control system's {@code consumeArrived}. */
     public boolean arrived;
