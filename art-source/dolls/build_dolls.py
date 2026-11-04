@@ -31,7 +31,7 @@ with missile pods on its top corners, guns held at the chest, thick short legs).
 A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
 of the hull, as MWO's side torsos carry their weapons.
 
-The Hermes plan doubles as the Store's Shuttles section icon
+The Hermes plan is drawn only as the Store's Shuttles section icon
 (``mod/graphics/ui/store/section-boats.svg``), drawn nose-right in the section's
 blue the way the Mechs / Vehicles icon draws the Bulwark and a tank.
 
@@ -501,7 +501,7 @@ def dagger():
 
 def hermes_doll():
     """The company's first shuttle: a round cockpit, a narrow body between two round pods, two engines astern."""
-    d = Doll("air-hermes", width=AIR_W)
+    d = Doll("section-boats", width=AIR_W)
     # Neighbouring panels share their edges on the skeleton, so only the doll's gap parts them.
     d.panel("HULL", [(-11, 15), (11, 15), (18, 22), (18, 34), (-18, 34), (-18, 22)], AIR_X)
     d.panel("HULL", [(-20, 34), (20, 34), (22, 66), (-22, 66)], AIR_X)
@@ -517,10 +517,8 @@ def hermes_doll():
 
 
 def hermes():
-    d = hermes_doll()
-    name = d.write()
-    store_icon(d, "section-boats", "#72bde8")
-    return name
+    store_icon(hermes_doll(), "section-boats", "#72bde8")
+    return "section-boats"
 
 
 def store_icon(doll, name, colour, inset_more=0.4, stroke=4):
@@ -537,15 +535,6 @@ def store_icon(doll, name, colour, inset_more=0.4, stroke=4):
            f'{shapes}</g></svg>\n')
     STORE_OUT.mkdir(parents=True, exist_ok=True)
     (STORE_OUT / f"{name}.svg").write_text(svg, encoding="utf-8", newline="\n")
-
-
-def mudskipper():
-    """A boxy gunship shuttle: a blunt cab, a deep body with turret pods, two engines astern."""
-    return aircraft("air-mudskipper",
-                    [[(-26, 18), (26, 18), (34, 42), (-34, 42)],
-                     [(-34, 44), (34, 44), (34, 118), (-34, 118)]],
-                    [[(-50, 62), (-36, 54), (-36, 104), (-50, 98)],
-                     octagon(-34, 120, -6, 152, 6)])
 
 
 def main():
@@ -572,7 +561,6 @@ def main():
         thunder(),
         longbow(),
         dagger(),
-        mudskipper(),
         hermes(),
     ]
     print("wrote", ", ".join(written))
