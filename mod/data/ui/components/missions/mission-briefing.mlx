@@ -1,4 +1,4 @@
-<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
+<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -69,15 +69,6 @@
             <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row">
               <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
               <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-            </div>
-          </div>
-          <div id="mission-employer-block" class="briefing-section">
-            <div id="mission-employer-heading" class="label heading tone-muted info-label">{employerHeader}</div>
-            <div id="mission-employer-list" class="info-list">
-              <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row employer-row">
-                <div id="{row.labelId}" class="label tone-edge info-label">{row.label}</div>
-                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-              </div>
             </div>
           </div>
           <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
@@ -391,7 +382,7 @@
   #mission-briefing-title { height: 27px; }
   #mission-briefing-purpose { width: 154px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .mission-info-rows, .info-list { flex-direction: column; gap: 4px; }
+  .mission-info-rows { flex-direction: column; gap: 4px; }
   .compact-row { height: 30px; padding: 3px; }
   .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
   .choice-row { flex-direction: row; align-items: center; height: 32px; padding: 3px 5px; gap: 5px; border-width: 2px; text-align: left; }
@@ -483,9 +474,6 @@
   .commitment-grid .briefing-section { height: 78px; }
   .landing-craft-image { height: 48px; }
   .landing-craft-line { height: auto; padding: 0px; white-space: normal; }
-  #mission-employer-block { height: auto; gap: 6px; }
-  #mission-employer-list { gap: 10px; }
-  .employer-row { height: auto; gap: 2px; }
   .commitment-summary { height: auto; white-space: normal; }
   .commitment-note { height: auto; white-space: normal; }
   .deck-heading-row .label { width: 0px; flex-grow: 1; }

@@ -274,13 +274,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                 BriefingViewModel.info("repair", "Repair", "Escort the rig, restore shore power and cover construction and repairs", "")) : List.of(
                 BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
                 BriefingViewModel.info("inspection", "Inspection", "Protect both technicians at Morrow's southern service access", "")));
-        props.put("employerRows", passage ? List.of(
-                BriefingViewModel.info("basin-holders", "Vale's holders", "Occupy the prepared road defenses", ""),
-                BriefingViewModel.info("basin-builders", "Morrow's builders", "Build road guns within reach of the hovering tender", "")) : cold ? List.of(
-                BriefingViewModel.info("basin-militia", "Vale's militia", "Inner holders and outer pickets / cover any withdrawal", ""),
-                BriefingViewModel.info("basin-technicians", "Repair party", "Restore shore power, then work inside Morrow", "")) : List.of(
-                BriefingViewModel.info("basin-militia", "Vale's militia", "Follow the company into the receiving store and workshop", ""),
-                BriefingViewModel.info("basin-technicians", "Inspection party", "Two technicians / Morrow's southern service access", "")));
         var audio = new BriefingReviewAudio();
         var comms = new BriefingComms(new NarrationPlayer(audio::play));
         var recordings = WaylineNarration.parse(new JSONObject(Files.readString(

@@ -69,7 +69,6 @@ final class BriefingViewModel {
         props.put("sourceHeader", Strings.get("briefingVmSourceHeader"));
         props.put("transportHeader", Strings.get("briefingVmTransportHeader"));
         props.put("carrierHeader", Strings.get("briefingVmCarrierHeader"));
-        props.put("employerHeader", Strings.get("briefingVmEmployerHeader"));
         props.put("rewardHeader", Strings.get("briefingVmContractHeader"));
         putFactionIdentity(props, "employer", Strings.get("briefingVmEmployerUndisclosed"), null);
         putFactionIdentity(props, "opposition", Strings.get("briefingVmOppositionUnidentified"), null);
@@ -183,9 +182,6 @@ final class BriefingViewModel {
                         List.of(FighterProfile.TALON, FighterProfile.TALON, FighterProfile.BROADSWORD)),
                 new PlayerFleetWings.CarrierBay("HSS Ordinance", null, List.of(FighterProfile.WASP))),
                 List.of(new CloseAirSupport()), List.of("HSS Mudlark")));
-        props.put("employerRows", List.of(
-                info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
-                info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
         props.put("assignLabel", Strings.get("briefingUiAssignSquads"));
         props.put("assignClasses", "briefing-assign-hidden");
         props.put("assignDisabled", true);
@@ -299,9 +295,6 @@ final class BriefingViewModel {
         props.put("tierSteps", List.of());
         props.put("debugControls", List.of());
         props.put("airRows", List.of());
-        props.put("employerRows", List.of(
-                info("employer-transport", Strings.get("briefingUiEmpLandingCraftLabel"), Strings.get("briefingAirNone"), ""),
-                info("employer-air", Strings.get("briefingUiEmpAlliedAirLabel"), Strings.get("briefingAirNone"), "")));
         return props;
     }
 
@@ -369,6 +362,16 @@ final class BriefingViewModel {
                 "command", List.of(), List.of(Strings.format("briefingVmThreatHintScale", tierName),
                 Strings.format("briefingVmThreatHintRisk", riskName.toLowerCase(Strings.locale())),
                 Strings.get("briefingVmThreatHintNote"))));
+    }
+
+    /** What the risk skulls stand for on this operation, read on hovering them. */
+    static void putThreatIntel(Map<String, Object> props, String opposition, String enemyAir) {
+        SpecSheet threat = (SpecSheet) props.get("missionThreatHint");
+        List<String> notes = new ArrayList<>(threat.notes());
+        notes.add(Strings.format("briefingVmThreatHintIntel", Strings.get("briefingUiInfoOpposition"), opposition));
+        notes.add(Strings.format("briefingVmThreatHintIntel", Strings.get("briefingUiInfoEnemyAir"), enemyAir));
+        props.put("missionThreatHint", new SpecSheet(threat.title(), threat.subtitle(), threat.crestPath(),
+                threat.accent(), threat.stats(), notes));
     }
 
     private static List<Indicator> indicators(String prefix, int filled, int total, String symbol) {

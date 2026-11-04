@@ -19,8 +19,7 @@ exactly the support the player chose.
 - The mission dossier hands off through **Brief & Deploy**; it does not expose a
   second commitment editor.
 - **Your Fleet Brings** owns independently committable transports, fighter
-  carriers, and power-source ships. **Employer Provides** remains a distinct,
-  read-only co-source.
+  carriers, and power-source ships.
 - Withholding or restoring one power-source ship removes or restores only the
   powers contributed by that member.
 - The command deck accepts only available cards that fit its budget. Slotting

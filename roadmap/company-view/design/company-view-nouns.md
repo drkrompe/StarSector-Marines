@@ -1782,8 +1782,7 @@ and then sharpens company infantry's primary fire; the gym makes them faster
 and, at its top tier, steadier under fire. With the mess's morale recovery these
 freeze onto every squad at launch as one hull-welfare record and reach the fight
 as one named unit modifier. The sick bay pulls a share of the would-be dead through when a battle is settled. The lounge raises the aptitude cargo
-replacements arrive with. The briefing's Ship row names each room that changes the
-operation.
+replacements arrive with.
 
 The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
 at a deficit: an absent bench and a Restored one are both neutral, and the

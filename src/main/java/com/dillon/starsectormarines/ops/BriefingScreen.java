@@ -5,9 +5,6 @@ import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import java.util.Locale;
-import com.dillon.starsectormarines.campaign.refit.RefitText;
-import com.dillon.starsectormarines.campaign.refit.ShipCondition;
-import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
@@ -520,7 +517,7 @@ public class BriefingScreen implements Screen {
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         MissionDialogue.put(props, "mission", mission);
-        props.put("missionRows", retainedMissionRows(mission));
+        props.put("missionRows", retainedMissionRows());
         BriefingViewModel.putReward(props, mission);
         putFactionIdentities(props, mission);
         PreparedSurvey preparedSurvey = survey.peek();
@@ -550,6 +547,8 @@ public class BriefingScreen implements Screen {
         BriefingViewModel.putForceComparison(props, mission.tier, mission.risk,
                 debug ? ctx.getDebugSquadCount() * MarineSquad.CAPACITY : readiness.selectedReady(),
                 MissionForceEnvelope.recommendedPersonnel(mission));
+        BriefingViewModel.putThreatIntel(props, MissionForceEnvelope.oppositionExpectation(mission.risk),
+                summarizeWings(mission.enemyFighterSupport, Faction.DEFENDER));
         props.put("personnelSummary", debug
                 ? ctx.getDebugCompanyStage().summary(ctx.getDebugSquadCount())
                 : retainedPersonnelSummary(mission, readiness));
@@ -590,7 +589,6 @@ public class BriefingScreen implements Screen {
         BriefingLift.Readout liftReadout = liftReadout(mission);
         BriefingLift.put(props, liftReadout);
         BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
-        props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
         putDeployLamps(props, mission, readiness, liftReadout);
         return BriefingViewModel.withEmptyStyles(props);
@@ -647,23 +645,11 @@ public class BriefingScreen implements Screen {
         document.requestFocus(markupInstance.requireElement("mission-debug-toggle"), keyboardFocus);
     }
 
-    private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
-        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        rows.add(BriefingViewModel.info("presence", Strings.get("briefingUiInfoFieldPresence"),
-                mission.fieldPresencePolicy.briefingText(), ""));
-        rows.add(BriefingViewModel.info("opposition", Strings.get("briefingUiInfoOpposition"),
-                MissionForceEnvelope.oppositionExpectation(mission.risk), ""));
-        rows.add(BriefingViewModel.info("enemy-air", Strings.get("briefingUiInfoEnemyAir"),
-                summarizeWings(mission.enemyFighterSupport, Faction.DEFENDER), ""));
+    private List<BriefingViewModel.InfoRow> retainedMissionRows() {
         String hostileShip = surveyPlan == null ? null
                 : HostileShipIntel.line(surveyPlan.hostileShip(), Strings::get);
-        if (hostileShip != null) {
-            rows.add(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
-        }
-        ShipCondition home = mission.source.isDebug() ? ShipCondition.NONE : ShipRefits.aboard();
-        String ship = RefitText.briefingLine(home);
-        if (ship != null) rows.add(BriefingViewModel.info("ship-condition", Strings.get("openingRefitBriefingLabel"), ship, ""));
-        return List.copyOf(rows);
+        return hostileShip == null ? List.of()
+                : List.of(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedTermActions(Mission mission) {
@@ -1107,88 +1093,6 @@ public class BriefingScreen implements Screen {
         rebuild();
     }
 
-    private static BriefingViewModel.InfoRow employerRow(String id, String labelKey, String valueKey) {
-        return BriefingViewModel.info(id, Strings.get(labelKey), Strings.get(valueKey), "");
-    }
-
-    private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
-        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
-                employerRow("sluice-holders", "briefingUiSluiceHoldersLabel", "briefingUiSluiceHolders"),
-                employerRow("sluice-custody", "briefingUiSluiceCustodyLabel", "briefingUiSluiceCustody"),
-                employerRow("sluice-support", "briefingUiEmpLabelCompanySupport", "briefingUiSluiceSupport"),
-                employerRow("sluice-preserve", "briefingUiSluicePreserveLabel", "briefingUiSluicePreserve"));
-        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
-            boolean custody = AgreusArcCampaign.custodyRoute(mission);
-            return List.of(
-                    employerRow("terms-party", custody ? "briefingUiTermsPartyCustodyLabel" : "briefingUiTermsPartyJointLabel",
-                            custody ? "briefingUiTermsPartyCustody" : "briefingUiTermsPartyJoint"),
-                    employerRow("terms-technicians", "briefingUiTermsTechniciansLabel", "briefingUiTermsTechnicians"),
-                    employerRow("terms-route", custody ? "briefingUiTermsRouteCustodyLabel" : "briefingUiTermsRouteJointLabel",
-                            custody ? "briefingUiTermsRouteCustody" : "briefingUiTermsRouteJoint"),
-                    employerRow("terms-constables", "briefingUiEmpLabelRuskConstables", "briefingUiTermsConstables"),
-                    employerRow("terms-support", "briefingUiEmpLabelCompanySupport", "briefingUiEmpWorkingTender"));
-        }
-        if (DistrictEscortCampaign.isBattle(mission)) return List.of(
-                employerRow("escort-constables", "briefingUiEscortConstablesLabel", "briefingUiEscortConstables"),
-                employerRow("escort-party", "briefingUiEscortPartyLabel", "briefingUiEscortParty"),
-                employerRow("escort-load", "briefingUiEscortLoadLabel", "briefingUiEscortLoad"));
-        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
-                employerRow("yard-constables", "briefingUiEmpLabelRuskConstables", "briefingUiYardConstables"),
-                employerRow("yard-inspectors", "briefingUiYardInspectorsLabel", "briefingUiYardInspectors"),
-                employerRow("yard-support", "briefingUiEmpLabelCompanySupport", "briefingUiEmpWorkingTender"),
-                employerRow("yard-preserve", "briefingUiYardPreserveLabel", "briefingUiYardPreserve"));
-        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.limitedWarrant(mission.id)) return List.of(
-                employerRow("warrant-constables", "briefingUiEmpLabelRuskConstables", "briefingUiWarrantConstables"),
-                employerRow("warrant-technician", "briefingUiWarrantTechnicianLabel", "briefingUiWarrantTechnician"),
-                employerRow("warrant-load", "briefingUiWarrantLoadLabel", "briefingUiWarrantLoad"));
-        if (AgreusArcCampaign.isBattle(mission)) return List.of(
-                employerRow("weir-constables", "briefingUiEmpLabelRuskConstables", "briefingUiWeirConstables"),
-                employerRow("weir-technicians", "briefingUiWeirTechniciansLabel", "briefingUiWeirTechnicians"),
-                employerRow("weir-construction", "briefingUiEmpLabelCompanyTender", "briefingUiWeirConstruction"));
-        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.workingPassage(mission.id)) return List.of(
-                employerRow("basin-tender", "briefingUiBasinTenderLabel", "briefingUiBasinTender"),
-                employerRow("basin-build", "briefingUiEmpLabelConstruction", "briefingUiBasinBuild"),
-                employerRow("basin-holds", "briefingUiEmpLabelMilitia", "briefingUiBasinHolds"),
-                employerRow("basin-award", "briefingUiBasinAwardLabel", "briefingUiBasinAward"));
-        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.coldStart(mission.id)) return List.of(
-                employerRow("basin-cargo", "briefingUiBasinCargoLabel", "briefingUiBasinCargo"),
-                employerRow("basin-crew", "briefingUiBasinRepairCrewLabel", "briefingUiBasinRepairCrew"),
-                employerRow("basin-yard", "briefingUiEmpLabelConstruction", "briefingUiBasinYard"),
-                employerRow("basin-militia", "briefingUiEmpLabelMilitia", "briefingUiBasinYardMilitia"));
-        if (ShepherdRecoveryCampaign.isBattle(mission)) return List.of(
-                employerRow("basin-militia", "briefingUiEmpLabelMilitia", "briefingUiBasinWorkshopMilitia"),
-                employerRow("basin-crew", "briefingUiBasinInspectionLabel", "briefingUiBasinInspection"));
-        if (CorvusWaylineCampaign.isBattle(mission)) {
-            rows.add(employerRow("employer-force", "briefingUiWaylineLocalSupportLabel", "briefingUiWaylineLocalSupport"));
-            return List.copyOf(rows);
-        }
-        if (SupplyRouteCampaign.isBattle(mission)) {
-            var route = SupplyRouteCampaign.current();
-            int kind = route != null ? route.operation() : 0;
-            rows.add(employerRow("employer-militia", "briefingUiEmpLabelMilitia",
-                    (kind == 3 || kind == 4) ? "briefingUiRouteMilitiaHolding" : "briefingUiRouteMilitiaLocal"));
-            rows.add(employerRow("employer-transport", "briefingUiRouteCraftLabel",
-                    kind == 2 ? "briefingUiRoutePickup"
-                            : (kind == 3 || kind == 4) ? "briefingUiRouteTwoShuttles" : "briefingUiRouteOneShuttle"));
-            if (kind == 4) rows.add(employerRow("employer-convoy", "briefingUiRouteFreightLabel", "briefingUiRouteFreight"));
-            return List.copyOf(rows);
-        }
-        rows.add(BriefingViewModel.info("employer-transport", Strings.get("briefingUiEmpLandingCraftLabel"),
-                mission.source.isDebug() ? Strings.get("briefingUiEmpDebugPicker")
-                        : mission.employerShuttles > 0
-                                ? Strings.format("briefingUiEmpShuttleTrips",
-                                        DetachmentResolver.employerPhysicalShipCount(mission), mission.employerShuttles)
-                                : Strings.get("briefingAirNone"), ""));
-        rows.add(BriefingViewModel.info("employer-air", Strings.get("briefingUiEmpAlliedAirLabel"),
-                summarizeWings(mission.clientFighterSupport, Faction.MARINE), ""));
-        if (mission.employerPowerIds != null && !mission.employerPowerIds.isEmpty()) {
-            rows.add(BriefingViewModel.info("employer-powers", Strings.get("briefingUiEmpCommandPowersLabel"),
-                    summarizePowerIds(mission.employerPowerIds), ""));
-        }
-        return List.copyOf(rows);
-    }
-
     private void putRetainedActions(Map<String, Object> props, Mission mission,
                                     PersonnelReadiness readiness) {
         boolean debug = mission.source.isDebug();
@@ -1338,7 +1242,7 @@ public class BriefingScreen implements Screen {
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
                 "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
-                "mission-transport-readout", "mission-employer-list", "mission-assign",
+                "mission-transport-readout", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);
     }
 

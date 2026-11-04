@@ -56,7 +56,6 @@ class MechLabRefitTest {
             String line = RefitText.mechLine(improved);
             assertTrue(line.contains("aim +3%") && line.contains("plate +10%") && line.contains("repair time -25%"), line);
             assertFalse(line.contains("vents") || line.contains("traverse"), line);
-            assertTrue(RefitText.briefingLine(improved).contains(line), "the briefing carries the same line");
             for (RefitTrack track : MECH_TRACKS) assertFalse(RefitText.lore(track).isBlank(), track.name());
         }
     }
