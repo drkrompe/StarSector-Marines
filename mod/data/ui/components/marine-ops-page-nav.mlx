@@ -15,6 +15,7 @@
       </button>
       <button id="page-nav-missions" class="{missionsClasses}" onclick="{missionsAction}">
         <div id="page-nav-missions-lamp" class="console-toggle-lamp" />
+        <img id="page-nav-missions-status" class="page-nav-status" src="graphics/ui/console/nav-attention-work.svg" />
         <div id="page-nav-missions-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-missions-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavMissions}</div>
       </button>

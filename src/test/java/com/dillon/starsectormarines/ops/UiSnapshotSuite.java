@@ -2039,10 +2039,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().toggle(squads.get(2).id());
             }
             if (state.startsWith("call-")) {
-                // The way back to work: quiet, a planet with work, a mission in progress.
+                // The way back to work: no key, or the key of a mission in progress.
                 viewModel.command().navigation(id -> { }, () -> { }, true);
                 viewModel.command().missionReturn(state.contains("briefing") ? MissionReturn.BRIEFING
-                        : MissionReturn.MISSIONS, state.contains("work"));
+                        : MissionReturn.MISSIONS);
             }
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", viewModel.command().props());
@@ -2125,7 +2125,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             var command = model.command();
             command.navigation(id -> { }, () -> { }, true);
-            command.missionReturn(MissionReturn.BRIEFING, false);
+            command.missionReturn(MissionReturn.BRIEFING);
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
             properties.put("contextLabel", "FLAGSHIP / FIRST COMMAND");

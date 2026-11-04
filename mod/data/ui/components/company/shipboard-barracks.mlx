@@ -13,7 +13,7 @@
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
-      <button id="barracks-missions" class="{command.missionClasses}" style="{command.missionStyle}" onclick="{command.missions}">{command.missionLabel}</button>
+      <button id="barracks-briefing" class="{command.briefingClasses}" style="{command.briefingStyle}" onclick="{command.resumeBriefing}">{i18n.openingBarracksCommandBriefingResume}</button>
     </div>
     <div id="barracks-command-board" class="command-board">
       <div id="barracks-command-rail" class="command-rail panel console-section">

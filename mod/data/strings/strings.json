@@ -3761,8 +3761,6 @@
     "openingBarracksCommandSelectSquadsThenAssignSelectedOnA": "Select squads, then Assign Selected on a commander card. The wrench fills vacancies: on a card for that squad, beside Select All for the selection.",
     "openingBarracksCommandEquipmentNew": "Equipment / New",
     "openingBarracksCommandEquipment": "Equipment",
-    "openingBarracksCommandMissions": "Missions",
-    "openingBarracksCommandMissionsWorkHere": "Missions / work here",
     "openingBarracksCommandBriefingResume": "Briefing / resume",
     "openingBarracksCommandOperationsVictoriesMissionXpRecorded": "{0} operations / {1} victories / {2} mission XP recorded",
     "openingBarracksCommandTrainingPointsOneOnAppointmentOnePer": "{0} TRAINING POINTS / one on appointment, one per promotion / choices are permanent",

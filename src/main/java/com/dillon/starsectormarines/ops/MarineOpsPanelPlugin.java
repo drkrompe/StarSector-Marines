@@ -75,6 +75,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     MarineOpsPanelPlugin(MarineOpsContext ctx, Consumer<MarineOpsContext> seed) {
         this.ctx = ctx;
         MarineOpsPageNav.missionsOpen = () -> ctx.planet != null;
+        MarineOpsPageNav.workHere = ctx::workHere;
         UiSpriteCache.shared().enter(uiImages);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());
