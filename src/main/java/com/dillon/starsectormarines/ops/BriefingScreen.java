@@ -503,9 +503,7 @@ public class BriefingScreen implements Screen {
             return BriefingViewModel.withEmptyStyles(props);
         }
 
-        props.put("missionKicker", Strings.join("separatorDot", SupplyRouteCampaign.operationLabel(mission),
-                Strings.format("briefingUiKickerRisk", Strings.upper(Strings.get(mission.risk.displayKey))),
-                Strings.get("missionSelectTier" + mission.tier.name())));
+        props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission));
         props.put("missionTitle", mission.name);
         narration.put(props);
         WaylineNarration.Line briefingLine = displayedBriefingNarration();

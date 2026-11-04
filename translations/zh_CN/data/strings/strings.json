@@ -2130,7 +2130,6 @@
 
 		# --- Briefing: frame, contract and opposition ---
 		"briefingHeader": "简报",
-		"briefingVmScreenHeader": "任务简报",
 		"briefingBack": "返回",
 		"actionBack": "返回",
 		"briefingAccept": "部署",
@@ -2165,7 +2164,6 @@
 		"briefingUiSalvageMoreDetail": "打捞权 +10  ·  报酬降低",
 		"briefingUiSalvageLess": "以打捞换现金",
 		"briefingUiSalvageLessDetail": "打捞权 -10  ·  报酬提高",
-		"briefingUiKickerRisk": "风险 {0}",
 		"briefingUiInfoOpposition": "敌方兵力",
 		"briefingUiInfoFieldPresence": "在场兵力",
 		"briefingUiInfoEnemyAir": "敌方空中力量",

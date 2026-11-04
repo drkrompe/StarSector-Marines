@@ -54,7 +54,6 @@ final class BriefingViewModel {
         props.put("replenishDisabled", true);
         props.put("replenishAction", (Runnable) () -> { });
         props.put("forceSelectedClasses", "label heading tone-edge");
-        props.put("screenHeader", Strings.get("briefingVmScreenHeader"));
         props.put("missionDialogue", List.of());
         props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
         props.put("missionFlavorStyle", "");
@@ -88,7 +87,7 @@ final class BriefingViewModel {
     /** A Colony Breach briefing with the hive-posture choice showing, Opportunistic selected. */
     static Map<String, Object> colonyBreachPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
-        props.put("missionKicker", "EXTRACTION  ·  HIGH RISK  ·  Colony Breach");
+        props.put("missionKicker", "EXTRACTION");
         props.put("missionTitle", "Civilian Evacuation — Asharu");
         props.put("missionFlavor", "Relief stores are committed. Hold the evacuation "
                 + "corridor until the civilian lifts are clear.");
@@ -112,7 +111,7 @@ final class BriefingViewModel {
         Runnable none = () -> { };
         boolean late = conquest;
         putLeadership(props, conquest);
-        props.put("missionKicker", late ? "CONQUEST  ·  SEVERE COMMITMENT" : "SABOTAGE  ·  MEDIUM RISK");
+        props.put("missionKicker", late ? "CONQUEST" : "SABOTAGE");
         props.put("missionTitle", late ? "CONQUEST — Full Strength" : "SABOTAGE — First Contract");
         props.put("missionFlavor", late
                 ? "Commit a campaign army across three active drop zones. Six shuttles cycle squads into contested lanes until the enemy front collapses."

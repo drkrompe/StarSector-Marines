@@ -1617,7 +1617,6 @@
     "ravBloomEvacuated": "{0} of {1} colonists were lifted out.",
     "ravBloomDayLine": "Since day {0}.",
     # ops briefing / mission select / debug missions / workbench / mission factories
-    "briefingVmScreenHeader": "Mission Briefing",
     "briefingVmDebugHeader": "Mission DEBUG",
     "briefingVmCommitmentHeader": "03 / FIELD FORCE",
     "briefingVmCommandHeader": "02 / COMMAND DECK",
@@ -2518,7 +2517,6 @@
     "briefingSurveyThunderRoute": "Dispatch Post > East Crossing > Outbound Gate",
     "briefingSurveyThunderEscort": "Escort the freight through the marked exit",
     # Briefing screen (BriefingScreen, BriefingHints). Values passed through Strings.format double their apostrophes.
-    "briefingUiKickerRisk": "{0} RISK",
     "briefingUiNoMission": "No mission selected",
     "briefingUiBoatsRequired": "Company shuttles required to prepare deployment",
     "briefingUiSurveyRetry": "Survey unavailable / retry to prepare terrain",
