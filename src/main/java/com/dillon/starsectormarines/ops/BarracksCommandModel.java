@@ -387,9 +387,9 @@ public final class BarracksCommandModel {
                 "xpTrackId", "command:" + id + ":xp", "xpFillId", "command:" + id + ":xp-fill",
                 "xpTrackClasses", captain == null ? "hidden" : "xp-track commander-xp",
                 "xpStyle", captain == null ? "" : xpStyle(captain),
-                "summary", Strings.format("openingBarracksCommandReadyAssigned", ready, squads.size()),
-                "capacity", captain == null ? Strings.get("openingBarracksCommandCompanyRoll")
-                        : Strings.format("openingBarracksCommandOfCommandSlots", captain.status(), squads.size(), captain.rank().squadCommandCap()),
+                "summary", captain == null ? Strings.format("openingBarracksCommandReadyAssigned", ready, squads.size())
+                        : Strings.format("openingBarracksCommandOfCommandSlots", squads.size(), captain.rank().squadCommandCap()),
+                "capacity", captain == null ? Strings.get("openingBarracksCommandCompanyRoll") : "",
                 "classes", command.equals(id) ? "command-card selected" : "command-card",
                 "select", (Runnable) () -> selectCommand(id));
     }
@@ -404,7 +404,6 @@ public final class BarracksCommandModel {
             int vacant = vacancies(only);
             rows.add(row("id", id, "markId", id + ":mark",
                     "squadId", squad.id(), "musterId", id + ":muster",
-                    "checkId", id + ":check",
                     "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "armorChipId", id + ":armor-card",
                     "weaponCard", weaponCard, "armorCard", armorCard,
                     "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
@@ -417,7 +416,7 @@ public final class BarracksCommandModel {
                     "formationstatusId", id + ":status",
                     "loadoutId", id + ":loadout",
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : "") + (squad.stationed() ? " stationed" : ""),
-                    "mark", selected.contains(squad.id()) ? "+" : "", "disabled", squad.stationed(),
+                    "disabled", squad.stationed(),
                     "toggle", (Runnable) () -> toggle(squad.id()), "loadout", (Runnable) () -> editEquipment.accept(squad.id()),
                     "selectClasses", "formation-select", "footerClasses", "card-footer"));
             founderFields(rows.get(rows.size() - 1), "formation:" + squad.id(), false);
@@ -428,7 +427,7 @@ public final class BarracksCommandModel {
     private Map<String, Object> raiseTile() {
         String id = "barracks-raise-squad";
         Map<String, Object> tile = new LinkedHashMap<>(row("id", id + ":tile", "markId", id + ":select",
-                "squadId", "", "musterId", id + ":muster", "checkId", id + ":check",
+                "squadId", "", "musterId", id + ":muster",
                 "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card",
                 "armorChipId", id + ":armor-card",
                 "weaponCard", CardChips.empty(id + ":weapon-card", true), "armorCard", CardChips.empty(id + ":armor-card", true),
@@ -438,7 +437,7 @@ public final class BarracksCommandModel {
                 "personnel", "", "personnelClasses", "hidden",
                 "formationstatusId", id + ":status",
                 "loadoutId", id + ":loadout",
-                "classes", "formation raise-tile", "mark", "", "disabled", true,
+                "classes", "formation raise-tile", "disabled", true,
                 "toggle", (Runnable) () -> { }, "loadout", (Runnable) () -> { },
                 "selectClasses", "hidden", "footerClasses", "hidden"));
         founderFields(tile, id, true);

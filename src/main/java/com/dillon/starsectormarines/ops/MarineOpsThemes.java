@@ -207,9 +207,11 @@ final class MarineOpsThemes {
                 .spec-card, .doctrine-card-active, .member-card, .formation-select, .mission-card,
                 .client-card, .debug-card, .debug-kit-card, .stationing-card, .deck-station, .deck-marker,
                 .specialty-node, .kit-specialty-node, .systems-row, .systems-core-row, .choice-row, .tier-step,
-                .doctrine-issue-button, .slot-select-button, .command-card,
+                .doctrine-issue-button, .slot-select-button,
                 .deployment-squad-card, .marine-viewer-card, .loot-card, .transfer-row,
                 .captain-card, .stationing-squad-card, .wire-report, .wire-line { corner-cut: 0px; }
+                /* Barracks' boxes take the game's own silhouette, at a panel's size. */
+                .command-card, .formation { corner-cut: 0px 10px 0px 10px; }
                 .mission-card, .client-card, .command-card, .deployment-squad-card, .marine-viewer-card,
                 .loot-card, .transfer-row, .captain-card, .stationing-squad-card, .wire-report, .wire-line {
                     background-color: #131d21; border-color: #2c6a7e;

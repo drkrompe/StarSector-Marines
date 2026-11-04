@@ -863,7 +863,6 @@
 		"openingBarracksCommandServiceRecordBeginsWithTheNextOperation": "服役记录从下一次行动开始。现有嘉奖将保留。",
 		"openingBarracksCommandAllFormations": "全部编队",
 		"openingBarracksCommandCompanyRoll": "连队名册",
-		"openingBarracksCommandOfCommandSlots": "{0} / 指挥位 {1}/{2}",
 		"openingBarracksCommandOnStation": "外驻中",
 		"openingBarracksCommandNoIssuedArmorAllBilletsVacant": "未配发护甲：所有编制位空缺。",
 		"openingBarracksCommandArmorImageTheMostCommonCurrentIssue": "护甲图像：{0}，当前最常见的配发。",

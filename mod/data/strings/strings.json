@@ -3776,7 +3776,7 @@
     "openingBarracksCommandServiceRecordBeginsWithTheNextOperation": "Service record begins with the next operation. Existing commendations are retained.",
     "openingBarracksCommandAllFormations": "All formations",
     "openingBarracksCommandCompanyRoll": "Company roll",
-    "openingBarracksCommandOfCommandSlots": "{0} / {1} of {2} command slots",
+    "openingBarracksCommandOfCommandSlots": "{0} of {1} command slots",
     "openingBarracksCommandOnStation": "ON STATION",
     "openingBarracksCommandNoIssuedArmorAllBilletsVacant": "No issued armor: all billets vacant.",
     "openingBarracksCommandArmorImageTheMostCommonCurrentIssue": "Armor image: {0}, the most common current issue.",
