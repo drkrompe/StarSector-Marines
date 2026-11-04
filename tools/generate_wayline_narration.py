@@ -72,11 +72,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
-    parser.add_argument("--cast", choices=["wayline", "company-officer", "operation-radio", "company-management", "jangala-arrival"], default="wayline")
+    parser.add_argument("--cast", choices=["wayline", "operation-radio", "company-management", "jangala-arrival"], default="wayline")
     parser.add_argument("--line", action="append", help="Generate only this sound ID (repeatable)")
     args = parser.parse_args()
-    catalog_path = CATALOG if args.cast == "wayline" else ROOT / "mod/data/marines/company_officer_narration.json"
-    sources = SOURCES if args.cast == "wayline" else SOURCES.parent / "company-officer"
+    catalog_path = CATALOG
+    sources = SOURCES
     if args.cast == "operation-radio":
         catalog_path = ROOT / "mod/data/marines/operation_radio.json"
         sources = SOURCES.parent / "operation-radio/live"

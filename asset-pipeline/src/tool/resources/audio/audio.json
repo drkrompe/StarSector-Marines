@@ -299,17 +299,6 @@
     {"id": "marines_op_viper_acknowledge", "source": "operation-radio/live/marines_op_viper_acknowledge.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms", "mix": "mission_voice"},
     {"id": "marines_op_viper_combat", "source": "operation-radio/live/marines_op_viper_combat.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms", "mix": "mission_voice"},
 
-    // Company command: original voice, clean masters with offline comms treatment.
-    {"id": "marines_officer_contact_01", "source": "company-officer/marines_officer_contact_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_contact_02", "source": "company-officer/marines_officer_contact_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_fallback_01", "source": "company-officer/marines_officer_fallback_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_fallback_02", "source": "company-officer/marines_officer_fallback_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_check_fire_01", "source": "company-officer/marines_officer_check_fire_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_check_fire_02", "source": "company-officer/marines_officer_check_fire_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_mech_spotted_01", "source": "company-officer/marines_officer_mech_spotted_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_mech_spotted_02", "source": "company-officer/marines_officer_mech_spotted_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_enemy_down_01", "source": "company-officer/marines_officer_enemy_down_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
-    {"id": "marines_officer_enemy_down_02", "source": "company-officer/marines_officer_enemy_down_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms", "mix": "mission_voice"},
 
     {"id": "marines_mara_junction_briefing", "source": "wayline/marines_mara_junction_briefing.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms", "mix": "story_voice"},
     {"id": "marines_mara_junction_started", "source": "wayline/marines_mara_junction_started.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms", "mix": "story_voice"},

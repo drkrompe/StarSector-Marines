@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.campaign.start.CompanyProloguePresenter;
 import com.dillon.starsectormarines.cinematic.ArrivalCinematicPresenter;
 import com.dillon.starsectormarines.cinematic.AsharuBattleCinematicPresenter;
-import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 
@@ -127,7 +126,6 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         StoryMapPools.loadBuiltins();
         WaylineNarration.loadBuiltins();
         CompanyManagementGuide.loadBuiltins();
-        CompanyOfficer.loadBuiltins();
         OperationRadio.loadBuiltins();
         // Field Medicine's per-rank numbers; fail-loud, since a missing table would
         // otherwise read as an officer without the specialty.

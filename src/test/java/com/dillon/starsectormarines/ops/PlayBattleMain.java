@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -315,7 +314,6 @@ public final class PlayBattleMain {
         Global.setSoundPlayer(PlayBattleSettings.silence());
         // What the mod plugin loads at application start for the voices. Without them a battle has no radio or subtitles.
         WaylineNarration.loadBuiltins();
-        CompanyOfficer.loadBuiltins();
         OperationRadio.loadBuiltins();
 
         // The catalog lists its missions only with the cheats on, and they are read from the save.

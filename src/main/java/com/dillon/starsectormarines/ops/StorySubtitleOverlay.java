@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
-import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -65,13 +64,8 @@ final class StorySubtitleOverlay {
         update(line, null, dt);
     }
 
-    void update(WaylineNarration.Line line, CompanyOfficer.Line officer, float dt) {
-        update(line, officer, null, dt);
-    }
-
-    void update(WaylineNarration.Line line, CompanyOfficer.Line officer,
-                OperationRadio.Transmission radio, float dt) {
-        Object next = line != null ? line : radio != null ? radio : officer;
+    void update(WaylineNarration.Line line, OperationRadio.Transmission radio, float dt) {
+        Object next = line != null ? line : radio;
         if (next != current) {
             if (markup != null) markup.close();
             markup = null;
@@ -80,9 +74,7 @@ final class StorySubtitleOverlay {
             if (next != null) {
                 Map<String, Object> props = line != null
                         ? Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text())
-                        : radio != null ? props(radio) : Map.of(
-                                "speaker", "CASTLE / COMPANY COMMAND", "portrait", "graphics/portraits/castle.png",
-                                "subtitle", officer.text());
+                        : props(radio);
                 markup = loader.reloadAndBuild(reactor,
                         ((String) props.get("portrait")).isBlank() ? "company-subtitle" : COMPONENT, props);
                 document = new UiDocument(markup.root());

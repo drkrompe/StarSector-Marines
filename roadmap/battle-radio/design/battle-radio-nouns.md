@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy drives the battle host; batt
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — battle music: the music director picks quiet, alert, combat or aftermath from published battle facts.
+Updated: 2026-11-04 — company command no longer replies to squad reports.
 
 Read `stories.md` for the open-work board.
 
@@ -180,7 +180,7 @@ Story subtitles identify the actual speaker and portrait and remain readable
 for the recorded duration even
 when sound is muted or unavailable, in both strategic and direct-control views.
 The **voice-over switch** on the Settings page (`VoiceOver`) silences all recorded speech:
-narration, radio, officer replies, marine barks and film dialogue. Subtitles and all
+narration, radio, marine barks and film dialogue. Subtitles and all
 other sound stay. It is saved with the game and on until the player turns it off.
 Speech runs in real time while simulation speed changes; pause allows the
 current recording to finish but starts no new line. Completion discards pending
@@ -209,8 +209,8 @@ The company officer is an original mature British female Voice Design selection,
 retained by stable voice ID with clean source takes and generation provenance.
 Her callsign is Castle. She belongs to the company rather than Wayline.
 Zoey remains the employer's
-mission contact. Command replies are available in the Marine Operations battle
-host.
+mission contact. Castle speaks in assignment exchanges and authored mission
+lines; she does not react to squad reports (owner).
 
 The player normally oversees deployment from the command ship. Ground radio is
 traffic between deployed units and shipboard command, not commentary addressed
@@ -228,9 +228,8 @@ actions still require facts supplied by their trigger. A recorded order is
 radio presentation, not evidence that an AI action has been issued or obeyed.
 
 The generated ensemble supplies tactical reports admitted by the existing cue
-policy. The older generic officer replies remain only as a fallback when the
-ensemble catalog is unavailable. No generic reply is added behind an ensemble
-report. Assignment handshakes provide the officer's addressed coordination.
+policy. Nothing replies behind a report. Assignment handshakes provide the
+officer's addressed coordination.
 
 Each ensemble actor may supply several recordings for one combat cue. Selection
 uses every recording in that cue's pool before repeating, avoids the preceding

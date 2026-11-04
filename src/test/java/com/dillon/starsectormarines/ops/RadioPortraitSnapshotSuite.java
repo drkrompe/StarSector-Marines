@@ -64,7 +64,7 @@ public final class RadioPortraitSnapshotSuite implements SnapshotSuite {
                 graphics.setColor(new Color(21, 28, 26));
                 graphics.fillRect(0, 0, sheet.getWidth(), sheet.getHeight());
                 for (int i = 0; i < turns.size(); i++) {
-                    overlay.update(null, null, turns.get(i), 0);
+                    overlay.update(null, turns.get(i), 0);
                     var surface = overlay.surface();
                     graphics.drawImage(renderer.render(surface.document(),
                             (int) surface.viewport().documentWidth(), (int) surface.viewport().documentHeight()),
