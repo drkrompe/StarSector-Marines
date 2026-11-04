@@ -221,8 +221,20 @@ final class UiPainter {
                 metrics.surfaceWidth() * 0.5f, metrics.surfaceHeight() * 0.5f,
                 image.width() * fit / metrics.scaleX(),
                 image.height() * fit / metrics.scaleY(),
-                0f, Color.WHITE);
+                0f, imageTint(source));
     }
+
+    /**
+     * What an image is drawn through. The base game's interface icons are white stencils it colours
+     * as it draws them, in its interface colour, the player's {@code baseUIColor}; anything else
+     * carries its own colours.
+     */
+    static Color imageTint(String source) {
+        return source.startsWith(GAME_INTERFACE_ICONS) ? GAME_INTERFACE_COLOR : Color.WHITE;
+    }
+
+    private static final String GAME_INTERFACE_ICONS = "graphics/ui/icons/";
+    private static final Color GAME_INTERFACE_COLOR = new Color(170, 222, 255);
 
     static Rect canvasVisibleBounds(CanvasMetrics metrics, Rect documentClip) {
         float left = metrics.toCanvasX(documentClip.x());

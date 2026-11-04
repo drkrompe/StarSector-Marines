@@ -60,8 +60,7 @@
 </template>
 
 <style>
-  .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
-  .doc-narrow .header-stock-slot { width: 220px; }
+  .header-stock-slot { flex-direction: column; width: 340px; height: 46px; }
   .transfer-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }

@@ -451,7 +451,7 @@ mod's screens read as part of it: a flat teal plate with no border or relief,
 `corner-cut` at two opposite corners (a page route at all four, to fit its slot), in the colours of the game's `buttonBgDark`
 and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
 both top corners and a filter is a hollow outline that fills gold when chosen, as
-the market's and intel screen's are. `corner-cut` is painting only: layout and
+the market's and intel screen's are. The game's interface icons (`graphics/ui/icons/`) are white stencils, drawn in its interface colour. `corner-cut` is painting only: layout and
 hit-testing keep the rectangle, and a cut box draws no gradient or bevel. A card is
 a button to the pointer but keeps its square frame and a dark fill with a teal line, but for Barracks' squad and commander boxes, cut at two opposite corners like a panel. Battle glass keeps its own
 buttons.
