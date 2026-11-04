@@ -15,9 +15,9 @@ public final class CompanyResources {
         return NumberFormat.getIntegerInstance(Strings.locale()).format(Math.max(0, amount));
     }
 
-    /** The base game's own 24 px figures for the two things a company counts, from its fleet screen. */
+    /** The base game's own art for the two things a company counts: its credit sign, and its marines as its cargo shows them. */
     public static final String CREDITS_ICON = "graphics/ui/icons/fleettab/credits_24x24.png";
-    public static final String MARINES_ICON = "graphics/ui/icons/fleettab/marines_24x24.png";
+    public static final String MARINES_ICON = "graphics/icons/cargo/marine.png";
 
     public static Row stock(String id, String name, String icon, long available) {
         return new Row(id, name, icon, Math.max(0, available), 0);

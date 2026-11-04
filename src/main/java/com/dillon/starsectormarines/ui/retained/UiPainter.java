@@ -225,16 +225,15 @@ final class UiPainter {
     }
 
     /**
-     * What an image is drawn through. The base game's interface icons are white stencils it colours
-     * as it draws them, in its interface colour, the player's {@code baseUIColor}; anything else
-     * carries its own colours.
+     * What an image is drawn through. The base game's credit sign is a white stencil it colours as it
+     * draws it, in the gold of its own credit readout; anything else carries its own colours.
      */
     static Color imageTint(String source) {
-        return source.startsWith(GAME_INTERFACE_ICONS) ? GAME_INTERFACE_COLOR : Color.WHITE;
+        return GAME_CREDIT_SIGN.equals(source) ? GAME_CREDIT_GOLD : Color.WHITE;
     }
 
-    private static final String GAME_INTERFACE_ICONS = "graphics/ui/icons/";
-    private static final Color GAME_INTERFACE_COLOR = new Color(170, 222, 255);
+    private static final String GAME_CREDIT_SIGN = "graphics/ui/icons/fleettab/credits_24x24.png";
+    private static final Color GAME_CREDIT_GOLD = new Color(255, 210, 0);
 
     static Rect canvasVisibleBounds(CanvasMetrics metrics, Rect documentClip) {
         float left = metrics.toCanvasX(documentClip.x());
