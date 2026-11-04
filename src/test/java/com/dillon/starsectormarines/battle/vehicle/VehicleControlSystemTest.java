@@ -276,6 +276,29 @@ class VehicleControlSystemTest {
     }
 
     @Test
+    void aNewRouteDoesNotRestartTheClockOfAHullWithNoPlan() {
+        NavigationGrid grid = new NavigationGrid(30, 30);
+        for (int y = 12; y <= 16; y++) for (int x = 12; x <= 16; x++) grid.setWalkableFloor(x, y);
+        for (int y = 22; y <= 27; y++) for (int x = 22; x <= 27; x++) grid.setWalkableFloor(x, y);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(30, 30));
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(30, 30), null);
+        ConvoyService convoy = roster.convoy();
+        float[] xs = {14.5f, 24.5f}, ys = {14.5f, 24.5f};
+        long id = convoy.spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, new VehicleMission(xs, ys, xs, ys, 0f, 4));
+        GroundBody body = convoy.body(id);
+        body.teleport(14.5f, 14.5f, 0f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        for (int i = 0; i < 30; i++) controls.tick(id, .05f, xs, ys, VehicleLeg.MOVE_ORDER);
+        float clock = convoy.control(id).localPlanFailureTime;
+        assertTrue(clock > 0f, "fixture check: it has no plan out of the box");
+
+        controls.tick(id, .05f, new float[]{14.5f, 25.5f}, new float[]{14.5f, 25.5f}, VehicleLeg.MOVE_ORDER);
+        assertTrue(convoy.control(id).localPlanFailureTime >= clock, "re-aimed, the clock runs on");
+    }
+
+    @Test
     void aPlanFromWhereItsBackOffsBeganDoesNotEndTheFailure() {
         VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
                 new float[]{1f, 0f}, new float[]{0f, 0f}, 0f, 4);

@@ -241,7 +241,9 @@ Every shove is swept on the planner's padded footprint first and on the bare
 one only for what neither hull can take that way. The shove never touches a
 route: a hull that is held up falls through to the stall ladder like any other.
 Hostile hulls do not brake for each other: they close at full speed, ram on the
-first touch, and then can go no further. A wreck is not a hull here.
+first touch, and then can go no further. A wreck is not a hull here. A stopped
+shove ends a hair short of what stopped it: a pose exactly touching a corner is
+clear, but every move from it rounds into the corner and is refused.
 A pair that stays in contact for six seconds without both hulls getting
 anywhere is jammed (a lane too narrow for the two plus the planner's clearance,
 a column backed into trucks coming out, a truck inching a parked car along a
@@ -828,7 +830,10 @@ it stands: once its reroute has been tried and it has held two seconds planless
 (not held there by its driver), it backs off as far as is clear behind and
 plans again from there, before a wheeled hull's last-resort pivot (a truck
 nosed into a house in a town's loading yard otherwise stood all battle, its
-convoy waiting behind it). A back-off is not progress until the hull has got
+convoy waiting behind it). A new route does not restart the failure clock of a
+hull with no plan, only a plan does: a commander re-aiming a hull every few
+seconds otherwise kept it from its last rungs for the rest of a battle. A
+back-off is not progress until the hull has got
 six cells clear of where its run of them began: until then the failure clock
 runs on through the back-offs, the short plans they find and any reroute, so
 the pivot, brushing and the order's give-up all still come at their times.

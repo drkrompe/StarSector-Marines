@@ -170,8 +170,16 @@ public final class VehicleControlSystem {
         VehicleControlComponent s = convoy.control(id);
 
         if (s.routeXs != xs || s.routeYs != ys || s.leg != leg) {
+            // A new route is no progress for a hull with no plan from where it stands: a driver re-aimed every few
+            // seconds would otherwise never run the clock up to its last rungs. A plan on the new route ends the failure.
+            boolean planless = s.routeXs != null && s.trajectory == null;
+            float failure = s.localPlanFailureTime, hold = s.planlessHold;
             initCorridor(s, xs, ys);
             s.leg = leg;
+            if (planless) {
+                s.localPlanFailureTime = failure;
+                s.planlessHold = hold;
+            }
         }
         if (stalled.test(id)) {
             body.speed = 0f;

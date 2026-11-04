@@ -13,8 +13,16 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * refuses to start from, so the shove stops where the planner's footprint would, and a hull already inside that
  * margin is not shoved by it at all. Without it the bare footprint is swept, for an overlap nothing else can
  * resolve.
+ *
+ * <p>A shove that is stopped stops {@link #SKIN_CELLS} short of what stopped it. A pose exactly touching a corner is
+ * clear, but every move from it, even straight along the flank that touches, rounds into the corner and is refused,
+ * so a hull shoved there could neither back off nor pivot. A hull's own drive keeps its proven travel: it has to slide
+ * along what it grazes, a little each tick.
  */
 public final class HullShove {
+
+    /** How far short of what stopped it a shove ends, cells: too small to see. */
+    static final float SKIN_CELLS = .02f;
 
     private HullShove() {}
 
@@ -46,8 +54,14 @@ public final class HullShove {
         Pose from = new Pose(body.x, body.y, body.facingDegrees);
         Pose to = new Pose(body.x + dx, body.y + dy, body.facingDegrees);
         VehicleTerrainMotion.Result result = VehicleTerrainMotion.sweep(from, to, length, width, grid, false);
-        body.x = result.pose().x;
-        body.y = result.pose().y;
+        Pose stopped = result.pose();
+        if (result.blocked()) {
+            float travel = (float) Math.hypot(stopped.x - from.x, stopped.y - from.y);
+            float kept = travel > SKIN_CELLS ? (travel - SKIN_CELLS) / travel : 0f;
+            stopped = new Pose(from.x + (stopped.x - from.x) * kept, from.y + (stopped.y - from.y) * kept, from.facingDeg);
+        }
+        body.x = stopped.x;
+        body.y = stopped.y;
         return !result.blocked();
     }
 }
