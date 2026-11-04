@@ -135,7 +135,7 @@ them.
   `BOATS` names the hangar exactly as `MECH LAB` names the vehicle bay, so the
   gating is a property of the route rather than something each screen remembers.
   A route may also wear a **status mark**, a small amber symbol beside its words while
-  that room has something waiting on the player: a cross on Barracks for wounded or empty
+  that room has something waiting on the player: a cross on Barracks for empty
   billets, a wrench on Shuttles and the Mech Lab for what cannot fly or is under repair
   (`RoomAttention`). It says where to look; the room says what, and a mission's own
   warnings stay on its briefing (`DeployWarnings`).
