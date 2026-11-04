@@ -531,11 +531,7 @@ public class BriefingScreen implements Screen {
                         : surveyFailure != null ? Strings.get("briefingUiSurveyRetry")
                         : Strings.get("briefingUiSurveyCompiling"));
         props.put("termActions", retainedTermActions(mission));
-        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST || SupplyRouteCampaign.isBattle(mission),
-                mission.source == MissionSource.STATIONING);
-        props.put("captains", retainedCaptainRows(mission));
-        props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
-                ? Strings.get("briefingUiActingNcos") : "");
+        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST || SupplyRouteCampaign.isBattle(mission));
 
         boolean debug = mission.source.isDebug();
         BriefingViewModel.putDebugDrawer(props, debug, debugDrawerExpanded, this::toggleDebugDrawer);
@@ -653,8 +649,6 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        rows.add(BriefingViewModel.info("requirements", Strings.get("briefingUiInfoRequires"),
-                mission.requirements, ""));
         rows.add(BriefingViewModel.info("presence", Strings.get("briefingUiInfoFieldPresence"),
                 mission.fieldPresencePolicy.briefingText(), ""));
         rows.add(BriefingViewModel.info("opposition", Strings.get("briefingUiInfoOpposition"),
@@ -669,28 +663,6 @@ public class BriefingScreen implements Screen {
         ShipCondition home = mission.source.isDebug() ? ShipCondition.NONE : ShipRefits.aboard();
         String ship = RefitText.briefingLine(home);
         if (ship != null) rows.add(BriefingViewModel.info("ship-condition", Strings.get("openingRefitBriefingLabel"), ship, ""));
-        return List.copyOf(rows);
-    }
-
-    private List<BriefingViewModel.ChoiceRow> retainedCaptainRows(Mission mission) {
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        List<MarineCaptain> captains;
-        if (mission.source == MissionSource.STATIONING) {
-            MarineCaptain selected = ctx.getSelectedCaptain();
-            captains = selected == null ? List.of() : List.of(selected);
-        } else {
-            captains = script != null ? script.roster().active() : List.of();
-        }
-        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
-        for (int i = 0; i < captains.size(); i++) {
-            MarineCaptain captain = captains.get(i);
-            boolean selected = captain.id().equals(ctx.getSelectedCaptainId());
-            rows.add(new BriefingViewModel.ChoiceRow("captain-" + i,
-                    "choice-row" + (selected ? " selected" : ""),
-                    captain.name(), Strings.join("separatorDot", captain.rank().displayName(),
-                            Strings.format("briefingUiCaptainCoordinates", captain.rank().squadCommandCap())),
-                    false, () -> selectCaptain(captain, mission), captain.portraitSprite()));
-        }
         return List.copyOf(rows);
     }
 
@@ -722,12 +694,6 @@ public class BriefingScreen implements Screen {
         Mission m = ctx.getSelectedMission();
         if (m == null || m.hivePosture == posture) return;
         ctx.setSelectedMission(Mission.builder(m).hivePosture(posture).build());
-        rebuild();
-    }
-
-    private void selectCaptain(MarineCaptain captain, Mission mission) {
-        ctx.setSelectedCaptainId(captain.id());
-        initializeCaptainFormation(mission);
         rebuild();
     }
 
@@ -1370,7 +1336,7 @@ public class BriefingScreen implements Screen {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
-                "mission-captain-list", "mission-planning", "mission-commitment",
+                "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-readout", "mission-employer-list", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);

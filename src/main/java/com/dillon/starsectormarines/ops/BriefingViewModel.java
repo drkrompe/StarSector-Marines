@@ -62,7 +62,7 @@ final class BriefingViewModel {
         new BriefingComms().put(props);
         props.put("replayNarrationAction", (Runnable) () -> { });
         props.put("stopNarrationAction", (Runnable) () -> { });
-        putLeadership(props, false, false);
+        putLeadership(props, false);
         props.put("debugHeader", Strings.get("briefingVmDebugHeader"));
         props.put("commitmentHeader", Strings.get("briefingVmCommitmentHeader"));
         props.put("commandHeader", Strings.get("briefingVmCommandHeader"));
@@ -99,10 +99,6 @@ final class BriefingViewModel {
 
     static Map<String, Object> actingNcoPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
-        props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                "Morgan Hale", "Lieutenant · 3 squad coordination", false, () -> { },
-                "graphics/portraits/portrait_mercenary01.png")));
-        props.put("captainEmpty", "");
         props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01",
                 "1 squad · 12 marines", null, "", false)));
         return withEmptyStyles(props);
@@ -116,7 +112,7 @@ final class BriefingViewModel {
         Map<String, Object> props = baseProps();
         Runnable none = () -> { };
         boolean late = conquest;
-        putLeadership(props, conquest, false);
+        putLeadership(props, conquest);
         props.put("missionKicker", late ? "CONQUEST  ·  SEVERE COMMITMENT" : "SABOTAGE  ·  MEDIUM RISK");
         props.put("missionTitle", late ? "CONQUEST — Full Strength" : "SABOTAGE — First Contract");
         props.put("missionFlavor", late
@@ -134,9 +130,6 @@ final class BriefingViewModel {
         putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
-        props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                late ? "Hale" : "Morgan Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
-        props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
                 : "First Contract · 1 squad · 2 sorties");
@@ -472,10 +465,7 @@ final class BriefingViewModel {
                         : debug ? "briefingVmHintDebug" : "briefingVmHintCompany"))));
     }
 
-    static void putLeadership(Map<String, Object> props, boolean conquest, boolean stationed) {
-        props.put("captainHeader", Strings.get(stationed ? "briefingVmCaptainStationed" : "briefingVmCaptainOptional"));
-        props.put("captainRoleSummary", Strings.get(stationed
-                ? "briefingVmCaptainStationedSummary" : "briefingVmCaptainOptionalSummary"));
+    static void putLeadership(Map<String, Object> props, boolean conquest) {
         props.put("groupCommandHeading", Strings.get(conquest
                 ? "briefingVmGroupHeadingConquest" : "briefingVmGroupHeading"));
         props.put("groupCommandSummary", Strings.get(conquest
@@ -509,7 +499,7 @@ final class BriefingViewModel {
         // The count carries the readiness tone the summary line used to: danger when the commitment cannot launch.
         props.put("forceSelectedClasses", "label heading "
                 + (String.valueOf(props.get("personnelClasses")).contains("tone-danger") ? "tone-danger" : "tone-edge"));
-        for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
+        for (String key : List.of("powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
                     ? "height: 0px; padding: 0px; overflow: hidden"

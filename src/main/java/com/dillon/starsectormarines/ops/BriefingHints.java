@@ -18,9 +18,6 @@ final class BriefingHints {
 
     static SpecSheetBinder install(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
         SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-        bindChoices(binder, markup, props, "captains",
-                "Stationed Officer".equals(props.get("captainHeader"))
-                        ? Strings.get("briefingUiHintCaptainStationed") : Strings.get("briefingUiHintCaptainCommander"));
         bindChoices(binder, markup, props, "powerRows", Strings.get("briefingUiHintCommandPower"));
         bindChoices(binder, markup, props, "sourceRows", Strings.get("briefingUiHintPowerSource"));
         BriefingAir.bindHints(binder, markup, props);

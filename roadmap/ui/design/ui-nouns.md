@@ -563,8 +563,9 @@ another officer's image. Acting-NCO cards remain valid independent groups, and
 an explicitly omitted operation officer remains omitted across screen rebuilds.
 Cards visibly distinguish the operation commander, sub-commanders and acting
 NCOs. A brief always-visible explanation names Conquest advance, regrouping and
-objective coordination, while the commander picker explains unattached-squad
-leadership and rank capacity. Essential role and behavior meaning never relies
+objective coordination. The briefing's left column has no commander picker and no
+Requires line (owner): for now the company's one active officer leads every operation.
+Essential role and behavior meaning never relies
 on discovering a hover target. Hints expand these rules without promising a
 passive stat bonus or permanent ownership of a compass lane. Cards keep a bounded
 reading width as the briefing expands; they wrap into a scrolling gallery instead
