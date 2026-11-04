@@ -47,7 +47,7 @@ final class MarineOpsPageNav {
         HQ(null, "hq"),
         /**
          * The contract board. Not a compartment: it is the work at the planet the fleet is at, so it
-         * is open exactly while the dialog was opened at one ({@link #missionsOpen}) and absent in space.
+         * is open exactly while there is some to show ({@link #missionsOpen}) and absent otherwise.
          */
         MISSIONS(null, "missions"),
         BARRACKS(RoomPurpose.BARRACKS, "barracks"),
@@ -123,7 +123,7 @@ final class MarineOpsPageNav {
      */
     static BooleanSupplier storeOpen = () -> CivilizedPort.docked() != null;
 
-    /** Whether this dialog has a planet whose work to show; its host says so when it opens. */
+    /** Whether this dialog has a planet with work to show; its host says so when it opens. */
     static BooleanSupplier missionsOpen = () -> true;
 
     /** Whether a contact at this planet has work the company may take; its host says so when it opens. */

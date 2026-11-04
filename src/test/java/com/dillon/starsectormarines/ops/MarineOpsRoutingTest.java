@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,6 +67,25 @@ class MarineOpsRoutingTest {
         assertEquals(opened, context.getCurrentScreen());
         context.goTo(ScreenId.SHIP_VIEW);
         assertEquals(opened, context.getCurrentScreen());
+    }
+
+    @Test
+    @DisplayName("a contact with nothing to take is not work")
+    void aReferralIsNotWork() {
+        var broker = new Client("independent", "Independent", null, RepLevel.NEUTRAL, false, null);
+        var colony = new Client(MarineOpsContext.POLITY_CLIENT_FACTION_ID, "Colony", null, RepLevel.NEUTRAL, false, null);
+        var patron = new Client("independent", "House", null, RepLevel.NEUTRAL, false, null, 7L);
+        assertFalse(MarineOpsContext.offersWork(broker, List.of()));
+        assertTrue(MarineOpsContext.offersWork(colony, List.of()));
+        assertTrue(MarineOpsContext.offersWork(patron, List.of()));
+    }
+
+    @Test
+    @DisplayName("a board with nothing on it opens HQ instead")
+    void anEmptyBoardIsNotADestination() {
+        MarineOpsContext context = new MarineOpsContext(null);
+        context.goTo(ScreenId.MISSION_SELECT);
+        assertEquals(ScreenId.COMPANY_HQ, context.getCurrentScreen());
     }
 
     @Test

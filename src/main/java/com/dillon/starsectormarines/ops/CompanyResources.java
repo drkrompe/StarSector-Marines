@@ -19,6 +19,13 @@ public final class CompanyResources {
     public static final String CREDITS_ICON = "graphics/ui/icons/fleettab/credits_24x24.png";
     public static final String MARINES_ICON = "graphics/icons/cargo/marine.png";
 
+    /** How a resource block draws a figure: credits in the gold of the base game's own credit readout, like their sign. */
+    public static String stockValueClasses(String icon) {
+        return CREDITS_ICON.equals(icon)
+                ? "label company-resource-stock-value company-resource-stock-credits"
+                : "label company-resource-stock-value";
+    }
+
     public static Row stock(String id, String name, String icon, long available) {
         return new Row(id, name, icon, Math.max(0, available), 0);
     }
@@ -98,6 +105,7 @@ public final class CompanyResources {
                 case "name" -> name; case "icon" -> icon; case "label" -> label();
                 case "cost" -> note != null ? note : Strings.format("companyResourceCost", number(required));
                 case "stock" -> note != null ? note : number(available);
+                case "valueClasses" -> stockValueClasses(icon);
                 case "shortage" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", number(shortfall())) : "";
                 case "required" -> number(required);
                 case "chipClasses" -> shortfall() > 0 ? "material-chip short" : "material-chip";

@@ -192,7 +192,7 @@ class BarracksTurnaroundTest {
         assertFalse(context.isLootSettlementStarted());
         assertTrue(context.preparingAfterSettlement());
         screen.returnToMissions();
-        assertEquals(ScreenId.MISSION_SELECT, context.getCurrentScreen());
+        assertEquals(ScreenId.COMPANY_HQ, context.getCurrentScreen(), "No planet with work in this fixture");
         assertTrue(context.isLootSettlementStarted());
     }
 
