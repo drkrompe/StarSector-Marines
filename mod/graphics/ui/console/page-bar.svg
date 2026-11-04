@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1258" height="57" viewBox="0 0 1258 57">
-  <path fill="#aab4b9" d="M0 0H12L24 12H1248A10 10 0 0 1 1258 22V57H0Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1413" height="57" viewBox="0 0 1413 57">
+  <path fill="#aab4b9" d="M0 0H12L24 12H1403A10 10 0 0 1 1413 22V57H0Z"/>
   <path fill="none" stroke="#d5dcdf" d="M0 0.5H12L24 12.5"/>
-  <path fill="none" stroke="#66c4cc" d="M24 12.5H1248A9.5 9.5 0 0 1 1257.5 22V34"/>
-  <path fill="#59646a" d="M0 56H1258V57H0Z"/>
-  <path fill="#262e32" d="M28 16H1248A5 5 0 0 1 1253 20H24Z"/>
+  <path fill="none" stroke="#66c4cc" d="M24 12.5H1403A9.5 9.5 0 0 1 1412.5 22V34"/>
+  <path fill="#59646a" d="M0 56H1413V57H0Z"/>
+  <path fill="#262e32" d="M28 16H1403A5 5 0 0 1 1408 20H24Z"/>
   <g transform="translate(0 12)">
     <path fill="#66c4cc" d="M17 9H159L163 13V37L159 41H17L13 37V13Z"/>
     <path fill="#05090c" d="M17 10H159L162 13V37L159 40H17L14 37V13Z"/>
@@ -33,6 +33,10 @@
     <path fill="#05090c" d="M17 10H159L162 13V37L159 40H17L14 37V13Z"/>
   </g>
   <g transform="translate(1085 12)">
+    <path fill="#66c4cc" d="M17 9H159L163 13V37L159 41H17L13 37V13Z"/>
+    <path fill="#05090c" d="M17 10H159L162 13V37L159 40H17L14 37V13Z"/>
+  </g>
+  <g transform="translate(1240 12)">
     <path fill="#66c4cc" d="M17 9H159L163 13V37L159 41H17L13 37V13Z"/>
     <path fill="#05090c" d="M17 10H159L162 13V37L159 40H17L14 37V13Z"/>
   </g>

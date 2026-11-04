@@ -98,7 +98,7 @@ public final class CompanyHqScreen implements Screen {
         Map<String, Object> props = viewModel.props();
         props.put("debugAction", (Runnable) () -> { if (Cheats.enabled()) context.goTo(ScreenId.DEBUG_MISSIONS); });
         props.put("debugClasses", Cheats.enabled() ? "hq-debug console-action" : "hq-debug-hidden");
-        MarineOpsPageNav.routeSettings(props, context);
+        MarineOpsPageNav.routeShared(props, context);
         newsDesk.put(props);
         actionDesk.put(props);
         auxiliary.put(props);

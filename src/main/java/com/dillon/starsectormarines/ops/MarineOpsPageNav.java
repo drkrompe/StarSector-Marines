@@ -45,6 +45,11 @@ final class MarineOpsPageNav {
 
     enum Page {
         HQ(null, "hq"),
+        /**
+         * The contract board. Not a compartment: it is the work at the planet the fleet is at, so it
+         * is open exactly while the dialog was opened at one ({@link #missionsOpen}) and absent in space.
+         */
+        MISSIONS(null, "missions"),
         BARRACKS(RoomPurpose.BARRACKS, "barracks"),
         ARMORY(RoomPurpose.ARMORY, null),
         MECH_LAB(RoomPurpose.VEHICLE_BAY, "mechLab"),
@@ -101,6 +106,7 @@ final class MarineOpsPageNav {
         /** What a ship offering these rooms can say about this page. */
         Aboard availableAboard(Function<RoomPurpose, Aboard> aboard) {
             if (this == STORE) return storeOpen.getAsBoolean() ? Aboard.YES : Aboard.NO;
+            if (this == MISSIONS) return missionsOpen.getAsBoolean() ? Aboard.YES : Aboard.NO;
             return room == null ? Aboard.YES : aboard.apply(room);
         }
     }
@@ -116,6 +122,9 @@ final class MarineOpsPageNav {
      * with. Swappable so the shell can be exercised without a campaign.
      */
     static BooleanSupplier storeOpen = () -> CivilizedPort.docked() != null;
+
+    /** Whether this dialog has a planet whose work to show; its host says so when it opens. */
+    static BooleanSupplier missionsOpen = () -> true;
 
     private MarineOpsPageNav() {
     }
@@ -135,6 +144,7 @@ final class MarineOpsPageNav {
         if (aboard == null) throw new IllegalArgumentException("the ship's rooms are required");
         props.put("returnAction", required(returnAction, "returnAction"));
         put(props, Page.HQ, current, aboard, hqAction);
+        put(props, Page.MISSIONS, current, aboard, () -> { });
         put(props, Page.BARRACKS, current, aboard, barracksAction);
         // Legacy template properties; equipment is a workspace within Barracks.
         props.put("armoryAction", required(armoryAction, "armoryAction"));
@@ -146,9 +156,12 @@ final class MarineOpsPageNav {
         put(props, Page.SETTINGS, current, aboard, () -> { });
     }
 
-    /** Makes the settings key work; a screen with a context calls this after {@code put}. */
-    static void routeSettings(Map<String, Object> props, MarineOpsContext context) {
+    /** Makes the keys every page shares work; a screen with a context calls this after {@code put}. */
+    static void routeShared(Map<String, Object> props, MarineOpsContext context) {
         props.put("settingsAction", (Runnable) () -> context.goTo(ScreenId.SETTINGS));
+        props.put("missionsAction", (Runnable) () -> {
+            if (missionsOpen.getAsBoolean()) context.goTo(ScreenId.MISSION_SELECT);
+        });
     }
 
     /** Compatibility helper for focused fixtures without a store route. */

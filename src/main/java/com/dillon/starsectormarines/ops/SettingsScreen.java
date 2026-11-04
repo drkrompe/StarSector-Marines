@@ -73,7 +73,7 @@ public final class SettingsScreen implements Screen {
                 () -> context.openCompanyArmoryFrom(ScreenId.SETTINGS),
                 () -> context.goTo(ScreenId.MECH_LAB),
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
-        MarineOpsPageNav.routeSettings(props, context);
+        MarineOpsPageNav.routeShared(props, context);
         return props;
     }
 

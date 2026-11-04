@@ -115,7 +115,7 @@ public final class StoreScreen implements Screen {
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering,
                 // The page already open is not a dead button.
                 viewModel::refresh);
-        MarineOpsPageNav.routeSettings(props, context);
+        MarineOpsPageNav.routeShared(props, context);
         putFreeLicenses(props, Cheats.enabled(), Cheats.freeLicenses(), this::toggleFreeLicenses);
         props.put("takeAllAction", (Runnable) this::takeEverything);
         return props;

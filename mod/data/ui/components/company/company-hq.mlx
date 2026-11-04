@@ -1,4 +1,4 @@
-<template props="settingsAction,settingsClasses,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
+<template props="missionsAction,missionsClasses,settingsAction,settingsClasses,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
   <div id="company-hq-root" class="company-hq-root">
 
     <div id="company-hq-main" class="company-hq-main">
@@ -186,7 +186,7 @@
       </div>
     </div>
 
-    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
+    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
     <div id="aux-modal" class="{auxiliary.classes}">
       <div id="aux-space-above" class="aux-space" />
       <div id="aux-letter" class="aux-letter console-readout">

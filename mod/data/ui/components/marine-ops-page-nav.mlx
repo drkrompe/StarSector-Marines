@@ -1,4 +1,4 @@
-<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses,contextLabel">
+<template props="returnAction,hqAction,missionsAction,missionsClasses,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses,contextLabel">
   <div id="marine-ops-page-nav" class="">
     <div id="marine-ops-page-bar">
     <img id="marine-ops-page-holder" src="graphics/ui/console/page-bar.svg" />
@@ -12,6 +12,11 @@
         <div id="page-nav-hq-lamp" class="console-toggle-lamp" />
         <div id="page-nav-hq-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-hq-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavHq}</div>
+      </button>
+      <button id="page-nav-missions" class="{missionsClasses}" onclick="{missionsAction}">
+        <div id="page-nav-missions-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-missions-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <div id="page-nav-missions-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavMissions}</div>
       </button>
       <button id="page-nav-barracks" class="{barracksClasses}" onclick="{barracksAction}">
         <div id="page-nav-barracks-lamp" class="console-toggle-lamp" />
@@ -53,12 +58,12 @@
 </template>
 
 <style>
-  /* The mod's own bottom menu, in the screen's bottom left corner: eight slots (148x30 on
-     a 155 pitch, the first at 14,22 in the art) hold the eight routes, and a silver wedge
+  /* The mod's own bottom menu, in the screen's bottom left corner: nine slots (148x30 on
+     a 155 pitch, the first at 14,22 in the art) hold the nine routes, and a silver wedge
      rises 12 px above them at the left. Every page's root insets this bar by 12 px and clips
      nothing, so the offsets below reach the corner, and the bar's own row keeps the
      pages' content out from under the wedge. Past 100% UI scale, where everything is already
-     drawn larger, page-bar-compact.svg (121x20 on a 128 pitch) takes over. A ninth route means
+     drawn larger, page-bar-compact.svg (107x20 on a 114 pitch) takes over. A tenth route means
      redrawing both. Nothing here scales, so the art stays one to one. */
   #marine-ops-page-nav {
     flex-direction: row;
@@ -67,15 +72,15 @@
     border-width: 0px;
   }
 
-  #marine-ops-page-bar { width: 1246px; height: 45px; }
-  #marine-ops-page-holder { position: absolute; left: -12px; top: 0px; width: 1258px; height: 57px; pointer-events: none; }
-  #marine-ops-page-holder-compact { display: none; position: absolute; left: -12px; top: 0px; width: 1042px; height: 47px; pointer-events: none; }
+  #marine-ops-page-bar { width: 1401px; height: 45px; }
+  #marine-ops-page-holder { position: absolute; left: -12px; top: 0px; width: 1413px; height: 57px; pointer-events: none; }
+  #marine-ops-page-holder-compact { display: none; position: absolute; left: -12px; top: 0px; width: 1044px; height: 47px; pointer-events: none; }
   #marine-ops-page-routes {
     position: absolute;
     left: 2px;
     top: 22px;
     flex-direction: row;
-    width: 1233px;
+    width: 1388px;
     height: 30px;
     gap: 7px;
   }
@@ -142,9 +147,9 @@
   .console-toggle-lamp { display: none; }
   .doc-narrow #marine-ops-page-context { display: none; }
   .doc-narrow #marine-ops-page-nav { height: 35px; }
-  .doc-narrow #marine-ops-page-bar { width: 1030px; height: 35px; }
+  .doc-narrow #marine-ops-page-bar { width: 1032px; height: 35px; }
   .doc-narrow #marine-ops-page-holder { display: none; }
   .doc-narrow #marine-ops-page-holder-compact { display: flex; }
-  .doc-narrow #marine-ops-page-routes { width: 1017px; height: 20px; }
-  .doc-narrow #marine-ops-page-routes button { width: 113px; height: 20px; }
+  .doc-narrow #marine-ops-page-routes { width: 1019px; height: 20px; }
+  .doc-narrow #marine-ops-page-routes button { width: 99px; height: 20px; }
 </style>

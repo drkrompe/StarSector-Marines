@@ -74,6 +74,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     /** Over a context of the host's own, which {@code playBattle} keeps its routes inside. */
     MarineOpsPanelPlugin(MarineOpsContext ctx, Consumer<MarineOpsContext> seed) {
         this.ctx = ctx;
+        MarineOpsPageNav.missionsOpen = () -> ctx.planet != null;
         UiSpriteCache.shared().enter(uiImages);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());

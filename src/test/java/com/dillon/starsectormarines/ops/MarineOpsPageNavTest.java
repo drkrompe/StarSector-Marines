@@ -18,6 +18,20 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MarineOpsPageNavTest {
+    @Test void missionsIsAbsentInSpace() {
+        var before = MarineOpsPageNav.missionsOpen;
+        try {
+            MarineOpsPageNav.missionsOpen = () -> false;
+            assertEquals(MarineOpsPageNav.Aboard.NO,
+                    MarineOpsPageNav.Page.MISSIONS.availableAboard(MarineOpsPageNav.ANY_SHIP));
+            MarineOpsPageNav.missionsOpen = () -> true;
+            assertEquals(MarineOpsPageNav.Aboard.YES,
+                    MarineOpsPageNav.Page.MISSIONS.availableAboard(MarineOpsPageNav.ANY_SHIP));
+        } finally {
+            MarineOpsPageNav.missionsOpen = before;
+        }
+    }
+
     @Test void engineeringIsAlwaysReachableAndHighlightsItsOwnTabAtBothScales() throws Exception {
         for (int width : new int[]{1920, 1280}) {
             int[] visits = {0};

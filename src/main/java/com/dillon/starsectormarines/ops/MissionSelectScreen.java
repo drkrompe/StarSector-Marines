@@ -40,6 +40,7 @@ public final class MissionSelectScreen implements Screen {
     static final String ROOT_COMPONENT = "mission-select";
     static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/missions/mission-dialogue.mlx",
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/missions/mission-select.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -97,8 +98,18 @@ public final class MissionSelectScreen implements Screen {
         Map<String, Object> props = baseProps();
         props.put("locationLabel", locationLabel());
         props.put("planetImage", context != null ? context.planetTexture : null);
-        props.put("backAction", (Runnable) this::onBack);
-        props.put("armoryAction", (Runnable) this::onArmory);
+        if (context != null) {
+            MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MISSIONS,
+                    context::roomAboard,
+                    this::onBack,
+                    () -> context.goTo(ScreenId.COMPANY_HQ),
+                    () -> context.goTo(ScreenId.BARRACKS),
+                    () -> context.openCompanyArmoryFrom(ScreenId.MISSION_SELECT),
+                    () -> context.goTo(ScreenId.MECH_LAB),
+                    () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
+            MarineOpsPageNav.routeShared(props, context);
+        }
+        props.put("contextLabel", locationLabel());
         putCompanyNews(props, CompanyNotices.current(), () -> {
             var notices = CompanyNotices.current();
             if (context == null || notices.isEmpty()) return;
@@ -250,8 +261,9 @@ public final class MissionSelectScreen implements Screen {
         Runnable none = () -> { };
         props.put("locationLabel", "Jangala  ·  Corvus System");
         props.put("planetImage", null);
-        props.put("backAction", none);
-        props.put("armoryAction", none);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.ANY_SHIP,
+                none, none, none, none, none, none, none, none);
+        props.put("contextLabel", "Jangala");
         props.put("clientEmpty", "");
         props.put("clients", List.of(
                 new ClientRow("client-debug", "client-name-debug", "client-rep-debug",
@@ -710,10 +722,6 @@ public final class MissionSelectScreen implements Screen {
         context.goTo(ScreenId.POLITY_DOCTRINE);
     }
 
-    private void onArmory() {
-        if (context != null) context.openCompanyArmoryFrom(ScreenId.MISSION_SELECT);
-    }
-
     private void onBack() {
         if (dismissDialog != null) dismissDialog.run();
     }
@@ -721,14 +729,15 @@ public final class MissionSelectScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "mission-select-root", "mission-select-header", "mission-select-body",
-                "mission-client-panel", "mission-client-list", "mission-back",
-                "mission-armory", "mission-catalog-panel", "mission-list",
+                "mission-client-panel", "mission-client-list", "marine-ops-page-nav",
+                "page-nav-missions", "mission-catalog-panel", "mission-list",
                 "mission-detail-panel", "mission-detail-rows", "mission-brief",
                 "mission-collapse")) component.requireElement(id);
     }
 
     @Override public void advance(float dt) {
         if (markupInstance != null) markupInstance.flush();
+        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.MISSIONS, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
     }
     @Override public void render(float alphaMult) {

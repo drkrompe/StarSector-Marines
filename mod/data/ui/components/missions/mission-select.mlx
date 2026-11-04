@@ -1,4 +1,4 @@
-<template props="companyNewsClasses,companyNewsLabel,companyNewsAction,replayKeyClasses,replayToggleLabel,replayToggleAction,cheatsKeyClasses,cheatsLabel,cheatsAction,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="returnAction,hqAction,missionsAction,missionsClasses,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,settingsAction,shopAction,shopClasses,engineeringClasses,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,settingsClasses,contextLabel,companyNewsClasses,companyNewsLabel,companyNewsAction,replayKeyClasses,replayToggleLabel,replayToggleAction,cheatsKeyClasses,cheatsLabel,cheatsAction,detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailDialogue,detailDialogueStyle,detailFlavorStyle,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -35,18 +35,6 @@
           </button>
         </div>
         <div id="mission-client-empty" class="label tone-muted empty-copy">{clientEmpty}</div>
-        <div id="mission-client-footer" class="mission-client-footer console-command-rail">
-          <button id="mission-back" onclick="{backAction}">
-            <div id="mission-back-signal" class="console-command-signal" />
-            <div id="mission-back-legend" class="console-key-legend">{i18n.missionSelectBack}</div>
-            <img id="mission-back-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
-          </button>
-          <button id="mission-armory" onclick="{armoryAction}">
-            <div id="mission-armory-signal" class="console-command-signal" />
-            <div id="mission-armory-legend" class="console-key-legend">{i18n.missionSelectBarracks}</div>
-            <img id="mission-armory-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
-          </button>
-        </div>
       </div>
       <div id="mission-catalog-panel" class="panel mission-catalog-panel">
         <div id="mission-catalog-heading" class="catalog-heading surface-dark">
@@ -118,6 +106,7 @@
         </div>
       </div>
     </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" settingsAction="{settingsAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" settingsClasses="{settingsClasses}" contextLabel="{contextLabel}" />
   </div>
 </template>
 
@@ -147,8 +136,6 @@
   .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
   .client-name { min-height: 32px; white-space: normal; }
   .client-reputation { min-height: 30px; white-space: normal; }
-  .mission-client-footer { flex-direction: row; height: 32px; padding: 3px; gap: 4px; border-width: 2px; }
-  .mission-client-footer button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 4px; gap: 4px; border-width: 3px; text-align: center; font-family: heading; }
   .mission-catalog-panel { flex-direction: column; width: 37%; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .catalog-heading { flex-direction: column; height: 76px; padding: 8px; gap: 5px; border-width: 1px; }
   #mission-catalog-kicker { height: 20px; }
