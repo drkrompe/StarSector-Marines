@@ -60,8 +60,6 @@ class MissionMlxTest {
             // Ninety-odd squads: the whole ones stack into one tile, the short-handed keep their own.
             instance.requireElement("briefing-field-squad-stack");
             instance.requireElement("briefing-info-tf-1-squad-23");
-            assertEquals("graphics/portraits/portrait_mercenary01.png",
-                    instance.requireElement("captain-preview-icon").imageSource());
             instance.requireElement("mission-debug-controls");
             instance.requireElement("mission-debug-air-heading");
             instance.requireElement("mission-loadout-grid");
@@ -124,15 +122,10 @@ class MissionMlxTest {
             var speaker = instance.requireElement("mission-briefing-speaker");
             assertEquals(OpeningBroker.PORTRAIT, portrait.imageSource());
             assertEquals(OpeningBroker.NAME, instance.requireElement("mission-briefing-speaker-name").text());
-            assertEquals("graphics/portraits/portrait_mercenary01.png",
-                    instance.requireElement("captain-preview-icon").imageSource());
             assertEquals("mission-overview", speaker.parent().id());
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard()).layout(1920, 1080);
-            Rect overview = instance.requireElement("mission-overview").box().contentBox();
-            Rect commanders = instance.requireElement("mission-captain-block").box().borderBox();
-            assertTrue(commanders.bottom() <= overview.bottom(), "Portrait must leave the commander picker in view");
             Rect status = instance.requireElement("mission-narration-status").box().borderBox();
             assertTrue(status.bottom() <= speaker.box().contentBox().bottom(), "Playback label stays inside its panel");
             player.start(line);

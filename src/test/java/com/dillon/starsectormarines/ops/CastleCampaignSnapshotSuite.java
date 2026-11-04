@@ -60,8 +60,6 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
         props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
         props.put("sourceRows", List.of());
         props.put("sourceEmpty", "Wayline / contracted heavy lift");
-        props.put("captains", List.of(new BriefingViewModel.ChoiceRow("captain-morgan", "choice-row selected",
-                "Morgan Hale", "Lieutenant / 3 squad coordination", false, () -> {}, "graphics/portraits/morgan-hale.png")));
         props.put("employerRows", List.of(BriefingViewModel.info("heavy-lift", "Mech Support", "Contracted heavy carrier", "")));
         BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
         BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
