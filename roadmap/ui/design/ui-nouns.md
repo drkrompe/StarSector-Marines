@@ -124,7 +124,7 @@ them.
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built
   into the frame, with one route in each of its nine slots, each about the size of the base
   game's own (148x30). Past 100% UI scale, where everything is already drawn larger, a compact
-  holder (`page-bar-compact.svg`) takes over. A tenth route means redrawing both. Missions is one of the routes, the contract board, absent in space since the board is the work at a planet, and marked from other pages while a contact there has work the company may take; a dialog opened at a planet starts there, one opened from the map at HQ. A page's root does not clip, so the bar can reach that corner.
+  holder (`page-bar-compact.svg`) takes over. A tenth route means redrawing both. Missions is the first route, the contract board, greyed out in space and at a planet where no contact has work the company may take, and marked from other pages while one does; a dialog opens there when there is work, otherwise at HQ. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar, each setting a compact card in a grid. Each is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the
@@ -451,7 +451,7 @@ mod's screens read as part of it: a flat teal plate with no border or relief,
 `corner-cut` at two opposite corners (a page route at all four, to fit its slot), in the colours of the game's `buttonBgDark`
 and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
 both top corners and a filter is a hollow outline that fills gold when chosen, as
-the market's and intel screen's are. The game's credit sign is a white stencil, drawn in the gold of its own credit readout. `corner-cut` is painting only: layout and
+the market's and intel screen's are. The game's credit sign is a white stencil, drawn in the gold of its own credit readout, as is the figure beside it. `corner-cut` is painting only: layout and
 hit-testing keep the rectangle, and a cut box draws no gradient or bevel. A card is
 a button to the pointer but keeps its square frame and a dark fill with a teal line, but for Barracks' squad and commander boxes, cut at two opposite corners like a panel. Battle glass keeps its own
 buttons.
