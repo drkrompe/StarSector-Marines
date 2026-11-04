@@ -4,9 +4,6 @@
          navigation: the way out is through the choice. -->
     <div id="refit-work" class="refit-work">
       <div id="refit-hint" class="{lesson.hintClasses}">{lesson.squadHint}</div>
-      <div id="refit-squads" class="{lesson.squadsClasses}">
-        <button each="squad in lesson.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">{squad.label}</button>
-      </div>
       <!-- The choices on the left, as the Loadout screen's stores are; the squad they
            would fit on the right, in the same squad view the Loadout screen shows. -->
       <div id="refit-body" class="refit-body">
@@ -41,8 +38,6 @@
   .refit-root { flex-direction: column; padding: 12px; gap: 9px; overflow: hidden; }
   .refit-work { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; }
   .refit-hint { height: 18px; }
-  .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
-  .refit-squad { width: 180px; height: 26px; padding: 5px 4px; }
   .refit-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }
   /* Two compact cards high, and as wide as Castle's callout, which settles in the
      free space beneath them rather than over the squad. */

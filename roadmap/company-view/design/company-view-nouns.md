@@ -375,7 +375,7 @@ ordinary controls accept input. It leads with the free technology, shows the act
 MG-SUPP/AR-PULSE/ARM-TACH-2-RCN art, and offers one compact **Choose Free Technology**
 action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
-a company with one line squad has that squad selected automatically.
+the fitting goes to every line squad at home, so there is no squad to choose (owner).
 
 Accepting or deferring the handoff acknowledges this presented outcome. An unfinished
 lesson can be prompted on the next non-debug debrief; completion ends the reminders.
@@ -390,8 +390,8 @@ or an unfought mission's briefing (`MissionReturn`).
 Reward, fit, and navigation actions use compact buttons in action rows, never
 full-width acceptance bars. The two equipment choices remain comparison cards.
 
-The player selects an actual line squad, compares either path without learning it,
-then explicitly accepts one technology transfer. The review shows twelve clickable equipment squares in three fire-team columns of
+The player compares either path without learning it, shown on the first line squad at home,
+then explicitly accepts one technology transfer, which fits every line squad at home; a squad away on station keeps its kit. The review shows twelve clickable equipment squares in three fire-team columns of
 four billets, alongside current and proposed equipment. The grid uses the Barracks'
 current-equipment icons, with wounded and vacant slots identified. Selecting a
 square displays current and proposed weapon, armor and

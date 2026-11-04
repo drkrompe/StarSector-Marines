@@ -40,7 +40,6 @@ class FirstRefitModelTest {
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
         assertEquals(true, model.row().get().get("chooseDisabled"));
         assertEquals(2, ((List<?>) model.row().get().get("paths")).size());
-        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         assertEquals(true, model.row().get().get("chooseDisabled"));
         model.selectPath(Path.FORWARD_SCREEN);
         assertEquals(3, ((List<?>) model.inspection().get("teams")).size());
@@ -50,13 +49,30 @@ class FirstRefitModelTest {
         assertTrue(roster.firstRefit().complete());
     }
 
+    @Test void takingAPackageFitsEveryLineSquadAtHome() {
+        var roster = new MarineRoster();
+        var first = roster.createSquad(); roster.recruitToSquad(first.id(), 12);
+        var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
+        model.selectPath(Path.STEADY_LINE);
+        model.choose();
+        assertTrue(roster.firstRefit().complete());
+        var issued = FirstRefit.weapons(Path.STEADY_LINE);
+        for (var squad : List.of(first, second)) {
+            var members = roster.manningMemberIds(squad);
+            for (int i = 0; i < members.size(); i++)
+                assertEquals(issued.get(i).primaryId(), roster.soldierById(members.get(i)).primaryDef().id);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Test void inspectionTracksTheSelectedBilletAndPathWithoutIssuingEquipment() {
         var roster = new MarineRoster();
         var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
-        model.selectSquad(squad.id()); model.selectPath(Path.STEADY_LINE);
+        model.selectPath(Path.STEADY_LINE);
         var steady = FirstRefit.weapons(Path.STEADY_LINE).get(0);
         assertEquals(SpecSheets.weapon(steady.primaryDef(), steady.grade()), model.sheet(true, 0));
         model.selectPath(Path.FORWARD_SCREEN);
@@ -90,7 +106,7 @@ class FirstRefitModelTest {
         int[] left = {0};
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> left[0]++);
         String squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id();
-        model.selectSquad(squad); model.selectPath(Path.STEADY_LINE);
+        model.selectPath(Path.STEADY_LINE);
         assertEquals(0, left[0], "Comparing does not leave");
         model.choose();
         assertEquals(squad, roster.firstRefit().issuedSquadId());
@@ -102,7 +118,6 @@ class FirstRefitModelTest {
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         roster.firstRefit().claim(roster, Path.FORWARD_SCREEN);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
-        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         model.choose();
         assertTrue(roster.firstRefit().complete());
         assertEquals(Path.FORWARD_SCREEN, roster.firstRefit().chosenPath());
@@ -116,7 +131,6 @@ class FirstRefitModelTest {
             public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
         var model = new FirstRefitModel(new Reactor(), roster, resources, () -> { });
-        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         model.selectPath(Path.STEADY_LINE); model.choose();
         assertTrue(roster.firstRefit().complete());
     }

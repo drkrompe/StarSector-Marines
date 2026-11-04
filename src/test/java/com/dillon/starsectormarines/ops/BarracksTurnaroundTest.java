@@ -65,7 +65,6 @@ class BarracksTurnaroundTest {
         model.refresh();
         assertNotEquals("hidden", value(model, "equipmentClasses"));
         var refit = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
-        refit.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         refit.selectPath(FirstRefit.Path.STEADY_LINE); refit.choose();
         model.refresh();
         assertEquals("hidden", value(model, "equipmentClasses"));

@@ -123,4 +123,24 @@ public final class FirstRefit implements Serializable {
         if (result == SquadEquipmentResult.APPLIED) issuedSquadId = squadId;
         return result;
     }
+
+    /**
+     * The once-only fitting goes to every line squad at home (owner): it is an upgrade and happens once, so there is
+     * no squad to choose. A squad away on station keeps its kit. Done once any squad took it.
+     */
+    public SquadEquipmentResult issueToAll(MarineRoster roster, Path path, EquipmentIssueResources resources) {
+        if (!available(roster) || !claimed || path == null) return SquadEquipmentResult.INVALID_SQUAD;
+        if (!technologyKnown(roster, path)) return SquadEquipmentResult.UNKNOWN_CARD;
+        SquadEquipmentResult result = SquadEquipmentResult.STATIONED;
+        String first = null;
+        for (MarineSquad squad : roster.squads()) {
+            if (squad.reserve() || squad.stationed()) continue;
+            SquadEquipmentResult fitted = roster.applySquadEquipment(squad.id(), path.weapons, path.armor, resources);
+            if (fitted == SquadEquipmentResult.APPLIED && first == null) first = squad.id();
+            if (first == null) result = fitted;
+        }
+        if (first == null) return result;
+        issuedSquadId = first;
+        return SquadEquipmentResult.APPLIED;
+    }
 }

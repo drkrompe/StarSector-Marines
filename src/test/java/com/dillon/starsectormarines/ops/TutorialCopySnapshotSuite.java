@@ -73,7 +73,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
         var reactor = new Reactor();
         var model = new FirstRefitModel(reactor, roster, EquipmentIssueResources.UNLIMITED, NOOP);
         frames.add(suite.frame(context, reactor, model, "refit-squad.png", null));
-        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         frames.add(suite.frame(context, reactor, model, "refit-compare.png", "refit-path:STEADY_LINE"));
         frames.add(suite.frame(context, reactor, model, "refit-claim.png", null));
     }

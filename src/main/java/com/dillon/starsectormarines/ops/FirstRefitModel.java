@@ -47,8 +47,6 @@ final class FirstRefitModel {
     FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Runnable done) {
         this.roster = roster; this.resources = resources; this.done = done;
         row = reactor.signal(Map.of());
-        var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
-        if (squads.size() == 1) squadId = squads.get(0).id();
         path = roster.firstRefit().chosenPath();
         refresh();
     }
@@ -57,7 +55,7 @@ final class FirstRefitModel {
         String copy = path == null ? "lessonRefitSquad" : "lessonRefitClaim";
         return CampaignLessons.lesson(path == null ? 0 : 1,
                 "lessonRefitTitle", copy,
-                List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-comparison"),
+                List.of(path == null ? "refit-paths" : "refit-actions", "refit-paths", "refit-comparison"),
                 null, null, GUIDE_HEIGHT);
     }
 
@@ -69,7 +67,6 @@ final class FirstRefitModel {
     /** The shared squad view's projection over this lesson's preview. */
     @SuppressWarnings("unchecked")
     Map<String, Object> inspection() { return (Map<String, Object>) row.get().get("inspection"); }
-    void selectSquad(String id) { squadId = id; feedback = ""; refresh(); }
     /** The letter a choice goes by on its tab and on the learn button: A, then B. */
     static String optionLetter(Path value) {
         return value == Path.STEADY_LINE ? Strings.get("openingFirstRefitOptionA") : Strings.get("openingFirstRefitOptionB");
@@ -109,9 +106,9 @@ final class FirstRefitModel {
     }
 
     /**
-     * The player's one decision: taking a package learns it, fits the squad and ends the offer (owner). A squad
-     * that cannot take the fitting refuses first, so the free transfer is not spent on nothing. A save from when
-     * these were two steps may already hold the claim, and only needs the fitting.
+     * The player's one decision: taking a package learns it, fits every line squad and ends the offer (owner). With
+     * none at home it refuses first, so the free transfer is not spent on nothing. A save from when these were two
+     * steps may already hold the claim, and only needs the fitting.
      */
     void choose() {
         if (path == null || reviewed == null || roster.firstRefit().complete()) return;
@@ -136,7 +133,7 @@ final class FirstRefitModel {
                 || !live.billets().equals(reviewed.billets())) {
             feedback = LessonCopy.text("refitOrderChanged");
         } else {
-            SquadEquipmentResult result = roster.firstRefit().issue(roster, squadId, path, resources);
+            SquadEquipmentResult result = roster.firstRefit().issueToAll(roster, path, resources);
             feedback = result == SquadEquipmentResult.APPLIED ? "" : blocker(result);
         }
         refresh();
@@ -146,7 +143,8 @@ final class FirstRefitModel {
 
     void refresh() {
         boolean claimed = roster.firstRefit().claimed(), complete = roster.firstRefit().complete();
-        MarineSquad squad = roster.squadById(squadId);
+        MarineSquad squad = previewSquad();
+        squadId = squad == null ? null : squad.id();
         reviewed = path != null && squad != null
                 ? roster.firstRefit().preview(roster, squadId, path) : null;
         reviewedMembers = squad == null ? List.of() : List.copyOf(roster.manningMemberIds(squad));
@@ -154,18 +152,9 @@ final class FirstRefitModel {
         props.put("chooseDisabled", complete || path == null || reviewed == null || squad.stationed());
         props.put("chooseLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", optionLetter(path)));
         props.put("choose", (Runnable) this::choose);
-        // The free fitting goes to one line squad. With only one there is nothing to pick,
-        // so the picker and its hint step aside; with none, the hint says why.
-        long lineSquads = roster.squads().stream().filter(s -> !s.reserve()).count();
-        props.put("squadsClasses", lineSquads > 1 ? "refit-squads" : "refit-hidden");
-        props.put("hintClasses", lineSquads != 1 ? "refit-hint tone-muted" : "refit-hidden");
-        props.put("squads", roster.squads().stream().filter(s -> !s.reserve()).map(s -> Map.<String, Object>of(
-                "id", "refit-squad:" + s.id(), "label", Strings.join("separatorPath", s.id().equals(squadId) ? Strings.get("squadRefitSelectedTag") : null,
-                        s.name(), s.stationed() ? Strings.get("squadRefitStationedTag") : null),
-                "classes", "refit-squad spec-tab" + (s.id().equals(squadId) ? " refit-selected selected" : ""),
-                "select", (Runnable) () -> selectSquad(s.id()))).toList());
-        props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
-                ? Strings.get("openingFirstRefitNoLineSquadReturnToEquipmentTo") : LessonCopy.text("refitSquadHint"));
+        // The fitting goes to every line squad, so there is nothing to pick; with none, the hint says why.
+        props.put("hintClasses", squad == null ? "refit-hint tone-muted" : "refit-hidden");
+        props.put("squadHint", Strings.get("openingFirstRefitNoLineSquadReturnToEquipmentTo"));
         pathCards = List.of(Path.values()).stream().map(p -> FleetArmoryViewModel.weaponTile(
                 "refit-path:" + p.name(), new SquadWeaponDoctrine(p.weapons,
                 Strings.format("openingFirstRefitWayline", p.label(), (claimed ? FirstRefit.technologyKnown(roster, p) ? Strings.get("openingFirstRefitLearned") : Strings.get("openingFirstRefitFindSpecs") : "")),
@@ -210,6 +199,17 @@ final class FirstRefitModel {
                 : squad != null && squad.stationed() ? blocker(SquadEquipmentResult.STATIONED)
                 : LessonCopy.text("refitChooseTransfer"));
         row.set(props);
+    }
+
+    /** The squad the review shows: the first line squad at home, or the first away when none is. */
+    private MarineSquad previewSquad() {
+        MarineSquad away = null;
+        for (MarineSquad squad : roster.squads()) {
+            if (squad.reserve()) continue;
+            if (!squad.stationed()) return squad;
+            if (away == null) away = squad;
+        }
+        return away;
     }
 
     private static String blocker(SquadEquipmentResult result) {
