@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1042" height="47" viewBox="0 0 1042 47">
-  <path fill="#aab4b9" d="M0 0H49L73 12H1032A10 10 0 0 1 1042 22V47H0Z"/>
-  <path fill="none" stroke="#d5dcdf" d="M0 0.5H49L73 12.5"/>
-  <path fill="none" stroke="#66c4cc" d="M73 12.5H1032A9.5 9.5 0 0 1 1041.5 22V34"/>
+  <path fill="#aab4b9" d="M0 0H12L36 12H1032A10 10 0 0 1 1042 22V47H0Z"/>
+  <path fill="none" stroke="#d5dcdf" d="M0 0.5H12L36 12.5"/>
+  <path fill="none" stroke="#66c4cc" d="M36 12.5H1032A9.5 9.5 0 0 1 1041.5 22V34"/>
   <path fill="#59646a" d="M0 46H1042V47H0Z"/>
-  <path fill="#262e32" d="M77 16H1032A5 5 0 0 1 1037 20H69Z"/>
-  <path fill="#59646a" d="M12 6h2v3h-2ZM17 6h2v3h-2ZM22 6h2v3h-2ZM27 6h2v3h-2ZM32 6h2v3h-2ZM37 6h2v3h-2Z"/>
+  <path fill="#262e32" d="M40 16H1032A5 5 0 0 1 1037 20H32Z"/>
   <g transform="translate(0 12)">
     <path fill="#66c4cc" d="M17 9H132L136 13V27L132 31H17L13 27V13Z"/>
     <path fill="#05090c" d="M17 10H132L135 13V27L132 30H17L14 27V13Z"/>

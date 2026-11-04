@@ -2931,12 +2931,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * exists and is remembered so its death opens the whole footprint again. A
      * one-cell structure is left exactly as its placer made it: a stamped pad is
      * sealed before the sim exists, and a carrier-placed emplacement stands on
-     * open floor on purpose. Serial spawns only; the queued path is one-cell.
+     * open floor on purpose, unless its spec asks for the seal ({@link EntitySpec#sealsCell}).
+     * Serial spawns only; the queued path is one-cell.
      */
     private void sealMultiCellStructure(long id, EntitySpec spec) {
         if (spec.turretStructureId == null) return;
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
-        if (!structure.isMultiCell()) return;
+        if (!structure.isMultiCell() && !spec.sealsCell) return;
         StructureFootprint.seal(grid, structure, spec.cellX, spec.cellY);
         navigation.markNavigationTopologyDirty();
         turretDemolition.registerFootprint(id, structure);

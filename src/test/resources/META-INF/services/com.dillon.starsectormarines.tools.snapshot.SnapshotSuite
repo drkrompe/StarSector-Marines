@@ -399,3 +399,4 @@ com.dillon.starsectormarines.battle.tender.LocustFireBaseMockSuite
 com.dillon.starsectormarines.battle.weapon.WeaponReelSuite
 com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleStandsSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.RouteStallSnapshotSuite

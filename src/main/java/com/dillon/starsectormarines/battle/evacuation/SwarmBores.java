@@ -442,6 +442,15 @@ public final class SwarmBores {
                 .turretStructureId(structure.id);
     }
 
+    /**
+     * The spawn spec of a spore colony: a bore's body that also seals its cell, so routes go round it. Its body is
+     * immovable, and a carrier dragging a load home along a route through it never gets past, with the rest of the
+     * haul queueing behind.
+     */
+    public static EntitySpec colonySpec(String name, String structureId, int cellX, int cellY) {
+        return bodySpec(name, structureId, cellX, cellY).sealsCell();
+    }
+
     private SwarmBore tryOpen(BattleSimulation sim, int number, boolean mother, int siteX, int siteY) {
         int[] cell = clearGround(sim, siteX, siteY);
         if (cell == null) return null;
@@ -517,7 +526,7 @@ public final class SwarmBores {
     private static void standColony(BattleSimulation sim, SwarmBore bore, BoreTier grade, int x, int y) {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                 + " Spore Colony " + (bore.colonies().size() + 1);
-        bore.sprouted(sim.spawn(bodySpec(name, grade.sporeColonyStructure(), x, y)));
+        bore.sprouted(sim.spawn(colonySpec(name, grade.sporeColonyStructure(), x, y)));
     }
 
     private static boolean taken(BattleSimulation sim, SwarmBore bore, int[] site) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -58,6 +59,21 @@ class MultiCellStructureTest {
         assertFalse(StructureFootprint.canPlace(grid, battery, 10, 19), "footprint would leave the map");
         grid.setWalkable(11, 11, false);
         assertFalse(StructureFootprint.canPlace(grid, battery, 10, 10), "a corner cell is already taken");
+    }
+
+    @Test
+    void aSporeColonySealsItsCellSoRoutesGoRoundItAndABoreLeavesItsOpen() {
+        BattleSimulation sim = openArena(20, 20);
+        long colony = sim.spawn(SwarmBores.colonySpec("colony", "structure.spore-colony-bore", 10, 10));
+        sim.spawn(SwarmBores.bodySpec("bore", SwarmBores.BORE_STRUCTURE, 15, 15));
+        NavigationGrid grid = sim.getGrid();
+        assertFalse(grid.isWalkable(10, 10), "a route through its immovable body would never get past");
+        assertTrue(grid.isSeeThrough(10, 10), "the body, not the cell, intercepts fire");
+        assertTrue(grid.isWalkable(15, 15), "carriers route into a bore's mouth");
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.applyDamage(colony, 1_000_000f, 10.5f, 0f);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(grid.isWalkable(10, 10), "its death opens the cell again");
     }
 
     @Test
