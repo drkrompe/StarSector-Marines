@@ -109,7 +109,7 @@
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
             <button id="{squad.markId}" class="{squad.selectClasses}" disabled="{squad.disabled}" onclick="{squad.toggle}">
-              <canvas id="{squad.musterId}" class="formation-muster" width="260" height="78" />
+              <canvas id="{squad.musterId}" class="formation-muster" width="260" height="82" />
               <div id="{squad.cardsId}" class="card-faces">
                 <armory-card-chip chip="{squad.weaponCard}" />
                 <armory-card-chip chip="{squad.armorCard}" />
@@ -201,9 +201,9 @@
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 190px; gap: 6px; padding: 8px; border-width: 2px; border-color: #3a5f77; background-color: #0c1b23; }
+  .formation { flex-direction: column; width: 260px; height: 194px; gap: 6px; padding: 8px; border-width: 2px; border-color: #3a5f77; background-color: #0c1b23; }
   .formation.selected { border-color: #dfc588; background-color: #122935; }
-  .formation-select { flex-direction: column; width: 100%; height: 156px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #0c1b23; }
+  .formation-select { flex-direction: column; width: 100%; height: 160px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #0c1b23; }
   .formation-select:hover { background-color: #112732; }
   .formation.selected .formation-select { background-color: #122935; }
   .formation.stationed .formation-select { opacity: 1; }
@@ -218,7 +218,7 @@
   .fill-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
   .good { color: #a9b8c5; }
-  .formation-muster { width: 260px; height: 78px; pointer-events: none; }
+  .formation-muster { width: 260px; height: 82px; pointer-events: none; }
   .raise-tile { border-color: #2b4658; background-color: #081217; }
   .raise-tile:hover { border-color: #dfc588; background-color: #0c1b23; }
   .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }

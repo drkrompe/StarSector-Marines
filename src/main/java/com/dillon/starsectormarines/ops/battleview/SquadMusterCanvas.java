@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.Rect;
@@ -25,13 +26,17 @@ public final class SquadMusterCanvas implements CanvasProducer {
     public static final int SURFACE_HEIGHT = 96;
 
     private static final String[] TEAM_NAMES = {"ALPHA", "BRAVO", "CHARLIE"};
+    private static final String WIDEST_TEAM_NAME = "CHARLIE";
+    /** Room beside the longest name, so neighbouring teams' names never read as one. */
+    private static final float NAME_MARGIN = 6f;
+    private static final float NAMED_HEADER_HEIGHT = 18f;
     /** The standing figure's shoulder width, as a share of its place's height and, where that is the tighter, width. */
     private static final float SHOULDER_OF_HEIGHT = 1f;
     private static final float SHOULDER_OF_WIDTH = 0.72f;
 
     public record Palette(Color lost, Color medical, Color caption, Color panel, Color rule, Color medic) { }
     public static final Palette SHIPBOARD = new Palette(new Color(0xC8, 0x55, 0x4A),
-            new Color(0xE3, 0xBB, 0x71), new Color(0x8C, 0xAC, 0xBC), new Color(0x0C, 0x1B, 0x27),
+            new Color(0xE3, 0xBB, 0x71), Color.WHITE, new Color(0x0C, 0x1B, 0x27),
             new Color(0x24, 0x42, 0x54), new Color(0x73, 0xF2, 0x8C));
     private final Palette palette;
 
@@ -53,14 +58,14 @@ public final class SquadMusterCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         float teamWidth = teamWidth(width);
+        BitmapFont font = nameFont(width);
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             float x = team * (teamWidth + teamGap(width));
             context.fillRect(x, 0f, teamWidth, height, palette.panel());
             String name = TEAM_NAMES[team];
-            context.text(Fonts.ORBITRON_10, name,
-                    x + (teamWidth - Fonts.ORBITRON_10.measureWidth(name)) * 0.5f,
-                    1f, palette.caption());
-            context.line(x + 5f, 13f, x + teamWidth - 5f, 13f, palette.rule(), 1f);
+            context.text(font, name, x + (teamWidth - font.measureWidth(name)) * 0.5f, 1f, palette.caption());
+            float rule = headerHeight(width) - 1f;
+            context.line(x + 5f, rule, x + teamWidth - 5f, rule, palette.rule(), 1f);
         }
         for (SquadMuster.Billet billet : projection.billets()) {
             drawBillet(context, billet, billetBounds(billet.index(), width, height));
@@ -77,9 +82,21 @@ public final class SquadMusterCanvas implements CanvasProducer {
         int teamBillet = index % MarineSquad.TEAM_SIZE;
         float teamWidth = teamWidth(width);
         float cellWidth = teamWidth / 2f;
-        float cellHeight = Math.max(0f, height - 14f) / 2f;
+        float header = headerHeight(width);
+        float cellHeight = Math.max(0f, height - header) / 2f;
         return new Rect(team * (teamWidth + teamGap(width)) + (teamBillet % 2) * cellWidth,
-                14f + (teamBillet / 2) * cellHeight, cellWidth, cellHeight);
+                header + (teamBillet / 2) * cellHeight, cellWidth, cellHeight);
+    }
+
+    /** The readable face where the longest name fits a team's width; a small muster keeps the narrow one. */
+    private static BitmapFont nameFont(float width) {
+        return Fonts.INSIGNIA_15_AA.measureWidth(WIDEST_TEAM_NAME) + NAME_MARGIN <= teamWidth(width)
+                ? Fonts.INSIGNIA_15_AA : Fonts.ORBITRON_10;
+    }
+
+    /** The names and the rule under them; the same face on every surface of a width. */
+    private static float headerHeight(float width) {
+        return nameFont(width) == Fonts.ORBITRON_10 ? 14f : NAMED_HEADER_HEIGHT;
     }
 
     private void drawBillet(CanvasContext context, SquadMuster.Billet billet, Rect slot) {
