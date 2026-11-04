@@ -117,15 +117,12 @@ final class BriefingViewModel {
         props.put("missionFlavor", late
                 ? "Commit a campaign army across three active drop zones. Six shuttles cycle squads into contested lanes until the enemy front collapses."
                 : "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
-        props.put("missionRows", List.of(
-                info("presence", "Field presence", late ? "Unrestricted" : "1 active squad / reserves off-map", ""),
-                info("opposition", "Expected opposition", late ? "Veteran core / elites probable" : "Regular core / veterans possible", "")));
         putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
         props.put("deploymentStatus", "Ready to deploy");
         props.put("deploymentStatusClasses", "label tone-muted");
         props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
-        props.put("rewardTerms", "Payable on successful completion");
+        props.put("rewardTerms", "");
         putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
@@ -321,7 +318,7 @@ final class BriefingViewModel {
         int salvage = mission.contractSalvageNegotiated & 0xff;
         props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
                 ? Strings.format("briefingVmSalvageTerms", salvage)
-                : Strings.get(payment > 0 ? "briefingVmPayableOnSuccess" : "briefingVmNoCashReward"));
+                : payment > 0 ? "" : Strings.get("briefingVmNoCashReward"));
     }
 
     static void putSurvey(Map<String, Object> props, BriefingSurvey map, String pending) {
@@ -502,7 +499,7 @@ final class BriefingViewModel {
         // The count carries the readiness tone the summary line used to: danger when the commitment cannot launch.
         props.put("forceSelectedClasses", "label heading "
                 + (String.valueOf(props.get("personnelClasses")).contains("tone-danger") ? "tone-danger" : "tone-edge"));
-        for (String key : List.of("powerEmpty", "sourceEmpty")) {
+        for (String key : List.of("rewardTerms", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
                     ? "height: 0px; padding: 0px; overflow: hidden"

@@ -39,7 +39,6 @@ import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
-import com.dillon.starsectormarines.ops.detachment.HostileShipIntel;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
@@ -517,7 +516,6 @@ public class BriefingScreen implements Screen {
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         MissionDialogue.put(props, "mission", mission);
-        props.put("missionRows", retainedMissionRows());
         BriefingViewModel.putReward(props, mission);
         putFactionIdentities(props, mission);
         PreparedSurvey preparedSurvey = survey.peek();
@@ -643,13 +641,6 @@ public class BriefingScreen implements Screen {
         debugDrawerExpanded = !debugDrawerExpanded;
         rebuild();
         document.requestFocus(markupInstance.requireElement("mission-debug-toggle"), keyboardFocus);
-    }
-
-    private List<BriefingViewModel.InfoRow> retainedMissionRows() {
-        String hostileShip = surveyPlan == null ? null
-                : HostileShipIntel.line(surveyPlan.hostileShip(), Strings::get);
-        return hostileShip == null ? List.of()
-                : List.of(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedTermActions(Mission mission) {
@@ -1239,7 +1230,7 @@ public class BriefingScreen implements Screen {
     static void requireRetainedElements(MarkupInstance component) {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
-                "mission-briefing-body", "mission-overview", "mission-info-rows",
+                "mission-briefing-body", "mission-overview",
                 "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-readout", "mission-assign",

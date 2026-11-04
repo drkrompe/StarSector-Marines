@@ -315,8 +315,7 @@ fleets. No free eligible hull means no hostile ship, whatever the defence level.
 
 **Defence gate kept.** `defenseLevel >= 4` still decides whether the world can call for a ship at all. A
 fleet in the system is the means; the defended world is the command that calls it, and without the gate
-every system patrol's cruiser would answer every battle in its system. Below the gate nothing is searched
-and the briefing says nothing.
+every system patrol's cruiser would answer every battle in its system. Below the gate nothing is searched.
 
 **Thin difference.** `HostileShipSelection.resolve(declared, campaign, profile, fleets)`: a declared
 source wins and nothing is searched; a debug, scenario or employer-scripted mission (`MissionSource.isDebug`
@@ -325,15 +324,12 @@ the observer, the call) is identical. The briefing's hostile debug pick still re
 No mission authors a declaration yet (a `Mission` field was avoided on purpose: missions are persisted);
 `hostileShipFor` takes it as a parameter and is the seam a scripted mission will use.
 
-**Briefing.** A "Hostile ship" row in the mission rows (`HostileShipIntel`, strings in `strings.json`):
-"<ship>, <hull>, with the <fleet> - expect it over the battle.", or "<ship>, <hull>, with the <fleet>, is
-<engaged in battle | withdrawing | fleeing | committed elsewhere>; it will not answer this battle.", or "No
-hostile capital in the system." The fleet is read when the briefing captures its scenario and the launch
-consumes that capture, so the line is exactly what the battle is given; leaving the briefing and returning
-re-reads the system.
+**Briefing.** The briefing does not name the ship (owner). The fleet is read when the briefing captures its
+scenario and the launch consumes that capture, so what the battle is given is what stood when the briefing
+opened; leaving the briefing and returning re-reads the system.
 
 **Evidence.** `HostileShipSelectionTest` (largest picked, weight tie-break, busy passed over, held reports
-and reasons, absent, tender excluded, defence gate, declaration, status classification), `HostileShipIntelTest`,
+and reasons, absent, tender excluded, defence gate, declaration, status classification),
 `HostileShipSupportTest`, and the `hostile-ship-support` scene, which now takes its ship through the
 selection from a fake free fleet.
 

@@ -563,8 +563,9 @@ another officer's image. Acting-NCO cards remain valid independent groups, and
 an explicitly omitted operation officer remains omitted across screen rebuilds.
 Cards visibly distinguish the operation commander, sub-commanders and acting
 NCOs. A brief always-visible explanation names Conquest advance, regrouping and
-objective coordination. The briefing's left column carries the speaker, the factions and the payment (owner),
-with no commander picker, Requires, Field presence, Ship or Employer Provides: for now
+objective coordination. The briefing's left column carries the speaker and the factions (owner), with no
+commander picker, Requires, Field presence, Ship, Hostile ship or Employer Provides; a
+payment line shows only when its terms are unusual (salvage, freight, no cash). For now
 the company's one active officer leads every operation. Expected opposition and enemy
 air are read on hovering the risk skulls.
 Essential role and behavior meaning never relies
