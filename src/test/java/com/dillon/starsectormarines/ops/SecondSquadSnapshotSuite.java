@@ -133,7 +133,8 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             sabine.train(OfficerSpecialty.TACTICAL_COVER);
             roster.assignCaptainToSquads(null, model.selected());
             model.resumeGuide(); model.toggle(first.id()); markup.flush(); doc.advance(0f);
-            var guide = BarracksGuideCallout.bind(doc, markup, model, noop);
+            var guide = PreparationGuide.callouts(doc, model::guideCallout, noop,
+                    loader(context, "data/ui/components/company/preparation-guide.mlx"));
             guide.update();
             frames.add(frame(renderer, doc, "07-first-command-guide.png"));
             click(doc, markup, model.guideTargetId()); guide.update();

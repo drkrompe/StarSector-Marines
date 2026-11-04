@@ -376,12 +376,13 @@ opening does not authorize unrelated controls that happen to lie inside its boun
 Scrolling from an allowed control may move its enclosing pane; darkened areas
 consume input, and pointer events do not bubble into unrelated ancestor actions.
 Castle's dialogue controls remain available. Escape (including from a search field)
-or Dismiss immediately removes the restriction; Company Guide resumes it.
+or Skip immediately removes the restriction; Company Guide resumes it.
 Successful preparation orders advance the guide. Next skips an unnecessary lesson
 without issuing an order. Guidance never owns a gameplay transition or requires audio.
 Mission preparation navigation preserves the existing salvage settlement gate.
 
-Interactive tutorials use this spotlight and callout treatment. Whenever a character is talking, show
+Interactive tutorials use this spotlight and the one callout, `PreparationGuide`, whose
+props decide which lines and buttons show. Whenever a character is talking, show
 their portrait with their name and readable dialogue to draw attention to the
 speaker; audio alone is not the character presentation. This convention applies
 to future tutorial and conversation surfaces as well as existing story subtitles.

@@ -1035,7 +1035,7 @@ scrolling stays available for the relevant pane. Openings track the live layout,
 and dismissal immediately restores the full screen. Successful selection and preparation orders advance
 the lesson; Next skips a lesson without spending resources. Advice includes current
 selection and shortfalls, asks for no unnecessary spending or fake training casualty,
-and keeps WIA in their billets. Dismiss or Escape closes it. Dismissal is saved
+and keeps WIA in their billets. Skip or Escape closes it. Dismissal is saved
 with the company; older saves default to an available introduction. Text is complete
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
@@ -1400,8 +1400,8 @@ strength and losses; operation command without an element uses the whole force.
 
 The Barracks portraits open officer dossiers: assigned squads, status, command
 capacity, rank progress, recorded operations, existing traits, specialty choices
-and the latest twenty commendations. VIEW FORMATIONS returns to that command's
-filtered squad list. One permanent training choice is available on appointment
+and the latest twenty commendations. All Formations on the rail returns to the
+squad board. One permanent training choice is available on appointment
 and one per promotion, including cadre-earned promotions. Existing officers
 receive their current rank's equivalent budget without invented service history.
 Specialties are **one vertical tree**. Its root is the officer's training budget;
@@ -1986,6 +1986,11 @@ not become their authority or introduce a second clock lifecycle.
 next unfinished handoff; the First Refit hosts the first issue and Barracks the founding,
 and Mech Lab reselects the Hound when reopening an unfinished fitting exercise.
 The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
+`PreparationGuide` is the game's one tutorial callout: its `Callout` props say which
+lines and buttons show (portrait, speaker, title, progress, copy, optional hint,
+corner set-aside, actions). Lessons, the Barracks walkthrough and the founding
+induction all render through it, and a button shows only where pressing it does
+something: the induction's Ready appears on its READY step alone.
 Return/navigation remains available for resupply; leaving never completes work.
 Barracks suspends its general management advice while campaign guidance is
 present, preserving the required founding induction's precedence.

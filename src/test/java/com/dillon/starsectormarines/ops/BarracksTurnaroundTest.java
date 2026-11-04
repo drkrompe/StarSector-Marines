@@ -100,8 +100,8 @@ class BarracksTurnaroundTest {
             model.reinforceSelected();
             assertEquals(12, roster.readyCount(recipient));
             assertEquals("page-nav-return", model.guideTargetId(), "Replacements need no separate issue order");
-            action(model, "guidePrevious");
-            action(model, "guideNext");
+            model.guidePrevious();
+            model.guideNext();
             assertEquals(12, roster.readyCount(recipient), "Manual lesson navigation never performs orders");
         } finally { CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }
@@ -111,9 +111,9 @@ class BarracksTurnaroundTest {
         try {
             var roster = new MarineRoster();
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
-            assertNotEquals("guide-callout hidden", value(model, "guideClasses"));
-            action(model, "guideDismiss");
-            assertEquals("guide-callout hidden", value(model, "guideClasses"));
+            assertEquals(model.guideCallout().corner().label(), Strings.get("lessonSkip"), "the common corner set-aside");
+            model.guideCallout().corner().action().run();
+            assertNull(model.guideCallout());
             var bytes = new ByteArrayOutputStream();
             try (var output = new ObjectOutputStream(bytes)) { output.writeObject(roster); }
             MarineRoster loaded;
@@ -122,11 +122,11 @@ class BarracksTurnaroundTest {
             }
             assertTrue(loaded.managementGuideDismissed());
             var restored = new BarracksViewModel(new Reactor(), loaded, () -> 0d).command();
-            assertEquals("guide-callout hidden", value(restored, "guideClasses"));
+            assertNull(restored.guideCallout());
             action(restored, "guideHelp");
-            assertNotEquals("guide-callout hidden", value(restored, "guideClasses"));
-            action(restored, "guideNext");
-            assertTrue(value(restored, "guideText").toString().contains("wounded"));
+            assertNull(restored.guideCallout().back(), "the first line has nothing to go back to");
+            restored.guideNext();
+            assertTrue(restored.guideCallout().copy().contains("wounded"));
             assertEquals(0, loaded.lineReadySoldiers().size());
         } finally { CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }

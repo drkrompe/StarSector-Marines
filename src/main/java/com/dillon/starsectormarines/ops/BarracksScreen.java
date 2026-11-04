@@ -48,8 +48,7 @@ public final class BarracksScreen implements Screen {
     private BarracksViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
-    private BarracksGuideCallout guide;
-    private PreparationGuide campaignGuide;
+    private PreparationGuide guide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private SpecSheetBinder specSheets;
@@ -97,7 +96,6 @@ public final class BarracksScreen implements Screen {
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         viewModel.command().campaignGuidance(campaignLesson() != null);
         guide.update();
-        campaignGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -106,13 +104,14 @@ public final class BarracksScreen implements Screen {
         UiDocument built;
         SpecSheetBinder candidateSheets;
         BarracksCardBindings candidateCards;
-        BarracksGuideCallout candidateGuide;
+        PreparationGuide candidateGuide;
         try {
             requireWiredElements(candidate);
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
-            candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), this::close);
+            // Before the spec sheets, so a hover note paints over the callout rather than under it.
+            candidateGuide = PreparationGuide.installCallouts(built, this::callout, this::close);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
             candidateSheets.bindLive(candidate.requireElement("barracks-recruit-stock"), viewModel.command()::recruitSheet);
             candidateSheets.bindLive(candidate.requireElement("barracks-fill-selected"), viewModel.command()::fillSelectedSheet);
@@ -134,16 +133,15 @@ public final class BarracksScreen implements Screen {
         guide = candidateGuide;
         built.keepScrollFrom(document);
         document = built;
-        campaignGuide = PreparationGuide.install(built, this::campaignLesson, this::close);
-        campaignGuide.fallbackInput(guide::inputRegions);
-        built.onCancel(() -> {
-            if (campaignGuide.visible()) return;
-            if (viewModel.command().guideVisible()) viewModel.command().dismissGuide();
-            else close();
-        });
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
+    }
+
+    /** A campaign lesson suspends the walkthrough; neither exists while the required induction runs. */
+    private PreparationGuide.Callout callout() {
+        PreparationGuide.Lesson lesson = campaignLesson();
+        return lesson != null ? lesson.callout() : viewModel.command().guideCallout();
     }
 
     private PreparationGuide.Lesson campaignLesson() {
@@ -202,7 +200,6 @@ public final class BarracksScreen implements Screen {
         if (document != null) document.advance(dt);
         viewModel.command().campaignGuidance(campaignLesson() != null);
         if (guide != null) guide.update();
-        if (campaignGuide != null) campaignGuide.update();
         if (specSheets != null) specSheets.update();
     }
 

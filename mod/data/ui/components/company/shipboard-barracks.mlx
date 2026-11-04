@@ -13,7 +13,6 @@
 
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
-      <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">{i18n.openingUiShipboardBarracksOfficerDossier}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
       <button id="barracks-missions" class="{command.missionClasses}" style="{command.missionStyle}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
@@ -59,7 +58,6 @@
             <div id="officer-xp" class="xp-track officer-xp"><div id="officer-xp-fill" class="xp-fill" style="{command.officerXpStyle}" /></div>
             <div id="officer-service" class="label officer-line">{command.officerService}</div>
           </div>
-          <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">{i18n.openingUiShipboardBarracksViewFormations}</button>
         </div>
         <div id="officer-dossier-scroll" class="officer-scroll">
           <div id="officer-biography" class="label wrap officer-copy">{command.officerBiography}</div>
@@ -163,23 +161,6 @@
     <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
     <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
   </div>
-  <div id="guide-spotlight" class="guide-spotlight"></div>
-  <div id="guide-target" class="guide-target"></div>
-  <div id="barracks-guide" class="{command.guideClasses}">
-      <div id="guide-heading" class="label heading warm guide-heading">{command.guideTitle}</div>
-      <div id="guide-dialogue" class="guide-dialogue">
-        <img id="guide-portrait" class="guide-portrait" src="{command.guidePortrait}" />
-        <div id="guide-text" class="label wrap guide-text">{command.guideText}</div>
-      </div>
-      <div id="guide-status" class="label wrap warm">{command.guideStatus}</div>
-      <div id="guide-controls" class="board-tools">
-        <img id="guide-progress" class="{command.guideProgressClasses}" src="{command.guideProgressImage}" />
-        <button id="guide-previous" class="{command.guidePreviousClasses}" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">{i18n.openingUiShipboardBarracksPrevious}</button>
-        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">{command.guideNextLabel}</button>
-        <button id="guide-dismiss" class="{command.guideDismissClasses}" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">{command.guideDismissLabel}</button>
-        <div id="guide-close-hint" class="label muted guide-close-hint">{command.guideCloseHint}</div>
-      </div>
-  </div>
   </div>
 </template>
 
@@ -277,19 +258,6 @@
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .barracks-surface { flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { height: 0px; flex-grow: 1; }
-  .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #0d1d25; }
-  .guide-callout.hidden { display: none; }
-  .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
-  .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
-  .guide-heading { height: 44px; white-space: normal; overflow: scroll; }
-  .guide-dialogue { flex-direction: row; height: 116px; gap: 12px; }
-  .guide-portrait { width: 96px; height: 96px; border-width: 2px; border-color: #5993b8; pointer-events: none; }
-  .guide-text { width: 0px; flex-grow: 1; height: 116px; overflow: scroll; }
-  #guide-status { height: 42px; overflow: scroll; }
-  #guide-controls { height: 40px; }
-  #guide-controls .tool-button { width: 112px; min-height: 40px; white-space: normal; }
-  .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
-  .guide-close-hint { width: 0px; flex-grow: 1; min-height: 30px; white-space: normal; font-family: compact; }
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
   .mission-call { width: 190px; }
   .flow-button { white-space: normal; width: 190px; min-height: 38px; font-family: heading; text-align: center; }
@@ -329,7 +297,6 @@
   .specialty-node { width: 68px; height: 68px; padding: 2px; }
   .specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
   .specialty-link { width: 8px; height: 22px; }
-  .guide-progress { width: 98px; height: 24px; }
   /* Short of width the columns all stay, and the bars speak for their words. */
   .hidden { display: none; }
 </style>
