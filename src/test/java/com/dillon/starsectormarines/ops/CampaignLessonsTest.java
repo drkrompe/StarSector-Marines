@@ -46,8 +46,8 @@ class CampaignLessonsTest {
             roster = restore(roster);
             assertEquals(CampaignLessons.Step.REFIT, CampaignLessons.next(roster), "Learning is not issuing");
             assertFalse(roster.firstRefit().claim(roster, FirstRefit.Path.STEADY_LINE));
-            var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> {});
-            model.selectSquad(squad.id()); model.issue();
+            var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> {});
+            model.selectSquad(squad.id()); model.choose();
             assertTrue(roster.firstRefit().complete());
             assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
             roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);

@@ -1,7 +1,7 @@
-<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,contextLabel">
+<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses,contextLabel">
   <div id="marine-ops-page-nav" class="">
     <div id="marine-ops-page-bar">
-    <img id="marine-ops-page-holder" src="graphics/ui/tripad_bot_left_button_widget2.png" />
+    <img id="marine-ops-page-holder" src="graphics/ui/console/page-bar.svg" />
     <div id="marine-ops-page-routes">
       <button id="page-nav-return" onclick="{returnAction}">
         <div id="page-nav-return-lamp" class="console-toggle-lamp" />
@@ -37,6 +37,11 @@
         <div id="page-nav-shop-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-shop-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavStore}</div>
       </button>
+      <button id="page-nav-settings" class="{settingsClasses}" onclick="{settingsAction}">
+        <div id="page-nav-settings-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-settings-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <div id="page-nav-settings-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavSettings}</div>
+      </button>
     </div>
     </div>
     <div id="marine-ops-page-context" class="label tone-edge">{contextLabel}</div>
@@ -44,9 +49,12 @@
 </template>
 
 <style>
-  /* The base game's bottom menu: its own holder image, whose seven slots (121x20 on a
-     128 pitch, the first at 14,10) hold the seven routes. Nothing here scales, so the
-     image stays one to one. */
+  /* The mod's own bottom menu, in the screen's bottom left corner: eight slots (121x20 on
+     a 128 pitch, the first at 14,22 in the art) hold the eight routes, and a silver wedge
+     rises 12 px above them at the left. Every page's root insets this bar by 12 px and clips
+     nothing, so the offsets below reach the corner, and the bar's own row keeps the
+     pages' content out from under the wedge. A ninth route means redrawing
+     page-bar.svg. Nothing here scales, so the art stays one to one. */
   #marine-ops-page-nav {
     flex-direction: row;
     align-items: center;
@@ -54,14 +62,14 @@
     border-width: 0px;
   }
 
-  #marine-ops-page-bar { width: 914px; height: 35px; }
-  #marine-ops-page-holder { position: absolute; left: 0px; top: 0px; width: 914px; height: 35px; pointer-events: none; }
+  #marine-ops-page-bar { width: 1030px; height: 35px; }
+  #marine-ops-page-holder { position: absolute; left: -12px; top: 0px; width: 1042px; height: 47px; pointer-events: none; }
   #marine-ops-page-routes {
     position: absolute;
-    left: 14px;
-    top: 10px;
+    left: 2px;
+    top: 22px;
     flex-direction: row;
-    width: 889px;
+    width: 1017px;
     height: 20px;
     gap: 7px;
   }
@@ -75,10 +83,10 @@
     border-width: 0px;
     overflow: hidden;
     text-align: center;
-    corner-cut: 3px;
   }
 
   #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }
+
 
   /* A room the ship does not have. The button stays so the player can see the
      berth the hull lacks, rather than wondering where a page went. */

@@ -103,10 +103,7 @@ public final class FleetArmoryScreen implements Screen {
         } else {
             viewModel.refresh();
         }
-        firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), id -> {
-            viewModel.selectSquad(id);
-            showFireTeams();
-        });
+        firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), this::returnFromWorkspace);
         projectedCampaignHour = campaignHour();
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
@@ -262,11 +259,12 @@ public final class FleetArmoryScreen implements Screen {
                 () -> context.goTo(ScreenId.MECH_LAB),
                 () -> context.goTo(ScreenId.BOAT_DECK),
                 context::openEngineering, context::openStore);
+        MarineOpsPageNav.routeSettings(props, context);
     }
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRST_REFIT
-                ? List.of("first-refit-root", "refit-claim", "refit-issue", "loadout-billets")
+                ? List.of("first-refit-root", "refit-choose", "loadout-billets")
                 : List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
@@ -308,11 +306,10 @@ public final class FleetArmoryScreen implements Screen {
         if (viewport != null) installDocument(false);
     }
 
-    /** First refit is offered before any loadout; leaving it opens the squad it was for. */
+    /** The reward is its own stop: once chosen, the player goes back to the company, not on into a loadout (owner). */
     private void leaveFirstRefit() {
         if (firstRefit != null && !firstRefit.leavable()) return;
-        if (viewModel.selectedSquadId() != null) showFireTeams();
-        else returnFromWorkspace();
+        returnFromWorkspace();
     }
 
     private void showFireTeams() {

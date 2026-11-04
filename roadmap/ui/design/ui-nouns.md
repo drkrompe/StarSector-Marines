@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
+Updated: 2026-11-04 — the page bar is the mod's own art with eight routes, the last reaching a Settings page. Earlier, 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
 
 Earlier 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
@@ -113,12 +113,17 @@ them.
   Boat Deck are current
   rooms; the retained document remains the implementation surface underneath that
   spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
-  from Equipment or a squad inspection rather than its own top-level tab. Equipment
+  from a squad card's Loadout rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
-  the base game's own bottom-menu holder image (`tripad_bot_left_button_widget2.png`,
-  read from the game, never copied into the mod), one to one, with one route in each
-  of its seven slots. Eight routes would need a new holder.
+  the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
+  corner, its top right rounded and a silver wedge rising at its top left so it reads as built
+  into the frame, with one route in each of its eight slots. A ninth route means
+  redrawing it. A page's root does not clip, so the bar can reach that corner.
+- The **Settings page** is where a player preference goes when it belongs to no one
+  room, reached from the page bar. Each setting is saved with the game and starts from
+  its default in a new one. A key that only makes sense on its own page, such as the
+  store's or the mission board's, stays there.
 - A **page route** is one button on the shell's persistent navigation, and a
   route that names a compartment is answered by the ship rather than by the page:
   a hull that has no such place shows the button greyed and unreachable, and one
@@ -429,7 +434,7 @@ cut corners, and its text is the game's white-grey, pale blue and gold. The hous
 language below survives only in the battle and developer sheets, and the console's
 SVG plates take the same blues. A button takes the base game's look so the
 mod's screens read as part of it: a flat teal plate with no border or relief,
-`corner-cut` at two opposite corners, in the colours of the game's `buttonBgDark`
+`corner-cut` at two opposite corners (a page route at all four, to fit its slot), in the colours of the game's `buttonBgDark`
 and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
 both top corners and a filter is a hollow outline that fills gold when chosen, as
 the market's and intel screen's are. `corner-cut` is painting only: layout and

@@ -12,6 +12,9 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.FirstRefit;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -52,6 +55,20 @@ class BarracksTurnaroundTest {
         model.refresh();
         assertEquals(Strings.get("openingBarracksCommandEquipment"), value(model, "equipmentLabel"));
         assertFalse(roster.firstRefit().complete());
+    }
+
+    @Test void equipmentEntryStandsOnlyWhileTheFirstRefitOfferDoes() {
+        MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
+        assertEquals("hidden", value(model, "equipmentClasses"));
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        model.refresh();
+        assertNotEquals("hidden", value(model, "equipmentClasses"));
+        var refit = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
+        refit.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
+        refit.selectPath(FirstRefit.Path.STEADY_LINE); refit.choose();
+        model.refresh();
+        assertEquals("hidden", value(model, "equipmentClasses"));
     }
 
     @Test void anEquipmentVisitPreservesSelection() {

@@ -27,13 +27,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /** Two curated choices over the ordinary squad equipment transaction. */
 final class FirstRefitModel {
     private final MarineRoster roster;
     private final EquipmentIssueResources resources;
-    private final Consumer<String> inspect;
+    private final Runnable done;
     private final MutableSignal<Map<String, Object>> row;
     private String squadId;
     private Path path;
@@ -45,8 +44,8 @@ final class FirstRefitModel {
     private FireTeamBillet currentKit;
     private FireTeamBillet proposedKit;
 
-    FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Consumer<String> inspect) {
-        this.roster = roster; this.resources = resources; this.inspect = inspect;
+    FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Runnable done) {
+        this.roster = roster; this.resources = resources; this.done = done;
         row = reactor.signal(Map.of());
         var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
         if (squads.size() == 1) squadId = squads.get(0).id();
@@ -55,9 +54,8 @@ final class FirstRefitModel {
     }
     PreparationGuide.Lesson guide() {
         if (!FirstRefit.available(roster)) return null;
-        String copy = squadId == null ? "lessonRefitSquad" : path == null ? "lessonRefitCompare"
-                : !roster.firstRefit().claimed() ? "lessonRefitClaim" : "lessonRefitIssue";
-        return CampaignLessons.lesson(roster.firstRefit().claimed() ? 3 : path == null ? 0 : 1,
+        String copy = squadId == null ? "lessonRefitSquad" : path == null ? "lessonRefitCompare" : "lessonRefitClaim";
+        return CampaignLessons.lesson(path == null ? 0 : 1,
                 "lessonRefitTitle", copy,
                 List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-comparison"),
                 null, null, GUIDE_HEIGHT);
@@ -110,8 +108,27 @@ final class FirstRefitModel {
         return roster.firstRefit().claimed() || roster.firstRefit().complete();
     }
 
-    void claim() { roster.firstRefit().claim(roster, path); feedback = ""; refresh(); }
-    void issue() {
+    /**
+     * The player's one decision: taking a package learns it, fits the squad and ends the offer (owner). A squad
+     * that cannot take the fitting refuses first, so the free transfer is not spent on nothing. A save from when
+     * these were two steps may already hold the claim, and only needs the fitting.
+     */
+    void choose() {
+        if (path == null || reviewed == null || roster.firstRefit().complete()) return;
+        MarineSquad squad = roster.squadById(squadId);
+        if (squad == null || squad.stationed()) {
+            feedback = blocker(SquadEquipmentResult.STATIONED);
+            refresh();
+            return;
+        }
+        roster.firstRefit().claim(roster, path);
+        feedback = "";
+        refresh();
+        issue();
+        if (roster.firstRefit().complete()) done.run();
+    }
+
+    private void issue() {
         if (reviewed == null || path == null || !roster.firstRefit().claimed() || roster.firstRefit().complete()) return;
         SquadEquipmentPreview live = roster.previewSquadEquipment(squadId, path.weapons, path.armor, resources);
         MarineSquad squad = roster.squadById(squadId);
@@ -120,7 +137,7 @@ final class FirstRefitModel {
             feedback = LessonCopy.text("refitOrderChanged");
         } else {
             SquadEquipmentResult result = roster.firstRefit().issue(roster, squadId, path, resources);
-            feedback = result == SquadEquipmentResult.APPLIED ? LessonCopy.text("refitIssued") : blocker(result);
+            feedback = result == SquadEquipmentResult.APPLIED ? "" : blocker(result);
         }
         refresh();
     }
@@ -134,23 +151,9 @@ final class FirstRefitModel {
                 ? roster.firstRefit().preview(roster, squadId, path) : null;
         reviewedMembers = squad == null ? List.of() : List.copyOf(roster.manningMemberIds(squad));
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("title", LessonCopy.text("lessonRefitTitle"));
-        props.put("conversationClasses", complete ? "refit-conversation panel" : "refit-hidden");
-        props.put("progress", complete ? Strings.get("openingFirstRefitKitIssued") : squad == null ? Strings.get("openingFirstRefitChooseASquad")
-                : path == null ? Strings.get("openingFirstRefitCompareTwoPaths") : !claimed ? Strings.get("openingFirstRefitChooseYourFreeTechnology") : Strings.get("openingFirstRefitFitYourSquad"));
-        props.put("copy", complete
-                ? LessonCopy.text("refitCompletedCopy")
-                : !claimed ? LessonCopy.text("refitTransferCopy")
-                : LessonCopy.text("refitFittingCopy"));
-        props.put("claimClasses", !claimed && !complete ? "refit-action spec-action" : "refit-hidden");
-        props.put("claimDisabled", path == null || reviewed == null);
-        props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", optionLetter(path)));
-        props.put("issueClasses", claimed && !complete ? "refit-action spec-action" : "refit-hidden");
-        props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
-        props.put("doneClasses", complete ? "refit-action spec-action" : "refit-hidden");
-        props.put("claim", (Runnable) this::claim);
-        props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
-        props.put("issue", (Runnable) this::issue);
+        props.put("chooseDisabled", complete || path == null || reviewed == null || squad.stationed());
+        props.put("chooseLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", optionLetter(path)));
+        props.put("choose", (Runnable) this::choose);
         // The free fitting goes to one line squad. With only one there is nothing to pick,
         // so the picker and its hint step aside; with none, the hint says why.
         long lineSquads = roster.squads().stream().filter(s -> !s.reserve()).count();
@@ -204,11 +207,8 @@ final class FirstRefitModel {
         props.put("comparisonClasses", reviewed == null ? "refit-hidden" : "refit-comparison");
         props.put("emptyClasses", reviewed == null ? "refit-empty panel" : "refit-hidden");
         props.put("status", !feedback.isEmpty() ? feedback
-                : !claimed ? LessonCopy.text("refitChooseTransfer")
-                : reviewed == null ? LessonCopy.text("refitChooseLearned")
-                : reviewed.canApply() ? Strings.format("openingLoadoutReadyToFit", reviewedMembers.size(), squad.name())
-                : blocker(reviewed.result()));
-        props.put("disabled", !claimed || complete || reviewed == null || !reviewed.canApply());
+                : squad != null && squad.stationed() ? blocker(SquadEquipmentResult.STATIONED)
+                : LessonCopy.text("refitChooseTransfer"));
         row.set(props);
     }
 

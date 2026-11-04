@@ -62,10 +62,8 @@ are the density win: twelve glyphs say what `10/12 RTD  1 WIA  1 KIA` says, at a
 glance, in less space.
 
 **Marine rows (expanded).** Click a squad row to expand it in place:
-name, status (with return day when recovering), and the kit/quality marks
-that progression `s8-roster-legibility.md`
-defines. **Leave S8's row design to S8** — C3 reserves the space and owns
-the expand/collapse, not the contents of the leaf.
+name, status (with return day when recovering), and the kit/quality marks. C3 reserves the space and owns the
+expand/collapse, not the contents of the leaf.
 
 ### Reuse the retained component vocabulary
 

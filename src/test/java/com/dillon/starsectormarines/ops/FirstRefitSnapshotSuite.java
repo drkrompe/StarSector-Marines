@@ -44,8 +44,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
             public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
-        String[] inspected = {null};
-        var model = new FirstRefitModel(reactor, roster, resources, id -> inspected[0] = id);
+        boolean[] done = {false};
+        var model = new FirstRefitModel(reactor, roster, resources, () -> done[0] = true);
         List<SnapshotArtifact> frames = new ArrayList<>();
         frames.add(resultsFrame(context, roster, false));
         frames.add(resultsFrame(context, roster, true));
@@ -64,19 +64,16 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
                 LoadoutInspection.partId(0, LoadoutInspection.SYSTEM)));
         frames.add(frame(context, reactor, model, "05a-special-removal.png", "loadout-billet:0"));
         if (roster.firstRefit().claimed()) throw new AssertionError("Comparison granted technology");
-        frames.add(frame(context, reactor, model, "05a-accept-forward-screen.png", "refit-claim"));
-        if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
         var members = roster.manningMemberIds(squad);
         roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                 members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
         model.refresh();
         frames.add(frame(context, reactor, model, "05b-wounded-understrength-issue.png", "loadout-billet:11"));
-        frames.add(frame(context, reactor, model, "05c-vacant-billet.png", "refit-issue"));
+        frames.add(frame(context, reactor, model, "05c-take-forward-screen.png", "refit-choose"));
         if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.WIA || roster.manningCount(squad) != 10)
             throw new AssertionError("Equipment issue changed personnel readiness");
         if (!roster.firstRefit().complete()) throw new AssertionError("Issue did not complete");
-        frames.add(frame(context, reactor, model, "06-issued.png", "refit-inspect"));
-        if (!squad.id().equals(inspected[0])) throw new AssertionError("Inspect did not route to the issued squad");
+        if (!done[0]) throw new AssertionError("Taking the package did not end the offer");
         return frames;
     }
     private SnapshotArtifact resultsFrame(SnapshotContext context, MarineRoster roster, boolean showPrompt) throws Exception {
@@ -137,7 +134,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
                     MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
             if (file.equals("04-steady-line-review.png")) {
                 verifyGrid(document, markup, model);
-                if (markup.requireElement("refit-claim").box().borderBox().width() > 320)
+                if (markup.requireElement("refit-choose").box().borderBox().width() > 320)
                     throw new AssertionError("Lesson accept button must stay compact");
             }
             if (hover != null) {

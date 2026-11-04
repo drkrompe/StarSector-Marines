@@ -223,8 +223,8 @@ chosen. Barracks opens on officer commands (All formations plus one
 card per named officer), with squad selection for bulk orders. The rail offers
 no acting-NCO card: a squad without an officer still fights under its own NCO
 and its card says so, but assignment only ever moves squads to officers. A squad card's Loadout
-opens that squad's Fleet Armory loadout. Equipment opens the same workspace on the
-company's first line squad, or on First Refit while that offer stands. Fleet Armory
+opens that squad's Fleet Armory loadout. Equipment appears only while the First
+Refit offer stands and opens that reward. Fleet Armory
 keeps no squad list of its own: readiness, recovery, reinforcement and home-command
 assignment are all read and ordered on the Barracks formation board.
 
@@ -240,8 +240,8 @@ Wounded marines retain their billet. Historical killed and missing personnel do
 not occupy the current establishment. Readiness is distinct from stationing and
 from squad selection.
 
-The Armory has no separate top-level tab. Barracks owns its Equipment entry,
-and a squad card's Loadout opens that squad directly. Returning preserves the
+The Armory has no separate top-level tab. A squad card's Loadout opens that squad
+directly. Returning preserves the
 Barracks selection. Equipment news marks both the Barracks tab
 and its Equipment entry; entering Barracks alone does not acknowledge the lesson.
 The existing editor and inventory transactions remain authoritative.
@@ -1983,15 +1983,15 @@ not become their authority or introduce a second clock lifecycle.
 
 `CampaignLessons` derives post-Relief guidance from `FirstRefit`, `MechBay` and
 `CampaignLessonProgress` on `MarineRoster`. HQ, Barracks and briefing present the
-next unfinished handoff; Equipment hosts the actual first issue and Barracks the founding,
+next unfinished handoff; the First Refit hosts the first issue and Barracks the founding,
 and Mech Lab reselects the Hound when reopening an unfinished fitting exercise.
 The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
 Return/navigation remains available for resupply; leaving never completes work.
 Barracks suspends its general management advice while campaign guidance is
 present, preserving the required founding induction's precedence.
 
-First Refit still requires its ordinary technology claim and actual equipment
-issue. The gantry lesson uses the existing once-only SRM and ends the moment it is
+First Refit is one decision after Relief: compare the two packages, take one, and
+that press learns it, fits the squad and returns to the company. The gantry lesson uses the existing once-only SRM and ends the moment it is
 fitted to a shoulder; **Skip** closes it for good while the spare stays in stores. Missing
 the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
