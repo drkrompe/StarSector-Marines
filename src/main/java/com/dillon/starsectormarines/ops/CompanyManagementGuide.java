@@ -12,7 +12,7 @@ import java.util.List;
 public final class CompanyManagementGuide {
     public static final String PATH = "data/marines/company_management_guide.json";
     private static List<LocalizedLine> lines = List.of();
-    private static String speakerKey = "openingCompanyOfficerName";
+    private static String speakerKey = "lessonSpeaker";
     private static String portrait = "graphics/portraits/castle.png";
     private CompanyManagementGuide() { }
     public record Line(String id, String title, String text) { }
@@ -36,7 +36,7 @@ public final class CompanyManagementGuide {
             result.add(new LocalizedLine(entry.getString("id"), entry.getString("titleKey"), entry.getString("textKey")));
         }
         lines = List.copyOf(result);
-        speakerKey = root.optString("speakerKey", "openingCompanyOfficerName");
+        speakerKey = root.optString("speakerKey", "lessonSpeaker");
         portrait = root.optString("portrait", "graphics/portraits/castle.png");
     }
 }

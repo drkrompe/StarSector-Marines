@@ -159,8 +159,7 @@ public final class MechLabScreen implements Screen {
             built.theme(MarineOpsThemes.standard());
             preparationGuide = PreparationGuide.install(built, () -> {
                 var roster = CompanyPreparationGuide.roster();
-                return CampaignLessons.next(roster) == CampaignLessons.Step.BOAT_RECOVERY
-                        ? CampaignLessons.handoff(roster, context, ScreenId.MECH_LAB) : viewModel.campaignLesson();
+                return viewModel.campaignLesson();
             }, this::close);
             dollElement = candidate.requireElement("mech-doll-canvas");
             dollCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,

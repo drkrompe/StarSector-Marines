@@ -404,7 +404,6 @@ public class BriefingScreen implements Screen {
     }
 
     private PreparationGuide secondSquadGuide;
-    private boolean replaySecondSquadGuide;
 
     private void installDocument() {
         Map<String, Object> props = retainedProps();
@@ -493,15 +492,7 @@ public class BriefingScreen implements Screen {
 
     private PreparationGuide.Lesson campaignLesson() {
         MarineRoster roster = liveRoster();
-        if (roster == null) return null;
-        if (CampaignLessons.next(roster) != CampaignLessons.Step.FORMATIONS) {
-            PreparationGuide.Lesson handoff = CampaignLessons.handoff(roster, ctx, ScreenId.BRIEFING);
-            if (handoff != null) return handoff;
-        }
-        return SecondSquadPreparation.lesson(ctx.getSelectedMission(), roster,
-                new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
-                    roster.acknowledgeSecondSquadPreparation(); replaySecondSquadGuide = false;
-                });
+        return roster == null ? null : CampaignLessons.handoff(roster, ctx, ScreenId.BRIEFING);
     }
 
     private Map<String, Object> retainedProps() {
@@ -607,7 +598,6 @@ public class BriefingScreen implements Screen {
         putRetainedActions(props, mission, readiness);
         putDeployLamps(props, mission, readiness, liftReadout);
         props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
-        props.put("prepareReplay", (Runnable) () -> { narration.stop(); replaySecondSquadGuide = true; });
         props.put("prepareArmory", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
         props.put("prepareBarracks", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
         return BriefingViewModel.withEmptyStyles(props);
@@ -2637,7 +2627,6 @@ public class BriefingScreen implements Screen {
         if (m == null) return;
         if (!m.source.isDebug() && SecondWindKeeper.missionBlocker() != null) { rebuild(); return; }
         if (MissionLaunch.requiresOfficerInduction(m)) { ctx.openOfficerInduction(); return; }
-        if (!m.source.isDebug() && liveRoster() != null) CampaignLessons.deployed(m, liveRoster());
         prepareSurvey(m);
         if (survey.peek() == null) { installDocument(); return; }
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();

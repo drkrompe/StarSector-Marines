@@ -780,13 +780,8 @@ increased price requires review, and failed payment changes nothing. The shared
 Available strip stays separate from Cost and Short by. Destruction takes precedence
 over recovery and replacement never inherits the lost aircraft's upgrades.
 
-Castle introduces the first damaged return, including after defeat, through her
-portrait and the actual condition/order controls. Founding induction takes precedence.
-An unfinished receipt survives alternate company/briefing entries and save/load;
-returning after completion explains the ready boat, and a missing boat explains
-replacement. Acknowledging the choice completes the lesson without requiring spending.
-Paying for repairs alone does not acknowledge it. `boat-condition-and-repairs.md`
-retains live campaign acceptance.
+Castle does not narrate a damaged return (owner): the Shuttle Deck's berth clock and the briefing's
+lamps show it. `boat-condition-and-repairs.md` retains live campaign acceptance.
 
 **Who was aboard went down with her.** The marines still aboard on the sortie
 that was lost are fallen, and roll the same outcome as a marine shot on the
@@ -1035,25 +1030,14 @@ scrolling stays available for the relevant pane. Openings track the live layout,
 and dismissal immediately restores the full screen. Successful selection and preparation orders advance
 the lesson; Next skips a lesson without spending resources. Advice includes current
 selection and shortfalls, asks for no unnecessary spending or fake training casualty,
-and keeps WIA in their billets. Dismiss or Escape closes it. Dismissal is saved
+and keeps WIA in their billets. Skip or Escape closes it. Dismissal is saved
 with the company; older saves default to an available introduction. Text is complete
 without a recording; stable beat IDs allow separately auditioned ElevenLabs clips
 using the existing company-officer cast.
 
-The first non-debug briefing that recommends at least two squads introduces
-Castle's **From One Squad to Two** reminder after initial induction. It states
-both the recommended strength and the route's permitted depleted minimum,
-counts actual ready personnel, and shows the authoritative one-squad founding
-bill (its price and its marines) with what the company holds and the amount short. Founding includes the initial
-kit; later refits have separate bills. Direct Armory and Barracks routes teach
-raising a squad, assigning its home commander, and selecting it for deployment.
-The reminder never spends cargo or changes launch rules. Explicit acknowledgement
-is saved; leaving to buy stores or raise a squad keeps the unfinished reminder,
-and the briefing can replay it. Existing two-squad companies are told not to
-raise an unnecessary formation. Casualties do not reset acknowledgement.
-The founding bill is indivisible, so a company that cannot yet pay it is never held at the
-reminder: **Not Now** sets it aside, saved with the company, until the company has more
-formations than it did then. The briefing still states the route's own two-squad requirement.
+Castle does not coach a second squad (owner). A briefing that recommends more than the
+company can field says so through its lamps beside Deploy, and its Prepare row
+links to Barracks.
 
 New companies receive one **First Mission Preparation** sequence with Castle:
 company ship, commissioned lift, founding field commander, and her first squad.
@@ -1400,8 +1384,8 @@ strength and losses; operation command without an element uses the whole force.
 
 The Barracks portraits open officer dossiers: assigned squads, status, command
 capacity, rank progress, recorded operations, existing traits, specialty choices
-and the latest twenty commendations. VIEW FORMATIONS returns to that command's
-filtered squad list. One permanent training choice is available on appointment
+and the latest twenty commendations. All Formations on the rail returns to the
+squad board. One permanent training choice is available on appointment
 and one per promotion, including cadre-earned promotions. Existing officers
 receive their current rank's equivalent budget without invented service history.
 Specialties are **one vertical tree**. Its root is the officer's training budget;
@@ -1986,6 +1970,11 @@ not become their authority or introduce a second clock lifecycle.
 next unfinished handoff; the First Refit hosts the first issue and Barracks the founding,
 and Mech Lab reselects the Hound when reopening an unfinished fitting exercise.
 The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
+`PreparationGuide` is the game's one tutorial callout: its `Callout` props say which
+lines and buttons show (portrait, speaker, title, progress, copy, optional hint,
+corner set-aside, actions). Lessons, the Barracks walkthrough and the founding
+induction all render through it, and a button shows only where pressing it does
+something: the induction's Ready appears on its READY step alone.
 Return/navigation remains available for resupply; leaving never completes work.
 Barracks suspends its general management advice while campaign guidance is
 present, preserving the required founding induction's precedence.

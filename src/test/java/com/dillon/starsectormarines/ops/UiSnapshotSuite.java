@@ -1402,7 +1402,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 instance.requireElement("mission-plan-sections").scrollTop(10000f);
                 instance.requireElement("mission-overview-copy").scrollTop(10000f);
             }
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
@@ -1422,7 +1422,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (hintTarget != null) {
                 openSpecSheet(document, hints, width, height, uiScale, instance.requireElement(hintTarget));
             }
-            return renderRelative(renderer, document, width, height, uiScale);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, uiScale),
+                    width, height, uiScale);
         }
     }
 
@@ -1542,7 +1543,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
         try (MarkupInstance instance = loader.build(
                 reactor, "company-hq", hqProps)) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             terminal.bind(document, instance);
@@ -1564,7 +1565,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Opening guidance exceeds the detail pane");
                 }
             }
-            return frame;
+            return guided(context, renderer, document, frame, width, height, uiScale);
         }
     }
 
@@ -1831,7 +1832,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);
-            var guide = BarracksGuideCallout.bind(document, markup, model.command(), model.command()::showOverview);
+            var guide = barracksGuide(context, document, model.command());
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     List.of(CompanyNotices.Notice.FIRST_REFIT));
             frames.add(new SnapshotArtifact("01-barracks-equipment-new.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -2027,8 +2028,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 viewModel.command().selectCommand(captain.id());
             }
-            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
-            if (state.startsWith("guide-")) {
+            if (!state.startsWith("guide") && !state.equals("empty")) viewModel.command().dismissGuide();
+            if (state.startsWith("guide-line-")) {
+                // tutorial-copy pages to one line of the walkthrough with its own Next.
+                for (int line = Integer.parseInt(state.substring(11)); line > 0; line--)
+                    viewModel.command().guideNext();
+            } else if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
             }
@@ -2049,7 +2054,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 for (var style : instance.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());
-                var guide = BarracksGuideCallout.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
+                var guide = barracksGuide(context, document, viewModel.command());
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 bindings.update(document, instance, viewModel, hints);
@@ -2131,7 +2136,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
-                var guide = BarracksGuideCallout.bind(document, instance, command, command::showOverview);
+                var guide = barracksGuide(context, document, command);
                 Consumer<String> capture = name -> frames.add(new SnapshotArtifact("induction-" + name + "-" + (int)(scale * 100) + "pct.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, scale)));
                 Consumer<String> click = id -> {
@@ -2154,7 +2159,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
-                click.accept("officer-formations");
+                click.accept("command:all");
                 capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
                 if (roster.squads().stream().noneMatch(s -> !s.reserve() && sabine.id().equals(s.homeCaptainId())))
@@ -2170,7 +2175,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 if (roster.officerInduction().step(roster) != Step.READY)
                     throw new IllegalStateException("Real assignment controls did not advance induction");
                 capture.accept("06-ready");
-                click.accept("guide-next");
+                click.accept("preparation-continue");
                 if (roster.officerInductionRequired() || command.guideVisible())
                     throw new IllegalStateException("Ready acknowledgement failed to unlock deployment");
                 capture.accept("07-complete");
@@ -2200,7 +2205,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = PreparationGuide.document(instance.root());
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
-            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.foundingLesson(null, null));
+            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.foundingLesson(null));
             frames.add(preparationFrame("00-required-conversion", renderer, document, guide, scale));
         }
         try (MarkupInstance instance = loader.build(reactor, "ship-transfer", properties)) {
@@ -2208,7 +2213,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
             var guide = preparationGuide(context, document, () -> roster.companyShipId() == null
-                    ? CompanyPreparationGuide.ship(roster, model, null) : null);
+                    ? CompanyPreparationGuide.ship(roster, null) : null);
             frames.add(preparationFrame("01-ship", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "transfer-commit");
             if (roster.companyShipId() == null) throw new IllegalStateException("Preparation ship confirmation failed");
@@ -2251,6 +2256,42 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    /** The callout {@code tutorial-copy} mounts over the next room rendered; null renders the room as it is. */
+    private static Supplier<PreparationGuide.Lesson> guideOverlay;
+
+    private static UiDocument roomDocument(UiElement root) {
+        return guideOverlay == null ? new UiDocument(root) : PreparationGuide.document(root);
+    }
+
+    private static BufferedImage guided(SnapshotContext context, HeadlessUiRenderer renderer, UiDocument document,
+            BufferedImage room, int width, int height, float scale) throws Exception {
+        if (guideOverlay == null) return room;
+        var guide = preparationGuide(context, document, guideOverlay);
+        renderRelative(renderer, document, width, height, scale);
+        guide.update();
+        return renderRelative(renderer, document, width, height, scale);
+    }
+
+    enum UiRoom { HQ, ARMORY, BOATS, BARRACKS, BRIEFING }
+
+    /** A room at 1920x1080 with {@code lesson} over it, through the production callout and spotlight. */
+    static BufferedImage renderRoomWithLesson(SnapshotContext context, HeadlessUiRenderer renderer,
+            UiRoom room, CompanyHqViewModel hq, Map<String, Object> briefing,
+            Supplier<PreparationGuide.Lesson> lesson) throws Exception {
+        guideOverlay = lesson;
+        try {
+            return switch (room) {
+                case HQ -> renderCompanyHq(context, renderer, 1920, 1080, 1f, hq);
+                case ARMORY -> renderFleetArmoryWorkspace(context, renderer, 1920, 1080, true, false, false, false, false, 1f);
+                case BOATS -> renderBoatDeck(context, renderer, 1920, 1080, false);
+                case BARRACKS -> renderBarracks(context, renderer, 1920, 1080);
+                case BRIEFING -> renderMissionBriefing(context, renderer, 1920, 1080, briefing, 1f, false, null);
+            };
+        } finally {
+            guideOverlay = null;
+        }
+    }
+
     private static PreparationGuide preparationGuide(SnapshotContext context, UiDocument document,
             Supplier<PreparationGuide.Lesson> lesson) {
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
@@ -2282,7 +2323,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
-            var guide = BarracksGuideCallout.bind(document, instance, model.command(), model.command()::showOverview);
+            var guide = barracksGuide(context, document, model.command());
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             cardBindings.update(document, instance, model, hints);
@@ -2293,14 +2334,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             hints.bindLive(instance.requireElement("barracks-recruit-stock"), model.command()::recruitSheet);
             hints.bindLive(instance.requireElement("barracks-fill-selected"), model.command()::fillSelectedSheet);
             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
-            click.accept("guide-dismiss");
+            click.accept("preparation-later");
             click.accept("command:" + company.captain.id());
             frames.add(new SnapshotArtifact("flow-officer-dossier.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             click.accept("officer-specialty-TACTICAL_COVER-rank-1");
             if (company.captain.career().level(OfficerSpecialty.TACTICAL_COVER) != 1)
                 throw new IllegalStateException("Officer training did not commit through the dossier");
             frames.add(new SnapshotArtifact("flow-officer-trained.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("officer-formations");
+            click.accept("command:all");
             for (int i = 0; i < 2; i++) click.accept("formation:" + company.squads.get(i).id() + ":mark");
             frames.add(new SnapshotArtifact("flow-01-selected.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("formation:" + company.squads.get(2).id()));
@@ -2328,15 +2369,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    private static PreparationGuide barracksGuide(SnapshotContext context, UiDocument document, BarracksCommandModel command) {
+        return PreparationGuide.callouts(document, command::guideCallout, command::showOverview,
+                new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                        List.of("data/ui/components/company/preparation-guide.mlx")));
+    }
+
     private static BufferedImage renderGuidedBarracks(HeadlessUiRenderer renderer, UiDocument document,
-                                                        BarracksGuideCallout guide, int width, int height, float scale) {
+                                                        PreparationGuide guide, int width, int height, float scale) {
         renderRelative(renderer, document, width, height, scale);
         guide.update();
         return renderRelative(renderer, document, width, height, scale);
     }
 
     private static void clickBarracksFlow(UiDocument document, MarkupInstance instance, String id) {
-        Rect box = instance.requireElement(id).box().borderBox();
+        Rect box = PreparationGuide.find(document.root(), id).box().borderBox();
         if (box.width() <= 0 || box.height() <= 0 || box.y() < 0 || box.bottom() > 1080) {
             throw new IllegalStateException("Barracks control outside viewport: " + id);
         }
@@ -2366,6 +2413,8 @@ private static BufferedImage renderBarracks(
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+        // A lesson over this room stands alone: the walkthrough would sit in front of the same board.
+        if (guideOverlay != null) viewModel.command().dismissGuide();
         CompanyDeck ship = companyShip(context, List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -2373,12 +2422,13 @@ private static BufferedImage renderBarracks(
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, "shipboard-barracks", props(viewModel, ship))) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets()).update(document, instance, viewModel, hints);
-            return renderRelative(renderer, document, width, height, 1f);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, 1f),
+                    width, height, 1f);
         }
     }
 
@@ -2520,7 +2570,7 @@ private static BufferedImage renderBarracks(
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
             }
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
@@ -2542,7 +2592,8 @@ private static BufferedImage renderBarracks(
                         instance.requireElement(ArmorySpecSheets.firstSpecSheetAnchorId(
                                 viewModel.weaponDoctrineTiles().get())));
             }
-            return renderRelative(renderer, document, width, height, uiScale);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, uiScale),
+                    width, height, uiScale);
         }
     }
 
@@ -3484,7 +3535,7 @@ private static BufferedImage renderBarracks(
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, "boat-deck", props(viewModel, ship, bay, hangars.size()))) {
-            UiDocument document = new UiDocument(instance.root());
+            UiDocument document = roomDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             BoatDeckCanvas bayCanvas = new BoatDeckCanvas(ship, () -> bay,
@@ -3522,7 +3573,8 @@ private static BufferedImage renderBarracks(
                 if (binder.openTarget() != bayElement) throw new IllegalStateException("No spec sheet for " + pointAt);
                 document.advance(0f);
             }
-            return renderRelative(renderer, document, width, height, 1f);
+            return guided(context, renderer, document, renderRelative(renderer, document, width, height, 1f),
+                    width, height, 1f);
         }
     }
 
@@ -3649,7 +3701,7 @@ private static BufferedImage renderBarracks(
         };
     }
 
-    private static SquadFoundingResources snapshotSquadFoundingResources() {
+    static SquadFoundingResources snapshotSquadFoundingResources() {
         return new SquadFoundingResources() {
             @Override public int available(String commodityId) { return 2_000; }
             @Override public long credits() { return 60_000; }

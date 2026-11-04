@@ -17,33 +17,4 @@ final class SecondSquadPreparation {
                 && !roster.officerInductionRequired()
                 && MissionForceEnvelope.recommendedPersonnel(mission) >= 2 * MarineSquad.CAPACITY;
     }
-
-    static PreparationGuide.Lesson lesson(Mission mission, MarineRoster roster,
-                                         SquadFoundingResources stores, boolean replay, Runnable acknowledge) {
-        if (!relevant(mission, roster) || roster.secondSquadPreparationSeen() && !replay) return null;
-        int full = (int) roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()
-                && roster.readyCount(s) == MarineSquad.CAPACITY).count();
-        // A company that already fields two full squads has nothing to prepare: say nothing unless replayed,
-        // and never quote a founding bill it does not need.
-        if (full >= 2 && !replay) return null;
-        long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
-        int ready = roster.lineReadySoldiers().size();
-        String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)
-                ? "lessonSecondAdvisory" : "lessonSecondCheck");
-        String advice = LessonCopy.text(full >= 2 ? "lessonSecondFull"
-                : formations >= 2 ? "lessonSecondExisting" : "lessonSecondFound");
-        StringBuilder costs = new StringBuilder(CompanyResources.creditBill(
-                SquadFoundingCost.STANDARD.credits(), stores.credits())).append("\n");
-        for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
-            int available = stores.available(line.commodityId());
-            costs.append(CompanyResources.namedBill(stores.commodityName(line.commodityId()),
-                    line.quantity(), available)).append("\n");
-        }
-        return new PreparationGuide.Lesson(3, LessonCopy.text("lessonSecondTitle"),
-                LessonCopy.text("lessonSecondSummary", MissionForceEnvelope.recommendedPersonnel(mission),
-                        requirements, full, ready, advice,
-                        full >= 2 ? "" : LessonCopy.text("lessonSecondBill", costs.toString())),
-                List.of("mission-prepare-armory", "mission-prepare-barracks", "mission-briefing-back"),
-                LessonCopy.text("lessonUnderstood"), acknowledge, 480);
-    }
 }

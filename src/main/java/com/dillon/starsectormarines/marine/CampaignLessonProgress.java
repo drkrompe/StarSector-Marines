@@ -4,20 +4,13 @@ import java.io.Serializable;
 
 /** Learning receipts only. Rewards and equipment remain with their existing owners. */
 public final class CampaignLessonProgress implements Serializable {
+    // The boat-recovery and formation lessons are gone (owner); old saves still carry these.
     private String damagedBoatId;
     private boolean boatRecoveryReviewed;
-
-    public void observeBoatDamage(String boatId) {
-        if (damagedBoatId == null && boatId != null) damagedBoatId = boatId;
-    }
-    public String damagedBoatId() { return damagedBoatId; }
-    public boolean boatRecoveryPending() { return damagedBoatId != null && !boatRecoveryReviewed; }
-    public void reviewBoatRecovery() { boatRecoveryReviewed = true; }
-
     private boolean investmentsReviewed;
     private boolean junctionPrepared;
-    /** Formation count when the player set the formation lesson aside, plus one; zero when never set aside. */
     private int formationsDeferredBelow;
+
     private boolean supportDelivered;
     private boolean fieldGuidanceReviewed;
 
