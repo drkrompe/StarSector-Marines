@@ -253,6 +253,12 @@ public final class VehicleController {
     static final float WALL_REVERSE_SPEED = 1.4f;
     /** Distance (cells) the vehicle must move from its stuck origin before wallStuckTime resets. Prevents oscillation from clearing the timer. */
     static final float STUCK_ESCAPE_DIST = 1.5f;
+    /** Turning this many degrees from where it first stuck also frees a hull: the same plan may drive from the new heading. */
+    static final float STUCK_ESCAPE_DEGREES = 15f;
+    /** Seconds a plan may hold a hull against what stops it before it counts as no plan at all. */
+    static final float UNDRIVEN_PLAN_SECONDS = 2f;
+    /** Seconds of that a new route gets back: its plan may drive where the last one could not, but a re-aim alone frees nothing. */
+    static final float NEW_ROUTE_TRY_SECONDS = .5f;
 
     /** Max sim-seconds a local {@link Trajectory} is tracked before a fresh plan is requested. Keeps the rolling goal marching down the corridor. */
     static final float REPLAN_INTERVAL_SEC = 0.25f;

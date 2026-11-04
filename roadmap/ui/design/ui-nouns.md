@@ -118,8 +118,9 @@ them.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built
-  into the frame, with one route in each of its eight slots. A ninth route means
-  redrawing it. A page's root does not clip, so the bar can reach that corner.
+  into the frame, with one route in each of its eight slots, each about the size of the base
+  game's own (148x30). Past 100% UI scale, where everything is already drawn larger, a compact
+  holder (`page-bar-compact.svg`) takes over. A ninth route means redrawing both. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar, each setting a compact card in a grid. Each is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the

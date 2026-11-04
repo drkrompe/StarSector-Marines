@@ -4,11 +4,11 @@
       <canvas id="{card.previewId}" class="{card.previewClasses}" style="{card.previewStyle}" width="220" height="280" />
       <div id="{card.copyId}" class="catalog-item-copy">
         <div id="{card.headerId}" class="catalog-card-header">
-          <div id="{card.nameId}" class="label heading catalog-name">{card.name}</div>
+          <div id="{card.nameId}" class="label compact-type catalog-name">{card.name}</div>
           <div id="{card.badgeId}" class="{card.badgeClasses}">{card.badge}</div>
         </div>
-        <div id="{card.stockId}" class="label tone-edge catalog-stock">{card.stock}</div>
-        <div id="{card.telemetryId}" class="label heading tone-muted catalog-telemetry">{card.telemetry}</div>
+        <div id="{card.stockId}" class="label tone-edge dense catalog-stock">{card.stock}</div>
+        <div id="{card.telemetryId}" class="label compact-type tone-muted catalog-telemetry">{card.telemetry}</div>
         <div id="{card.deltaId}" class="{card.deltaClasses}">{card.delta}</div>
         <div id="{card.detailRowId}" class="catalog-detail-row">
           <div id="{card.chipId}" class="{card.chipClasses}">
@@ -16,7 +16,7 @@
               <img id="{card.chipIconId}" class="weight-chip-icon" src="{card.chipIcon}" />
             </div>
           </div>
-          <div id="{card.detailId}" class="label heading tone-muted catalog-detail">{card.detail}</div>
+          <div id="{card.detailId}" class="label compact-type tone-muted catalog-detail">{card.detail}</div>
         </div>
       </div>
     </div>
@@ -31,11 +31,11 @@
       </div>
       <button id="{card.actionId}" class="{card.actionClasses}" disabled="{card.actionDisabled}" onclick="{card.action}">
         <img id="{card.actionIconId}" class="{card.actionIconClasses}" src="graphics/ui/mech-hardware/fab.svg" />
-        <div id="{card.actionTextId}" class="label heading catalog-fab-text">{card.actionText}</div>
+        <div id="{card.actionTextId}" class="label compact-type catalog-fab-text">{card.actionText}</div>
       </button>
       <!-- A spare in stores breaks back down here; its recovery is the green strip beside it. -->
       <button id="{card.recycleId}" class="{card.recycleClasses}" onclick="{card.recycleAction}">
-        <div id="{card.recycleTextId}" class="label heading catalog-fab-text">{card.recycleText}</div>
+        <div id="{card.recycleTextId}" class="label compact-type catalog-fab-text">{card.recycleText}</div>
       </button>
     </div>
   </div>
@@ -71,7 +71,7 @@
   .material-chip { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 1px 4px; gap: 4px; border-width: 1px; border-color: #315166; background-color: #071014; }
   .material-chip.short { border-color: #a05d52; background-color: #251419; }
   .material-chip-icon { width: 16px; height: 16px; }
-  .material-chip-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; }
+  .material-chip-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; font-family: small; }
   .material-chip.short .material-chip-value { color: #eea296; }
   .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 140px; }
   .catalog-row { background-color: #172023; border-color: #1f323f; }
@@ -79,9 +79,9 @@
   /* No spare in stores (a pattern to build): the card and its picture fade into the well, the words do not. */
   .catalog-row.requires-fabrication { background-color: #17202366; border-color: #1f323f70; }
   .catalog-row.requires-fabrication .catalog-preview { opacity: 0.45; }
-  .catalog-fab { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; gap: 4px; border-width: 1px; text-align: center; font-family: heading; }
+  .catalog-fab { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; gap: 4px; border-width: 1px; text-align: center; font-family: compact; }
   .catalog-fab.short { opacity: 0.45; }
-  .catalog-recycle { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; border-width: 1px; text-align: center; font-family: heading; }
+  .catalog-recycle { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; border-width: 1px; text-align: center; font-family: compact; }
   .catalog-recycle.armed { border-color: #e98b83; color: #eea296; background-color: #251419; }
   .material-costs.recovery .material-chip { border-color: #2f6b4a; background-color: #102018; }
   .material-costs.recovery .material-chip-value { color: #78d494; }
@@ -89,6 +89,6 @@
   .catalog-fab-text { width: 0px; flex-grow: 1; height: 16px; text-align: center; pointer-events: none; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }
-  .heading { font-family: heading; }
+  .heading { font-family: compact; }
   .hidden { display: none; }
 </style>

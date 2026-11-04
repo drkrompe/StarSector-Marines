@@ -172,13 +172,18 @@ public final class VehicleControlSystem {
         if (s.routeXs != xs || s.routeYs != ys || s.leg != leg) {
             // A new route is no progress for a hull with no plan from where it stands: a driver re-aimed every few
             // seconds would otherwise never run the clock up to its last rungs. A plan on the new route ends the failure.
+            // Nor is it any for a hull still stuck: the new route's plan gets a moment to drive it, no more.
             boolean planless = s.routeXs != null && s.trajectory == null;
-            float failure = s.localPlanFailureTime, hold = s.planlessHold;
+            float failure = s.localPlanFailureTime, hold = s.planlessHold, stuck = s.wallStuckTime;
+            boolean rerouted = s.localPlanFailureRerouteAttempted;
             initCorridor(s, xs, ys);
             s.leg = leg;
+            s.wallStuckTime = Math.min(stuck, VehicleController.UNDRIVEN_PLAN_SECONDS - VehicleController.NEW_ROUTE_TRY_SECONDS);
             if (planless) {
                 s.localPlanFailureTime = failure;
                 s.planlessHold = hold;
+                // With the clock kept, every re-aim would otherwise search for a recovery route all over again.
+                s.localPlanFailureRerouteAttempted = rerouted;
             }
         }
         if (stalled.test(id)) {
@@ -264,6 +269,7 @@ public final class VehicleControlSystem {
         s.planlessHold = 0f;
         s.secondPlanWait = 0f;
         s.reverseKeepsClearance = false;
+        s.driveOutForward = false;
         s.dockingPath = null;
         s.dockingStartPose = null;
         s.dockingProgressCells = 0f;
@@ -402,7 +408,9 @@ public final class VehicleControlSystem {
         // --- Rolling local-trajectory refresh ------------------------------
         s.sinceReplan += dt;
         s.secondPlanWait = Math.max(0f, s.secondPlanWait - dt);
-        if (needsReplan(body, s)) {
+        if (planIsNotDriving(body, s)) {
+            s.trajectory = null;
+        } else if (needsReplan(body, s)) {
             Pose pose = new Pose(body.x, body.y, body.facingDegrees);
             s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, planningGrid(type));
             s.trajectory = s.trajectory != null ? planRoundStandingHulls(id, pose, body, type, s, s.trajectory)
@@ -459,7 +467,7 @@ public final class VehicleControlSystem {
             // Every answer from this pose has failed (forward plans, the turnaround, the reroute): back off the way
             // the hull came and plan again from there. Without it a truck nosed into a building stood all battle,
             // since the committed reverse otherwise starts only from a followed trajectory's stall or wall contact.
-            if (planlessReverseDue(mission, s) && beginReverseRecovery(body, type, s)) {
+            if (planlessReverseDue(mission, s) && (beginReverseRecovery(body, type, s) || beginDriveOut(body, type, s))) {
                 if (countPlanlessReverse(body, s)) s.localPlanFailureTime = 0f;
                 s.planlessHold = 0f;
                 s.localPlanFailureRerouteAttempted = false;
@@ -487,7 +495,8 @@ public final class VehicleControlSystem {
             return;
         }
         if (s.trajectory != null) {
-            clearPlanFailure(body, s);
+            // A plan ends the failure once it has got the hull clear, not while it is only being tried.
+            if (s.wallStuckTime == 0f) clearPlanFailure(body, s);
             if (s.pivotTracking || s.pivotDirection != 0 || s.brushing) endPivotTracking(body, s);
         }
 
@@ -664,6 +673,25 @@ public final class VehicleControlSystem {
             standing.add(hull.x, hull.y, hull.facingDegrees, otherType.visualLengthCells, otherType.visualWidthCells);
         }
         return standing;
+    }
+
+    /**
+     * Whether the plans a hull has been following have stopped driving it: stuck for
+     * {@link VehicleController#UNDRIVEN_PLAN_SECONDS} and not got clear of where it stuck. Such a plan is no plan. The
+     * planner can keep offering a plan the hull cannot drive, and while a plan exists the failure clock stands at 0, so
+     * the last rungs never run (a tank with no room behind stood the last hundred seconds of a battle, replanning the
+     * same arc). Getting clear by any rung lets plans be tried again.
+     */
+    static boolean planIsNotDriving(GroundBody body, VehicleControlComponent s) {
+        if (s.wallStuckTime < VehicleController.UNDRIVEN_PLAN_SECONDS) return false;
+        float dx = body.x - s.stuckOriginX, dy = body.y - s.stuckOriginY;
+        if (dx * dx + dy * dy <= VehicleController.STUCK_ESCAPE_DIST * VehicleController.STUCK_ESCAPE_DIST
+                && Math.abs(NeutralPivot.signedDegrees(body.facingDegrees - s.stuckOriginFacing))
+                <= VehicleController.STUCK_ESCAPE_DEGREES) {
+            return true;
+        }
+        s.wallStuckTime = 0f;
+        return false;
     }
 
     private boolean needsReplan(GroundBody body, VehicleControlComponent s) {
@@ -874,6 +902,7 @@ public final class VehicleControlSystem {
             if (s.wallStuckTime == 0f) {
                 s.stuckOriginX = prevX;
                 s.stuckOriginY = prevY;
+                s.stuckOriginFacing = prevFacing;
             }
             s.wallStuckTime += dt;
             if (s.wallStuckTime > VehicleController.WALL_REVERSE_DELAY) {
@@ -974,10 +1003,11 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         if (s.reverseKeepsClearance) {
             float back = VehicleController.WALL_REVERSE_SPEED * grid.groundSpeedMultiplier(body.x, body.y) * dt;
+            float along = s.driveOutForward ? -back : back;
             double rad = Math.toRadians(body.facingDegrees);
-            applyPose(body, new Pose(body.x + (float) Math.sin(rad) * back, body.y - (float) Math.cos(rad) * back,
+            applyPose(body, new Pose(body.x + (float) Math.sin(rad) * along, body.y - (float) Math.cos(rad) * along,
                     body.facingDegrees));
-            body.speed = -back / dt;
+            body.speed = -along / dt;
             s.reverseRemaining -= back;
             if (s.reverseRemaining <= 0f) endReverseRecovery(s);
             return;
@@ -1003,9 +1033,29 @@ public final class VehicleControlSystem {
     }
 
     /** Exit the reverse maneuver and force a fresh forward plan from the new, roomier pose. */
+    /**
+     * A hull with no plan and no room behind drives straight out over its nose, if that is clear, and plans again from
+     * there. With a corner at its tail every turn swings into it, so neither the planner's arcs nor a pivot get it off
+     * the spot though the way ahead lies open (a technical parked on a hedge stood a whole battle). Measured and moved
+     * like a backing-off, on the footprint's own line.
+     */
+    boolean beginDriveOut(GroundBody body, VehicleType type, VehicleControlComponent s) {
+        float room = VehicleController.maxReverseDistance(body.x, body.y, body.facingDegrees + 180f,
+                type, motionGrid(type));
+        if (room < VehicleController.MIN_USEFUL_REVERSE_CELLS) return false;
+        cancelPending(s);
+        s.reverseRemaining = room;
+        s.recovery = VehicleControlComponent.Recovery.REVERSING;
+        s.reverseKeepsClearance = true;
+        s.driveOutForward = true;
+        s.trajectory = null;
+        return true;
+    }
+
     private void endReverseRecovery(VehicleControlComponent s) {
         s.recovery = VehicleControlComponent.Recovery.NONE;
         s.reverseKeepsClearance = false;
+        s.driveOutForward = false;
         s.trajectory = null;
         s.secondPlanWait = 0f;
         s.sinceReplan = VehicleController.REPLAN_INTERVAL_SEC; // replan on the next forward tick

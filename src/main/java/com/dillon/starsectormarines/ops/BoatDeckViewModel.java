@@ -840,9 +840,9 @@ public final class BoatDeckViewModel {
         FittingCard card = new FittingCard(id, classes, "catalog-preview", name,
                 FittedBadge.label(fitted), FittedBadge.classes(fitted),
                 stock, effect, delta,
-                delta.isEmpty() ? "catalog-delta neutral" : fitted ? "label heading catalog-delta neutral"
-                        : delta.startsWith("-") ? "label heading catalog-delta negative"
-                        : "label heading catalog-delta positive",
+                delta.isEmpty() ? "catalog-delta neutral" : fitted ? "label compact-type catalog-delta neutral"
+                        : delta.startsWith("-") ? "label compact-type catalog-delta negative"
+                        : "label compact-type catalog-delta positive",
                 detail, locked ? Strings.get("boatDeckPartLocked") : build ? Strings.get("openingMechLabFab") : "",
                 locked ? Strings.get("boatDeckPartLockedHint")
                 : affordable ? Strings.get("boatDeckFabHint")

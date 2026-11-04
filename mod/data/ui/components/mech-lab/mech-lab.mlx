@@ -147,7 +147,7 @@
               <div id="mech-performance-card" class="performance-card surface-dark">
                 <div id="mech-specs-header" class="specs-header">
                   <div id="mech-specs-title" class="section-title label heading tone-edge">{i18n.openingUiMechLabSpecifications}</div>
-                  <div id="mech-specs-doctrine" class="label heading tone-edge specs-doctrine">{shipRefitText}</div>
+                  <div id="mech-specs-doctrine" class="label compact-type tone-edge specs-doctrine">{shipRefitText}</div>
                 </div>
                 <div id="mech-budget" class="{budgetClasses}">{budgetText}</div>
                 <div id="mech-performance-grid" class="{performanceClasses}">
@@ -184,7 +184,7 @@
   .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .section-title { height: 16px; padding: 2px 0px; }
+  .section-title { height: 20px; padding: 0px; }
   .compact-action { width: 132px; height: 28px; padding: 0px 5px; font-family: heading; text-align: center; }
 
   .lesson-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12c9; overflow: scroll; }
@@ -234,7 +234,7 @@
   .mech-card-action { height: 20px; padding-top: 0px; text-align: right; }
 
   .fitting-workspace { flex-direction: column; width: 100%; height: 100%; gap: 6px; overflow: hidden; }
-  .mech-budget { width: 100%; height: 16px; padding: 1px 2px; }
+  .mech-budget { width: 100%; height: 16px; padding: 1px 2px; font-family: compact; }
 
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
   .catalog-panel { flex-direction: column; width: 410px; padding: 7px; gap: 5px; border-width: 1px; overflow: hidden; }
@@ -251,8 +251,8 @@
   .drag-drop-note { flex-direction: column; width: 100%; height: 42px; padding: 4px; gap: 1px; }
   .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
   .performance-card { flex-direction: column; width: 100%; height: 232px; padding: 5px 6px; gap: 3px; border-width: 1px; }
-  .specs-header { flex-direction: row; align-items: center; width: 100%; height: 16px; }
-  .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; }
+  .specs-header { flex-direction: row; align-items: center; width: 100%; height: 20px; }
+  .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; font-family: compact; }
   .performance-grid { flex-direction: column; width: 100%; height: 156px; gap: 1px; }
   .slot-panel { flex-direction: column; width: 340px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-copy { height: 20px; }
@@ -286,7 +286,8 @@
   .build-credit { height: 16px; }
   .build-lore { height: 0px; flex-grow: 1; white-space: normal; overflow: hidden; }
   .build-action { width: 100%; height: 34px; font-family: heading; text-align: center; }
-  #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; }
+  #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; font-family: small; }
+  #mech-drag-drop-title { font-family: compact; }
 
   .garage-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
   .garage-heading { flex-direction: row; align-items: center; width: 100%; height: 19px; padding: 0px; gap: 8px; }
