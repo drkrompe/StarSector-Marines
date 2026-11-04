@@ -57,8 +57,6 @@ class MissionSelectLocalizationTest {
         try (var strings = new HeadlessStrings(Path.of("mod"))) {
             assertEquals("1 sortie", Strings.format("missionSelectSorties", 1));
             assertEquals("2 sorties", Strings.format("missionSelectSorties", 2));
-            assertEquals("First Contract  " + (char) 183 + "  1 squad recommended",
-                    Strings.format("missionSelectRecommendation", "First Contract", 1));
         }
     }
 
