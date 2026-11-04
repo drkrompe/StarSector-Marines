@@ -31,11 +31,6 @@ public final class SupplyRouteCampaign {
     public static boolean freight(Mission m) {
         return m != null && m.id != null && m.id.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.THUNDER + "_");
     }
-    public static String operationLabel(Mission m) {
-        if (m == null) return Strings.get("supplyRouteLabelOperation");
-        if (!owns(m.id)) return m.type.name();
-        return Strings.get(freight(m) ? "supplyRouteLabelConvoy" : "supplyRouteLabelCapture");
-    }
     public static OpeningBroker.Destination destination() {
         BrokenSupplyRouteProgress p = current();
         if (p == null) return OpeningBroker.current();

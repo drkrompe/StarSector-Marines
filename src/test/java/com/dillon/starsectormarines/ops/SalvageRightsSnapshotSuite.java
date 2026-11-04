@@ -255,7 +255,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                                    List<SnapshotArtifact> frames, String prefix) throws Exception {
         var props = BriefingViewModel.campaignPreviewProps(false);
         props.put("missionTitle", mission.name);
-        props.put("missionKicker", mission.name.toUpperCase() + " / ASHARU");
         MissionDialogue.put(props, "mission", mission);
         BriefingViewModel.putReward(props, mission);
         BriefingViewModel.putFactionIdentity(props, "employer", "Basin Reclamation Cooperative", null);
