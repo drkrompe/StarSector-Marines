@@ -15,5 +15,5 @@
   .company-resource-stock-item { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 36px; gap: 8px; }
   .company-resource-icon { width: 24px; height: 24px; }
   .company-resource-stock-value { width: 0px; flex-grow: 1; height: 18px; color: #cddfef; }
-  .company-resource-stock-credits { color: #ffd200; }
+  .company-resource-stock-credits { color: #ffffff; }
 </style>
