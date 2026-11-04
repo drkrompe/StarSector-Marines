@@ -269,6 +269,7 @@ public final class MechLabScreen implements Screen {
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
                 viewModel.overviewAction(),
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
+        MarineOpsPageNav.routeSettings(props, context);
         return props;
     }
 

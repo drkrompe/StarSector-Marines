@@ -1,4 +1,4 @@
-<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,contextLabel">
+<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses,contextLabel">
   <div id="marine-ops-page-nav" class="">
     <div id="marine-ops-page-bar">
     <img id="marine-ops-page-holder" src="graphics/ui/tripad_bot_left_button_widget2.png" />
@@ -38,6 +38,13 @@
         <div id="page-nav-shop-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavStore}</div>
       </button>
     </div>
+    </div>
+    <div id="marine-ops-page-settings-slot">
+      <button id="page-nav-settings" class="{settingsClasses}" onclick="{settingsAction}">
+        <div id="page-nav-settings-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-settings-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <div id="page-nav-settings-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavSettings}</div>
+      </button>
     </div>
     <div id="marine-ops-page-context" class="label tone-edge">{contextLabel}</div>
   </div>
@@ -79,6 +86,22 @@
   }
 
   #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }
+
+  /* Beside the holder, whose slots are all taken, level with the routes in it. */
+  #marine-ops-page-settings-slot { width: 113px; height: 20px; padding: 10px 0px 5px 7px; }
+  #page-nav-settings {
+    flex-direction: row;
+    align-items: center;
+    width: 113px;
+    height: 20px;
+    gap: 2px;
+    padding: 0px 4px;
+    border-width: 0px;
+    overflow: hidden;
+    text-align: center;
+    corner-cut: 3px;
+  }
+  #page-nav-settings .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }
 
   /* A room the ship does not have. The button stays so the player can see the
      berth the hull lacks, rather than wondering where a page went. */

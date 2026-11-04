@@ -206,10 +206,6 @@ final class CompanyHqViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("debugAction", (Runnable) () -> { });
         props.put("debugClasses", "hq-debug-hidden");
-        props.put("voiceOverAction", (Runnable) () -> { });
-        props.put("voiceOverLabel", voiceOverLabel(true));
-        props.put("voiceOverHintClasses", voiceOverHintClasses(false));
-        props.put("voiceOverClasses", voiceOverClasses(true));
         props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("handover", AgreusHandoverDesk.hidden());
@@ -272,10 +268,6 @@ final class CompanyHqViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("debugAction", (Runnable) () -> { });
         props.put("debugClasses", "hq-debug-hidden");
-        props.put("voiceOverAction", (Runnable) () -> { });
-        props.put("voiceOverLabel", voiceOverLabel(true));
-        props.put("voiceOverHintClasses", voiceOverHintClasses(false));
-        props.put("voiceOverClasses", voiceOverClasses(true));
         props.put("purpose", Strings.get("companyHqPurpose"));
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));
@@ -409,18 +401,6 @@ final class CompanyHqViewModel {
             case LOST -> Strings.get("companyHqNewsArchiveLost");
             case NONE -> Strings.get("companyHqNewsArchiveUnknown");
         };
-    }
-
-    static String voiceOverHintClasses(boolean shown) {
-        return shown ? "hq-voice-over-hint-row" : "hq-gone";
-    }
-
-    static String voiceOverLabel(boolean on) {
-        return Strings.get(on ? "openingUiCompanyHqVoiceOverOn" : "openingUiCompanyHqVoiceOverOff");
-    }
-
-    static String voiceOverClasses(boolean on) {
-        return "hq-voice-over console-action led-key" + (on ? " led-on" : "");
     }
 
     private static String ratingLabel(CompanyRating rating) {

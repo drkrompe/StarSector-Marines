@@ -67,7 +67,12 @@ final class MarineOpsPageNav {
          * <p>Its button is named {@code shop} because {@code store} is already a property of
          * the Boat Deck and Mech Lab pages (their spares), and the shell writes into the same map.
          */
-        STORE(null, "shop");
+        STORE(null, "shop"),
+        /**
+         * The company's settings. Not a place aboard, and its key stands beside the holder
+         * because the holder's seven slots are taken.
+         */
+        SETTINGS(null, "settings");
 
         private final RoomPurpose room;
         private final String button;
@@ -136,6 +141,12 @@ final class MarineOpsPageNav {
         put(props, Page.BOAT_DECK, current, aboard, boatsAction);
         put(props, Page.SHIP_VIEW, current, aboard, engineeringAction);
         put(props, Page.STORE, current, aboard, storeAction);
+        put(props, Page.SETTINGS, current, aboard, () -> { });
+    }
+
+    /** Makes the settings key work; a screen with a context calls this after {@code put}. */
+    static void routeSettings(Map<String, Object> props, MarineOpsContext context) {
+        props.put("settingsAction", (Runnable) () -> context.goTo(ScreenId.SETTINGS));
     }
 
     /** Compatibility helper for focused fixtures without a store route. */

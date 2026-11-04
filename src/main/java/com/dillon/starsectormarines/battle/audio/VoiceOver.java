@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Company HQ's voice-over switch: whether the mod's recorded speech plays. It covers narration, the
+ * The Settings page's voice-over switch: whether the mod's recorded speech plays. It covers narration, the
  * radio, marine barks and film dialogue; subtitles and every other sound stay, and a silenced line
  * keeps its subtitle for the line's duration. Saved with the game; on until the player turns it off,
  * and on with no campaign running.
