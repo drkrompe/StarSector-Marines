@@ -53,7 +53,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    void thePageBarSitsInTheViewportsBottomLeftCorner() throws Exception {
+    void thePageBarSitsInTheCornerWithItsRoutesCutAtAllFourCorners() throws Exception {
         Reactor reactor = new Reactor();
         Map<String, Object> props = SettingsViewModel.previewProps(true);
         Path mod = Path.of("mod");
@@ -69,6 +69,8 @@ class SettingsViewModelTest {
                 var holder = page.requireElement("marine-ops-page-holder").box().borderBox();
                 assertEquals(0f, holder.x());
                 assertEquals(1080f, holder.y() + holder.height());
+                var cut = page.requireElement("page-nav-settings").cornerCut();
+                assertTrue(cut.topLeft() > 0f && cut.topRight() > 0f && cut.bottomRight() > 0f && cut.bottomLeft() > 0f);
             }
         } finally {
             SvgAsset.setSource(previous);
