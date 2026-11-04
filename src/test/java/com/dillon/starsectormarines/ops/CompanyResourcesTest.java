@@ -26,6 +26,11 @@ class CompanyResourcesTest {
         assertEquals("Credits · Cost 60 · Short by 19", CompanyResources.creditBill(60, 41));
     }
 
+    @Test void onlyACreditFigureTakesTheCreditColour() {
+        assertTrue(CompanyResources.stockValueClasses(CompanyResources.CREDITS_ICON).contains("company-resource-stock-credits"));
+        assertFalse(CompanyResources.stockValueClasses(CompanyResources.MARINES_ICON).contains("company-resource-stock-credits"));
+    }
+
     @Test void stockIsExactAndGroupedRatherThanRepeatedInTheBill() {
         var row = CompanyResources.stock("metals", "Metals", "", 15_000_000);
         assertEquals("15,000,000", row.markupProperty("stock"));
