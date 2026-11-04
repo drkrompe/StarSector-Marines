@@ -15,6 +15,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TextureLedgerTest {
 
+    @Test
+    void artTheGameAlsoDrawsIsLoadedWhenAbsentButNeverUnloaded() throws Exception {
+        FakeStore store = new FakeStore();
+        TextureLedger ledger = new TextureLedger(store);
+        ledger.gameOwned("sky");
+        TextureLease first = ledger.lease("page");
+        first.acquire("sky");
+        assertEquals(1, store.loads, "absent art is still loaded so the page can draw it");
+        first.release();
+        assertTrue(store.deleted.isEmpty());
+        assertTrue(store.resident.containsKey("sky"));
+        assertEquals(0L, ledger.residentBytes());
+    }
+
+    @Test
+    void artMarkedAfterItsLoadIsStillNotUnloaded() throws Exception {
+        FakeStore store = new FakeStore();
+        TextureLedger ledger = new TextureLedger(store);
+        TextureLease lease = ledger.lease("page");
+        lease.acquire("sky");
+        ledger.gameOwned("sky");
+        lease.release();
+        assertTrue(store.deleted.isEmpty());
+    }
+
     /** A texture store that hands out fresh ids and records what was deleted. */
     private static final class FakeStore implements TextureLedger.Backend {
         final Map<String, Integer> resident = new HashMap<>();

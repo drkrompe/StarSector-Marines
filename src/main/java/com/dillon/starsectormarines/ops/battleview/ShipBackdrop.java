@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
@@ -72,7 +73,20 @@ public final class ShipBackdrop {
         LocationAPI location = sector == null ? null : sector.getCurrentLocation();
         String sky = location == null ? null : location.getBackgroundTextureFilename();
         boolean hyperspace = location != null && location.isHyperspace();
-        return new ShipBackdrop(sky == null || sky.isBlank() ? DEFAULT_SKY : sky, look(parkedAt), !hyperspace);
+        ShipBackdrop backdrop = new ShipBackdrop(sky == null || sky.isBlank() ? DEFAULT_SKY : sky, look(parkedAt), !hyperspace);
+        backdrop.leaveArtWithTheGame();
+        return backdrop;
+    }
+
+    /** All of this is the map's art too, and closing the page must not take it from the map. */
+    private void leaveArtWithTheGame() {
+        TextureLedger ledger = TextureLedger.shared();
+        ledger.gameOwned(sky);
+        STAR_ART.forEach(ledger::gameOwned);
+        if (planet != null) {
+            ledger.gameOwned(planet.texture());
+            ledger.gameOwned(planet.clouds());
+        }
     }
 
     private static Planet look(PlanetAPI world) {

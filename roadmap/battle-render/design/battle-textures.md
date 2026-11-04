@@ -35,6 +35,9 @@ Starsector is a heavily modded game, and that is video memory every other mod is
 - A texture is **foreign** when it was already on the card the first time the ledger saw it:
   vanilla art the game preloaded, another mod's, or a load that went round the ledger. The
   ledger never unloads a foreign texture, because it cannot know who else draws it.
+  Art the game loads only on demand, such as a location's sky, may be absent when first seen
+  and still be the game's, so a borrower marks it **game-owned** (`TextureLedger.gameOwned`)
+  and it is treated as foreign: deleting it leaves the campaign map drawing plain white.
 - The **battle texture set** is what one battle actually places and spawns: its map's
   tilesets and props, the armor families of the bodies on its roster, the two sides' mech
   liveries, its vehicle lines and airframes, its structures and their projectiles, and what
