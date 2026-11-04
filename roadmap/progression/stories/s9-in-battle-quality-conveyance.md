@@ -72,7 +72,7 @@ presentation-only cue policy that keeps audio out of sim determinism.
 
 - Any sim behavior change. Conveyance only.
 - Equipment chrome — `s7-grade-visual-identity.md`.
-- Campaign-side roster views — `s8-roster-legibility.md`.
+- Campaign-side views — the Barracks formation board (`company-view-nouns.md`).
 - Post-battle results presentation. The Results debrief already exists and
   gets its career payload from S3/S8.
 

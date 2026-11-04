@@ -3,7 +3,7 @@
 > Six legacy recruitment traits still have no functional effect. The Alpha
 > officer career slice supplies a separate promotion-driven specialty path.
 
-Status: PLANNED — follows `s8-roster-legibility.md` so traits are readable first.
+Status: PLANNED.
 Written: 2026-08-22
 Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 
@@ -72,7 +72,7 @@ Extend the initial officer specialty path where career evidence warrants it.
 
 ## Out of scope
 
-- The trait UI — `s8-roster-legibility.md`.
+- The trait UI — the officer dossier (`progression-nouns.md`, Presentation law).
 - Giving `IDEALIST`/`CYNICAL` combat effects. The moral-outlook story
   named that an explicit non-goal and it stays one.
 - Trait removal, transfer, or trading — also named non-goals by the personnel

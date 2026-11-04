@@ -61,9 +61,6 @@ public final class BarracksCommandModel {
     private final Set<String> selected = new LinkedHashSet<>();
     private String command = "all";
     private boolean dossier;
-    private boolean companyRoster;
-    private CompanyRosterView.Sort rosterSort = CompanyRosterView.Sort.APTITUDE;
-    private int rosterPage;
     private boolean guideOpen;
     private Runnable preparationComplete = () -> { };
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
@@ -106,40 +103,10 @@ public final class BarracksCommandModel {
                 : "tool-button console-action");
         bind(reactor, "missionStyle", () -> localMissions && missionReturn.calls(workHere) ? MISSION_CALL_STYLE : "");
         bind(reactor, "commands", this::commands);
-        bind(reactor, "formationClasses", () -> dossier || companyRoster ? "hidden" : "formation-board panel console-section");
-        bind(reactor, "rosterClasses", () -> companyRoster && !dossier ? "company-roster panel console-section" : "hidden");
-        props.put("openRoster", (Runnable) () -> { companyRoster = true; dossier = false; refresh(); });
-        props.put("closeRoster", (Runnable) () -> { companyRoster = false; refresh(); });
-        bind(reactor, "rosterRows", () -> companyRoster
-                ? CompanyRosterView.rows(roster, rosterSort, rosterPage, currentDay.getAsDouble()) : List.of());
-        bind(reactor, "rosterTitle", () -> Strings.format("companyRosterTitleFmt",
-                CompanyRosterView.sorted(roster, rosterSort).size()));
-        bind(reactor, "rosterPageLabel", () -> Strings.format("companyRosterPageFmt", rosterPage + 1,
-                CompanyRosterView.pages(CompanyRosterView.sorted(roster, rosterSort).size())));
-        bind(reactor, "rosterPreviousDisabled", () -> rosterPage <= 0);
-        bind(reactor, "rosterNextDisabled", () -> rosterPage + 1
-                >= CompanyRosterView.pages(CompanyRosterView.sorted(roster, rosterSort).size()));
-        props.put("rosterPrevious", (Runnable) () -> { rosterPage = Math.max(0, rosterPage - 1); refresh(); });
-        props.put("rosterNext", (Runnable) () -> { rosterPage++; refresh(); });
-        props.put("rosterSortName", (Runnable) () -> sortRoster(CompanyRosterView.Sort.NAME));
-        bind(reactor, "rosterSortNameClasses", () -> rosterSortClasses(CompanyRosterView.Sort.NAME));
-        props.put("rosterSortSquad", (Runnable) () -> sortRoster(CompanyRosterView.Sort.SQUAD));
-        bind(reactor, "rosterSortSquadClasses", () -> rosterSortClasses(CompanyRosterView.Sort.SQUAD));
-        props.put("rosterSortStatus", (Runnable) () -> sortRoster(CompanyRosterView.Sort.STATUS));
-        bind(reactor, "rosterSortStatusClasses", () -> rosterSortClasses(CompanyRosterView.Sort.STATUS));
-        props.put("rosterSortAptitude", (Runnable) () -> sortRoster(CompanyRosterView.Sort.APTITUDE));
-        bind(reactor, "rosterSortAptitudeClasses", () -> rosterSortClasses(CompanyRosterView.Sort.APTITUDE));
-        props.put("rosterSortBand", (Runnable) () -> sortRoster(CompanyRosterView.Sort.BAND));
-        bind(reactor, "rosterSortBandClasses", () -> rosterSortClasses(CompanyRosterView.Sort.BAND));
-        props.put("rosterSortWeapon", (Runnable) () -> sortRoster(CompanyRosterView.Sort.WEAPON));
-        bind(reactor, "rosterSortWeaponClasses", () -> rosterSortClasses(CompanyRosterView.Sort.WEAPON));
-        props.put("rosterSortArmor", (Runnable) () -> sortRoster(CompanyRosterView.Sort.ARMOR));
-        bind(reactor, "rosterSortArmorClasses", () -> rosterSortClasses(CompanyRosterView.Sort.ARMOR));
-        props.put("rosterSortService", (Runnable) () -> sortRoster(CompanyRosterView.Sort.SERVICE));
-        bind(reactor, "rosterSortServiceClasses", () -> rosterSortClasses(CompanyRosterView.Sort.SERVICE));
+        bind(reactor, "formationClasses", () -> dossier ? "hidden" : "formation-board panel console-section");
         bind(reactor, "dossierClasses", () -> dossier ? "officer-dossier panel console-section" : "hidden");
         bind(reactor, "dossierButtonClasses", () -> selectedOfficer() == null ? "hidden" : "flow-button console-action");
-        props.put("openDossier", (Runnable) () -> { dossier = selectedOfficer() != null; companyRoster = false; refresh(); });
+        props.put("openDossier", (Runnable) () -> { dossier = selectedOfficer() != null; refresh(); });
         props.put("closeDossier", (Runnable) () -> { dossier = false; refresh(); });
         bind(reactor, "officerName", () -> selectedOfficer() == null ? "" : captainName(selectedOfficer()));
         bind(reactor, "officerPortrait", () -> selectedOfficer() == null || selectedOfficer().portraitSprite() == null
@@ -230,23 +197,6 @@ public final class BarracksCommandModel {
         props.put("previous", (Runnable) () -> { page = Math.max(0, pageNumber() - 1); refresh(); });
         props.put("next", (Runnable) () -> { page = Math.min(pages() - 1, pageNumber() + 1); refresh(); });
         props.put("reinforce", (Runnable) this::reinforceSelected);
-    }
-
-    private void sortRoster(CompanyRosterView.Sort sort) {
-        rosterSort = sort;
-        rosterPage = 0;
-        refresh();
-    }
-
-    private String rosterSortClasses(CompanyRosterView.Sort sort) {
-        return "roster-sort console-action" + (sort == rosterSort ? " active" : "");
-    }
-
-    /** Opens the company roster, for evidence and for screens that land on it. */
-    public void showCompanyRoster() {
-        companyRoster = true;
-        dossier = false;
-        refresh();
     }
 
     private void bind(Reactor reactor, String key, Supplier<?> supplier) {
