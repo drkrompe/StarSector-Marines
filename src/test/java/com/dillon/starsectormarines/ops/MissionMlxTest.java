@@ -186,7 +186,7 @@ class MissionMlxTest {
                     instance.requireElement("deployment-preview-0-commander-status").text());
             assertEquals("HOME COMMAND · AVAILABLE",
                     instance.requireElement("deployment-preview-2-commander-status").text());
-            assertEquals("3 WIA · 1 KIA",
+            assertEquals("3 MIA · 1 KIA",
                     instance.requireElement("deployment-preview-2-casualties").text());
             for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
                 for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {

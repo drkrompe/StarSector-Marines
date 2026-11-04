@@ -63,9 +63,9 @@ class StationingIncidentPayloadTest {
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         MarineSquad squad = roster.squads().get(0);
-        MarineSoldierStatus wounded = MarineSoldierStatus.WIA;
+        MarineSoldierStatus lost = MarineSoldierStatus.MIA;
         roster.applySoldierOutcome(Collections.singletonMap(
-                roster.squadMembers(squad).get(0).id(), wounded), 10f, 7f);
+                roster.squadMembers(squad).get(0).id(), lost));
         int captainSlot = state.captainRegistry.intern(captain.id());
         long id = state.addContract(1L, -1L, -1L, ContractType.CADRE,
                 ContractState.ACTIVE, 10, 100, -1, (byte) 0,

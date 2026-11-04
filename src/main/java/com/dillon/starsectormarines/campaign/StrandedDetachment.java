@@ -177,8 +177,7 @@ public final class StrandedDetachment {
             for (MarineSquad squad : roster.squadsStationedOn(contractId)) {
                 List<MarineSoldier> living = new ArrayList<>();
                 for (MarineSoldier soldier : roster.squadMembers(squad)) {
-                    if (soldier.status() == MarineSoldierStatus.ACTIVE
-                            || soldier.status() == MarineSoldierStatus.WIA) {
+                    if (soldier.status() == MarineSoldierStatus.ACTIVE) {
                         living.add(soldier);
                     }
                 }

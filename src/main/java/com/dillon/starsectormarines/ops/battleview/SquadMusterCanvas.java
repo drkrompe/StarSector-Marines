@@ -91,16 +91,6 @@ public final class SquadMusterCanvas implements CanvasProducer {
         switch (billet.state()) {
             case READY -> ArmoryLoadoutPreviewComposer.composeStanding(sink, assets, kit(billet),
                     centerX, centerY, shoulder, surfaceHeight);
-            case WOUNDED -> {
-                ArmoryLoadoutPreviewComposer.composeLying(sink, assets, kit(billet), centerX, centerY,
-                        slot.width(), slot.height(), surfaceHeight, billet.index());
-                // The cross makes WIA distinct even without color.
-                float badgeX = slot.right() - 8f;
-                float badgeY = slot.bottom() - 10f;
-                context.fillRect(badgeX - 1f, badgeY - 1f, 7f, 7f, palette.panel());
-                context.fillRect(badgeX + 2f, badgeY, 1.8f, 5f, palette.medical());
-                context.fillRect(badgeX, badgeY + 1.6f, 5.8f, 1.8f, palette.medical());
-            }
             case VACANT -> {
                 float reach = slot.height() * 0.2f;
                 context.line(centerX - reach, centerY - reach, centerX + reach, centerY + reach, palette.lost(), 1.6f);

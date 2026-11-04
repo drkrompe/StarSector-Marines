@@ -77,13 +77,11 @@ A squad may also name a saved equipment profile, as defined in
 `company-view-nouns.md`. This is desired issue, not another formation identity:
 assigning it preserves personnel, history, current kit and the last issued doctrine
 pair. Bulk replenishment uses the same reserves-first personnel draw and exact
-equipment transactions as individual administration. Wounded retain their billets;
-stationed squads remain unavailable for organization, replacement and refit.
+equipment transactions as individual administration. Stationed squads remain unavailable for organization, replacement and refit.
 
 There is no order that moves ready marines between line squads. A squad short of
-strength recovers it in exactly two ways: its WIA return after
-`MarineRoster.WIA_RECOVERY_DAYS` (one campaign day aboard ship), or its true
-vacancies are filled from named reserves and enlisted cargo. KIA/MIA remain
+strength recovers it one way: its vacancies are filled from named reserves and
+enlisted cargo. KIA/MIA remain
 historical records on their own squad's roll.
 
 ## Availability and deployment
@@ -92,8 +90,8 @@ Named marines leave generic cargo only when enlisted. Enlistment and reserve
 demobilization are the only ordinary boundary between generic cargo and named
 personnel; a named casualty must never also remove anonymous cargo.
 
-ACTIVE members are ready to deploy. WIA retain their identity and billet but
-are unavailable until recovery; MIA and KIA do not fill a living billet. A
+ACTIVE members are ready to deploy; MIA and KIA do not fill a living billet.
+There is no wounded list: nobody is alive and unavailable for a wound. A
 selection shortage and a whole-company shortage are different facts: selecting
 the wrong available squads must not silently substitute another squad, while a
 company shortage may offer cargo-backed recruitment.
@@ -129,8 +127,16 @@ their own commitment boundaries.
 
 A mission outcome is the only battle-to-personnel report. It records the
 frozen commitment and individual fates, then personnel applies the deterministic
-RTD, WIA, MIA, or KIA result once. Survivor career evidence and experience are
-recorded from that report; recovery later returns eligible WIA to ACTIVE.
+result once. Survivor career evidence and experience are recorded from that report.
+
+**The casualty roll** (`CasualtyFate`) decides each marine the battle put down: 40% killed
+on a won field, 70% on a lost one, otherwise **wounded**, which is only a fate: they come
+home fit for duty at once, and the wound goes on their service record. `WIA` therefore names
+a line in the report and never a marine's state; old saves return anyone holding it to duty.
+The killed leave a vacant billet to replace. The company improves the odds through the
+Second Wind's sick bay (`second-wind-refit-tree.md`), not through officer training. A marine
+taken into a bore is killed with no roll. MIA comes only from a stationing overrun or a
+stranded detachment.
 
 Each participating officer receives experience, promotion and fate settlement from
 their own launch-frozen element; operation command is also represented. Actual
@@ -143,8 +149,7 @@ settlement; mutable home assignments never rewrite attribution.
 
 Named stationing binds whole available squads to one stationing contract and
 keeps them out of ordinary deployment, reassignment, demobilization, and kit
-mutation while away. Its living strength includes ACTIVE and WIA members; only
-ACTIVE members consume a response battle seat. A response freezes the stationed
+mutation while away. Its living members consume response battle seats. A response freezes the stationed
 identities before battle, then applies named outcomes before stationing policy
 recomputes strength or releases the detachment.
 

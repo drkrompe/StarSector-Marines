@@ -19,15 +19,15 @@ class CompanyAssessmentComposerTest {
 
     @Test
     void assessmentUsesCompanyFactsAndIsStableForTheDay() {
-        inject("{rating}|{ready}/{strength}|{squads}|{wounded}|{stationed}");
+        inject("{rating}|{ready}/{strength}|{squads}|{stationed}");
 
         String first = CompanyAssessmentComposer.render(OfficerMood.SEASONED, 40,
-                CompanyRating.ESTABLISHED, 31, 36, 3, 2, 12);
+                CompanyRating.ESTABLISHED, 31, 36, 3, 12);
         String second = CompanyAssessmentComposer.render(OfficerMood.SEASONED, 40,
-                CompanyRating.ESTABLISHED, 31, 36, 3, 2, 12);
+                CompanyRating.ESTABLISHED, 31, 36, 3, 12);
 
         assertEquals(first, second);
-        assertEquals("ESTABLISHED|31/36|3|2|12", first);
+        assertEquals("ESTABLISHED|31/36|3|12", first);
         assertFalse(first.contains("{"));
     }
 
@@ -36,7 +36,7 @@ class CompanyAssessmentComposerTest {
         inject("{rating} {ready}");
 
         String rendered = CompanyAssessmentComposer.render(null, 1, null,
-                0, 0, 0, 0, 0);
+                0, 0, 0, 0);
 
         assertTrue(rendered.startsWith("UNPROVEN"));
     }

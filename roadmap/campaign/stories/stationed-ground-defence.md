@@ -164,7 +164,7 @@ first proposal for the live pass to judge, not a number the docs own.
 - **Casualties for an absent defence.** A held defence loses half of what the
   raid effectiveness would have taken; an overrun one loses the effectiveness
   outright, capped at nine in ten so it is beaten rather than annihilated.
-  Wounded recover on the fought Garrison's own clock. The people struck are
+  Each marine struck rolls the casualty dice. The people struck are
   seeded from the event key, so a replayed settlement names the same marines.
 - **A raid with no strength estimate settles held-with-losses** at the middle
   of vanilla's uncertain band. Something landed and nothing says how hard.

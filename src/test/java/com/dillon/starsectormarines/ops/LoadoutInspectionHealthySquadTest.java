@@ -31,8 +31,7 @@ class LoadoutInspectionHealthySquadTest {
         Map<String, Object> healthy = LoadoutInspection.project(roster, squad, cards, 6, ignored -> { });
 
         List<String> seats = roster.seatedMemberIds(squad);
-        roster.applySoldierOutcome(Map.of(seats.get(0), MarineSoldierStatus.WIA,
-                seats.get(6), MarineSoldierStatus.KIA), 0f, 1f);
+        roster.applySoldierOutcome(Map.of(seats.get(6), MarineSoldierStatus.KIA));
         Map<String, Object> mauled = LoadoutInspection.project(roster, squad, cards, 6, ignored -> { });
 
         assertEquals(healthy.get("scope"), mauled.get("scope"));
@@ -42,7 +41,6 @@ class LoadoutInspectionHealthySquadTest {
             assertFalse(((String) billet(mauled, seat).get("classes")).contains("changes"));
             assertEquals(billet(healthy, seat).get("stats"), billet(mauled, seat).get("stats"));
         }
-        assertFalse(((String) billet(mauled, 0).get("name")).contains(String.valueOf(MarineSoldierStatus.WIA)));
     }
 
     @SuppressWarnings("unchecked")

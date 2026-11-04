@@ -185,8 +185,8 @@ final class LoadoutInspection {
         billet.put("index", index);
         billet.put("portraitId", portraitId(index));
         billet.put("kit", after != null ? after : before);
-        // A marine is read by place in the squad, not by name: rank and role, whether fit,
-        // wounded or not there at all. Whether the kit changes shows on its lines.
+        // A marine is read by place in the squad, not by name: rank and role, whether fit
+        // or not there at all. Whether the kit changes shows on its lines.
         billet.put("name", title(soldier, leadsSquad, after != null ? after : before));
         billet.put("nameClasses", "loadout-member-name label tone-edge");
         billet.put("classes", "loadout-billet" + (selected ? " selected" : "") + (differs ? " changes" : ""));

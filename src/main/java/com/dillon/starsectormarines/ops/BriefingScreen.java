@@ -567,7 +567,7 @@ public class BriefingScreen implements Screen {
         props.put("taskForceRows", !debug && mission.source != MissionSource.STATIONING
                 ? retainedTaskForceRows() : List.of());
         props.put("debugForceRows", debug
-                ? BriefingViewModel.debugForceRows(ctx.getDebugCompanyRoster(), CampaignClock.dayFloat()) : List.of());
+                ? BriefingViewModel.debugForceRows(ctx.getDebugCompanyRoster()) : List.of());
 
         int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
         props.put("commandSummary", Strings.format("briefingUiCommandSlots", used, CommandDeck.BUDGET));
@@ -1085,7 +1085,7 @@ public class BriefingScreen implements Screen {
             MarineRoster roster = liveRoster();
             if (roster != null) {
                 for (MarineSquad squad : element.squads) {
-                    SquadMuster muster = SquadMuster.from(roster, squad.id(), CampaignClock.dayFloat());
+                    SquadMuster muster = SquadMuster.from(roster, squad.id());
                     if (muster != null) musters.add(muster);
                 }
             }
@@ -1331,7 +1331,7 @@ public class BriefingScreen implements Screen {
         CampaignMechSquad lance = roster.mechBay().activeSquad();
         props.put("deployLamps", List.of(
                 DeployWarnings.undermanned(readiness.selectedReady(), MissionForceEnvelope.recommendedPersonnel(mission)),
-                DeployWarnings.casualties(roster, selected, day, replenishable),
+                DeployWarnings.casualties(roster, selected, replenishable),
                 DeployWarnings.damage(lance == null ? List.of() : lance.mechs(), day),
                 DeployWarnings.lift(liftReadout)));
         int vacant = 0;

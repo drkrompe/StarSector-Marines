@@ -39,11 +39,11 @@ class StationingNoForceResolutionTest {
         state.contractIncidentType[0] = StationingIncidentType.LIVE_FIRE_RAID.toByte();
         assertTrue(roster.bindStationing(contractId, captain.id(), List.of(squad.id())));
         captain.setStatus(Status.GARRISONED);
-        Map<String, MarineSoldierStatus> wounded = new HashMap<>();
+        Map<String, MarineSoldierStatus> missing = new HashMap<>();
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
-            wounded.put(soldier.id(), MarineSoldierStatus.WIA);
+            missing.put(soldier.id(), MarineSoldierStatus.MIA);
         }
-        roster.applySoldierOutcome(wounded, 40f, 12f);
+        roster.applySoldierOutcome(missing);
         StationingIncidentPayload payload = StationingIncidentPayload.from(
                 state, contractId, roster);
         assertNotNull(payload);
@@ -59,7 +59,7 @@ class StationingNoForceResolutionTest {
         assertEquals(Status.ACTIVE, captain.status());
         assertFalse(squad.stationed());
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
-            assertEquals(MarineSoldierStatus.WIA, soldier.status());
+            assertEquals(MarineSoldierStatus.MIA, soldier.status());
         }
     }
 }

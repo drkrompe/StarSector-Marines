@@ -36,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
@@ -172,7 +171,6 @@ public final class BarracksCommandModel {
         props.put("guideDismiss", (Runnable) this::dismissGuide);
         bind(reactor, "title", this::title);
         bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnel", lineSquads().size(), roster.lineReadySoldiers().size()));
-        bind(reactor, "healTimer", this::healTimer);
         bind(reactor, "scopeSummary", () -> Strings.format("openingBarracksCommandSquadsInViewSelected", filtered().size(), selected.size()));
         bind(reactor, "empty", () -> filtered().isEmpty() ? Strings.get("openingBarracksCommandNoSquadsMatchThisViewChooseRaise") : "");
         bind(reactor, "pageLabel", () -> Strings.format("openingBarracksCommandPage", (pageNumber() + 1), pages()));
@@ -205,7 +203,7 @@ public final class BarracksCommandModel {
     }
     public Map<String, Object> props() { return props; }
     public List<Map<String, Object>> cards() { return cards.get(); }
-    public SquadMuster muster(String id) { return SquadMuster.from(roster, id, (float) currentDay.getAsDouble()); }
+    public SquadMuster muster(String id) { return SquadMuster.from(roster, id); }
     public Set<String> selected() { return Set.copyOf(selected); }
     public void refresh() { revision.update(n -> n + 1); }
     public void leave() { refresh(); }
@@ -448,7 +446,7 @@ public final class BarracksCommandModel {
                 Math.min(filtered.size(), (pageNumber() + 1) * PAGE_SIZE))) {
             int ready = roster.readyCount(squad);
             SquadMuster muster = muster(squad.id());
-            String personnel = squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : Strings.format("openingBarracksCommandReadyWiaVacant", ready, muster.woundedCount(), muster.vacantCount());
+            String personnel = squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : Strings.format("openingBarracksCommandReadyVacant", ready, muster.vacantCount());
             String id = "formation:" + squad.id();
             Map<String, Object> weaponCard = weaponCard(squad, id + ":weapon-card"), armorCard = armorCard(squad, id + ":armor-card");
             Set<String> only = Set.of(squad.id());
@@ -590,13 +588,10 @@ public final class BarracksCommandModel {
         notes.add(Strings.format("openingBarracksCommandCards", profileName(squad),
                 ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId())));
         notes.add(armor == null ? Strings.get("openingBarracksCommandNoIssuedArmorAllBilletsVacant") : Strings.format("openingBarracksCommandArmorImageTheMostCommonCurrentIssue", armor.displayName()));
-        if (muster.woundedCount() > 0) notes.add(String.format(Strings.locale(),
-                Strings.get("openingBarracksCommandWoundedPersonnelKeepTheirBilletsNextReturn"), muster.earliestRecoveryDays()));
         notes.add(squad.stationed() ? Strings.get("openingBarracksCommandOnStationInspectIsAvailableBulkOrders")
                 : Strings.get("openingBarracksCommandClickTheCardToSelectItFor"));
         return new SpecSheet(squad.name(), profileName(squad), armor == null ? "" : armor.iconPath(), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandReady2"), Strings.format("openingBarracksCommandReadyOfBillets", muster.readyCount(), 12)),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandWounded"), Integer.toString(muster.woundedCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(muster.vacantCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandHomeCommand2"), captainName(roster.byId(squad.homeCaptainId())))), notes);
     }
@@ -604,14 +599,6 @@ public final class BarracksCommandModel {
         var result = roster.assignCaptainToSquads(captainId, selected);
         feedback = result.valid() ? Strings.format("openingBarracksCommandSquadsAssignedTo", result.changedSquadCount(), captainName(roster.byId(captainId))) : result.reason();
         refresh();
-    }
-    /** Company-wide countdown until every line squad's wounded are back on duty. */
-    private String healTimer() {
-        List<SquadMuster> musters = lineSquads().stream().map(s -> muster(s.id())).toList();
-        int hours = SquadMuster.hoursUntilFullHeal(musters);
-        if (hours == 0) return Strings.get("openingBarracksCommandFullHealNone");
-        int wounded = musters.stream().filter(Objects::nonNull).mapToInt(SquadMuster::woundedCount).sum();
-        return Strings.format("openingBarracksCommandFullHealHours", hours, wounded);
     }
     private int vacancies(Set<String> squadIds) {
         return lineSquads().stream().filter(s -> squadIds.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();
@@ -622,9 +609,8 @@ public final class BarracksCommandModel {
     private String recruitment(Set<String> squadIds) {
         int vacancies = vacancies(squadIds);
         int reserves = Math.min(vacancies, roster.readyReserveCount());
-        int wounded = lineSquads().stream().filter(s -> squadIds.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
         int shortfall = vacancies - reserves - recruitsRequired(squadIds);
-        String summary = Strings.format("companyResourceRecruitment", vacancies, recruitsRequired(squadIds), wounded);
+        String summary = Strings.format("companyResourceRecruitment", vacancies, recruitsRequired(squadIds));
         return shortfall > 0 ? summary + " " + Strings.format("companyResourceRecruitmentShort", shortfall) : summary;
     }
     private int recruitsRequired(Set<String> squadIds) {

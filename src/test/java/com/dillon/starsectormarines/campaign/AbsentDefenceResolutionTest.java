@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.campaign.AbsentDefenceGrade.Outcome;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -33,8 +35,8 @@ class AbsentDefenceResolutionTest {
         assertEquals(Outcome.HELD, outcome);
         assertEquals(ContractState.ACTIVE,
                 ContractState.fromByte(fixture.state.contractState[0]));
-        assertEquals(SEATS - 1, fixture.roster.stationedActiveCount(fixture.contractId));
-        // Committed strength counts the wounded, whose disposition the roll decides.
+        assertEquals(1, fixture.struck());
+        // Committed strength counts every living marine still bound to the post.
         assertEquals(fixture.roster.stationedLivingCount(fixture.contractId),
                 fixture.state.contractMarinesCommitted[0]);
         assertTrue(fixture.squad.stationed());
@@ -96,7 +98,7 @@ class AbsentDefenceResolutionTest {
                 fixture.state, fixture.payload(), fixture.roster, DAY, 4_000f);
 
         assertEquals(Outcome.HELD_WITH_LOSSES, outcome);
-        assertEquals(SEATS - 2, fixture.roster.stationedActiveCount(fixture.contractId));
+        assertEquals(2, fixture.struck());
     }
 
     /** Every absent settlement leaves the company exactly one account of it. */
@@ -170,6 +172,15 @@ class AbsentDefenceResolutionTest {
     }
 
     static final class Fixture {
+        /** Marines the raid put down: the dead, plus the wounded back on duty with it on record. */
+        int struck() {
+            int struck = 0;
+            for (MarineSoldier soldier : roster.squadMembers(squad)) {
+                if (soldier.status() != MarineSoldierStatus.ACTIVE || soldier.career().timesWounded() > 0) struck++;
+            }
+            return struck;
+        }
+
         final CampaignState state = new CampaignState();
         final MarineRoster roster = new MarineRoster();
         final MarineCaptain captain =

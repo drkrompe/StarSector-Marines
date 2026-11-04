@@ -56,7 +56,7 @@ class SoldierCareerTest {
         Map<String, CombatTelemetryRow> telemetry = Collections.singletonMap(
                 soldier.id(), row(soldier.id(), true, 40, 14, 260f, 31f, 3));
 
-        roster.applySoldierOutcome(outcomes, 100f, 10f, telemetry, true);
+        roster.applySoldierOutcome(outcomes, telemetry, true);
 
         SoldierCareer career = soldier.career();
         assertEquals(1, career.missionsDeployed());
@@ -76,8 +76,7 @@ class SoldierCareerTest {
         MarineSoldier soldier = roster.soldiers().get(0);
 
         roster.applySoldierOutcome(
-                Collections.singletonMap(soldier.id(), MarineSoldierStatus.ACTIVE),
-                100f, 10f, Collections.emptyMap(), false);
+                Collections.singletonMap(soldier.id(), MarineSoldierStatus.ACTIVE), Collections.emptyMap(), false);
 
         SoldierCareer career = soldier.career();
         assertEquals(1, career.missionsDeployed(), "they were there");
@@ -92,12 +91,10 @@ class SoldierCareerTest {
 
         roster.applySoldierOutcome(
                 Collections.singletonMap(soldier.id(), MarineSoldierStatus.ACTIVE),
-                100f, 10f,
                 Collections.singletonMap(soldier.id(), row(soldier.id(), true, 20, 8, 100f, 5f, 1)),
                 true);
         roster.applySoldierOutcome(
                 Collections.singletonMap(soldier.id(), MarineSoldierStatus.WIA),
-                120f, 10f,
                 Collections.singletonMap(soldier.id(), row(soldier.id(), false, 12, 3, 40f, 60f, 0)),
                 false);
 
@@ -110,7 +107,7 @@ class SoldierCareerTest {
         assertEquals(140f, career.damageDealt(), 0.001f);
         assertEquals(65f, career.damageTaken(), 0.001f);
         assertEquals(1, career.kills());
-        assertEquals(MarineSoldierStatus.WIA, soldier.status());
+        assertEquals(MarineSoldierStatus.ACTIVE, soldier.status(), "a wounded fate leaves the marine on duty");
     }
 
     @Test
@@ -120,7 +117,6 @@ class SoldierCareerTest {
 
         roster.applySoldierOutcome(
                 Collections.singletonMap(soldier.id(), MarineSoldierStatus.KIA),
-                100f, 10f,
                 Collections.singletonMap(soldier.id(), row(soldier.id(), false, 18, 9, 130f, 25f, 2)),
                 true);
 
@@ -137,8 +133,7 @@ class SoldierCareerTest {
         MarineSoldier soldier = roster.soldiers().get(0);
 
         roster.applySoldierOutcome(
-                Collections.singletonMap(soldier.id(), MarineSoldierStatus.ACTIVE),
-                100f, 10f);
+                Collections.singletonMap(soldier.id(), MarineSoldierStatus.ACTIVE));
 
         assertEquals(1, soldier.career().missionsDeployed());
         assertEquals(0, soldier.career().missionsWon(),

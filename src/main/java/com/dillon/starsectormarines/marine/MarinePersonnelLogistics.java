@@ -41,8 +41,7 @@ public final class MarinePersonnelLogistics {
 
     /**
      * Fills every true open billet in one squad, drawing ready reserves first and then consuming
-     * generic cargo marines. WIA personnel still hold their billets, so this never overmans a
-     * temporarily degraded squad.
+     * generic cargo marines. Only vacant billets are filled, so this never overmans a squad.
      */
     public static PersonnelDrawResult reinforceSquad(MarineRoster roster, String squadId) {
         return reinforceSquad(roster, squadId, playerCargo(), intakeAboard());

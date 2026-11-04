@@ -88,7 +88,6 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         int selectedSquads = CaptainDeploymentPolicy.selectedCount(roster, selectedSquadIds);
         int commandCap = captain != null ? captain.rank().squadCommandCap() : 0;
         int active = selectedStatusCount(roster, MarineSoldierStatus.ACTIVE);
-        int wia = selectedStatusCount(roster, MarineSoldierStatus.WIA);
         boolean commandValid = state != null && marketId() != null && selectedSquads > 0
                 && active > 0
                 && CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selectedSquadIds)
@@ -103,7 +102,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                         captain != null ? captain.name() : Strings.get("stationingScreenNoCaptain")),
                 row("stationing-strength", Strings.get("stationingScreenDetachmentLabel"),
                         Strings.format("stationingScreenOfferStrength", selectedSquads, commandCap,
-                                active, wia))));
+                                active))));
         props.put("captainHeader", Strings.get("stationingScreenCaptainHeader"));
         props.put("captainRows", captainRows());
         props.put("formationHeader", Strings.get("stationingScreenFormationHeader"));
@@ -141,11 +140,10 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         int selectedSquads = CaptainDeploymentPolicy.selectedCount(roster, selectedSquadIds);
         int commandCap = captain != null ? captain.rank().squadCommandCap() : 0;
         int active = selectedStatusCount(roster, MarineSoldierStatus.ACTIVE);
-        int wia = selectedStatusCount(roster, MarineSoldierStatus.WIA);
         int patronRow = state.houseIndex(state.contractPatronHouseId[row]);
         HouseRank rank = patronRow >= 0 ? HouseRank.fromByte(state.houseRank[patronRow]) : null;
         StationingContractTerms terms = StationingContractTerms.create(
-                type, rank, active + wia, requestedMonths);
+                type, rank, active, requestedMonths);
         boolean commandValid = selectedSquads > 0 && active > 0
                 && CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selectedSquadIds)
                 && selectionAvailable(roster);
@@ -161,7 +159,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                         captain != null ? captain.name() : Strings.get("stationingScreenNoCaptain")),
                 row("stationing-strength", Strings.get("stationingScreenDetachmentLabel"),
                         Strings.format("stationingScreenOfferStrength", selectedSquads, commandCap,
-                                active, wia))));
+                                active))));
         props.put("captainHeader", Strings.get("stationingScreenCaptainHeader"));
         props.put("captainRows", captainRows());
         props.put("formationHeader", Strings.get("stationingScreenFormationHeader"));
@@ -201,7 +199,6 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         List<MarineSquad> stationed = roster != null
                 ? roster.squadsStationedOn(state.contractId[row]) : List.of();
         int active = statusCount(roster, squadIds(stationed), MarineSoldierStatus.ACTIVE);
-        int wia = statusCount(roster, squadIds(stationed), MarineSoldierStatus.WIA);
         StationingIncidentPayload incident = StationingIncidentPayload.from(
                 state, state.contractId[row], roster);
         GarrisonDefensePayload defense = GarrisonDefensePayload.from(
@@ -225,7 +222,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                         ? Strings.format("stationingScreenCommittedMarines",
                                 state.contractMarinesCommitted[row])
                         : Strings.format("stationingScreenStationedStrength", stationed.size(),
-                                active, wia)),
+                                active)),
                 row("stationing-remaining", Strings.get("stationingScreenRemainingLabel"), posting
                         ? Strings.get("postingNoTerm")
                         : Strings.format("stationingScreenTermDays", daysRemaining))));
@@ -236,7 +233,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 true, () -> { })));
         props.put("formationHeader", Strings.get("stationingScreenStationedDetachment"));
         props.put("formationSummary", Strings.format("stationingScreenLivingSummary",
-                active, wia, state.contractMarinesCommitted[row]));
+                active, state.contractMarinesCommitted[row]));
         props.put("squadRows", managementSquadRows(roster, stationed));
         if (posting) {
             putNoTerms(props);
@@ -344,11 +341,11 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("overviewRows", management ? List.of(
                 row("stationing-state", "Status", responsePending ? "Response pending" : "In good standing"),
                 row("stationing-command", "Command", "Morgan Hale"),
-                row("stationing-strength", "Detachment", "3 squads · 34 RTD · 2 WIA"),
+                row("stationing-strength", "Detachment", "3 squads · 34 RTD"),
                 row("stationing-remaining", "Time remaining", "47 days")) : List.of(
                 row("stationing-state", "Status", "Offer pending"),
                 row("stationing-command", "Command", "Morgan Hale"),
-                row("stationing-strength", "Detachment", "3 / 4 squads · 34 RTD · 2 WIA")));
+                row("stationing-strength", "Detachment", "3 / 4 squads · 34 RTD")));
         props.put("captainHeader", management ? "POSTED COMMAND" : "COMMANDING CAPTAIN");
         props.put("captainRows", management ? List.of(
                 captainCard("stationing-captain-preview-0", "Morgan Hale",
@@ -358,11 +355,11 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 captainCard("stationing-captain-preview-1", "Tomas Venn",
                         "Ensign · 2 squad command", false, none)));
         props.put("formationHeader", management ? "STATIONED DETACHMENT" : "AVAILABLE LINE SQUADS");
-        props.put("formationSummary", management ? "34 RTD · 2 WIA · 36 LIVING" : "DETACHMENT READY");
+        props.put("formationSummary", management ? "34 RTD · 36 LIVING" : "DETACHMENT READY");
         List<SquadRow> previewSquads = new ArrayList<>(List.of(
                 squadCard("stationing-squad-preview-0", "1st Squad", "12 RTD", "Field Rifles / Standard Plate", true, false, none),
-                squadCard("stationing-squad-preview-1", "2nd Squad", "11 RTD · 1 WIA", "Assault Rifles / Heavy Plate", true, false, none),
-                squadCard("stationing-squad-preview-2", "3rd Squad", "11 RTD · 1 WIA", "Marksman Rifles / Scout Plate", true, false, none)));
+                squadCard("stationing-squad-preview-1", "2nd Squad", "11 RTD", "Assault Rifles / Heavy Plate", true, false, none),
+                squadCard("stationing-squad-preview-2", "3rd Squad", "11 RTD", "Marksman Rifles / Scout Plate", true, false, none)));
         if (!management) {
             previewSquads.add(squadCard("stationing-squad-preview-3", "4th Squad",
                     "12 RTD", "Available", false, false, none));
@@ -419,8 +416,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
             boolean canToggle = selected || CaptainDeploymentPolicy.canAdd(
                     roster, captain, selectedSquadIds, squad.id());
             int ready = roster.readyCount(squad);
-            int wia = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.WIA);
-            String status = rtdStatus(ready, wia);
+            String status = rtdStatus(ready);
             String detail = Strings.get(!available ? "stationingScreenDetailAway"
                     : !canToggle ? "stationingScreenDetailCapacity" : "stationingScreenDetailAvailable");
             rows.add(squadCard("stationing-squad-" + rows.size(), squad.name(), status,
@@ -435,9 +431,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         List<SquadRow> rows = new ArrayList<>();
         for (MarineSquad squad : stationed) {
             int active = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.ACTIVE);
-            int wia = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.WIA);
             rows.add(squadCard("stationing-posted-squad-" + rows.size(), squad.name(),
-                    rtdStatus(active, wia),
+                    rtdStatus(active),
                     Strings.get("stationingScreenDetailBound"), true, true, () -> { }));
         }
         return List.copyOf(rows);
@@ -598,9 +593,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         return result;
     }
 
-    private static String rtdStatus(int ready, int wia) {
-        return wia > 0 ? Strings.format("stationingScreenRtdWiaStatus", ready, wia)
-                : Strings.format("stationingScreenRtdStatus", ready);
+    private static String rtdStatus(int ready) {
+        return Strings.format("stationingScreenRtdStatus", ready);
     }
 
     private static String displayType(ContractType type) {

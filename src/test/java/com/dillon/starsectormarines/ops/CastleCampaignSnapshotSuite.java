@@ -30,12 +30,11 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             props.put("commandSummary", "0 / 5 slots");
             props.put("powerRows", List.of());
-            // Junction has no callout: the lamps beside Deploy carry the checks. One squad, two wounded and one
-            // empty billet lights strength and casualties (with and without the casualty hover); a whole force lights nothing.
+            // Junction has no callout: the lamps beside Deploy carry the checks. One squad with three
+            // empty billets lights strength and casualties (with and without the casualty hover); a whole force lights nothing.
             var members = roster.squadMembers(second);
-            roster.applySoldierOutcome(Map.of(members.get(0).id(), MarineSoldierStatus.WIA,
-                    members.get(1).id(), MarineSoldierStatus.WIA, members.get(2).id(), MarineSoldierStatus.KIA),
-                    0f, 0.6f);
+            roster.applySoldierOutcome(Map.of(members.get(0).id(), MarineSoldierStatus.KIA,
+                    members.get(1).id(), MarineSoldierStatus.KIA, members.get(2).id(), MarineSoldierStatus.KIA));
             putLamps(props, roster, Set.of(second.id()), 9, 3);
             frames.add(new SnapshotArtifact("junction-0.png", UiSnapshotSuite.renderMissionBriefing(context, renderer,
                     1920, 1080, props, 1f, false, "mission-lamp-casualties")));
@@ -75,7 +74,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
     private static void putLamps(Map<String, Object> props, MarineRoster roster, Set<String> selected, int ready,
                                  int replenishable) {
         props.put("deployLamps", List.of(DeployWarnings.undermanned(ready, 24),
-                DeployWarnings.casualties(roster, selected, 0f, replenishable),
+                DeployWarnings.casualties(roster, selected, replenishable),
                 DeployWarnings.damage(List.of(), 0f), DeployWarnings.lift(null)));
         props.put("replenishLabel", replenishable > 0 && !selected.isEmpty() ? "REPLENISH +1" : "");
         props.put("replenishClasses", replenishable > 0 && !selected.isEmpty() ? "" : "briefing-assign-hidden");

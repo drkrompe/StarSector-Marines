@@ -350,11 +350,10 @@ because fixed padding inflated an otherwise fitting screen.
 Recognition comes from existing art: officer portraits, hull sprites, faction
 crests, commodity icons and the same command-power symbols in briefing and battle.
 A squad's **muster** draws each billet with the battle's own sprites, in that marine's
-kit: standing when ready, lying in its armour's fallen pose with a cross when wounded,
-and a vacant billet is left empty under a red cross, so a squad's losses read from the
+kit: standing when ready, and a vacant billet is left empty under a red cross, so a squad's losses read from the
 shape of its ranks.
 The Armory's loadout comparison is the exception: it compares a healthy squad with the
-cards, so a lost seat reads as what it is issued and a wounded marine shows no status.
+cards, so a lost seat reads as what it is issued.
 Essential state, cost, scope and consequences stay visible; existing spec sheets
 and contextual hints own secondary detail. Presentation never supplies another
 catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at

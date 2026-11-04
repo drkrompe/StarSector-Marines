@@ -165,7 +165,7 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
             if (fixture.equals("ordinary-15303") && victory) {
                 // The store sells the section; the follow-on fixture holds it as if bought.
                 LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.ARBALEST_CARD);
-                roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome),10f,12f,outcome.soldierTelemetry,outcome.victory);
+                roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome),outcome.soldierTelemetry,outcome.victory);
                 var bytes = new ByteArrayOutputStream();
                 try (var out = new ObjectOutputStream(bytes)) { out.writeObject(roster); }
                 try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) { earnedRoster=(MarineRoster)in.readObject(); }

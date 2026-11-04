@@ -34,11 +34,6 @@ import java.util.Random;
  */
 public final class AbsentDefenceResolution {
 
-    /**
-     * A Garrison defence is a {@code RiskLevel.HIGH} mission when it is fought, so its
-     * wounded recover on the same clock whether or not the player commanded it.
-     */
-
     /** Reputation the employer takes off for a garrison that fought the raid and lost. */
     private static final int OVERRUN_HOUSE_DELTA = -1;
 
@@ -148,7 +143,7 @@ public final class AbsentDefenceResolution {
             if (roster != null && !roster.squadsStationedOn(payload.contractId).isEmpty()) {
                 // The survivors went to ground on a planet the employer no longer holds.
                 // They stay bound to the assignment, captain included, until the company
-                // collects them or the recovery runs out.
+                // collects them or the deadline runs out.
                 StrandedDetachment.strand(state, row, day);
             } else {
                 StationingLapseResolution.restoreStrandedCaptain(captain, day, OVERRUN_NOTE);
@@ -240,12 +235,12 @@ public final class AbsentDefenceResolution {
         }
         // No battle ran, so there is no telemetry to fold into a career record; the
         // deployment itself is all this defence honestly knows about each marine.
-        roster.applySoldierOutcome(manifest, day, MarineRoster.WIA_RECOVERY_DAYS, Collections.emptyMap(), victory);
+        roster.applySoldierOutcome(manifest, Collections.emptyMap(), victory);
         return fates;
     }
 
     /**
-     * Deployable strength only. A marine already wounded from an earlier incident is not
+     * Deployable strength only. A marine already missing from an earlier incident is not
      * on the line and cannot be counted a second time.
      */
     private static List<MarineSoldier> deployableMarines(MarineRoster roster, long contractId) {

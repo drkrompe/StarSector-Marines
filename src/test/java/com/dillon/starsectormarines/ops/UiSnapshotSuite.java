@@ -1891,8 +1891,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     throw new AssertionError("Issue action must stay compact");
                 var members = roster.manningMemberIds(squad);
                 EquipmentTestFixtures.issueLauncher(roster.soldierById(members.get(0)));
-                roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
-                        members.get(6), MarineSoldierStatus.KIA), 100f, 2f);
+                roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.KIA,
+                        members.get(6), MarineSoldierStatus.KIA));
                 editor.refresh(); editorMarkup.flush();
                 LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -1982,8 +1982,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 else if (i < 12) roster.assignCaptainToSquad(second.id(), squads.get(i).id());
             }
             if (!squads.isEmpty()) {
-                roster.applySoldierOutcome(Map.of(squads.get(1).memberIds().get(0), MarineSoldierStatus.WIA,
-                        squads.get(2).memberIds().get(0), MarineSoldierStatus.KIA), 100f, 2f);
+                roster.applySoldierOutcome(Map.of(squads.get(1).memberIds().get(0), MarineSoldierStatus.KIA,
+                        squads.get(2).memberIds().get(0), MarineSoldierStatus.KIA));
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
@@ -2401,10 +2401,10 @@ private static BufferedImage renderBarracks(
                 .filter(candidate -> !candidate.reserve())
                 .findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
-        postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
+        postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.KIA);
         postBattle.put(squad.memberIds().get(7), MarineSoldierStatus.KIA);
         postBattle.put(squad.memberIds().get(9), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
+        roster.applySoldierOutcome(postBattle);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
         // A lesson over this room stands alone: the walkthrough would sit in front of the same board.
@@ -2536,10 +2536,10 @@ private static BufferedImage renderBarracks(
         MarineSquad squad = roster.squads().get(0);
         if (!pickerOpen) {
             Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
-            postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
+            postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
             postBattle.put(squad.memberIds().get(6),
                     MarineSoldierStatus.KIA);
-            roster.applySoldierOutcome(postBattle, 100f, 1.25f);
+            roster.applySoldierOutcome(postBattle);
             roster.recruitToSquad(roster.reserveSquad().id());
         }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(

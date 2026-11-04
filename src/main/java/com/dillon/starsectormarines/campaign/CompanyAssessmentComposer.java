@@ -10,7 +10,7 @@ public final class CompanyAssessmentComposer {
 
     public static String render(OfficerMood mood, int currentDay,
                                 CompanyRating rating, int ready, int strength,
-                                int squads, int wounded, int stationed) {
+                                int squads, int stationed) {
         OfficerMood safeMood = mood != null ? mood : OfficerMood.STEADY;
         CompanyRating safeRating = rating != null ? rating : CompanyRating.UNPROVEN;
         String[] pool = CommsOfficerVoice.forMood(safeMood).companyAssessment;
@@ -21,7 +21,6 @@ public final class CompanyAssessmentComposer {
                 .replace("{ready}", Integer.toString(ready))
                 .replace("{strength}", Integer.toString(strength))
                 .replace("{squads}", Integer.toString(squads))
-                .replace("{wounded}", Integer.toString(wounded))
                 .replace("{stationed}", Integer.toString(stationed));
     }
 }

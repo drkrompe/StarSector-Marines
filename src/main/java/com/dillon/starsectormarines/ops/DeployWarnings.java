@@ -3,8 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.marine.MarineSoldier;
-import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -59,7 +57,7 @@ final class DeployWarnings {
         return Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
-    /** Whole hours until a marine wounded until {@code untilDay} is fit, counted from {@code day}. */
+    /** Whole hours until a mech under repair until {@code untilDay} is fit, counted from {@code day}. */
     static int hoursToFit(float untilDay, float day) {
         return Math.max(0, (int) Math.ceil((untilDay - day) * 24f - 1e-3f));
     }
@@ -73,12 +71,12 @@ final class DeployWarnings {
     }
 
     /**
-     * Wounded and empty billets in the selected squads. A wounded marine keeps the billet and returns on
-     * a clock, so the hover gives hours; an empty billet only fills by hand, so it says what Replenish can draw.
+     * Empty billets in the selected squads. An empty billet only fills by hand, so the hover says what
+     * Replenish can draw.
      *
      * @param replenishable reserves plus cargo Marines a refill could draw on
      */
-    static Lamp casualties(MarineRoster roster, Collection<String> squadIds, float day, int replenishable) {
+    static Lamp casualties(MarineRoster roster, Collection<String> squadIds, int replenishable) {
         List<String> notes = new ArrayList<>();
         int vacant = 0;
         boolean lit = false;
@@ -86,19 +84,10 @@ final class DeployWarnings {
             for (String id : squadIds) {
                 MarineSquad squad = roster.squadById(id);
                 if (squad == null || squad.reserve()) continue;
-                int wounded = 0;
-                float latest = day;
-                for (MarineSoldier soldier : roster.squadMembers(squad)) {
-                    if (soldier.status() != MarineSoldierStatus.WIA) continue;
-                    wounded++;
-                    latest = Math.max(latest, soldier.unavailableUntilDay());
-                }
                 int open = roster.vacancies(squad);
                 vacant += open;
-                if (wounded > 0) notes.add(Strings.format("deployLampCasualtiesWounded", squad.name(), wounded,
-                        hoursToFit(latest, day)));
                 if (open > 0) notes.add(Strings.format("deployLampCasualtiesVacant", squad.name(), open));
-                lit |= wounded > 0 || open > 0;
+                lit |= open > 0;
             }
         }
         if (vacant > 0) notes.add(Strings.format(replenishable >= vacant ? "deployLampCasualtiesReplenish"

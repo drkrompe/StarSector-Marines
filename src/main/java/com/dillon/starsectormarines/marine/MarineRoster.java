@@ -510,14 +510,12 @@ public class MarineRoster implements Serializable {
      */
     public boolean listStationedMissing(long contractId, String soldierId) {
         MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || (soldier.status() != MarineSoldierStatus.ACTIVE
-                && soldier.status() != MarineSoldierStatus.WIA)) {
+        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) {
             return false;
         }
         for (MarineSquad squad : squadsStationedOn(contractId)) {
             if (squadMembers(squad).contains(soldier)) {
                 soldier.setStatus(MarineSoldierStatus.MIA);
-                soldier.setUnavailableUntilDay(0f);
                 return true;
             }
         }
@@ -530,10 +528,8 @@ public class MarineRoster implements Serializable {
         if (stationed.isEmpty()) return 0;
         for (MarineSquad squad : stationed) {
             for (MarineSoldier soldier : squadMembers(squad)) {
-                if (soldier.status() == MarineSoldierStatus.ACTIVE
-                        || soldier.status() == MarineSoldierStatus.WIA) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE) {
                     soldier.setStatus(MarineSoldierStatus.MIA);
-                    soldier.setUnavailableUntilDay(0f);
                 }
             }
         }
@@ -707,16 +703,14 @@ public class MarineRoster implements Serializable {
     /**
      * Every current billet holder, closed up: use it to ask who is in the squad, and
      * {@link #seatedMemberIds} to ask where they sit. Permanent casualty records remain on the
-     * squad's roll. WIA marines remain here because their billet is still theirs while they
-     * recover.
+     * squad's roll.
      */
     public List<String> manningMemberIds(MarineSquad squad) {
         if (squad == null) return Collections.emptyList();
         List<String> result = new ArrayList<>();
         for (String id : squad.memberIds()) {
             MarineSoldier soldier = soldierById(id);
-            if (soldier != null && (soldier.status() == MarineSoldierStatus.ACTIVE
-                    || soldier.status() == MarineSoldierStatus.WIA)) {
+            if (soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE) {
                 result.add(id);
             }
         }
@@ -735,8 +729,7 @@ public class MarineRoster implements Serializable {
 
     private boolean mansASeat(String soldierId) {
         MarineSoldier soldier = soldierById(soldierId);
-        return soldier != null && (soldier.status() == MarineSoldierStatus.ACTIVE
-                || soldier.status() == MarineSoldierStatus.WIA);
+        return soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE;
     }
 
     /**
@@ -804,7 +797,7 @@ public class MarineRoster implements Serializable {
         return count;
     }
 
-    /** ACTIVE and WIA personnel remain living strength for a named assignment. */
+    /** Living strength for a named assignment. */
     public int livingCount(Iterable<String> squadIds) {
         if (squadIds == null) return 0;
         Set<String> unique = new HashSet<>();
@@ -812,8 +805,7 @@ public class MarineRoster implements Serializable {
         for (String squadId : squadIds) {
             if (squadId == null || !unique.add(squadId)) continue;
             for (MarineSoldier soldier : squadMembers(squadById(squadId))) {
-                if (soldier.status() == MarineSoldierStatus.ACTIVE
-                        || soldier.status() == MarineSoldierStatus.WIA) {
+                if (soldier.status() == MarineSoldierStatus.ACTIVE) {
                     count++;
                 }
             }
@@ -833,12 +825,11 @@ public class MarineRoster implements Serializable {
         return count;
     }
 
-    /** Filled billets include deployable and temporarily wounded personnel. */
+    /** Filled billets. */
     public int manningCount(MarineSquad squad) {
         int count = 0;
         for (MarineSoldier soldier : squadMembers(squad)) {
-            if (soldier.status() == MarineSoldierStatus.ACTIVE
-                    || soldier.status() == MarineSoldierStatus.WIA) count++;
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
         }
         return count;
     }
@@ -1277,10 +1268,8 @@ public class MarineRoster implements Serializable {
     }
 
     /** Applies the richer personnel report used by the squad debrief. */
-    public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
-                                    float currentDay, float wiaDays) {
-        applySoldierOutcome(outcomes, currentDay, wiaDays,
-                Collections.emptyMap(), false);
+    public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes) {
+        applySoldierOutcome(outcomes, Collections.emptyMap(), false);
     }
 
     /**
@@ -1291,7 +1280,8 @@ public class MarineRoster implements Serializable {
      * <p>{@code outcomes} is the deployment manifest: it holds survivors and
      * casualties alike, so every key is a marine who went. A marine the battle
      * recorded nothing for still counts as deployed — they were there, they
-     * just never got a shot off.
+     * just never got a shot off. A {@link MarineSoldierStatus#WIA} fate is a marine who went
+     * down and came home: fit for duty at once, with the wound on their record.
      *
      * <p>The same pass credits each marine's <b>squad</b> career. Attribution
      * comes from the squad id frozen onto the marine at spawn, carried back on
@@ -1302,7 +1292,6 @@ public class MarineRoster implements Serializable {
      * per squad per mission, however many billets it filled.
      */
     public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
-                                    float currentDay, float wiaDays,
                                     Map<String, CombatTelemetryRow> telemetry,
                                     boolean victory) {
         if (outcomes == null) return;
@@ -1311,13 +1300,6 @@ public class MarineRoster implements Serializable {
             MarineSoldier soldier = soldierById(entry.getKey());
             if (soldier == null || entry.getValue() == null) continue;
             MarineSoldierStatus status = entry.getValue();
-            if (status == MarineSoldierStatus.ACTIVE) {
-                soldier.setUnavailableUntilDay(0f);
-            } else if (status == MarineSoldierStatus.WIA) {
-                soldier.setUnavailableUntilDay(currentDay + Math.max(1f, wiaDays));
-            } else {
-                soldier.setUnavailableUntilDay(0f);
-            }
             soldier.setStatus(status);
             CombatTelemetryRow row = telemetry != null ? telemetry.get(entry.getKey()) : null;
             soldier.career().recordDeployment(
@@ -1342,28 +1324,6 @@ public class MarineRoster implements Serializable {
         for (String squadId : creditedSquadIds) {
             MarineSquad squad = squadById(squadId);
             if (squad != null) squad.career().recordMission(victory);
-        }
-        refreshLeadership();
-    }
-
-    /** Campaign days a WIA marine spends recovering aboard ship before returning to duty. */
-    public static final float WIA_RECOVERY_DAYS = 1f;
-
-    /** Shortens an existing wounded timer without changing status, kit or billet. */
-    public void shortenWoundedRecovery(String soldierId, float untilDay) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier != null && soldier.status() == MarineSoldierStatus.WIA && Float.isFinite(untilDay))
-            soldier.setUnavailableUntilDay(Math.min(soldier.unavailableUntilDay(), Math.max(0f, untilDay)));
-    }
-
-    /** Returns WIA personnel to duty once their campaign recovery timer expires. */
-    public void recoverWounded(float currentDay) {
-        for (MarineSoldier soldier : soldiers) {
-            if (soldier.status() == MarineSoldierStatus.WIA
-                    && currentDay >= soldier.unavailableUntilDay()) {
-                soldier.setStatus(MarineSoldierStatus.ACTIVE);
-                soldier.setUnavailableUntilDay(0f);
-            }
         }
         refreshLeadership();
     }

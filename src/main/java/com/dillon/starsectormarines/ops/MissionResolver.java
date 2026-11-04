@@ -106,7 +106,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
  *       days (long recovery, "missing in action — extracted later"). Deterministic
  *       per (captain, mission). Captured branch deferred until CAPTURED status lands.</li>
  *   <li>Withdrawal (Confirmed Retreat): surviving marines away from every landing
- *       pad come home wounded; those at a pad extract unhurt.</li>
+ *       pad roll the casualty dice; those at a pad extract unhurt.</li>
  *   <li>XP crossing a rank threshold auto-promotes (cascades if a single mission
  *       skips a tier).</li>
  * </ul>
@@ -217,8 +217,8 @@ public final class MissionResolver {
         int alliesAlive = 0;
         Set<String> survivingSoldierIds = new HashSet<>();
         // A withdrawal costs the troops still out in the field: whoever is not
-        // at a landing pad when the company pulls out comes home wounded.
-        Set<String> withdrawalWoundedSoldierIds = new HashSet<>();
+        // at a landing pad when the company pulls out rolls the casualty dice.
+        Set<String> withdrawalStragglerSoldierIds = new HashSet<>();
         boolean withdrew = sim.isRetreated();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
@@ -231,7 +231,7 @@ public final class MissionResolver {
                 if (id != null) survivingSoldierIds.add(id);
                 if (id != null && withdrew && !WithdrawalExtraction.extracts(sim.getMarineLandingPads(),
                         sim.world().x(unit), sim.world().y(unit))) {
-                    withdrawalWoundedSoldierIds.add(id);
+                    withdrawalStragglerSoldierIds.add(id);
                 }
             } else if (faction == Faction.ALLY) {
                 alliesAlive++;
@@ -264,7 +264,7 @@ public final class MissionResolver {
                     BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
             if (id == null) continue;
             takenSoldierIds.add(id);
-            withdrawalWoundedSoldierIds.remove(id);
+            withdrawalStragglerSoldierIds.remove(id);
             if (survivingSoldierIds.remove(id)) {
                 fallenSoldierIds.add(id);
                 marinesAlive--;
@@ -453,7 +453,7 @@ public final class MissionResolver {
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .takenSoldierIds(takenSoldierIds)
-                .withdrawalWoundedSoldierIds(withdrawalWoundedSoldierIds)
+                .withdrawalStragglerSoldierIds(withdrawalStragglerSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
                 .soldierTelemetry(soldierTelemetry)
                 .build();
@@ -766,31 +766,29 @@ public final class MissionResolver {
         MarineRosterScript personnelScript = MarineRosterScript.getInstance();
         if (personnelScript == null) return null;
         MarineRoster roster = personnelScript.roster();
-        // Wounds heal over one day of ship time whatever the risk; stamped from the
-        // precise clock so a marine hurt late in a day still gets the whole day.
-        // Degraded scrubbers aboard the founding hull add a day of their own.
-        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS + ShipRefits.aboard().woundRecoveryExtraDays();
-        float day = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()), day, wiaDays,
+                resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()),
                 outcome.soldierTelemetry, outcome.victory);
         if (outcome.victory) roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH);
         return roster;
     }
 
-    /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
+    /** Deterministic fate roll: a marine the battle put down comes home fit or is killed. */
     static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome) {
         return resolvePersonnelOutcomes(outcome, 0f);
     }
 
-    /** {@code saved} is the sick bay's share of the killed who come home wounded ({@code ShipCondition.casualtiesSaved}). */
+    /** {@code saved} is the sick bay's share of the would-be dead pulled through ({@code ShipCondition.casualtiesSaved}). */
     static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome, float saved) {
         Map<String, MarineSoldierStatus> result = new HashMap<>();
         if (outcome == null) return result;
-        Set<String> withdrawalWounded = outcome.withdrawalWoundedSoldierIds != null
-                ? outcome.withdrawalWoundedSoldierIds : Set.of();
+        long eventKey = outcome.missionId != null ? outcome.missionId.hashCode() : 0;
+        Set<String> stragglers = outcome.withdrawalStragglerSoldierIds != null
+                ? outcome.withdrawalStragglerSoldierIds : Set.of();
         for (String id : outcome.survivingSoldierIds) {
-            result.put(id, withdrawalWounded.contains(id) ? MarineSoldierStatus.WIA : MarineSoldierStatus.ACTIVE);
+            result.put(id, stragglers.contains(id)
+                    ? CasualtyFate.rollStraggler(CasualtyFate.seed(eventKey, id), saved)
+                    : MarineSoldierStatus.ACTIVE);
         }
         Set<String> taken = outcome.takenSoldierIds != null ? outcome.takenSoldierIds : Set.of();
         for (String id : outcome.fallenSoldierIds) {
@@ -799,9 +797,7 @@ public final class MissionResolver {
                 result.put(id, MarineSoldierStatus.KIA);
                 continue;
             }
-            long seed = CasualtyFate.seed(
-                    outcome.missionId != null ? outcome.missionId.hashCode() : 0, id);
-            result.put(id, CasualtyFate.roll(seed, outcome.victory, saved));
+            result.put(id, CasualtyFate.roll(CasualtyFate.seed(eventKey, id), outcome.victory, saved));
         }
         return result;
     }

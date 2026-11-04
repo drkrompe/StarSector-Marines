@@ -595,8 +595,7 @@ final class BriefingViewModel {
                 SquadMuster muster = musters.get(i);
                 pictures.add(new SquadPicture(id + "-squad-" + i, muster, new SpecSheet(muster.squadName(),
                         Strings.join("separatorPath", role, name), portrait, "command", List.of(), List.of(
-                        Strings.format("briefingVmSquadReadiness", muster.readyCount(), muster.woundedCount(),
-                                muster.vacantCount())))));
+                        Strings.format("briefingVmSquadReadiness", muster.readyCount(), muster.vacantCount())))));
             }
             return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer, role, List.copyOf(pictures));
         }
@@ -652,7 +651,7 @@ final class BriefingViewModel {
 
     /**
      * The field inset's squad tiles, in officer order. Past {@link #SQUAD_STACK_ABOVE} squads every
-     * full-strength squad folds into one stacked tile up front, so the wounded and short-handed stay in view.
+     * full-strength squad folds into one stacked tile up front, so the short-handed stay in view.
      */
     static List<SquadPicture> fieldSquads(Map<String, Object> props) {
         List<SquadPicture> squads = new ArrayList<>();
@@ -668,11 +667,11 @@ final class BriefingViewModel {
      * A debug briefing's field force: the detached company's line squads under one card. It feeds only the
      * field inset; the debug layout keeps its kit rows in place of officer cards.
      */
-    static List<ForceCard> debugForceRows(MarineRoster company, float currentDay) {
+    static List<ForceCard> debugForceRows(MarineRoster company) {
         if (company == null) return List.of();
         List<SquadMuster> musters = new ArrayList<>();
         for (String id : DebugCompany.lineSquadIds(company)) {
-            SquadMuster muster = SquadMuster.from(company, id, currentDay);
+            SquadMuster muster = SquadMuster.from(company, id);
             if (muster != null) musters.add(muster);
         }
         if (musters.isEmpty()) return List.of();
@@ -684,7 +683,7 @@ final class BriefingViewModel {
         List<SquadPicture> whole = new ArrayList<>();
         List<SquadPicture> tiles = new ArrayList<>();
         for (SquadPicture squad : squads) {
-            if (squad.muster().woundedCount() == 0 && squad.muster().vacantCount() == 0) whole.add(squad);
+            if (squad.muster().vacantCount() == 0) whole.add(squad);
             else tiles.add(squad);
         }
         if (whole.size() < 2) return List.copyOf(squads);
@@ -732,9 +731,9 @@ final class BriefingViewModel {
         for (int i = 0; i < MarineSquad.CAPACITY; i++) {
             SquadMuster.State state = i < ready ? SquadMuster.State.READY : SquadMuster.State.VACANT;
             billets.add(new SquadMuster.Billet(i, state == SquadMuster.State.VACANT ? null : id + "-" + i,
-                    "Marine " + (i + 1), "PVT", state, -1f, i % MarineSquad.TEAM_SIZE == 0, false));
+                    "Marine " + (i + 1), "PVT", state, i % MarineSquad.TEAM_SIZE == 0, false));
         }
-        return new SquadMuster(id, name, false, billets, ready, 0, MarineSquad.CAPACITY - ready, 0, 0, -1f);
+        return new SquadMuster(id, name, false, billets, ready, MarineSquad.CAPACITY - ready, 0, 0);
     }
 
     static InfoRow info(String key, String label, String value, String valueClasses) {

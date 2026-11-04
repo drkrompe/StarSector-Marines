@@ -72,7 +72,7 @@
 			],
 			"companyAssessment": [
 				"We're rated {rating}, but that is the least of it. Only {ready} of {strength} are ready and the books leave us no room for a bad month.",
-				"The board says {rating}. The roster says {wounded} wounded, {stationed} away, and not enough slack to pretend either is harmless.",
+				"The board says {rating}. The roster says {ready} ready, {stationed} away, and not enough slack to pretend either is harmless.",
 				"We can field {ready} across {squads} squads. If a contract goes wrong, there is no cushion behind them."
 			],
 			"summary": {
@@ -108,7 +108,7 @@
 			],
 			"companyAssessment": [
 				"MRB has us as {rating}. We have {squads} squads and {ready} of {strength} marines ready; I think that is the useful number.",
-				"Still building the file, captain. {wounded} are recovering and {stationed} are posted away. The rest is what we can actually promise.",
+				"Still building the file, captain. {ready} are ready and {stationed} are posted away. The rest is what we can actually promise.",
 				"The company is small enough to know by name and large enough to take real work. {ready} ready today."
 			],
 			"summary": {
@@ -144,7 +144,7 @@
 			],
 			"companyAssessment": [
 				"{rating} on the MRB file. {ready} of {strength} ready across {squads} squads. That's the force available today.",
-				"Roster is current: {wounded} recovering, {stationed} stationed, {ready} ready. No qualifications beyond that.",
+				"Roster is current: {stationed} stationed, {ready} ready. No qualifications beyond that.",
 				"We can answer with {ready} marines today. The company remains rated {rating}."
 			],
 			"summary": {
@@ -179,7 +179,7 @@
 				"If we take it, I'd want our best captain on it."
 			],
 			"companyAssessment": [
-				"MRB calls us {rating}. More important: {ready} ready, {wounded} recovering, and enough depth to choose where the veterans go.",
+				"MRB calls us {rating}. More important: {ready} ready, {stationed} stationed, and enough depth to choose where the veterans go.",
 				"{squads} squads on the books. {stationed} are earning their keep elsewhere; {ready} can move now. This is a company with options.",
 				"The rating is {rating}. The real advantage is that we no longer have to send every capable marine to every fight."
 			],

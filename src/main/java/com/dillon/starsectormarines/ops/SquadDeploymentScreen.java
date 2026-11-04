@@ -128,10 +128,9 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                     roster, context.getSelectedCaptain(),
                     context.getSelectedMarineSquadIds(), squad.id());
             int ready = roster.readyCount(squad);
-            int wia = countStatus(squad, MarineSoldierStatus.WIA);
             int mia = countStatus(squad, MarineSoldierStatus.MIA);
             int kia = countStatus(squad, MarineSoldierStatus.KIA);
-            String casualties = casualtySummary(wia, mia, kia);
+            String casualties = casualtySummary(mia, kia);
             String base = "deployment-squad-" + rows.size();
             CommanderRow commander = commanderRow(squad, selected, canToggle);
             rows.add(new SquadRow(base, "deployment-squad-card console-toggle"
@@ -159,7 +158,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 Strings.format("deployCommandStatus", Strings.get("deployCommandHome"), Strings.upper(status)),
                 "label heading squad-card-commander-status "
                         + (index == 3 ? "tone-danger" : selected ? "tone-accent" : "tone-good"),
-                index == 2 ? "3 WIA · 1 KIA" : "", "label squad-card-casualty "
+                index == 2 ? "3 MIA · 1 KIA" : "", "label squad-card-casualty "
                         + (index == 2 ? "tone-danger" : "tone-muted"),
                 previewTeams(index, selected), index == 3, action);
     }
@@ -254,7 +253,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                         meter(firepower, "#78d494"), meter(protection, "#6ed7ff"),
                         (billet == 0 ? "Corporal " : "Marine ") + names[billet],
                         "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1)
-                                + " · " + (unavailable ? "WIA" : "READY"),
+                                + " · " + (unavailable ? "VACANT" : "READY"),
                         "FIREPOWER " + firepower, "PROTECTION " + protection,
                         "PRIMARY · M-42 FIELD RIFLE · SERVICE",
                         "ARMOR · STANDARD LINE PLATE · LINE",
@@ -282,7 +281,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
     private static String statusLabel(MarineSoldier soldier) {
         return switch (soldier.status()) {
             case ACTIVE -> Strings.get("deployStatusReady");
-            case WIA -> Strings.get("deployStatusWia");
+            case WIA -> Strings.get("deployStatusReady");
             case MIA -> Strings.get("deployStatusMia");
             case KIA -> Strings.get("deployStatusKia");
         };
@@ -376,9 +375,8 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                         + (!canToggle ? "tone-danger" : selected ? "tone-accent" : "tone-good"));
     }
 
-    private static String casualtySummary(int wia, int mia, int kia) {
+    private static String casualtySummary(int mia, int kia) {
         List<String> parts = new ArrayList<>();
-        if (wia > 0) parts.add(Strings.format("deployCasualtyWia", wia));
         if (mia > 0) parts.add(Strings.format("deployCasualtyMia", mia));
         if (kia > 0) parts.add(Strings.format("deployCasualtyKia", kia));
         return Strings.join("separatorDot", parts.toArray(new String[0]));

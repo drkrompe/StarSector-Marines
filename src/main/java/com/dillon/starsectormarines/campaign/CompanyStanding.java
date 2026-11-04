@@ -22,7 +22,7 @@ import java.util.List;
  * <p>The headline is {@link OfficerMoodReader.Snapshot#runwayMonths()} — months of
  * payroll on hand. It governs every other decision the screen offers: whether a
  * retainer at a poor rate is worth taking, whether a squad can stay stationed, whether
- * the company can absorb a recovery cycle.
+ * the company can absorb a lean month.
  */
 public final class CompanyStanding {
 
@@ -49,37 +49,29 @@ public final class CompanyStanding {
     public final int retainerPerMonth;
     /** Live stationing assignments producing that retainer. */
     public final int stationingContracts;
-    /** Living marines on the books — ACTIVE plus WIA. */
+    /** Living marines on the books. */
     public final int strength;
     /** Marines that could deploy today: ACTIVE, in a line squad, not stationed. */
     public final int available;
     /**
-     * Living but not deployable today: wounded, away on a stationing assignment, or
+     * Living but not deployable today: away on a stationing assignment, or
      * sitting in the reserve pool awaiting transfer into a line squad. Deliberately the
      * whole gap rather than just casualties — the player's question is "how many can I
      * actually send", and every one of these is a reason the answer is smaller.
      */
     public final int unavailable;
     public final int stationed;
-    /** Wounded marines, the one slice of {@link #unavailable} that heals on its own. */
-    public final int wounded;
     /** Line squads — the reserve pool is a holding area, not a formation. */
     public final int lineSquads;
     /** Line squads currently away on a stationing assignment. */
     public final int stationedSquads;
-    /**
-     * Campaign day the next wounded marine returns to duty, or -1 when none is
-     * recovering. A day rather than a duration so the value does not go stale between
-     * the derivation and the frame that renders it.
-     */
-    public final float nextRecoveryDay;
     /** Employers with a record, strongest relationship first. */
     public final List<Employer> employers;
 
     CompanyStanding(OfficerMoodReader.Snapshot finances, int retainerPerMonth,
                     int stationingContracts, int strength, int available,
-                    int unavailable, int stationed, int wounded,
-                    int lineSquads, int stationedSquads, float nextRecoveryDay,
+                    int unavailable, int stationed,
+                    int lineSquads, int stationedSquads,
                     List<Employer> employers) {
         this.finances = finances;
         this.retainerPerMonth = retainerPerMonth;
@@ -88,10 +80,8 @@ public final class CompanyStanding {
         this.available = available;
         this.unavailable = unavailable;
         this.stationed = stationed;
-        this.wounded = wounded;
         this.lineSquads = lineSquads;
         this.stationedSquads = stationedSquads;
-        this.nextRecoveryDay = nextRecoveryDay;
         this.employers = Collections.unmodifiableList(new ArrayList<>(employers));
     }
 
@@ -156,15 +146,14 @@ public final class CompanyStanding {
     }
 
     /**
-     * Living marines on the books. Deliberately counts WIA: they are still the
-     * company's people and still cost it something, and the gap between this and
-     * {@link #available} is the number worth looking at.
+     * Living marines on the books. The gap between this and {@link #available} is the
+     * number worth looking at.
      */
     public static int strength(MarineRoster roster) {
         if (roster == null) return 0;
         int count = 0;
         for (MarineSoldier soldier : roster.soldiers()) {
-            if (living(soldier)) count++;
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
         }
         return count;
     }
@@ -174,14 +163,14 @@ public final class CompanyStanding {
         return roster == null ? 0 : roster.lineReadySoldiers().size();
     }
 
-    /** Living marines bound to a stationing assignment, wounded ones included. */
+    /** Living marines bound to a stationing assignment. */
     public static int stationed(MarineRoster roster) {
         if (roster == null) return 0;
         int count = 0;
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve() || !squad.stationed()) continue;
             for (MarineSoldier soldier : roster.squadMembers(squad)) {
-                if (living(soldier)) count++;
+                if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
             }
         }
         return count;
@@ -211,36 +200,6 @@ public final class CompanyStanding {
     }
 
     /**
-     * Soonest day a wounded marine returns to duty, or -1 when nobody is recovering.
-     * The company view's one forward-looking number: it answers "is it worth waiting"
-     * rather than restating how many are down.
-     */
-    public static float nextRecoveryDay(MarineRoster roster) {
-        if (roster == null) return -1f;
-        float soonest = -1f;
-        for (MarineSoldier soldier : roster.soldiers()) {
-            if (soldier.status() != MarineSoldierStatus.WIA) continue;
-            float day = soldier.unavailableUntilDay();
-            if (soonest < 0f || day < soonest) soonest = day;
-        }
-        return soonest;
-    }
-
-    public static int wounded(MarineRoster roster) {
-        if (roster == null) return 0;
-        int count = 0;
-        for (MarineSoldier soldier : roster.soldiers()) {
-            if (soldier.status() == MarineSoldierStatus.WIA) count++;
-        }
-        return count;
-    }
-
-    private static boolean living(MarineSoldier soldier) {
-        return soldier.status() == MarineSoldierStatus.ACTIVE
-                || soldier.status() == MarineSoldierStatus.WIA;
-    }
-
-    /**
      * Assembles a standing from already-read state. Split from the live reader so the
      * whole derivation is testable without a Sector.
      */
@@ -253,8 +212,8 @@ public final class CompanyStanding {
         return new CompanyStanding(finances,
                 retainerPerMonth(state), stationingContracts(state),
                 strength, available, Math.max(0, strength - available),
-                stationed, wounded(roster), lineSquads(roster), stationedSquads(roster),
-                nextRecoveryDay(roster), employers(state, employerLimit));
+                stationed, lineSquads(roster), stationedSquads(roster),
+                employers(state, employerLimit));
     }
 
     /** Reads the live campaign. Every lookup is guarded; absent state reads as zeroes. */

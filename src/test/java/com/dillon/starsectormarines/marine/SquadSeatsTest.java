@@ -58,7 +58,7 @@ public class SquadSeatsTest {
         MarineSquad squad = fullSquad(roster);
         String behind = roster.seatedMemberIds(squad).get(8);
 
-        roster.applySoldierOutcome(Map.of(roster.seatedMemberIds(squad).get(7), MarineSoldierStatus.KIA), 0f, 1f);
+        roster.applySoldierOutcome(Map.of(roster.seatedMemberIds(squad).get(7), MarineSoldierStatus.KIA));
 
         assertEquals(2, roster.teamIndexOf(squad, behind));
         assertEquals(behind, roster.teamMemberIds(squad, 2).get(0));
@@ -71,13 +71,13 @@ public class SquadSeatsTest {
         MarineSquad squad = fullSquad(roster);
         List<String> before = roster.seatedMemberIds(squad);
         roster.applySoldierOutcome(Map.of(before.get(2), MarineSoldierStatus.KIA,
-                before.get(5), MarineSoldierStatus.KIA), 0f, 1f);
+                before.get(5), MarineSoldierStatus.KIA));
         roster.recruitToSquad(roster.reserveSquad().id(), 2);
         roster.fillVacanciesFromReserve(squad.id());
         String inSeatTwo = roster.seatedMemberIds(squad).get(2);
         String inSeatFive = roster.seatedMemberIds(squad).get(5);
 
-        roster.applySoldierOutcome(Map.of(inSeatTwo, MarineSoldierStatus.KIA), 0f, 1f);
+        roster.applySoldierOutcome(Map.of(inSeatTwo, MarineSoldierStatus.KIA));
 
         assertNull(roster.seatedMemberIds(squad).get(2));
         assertEquals(inSeatFive, roster.seatedMemberIds(squad).get(5));

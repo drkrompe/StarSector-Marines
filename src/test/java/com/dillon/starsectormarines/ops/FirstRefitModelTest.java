@@ -76,7 +76,7 @@ class FirstRefitModelTest {
         // The squad view's special line still names the launcher being taken away.
         assertEquals(model.sheet(false, 2),
                 LoadoutInspection.partSheet(model.inspection(), 11, LoadoutInspection.SPECIAL));
-        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(11), MarineSoldierStatus.KIA), 10f, 5f);
+        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(11), MarineSoldierStatus.KIA));
         model.selectBillet(11);
         assertNull(model.sheet(false, 0));
         assertNotNull(model.sheet(true, 0));

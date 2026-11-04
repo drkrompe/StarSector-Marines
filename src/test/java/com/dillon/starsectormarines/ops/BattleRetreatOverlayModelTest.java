@@ -37,7 +37,7 @@ class BattleRetreatOverlayModelTest {
     private static BattleRetreatOverlayModel model(Reactor reactor, Counts counts) {
         return new BattleRetreatOverlayModel(reactor, counts, new BattleRetreatOverlayModel.Labels(
                 "Retreat", "Continue", "Accept defeat", "Withdraw and accept defeat?",
-                "Troops away from the landing zone come home wounded.", "Cancel", "Withdraw"));
+                "Troops away from the landing zone may not make it home.", "Cancel", "Withdraw"));
     }
 
     @Test

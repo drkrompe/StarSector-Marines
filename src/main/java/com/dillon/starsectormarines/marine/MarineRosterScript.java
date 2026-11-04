@@ -51,7 +51,6 @@ public class MarineRosterScript implements EveryFrameScript {
                 Commendations.add(c, (int) day, "commendationReturnedToDuty");
             }
         }
-        roster.recoverWounded(day);
     }
 
     /** Find the registered roster script on the sector, or null if not yet installed. */

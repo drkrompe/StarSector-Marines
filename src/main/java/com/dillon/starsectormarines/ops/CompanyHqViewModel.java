@@ -114,7 +114,7 @@ final class CompanyHqViewModel {
                 signedInt(standing.finances.mrbRep)));
         props.put("assessment", CompanyAssessmentComposer.render(
                 standing.mood(), day, rating, standing.available, standing.strength,
-                standing.lineSquads, standing.wounded, standing.stationed));
+                standing.lineSquads, standing.stationed));
 
         props.put("runway", runwayText(standing.finances.runwayMonths()));
         props.put("runwayClasses", runwayClasses(standing.finances.runwayMonths()));

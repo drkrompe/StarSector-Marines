@@ -36,7 +36,7 @@ class OpeningLocalizationTest {
                 .collect(Collectors.joining("\n"))).getJSONObject(Strings.NS);
         var reference = Pattern.compile("(?:\\\"@?|i18n\\.)((?:opening[A-Za-z0-9_]+|marines_management_[A-Za-z0-9_]+(?:Title|Text)))(?:\\\"|})");
         // Dynamic key prefixes are checked through their display authorities below.
-        var prefixes = List.of("openingShipWord", "openingRecovery", "openingRecoveryCompact", "openingRefitPath", "openingRefitPathDescription", "openingGuide", "openingEquipmentGrade");
+        var prefixes = List.of("openingShipWord", "openingRefitPath", "openingRefitPathDescription", "openingGuide", "openingEquipmentGrade");
         for (String root : List.of("src/main/java/com/dillon/starsectormarines/ops", "src/main/java/com/dillon/starsectormarines/marine", "src/main/java/com/dillon/starsectormarines/campaign/start", "src/main/java/com/dillon/starsectormarines/intel", "src/main/java/com/fs/starfarer/api/impl/campaign/rulecmd", "mod/data/ui/components", "mod/data/marines/company_management_guide.json")) {
             try (var files = Files.walk(Path.of(root))) {
                 for (var file : files.filter(Files::isRegularFile).toList()) {
@@ -96,13 +96,9 @@ class OpeningLocalizationTest {
         String name = "Morgan's {Second Wind}";
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> switch (text) {
             case "Reach {0}" -> "{0} — Castle''s destination";
-            case "in {0}d {1}h" -> "{1} hours / {0} days remaining";
-            case "{0}d {1}h" -> "{1} hours / {0} days";
             default -> text;
         })) {
             assertEquals(name + " — Castle's destination", Strings.format("openingCompanyPrologueReach", name));
-            assertEquals("6 hours / 2 days remaining", FleetArmoryViewModel.formatRemaining(2.25, 0));
-            assertEquals("6 hours / 2 days", FleetArmoryViewModel.formatRemainingCompact(2.25, 0));
         }
     }
 

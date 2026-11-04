@@ -40,25 +40,6 @@ class MarineSquadTest {
     }
 
     @Test
-    void woundedRecoverWhileMissingAndKilledRemainUnavailable() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(3);
-        Map<String, MarineSoldierStatus> outcome = new HashMap<>();
-        outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        outcome.put(roster.soldiers().get(1).id(), MarineSoldierStatus.MIA);
-        outcome.put(roster.soldiers().get(2).id(), MarineSoldierStatus.KIA);
-
-        roster.applySoldierOutcome(outcome, 100f, 7f);
-        roster.recoverWounded(106f);
-        assertEquals(MarineSoldierStatus.WIA, roster.soldiers().get(0).status());
-        roster.recoverWounded(107f);
-
-        assertEquals(MarineSoldierStatus.ACTIVE, roster.soldiers().get(0).status());
-        assertEquals(MarineSoldierStatus.MIA, roster.soldiers().get(1).status());
-        assertEquals(MarineSoldierStatus.KIA, roster.soldiers().get(2).status());
-    }
-
-    @Test
     void casualtiesOpenReplacementBilletsButWoundedDoNot() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
@@ -67,7 +48,7 @@ class MarineSquadTest {
         outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.KIA);
         outcome.put(roster.soldiers().get(1).id(), MarineSoldierStatus.WIA);
 
-        roster.applySoldierOutcome(outcome, 10f, 7f);
+        roster.applySoldierOutcome(outcome);
 
         assertEquals(1, roster.vacancies(squad));
         assertNotNull(roster.recruitToSquad(squad.id()));
@@ -92,7 +73,7 @@ class MarineSquadTest {
 
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(ready.id(), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(outcome, 0f, 1f);
+        roster.applySoldierOutcome(outcome);
         assertFalse(roster.transferSoldier(ready.id(), reserve.id()));
     }
 
@@ -107,24 +88,6 @@ class MarineSquadTest {
         assertEquals("Vandal One", line.name());
         assertFalse(roster.renameSquad(reserve.id(), "Not Reserves"));
         assertEquals("Reserve Pool", reserve.name());
-    }
-
-    @Test
-    void temporaryWoundedShortfallIsBackfilledFromReserveWithoutOvermanningLineSquad() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-        MarineSquad line = roster.squads().get(0);
-        MarineSquad reserve = roster.reserveSquad();
-        Map<String, MarineSoldierStatus> outcome = new HashMap<>();
-        outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 10f, 7f);
-
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-
-        assertEquals(MarineSquad.CAPACITY, roster.manningCount(line));
-        assertEquals(1, roster.readyCount(reserve));
-        assertNotNull(roster.recruitToSquad(reserve.id()));
-        assertEquals(2, roster.readyCount(reserve));
     }
 
     @Test

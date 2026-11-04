@@ -16,19 +16,19 @@ class ShipConditionTest {
     @Test void otherHullsAreNeutralOnEveryTrack() {
         for (RefitTrack track : RefitTrack.values()) assertEquals(RefitBand.RESTORED, ShipCondition.NONE.band(track));
         assertEquals(1f, ShipCondition.NONE.moraleRecovery());
-        assertEquals(0f, ShipCondition.NONE.woundRecoveryExtraDays());
+        
         assertEquals(EnumSet.allOf(ShipCore.class), ShipCondition.NONE.restoredCores());
     }
 
     @Test void theBatteredStartIsADeficitAndNeutralIsRestored() {
         var start = ShipCondition.battered();
         assertEquals(0.85f, start.moraleRecovery());
-        assertEquals(1f, start.woundRecoveryExtraDays());
+        
         assertTrue(start.restoredCores().isEmpty());
         var restored = start;
         for (RefitTrack track : RefitTrack.values()) restored = restored.with(track, RefitBand.RESTORED);
         assertEquals(1f, restored.moraleRecovery());
-        assertEquals(0f, restored.woundRecoveryExtraDays());
+        
     }
 
     @Test void messIsReBasedWithTheShippedValueAtItsTop() {

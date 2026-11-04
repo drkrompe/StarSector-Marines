@@ -51,8 +51,7 @@ class StrandedDetachmentTest {
     void anExpiredRecoveryListsTheSurvivorsMissingAndInjuresTheCaptain() {
         AbsentDefenceResolutionTest.Fixture fixture = overrun();
         List<MarineSoldier> waiting = fixture.roster.squadMembers(fixture.squad).stream()
-                .filter(soldier -> soldier.status() == MarineSoldierStatus.ACTIVE
-                        || soldier.status() == MarineSoldierStatus.WIA)
+                .filter(soldier -> soldier.status() == MarineSoldierStatus.ACTIVE)
                 .toList();
         int living = waiting.size();
 
