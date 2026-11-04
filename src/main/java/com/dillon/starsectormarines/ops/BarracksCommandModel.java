@@ -634,10 +634,11 @@ public final class BarracksCommandModel {
 
     private List<Map<String, Object>> issueCargoStock() {
         revision.get();
-        return List.of(row("id", "barracks-recruit-stock", "copyId", "barracks-recruit-stock-copy", "iconId", "barracks-recruit-stock-icon",
-                "labelId", "barracks-recruit-stock-count", "nameId", "barracks-recruit-stock-label",
-                "name", resources.commodityName(Commodities.MARINES), "icon", resources.commodityIcon(Commodities.MARINES),
-                "stock", CompanyResources.number(cargoMarines.getAsInt())));
+        return List.of(
+                row("id", "barracks-recruit-stock", "iconId", "barracks-recruit-stock-icon", "labelId", "barracks-recruit-stock-count",
+                        "icon", CompanyResources.MARINES_ICON, "stock", CompanyResources.number(cargoMarines.getAsInt())),
+                row("id", "barracks-credit-stock", "iconId", "barracks-credit-stock-icon", "labelId", "barracks-credit-stock-count",
+                        "icon", CompanyResources.CREDITS_ICON, "stock", CompanyResources.number(foundingResources.credits())));
     }
 
     public void reinforceSelected() { fill(Set.copyOf(selected)); }
