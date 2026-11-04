@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-11-04 — the page bar reaches a Settings page. Earlier, 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
+Updated: 2026-11-04 — the page bar is the mod's own art with eight routes, the last reaching a Settings page. Earlier, 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
 
 Earlier 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
@@ -116,10 +116,9 @@ them.
   from Equipment or a squad inspection rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
-  the base game's own bottom-menu holder image (`tripad_bot_left_button_widget2.png`,
-  read from the game, never copied into the mod), one to one, with one route in each
-  of its seven slots. Eight routes would need a new holder, so the Settings key stands
-  beside the holder rather than in it.
+  the mod's own holder (`page-bar.svg`), drawn to the base game's bottom menu and
+  shown one to one, with one route in each of its eight slots. A ninth route means
+  redrawing it.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar. Each setting is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the

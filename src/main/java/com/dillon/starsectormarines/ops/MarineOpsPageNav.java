@@ -69,8 +69,7 @@ final class MarineOpsPageNav {
          */
         STORE(null, "shop"),
         /**
-         * The company's settings. Not a place aboard, and its key stands beside the holder
-         * because the holder's seven slots are taken.
+         * The company's settings. Not a place aboard, so no hull can lack it.
          */
         SETTINGS(null, "settings");
 
