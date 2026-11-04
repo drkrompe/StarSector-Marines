@@ -82,6 +82,8 @@ public final class EntitySpec {
     public int homeCellY = -1;
     public float hubSpawnCooldown = 0f;
     public String turretStructureId;
+    /** A one-cell structure that seals its cell when it spawns, as a multi-cell one always does. */
+    public boolean sealsCell;
     public long homeHubId = 0L;
 
     // ---- stat block (seeded from type, override via setters) ----
@@ -151,6 +153,7 @@ public final class EntitySpec {
     public EntitySpec home(int cellX, int cellY) { this.homeCellX = cellX; this.homeCellY = cellY; return this; }
     public EntitySpec hubSpawnCooldown(float sec) { this.hubSpawnCooldown = sec; return this; }
     public EntitySpec turretStructureId(String structureId) { this.turretStructureId = structureId; return this; }
+    public EntitySpec sealsCell() { this.sealsCell = true; return this; }
     public EntitySpec homeHubId(long id) { this.homeHubId = id; return this; }
     public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
     public EntitySpec campaignSquadId(String id) { this.campaignSquadId = id; return this; }

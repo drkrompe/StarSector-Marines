@@ -74,6 +74,60 @@ public class MovementServiceTest {
         assertEquals(1, movement.routeStalls());
     }
 
+    private static void stallAt(EntityWorld world, BattleComponents components, MovementService movement, long id) {
+        for (int tick = 1; tick <= 100; tick++) {
+            movement.beginTick(1f / 30f);
+            if (movement.stalledOnRoute(id)) return;
+        }
+        throw new AssertionError("never stalled");
+    }
+
+    @Test void aStallBesideTheLastCellOfARouteArrivesThere() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.9f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 7.5f);
+        world.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, new int[]{4, 7});
+        assertFalse(movement.atCell(id, 4, 7), "half a cell off is not there");
+        stallAt(world, components, movement, id);
+        assertTrue(movement.atCell(id, 4, 7), "the stall ended the walk beside it");
+        assertFalse(movement.atCell(id, 5, 7), "no other cell");
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 2.5f);
+        assertFalse(movement.atCell(id, 4, 7), "and not from further off");
+    }
+
+    @Test void aStallPartWayAlongARouteArrivesNowhere() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.9f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 7.5f);
+        world.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, new int[]{4, 7, 5, 7, 5, 8});
+        stallAt(world, components, movement, id);
+        assertFalse(movement.atCell(id, 4, 7));
+        assertFalse(movement.atCell(id, 5, 8));
+    }
+
+    @Test void progressAfterAStallForgetsTheCellItStoodBeside() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.9f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 7.5f);
+        world.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, new int[]{4, 7});
+        stallAt(world, components, movement, id);
+        assertTrue(movement.atCell(id, 4, 7));
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.3f);
+        movement.beginTick(1f / 30f);
+        movement.stalledOnRoute(id);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.9f);
+        assertFalse(movement.atCell(id, 4, 7), "a mover that got going again has not arrived");
+    }
+
     @Test void progressOrAPauseInSteppingRestartsTheStallWatch() {
         EntityWorld world = new EntityWorld();
         BattleComponents components = new BattleComponents(world);

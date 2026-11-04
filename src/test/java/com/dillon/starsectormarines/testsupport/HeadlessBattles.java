@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
+import com.dillon.starsectormarines.battle.scene.ProvingGround;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -59,7 +60,8 @@ public final class HeadlessBattles {
 
     /**
      * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]},
-     * {@code salvage-rights|cold-start|working-passage[:seed=N,squads=N,machines]} or
+     * {@code salvage-rights|cold-start|working-passage[:seed=N,squads=N,machines]},
+     * {@code proving-ground[:surface=VERDANT,seed=N]} or
      * {@code cordon[:variant=line|road,density=rural|town|urban,biome=VERDANT,seed=N]}.
      */
     public static BattleSimulation build(String source) throws Exception {
@@ -81,6 +83,11 @@ public final class HeadlessBattles {
             case "salvage-rights" -> basin(ShepherdBasin.Visit.SALVAGE_RIGHTS, options(rest));
             case "cold-start" -> basin(ShepherdBasin.Visit.COLD_START, options(rest));
             case "working-passage" -> basin(ShepherdBasin.Visit.WORKING_PASSAGE, options(rest));
+            case "proving-ground" -> {
+                JSONObject options = options(rest);
+                yield ProvingGround.build(SurfacePalette.valueOf(options.optString("surface", "VERDANT").toUpperCase(Locale.ROOT)),
+                        options.optLong("seed", 7L));
+            }
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };
     }

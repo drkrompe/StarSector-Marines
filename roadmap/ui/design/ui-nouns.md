@@ -117,7 +117,7 @@ them.
   notices belong to Barracks and clear only when the relevant offer is reviewed.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
-  corner, its top right rounded and a wedge rising at its top left so it reads as built
+  corner, its top right rounded and a silver wedge rising at its top left so it reads as built
   into the frame, with one route in each of its eight slots. A ninth route means
   redrawing it. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
@@ -438,7 +438,7 @@ cut corners, and its text is the game's white-grey, pale blue and gold. The hous
 language below survives only in the battle and developer sheets, and the console's
 SVG plates take the same blues. A button takes the base game's look so the
 mod's screens read as part of it: a flat teal plate with no border or relief,
-`corner-cut` at two opposite corners, in the colours of the game's `buttonBgDark`
+`corner-cut` at two opposite corners (a page route at all four, to fit its slot), in the colours of the game's `buttonBgDark`
 and `buttonText` settings, with a state shown as a change of fill. A tab is cut at
 both top corners and a filter is a hollow outline that fills gold when chosen, as
 the market's and intel screen's are. `corner-cut` is painting only: layout and

@@ -50,8 +50,8 @@
 
 <style>
   /* The mod's own bottom menu, in the screen's bottom left corner: eight slots (121x20 on
-     a 128 pitch, the first at 14,22 in the art) hold the eight routes, and a wedge rises
-     12 px above them at the left. Every page's root insets this bar by 12 px and clips
+     a 128 pitch, the first at 14,22 in the art) hold the eight routes, and a silver wedge
+     rises 12 px above them at the left. Every page's root insets this bar by 12 px and clips
      nothing, so the offsets below reach the corner, and the bar's own row keeps the
      pages' content out from under the wedge. A ninth route means redrawing
      page-bar.svg. Nothing here scales, so the art stays one to one. */
@@ -83,7 +83,6 @@
     border-width: 0px;
     overflow: hidden;
     text-align: center;
-    corner-cut: 3px;
   }
 
   #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }

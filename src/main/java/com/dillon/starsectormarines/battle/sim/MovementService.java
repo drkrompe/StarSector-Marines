@@ -47,6 +47,8 @@ public final class MovementService {
      * the floored grid cell matches.
      */
     public static final float ARRIVE_RADIUS = 0.35f;
+    /** A stall this close to the last cell of a route is as near as the mover gets: see {@link #atCell}. */
+    static final float STALL_ARRIVE_CELLS = 1f;
     /**
      * Carrot lookahead along the path polyline, in cells. Kept below one cell
      * so the pursuit line stays within the current/next path cells and can't
@@ -154,6 +156,11 @@ public final class MovementService {
      * a finished path exactly on its final cell center, so a unit that walked
      * a path to this cell always answers {@code true} on arrival. Static positioned
      * bodies use the same cell-distance test; carriers without POSITION answer false.
+     *
+     * <p>A mover whose route stalled on its way into its last cell has also arrived there, for as long as it stays
+     * within {@link #STALL_ARRIVE_CELLS}: something it cannot push through stands on that cell (a hull parked over a
+     * post in a trench held a militiaman half a cell off it for the rest of a battle), and otherwise every order asks
+     * for the same cell again.
      */
     public boolean atCell(long id, int cx, int cy) {
         if (!entityWorld.has(id, components.POSITION)) return false;
@@ -169,7 +176,26 @@ public final class MovementService {
         }
         float dx = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X) - (cx + 0.5f);
         float dy = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y) - (cy + 0.5f);
-        return dx * dx + dy * dy <= ARRIVE_RADIUS * ARRIVE_RADIUS;
+        float distance2 = dx * dx + dy * dy;
+        if (distance2 <= ARRIVE_RADIUS * ARRIVE_RADIUS) return true;
+        return distance2 <= STALL_ARRIVE_CELLS * STALL_ARRIVE_CELLS && has(id)
+                && entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_NEAR_CELL) == nearCell(cx, cy);
+    }
+
+    /** {@link BattleComponents#MOVEMENT_STALL_NEAR_CELL}'s encoding of a cell, never 0. */
+    private static int nearCell(int cx, int cy) {
+        return (cx + 1 << 16) | (cy + 1);
+    }
+
+    /** Called as a stall drops its route: notes the route's last cell if the mover was walking into it and is beside it. */
+    private void noteStallNearRouteEnd(long id, float x, float y) {
+        int[] route = path(id);
+        int last = route == null ? -1 : Paths.cellCount(route) - 1;
+        if (last < 0 || pathIdx(id) < last) return;
+        int cx = Paths.cellX(route, last), cy = Paths.cellY(route, last);
+        float dx = x - (cx + 0.5f), dy = y - (cy + 0.5f);
+        if (dx * dx + dy * dy > STALL_ARRIVE_CELLS * STALL_ARRIVE_CELLS) return;
+        entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_NEAR_CELL, nearCell(cx, cy));
     }
 
     /**
@@ -213,6 +239,7 @@ public final class MovementService {
         float dy = y - entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_ANCHOR_Y);
         boolean progressed = dx * dx + dy * dy > STALL_PROGRESS_CELLS * STALL_PROGRESS_CELLS;
         if (progressed || now - lastStep > STALL_STEP_GAP_SECONDS) {
+            if (progressed) entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_NEAR_CELL, 0);
             restartStallWatch(id, x, y);
             return false;
         }
@@ -222,6 +249,7 @@ public final class MovementService {
         restartStallWatch(id, x, y);
         routeStalls++;
         lastStalled = id;
+        noteStallNearRouteEnd(id, x, y);
         return true;
     }
 
