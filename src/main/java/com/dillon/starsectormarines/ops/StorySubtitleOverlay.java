@@ -87,7 +87,7 @@ final class StorySubtitleOverlay {
                         ((String) props.get("portrait")).isBlank() ? "company-subtitle" : COMPONENT, props);
                 document = new UiDocument(markup.root());
                 for (var style : markup.styles()) document.addStyleSheet(style);
-                document.theme(MarineOpsThemes.standard());
+                document.theme(MarineOpsThemes.battle());
                 document.layout(viewport.documentWidth(), viewport.documentHeight());
             }
         }

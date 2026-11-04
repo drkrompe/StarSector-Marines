@@ -472,7 +472,7 @@ final class BattleDirectControlOverlay {
     static UiDocument document(MarkupInstance markup) {
         UiDocument result = new UiDocument(markup.root());
         for (var style : markup.styles()) result.addStyleSheet(style);
-        result.theme(MarineOpsThemes.standard());
+        result.theme(MarineOpsThemes.battle());
         return result;
     }
 }

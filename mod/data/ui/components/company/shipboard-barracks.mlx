@@ -35,7 +35,7 @@
             <div id="{group.commandercopyId}" class="commander-copy">
               <div id="{group.commandnameId}" class="label heading wrap command-name">{group.name}</div>
               <div id="{group.commandsummaryId}" class="label warm wrap command-summary">{group.summary}</div>
-              <div id="{group.commandcapacityId}" class="label muted wrap command-capacity">{group.capacity}</div>
+              <div id="{group.commandcapacityId}" class="label muted wrap dense command-capacity">{group.capacity}</div>
             </div>
           </button>
           <button id="{group.assignId}" class="{group.assignClasses}" disabled="{group.assignDisabled}" onclick="{group.assign}">{group.assignLabel}</button>
@@ -197,14 +197,16 @@
   .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 2px 4px; gap: 5px; background-color: #071014; border-width: 1px; border-color: #274050; }
   .issue-stock-icon { width: 16px; height: 16px; }
   .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
-  #barracks-room-title { width: 326px; height: auto; white-space: normal; }
-  #barracks-room-copy { width: 480px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
+  #barracks-room-title { width: 420px; height: auto; white-space: normal; }
+  #barracks-room-copy { width: 340px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
   #barracks-heal-timer { width: 0px; flex-grow: 1; height: 20px; text-align: right; }
+  .doc-narrow #barracks-room-title { width: 290px; }
+  .doc-narrow #barracks-room-copy { width: 240px; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
   .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
   .muted { color: #9ba8b5; } .warm { color: #dfc588; } .wrap { white-space: normal; }
-  .rail-note { height: 46px; }
+  .rail-note { height: 62px; }
   .command-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .command-entry { flex-direction: column; width: 100%; gap: 3px; }
   .command-assign { width: 100%; height: 28px; font-family: heading; text-align: center; }
@@ -241,7 +243,7 @@
   .card-check { width: 20px; height: 20px; text-align: center; border-width: 1px; border-color: #4b7b9b; color: #a9b8c5; }
   .formation.selected .card-check { background-color: #dfc588; color: #202325; border-color: #dfc588; }
   .formation-name { width: 0px; flex-grow: 1; height: 20px; }
-  .card-strength { width: 54px; height: 20px; text-align: right; }
+  .card-strength { width: 66px; height: 20px; text-align: right; }
   .card-personnel { height: 16px; font-family: body; }
   /* The squad's two issued cards, stacked, as compact chips (armory-card-chip): the same
      token the Loadout screen opens its squad view on. */
@@ -270,7 +272,7 @@
   .raise-cost-count { width: 0px; flex-grow: 1; height: 18px; color: #dfc588; }
   .raise-cost.short .raise-cost-count { color: #eea296; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
-  .loadout-button { width: 84px; height: 28px; padding: 6px 4px; }
+  .loadout-button { width: 96px; height: 28px; padding: 2px 4px; }
   .empty-message { height: auto; }
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .barracks-surface { flex-direction: column; width: 100%; height: 100%; overflow: hidden; }

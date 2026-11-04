@@ -410,7 +410,11 @@ one keeps its own text height, because without `flex-shrink` a growing row based
 children's height could only overflow its column.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
-a regular body face for controls, values, and prose and a display face for headings. Casing belongs
+a regular body face for controls, values, and prose and a display face for headings. Menus read at
+the base game's sizes: body Insignia 17, headings Orbitron 16, titles Orbitron 20, with `dense`
+(Insignia 15) and `compact-type` (Orbitron 12 bold) for packed data such as stat rows and slot labels.
+A battle's overlays keep a tighter set (`MarineOpsThemes.battle`), since everything they cover is map,
+and so do menus past 100% UI scale (`doc-narrow`), where everything is already drawn larger. Casing belongs
 to authored copy: all caps is a heading treatment, not a global font policy. A room's button label is sentence case, as the base game writes them; headings, station signs, status tags and the battle HUD keep their capitals. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
 For composed controls, `align-items` places row or column children on the cross

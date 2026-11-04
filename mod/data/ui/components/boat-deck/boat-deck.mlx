@@ -148,10 +148,10 @@
   .compact-action { width: 146px; height: 26px; padding: 3px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
   .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px; gap: 10px; }
-  #boat-deck-room-name { width: 230px; }
+  #boat-deck-room-name { width: 290px; }
   .bay-navigator { flex-direction: row; width: 205px; height: 24px; gap: 3px; }
   .bay-step { width: 32px; height: 24px; padding: 2px; }
-  .bay-position { width: 0px; height: 24px; flex-grow: 1; padding: 4px; text-align: center; border-width: 1px; }
+  .bay-position { width: 0px; height: 24px; flex-grow: 1; padding: 1px 4px; text-align: center; border-width: 1px; }
   .room-summary { width: 0px; min-height: 32px; flex-grow: 1; text-align: right; white-space: normal; }
   .material-stock-strip { flex-direction: row; align-items: center; width: 380px; height: 24px; gap: 6px; }
   .material-stock { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
@@ -185,7 +185,7 @@
   .boat-card.selected { background-color: #10242e; border-color: #dfc588; }
   .boat-card.vacant { background-color: #071014; border-color: #243849; opacity: 0.72; }
   .boat-card.vacant.selected { background-color: #10242e; border-color: #dfc588; opacity: 1; }
-  .boat-card-berth { height: 16px; }
+  .boat-card-berth { height: 20px; }
   .boat-card-name { height: 22px; font-family: title; }
   .boat-card-line { height: 17px; }
 

@@ -131,4 +131,5 @@
   .page-nav-news { display: none; }
   #marine-ops-page-routes .page-nav-new .page-nav-news { display: flex; color: #ffd200; }
   .console-toggle-lamp { display: none; }
+  .doc-narrow #marine-ops-page-context { display: none; }
 </style>
