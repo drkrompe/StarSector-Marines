@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.MenuBackdrop;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
@@ -47,6 +48,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private PositionAPI position;
     private Runnable dismissDialog;
     private ScreenId lastScreenId;
+    /** Built on first use for the panel's current position, which is only known by then. */
+    private MenuBackdrop space;
     private final OpsMusic music = new OpsMusic(MenuTheme.shared());
     /** A frame's share of preloading the deck's art: small, so the page being read never hitches. */
     private static final long DECK_PRELOAD_FRAME_NANOS = 4_000_000L;
@@ -110,6 +113,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     @Override
     public void positionChanged(PositionAPI position) {
         this.position = position;
+        space = null;
         tryAttach();
     }
 
@@ -158,6 +162,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // Retained room navigation reads the new readiness during screen advance;
         // readiness must not detach/re-attach the player's current page.
         screens.get(id).advance(amount);
+        if (space != null) space.advance(amount);
     }
 
     @Override
@@ -169,6 +174,10 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     @Override
     public void render(float alphaMult) {
         if (position == null || dismissDialog == null) return;
+        if (ctx.getCurrentScreen().showsSpaceBehind()) {
+            if (space == null) space = new MenuBackdrop(ctx.planet, MarineOpsUiViewport.from(position));
+            space.render(alphaMult);
+        }
         screens.get(ctx.getCurrentScreen()).render(alphaMult);
     }
 

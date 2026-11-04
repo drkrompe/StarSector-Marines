@@ -176,7 +176,7 @@
   .reserve-line { width: 0px; flex-grow: 1; height: 16px; }
   .reserve-recall { width: 72px; height: 20px; padding: 0px 4px; font-family: heading; text-align: center; }
   .reserve-recall.blocked { opacity: 0.5; }
-  .bay-canvas { width: 100%; height: 0px; flex-grow: 1; }
+  .bay-canvas { background-color: #03090d; width: 100%; height: 0px; flex-grow: 1; }
 
   .bay-sealed-note { width: 100%; min-height: 64px; padding: 8px; border-width: 1px; border-color: #b99f65; background-color: #0d1d25; white-space: normal; }
   .boat-overview { flex-direction: column; width: 380px; padding: 9px; gap: 7px; border-width: 1px; overflow: hidden; }

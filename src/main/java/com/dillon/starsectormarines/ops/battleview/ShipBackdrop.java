@@ -59,6 +59,8 @@ public final class ShipBackdrop {
     private final Planet planet;
     private final boolean stars;
     private final StarField field = new StarField(STAR_SEED, STARS, STAR_ART.size());
+    private float planetX = PLANET_X, planetY = PLANET_Y, planetRadius = PLANET_RADIUS;
+    private BackdropPlanetPass.Light light = BackdropPlanetPass.Light.BEHIND_THE_HULL;
     private float time;
 
     private ShipBackdrop(String sky, Planet planet, boolean stars) {
@@ -101,6 +103,14 @@ public final class ShipBackdrop {
                 spec.getAtmosphereThickness() * 0.25f);
     }
 
+    /** Hangs the world elsewhere: fractions of the page from its lower left, and a radius in page heights. */
+    void hangPlanet(float x, float y, float radius, BackdropPlanetPass.Light light) {
+        planetX = x;
+        planetY = y;
+        planetRadius = radius;
+        this.light = light;
+    }
+
     public void advance(float dt) {
         time += dt;
     }
@@ -125,8 +135,8 @@ public final class ShipBackdrop {
 
         if (planet != null) {
             context.hostPass(new BackdropPlanetPass(planet,
-                    width * PLANET_X - panX * PLANET_TRAVEL, height * PLANET_Y - panY * PLANET_TRAVEL,
-                    height * PLANET_RADIUS, time));
+                    width * planetX - panX * PLANET_TRAVEL, height * planetY - panY * PLANET_TRAVEL,
+                    height * planetRadius, time, light));
         }
     }
 

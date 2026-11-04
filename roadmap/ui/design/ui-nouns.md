@@ -115,6 +115,9 @@ them.
   spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
   from a squad card's Loadout rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
+- The **menu backdrop** (`MenuBackdrop`) is the space behind every page but a battle, as behind the
+  base game's own screens: the sky of wherever the fleet is, its stars, and the world it is parked
+  at, drawn by the dialog's host before the page. A page's root is a translucent veil and grid over it.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built

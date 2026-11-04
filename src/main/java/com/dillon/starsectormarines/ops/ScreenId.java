@@ -67,6 +67,11 @@ public enum ScreenId {
      * than a room, which is what makes it reachable by a company whose ship is
      * still being got ready — and by one that has no ship at all.
      */
+    /** Whether space shows behind this page: all but a battle, which covers the whole screen with its map. */
+    public boolean showsSpaceBehind() {
+        return this != BATTLE;
+    }
+
     public boolean aboard() {
         return aboard;
     }
