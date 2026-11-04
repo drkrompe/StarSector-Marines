@@ -1035,7 +1035,10 @@ matriarch.
 **Spore colony.** The swarm's static air defence, after StarCraft's spore
 colonies. A bore sprouts colonies on the ground round its mouth as it grows:
 one as a fissure, another on reaching bore, another on reaching maw. Each is
-its own small destroyable structure with its own body on the map, and fires
+its own small destroyable structure with its own body on the map, its cell
+sealed so routes go round it until it dies (a carrier dragging a load home along
+a route through one never gets past, and the haul queues behind it; a bore's own
+cell stays open, since carriers route into its mouth), and fires
 spore bursts at hostile aircraft in its reach through the ground anti-air
 system, exactly as a flak position does: aimed bursts at the nearest airborne
 craft, never at the ground. A bore's own body never fires. Each burst is a shot,

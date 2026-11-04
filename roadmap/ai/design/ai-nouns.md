@@ -365,7 +365,11 @@ On The Burn the barrage changes the topology every few ticks, so no field could
 finish and the company stood at its landing for twelve thousand ticks. A slow
 build on unchanged terrain is still waited out. A wait that reaches the limit is
 counted as a stall (`NavigationService.squadRouteWaitStalls`), once per wait,
-apart from the movement watch over members stepping without progress.
+apart from the movement watch over members stepping without progress. A member
+that watch stops on its way into the last cell of its route, within a cell of
+it, has arrived there until it gets going again (`MovementService.atCell`):
+something it cannot push through stands on the cell, such as a hull parked over
+a post, and otherwise every order asks for the same cell again.
 Before publication, new starting positions must be covered or request bounded
 additional preparation. Partial construction is not a usable field and cannot
 silently turn uncovered members into independent synchronous searches.

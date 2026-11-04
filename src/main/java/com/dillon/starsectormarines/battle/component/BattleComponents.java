@@ -299,6 +299,8 @@ public final class BattleComponents {
     public static final int MOVEMENT_STALL_SINCE = 14;
     /** {@link #MOVEMENT} field 15: route-stall watch, sim-clock time of its last route step (FLOAT); a gap restarts the watch. */
     public static final int MOVEMENT_STALL_LAST_STEP = 15;
+    /** {@link #MOVEMENT} field 16: the cell a stall ended this mover's walk beside, as {@code MovementService} encodes it, or 0 (INT). See {@code MovementService.atCell}. */
+    public static final int MOVEMENT_STALL_NEAR_CELL = 16;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -1251,7 +1253,8 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.INT, FieldKind.OBJECT,
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.INT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.OBJECT, FieldKind.FLOAT);

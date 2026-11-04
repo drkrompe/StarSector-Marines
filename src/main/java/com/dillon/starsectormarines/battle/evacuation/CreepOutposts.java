@@ -206,7 +206,7 @@ public final class CreepOutposts {
     private void root(BattleSimulation sim, SwarmBore bore, int x, int y) {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                 + " Spore Outpost " + (bore.outposts().size() + 1);
-        long colony = sim.spawn(SwarmBores.bodySpec(name, bore.tier().sporeColonyStructure(), x, y));
+        long colony = sim.spawn(SwarmBores.colonySpec(name, bore.tier().sporeColonyStructure(), x, y));
         bore.outposted(colony);
         // It rises where its root has come, throwing the creep up round it.
         for (int i = 0; i < 6; i++) {
