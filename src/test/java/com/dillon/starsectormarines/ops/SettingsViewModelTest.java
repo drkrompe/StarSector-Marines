@@ -53,6 +53,29 @@ class SettingsViewModelTest {
     }
 
     @Test
+    void thePageBarSitsInTheViewportsBottomLeftCorner() throws Exception {
+        Reactor reactor = new Reactor();
+        Map<String, Object> props = SettingsViewModel.previewProps(true);
+        Path mod = Path.of("mod");
+        SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(mod.resolve(path)));
+        try {
+            MarkupLoader loader = new MarkupLoader(path -> Files.readString(mod.resolve(path)), SettingsScreen.COMPONENT_PATHS);
+            loader.reload();
+            try (MarkupInstance page = loader.build(reactor, SettingsScreen.ROOT_COMPONENT, props)) {
+                UiDocument document = new UiDocument(page.root());
+                for (var style : page.styles()) document.addStyleSheet(style);
+                document.theme(MarineOpsThemes.standard());
+                document.layout(1920f, 1080f);
+                var holder = page.requireElement("marine-ops-page-holder").box().borderBox();
+                assertEquals(0f, holder.x());
+                assertEquals(1080f, holder.y() + holder.height());
+            }
+        } finally {
+            SvgAsset.setSource(previous);
+        }
+    }
+
+    @Test
     void refreshShowsTheSettingOfAnotherSave() {
         boolean[] on = {true};
         Map<String, Object> props = new LinkedHashMap<>();

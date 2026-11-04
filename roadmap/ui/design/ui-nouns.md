@@ -116,9 +116,10 @@ them.
   from a squad card's Loadout rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
-  the mod's own holder (`page-bar.svg`), drawn to the base game's bottom menu and
-  shown one to one, with one route in each of its eight slots. A ninth route means
-  redrawing it.
+  the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
+  corner, its top right rounded and a wedge rising at its top left so it reads as built
+  into the frame, with one route in each of its eight slots. A ninth route means
+  redrawing it. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar. Each setting is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the

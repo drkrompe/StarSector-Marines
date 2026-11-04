@@ -181,7 +181,7 @@
 <style>
   .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
   .doc-narrow .header-stock-slot { width: 480px; }
-  .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   .section-title { height: 16px; padding: 2px 0px; }
