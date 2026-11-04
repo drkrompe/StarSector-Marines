@@ -13,10 +13,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop, close air support
- * and a warship's fleet support are implied rather than chosen: machines in the bay with lift for them, a gunship
- * in the fleet, or a committed Wolf or Onslaught are the call, so none is shown on the deck, costs a slot, or stays
- * behind when the mission resolved it.
+ * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop and fleet support are
+ * implied rather than chosen: machines in the bay with lift for them, or a committed Mudskipper, Wolf or Onslaught,
+ * are the call, so none is shown on the deck, costs a slot, or stays behind when the mission resolved it.
  */
 public final class CommandDeck {
 
@@ -30,12 +29,12 @@ public final class CommandDeck {
 
     /** Whether a power comes with what the company brings instead of sitting on the deck. */
     public static boolean implied(CommandPower power) {
-        return power instanceof ArmorDropPower || power instanceof CloseAirSupport || fleetSupport(power);
+        return power instanceof ArmorDropPower || fleetSupport(power);
     }
 
-    /** Whether a power is a warship of the fleet itself over the battle: the briefing's Fleet Support commits it. */
+    /** Whether a power is a ship of the fleet itself over the battle: the briefing's Fleet Support commits it. */
     public static boolean fleetSupport(CommandPower power) {
-        return power instanceof WolfStrike || power instanceof SpawnInOnslaught;
+        return power instanceof CloseAirSupport || power instanceof WolfStrike || power instanceof SpawnInOnslaught;
     }
 
     public static int used(List<CommandPower> available, Collection<String> selectedIds) {

@@ -185,8 +185,6 @@ public final class DamageDollCanvas implements CanvasProducer {
         return DOLL_DIR + "air-" + profile.hullId + ".svg";
     }
 
-    /** The plan the close-air-support gunship draws as. */
-    public static final String GUNSHIP_DOLL = DOLL_DIR + "air-mudskipper.svg";
 
     /** The doll a vehicle line draws as; variants of a family share one. */
     public static String dollPath(VehicleType type) {

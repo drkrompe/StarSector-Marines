@@ -2305,8 +2305,6 @@
 		"briefingAirNone": "无",
 		"briefingAirFrom": "从{0}起飞。",
 		"briefingAirWingRole": "战机掩护 / {0,number,integer} 架飞机",
-		"briefingAirGunshipRole": "近距空中支援 / {0,number,integer} {0,choice,1#架炮艇机|1<架炮艇机}",
-		"briefingAirGunshipNote": "一架炮艇机在你于战斗中呼叫的地面上空盘旋。",
 		"briefingUiCheckCommandGroups": "检查指挥编组",
 		"briefingUiCheckConstruction": "检查建设支援",
 

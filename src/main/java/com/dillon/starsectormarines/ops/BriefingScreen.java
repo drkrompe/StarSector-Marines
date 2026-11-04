@@ -65,7 +65,6 @@ import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -295,8 +294,6 @@ public class BriefingScreen implements Screen {
     private List<PlayerFleetPowerSources.SourceShip> cachedPowerSources = java.util.Collections.emptyList();
     /** Power roster available from the committed source ships plus employer. */
     private List<CommandPower> cachedAvailablePowers = java.util.Collections.emptyList();
-    /** The sprite of the Onslaught a debug mission or the cheat brings, which has no fleet member to read it from. */
-    private static final String ONSLAUGHT_SPRITE = "graphics/ships/onslaught/onslaught_base.png";
     /** Stable ids selected into the current mission's command deck. */
     private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
     private boolean commandDeckInitialized;
@@ -585,7 +582,7 @@ public class BriefingScreen implements Screen {
         }
         BriefingLift.Readout liftReadout = liftReadout(mission);
         BriefingLift.put(props, liftReadout);
-        BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
+        BriefingAir.put(props, BriefingAir.read(cachedCarriers));
         putRetainedActions(props, mission, readiness);
         putDeployLamps(props, mission, readiness, liftReadout);
         return BriefingViewModel.withEmptyStyles(props);
@@ -1076,13 +1073,14 @@ public class BriefingScreen implements Screen {
                     () -> togglePowerSource(source.memberId), source.spriteName,
                     SpecSheets.fleetSupport(source.shipName, source.spriteName, source.powers)));
         }
-        // A debug mission or the cheat brings the Onslaught with no ship behind it, so it has nothing to hold back.
+        // A contract's gunship, a debug mission or the cheat brings fleet support with no ship to hold back.
         for (CommandPower power : cachedAvailablePowers) {
             if (!CommandDeck.fleetSupport(power) || cachedPowerSources.stream()
                     .anyMatch(source -> source.powers.stream().anyMatch(p -> p.id.equals(power.id)))) continue;
             rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + power.id, "choice-row source-tile selected",
-                    power.displayName, "", false, () -> { }, ONSLAUGHT_SPRITE,
-                    SpecSheets.fleetSupport(Strings.get("briefingVmSourceHeader"), ONSLAUGHT_SPRITE, List.of(power))));
+                    power.displayName, "", false, () -> { }, SpecSheets.fleetSupportSprite(power),
+                    SpecSheets.fleetSupport(Strings.get("briefingVmSourceHeader"),
+                            SpecSheets.fleetSupportSprite(power), List.of(power))));
         }
         return List.copyOf(rows);
     }
@@ -1899,16 +1897,6 @@ public class BriefingScreen implements Screen {
         MarineRoster roster = script != null ? script.roster() : null;
         return CaptainDeploymentPolicy.isValidCommand(roster,
                 ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
-    }
-
-    /** Committed fleet ships whose presence brings close air support: each is one gunship over the field. */
-    private List<String> gunshipShips() {
-        List<String> out = new ArrayList<>();
-        for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
-            if (deselectedPowerSources.contains(source.memberId)) continue;
-            if (source.powers.stream().anyMatch(p -> CloseAirSupport.ID.equals(p.id))) out.add(source.shipName);
-        }
-        return out;
     }
 
     /** The carriers that fly: every one aboard. */

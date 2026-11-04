@@ -128,6 +128,15 @@ public final class SpecSheets {
                 List.copyOf(notes));
     }
 
+    /** The ship a fleet support power flies, for a tile with no fleet member to read a sprite from. */
+    public static String fleetSupportSprite(CommandPower power) {
+        return switch (power.id) {
+            case CloseAirSupport.ID -> "graphics/ships/mudskipper/mudskipper.png";
+            case WolfStrike.ID -> "graphics/ships/wolf/wolf_base.png";
+            default -> "graphics/ships/onslaught/onslaught_base.png";
+        };
+    }
+
     private static String effect(CommandPower power) {
         return switch (power.id) {
             case MechSupport.ID -> Strings.get("gearPowerEffectMechSupport");

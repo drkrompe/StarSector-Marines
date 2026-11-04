@@ -482,8 +482,8 @@ beside Deploy say what clears it. A lamp's words are its hover
 (`DeployWarnings`). Beside the lift row, the briefing's **air cover**
 shows what flies over the company as plans in the same hand: one tile per fighter
 type with how many aircraft its carriers put up (one a bay, every carrier aboard,
-no toggle), and the close-air-support gunship, one per fleet ship that brings it
-(`BriefingAir`). The count is airframes, not sorties. Past nine squads, every full-strength
+no toggle; `BriefingAir`). The close-air-support gunship is called in battle, so it
+sits in Fleet Support instead (owner). The count is airframes, not sorties. Past nine squads, every full-strength
 squad folds into one stacked tile with a multiplier, its hover counting the stack
 per officer, so only the wounded and short-handed squads keep their own tiles.
 

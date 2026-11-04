@@ -1631,8 +1631,6 @@
     "briefingAirCount": "×{0,number,integer}",
     "briefingAirWingRole": "Fighter cover / {0,number,integer} aircraft",
     "briefingAirFrom": "Flown from {0}.",
-    "briefingAirGunshipRole": "Close air support / {0,number,integer} {0,choice,1#gunship|1<gunships}",
-    "briefingAirGunshipNote": "A gunship circles the ground you call in battle.",
     "briefingVmCarrierHeader": "Air Cover",
     "briefingVmContractHeader": "CONTRACT AUTHORIZATION",
     "briefingVmEmployerUndisclosed": "Undisclosed",

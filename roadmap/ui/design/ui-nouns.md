@@ -584,8 +584,8 @@ hint explains cycling and the Boat Deck's ownership of losses and fittings.
 The command deck keeps a distinct SVG ability symbol, short name, selection, and
 slot cost visible on compact cards. These pictograms and their detail sheets share
 one presentation mapping. Fleet Support shows each contributing ship as a square tile of its hull-spec sprite alone
-(owner); its name and what its powers do are read on hover, and clicking holds it back. Wolf
-Strike and Onslaught Drop live here and take no deck slot. Logistics use bounded groups sized to
+(owner); its name and what its powers do are read on hover, and clicking holds it back. Close
+Air Support, Wolf Strike and Onslaught Drop live here and take no deck slot. Logistics use bounded groups sized to
 their information; empty fighter cover is a quiet textual state, not an empty panel.
 Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
 popup; source and carrier rows use that same layer for their secondary details.
