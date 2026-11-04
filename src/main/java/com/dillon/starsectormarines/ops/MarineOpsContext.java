@@ -867,9 +867,14 @@ public class MarineOpsContext {
         return generated;
     }
 
-    /** Whether the board has anything to show: work at this planet, or the debug client the Debug key lists at a market. */
+    /** Whether the board has anything to show: work at this planet, a hostile contact, or the debug client the Debug key lists at a market. */
     boolean boardOpen() {
-        return planet != null && (workHere() || Cheats.enabled() && market != null);
+        return planet != null && (boardHasContent(clients, workHere()) || Cheats.enabled() && market != null);
+    }
+
+    /** A contact that will not deal with the company still has a place on the board, though it is no work to mark the tab for. */
+    static boolean boardHasContent(List<Client> clients, boolean work) {
+        return work || clients.stream().anyMatch(client -> client.locked);
     }
 
     /** Magic factionId for the synthetic debug client. {@link MissionGenerator} branches on this. */

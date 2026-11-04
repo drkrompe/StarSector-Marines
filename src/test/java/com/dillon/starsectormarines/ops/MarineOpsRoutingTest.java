@@ -81,6 +81,16 @@ class MarineOpsRoutingTest {
     }
 
     @Test
+    @DisplayName("a hostile contact keeps the board open without being work")
+    void aHostileContactKeepsTheBoardOpen() {
+        var hostile = new Client("pirates", "Pirates", null, RepLevel.HOSTILE, true, "Hostile");
+        var broker = new Client("independent", "Independent", null, RepLevel.NEUTRAL, false, null);
+        assertFalse(MarineOpsContext.offersWork(hostile, List.of()));
+        assertTrue(MarineOpsContext.boardHasContent(List.of(hostile), false));
+        assertFalse(MarineOpsContext.boardHasContent(List.of(broker), false));
+    }
+
+    @Test
     @DisplayName("a board with nothing on it opens HQ instead")
     void anEmptyBoardIsNotADestination() {
         MarineOpsContext context = new MarineOpsContext(null);
