@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RefitBriefingLineTest {
-    @Test void theBriefingNamesTheMessAndOnlyAWoundDeficit() throws Exception {
+    @Test void theBriefingNamesTheMessAndTheRoomsThatChangeTheFight() throws Exception {
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> text)) {
             assertNull(RefitText.briefingLine(ShipCondition.NONE));
             String start = RefitText.briefingLine(ShipCondition.battered());
             assertTrue(start.contains("Field rations") && start.contains("15% slower"), start);
-            assertTrue(start.contains("one extra day"), start);
+            assertFalse(start.contains("Life support"), start);
             String fixed = RefitText.briefingLine(ShipCondition.battered()
                     .with(RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED).with(RefitTrack.MESS, RefitBand.IMPROVED_I));
             assertTrue(fixed.contains("Proper galley") && fixed.contains("15% faster"), fixed);

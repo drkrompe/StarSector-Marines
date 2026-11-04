@@ -17,15 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MarinePersonnelLogisticsTest {
 
     @Test
-    void barracksBulkReplacementsStopAtAvailableCargoAndKeepWoundedBillets() {
+    void barracksBulkReplacementsStopAtAvailableCargoAndKeepOccupiedBillets() {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(2 * MarineSquad.CAPACITY);
         var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
-        String wounded = squads.get(1).memberIds().get(1);
+        String occupant = squads.get(1).memberIds().get(1);
         roster.applySoldierOutcome(Map.of(squads.get(0).memberIds().get(0), MarineSoldierStatus.KIA,
                 squads.get(1).memberIds().get(0), MarineSoldierStatus.KIA,
-                squads.get(1).memberIds().get(2), MarineSoldierStatus.KIA,
-                wounded, MarineSoldierStatus.WIA), 20f, 3f);
+                squads.get(1).memberIds().get(2), MarineSoldierStatus.KIA));
         var reserve = roster.recruitToSquad(roster.reserveSquad().id());
         float[] quantity = {1f};
         CargoAPI cargo = cargo(quantity);
@@ -38,8 +37,8 @@ class MarinePersonnelLogisticsTest {
         assertTrue(squads.get(0).memberIds().contains(reserve.id()));
         assertEquals(0, roster.vacancies(squads.get(0)));
         assertEquals(1, roster.vacancies(squads.get(1)));
-        assertEquals(MarineSoldierStatus.WIA, roster.soldierById(wounded).status());
-        assertTrue(squads.get(1).memberIds().contains(wounded));
+        assertEquals(MarineSoldierStatus.ACTIVE, roster.soldierById(occupant).status());
+        assertTrue(squads.get(1).memberIds().contains(occupant));
     }
 
     @Test
@@ -98,7 +97,7 @@ class MarinePersonnelLogisticsTest {
         MarineSquad line = roster.squads().stream().filter(squad -> !squad.reserve()).findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> losses = new LinkedHashMap<>();
         for (String id : line.memberIds()) losses.put(id, MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(losses, 20f, 3f);
+        roster.applySoldierOutcome(losses);
         float[] quantity = {MarineSquad.CAPACITY + 5f};
 
         MarinePersonnelLogistics.PersonnelDrawResult result = MarinePersonnelLogistics.fillLineShortfall(
@@ -120,7 +119,7 @@ class MarinePersonnelLogisticsTest {
         String lost = line.memberIds().get(0);
         losses.put(lost, MarineSoldierStatus.KIA);
         losses.put(line.memberIds().get(4), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(losses, 20f, 3f);
+        roster.applySoldierOutcome(losses);
         MarineSoldier reserve = roster.recruitToSquad(roster.reserveSquad().id());
         float[] quantity = {1f};
 

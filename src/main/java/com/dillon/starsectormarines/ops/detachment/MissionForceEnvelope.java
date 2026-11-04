@@ -49,7 +49,7 @@ public final class MissionForceEnvelope {
      * whatever the company has, not an authored set piece a patron sized.
      * The opening Wayline operations, story and recurring, may too: their authored
      * sorties size the lift, not the company, so a seat count from the manifest is
-     * never a launch gate for a starting company with one marine wounded.
+     * never a launch gate for a starting company one marine short.
      */
     public static boolean allowsUnderstrength(Mission mission) {
         return mission != null

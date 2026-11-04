@@ -9,7 +9,7 @@ import java.util.List;
  *
  * <p>A marine inside the extraction circle around a pad the company landed on
  * boards and leaves. Everyone else still on the ground fights their way back
- * and comes home wounded. A battle with no recorded pads extracts nobody
+ * and rolls the casualty dice. A battle with no recorded pads extracts nobody
  * cleanly. The battle draws the same circles while Retreat is being confirmed,
  * so what the player sees is exactly what is tested here.
  */

@@ -229,14 +229,12 @@ keeps no squad list of its own: readiness, recovery, reinforcement and home-comm
 assignment are all read and ordered on the Barracks formation board.
 
 Squad cards show the twelve current billets grouped into Alpha, Bravo, and Charlie.
-A filled marine cutout means ready, an amber medical mark means wounded, and a
-hollow cutout means vacant; counts and a text legend accompany these shapes.
+A filled marine cutout means ready and a hollow cutout means vacant; counts and a text legend accompany these shapes.
 When the squad's home officer trains Field Medicine, the billet that will carry
-the squad medic in battle wears a green plate with the cross cut out — never the
-bare amber cross of a wound — chosen by the same billet rule the battle uses
+the squad medic in battle wears a green plate with the cross cut out, chosen by the same billet rule the battle uses
 from ready marines other than the NCO. A squad under operation-command fallback
 shows no medic plate, since the card cannot know who will lead it.
-Wounded marines retain their billet. Historical killed and missing personnel do
+Historical killed and missing personnel do
 not occupy the current establishment. Readiness is distinct from stationing and
 from squad selection.
 
@@ -304,8 +302,7 @@ fitness, or relevant experience changes using rank, then experience, then the
 senior billet. Equals are separated by where they stand on the roll, not by a
 marine's identity: an identity here is a generated one, so a seeded roster that
 resolved its ties that way produced a different NCO every time it was built —
-which the frozen manifest now depends on, since it seats that NCO first. A wounded senior may resume the billet on return; a
-lost or unfit leader is replaced deterministically. Fire-team membership is
+which the frozen manifest now depends on, since it seats that NCO first. A lost or unfit leader is replaced deterministically. Fire-team membership is
 likewise derived from current billet order, so transfers and casualties cannot
 leave a second stored partition behind. The historical squad roll may retain KIA
 and MIA records, but those records do not occupy current billet positions; active
@@ -393,14 +390,13 @@ full-width acceptance bars. The two equipment choices remain comparison cards.
 The player compares either path without learning it, shown on the first line squad at home,
 then explicitly accepts one technology transfer, which fits every line squad at home; a squad away on station keeps its kit. The review shows twelve clickable equipment squares in three fire-team columns of
 four billets, alongside current and proposed equipment. The grid uses the Barracks'
-current-equipment icons, with wounded and vacant slots identified. Selecting a
+current-equipment icons, with vacant slots identified. Selecting a
 square displays current and proposed weapon, armor and
 special equipment side by side, using existing equipment sprites and the shared
 catalog spec sheets. Core stats stay visible; hover expands field notes and suit
 systems. The review explicitly marks unchanged kit, replacements, removed specials,
 and unoccupied plan-only slots. Only explicit Issue commits the ordinary free fitting transaction.
-Wounds and vacancies never block assignment or issue. Current occupants, including
-WIA personnel, receive the reviewed equipment; empty slots retain the plan and
+Vacancies never block assignment or issue. Current occupants receive the reviewed equipment; empty slots retain the plan and
 incur no charge. Stationing and unknown technology remain blockers. Successful issue completes the saved
 lesson once and offers inspection of the squad's three fire teams. Leaving and
 returning preserves reward and completion; older saves may claim the uncollected
@@ -523,8 +519,7 @@ which keeps issuing for the squads that carry it.
 
 Card assignment is atomic. The Machine Shop freely fits any learned equipment;
 it neither reads nor spends fleet cargo, and removing kit grants no cargo refund.
-Wounded personnel keep their seats and wear their seat's kit without changing
-status or recovery time. Vacant seats retain the twelve-billet plan; even an empty
+Vacant seats retain the twelve-billet plan; even an empty
 line squad holds its cards. Every occupied seat is dressed from the cards whenever
 the cards or the squad's members change: a replacement or transfer takes the kit
 of the seat it fills, and a casualty that moves everyone behind it up a seat moves
@@ -596,7 +591,7 @@ ship's actual range. No campaign soldier identity, equipment issue, resource
 bill, wound, experience award, or ship damage comes back from the trial.
 Escape, Tab, losing the controlled body, or closing the operations dialog
 discards the trial. Ordinary return restores the same selected billet and
-equipment proposal. Vacant, wounded, or stationed billets cannot enter; a
+equipment proposal. Vacant or stationed billets cannot enter; a
 missing or damaged range is explained rather than replaced by an invented room.
 
 ## Mech Lab
@@ -937,7 +932,7 @@ The presentation reads each workshop's quote; existing transaction authorities
 revalidate and spend at commit. It does not merge infantry equipment, mech spares
 and boat fittings into one economy. Bulk personnel orders quote the actual eligible
 cargo draw after named reserves, retain skipped-squad reasons, and explain any
-remaining full-muster shortage separately. Wounded retain their billets. Tutorials
+remaining full-muster shortage separately. Tutorials
 use the same cost vocabulary and point to the stock display in the relevant room.
 
 ### Recycling
@@ -993,8 +988,7 @@ it fills that squad, and beside the select-all toggle it fills the selection. Ea
 is an explicit order whose hover states the draw (named reserves first, then cargo
 Marines) and what stays unfilled, never a button that silently spends all available
 resources. A card shows its wrench only while it has true vacancies. There is no
-equipment order, because replacements take their seat's kit as they join. Current billet counts state ready, wounded and vacant
-separately. A squad card's **Loadout** opens that squad's exact Armory equipment
+equipment order, because replacements take their seat's kit as they join. Current billet counts state ready and vacant separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, drawn as an open slot the size of a squad card, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
 with All formations open, the first officer on the roll with room. When no
@@ -1002,10 +996,7 @@ command has a slot the tile is disabled and says why, so the officers' combined
 command caps are the company's force limit for raising. Its bill reads as one line
 of commodity icons and counts, each marked when the stores fall short.
 
-Barracks has no order that moves marines between squads. A squad gets its
-strength back by waiting for its wounded, who return after one day of ship time,
-or by filling true vacancies from reserves and cargo. The room header counts down
-the whole hours until every line squad's wounded are back on duty.
+Barracks has no order that moves marines between squads. A squad gets its strength back by filling true vacancies from reserves and cargo.
 
 After an operation, Prepare Company opens Barracks once salvage has been settled.
 When a claim remains, that route first opens the normal salvage picker; it never
@@ -1441,11 +1432,9 @@ advertise dead rooms as disabled feature promises.
 
 The retained bridge dashboard has four concerns:
 
-- **Force status** explains organization and readiness. Strength includes living
-  active and wounded marines; availability is the line-ready subset. The entire
-  gap—including wounded, stationed, and reserve personnel—is unavailable. The
-  reserve pool is excluded from line and stationed squad counts, and recovery
-  shows the earliest known return only when recovery exists.
+- **Force status** explains organization and readiness. Strength counts living marines; availability is the line-ready subset. The entire gap,
+stationed and reserve personnel, is unavailable. The reserve pool is excluded from line and
+stationed squad counts.
 - **Finance and standing** explain cash, reputation, employers, and runway from live
   campaign authorities. Only live stationing retainers count as income. Missing
   monthly data is unknown, never zero. Client crests follow the employer house's
@@ -1752,8 +1741,7 @@ The benefit belongs to the active converted original company home and freezes
 with the selected personnel at launch. Later shuttle trips and split landings
 retain it; allies, enemies, mechs and detached debug companies receive none.
 Changing homes affects future deployments, not battles already underway. Other
-hulls remain on their existing baseline. Hull welfare is distinct from officer
-specialties, wound recovery and a future persistent company morale economy.
+hulls remain on their existing baseline. Hull welfare is distinct from officer specialties and a future persistent company morale economy.
 
 Two spare company bunkrooms start sealed, leaving 36 of the converted hull's
 54 billets usable. A 4,000-credit yard order after Relief restores both rooms and
@@ -1773,8 +1761,7 @@ and II. Five cores (Power, Life support, Structure, Compute, and Fabrication, wh
 is the workshop chain) gate the other tracks' tiers. A locked tier names what it
 waits on in Castle's terms ("no power for it yet"). The distribution order is Power's
 Restored tier and the mess order is the mess's; their prices and receipts stand.
-Degraded scrubbers add a day to every wound's recovery until life support is
-restored. Only tracks that make the company stronger (its marines, mechs,
+Only tracks that make the company stronger (its marines, mechs,
 vehicles or boats) are offered (owner, 2026-10-31): her own fleet figures stand
 at a stock Cerberus's, and no track sells hull, flux, sensors, drive, supplies or
 cargo. The deck carries one icon chip per core in its top-left corner, ringed
@@ -1815,8 +1802,7 @@ already a gain, and other hulls read as sealed. The range opens trials aboard
 and then sharpens company infantry's primary fire; the gym makes them faster
 and, at its top tier, steadier under fire. With the mess's morale recovery these
 freeze onto every squad at launch as one hull-welfare record and reach the fight
-as one named unit modifier. The sick bay brings a share of the would-be dead home
-wounded when a battle is settled. The lounge raises the aptitude cargo
+as one named unit modifier. The sick bay pulls a share of the would-be dead through when a battle is settled. The lounge raises the aptitude cargo
 replacements arrive with. The briefing's Ship row names each room that changes the
 operation.
 
@@ -1985,7 +1971,7 @@ fitted to a shoulder; **Skip** closes it for good while the spare stays in store
 the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation
-uses the existing real founding bill, wounded billets and deployment minimum.
+uses the existing real founding bill and deployment minimum.
 Briefing confirmation records preparation once two ready formations are
 selected; the lance rides with them whenever Mech Support is available, with no
 call to select, and absent heavy support does not gate an otherwise legal

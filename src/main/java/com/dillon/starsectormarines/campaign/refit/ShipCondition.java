@@ -88,9 +88,6 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
-    /** Days added to a wound's recovery while the scrubbers are degraded. */
-    public float woundRecoveryExtraDays() { return band(RefitTrack.LIFE_SUPPORT) == RefitBand.DEFICIT ? 1f : 0f; }
-
     // --- The reserved facilities. A sealed compartment is neutral, so opening one is
     // already a gain, and every other hull reads as sealed rather than as opened. ---
 
@@ -109,9 +106,8 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
     }
 
     /**
-     * The share of marines a battle counted as killed whom the sick bay brings back
-     * wounded instead. Read when the battle is settled; it moves no one already
-     * wounded or missing, and stacks with a squad medic's work in the field.
+     * The share of would-be dead the sick bay pulls through: they come home fit instead.
+     * Read when the battle is settled; it stacks with a squad medic's work in the field.
      */
     public float casualtiesSaved() { return facility(RefitTrack.SICK_BAY, 0f, 0.10f, 0.25f, 0.40f); }
 

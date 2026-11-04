@@ -88,7 +88,7 @@ class BarracksTurnaroundTest {
             roster.bootstrapInitialComplement(12);
             var recipient = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
             for (String id : recipient.memberIds().subList(0, 4)) {
-                roster.applySoldierOutcome(Map.of(id, MarineSoldierStatus.KIA), 0f, 0f);
+                roster.applySoldierOutcome(Map.of(id, MarineSoldierStatus.KIA));
             }
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
             model.toggle(recipient.id());
@@ -125,7 +125,7 @@ class BarracksTurnaroundTest {
             action(restored, "guideHelp");
             assertNull(restored.guideCallout().back(), "the first line has nothing to go back to");
             restored.guideNext();
-            assertTrue(restored.guideCallout().copy().contains("wounded"));
+            assertTrue(restored.guideCallout().copy().contains("vacant"));
             assertEquals(0, loaded.lineReadySoldiers().size());
         } finally { CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }

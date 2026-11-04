@@ -105,12 +105,12 @@ class StationedStrengthTest {
         MarineRoster roster = stationedSquad(state);
         List<MarineSoldier> members = roster.squadMembers(roster.squads().get(0));
         roster.applySoldierOutcome(Map.of(
-                members.get(0).id(), MarineSoldierStatus.WIA,
-                members.get(1).id(), MarineSoldierStatus.KIA), 0f, 30f);
+                members.get(0).id(), MarineSoldierStatus.KIA,
+                members.get(1).id(), MarineSoldierStatus.KIA));
 
         assertEquals((SEATS - 2) * StationedStrength.seatWorth(issuedBand(roster)),
                 StationedStrength.valueFor(state, 0, roster), EPSILON,
-                "a WIA marine holds his billet but does not stand a line");
+                "a fallen marine stands no line");
     }
 
     @Test

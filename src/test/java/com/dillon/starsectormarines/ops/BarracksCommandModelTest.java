@@ -64,7 +64,7 @@ class BarracksCommandModelTest {
         roster.bootstrapInitialComplement(2 * MarineSquad.CAPACITY);
         var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
         for (var squad : squads) {
-            roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA), 0f, 0f);
+            roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA));
         }
         roster.recruitToSquad(roster.reserveSquad().id(), 2);
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
@@ -110,7 +110,7 @@ class BarracksCommandModelTest {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
-        roster.applySoldierOutcome(Map.of(squad.memberIds().get(0), MarineSoldierStatus.KIA), 0f, 0f);
+        roster.applySoldierOutcome(Map.of(squad.memberIds().get(0), MarineSoldierStatus.KIA));
         roster.recruitToSquad(roster.reserveSquad().id(), 1); // so Fill Vacancies is a live, focusable order
         var vm = new BarracksViewModel(reactor, roster, () -> 1d);
         var model = vm.command();

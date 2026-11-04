@@ -41,9 +41,8 @@ public final class StationedStrength {
     /**
      * The ground-defence contribution of the detachment stationed on this contract row.
      *
-     * <p>Only {@link MarineSoldierStatus#ACTIVE} marines count. A WIA marine still holds
-     * his billet — he is living strength for the assignment and is not replaced — but he
-     * does not stand a line, so he contributes nothing here.
+     * <p>Only {@link MarineSoldierStatus#ACTIVE} marines count; a marine who is missing
+     * or dead holds no seat and contributes nothing here.
      *
      * <p>A row with no stationed squads in the roster is a legacy count-only assignment:
      * its committed marines are valued at the Green seat, which is what the player

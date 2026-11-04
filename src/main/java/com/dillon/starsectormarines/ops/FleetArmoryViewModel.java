@@ -125,7 +125,6 @@ public final class FleetArmoryViewModel {
     }
 
     private final MarineRoster roster;
-    private final DoubleSupplier currentDay;
     private final EquipmentIssueResources equipmentIssueResources;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
@@ -175,12 +174,10 @@ public final class FleetArmoryViewModel {
             DoubleSupplier currentDay, EquipmentIssueResources equipmentIssueResources) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
-        if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
         if (equipmentIssueResources == null) {
             throw new IllegalArgumentException("equipmentIssueResources is required");
         }
         this.roster = roster;
-        this.currentDay = currentDay;
         this.equipmentIssueResources = equipmentIssueResources;
 
         MarineSquad initialSquad = firstLineSquad(roster);
@@ -383,14 +380,12 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         int lineSquads = 0;
         int ready = 0;
-        int wounded = 0;
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve()) continue;
             lineSquads++;
             ready += roster.readyCount(squad);
-            wounded += woundedCount(squad);
         }
-        return Strings.format("openingFleetArmorySquadsRtdWiaEquipmentTemplatesCollected", lineSquads, ready, wounded, roster.armory().equipmentTemplateCards().size());
+        return Strings.format("openingFleetArmorySquadsRtdEquipmentTemplatesCollected", lineSquads, ready, roster.armory().equipmentTemplateCards().size());
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -1009,7 +1004,7 @@ public final class FleetArmoryViewModel {
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         if (squad == null) return Strings.get("openingFleetArmorySelectALineSquad");
         int vacancies = roster.vacancies(squad);
-        return Strings.format("openingFleetArmoryRtd4", roster.readyCount(squad), vacancies, (vacancies == 1 ? Strings.get("openingFleetArmoryOpenBillet") : Strings.get("openingFleetArmoryOpenBillets")), recoverySummary(squad));
+        return Strings.format("openingFleetArmoryRtd4", roster.readyCount(squad), vacancies, (vacancies == 1 ? Strings.get("openingFleetArmoryOpenBillet") : Strings.get("openingFleetArmoryOpenBillets")));
     }
 
     private String assignedTemplateName(MarineSquad squad, int teamIndex) {
@@ -1268,54 +1263,6 @@ public final class FleetArmoryViewModel {
         return ready;
     }
 
-    private int woundedCount(MarineSquad squad) {
-        int wounded = 0;
-        for (MarineSoldier soldier : roster.squadMembers(squad)) {
-            if (soldier.status() == MarineSoldierStatus.WIA) wounded++;
-        }
-        return wounded;
-    }
-
-    private String recoverySummary(MarineSquad squad) {
-        return recoverySummary(roster.teamMemberIds(squad, 0),
-                roster.teamMemberIds(squad, 1), roster.teamMemberIds(squad, 2));
-    }
-
-    @SafeVarargs
-    private final String recoverySummary(List<String>... groups) {
-        int wounded = 0;
-        float earliest = Float.POSITIVE_INFINITY;
-        for (List<String> group : groups) {
-            for (String id : group) {
-                MarineSoldier soldier = roster.soldierById(id);
-                if (soldier == null || soldier.status() != MarineSoldierStatus.WIA) continue;
-                wounded++;
-                earliest = Math.min(earliest, soldier.unavailableUntilDay());
-            }
-        }
-        return wounded == 0 ? Strings.get("openingFleetArmoryNoWoundedPersonnel")
-                : Strings.format("openingFleetArmoryWiaNextRtd", wounded, formatRemaining(earliest, currentDay.getAsDouble()));
-    }
-
-    static String formatRemaining(double unavailableUntilDay, double currentDay) {
-        return remaining(unavailableUntilDay, currentDay, false);
-    }
-
-    static String formatRemainingCompact(double unavailableUntilDay, double currentDay) {
-        return remaining(unavailableUntilDay, currentDay, true);
-    }
-
-    private static String remaining(double until, double now, boolean compact) {
-        int hours = Math.max(0, (int) Math.ceil((until - now) * 24d));
-        if (hours == 0) return Strings.get("openingRecoveryNow");
-        String prefix = compact ? "openingRecoveryCompact" : "openingRecovery";
-        if (hours < 24) return Strings.format(prefix + "Hours", hours);
-        int days = hours / 24;
-        int remainder = hours % 24;
-        return remainder == 0 ? Strings.format(prefix + "Days", days)
-                : Strings.format(prefix + "DaysHours", days, remainder);
-    }
-
     private static MarineSquad firstLineSquad(MarineRoster roster) {
         for (MarineSquad squad : roster.squads()) if (!squad.reserve()) return squad;
         return null;
@@ -1352,7 +1299,7 @@ public final class FleetArmoryViewModel {
         if (soldier == null) return classes + " status-vacant";
         return classes + switch (soldier.status()) {
             case ACTIVE -> " status-ready";
-            case WIA -> " status-wia";
+            case WIA -> " status-ready";
             case MIA -> " status-missing";
             case KIA -> " status-killed";
         };
@@ -1368,8 +1315,7 @@ public final class FleetArmoryViewModel {
         if (soldier == null) return Strings.get("openingFleetArmoryVacant");
         return switch (soldier.status()) {
             case ACTIVE -> Strings.get("openingFleetArmoryReady");
-            case WIA -> Strings.format("openingFleetArmoryWiaRtd2", formatRemaining(
-                    soldier.unavailableUntilDay(), currentDay.getAsDouble()));
+            case WIA -> Strings.get("openingFleetArmoryReady");
             case MIA -> Strings.get("openingFleetArmoryMissing");
             case KIA -> Strings.get("openingFleetArmoryKilled");
         };

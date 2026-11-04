@@ -188,10 +188,9 @@ public final class MissionOutcome {
     public final Set<String> takenSoldierIds;
     /**
      * Of the survivors, those still on the ground away from the landing zone when
-     * the company withdrew: they come home wounded rather than unhurt. Null on an
-     * outcome saved before it existed.
+     * the company withdrew: they roll the casualty dice rather than extracting unhurt.
      */
-    public final Set<String> withdrawalWoundedSoldierIds;
+    public final Set<String> withdrawalStragglerSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
     public final Set<String> deployedFireteamIds;
     /**
@@ -304,7 +303,7 @@ public final class MissionOutcome {
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.takenSoldierIds = immutableIds(b.takenSoldierIds);
-        this.withdrawalWoundedSoldierIds = immutableIds(b.withdrawalWoundedSoldierIds);
+        this.withdrawalStragglerSoldierIds = immutableIds(b.withdrawalStragglerSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
         this.soldierTelemetry = immutableTelemetry(b.soldierTelemetry);
     }
@@ -422,7 +421,7 @@ public final class MissionOutcome {
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> takenSoldierIds = Collections.emptySet();
-        private Set<String> withdrawalWoundedSoldierIds = Collections.emptySet();
+        private Set<String> withdrawalStragglerSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
         private Map<String, CombatTelemetryRow> soldierTelemetry = Collections.emptyMap();
 
@@ -684,8 +683,8 @@ public final class MissionOutcome {
             return this;
         }
 
-        public Builder withdrawalWoundedSoldierIds(Set<String> withdrawalWoundedSoldierIds) {
-            this.withdrawalWoundedSoldierIds = withdrawalWoundedSoldierIds;
+        public Builder withdrawalStragglerSoldierIds(Set<String> withdrawalStragglerSoldierIds) {
+            this.withdrawalStragglerSoldierIds = withdrawalStragglerSoldierIds;
             return this;
         }
 

@@ -104,17 +104,14 @@ class CompanyStandingTest {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(12);
         Map<String, MarineSoldierStatus> outcomes = new HashMap<>();
-        outcomes.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
         outcomes.put(roster.soldiers().get(1).id(), MarineSoldierStatus.KIA);
         outcomes.put(roster.soldiers().get(2).id(), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(outcomes, 10f, 7f);
+        roster.applySoldierOutcome(outcomes);
 
         int living = CompanyStanding.strength(roster);
-        assertEquals(1, CompanyStanding.wounded(roster));
-        // KIA/MIA leave the books entirely; the wounded marine stays on them.
+        // KIA/MIA leave the books entirely.
         assertTrue(living < 12);
-        // ...but cannot deploy, so available is strictly below strength.
-        assertEquals(living - 1, CompanyStanding.available(roster));
+        assertEquals(living, CompanyStanding.available(roster));
     }
 
     @Test
@@ -140,10 +137,11 @@ class CompanyStandingTest {
         assertEquals(0, CompanyStanding.strength(null));
         assertEquals(0, CompanyStanding.available(null));
         assertEquals(0, CompanyStanding.stationed(null));
-        assertEquals(0, CompanyStanding.wounded(null));
+        assertEquals(0, CompanyStanding.lineSquads(null));
+        assertEquals(0, CompanyStanding.stationedSquads(null));
     }
 
-    // ---------- formation and recovery ----------
+    // ---------- formation ----------
 
     @Test
     void theReservePoolIsNotAFormation() {
@@ -177,33 +175,6 @@ class CompanyStandingTest {
         assertTrue(CompanyStanding.lineSquads(roster) >= 1);
     }
 
-    @Test
-    void theNextRecoveryIsTheSoonestOneNotTheLast() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(12);
-        roster.applySoldierOutcome(
-                Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA),
-                100f, 20f);
-        roster.applySoldierOutcome(
-                Map.of(roster.soldiers().get(1).id(), MarineSoldierStatus.WIA),
-                100f, 5f);
-
-        assertEquals(2, CompanyStanding.wounded(roster));
-        assertEquals(105f, CompanyStanding.nextRecoveryDay(roster), 0.001f);
-    }
-
-    @Test
-    void aCompanyWithNobodyRecoveringHasNoNextRecoveryDay() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(12);
-
-        // -1 is the caller's signal to omit the line, not a day to render.
-        assertEquals(-1f, CompanyStanding.nextRecoveryDay(roster), 0.001f);
-        assertEquals(-1f, CompanyStanding.nextRecoveryDay(null), 0.001f);
-        assertEquals(0, CompanyStanding.lineSquads(null));
-        assertEquals(0, CompanyStanding.stationedSquads(null));
-    }
-
     // ---------- assembly ----------
 
     @Test
@@ -213,14 +184,12 @@ class CompanyStandingTest {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(12);
         roster.applySoldierOutcome(
-                Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA),
-                10f, 7f);
+                Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.KIA));
 
         CompanyStanding standing = CompanyStanding.of(
                 finances(120_000f, 20_000f), state, roster, 5);
 
         assertEquals(standing.strength - standing.available, standing.unavailable);
-        assertEquals(1, standing.wounded);
         assertEquals(1_000, standing.retainerPerMonth);
         assertEquals(1, standing.stationingContracts);
     }

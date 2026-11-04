@@ -124,16 +124,15 @@ class NamedStationingBindingTest {
         MarineCaptain captain = captain(Rank.LIEUTENANT);
         roster.add(captain);
         MarineSquad squad = roster.squads().get(0);
-        MarineSoldier wounded = roster.squadMembers(squad).get(0);
+        MarineSoldier survivor = roster.squadMembers(squad).get(0);
         MarineSoldier fallen = roster.squadMembers(squad).get(1);
         roster.applySoldierOutcome(Map.of(
-                wounded.id(), MarineSoldierStatus.WIA,
-                fallen.id(), MarineSoldierStatus.KIA), 10f, 7f);
+                fallen.id(), MarineSoldierStatus.KIA));
         assertTrue(roster.bindStationing(81L, captain.id(), List.of(squad.id())));
 
         assertEquals(1, roster.failStationingExtraction(81L));
 
-        assertEquals(MarineSoldierStatus.MIA, wounded.status());
+        assertEquals(MarineSoldierStatus.MIA, survivor.status());
         assertEquals(MarineSoldierStatus.KIA, fallen.status());
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             assertTrue(soldier.status() == MarineSoldierStatus.MIA

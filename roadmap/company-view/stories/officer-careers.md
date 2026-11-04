@@ -23,7 +23,7 @@ and promotion. The left-hand portraits lead to people, not only roster filters.
   Stewardship adds 10/20 percentage points of recovery on victory, using only
   the strongest participating specialist. These are separate from moral outlook.
 - Effects freeze at launch. Home reassignment or later specialty choices do not
-  change an operation's attribution or outcome. Wounded keep their billets.
+  change an operation's attribution or outcome.
 - No repeat credit from reopening the same settled outcome. A fresh attempt at
   a repeatable mission remains a new deployment, even when the mission id repeats.
 

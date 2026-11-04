@@ -478,10 +478,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         MarineRoster roster = script != null ? script.roster() : null;
         Map<String, MarineSoldierStatus> dispositions = new HashMap<>();
         for (String id : outcome.survivingSoldierIds) dispositions.put(id, MarineSoldierStatus.ACTIVE);
-        for (String id : outcome.fallenSoldierIds) {
-            MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
-            dispositions.put(id, soldier != null ? soldier.status() : MarineSoldierStatus.KIA);
-        }
+        for (String id : outcome.fallenSoldierIds) dispositions.put(id, rolledFate(roster, id));
+        for (String id : outcome.withdrawalStragglerSoldierIds) dispositions.put(id, rolledFate(roster, id));
         List<MarineSquad> deployed = deployedSquads(outcome, roster, dispositions);
         boolean namedStationing = outcome.missionSource == MissionSource.STATIONING
                 && !outcome.deployedFireteamIds.isEmpty();
@@ -496,6 +494,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         List<PersonnelRow> rows = new ArrayList<>();
         for (MarineSquad squad : deployed) rows.add(personnelRow(roster, squad, dispositions, rows.size()));
         return List.copyOf(rows);
+    }
+
+    /** A rolled marine still on duty went down and came home, which the debrief calls wounded. */
+    private static MarineSoldierStatus rolledFate(MarineRoster roster, String id) {
+        MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
+        if (soldier == null) return MarineSoldierStatus.KIA;
+        return soldier.status() == MarineSoldierStatus.ACTIVE ? MarineSoldierStatus.WIA : soldier.status();
     }
 
     private static List<MarineSquad> deployedSquads(MissionOutcome outcome,

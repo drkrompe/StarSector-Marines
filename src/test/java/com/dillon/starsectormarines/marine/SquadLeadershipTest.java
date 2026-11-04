@@ -69,7 +69,6 @@ class SquadLeadershipTest {
         assertEquals(EnlistedRank.CORPORAL, heir.enlistedRank());
 
         // Stable across further derivations: the same person leads next battle.
-        roster.recoverWounded(1f);
         assertSame(heir, roster.squadLeader(squad));
     }
 
@@ -111,30 +110,7 @@ class SquadLeadershipTest {
     private static void kill(MarineRoster roster, MarineSoldier soldier) {
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(soldier.id(), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 0f, 1f);
-    }
-
-    @Test
-    void aWoundedLeaderResumesTheBilletOnReturn() {
-        MarineRoster roster = rosterOfOneSquad();
-        MarineSquad squad = roster.squads().get(0);
-        MarineSoldier leader = roster.squadLeader(squad);
-
-        Map<String, MarineSoldierStatus> outcome = new HashMap<>();
-        outcome.put(leader.id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 10f, 7f);
-
-        MarineSoldier acting = roster.squadLeader(squad);
-        assertNotEquals(leader.id(), acting.id());
-        assertEquals(EnlistedRank.CORPORAL, leader.enlistedRank(),
-                "the wounded keep their stripes");
-
-        roster.recoverWounded(100f);
-
-        assertSame(leader, roster.squadLeader(squad));
-        // The stand-in gives the squad back but may still lead their own fire team.
-        assertNotEquals(EnlistedRank.CORPORAL, acting.enlistedRank());
-        assertNotEquals(EnlistedRank.SERGEANT, acting.enlistedRank());
+        roster.applySoldierOutcome(outcome);
     }
 
     @Test
@@ -164,7 +140,7 @@ class SquadLeadershipTest {
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             outcome.put(soldier.id(), MarineSoldierStatus.KIA);
         }
-        roster.applySoldierOutcome(outcome, 0f, 1f);
+        roster.applySoldierOutcome(outcome);
 
         assertNull(roster.squadLeader(squad));
         assertNull(roster.reserveSquad().leaderSoldierId());

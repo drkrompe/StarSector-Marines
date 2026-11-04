@@ -177,7 +177,7 @@ class PowerSuitCampaignEvidenceTest {
             Files.writeString(output.resolve("summary.json"), report.toString(2));
             assertTrue(rounds > 0, "The loop must include actual company firing");
             assertTrue(damage > 0, "The loop must include an actual durability change");
-            roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome), 10f, 12f,
+            roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome),
                     outcome.soldierTelemetry, outcome.victory);
             OfficerMissionResult.apply(roster, outcome, 10);
             for (String id : named) assertEquals(1, roster.soldierById(id).career().missionsDeployed());
@@ -213,7 +213,7 @@ class PowerSuitCampaignEvidenceTest {
                     .put("system", armor.integralSystem() == null ? JSONObject.NULL : armor.integralSystem().id())
                     .put("primary", soldier.primaryId()).put("grade", soldier.primaryGrade().name())
                     .put("special", soldier.specialEquipmentId() == null ? JSONObject.NULL : soldier.specialEquipmentId())
-                    .put("status", soldier.status().name()).put("recoveryDay", soldier.unavailableUntilDay())
+                    .put("status", soldier.status().name())
                     .put("squad", roster.squadForSoldier(id).id()).put("deployments", career.missionsDeployed())
                     .put("wins", career.missionsWon()).put("rounds", career.roundsFired())
                     .put("hits", career.roundsHit()).put("dealt", career.damageDealt()).put("taken", career.damageTaken())

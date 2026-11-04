@@ -13,12 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RoomAttentionTest {
-    @Test void aWoundedMarineMarksBarracksOnly() {
+    @Test void anEmptyBilletMarksBarracksOnly() {
         var roster = new MarineRoster();
         var squad = roster.createSquad();
         roster.recruitToSquad(squad.id(), 12);
         assertFalse(RoomAttention.needed(Page.BARRACKS, roster, 0f));
-        roster.applySoldierOutcome(Map.of(roster.squadMembers(squad).get(0).id(), MarineSoldierStatus.WIA), 0f, 1f);
+        roster.applySoldierOutcome(Map.of(roster.squadMembers(squad).get(0).id(), MarineSoldierStatus.KIA));
         assertTrue(RoomAttention.needed(Page.BARRACKS, roster, 0f));
         assertFalse(RoomAttention.needed(Page.HQ, roster, 0f));
     }

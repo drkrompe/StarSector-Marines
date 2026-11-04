@@ -29,7 +29,7 @@ class SquadKitFollowsCardsTest {
     @Test void aReplacementTakesItsSeatsKitWithoutAnIssueOrder() {
         MarineRoster roster = carded();
         MarineSquad squad = lineSquad(roster);
-        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(1), MarineSoldierStatus.KIA), 0f, 0f);
+        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(1), MarineSoldierStatus.KIA));
         roster.recruitToSquad(roster.reserveSquad().id(), 1);
         roster.fillVacancyFromReserve(squad.id());
         assertWearsItsCards(roster, squad);
@@ -39,7 +39,7 @@ class SquadKitFollowsCardsTest {
         MarineRoster roster = carded();
         MarineSquad squad = lineSquad(roster);
         String behind = roster.manningMemberIds(squad).get(1);
-        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA), 0f, 0f);
+        roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA));
         assertEquals(behind, roster.seatedMemberIds(squad).get(1));
         assertWearsItsCards(roster, squad);
     }

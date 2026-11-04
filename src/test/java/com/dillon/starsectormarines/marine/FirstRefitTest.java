@@ -82,14 +82,13 @@ class FirstRefitTest {
         }
     }
 
-    @Test void woundedAndUnderstrengthSquadsIssueOnlyToCurrentOccupants() {
+    @Test void understrengthSquadsIssueOnlyToCurrentOccupants() {
         MarineRoster roster = claimed();
         var squad = roster.squads().get(0);
         var members = roster.manningMemberIds(squad);
-        var wounded = roster.soldierById(members.get(0));
-        roster.applySoldierOutcome(Map.of(wounded.id(), MarineSoldierStatus.WIA,
-                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
-        float recovery = wounded.unavailableUntilDay();
+        var kept = roster.soldierById(members.get(0));
+        roster.applySoldierOutcome(Map.of(
+                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA));
         var dead = roster.soldierById(members.get(10));
         var missing = roster.soldierById(members.get(11));
         String deadKit = dead.primaryId(), missingKit = missing.primaryId();
@@ -101,10 +100,9 @@ class FirstRefitTest {
         assertTrue(roster.firstRefit().complete());
         assertEquals(0, hold.spends);
         assertEquals(EquipmentTemplateCost.ZERO, hold.stock);
-        assertEquals(MarineSoldierStatus.WIA, wounded.status());
-        assertEquals(recovery, wounded.unavailableUntilDay());
-        assertEquals(preview.billet(0).primaryId(), wounded.primaryId());
-        assertEquals(preview.billet(0).grade(), wounded.primaryGrade());
+        assertEquals(MarineSoldierStatus.ACTIVE, kept.status());
+        assertEquals(preview.billet(0).primaryId(), kept.primaryId());
+        assertEquals(preview.billet(0).grade(), kept.primaryGrade());
         assertEquals(deadKit, dead.primaryId()); assertEquals(missingKit, missing.primaryId());
         assertEquals(10, roster.manningCount(squad));
         assertEquals(2, roster.vacancies(squad));

@@ -23,6 +23,8 @@ public final class MarineSoldier implements Serializable {
     /** Follows the marine's billet; rewritten by the roster whenever leadership is re-derived. */
     private EnlistedRank enlistedRank;
     private MarineSoldierStatus status;
+    /** Retired with the wounded list; stays only so saves that wrote it still load. */
+    @SuppressWarnings("unused")
     private float unavailableUntilDay;
     /** Legacy enum name written by saves predating stable primary ids. */
     private String primary;
@@ -75,7 +77,6 @@ public final class MarineSoldier implements Serializable {
      */
     public SoldierProfile profile() { return SquadExperienceStandard.profileFor(this); }
     public MarineSoldierStatus status() { return status; }
-    public float unavailableUntilDay() { return unavailableUntilDay; }
     public String primaryId() { return primaryId; }
     public WeaponDef primaryDef() { return WeaponRegistry.require(primaryId); }
     public EquipmentGrade primaryGrade() { return primaryGrade; }
@@ -129,11 +130,7 @@ public final class MarineSoldier implements Serializable {
         armor = null;
     }
     void setStatus(MarineSoldierStatus value) {
-        status = value != null ? value : MarineSoldierStatus.ACTIVE;
-    }
-
-    void setUnavailableUntilDay(float value) {
-        unavailableUntilDay = Math.max(0f, value);
+        status = value != null && value != MarineSoldierStatus.WIA ? value : MarineSoldierStatus.ACTIVE;
     }
 
     private Object readResolve() {
@@ -141,7 +138,7 @@ public final class MarineSoldier implements Serializable {
         if (name == null) name = "Marine";
         if (aptitude == null) aptitude = SoldierAptitude.STEADY;
         if (enlistedRank == null) enlistedRank = EnlistedRank.MARINE;
-        if (status == null) status = MarineSoldierStatus.ACTIVE;
+        if (status == null || status == MarineSoldierStatus.WIA) status = MarineSoldierStatus.ACTIVE;
         String savedPrimaryId = primaryId != null ? primaryId : primary;
         if (primaryId == null) primaryId = WeaponRegistry.legacyMarinePrimaryId(primary);
         WeaponDef savedPrimary = WeaponRegistry.installed() != null
@@ -171,7 +168,6 @@ public final class MarineSoldier implements Serializable {
             specialEquipmentId = null;
         }
         secondary = null;
-        unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;
     }
 

@@ -194,11 +194,11 @@ class CampaignMarineDeploymentTest {
      * had anything to move.
      */
     private static String ncoBehindTheFirstBillet(MarineRoster roster, MarineSquad squad) {
-        String wounded = roster.squadLeader(squad).id();
+        String fallen = roster.squadLeader(squad).id();
         roster.applySoldierOutcome(
-                Collections.singletonMap(wounded, MarineSoldierStatus.WIA), 0f, 7f);
+                Collections.singletonMap(fallen, MarineSoldierStatus.KIA));
         String nco = roster.squadLeader(squad).id();
-        assertNotEquals(wounded, nco, "the wounded leader still holds the billet");
+        assertNotEquals(fallen, nco, "the fallen leader's billet passes on");
         List<String> fit = fitMembers(roster, squad);
         assertNotEquals(fit.get(0), nco,
                 "the NCO is already first, so the reorder proves nothing");

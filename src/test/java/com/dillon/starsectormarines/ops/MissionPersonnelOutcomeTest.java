@@ -38,20 +38,26 @@ class MissionPersonnelOutcomeTest {
     }
 
     @Test
-    void withdrawalWoundsOnlyTheSurvivorsAwayFromTheLandingZone() {
+    void withdrawalRollsOnlyTheSurvivorsAwayFromTheLandingZone() {
+        Set<String> inField = new LinkedHashSet<>();
+        for (int i = 0; i < 40; i++) inField.add("in-field-" + i);
+        Set<String> survivors = new LinkedHashSet<>(inField);
+        survivors.add("at-pad");
         MissionOutcome outcome = MissionOutcome.builder()
                 .victory(false)
                 .missionId("personnel-outcome-test")
                 .missionType(MissionType.ASSAULT)
                 .risk(RiskLevel.MEDIUM)
                 .missionSource(MissionSource.GENERATED)
-                .survivingSoldierIds(Set.of("at-pad", "in-field"))
+                .survivingSoldierIds(survivors)
                 .fallenSoldierIds(Set.of())
-                .withdrawalWoundedSoldierIds(Set.of("in-field"))
+                .withdrawalStragglerSoldierIds(inField)
                 .build();
         Map<String, MarineSoldierStatus> fates = MissionResolver.resolvePersonnelOutcomes(outcome);
         assertEquals(MarineSoldierStatus.ACTIVE, fates.get("at-pad"));
-        assertEquals(MarineSoldierStatus.WIA, fates.get("in-field"));
+        for (String id : inField) assertNotEquals(MarineSoldierStatus.ACTIVE, fates.get(id), id);
+        Map<String, MarineSoldierStatus> fullBay = MissionResolver.resolvePersonnelOutcomes(outcome, 1f);
+        for (String id : inField) assertEquals(MarineSoldierStatus.WIA, fullBay.get(id), id);
     }
 
     @Test

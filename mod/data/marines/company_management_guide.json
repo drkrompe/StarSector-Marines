@@ -14,7 +14,7 @@
     },
     {
       "id": "marines_management_wounded",
-      "synthesisText": "[gentle, reassuring voice] Each card shows ready, wounded and vacant places. The wounded keep their billets and are back on duty after a day aboard; the clock at the top says when.",
+      "synthesisText": "[gentle, reassuring voice] Each card shows ready and vacant places. Whoever goes down and lives is back on duty when we are; the dead leave a vacant place.",
       "titleKey": "marines_management_woundedTitle",
       "textKey": "marines_management_woundedText"
     },

@@ -42,11 +42,10 @@ consequence requires its own persisted authority and exactly-once boundary.
 ## Ending an operation
 
 Confirmed **Retreat** is a **withdrawal**: it ends an active operation as defeat
-and opens the same Results settlement as objective completion. It preserves
-recorded personnel and boat losses and kills nobody further. Its one cost is
-wounds: survivors still on the ground outside every **extraction circle** (a
-fixed radius around each pad the company landed on) come home wounded, while
-those inside one extract unhurt. The circles are drawn on the map while Retreat
+and opens the same Results settlement as objective completion. It preserves recorded personnel and boat losses. Its one further cost is the casualty roll:
+survivors still on the ground outside every **extraction circle** (a fixed radius around each
+pad the company landed on) roll to get home, at the odds of a won field
+(`personnel-nouns.md`) with the sick bay's help, while those inside one extract unhurt. The circles are drawn on the map while Retreat
 is being confirmed. There is no
 extraction sequence. Rewards, officer recovery, contracts, events, and
 opening-operation retry follow their existing defeat policies. Zero engaged

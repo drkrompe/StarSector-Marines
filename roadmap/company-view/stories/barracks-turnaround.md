@@ -9,8 +9,7 @@ Read `company-view-nouns.md`, `personnel-nouns.md` and `ui-nouns.md` first.
 ## Outcome
 
 After settling a mission, the player can prepare the company for another operation
-from Barracks: see ready, recovering and vacant billets and when the wounded
-return; fill vacancies. Replacements take their seat's kit from the squad's
+from Barracks: see ready and vacant billets; fill vacancies. Replacements take their seat's kit from the squad's
 cards, so there is no equipment step. Armory remains the detailed equipment
 authoring destination. `company-view-nouns.md` (Company resource bills) separately
 standardizes bills across rooms.
@@ -25,10 +24,7 @@ standardizes bills across rooms.
 - WIA retain their billets. KIA/MIA history is not counted as living strength.
 - Replenishment remains a separate explicit order: ready named reserves first,
   then cargo Marines, with exact available draw and remaining vacancies disclosed.
-  Filling vacancies does not claim full combat readiness while WIA remain.
-- A squad's kit is its cards (`company-view-nouns.md`, Seat kit). Replacements,
-  wounded and understrength squads wear their seats' kit with no order, no material
-  charge and no change to recovery state.
+- A squad's kit is its cards (`company-view-nouns.md`, Seat kit). Replacements and understrength squads wear their seats' kit with no order and no material charge.
 - Preserve selection when visiting a selected squad's Armory workspace. Expose
   the existing squad-founding route clearly from an empty Barracks; moving the
   founding transaction itself is not required for this bounded pickup.

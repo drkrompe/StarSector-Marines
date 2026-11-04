@@ -25,17 +25,17 @@ public class SquadMusterMedicTest {
         roster.add(captain);
         roster.assignCaptainToSquad(captain.id(), squad.id());
 
-        assertEquals(-1, medicIndex(SquadMuster.from(roster, squad.id(), 0f)), "untrained: no medic");
+        assertEquals(-1, medicIndex(SquadMuster.from(roster, squad.id())), "untrained: no medic");
 
         captain.train(OfficerSpecialty.FIELD_MEDICINE);
-        assertEquals(MarineSquad.TEAM_SIZE, medicIndex(SquadMuster.from(roster, squad.id(), 0f)));
+        assertEquals(MarineSquad.TEAM_SIZE, medicIndex(SquadMuster.from(roster, squad.id())));
 
         String firstBravo = roster.manningMemberIds(squad).get(MarineSquad.TEAM_SIZE);
-        roster.applySoldierOutcome(Map.of(firstBravo, MarineSoldierStatus.WIA), 0f, 5f);
-        SquadMuster muster = SquadMuster.from(roster, squad.id(), 0f);
+        roster.applySoldierOutcome(Map.of(firstBravo, MarineSoldierStatus.KIA));
+        SquadMuster muster = SquadMuster.from(roster, squad.id());
         int index = medicIndex(muster);
         assertEquals(SquadMuster.State.READY, muster.billets().get(index).state(),
-                "a wounded marine does not deploy and cannot carry the medic billet");
+                "a fallen marine's seat cannot carry the medic billet");
         assertEquals(1, muster.billets().get(index).teamIndex());
     }
 

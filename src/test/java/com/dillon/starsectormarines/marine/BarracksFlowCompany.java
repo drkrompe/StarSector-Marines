@@ -30,7 +30,7 @@ public final class BarracksFlowCompany implements EquipmentIssueResources {
                 squads.get(0).memberIds().get(1), MarineSoldierStatus.KIA,
                 squads.get(1).memberIds().get(0), MarineSoldierStatus.KIA,
                 squads.get(1).memberIds().get(1), MarineSoldierStatus.KIA,
-                squads.get(2).memberIds().get(0), MarineSoldierStatus.WIA), 100f, 20f);
+                squads.get(2).memberIds().get(0), MarineSoldierStatus.KIA));
         roster.recruitToSquad(roster.reserveSquad().id());
         cargo.put(Commodities.MARINES, 20f);
         for (String id : List.of(Commodities.SUPPLIES, Commodities.HAND_WEAPONS, Commodities.HEAVY_MACHINERY, Commodities.FOOD)) {

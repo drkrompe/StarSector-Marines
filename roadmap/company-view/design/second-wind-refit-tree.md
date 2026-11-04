@@ -234,17 +234,13 @@ How each passive lands. The range and the gym reach the fight as one named
 unit modifier on the marines of the company's own squads (accuracy, move speed
 and morale drain), read off a record frozen with each squad at launch with the
 mess's morale recovery, so a refit bought mid-operation changes the next launch,
-never a battle underway. The sick bay acts where the battle is settled: a marine
-the battle counted as killed rolls their fate as before, and if it comes up
-killed, an independent draw against the bay's share brings them home wounded.
-Nobody wounded or missing moves, and a better bay saves everyone a lesser one
-did. The lounge acts on the cargo marines who take a billet, whose fixed roll
+never a battle underway. The sick bay acts where the battle is settled: a marine the battle put down rolls the casualty dice (`personnel-nouns.md`), and if it comes
+up killed, an independent draw against the bay's share pulls them through. A better bay saves
+everyone a lesser one did. This is the company's one lever on those odds. The lounge acts on the cargo marines who take a billet, whose fixed roll
 is read against a higher intake; recruits founded with a squad are untouched.
 
-Some rows wait on a system that does not exist yet, and stay unoffered rather
-than faked. A wound heals in one day, and recovery is floored at a day, so a
-sick bay heal-time tier would change nothing; it waits on
-longer wounds, and the bay's tiers act on fate instead. Replacements cost cargo
+Some rows wait on a system that does not exist yet, and stay unoffered rather than faked.
+Replacements cost cargo
 marines, not a fee, so the lounge's top tier raises the intake again rather
 than discounting a price.
 

@@ -65,12 +65,12 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         frames.add(frame(context, reactor, model, "05a-special-removal.png", "loadout-billet:0"));
         if (roster.firstRefit().claimed()) throw new AssertionError("Comparison granted technology");
         var members = roster.manningMemberIds(squad);
-        roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
-                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
+        roster.applySoldierOutcome(Map.of(
+                members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA));
         model.refresh();
-        frames.add(frame(context, reactor, model, "05b-wounded-understrength-issue.png", "loadout-billet:11"));
+        frames.add(frame(context, reactor, model, "05b-understrength-issue.png", "loadout-billet:11"));
         frames.add(frame(context, reactor, model, "05c-take-forward-screen.png", "refit-choose"));
-        if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.WIA || roster.manningCount(squad) != 10)
+        if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.ACTIVE || roster.manningCount(squad) != 10)
             throw new AssertionError("Equipment issue changed personnel readiness");
         if (!roster.firstRefit().complete()) throw new AssertionError("Issue did not complete");
         if (!done[0]) throw new AssertionError("Taking the package did not end the offer");

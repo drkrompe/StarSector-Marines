@@ -233,7 +233,7 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   treating the wounded needs no new concept and handling bodies does.
 - Defender medics. Officer specialties are a player-company concept. A defender
   equivalent would arrive as authored formation data, not this specialty.
-- Campaign-side medicine (the WIA clock).
+- Campaign-side medicine (the casualty roll; that is the sick bay's).
 
 ## Open questions
 

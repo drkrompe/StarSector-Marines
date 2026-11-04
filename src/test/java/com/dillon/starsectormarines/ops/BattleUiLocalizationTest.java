@@ -84,7 +84,7 @@ class BattleUiLocalizationTest {
                     List.of(new KindRow(AirPoolKind.FIGHTER, 2, 0, 2, 0, -1f)), List.of(), 0, 0);
             assertEquals("«READY»", BattleAirOverlayModel.project(view).status());
             assertEquals("«LOST 1»", BattleAirOverlayModel.lossLine(1, 0));
-            var billet = new SquadMuster.Billet(0, "m1", "Rook {Sarge}", "SGT", SquadMuster.State.READY, -1f, true, false);
+            var billet = new SquadMuster.Billet(0, "m1", "Rook {Sarge}", "SGT", SquadMuster.State.READY, true, false);
             String hover = billet.hoverText();
             assertTrue(hover.contains("Rook {Sarge}"), hover);
             assertTrue(hover.contains("«Ready»") && hover.contains("«Squad NCO»"), hover);

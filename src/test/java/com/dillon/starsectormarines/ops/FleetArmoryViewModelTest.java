@@ -81,9 +81,9 @@ class FleetArmoryViewModelTest {
             assertNull(trial.loadout().campaignSoldierId);
             assertNull(trial.loadout().campaignSquad);
             assertSame(issued, soldier.armorDef());
-            roster.applySoldierOutcome(Map.of(soldier.id(), MarineSoldierStatus.WIA), 100f, 1f);
+            roster.applySoldierOutcome(Map.of(soldier.id(), MarineSoldierStatus.KIA));
             model.refresh();
-            assertNull(model.rangeCandidate(), "a wounded marine cannot be borrowed for practice");
+            assertNull(model.rangeCandidate(), "a fallen marine cannot be borrowed for practice");
         }
     }
 
@@ -602,21 +602,6 @@ class FleetArmoryViewModelTest {
         }
         assertTrue(inspected > 0,
                 "no armour sheet issues a single capability, so this proves nothing");
-    }
-
-    @Test
-    void woundedMarinesShowRemainingHoursAndKeepTheirBillets() {
-        MarineRoster roster = fullSquad();
-        MarineSquad squad = roster.squads().get(0);
-        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
-        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 100f, 1.25f);
-        roster.recruitToSquad(roster.reserveSquad().id());
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                new Reactor(), roster, () -> 100d);
-
-        assertEquals("WIA  ·  RTD in 1d 6h", viewModel.marineCards().get().get(0).status());
-        assertTrue(viewModel.marineCards().get().get(0).classes().contains("status-wia"));
     }
 
     @Test

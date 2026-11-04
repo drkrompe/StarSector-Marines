@@ -41,7 +41,7 @@ class DefenceReportTest {
             assertTrue(account.contains("The line held, at a price."), account);
             assertTrue(account.contains("Killed: Hale."), account);
             assertTrue(account.contains("Missing: Orsk."), account);
-            assertTrue(account.contains("Wounded: 2."), account);
+            assertTrue(account.contains("Wounded, back on duty: 2."), account);
             assertTrue(account.contains("10 of 12 still under arms."), account);
             assertTrue(account.contains("counted for 18 of the planet's ground defence "
                     + "against a raiding strength of 40."), account);

@@ -34,11 +34,11 @@ class BriefingFieldSquadsTest {
     void aDebugBriefingFieldsItsDetachedCompanyLineSquads() {
         Map<String, Object> props = new HashMap<>();
         props.put("taskForceRows", List.of());
-        props.put("debugForceRows", BriefingViewModel.debugForceRows(DebugMissionCatalog.starterCompany(3), 0f));
+        props.put("debugForceRows", BriefingViewModel.debugForceRows(DebugMissionCatalog.starterCompany(3)));
         List<BriefingViewModel.SquadPicture> tiles = BriefingViewModel.fieldSquads(props);
         assertEquals(3, tiles.size());
         assertEquals(36, tiles.stream().mapToInt(tile -> tile.muster().readyCount()).sum());
-        assertEquals(List.of(), BriefingViewModel.debugForceRows(null, 0f));
+        assertEquals(List.of(), BriefingViewModel.debugForceRows(null));
     }
 
     private static List<BriefingViewModel.SquadPicture> squads(int count) {
