@@ -398,9 +398,6 @@ public final class BarracksCommandModel {
         List<Map<String, Object>> rows = new ArrayList<>();
         for (MarineSquad squad : filtered.subList(Math.min(filtered.size(), pageNumber() * PAGE_SIZE),
                 Math.min(filtered.size(), (pageNumber() + 1) * PAGE_SIZE))) {
-            int ready = roster.readyCount(squad);
-            SquadMuster muster = muster(squad.id());
-            String personnel = squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : Strings.format("openingBarracksCommandReadyVacant", ready, muster.vacantCount());
             String id = "formation:" + squad.id();
             Map<String, Object> weaponCard = weaponCard(squad, id + ":weapon-card"), armorCard = armorCard(squad, id + ":armor-card");
             Set<String> only = Set.of(squad.id());
@@ -415,8 +412,8 @@ public final class BarracksCommandModel {
                     "fillClasses", vacant > 0 && !squad.stationed() ? "fill-button console-action" : "fill-button hidden",
                     "fillDisabled", !canFill(only), "fillCount", Integer.toString(vacant),
                     "fill", (Runnable) () -> fill(only),
-                    "personnel", personnel,
-                    "personnelClasses", "label card-personnel " + (squad.stationed() ? "muted" : ready == 12 ? "good" : "warm"),
+                    "personnel", squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : "",
+                    "personnelClasses", squad.stationed() ? "label card-personnel muted" : "hidden",
                     "formationstatusId", id + ":status",
                     "loadoutId", id + ":loadout",
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : "") + (squad.stationed() ? " stationed" : ""),

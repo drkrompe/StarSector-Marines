@@ -865,7 +865,6 @@
 		"openingBarracksCommandCompanyRoll": "连队名册",
 		"openingBarracksCommandOfCommandSlots": "{0} / 指挥位 {1}/{2}",
 		"openingBarracksCommandOnStation": "外驻中",
-		"openingBarracksCommandReadyVacant": "{0} 就绪 / {1} 空缺",
 		"openingBarracksCommandNoIssuedArmorAllBilletsVacant": "未配发护甲：所有编制位空缺。",
 		"openingBarracksCommandArmorImageTheMostCommonCurrentIssue": "护甲图像：{0}，当前最常见的配发。",
 		"openingBarracksCommandOnStationInspectIsAvailableBulkOrders": "外驻中：可查看配装；批量命令已锁定。",

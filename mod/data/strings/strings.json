@@ -3787,7 +3787,6 @@
     "openingBarracksCommandCompanyRoll": "Company roll",
     "openingBarracksCommandOfCommandSlots": "{0} / {1} of {2} command slots",
     "openingBarracksCommandOnStation": "ON STATION",
-    "openingBarracksCommandReadyVacant": "{0} ready / {1} vacant",
     "openingBarracksCommandNoIssuedArmorAllBilletsVacant": "No issued armor: all billets vacant.",
     "openingBarracksCommandArmorImageTheMostCommonCurrentIssue": "Armor image: {0}, the most common current issue.",
     "openingBarracksCommandOnStationInspectIsAvailableBulkOrders": "On station: Loadout is available; bulk orders are locked.",
