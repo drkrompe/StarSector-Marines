@@ -95,8 +95,20 @@ public class MarineRoster implements Serializable {
         if (officerInduction != null) {
             officerInduction.prepareCompany();
             boatDeck.requireCommissioning();
+            grantFirstOrders();
         }
     }
+    /** Whether the next line squad founded costs nothing: the company's first. False on an older save. */
+    private boolean firstSquadFree;
+    public boolean firstSquadFree() { return firstSquadFree; }
+    public void grantFirstSquad() { firstSquadFree = true; }
+    public void spendFirstSquad() { firstSquadFree = false; }
+    /** A new company's first squad and first boat are free (owner). */
+    public void grantFirstOrders() {
+        grantFirstSquad();
+        boatDeck.grantFirstBoat();
+    }
+
     public boolean officerInductionRequired() { return officerInduction != null && !officerInduction.complete(); }
     public void beginOfficerInduction(MarineCaptain sabine) {
         if (officerInduction == null && sabine != null && byId(sabine.id()) == sabine) {

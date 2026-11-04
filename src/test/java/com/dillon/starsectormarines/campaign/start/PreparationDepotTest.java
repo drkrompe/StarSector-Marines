@@ -1,131 +1,71 @@
 package com.dillon.starsectormarines.campaign.start;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.marine.*;
+import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.campaign.FleetDataAPI;
+import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.campaign.econ.EconomyAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.util.MutableValue;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/** The retired depot only has to be read from older saves and settled once; see {@link PreparationDepot}. */
 class PreparationDepotTest {
-    @ParameterizedTest @ValueSource(booleans = {false, true})
-    void realPreparationOrdersConsumeTheConsignmentOnceAndPreserveTravelSupplies(boolean protectedStart) throws Exception {
-        PreparationDepot depot = new PreparationDepot("jangala", protectedStart);
-        Map<String, Float> cargo = new HashMap<>(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f));
-        MutableValue purse = new MutableValue(0);
-        Resources resources = new Resources(new WorkshopStores(cargo(cargo, purse), depot, Purpose.PREFLIGHT));
-        MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(sabine); roster.beginCompanyPreparation(sabine);
-        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 1, resources, resources));
-        resources = new Resources(new WorkshopStores(cargo(cargo, purse), depot, Purpose.BOAT));
-        roster.setCompanyShip("cerberus", "Second Wind", 75);
-        roster.boatDeck().reconcile("cerberus", ShuttleType.HERMES, 1);
-        assertTrue(new BoatWorkshop(roster.boatDeck(), resources).fabricate(0).succeeded());
-        assertFalse(new BoatWorkshop(roster.boatDeck(), resources).fabricate(0).succeeded());
-        assertEquals(SquadFoundingCost.STANDARD.credits(), depot.credits(),
-                "the prepaid yard credit paid for the boat; the squad's credit is left");
-        assertEquals(0f, purse.get(), "and the company's own credits were never touched");
-        assertEquals(MarineSquad.CAPACITY, depot.available(Commodities.MARINES));
-        depot = roundTrip(depot);
-        resources = new Resources(new WorkshopStores(cargo(cargo, purse), depot, Purpose.SQUAD));
-        roster.officerInduction().introduce(sabine);
-        assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
-        var squad = new SquadFoundingWorkshop(roster, resources).foundSquad().squad();
-        assertNotNull(squad);
-        roster.assignCaptainToSquad(sabine.id(), squad.id());
-        assertTrue(roster.officerInduction().finish(roster));
-        assertTrue(depot.stock().values().stream().allMatch(n -> n == 0));
-        assertFalse(depot.holdsAnything());
-        assertEquals(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f), cargo);
-        assertEquals(0f, purse.get(), "the squad's prepaid credit paid for its stores");
-        assertFalse(new SquadFoundingWorkshop(roster, resources).foundSquad().succeeded());
-        assertEquals("jangala", roundTrip(depot).marketId());
-        assertFalse(roundTrip(depot).holdsAnything());
+    private static final int HERMES = BoatFabricationCatalog.recipe(ShuttleType.HERMES).bill().credits();
+    private static final int SQUAD = SquadFoundingCost.STANDARD.credits();
+
+    @Test void aWholeDepotBecomesBothFreeOrdersAndNothingElse() {
+        for (boolean protectedStock : new boolean[] {true, false}) {
+            var settled = new PreparationDepot("jangala", protectedStock).settle();
+            assertTrue(settled.freeSquad());
+            assertTrue(settled.freeBoat());
+            assertEquals(0, settled.credits());
+            assertEquals(Map.of(), settled.goods());
+        }
     }
 
-    @Test void unrelatedJobsAndBoatOrdersCannotSpendTheSquadsStores() throws Exception {
+    @Test void aDepotLeftWithOnlyTheHermesCreditBecomesOnlyTheFreeBoat() throws Exception {
         var depot = new PreparationDepot("jangala", true);
-        var purse = new MutableValue(0);
-        var cargo = cargo(new HashMap<>(), purse);
-        var initial = depot.stock();
-        int yardCredit = depot.credits();
-        assertTrue(yardCredit > 0);
-        assertFalse(new WorkshopStores(cargo, depot).spend(Map.of(Commodities.SUPPLIES, 1)));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.PREFLIGHT).spend(initial));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.BOAT).spend(Map.of(Commodities.SUPPLIES, 1)));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.SQUAD).spend(Map.of(Commodities.MARINES, 13)));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.BOAT).spend(Map.of(Commodities.MARINES, 1)));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.SQUAD).spendCredits(SquadFoundingCost.STANDARD.credits() + 1),
-                "the squad cannot draw the boat's yard credit");
-        assertFalse(new WorkshopStores(cargo, depot).spendCredits(1));
-        assertEquals(initial, depot.stock());
-        assertEquals(yardCredit, depot.credits());
-        depot = roundTrip(depot);
-        assertEquals(0, depot.available(Commodities.MARINES, Purpose.BOAT));
-        assertEquals(MarineSquad.CAPACITY, depot.available(Commodities.MARINES, Purpose.SQUAD));
-        assertEquals(0, depot.available(Commodities.MARINES, Purpose.GENERAL));
-        assertEquals(MarineSquad.CAPACITY, depot.available(Commodities.MARINES, Purpose.PREFLIGHT));
-        assertEquals(yardCredit - SquadFoundingCost.STANDARD.credits(), depot.credits(Purpose.BOAT));
-        assertEquals(SquadFoundingCost.STANDARD.credits(), depot.credits(Purpose.SQUAD));
-        assertEquals(0, depot.credits(Purpose.GENERAL));
-        assertEquals(yardCredit, depot.credits(Purpose.PREFLIGHT));
+        setField(depot, "squadCredits", 0);
+        field(depot, "squadStock").put(Commodities.MARINES, 0);
+        var settled = depot.settle();
+        assertFalse(settled.freeSquad());
+        assertTrue(settled.freeBoat());
+        assertEquals(0, settled.credits());
+        assertEquals(Map.of(), settled.goods());
     }
 
-    @Test void unavailableDepotAndShortBillsCannotSpendAnyStores() {
-        PreparationDepot depot = new PreparationDepot("jangala");
-        Map<String, Integer> initial = depot.stock();
-        Map<String, Float> cargo = new HashMap<>(Map.of(Commodities.MARINES, 5f));
-        MutableValue purse = new MutableValue(0);
-        WorkshopStores away = new WorkshopStores(cargo(cargo, purse), null);
-        assertFalse(away.spend(initial));
-        WorkshopStores docked = new WorkshopStores(cargo(cargo, purse), depot);
-        Map<String, Integer> shortBill = new LinkedHashMap<>(initial);
-        shortBill.put(Commodities.MARINES, initial.get(Commodities.MARINES) + 6);
-        assertFalse(docked.spend(shortBill));
-        assertEquals(initial, depot.stock());
-        assertEquals(5f, cargo.get(Commodities.MARINES));
-        int held = depot.available(Commodities.MARINES);
-        assertTrue(docked.spend(Map.of(Commodities.MARINES, held + 4)));
-        assertEquals(0, depot.available(Commodities.MARINES));
-        assertEquals(1f, cargo.get(Commodities.MARINES), "the depot is drawn first, then the hold");
-    }
-
-    @Test void aBoatJobDrawsTheDepotsCreditBeforeThePurseAndPreflightSpendsNothing() {
-        PreparationDepot depot = new PreparationDepot("jangala", true);
-        MutableValue purse = new MutableValue(1000);
-        int yardCredit = depot.credits(Purpose.BOAT);
-        var cargo = cargo(new HashMap<>(), purse);
-        var boat = new WorkshopStores(cargo, depot, Purpose.BOAT);
-        assertEquals(yardCredit + 1000L, boat.credits());
-
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.PREFLIGHT).spendCredits(1));
-        assertFalse(boat.spendCredits(yardCredit + 1001), "a price past both is refused whole");
-        assertEquals(yardCredit, depot.credits(Purpose.BOAT));
-        assertEquals(1000f, purse.get());
-
-        assertTrue(boat.spendCredits(yardCredit - 5));
-        assertEquals(5, depot.credits(Purpose.BOAT));
-        assertEquals(1000f, purse.get(), "the purse is untouched while the depot covers the price");
-        assertTrue(boat.spendCredits(30));
-        assertEquals(0, depot.credits(Purpose.BOAT));
-        assertEquals(975f, purse.get(), "past the depot's credit the purse pays the rest");
-
-        assertTrue(boat.refund(40));
-        assertEquals(1015f, purse.get());
-        assertEquals(0, depot.credits(Purpose.BOAT), "recycled credits never go back into the depot");
+    @Test void whatIsLeftOfAnAllotmentComesAboardRatherThanBeingLost() throws Exception {
+        var depot = new PreparationDepot("jangala", false);
+        setField(depot, "credits", HERMES - 1);
+        setField(depot, "squadCredits", 100);
+        field(depot, "stock").put(Commodities.MARINES, MarineSquad.CAPACITY - 5);
+        var settled = depot.settle();
+        assertFalse(settled.freeSquad());
+        assertFalse(settled.freeBoat());
+        assertEquals(HERMES - 1 + 100, settled.credits());
+        assertEquals(Map.of(Commodities.MARINES, MarineSquad.CAPACITY - 5), settled.goods());
     }
 
     @Test void aLegacyUnprotectedDepotTurnsItsBoatMaterialsAndSquadStoresIntoCredit() throws Exception {
@@ -139,49 +79,112 @@ class PreparationDepotTest {
         stock.put(Commodities.HEAVY_MACHINERY, 2);
         stock.put(Commodities.RARE_METALS, 1);
 
-        PreparationDepot loaded = roundTrip(legacy);
+        var settled = roundTrip(legacy).settle();
 
-        assertEquals(10 * 30 + 2 * 150 + 1 * 200 + 36 * 100 + 24 * 20, loaded.credits(), "stores convert at the base prices");
-        assertEquals(MarineSquad.CAPACITY, loaded.available(Commodities.MARINES), "the squad's marines stay marines");
-        for (String gone : new String[] {Commodities.SUPPLIES, Commodities.FOOD, Commodities.METALS,
-                Commodities.HEAVY_MACHINERY, Commodities.RARE_METALS}) {
-            assertEquals(0, loaded.available(gone), gone);
-        }
+        assertTrue(settled.freeSquad(), "its stores convert to exactly the squad's price, and its marines stay marines");
+        assertFalse(settled.freeBoat());
+        assertEquals(10 * 30 + 2 * 150 + 200, settled.credits(), "stores convert at the base prices");
+        assertEquals(Map.of(), settled.goods());
     }
 
     @Test void aLegacyProtectedDepotKeepsTheBoatsAndTheSquadsCreditApart() throws Exception {
         PreparationDepot legacy = new PreparationDepot("jangala", true);
         setField(legacy, "credits", null);
         setField(legacy, "squadCredits", null);
-        Map<String, Integer> boatStock = field(legacy, "boatStock");
-        boatStock.put(Commodities.SUPPLIES, 30);
-        boatStock.put(Commodities.METALS, 10);
-        boatStock.put(Commodities.HEAVY_MACHINERY, 2);
+        int supplies = HERMES / 100 + 5;
+        field(legacy, "boatStock").put(Commodities.SUPPLIES, supplies);
         Map<String, Integer> squadStock = field(legacy, "squadStock");
         squadStock.put(Commodities.SUPPLIES, 36);
         squadStock.put(Commodities.FOOD, 24);
 
-        PreparationDepot loaded = roundTrip(legacy);
+        var settled = roundTrip(legacy).settle();
 
-        assertEquals(30 * 100 + 10 * 30 + 2 * 150, loaded.credits(Purpose.BOAT));
-        assertEquals(36 * 100 + 24 * 20, loaded.credits(Purpose.SQUAD));
-        assertEquals(0, loaded.available(Commodities.SUPPLIES, Purpose.BOAT));
-        assertEquals(0, loaded.available(Commodities.SUPPLIES, Purpose.SQUAD));
-        assertEquals(MarineSquad.CAPACITY, loaded.available(Commodities.MARINES, Purpose.SQUAD));
+        assertTrue(settled.freeSquad());
+        assertTrue(settled.freeBoat());
+        assertEquals(supplies * 100 - HERMES, settled.credits(), "the boat's surplus, and none of the squad's");
     }
 
-    @Test void yardRefusesEveryInvalidOrderBeforeMutating() {
-        assertNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(false, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(true, false, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(true, true, true, false, true, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(true, true, false, true, true, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(true, true, false, false, false, MercenaryCompanyConversion.CREDIT_COST));
-        assertNotNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST - 1));
-        int waivedPrice = MercenaryCompanyConversion.CREDIT_COST - CompanyYard.waived(FoundingReserve.CREDITS);
-        assertNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS, waivedPrice),
-                "The reserve alone pays the waived estimate");
-        assertNotNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS - 1, waivedPrice));
+    @Test void loadingSettlesAnOldDepotOnceAndKeepsItsPort() {
+        var saved = new HashMap<String, Object>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter",
+                "sm_preparation_depot_issued", true, CerberusCompanyStart.START_PORT_KEY, "elsewhere"));
+        var depot = new PreparationDepot("jangala", true);
+        saved.put("sm_preparation_depot", depot);
+        var purse = new MutableValue(473);
+        var added = new HashMap<String, Float>();
+        var roster = roster();
+        withSector(saved, purse, added, () -> {
+            CerberusCompanyStart.settleOldDepot(roster);
+            CerberusCompanyStart.settleOldDepot(roster);
+        });
+        assertTrue(roster.firstSquadFree());
+        assertTrue(roster.boatDeck().firstBoatFree());
+        assertEquals(473f, purse.get());
+        assertEquals(Map.of(), added);
+        assertFalse(saved.containsKey("sm_preparation_depot"));
+        assertEquals("jangala", saved.get(CerberusCompanyStart.START_PORT_KEY));
+
+        roster.spendFirstSquad();
+        withSector(saved, purse, added, () -> CerberusCompanyStart.settleOldDepot(roster));
+        assertFalse(roster.firstSquadFree(), "a spent order does not come back on the next load");
+    }
+
+    @Test void loadingAStartStillShortOfItsConversionMakesItsFirstOrdersFree() {
+        var saved = new HashMap<String, Object>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter"));
+        var roster = roster();
+        roster.spendFirstSquad();
+        roster.boatDeck().spendFirstBoat();
+        withSector(saved, new MutableValue(473), new HashMap<>(), () -> CerberusCompanyStart.settleOldDepot(roster));
+        assertTrue(roster.firstSquadFree());
+        assertTrue(roster.boatDeck().firstBoatFree());
+    }
+
+    @Test void loadingACompanyPastItsDepotLeavesItPaying() {
+        var saved = new HashMap<String, Object>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter",
+                "sm_preparation_depot_issued", true));
+        var roster = roster();
+        roster.spendFirstSquad();
+        roster.boatDeck().spendFirstBoat();
+        withSector(saved, new MutableValue(473), new HashMap<>(), () -> CerberusCompanyStart.settleOldDepot(roster));
+        assertFalse(roster.firstSquadFree());
+        assertFalse(roster.boatDeck().firstBoatFree());
+    }
+
+    private static MarineRoster roster() {
+        var roster = new MarineRoster();
+        var morgan = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(morgan);
+        roster.beginCompanyPreparation(morgan);
+        return roster;
+    }
+
+    private static void withSector(Map<String, Object> saved, MutableValue purse, Map<String, Float> added, Runnable body) {
+        var cargo = stub(CargoAPI.class, Map.of("getCredits", purse,
+                "addCommodity", (Function<Object[], Object>) a -> {
+                    added.merge((String) a[0], ((Number) a[1]).floatValue(), Float::sum);
+                    return null;
+                }));
+        var fleet = stub(CampaignFleetAPI.class, Map.of("getCargo", cargo,
+                "getFleetData", stub(FleetDataAPI.class, Map.of("getMembersListCopy", List.of()))));
+        SectorAPI previous = Global.getSector();
+        try {
+            Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet,
+                    "getEconomy", stub(EconomyAPI.class, Map.of()))));
+            body.run();
+        } finally { Global.setSector(previous); }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <S> S stub(Class<S> type, Map<String, ?> methods) {
+        return (S) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] {type}, (proxy, method, args) -> {
+            Object value = methods.get(method.getName());
+            if (value instanceof Function<?, ?> function)
+                return ((Function<Object[], Object>) function).apply(args);
+            if (value != null) return value;
+            if (method.getReturnType() == boolean.class) return false;
+            if (method.getReturnType() == int.class) return 0;
+            if (method.getReturnType() == float.class) return 0f;
+            return null;
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -195,34 +198,11 @@ class PreparationDepotTest {
         field.setAccessible(true);
         field.set(depot, value);
     }
-    private static CargoAPI cargo(Map<String, Float> stock, MutableValue credits) {
-        return (CargoAPI) Proxy.newProxyInstance(CargoAPI.class.getClassLoader(), new Class<?>[]{CargoAPI.class},
-                (proxy, method, args) -> switch (method.getName()) {
-                    case "getCommodityQuantity" -> stock.getOrDefault(args[0], 0f);
-                    case "removeCommodity" -> { stock.merge((String) args[0], -((Number) args[1]).floatValue(), Float::sum); yield null; }
-                    case "getCredits" -> credits;
-                    default -> throw new AssertionError(method.getName());
-                });
-    }
     private static PreparationDepot roundTrip(PreparationDepot depot) throws Exception {
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(depot); }
         try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
             return (PreparationDepot) in.readObject();
-        }
-    }
-    /** The company's credits and the squad's stores, both drawn through one {@link WorkshopStores}. */
-    private record Resources(WorkshopStores stores) implements FabricationResources, SquadFoundingResources {
-        @Override public long credits() { return stores.credits(); }
-        @Override public boolean atMarket() { return true; }
-        @Override public int available(String id) { return stores.available(id); }
-        @Override public String commodityName(String id) { return id; }
-        @Override public String commodityIcon(String id) { return ""; }
-        @Override public boolean spend(FabricationCost cost) { return stores.spendCredits(cost.credits()); }
-        @Override public boolean spend(SquadFoundingCost cost) {
-            Map<String, Integer> bill = new LinkedHashMap<>();
-            cost.lines().forEach(l -> bill.merge(l.commodityId(), l.quantity(), Integer::sum));
-            return stores.credits() >= cost.credits() && stores.spend(bill) && stores.spendCredits(cost.credits());
         }
     }
 }

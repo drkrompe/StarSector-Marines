@@ -223,8 +223,8 @@ public final class CompanyShipDesignation {
         if (CompanyPreparation.required(roster)) {
             CompanyShip ship = CompanyShipResolver.read(member);
             if (!CompanyPreparation.canPrepare(roster, ShipsBoats.carriedBy(ship),
-                    ShipsBoats.aboard(ship).size(), CampaignFabricationResources.forPreparation(),
-                    CampaignSquadFoundingResources.forPreparation())) return false;
+                    ShipsBoats.aboard(ship).size(), new CampaignFabricationResources(),
+                    new CampaignSquadFoundingResources())) return false;
         }
         roster.setCompanyShip(member.getId(), shipName(member),
                 Math.round(member.getCargoCapacity()));

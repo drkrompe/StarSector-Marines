@@ -233,8 +233,7 @@ selection and the combined cargo preflight through Morgan's specialty, squad
 founding and assignment, ending at the first Jangala story lead; the first Hermes
 is repaired after Relief, before the first ferry job.
 `cerberus-company-start.md` adds the optional one-Cerberus start: fly to a planetary
-yard, install the permanent conversion and draw finite prepaid depot stores while
-docked to complete preparation. Live start/save acceptance remains open.
+yard and install the permanent conversion to complete preparation. Live start/save acceptance remains open.
 `boat-condition-and-repairs.md` tracks subsequent upkeep separately.
 Its practice range now fires issued primaries through a disposable bounded
 battle simulation while campaign personnel and inventory remain untouched. The UI

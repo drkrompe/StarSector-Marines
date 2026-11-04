@@ -1,21 +1,15 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CivilizedPort;
-import com.dillon.starsectormarines.campaign.start.WorkshopStores;
-import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
+import com.fs.starfarer.api.campaign.CargoAPI;
 
-/** The player fleet's credits plus any accessible prepaid yard credit, and the port it is docked at, for the workshops. */
+/** The player fleet's credits, and the port it is docked at, for the workshops. */
 public final class CampaignFabricationResources implements FabricationResources {
     private final boolean workshopJob;
-    private final Purpose purpose;
-    public CampaignFabricationResources() { this(false, Purpose.GENERAL); }
-    public CampaignFabricationResources(boolean workshopJob) { this(workshopJob, Purpose.GENERAL); }
-    private CampaignFabricationResources(boolean workshopJob, Purpose purpose) {
-        this.workshopJob = workshopJob; this.purpose = purpose;
-    }
-    public static CampaignFabricationResources forBoats() { return new CampaignFabricationResources(true, Purpose.BOAT); }
-    public static CampaignFabricationResources forPreparation() { return new CampaignFabricationResources(false, Purpose.PREFLIGHT); }
+    public CampaignFabricationResources() { this(false); }
+    public CampaignFabricationResources(boolean workshopJob) { this.workshopJob = workshopJob; }
     @Override public FabricationCost quote(FabricationCost base) {
         return WorkshopTooling.quote(base, workshopJob && CompanyWorkshopRestoration.toolingAboard());
     }
@@ -25,7 +19,8 @@ public final class CampaignFabricationResources implements FabricationResources 
     }
 
     @Override public long credits() {
-        return WorkshopStores.current(purpose).credits();
+        CargoAPI cargo = cargo();
+        return cargo == null || cargo.getCredits() == null ? 0 : Math.max(0, (long) Math.floor(cargo.getCredits().get()));
     }
 
     @Override public boolean atMarket() {
@@ -33,10 +28,19 @@ public final class CampaignFabricationResources implements FabricationResources 
     }
 
     @Override public boolean spend(FabricationCost cost) {
-        return cost != null && WorkshopStores.current(purpose).spendCredits(cost.credits());
+        if (cost == null || credits() < cost.credits()) return false;
+        cargo().getCredits().subtract(cost.credits());
+        return true;
     }
 
     @Override public boolean credit(FabricationCost refund) {
-        return refund != null && WorkshopStores.current(purpose).refund(refund.credits());
+        CargoAPI cargo = cargo();
+        if (refund == null || cargo == null || cargo.getCredits() == null) return false;
+        cargo.getCredits().add(refund.credits());
+        return true;
+    }
+
+    private static CargoAPI cargo() {
+        return CampaignBackend.playerFleet() == null ? null : CampaignBackend.playerFleet().getCargo();
     }
 }

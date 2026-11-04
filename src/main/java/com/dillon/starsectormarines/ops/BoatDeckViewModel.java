@@ -202,7 +202,8 @@ public final class BoatDeckViewModel {
         });
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            return recipe == null ? List.of()
+            if (recipe == null) return List.of();
+            return deck.firstBoatFree() ? List.of(CompanyResources.free("boat-fabrication:material:free"))
                     : priceRows("boat-fabrication", workshop.fabricationQuote(recipe.pattern()));
         });
         materialStock = reactor.computed(this::buildMaterialStock);
@@ -213,7 +214,7 @@ public final class BoatDeckViewModel {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
             if (recipe == null) return "";
             if (!resources.atMarket()) return Strings.get("fabricationNoPortShort");
-            if (resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
+            if (deck.firstBoatFree() || resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
             return Strings.format("openingBoatDeckShort", Strings.upper(Strings.get("companyResourceCredits")));
         });
     }
@@ -1274,7 +1275,8 @@ public final class BoatDeckViewModel {
 
     private boolean affordableToBuild() {
         BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-        return recipe != null && resources.canBuy(workshop.fabricationQuote(recipe.pattern()));
+        if (recipe == null) return false;
+        return deck.firstBoatFree() ? resources.atMarket() : resources.canBuy(workshop.fabricationQuote(recipe.pattern()));
     }
 
     /** What a vacant berth would be built back up as, for its card. */
@@ -1289,7 +1291,9 @@ public final class BoatDeckViewModel {
     private String buildableBill() {
         BoatFabricationCatalog.Recipe recipe =
                 BoatFabricationCatalog.recipe(deck.pattern());
-        return recipe == null ? "" : CompanyResources.creditAmount(workshop.fabricationQuote(recipe.pattern()).credits());
+        if (recipe == null) return "";
+        return deck.firstBoatFree() ? Strings.get("firstOrderFree")
+                : CompanyResources.creditAmount(workshop.fabricationQuote(recipe.pattern()).credits());
     }
 
     /** The selected boat's pattern, for what her parts do on her; null with no boat selected. */

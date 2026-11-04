@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.campaign.CampaignEventListener;
@@ -245,6 +246,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
         script.ensureStartingCompany();
+        CerberusCompanyStart.settleOldDepot(roster);
     }
 
     /**

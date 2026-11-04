@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
@@ -47,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPreparationResumeTest {
     @ParameterizedTest @ValueSource(booleans = {false, true})
-    void leavingAndReloadingResumeReservedOrdersWithoutDuplicatingStores(boolean protectedStart) throws Exception {
+    void leavingAndReloadingResumeTheFreeOrdersWithoutChargingOrRepeatingThem(boolean protectedStart) throws Exception {
         SectorAPI previous = Global.getSector();
         Map<String, Object> saved = new HashMap<>(Map.of(CerberusCompanyStart.SHIP_KEY, "starter"));
         if (protectedStart) FoundingReserve.issue(saved);
@@ -60,7 +59,7 @@ class CompanyPreparationResumeTest {
                 "getIndustries", List.of(industry), "getFaction", faction, "getSize", 3));
         planetMethods.put("getMarket", market);
         var cargo = stub(CargoAPI.class, Map.of("getCommodityQuantity", 0f,
-                "removeCommodity", (Function<Object[], Object>) a -> { fail("Reserved orders must not spend empty cargo"); return null; }));
+                "removeCommodity", (Function<Object[], Object>) a -> { fail("Free orders must not spend cargo"); return null; }));
         var fleet = stub(CampaignFleetAPI.class, Map.of("getCargo", cargo));
         var dialog = docked(planet);
         Object[] course = {null};
@@ -71,7 +70,7 @@ class CompanyPreparationResumeTest {
             Global.setSector(stub(SectorAPI.class, Map.of("getPersistentData", saved, "getPlayerFleet", fleet, "getScripts", List.of(),
                     "getPlayerFaction", faction, "getCampaignUI", stub(CampaignUIAPI.class, ui),
                     "getEconomy", stub(EconomyAPI.class, Map.of("getMarket", market)))));
-            CerberusCompanyStart.establishDepot(stub(FleetMemberAPI.class, Map.of("getId", "starter")), market);
+            CerberusCompanyStart.conversionPaid(stub(FleetMemberAPI.class, Map.of("getId", "starter")), market);
             var roster = new MarineRoster();
             var sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
             roster.add(sabine); roster.beginCompanyPreparation(sabine);
@@ -81,35 +80,20 @@ class CompanyPreparationResumeTest {
             roster.boatDeck().reconcile("starter", ShuttleType.HERMES, 1);
             // The company rides up to Relief on Wayline's truck: Morgan and her squad come straight after the ship.
             assertCaptured(roster, ScreenId.BARRACKS);
-            var normal = new PreparationGuide.Lesson(1, "MUSTER OUR FIRST SQUAD", "Found the squad.", List.of(), null, null);
-            Map<String, Integer> original = CerberusCompanyStart.depot().stock();
             sabine = roster.officerInduction().officer(roster);
             roster.officerInduction().introduce(sabine);
             assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
                     "Squads are raised in Barracks, so the first formation resumes there");
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
-            assertSame(normal, CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++));
 
-            // Close the planet dialog, then reopen from the planet-free company shortcut.
+            // Founding needs no port: close the planet dialog and reload before raising her squad.
             ui.remove("getCurrentInteractionDialog");
-            assertNull(CerberusCompanyStart.accessibleDepot());
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
-            var recovery = CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++);
-            assertEquals(Strings.get("openingCompanyPreparationGuideReturnToDepot"), recovery.actionLabel());
-            assertTrue(recovery.copy().contains("Jangala"));
-            assertEquals(List.of("page-nav-return"), recovery.targets());
-            recovery.action().run();
-            assertSame(planet, course[0]); assertEquals(1, exits[0]);
             assertCaptured(roster, ScreenId.BARRACKS);
-            assertEquals(original, CerberusCompanyStart.depot().stock());
-
-            // Reload before paying, then use a fresh planet dialog and a fresh resource adapter.
             roster = reload(saved, roster);
-            assertEquals(original, CerberusCompanyStart.depot().stock());
             assertCaptured(roster, ScreenId.BARRACKS);
-            ui.put("getCurrentInteractionDialog", docked(planet));
-            assertSame(normal, CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++));
+            assertTrue(roster.firstSquadFree());
             sabine = roster.officerInduction().officer(roster);
             var squad = new SquadFoundingWorkshop(roster, new CampaignSquadFoundingResources()).foundSquad().squad();
             assertNotNull(squad);
@@ -119,26 +103,22 @@ class CompanyPreparationResumeTest {
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
             assertTrue(roster.boatDeck().flightReady().isEmpty(), "Relief launches without a boat");
-            assertTrue(CerberusCompanyStart.depot().credits() > 0, "The Hermes yard credit stays prepaid");
+            assertFalse(roster.firstSquadFree());
+            assertTrue(roster.boatDeck().firstBoatFree());
 
-            // After Relief, the first-lift lesson draws them, and leaving the planet still sends us back for them.
+            // After Relief the first-lift lesson's boat is free too, at a port.
             roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
             assertTrue(CampaignLessons.firstLiftPending(roster));
-            var lift = new PreparationGuide.Lesson(1, "REPAIR OUR FIRST HERMES", "Confirm the work.", List.of(), null, null);
-            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
-            var away = CompanyPreparationGuide.withDepotAccess(roster, lift, () -> exits[0]++);
-            assertEquals(Strings.get("openingCompanyPreparationGuideReturnToDepot"), away.actionLabel());
-            assertTrue(away.copy().contains("Hermes") && away.copy().contains("Jangala"), away.copy());
-            assertFalse(new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats()).fabricate(0).succeeded());
+            assertFalse(new BoatWorkshop(roster.boatDeck(), new CampaignFabricationResources(true)).fabricate(0).succeeded());
+            assertTrue(roster.boatDeck().firstBoatFree());
             roster = reload(saved, roster);
             ui.put("getCurrentInteractionDialog", dialog);
-            assertSame(lift, CompanyPreparationGuide.withDepotAccess(roster, lift, () -> exits[0]++));
-            var workshop = new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats());
+            var workshop = new BoatWorkshop(roster.boatDeck(), new CampaignFabricationResources(true));
             assertTrue(workshop.fabricate(0).succeeded());
             assertFalse(workshop.fabricate(0).succeeded());
             assertEquals(1, roster.boatDeck().flightReady().size());
             assertFalse(CampaignLessons.firstLiftPending(roster));
-            assertEquals(0, CerberusCompanyStart.depot().credits());
+            assertFalse(roster.boatDeck().firstBoatFree());
         } finally { Global.setSector(previous); }
     }
 

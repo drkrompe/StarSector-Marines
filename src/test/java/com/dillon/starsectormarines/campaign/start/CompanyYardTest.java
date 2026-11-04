@@ -37,7 +37,6 @@ import com.fs.starfarer.api.util.MutableValue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
 import java.lang.reflect.Proxy;
 import java.io.ByteArrayInputStream;
@@ -197,22 +196,9 @@ class CompanyYardTest {
             assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertEquals(protectedStart ? 0 : startingCash - MercenaryCompanyConversion.CREDIT_COST, credits.get());
             assertEquals(0, CompanyYard.reservedCredits(ship));
-            PreparationDepot depot = CerberusCompanyStart.accessibleDepot();
-            assertNotNull(depot);
-            depot.draw("metals", depot.available("metals", Purpose.BOAT), Purpose.BOAT);
             assertNotNull(CompanyYard.install(ship, market));
-            CerberusCompanyStart.establishDepot(ship, market);
-            assertSame(depot, CerberusCompanyStart.depot());
-            assertEquals(0, depot.available("metals"));
+            CerberusCompanyStart.conversionPaid(ship, market);
             assertEquals(protectedStart ? 0 : startingCash - MercenaryCompanyConversion.CREDIT_COST, credits.get());
-            assertEquals(protectedStart, depot.protectedStock());
-            uiMethods.clear();
-            assertNull(CerberusCompanyStart.accessibleDepot());
-            assertSame(depot, CerberusCompanyStart.depot());
-            var other = stub(PlanetAPI.class, Map.of("getMarket", stub(MarketAPI.class, Map.of(
-                    "getId", "other", "getPlanetEntity", planet, "getIndustries", List.of(industry), "getFaction", faction))));
-            uiMethods.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", other)));
-            assertNull(CerberusCompanyStart.accessibleDepot());
         } finally { Global.setSector(previous); }
     }
 
@@ -274,8 +260,21 @@ class CompanyYardTest {
                 reloaded.forEach((key, value) -> saved.put((String) key, value));
             }
             assertEquals(BoatBayState.RESTORED, CompanyBayRestoration.state(ship));
-            assertNull(CerberusCompanyStart.depot(), "Restoration never issues starting stores");
         } finally { Global.setSector(previous); }
+    }
+
+    @Test void yardRefusesEveryInvalidOrderBeforeMutating() {
+        assertNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(false, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, false, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, true, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, true, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, false, false, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST - 1));
+        int waivedPrice = MercenaryCompanyConversion.CREDIT_COST - CompanyYard.waived(FoundingReserve.CREDITS);
+        assertNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS, waivedPrice),
+                "The reserve alone pays the waived estimate");
+        assertNotNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS - 1, waivedPrice));
     }
 
     @Test void restorationRefusesUnconvertedInactiveAndUnrelatedHulls() {

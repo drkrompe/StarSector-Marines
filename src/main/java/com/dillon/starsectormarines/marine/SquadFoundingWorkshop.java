@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import java.util.List;
 
-/** Atomic campaign authority for paying for and founding a complete line squad, anywhere. */
+/** Atomic campaign authority for paying for and founding a complete line squad, anywhere. The first one is free. */
 public final class SquadFoundingWorkshop {
 
     private final MarineRoster roster;
@@ -17,7 +17,8 @@ public final class SquadFoundingWorkshop {
     }
 
     public Result foundSquad() {
-        if (!resources.spend(SquadFoundingCost.STANDARD)) {
+        boolean free = roster.firstSquadFree();
+        if (!free && !resources.spend(SquadFoundingCost.STANDARD)) {
             return new Result(Status.INSUFFICIENT_RESOURCES, null);
         }
         MarineSquad squad = roster.createSquad();
@@ -27,6 +28,7 @@ public final class SquadFoundingWorkshop {
             throw new IllegalStateException(
                     "validated founding transaction did not fill its line squad");
         }
+        if (free) roster.spendFirstSquad();
         return new Result(Status.FOUNDED, squad);
     }
 

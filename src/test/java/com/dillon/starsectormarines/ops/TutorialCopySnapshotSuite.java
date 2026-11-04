@@ -82,8 +82,6 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
         MarineRoster preparing = preparing();
         var hq = CompanyHqViewModel.openingPreview(preparing);
         String home = OfficerInductionGuide.line(OfficerInduction.Step.SHIP, "Morgan Hale").text();
-        String fireDepot = Strings.format("openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur", "Jangala");
-        String hermesDepot = Strings.format("openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt", "Jangala");
         String conversion = Strings.format("openingCerberusCompanyStartFirstWeNeedMercenaryCompanyConversionOur",
                 Strings.get("openingCerberusCompanyStartIHaveKeptThatPaymentSeparateFrom"), "Jangala");
         String installed = Strings.format("openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt", "Jangala");
@@ -101,27 +99,22 @@ public final class TutorialCopySnapshotSuite implements SnapshotSuite {
         list.add(new Frame("hq-ready.png", UiRoom.HQ, prep(1, "openingCompanyPreparationGuideLetSGetTheCompanyReady",
                 Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"), List.of("page-nav-barracks"),
                 "openingCompanyPreparationGuideMeetSabine", 310)));
-        list.add(new Frame("hq-stores-squad.png", UiRoom.HQ, prep(1, "openingCompanyPreparationGuideOurStoresAreStillReserved",
-                fireDepot, List.of("page-nav-return"), "openingCompanyPreparationGuideReturnToDepot", 320)));
-        list.add(new Frame("hq-stores-hermes.png", UiRoom.HQ, prep(1, "openingCompanyPreparationGuideOurStoresAreStillReserved",
-                hermesDepot, List.of("page-nav-return"), "openingCompanyPreparationGuideReturnToDepot", 320)));
         list.add(new Frame("boats-one-step.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideOneStepAtATime",
                 Strings.get("openingCompanyPreparationGuideTheBoatsCanWait"), List.of("page-nav-barracks"),
                 "openingCompanyPreparationGuideMeetSabine", 310)));
         // First lift, as CampaignLessons.firstLift joins its sentences.
-        String stores = Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked");
         String wreck = Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes");
         String empty = Strings.get("openingOfficerInductionGuideOurPeopleNeedAWayDownAnd");
         String select = Strings.get("openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight");
-        String confirm = Strings.get("openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe");
+        String confirm = Strings.get("openingCompanyPreparationGuideThisFirstOneCostsUsNothing");
         list.add(new Frame("first-lift-repair-select.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideRepairOurFirstHermes",
-                wreck + select + stores, List.of("boat-list"), null, 280)));
+                wreck + select   , List.of("boat-list"), null, 280)));
         list.add(new Frame("first-lift-repair-confirm.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideRepairOurFirstHermes",
-                wreck + confirm + stores, List.of("boat-list"), null, 280)));
+                wreck + confirm   , List.of("boat-list"), null, 280)));
         list.add(new Frame("first-lift-commission-select.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideCommissionOurFirstShuttle",
-                empty + select + stores, List.of("boat-list"), null, 280)));
+                empty + select   , List.of("boat-list"), null, 280)));
         list.add(new Frame("first-lift-commission-confirm.png", UiRoom.BOATS, prep(1, "openingCompanyPreparationGuideCommissionOurFirstShuttle",
-                empty + confirm + stores, List.of("boat-list"), null, 280)));
+                empty + confirm   , List.of("boat-list"), null, 280)));
         // The handoffs, from Headquarters.
         list.add(new Frame("barracks-handoff-refit.png", UiRoom.BARRACKS, CampaignLessons.lesson(0, "lessonRefitTitle", "lessonRefitHandoff",
                 List.of("barracks-equipment"), "lessonEquipment", NOOP)));

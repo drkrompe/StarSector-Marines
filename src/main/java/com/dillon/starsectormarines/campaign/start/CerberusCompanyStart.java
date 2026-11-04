@@ -3,12 +3,12 @@ package com.dillon.starsectormarines.campaign.start;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.intel.CompanyFoundingIntel;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.Script;
 import com.dillon.starsectormarines.campaign.start.OpeningPort.Use;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
@@ -28,8 +28,10 @@ public final class CerberusCompanyStart implements Script {
      * those years and only the two Vulcans nobody took ({@code mod/data/variants/sm_second_wind_start.variant}).
      */
     public static final String START_VARIANT_ID = "sm_second_wind_start";
+    /** Where an older save still holds its {@link PreparationDepot}. */
     private static final String DEPOT_KEY = "sm_preparation_depot";
-    private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
+    /** Set when the founding conversion is paid; the name is what saves hold, from when that also issued a depot. */
+    private static final String CONVERSION_PAID = "sm_preparation_depot_issued";
     /** The start port, chosen once by {@link OpeningPort} when the start runs and kept. */
     public static final String START_PORT_KEY = "sm_start_port_market";
     /** The start port's planet, which outlives its market, so its system is known after the port is lost. */
@@ -42,7 +44,7 @@ public final class CerberusCompanyStart implements Script {
     public static final int TRAVEL_SUPPLIES = 25;
     /**
      * One unit of fuel (owner, 2026-10-25; the tank started empty). Fuel burns only in hyperspace. The start sets
-     * the fleet down in its port's own system, and the yard, Zoey Venn's office and the depot all start there; a
+     * the fleet down in its port's own system, and the yard and Zoey Venn's office both start there; a
      * re-pick after that port is lost stays in that system while any qualifying port remains in it
      * ({@link OpeningPort}). Fuel is bought at the port when the company leaves.
      * Nothing aboard to sell is also why a second squad is out of reach before Relief
@@ -146,7 +148,7 @@ public final class CerberusCompanyStart implements Script {
     /** Founding conversion is mandatory; completed companies never regain this gate. */
     public static boolean conversionRequired() {
         return startingShipId() != null
-                && !CampaignBackend.savedData().containsKey(DEPOT_ISSUED)
+                && !CampaignBackend.savedData().containsKey(CONVERSION_PAID)
                 && !MercenaryCompanyConversion.installed(startingShip());
     }
     public static FleetMemberAPI startingShip() {
@@ -155,65 +157,52 @@ public final class CerberusCompanyStart implements Script {
         return CampaignBackend.playerFleet().getFleetData().getMembersListCopy().stream()
                 .filter(m -> id.equals(m.getId())).findFirst().orElse(null);
     }
-    public static PreparationDepot depot() {
-        if (Global.getSector() == null) return null;
-        Object depot = CampaignBackend.savedData().get(DEPOT_KEY);
-        return depot instanceof PreparationDepot value ? value : null;
-    }
     /**
-     * The depot while docked at its port. A depot whose port is lost to the company (gone, decivilized, hidden or
-     * hostile) follows it: the stores come aboard at the next accessible yard it docks at, and stay there.
+     * The founding conversion is paid for: from now on it is never required again, and the company's port is the one
+     * that did the work.
      */
-    public static PreparationDepot accessibleDepot() {
-        PreparationDepot depot = depot();
-        MarketAPI market = CompanyYard.dockedMarket();
-        if (depot == null || market == null) return null;
-        if (depot.marketId().equals(market.getId())) return depot;
-        if (!depotLost()) return null;
-        LOG.info("Second Wind depot at " + depot.marketId() + " is lost; moving its stores to " + market.getId());
-        depot.relocate(market.getId());
-        return depot;
-    }
-    /** Whether the depot's port can no longer be reached. */
-    public static boolean depotLost() {
-        PreparationDepot depot = depot();
-        if (depot == null || !CampaignBackend.economyRunning()) return false;
-        return lost(CampaignBackend.market(depot.marketId()), CampaignBackend.playerFaction());
-    }
-    /** A port is lost when it is gone, decivilized, hidden or hostile; a disrupted spaceport is only closed. */
-    static boolean lost(MarketAPI market, FactionAPI player) {
-        return market == null || market.getPlanetEntity() == null || market.isPlanetConditionMarketOnly()
-                || market.isHidden() || market.getFaction() == null
-                || player != null && market.getFaction().isHostileTo(player);
-    }
-    /** The planet the depot's port is on, or null when there is no depot or its port is lost. */
-    public static PlanetAPI depotPlanet() {
-        PreparationDepot depot = depot();
-        if (depot == null || depotLost()) return null;
-        return CampaignBackend.market(depot.marketId()).getPlanetEntity();
-    }
-    public static void establishDepot(FleetMemberAPI member, MarketAPI market) {
+    public static void conversionPaid(FleetMemberAPI member, MarketAPI market) {
         if (!member.getId().equals(startingShipId())) return;
         var data = CampaignBackend.savedData();
-        if (data.containsKey(DEPOT_ISSUED)) return;
-        data.put(DEPOT_KEY, new PreparationDepot(market.getId(), FoundingReserve.protectedStart(data)));
-        data.put(DEPOT_ISSUED, true);
+        if (data.containsKey(CONVERSION_PAID)) return;
+        data.put(START_PORT_KEY, market.getId());
+        data.put(CONVERSION_PAID, true);
+    }
+
+    /**
+     * Brings a save from before the first squad and boat were free into line, on load. A save still holding the
+     * retired depot gets a free order for each whole allotment left in it, and the rest aboard; the depot's port stays
+     * the company's port. A save still short of its conversion has spent nothing, so it starts as a new company does.
+     * Companies past their conversion with no depot, and ordinary starts already underway, keep paying as they were.
+     */
+    public static void settleOldDepot(MarineRoster roster) {
+        Map<String, Object> saved = CampaignBackend.savedData();
+        if (saved == null || roster == null) return;
+        if (saved.get(DEPOT_KEY) instanceof PreparationDepot depot) {
+            PreparationDepot.Settlement settled = depot.settle();
+            if (settled.freeSquad()) roster.grantFirstSquad();
+            if (settled.freeBoat()) roster.boatDeck().grantFirstBoat();
+            CampaignFleetAPI fleet = CampaignBackend.playerFleet();
+            if (fleet != null) {
+                if (settled.credits() > 0) fleet.getCargo().getCredits().add(settled.credits());
+                settled.goods().forEach((id, quantity) -> fleet.getCargo().addCommodity(id, quantity));
+            }
+            saved.put(START_PORT_KEY, depot.marketId());
+            saved.remove(DEPOT_KEY);
+            LOG.info("Second Wind: settled the retired depot at " + depot.marketId() + ": " + settled);
+        } else if (conversionRequired() && roster.officerInduction() != null && roster.officerInduction().companyPreparation()) {
+            roster.grantFirstOrders();
+        }
     }
     /**
-     * Where the company goes next: the depot's port, else the start port locked when the start ran, else (that port
-     * lost, or a save older than the lock) the {@link OpeningPort} order's yard. A lost depot points there too.
+     * Where the company goes next: the port locked when the start ran (once the conversion is paid, the port that did
+     * it), else (that port lost, or a save older than the lock) the {@link OpeningPort} order's yard.
      */
     public static PlanetAPI destination() {
-        PlanetAPI depot = depotPlanet();
-        if (depot != null) return depot;
         Object locked = CampaignBackend.savedData() == null ? null : CampaignBackend.savedData().get(START_PORT_KEY);
         if (locked instanceof String id) {
             MarketAPI market = CampaignBackend.market(id);
-            if (OpeningPort.eligible(market, CampaignBackend.playerFaction(), Use.YARD)) {
-                // A lost depot sends the company back to the start port, which may be a system away.
-                if (depot() != null) provisionCrossing(market);
-                return market.getPlanetEntity();
-            }
+            if (OpeningPort.eligible(market, CampaignBackend.playerFaction(), Use.YARD)) return market.getPlanetEntity();
         }
         MarketAPI market = OpeningPort.resolve(Global.getSector(), Use.YARD, homeSystem());
         if (market == null) return null;
@@ -229,7 +218,7 @@ public final class CerberusCompanyStart implements Script {
         var sector = Global.getSector();
         CampaignFleetAPI fleet = sector.getPlayerFleet();
         PlanetAPI planet = market.getPlanetEntity();
-        if (fleet == null || planet == null || !openingUnderway()
+        if (fleet == null || planet == null || !conversionRequired()
                 || fleet.getContainingLocation() == planet.getContainingLocation()
                 || market.getId().equals(sector.getPersistentData().get(CROSSING_FUEL_KEY))) return;
         sector.getPersistentData().put(CROSSING_FUEL_KEY, market.getId());
@@ -247,12 +236,6 @@ public final class CerberusCompanyStart implements Script {
         int needed = (int) Math.ceil(Math.max(0f, distanceLy) * Math.max(0f, fuelPerLy));
         int room = (int) Math.floor(Math.max(0f, capacity - aboard));
         return Math.max(0, Math.min(room, needed - (int) Math.floor(Math.max(0f, aboard))));
-    }
-    /** Until the conversion is paid and the depot's stores are drawn, the opening still has somewhere to send the company. */
-    private static boolean openingUnderway() {
-        if (conversionRequired()) return true;
-        PreparationDepot depot = depot();
-        return depot != null && depot.holdsAnything();
     }
     /** The start port's star system, or null before the start has locked one (or for an ordinary start). */
     public static StarSystemAPI homeSystem() {

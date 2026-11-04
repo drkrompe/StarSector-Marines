@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
-import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -25,7 +24,7 @@ final class CampaignLessons {
 
     /**
      * Relief needed no boat: the company rode up on Wayline's truck. The depot job is its first ferry battle, so
-     * between the two the company repairs (or commissions) its first Hermes from the prepaid stores.
+     * between the two the company repairs (or commissions) its first Hermes, which is free.
      */
     static boolean firstLiftPending(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)
@@ -56,10 +55,9 @@ final class CampaignLessons {
                         : "openingCompanyPreparationGuideCommissionOurFirstShuttle"),
                 Strings.get(wreck ? "openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes"
                         : "openingOfficerInductionGuideOurPeopleNeedAWayDownAnd")
-                        + Strings.get(building ? "openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe"
-                        : "openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight")
-                        + (CerberusCompanyStart.depot() != null
-                        ? Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked") : ""),
+                        + Strings.get(!building ? "openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight"
+                        : roster.boatDeck().firstBoatFree() ? "openingCompanyPreparationGuideThisFirstOneCostsUsNothing"
+                        : "openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe"),
                 building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
                         : List.of("boat-list"), null, null);
     }

@@ -17,9 +17,8 @@ reading advice, or leaving must not impersonate fitting or field practice.
 - [x] Relief: choose one technology transfer, compare and actually fit a squad.
 - [x] First lift: after Relief and before Counterattack, while no seated boat is
   airworthy, HQ hands off to the Boat Deck to repair Second Wind's accessible wreck
-  (or commission a berth) from the prepaid Hermes stores. It precedes the optional
-  refit because Counterattack cannot launch without lift. Away from the depot,
-  Castle sends the company back for the parts. It ends on the real boat, not on
+  (or commission a berth) free of charge. It precedes the optional
+  refit because Counterattack cannot launch without lift. It ends on the real boat, not on
   reading. Counterattack's empty-lift readout names the same repair.
 - [x] Counterattack: explain free Hound recovery and the optional paid lift route.
 - [x] Mech Lab: fit the free SRM, remove and reuse it through ordinary controls.

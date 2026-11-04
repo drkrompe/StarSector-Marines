@@ -482,8 +482,7 @@ Castle:
 
 Commander (Next): *Then let's go deliver some ore dust.*
 
-The last page's objective line points at Marine operations and the prepaid depot
-(`openingYardNextStep`).
+The last page's objective line points at Marine operations (`openingYardNextStep`).
 
 ### Planet-panel yard
 
@@ -515,10 +514,9 @@ completion)
 > reputation to keep up. She stayed for the pressure test herself and left it off
 > the bill. Don't mention it. She'll deny it.
 
-`openingCompanyYardCMDOurPrepaidPreparationStoresAreInThis` — Castle
-> Our prepaid stores are in this planet's depot, and they only reach the workshop
-> while we're docked here. Open Marine operations and name the converted Cerberus
-> our command ship. I'll walk you through the rest.
+`openingCompanyYardCMDOpenMarineOperationsAndNameTheConverted` — Castle
+> Open Marine operations and name the converted Cerberus our command ship. I'll
+> walk you through the rest.
 
 ## 3 — Castle's preparation
 
@@ -530,7 +528,7 @@ who kept the roster.
 > yard has the estimate. {0}Choose Return, dock at {1} and open Marine operations from
 > the planet menu; I'll have the yard order waiting. It isn't in the standard
 > Refit picker, and Additional Berthing won't do it. Nothing gets designated until
-> the yard has done its work. Our prepaid stores will wait in the planetary depot.
+> the yard has done its work.
 
 `openingCerberusCompanyStartIHaveKeptThatPaymentSeparateFrom`
 > My chits pay for it, not the ship's account. The yard takes them even if the
@@ -538,18 +536,14 @@ who kept the roster.
 
 `openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
 > The conversion is in. Stay docked at {0}, open Marine operations and name our
-> Cerberus the company's command ship. While we're docked here, the preparation
-> bills draw on our depot stock. Then we settle Morgan's appointment and put her
-> section on the roll.
+> Cerberus the company's command ship.
 
 `openingCerberusCompanyStartOurShipIsHomeNowStayDocked`
-> She's ours now, Commander, properly. Stay docked while we use the prepaid
-> stores: settle Morgan's first specialty in Barracks, then muster her squad in
-> the Armory and put it under her. I'll take you through each order.
+> She's ours now, Commander, properly. Settle Morgan's first specialty in Barracks,
+> then raise her squad there and put it under her. I'll take you through each order.
 
 `openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd`
-> Commander, pick our home: a ship with quarters and a boat bay. These stores
-> kit one full squad now and patch one shuttle after Zoey's job. Morgan's
+> Commander, pick our home: a ship with quarters and a boat bay. Morgan's
 > appointment is settled, first training point and all.\n\n{0}
 
 `openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd`
@@ -571,20 +565,9 @@ who kept the roster.
 > We muster the squad once the ship and the field commander are ready.
 > Those first.
 
-`openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty`
-> Twelve marines, thirty-six supplies and twenty-four food. That's Morgan's
-> section on the company roll: kitted, fed and paid from today. Check the
-> highlighted bill and choose Found Line Squad; then we hand them back to her.
-
 `openingCompanyPreparationGuideTheSquadAndItsFieldKitAre`
 > They're on the roll and kitted. Back to Barracks to give Morgan her standing
 > command. Assigning them costs nothing more.
-
-`openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur`
-> Leaving didn't cost us anything, Commander. The rest of our prepaid stores are
-> waiting at {0}. They're held ashore, so I can't draw them from
-> up here. Go back, choose Marine operations in the planet menu, and we'll pick up
-> where we stopped. Don't buy them twice.
 
 `openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst`
 > If the authorities ask, we're completing last mile delivery with the

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.util.List;
 
-/** Remaining first-mission stores, derived from the real workshop catalogs. */
+/** What the first mission still has to pay for, derived from the real workshop catalogs and the free first orders. */
 public final class CompanyPreparation {
     private CompanyPreparation() { }
 
@@ -19,28 +19,30 @@ public final class CompanyPreparation {
     }
 
     /**
-     * The first lift's price in credits, or zero once a compatible boat is airworthy. The squad comes first; the
-     * boat waits until after Relief. Compatible owned boats count.
+     * The first lift's price in credits: zero while the first boat is free, or once a compatible boat is airworthy.
+     * The squad comes first; the boat waits until after Relief. Compatible owned boats count.
      */
     public static int boatPrice(MarineRoster roster, ShuttleType pattern) {
+        if (roster.boatDeck().firstBoatFree()) return 0;
         if (roster.boatDeck().flightReady().stream().anyMatch(b -> b.pattern() == pattern)) return 0;
         BoatFabricationCatalog.Recipe recipe = BoatFabricationCatalog.recipe(pattern);
         return recipe == null ? 0 : recipe.bill().credits();
     }
 
-    /** The founding squad's marines, or nothing once a full squad stands on the roll. */
+    /** The founding squad's marines, or nothing while the first squad is free or once a full squad stands on the roll. */
     public static List<SquadFoundingCost.Line> squadBill(MarineRoster roster) {
-        return hasSquad(roster) ? List.of() : SquadFoundingCost.STANDARD.lines();
+        return hasSquad(roster) || roster.firstSquadFree() ? List.of() : SquadFoundingCost.STANDARD.lines();
     }
 
-    /** The founding squad's price for its stores, or zero once a full squad stands on the roll. */
+    /** The founding squad's price for its stores, or zero while the first squad is free or once a full squad stands on the roll. */
     public static int squadPrice(MarineRoster roster) {
-        return hasSquad(roster) ? 0 : SquadFoundingCost.STANDARD.credits();
+        return hasSquad(roster) || roster.firstSquadFree() ? 0 : SquadFoundingCost.STANDARD.credits();
     }
 
     /**
-     * Whether everything the prepaid stores still have to build can be paid: the boat and the squad's stores in
-     * credits, the squad's marines from cargo.
+     * Whether everything the first mission still needs can be paid: the boat and the squad's stores in credits, the
+     * squad's marines from cargo. A new company owes nothing here, so only a berth can stop it; a company from an
+     * older save may still be paying.
      */
     public static boolean canPrepare(MarineRoster roster, ShuttleType pattern, int berths,
                                      FabricationResources credits, SquadFoundingResources stores) {

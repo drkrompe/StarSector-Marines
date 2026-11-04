@@ -141,8 +141,8 @@ public final class ShipTransferViewModel {
                 ShipTransferViewModel::designate,
                 CompanyMeans.ofPlayer());
         MarineRosterScript script = MarineRosterScript.getInstance();
-        preparation(script == null ? null : script.roster(), CampaignFabricationResources.forPreparation(),
-                CampaignSquadFoundingResources.forPreparation());
+        preparation(script == null ? null : script.roster(), new CampaignFabricationResources(),
+                new CampaignSquadFoundingResources());
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
@@ -519,30 +519,12 @@ public final class ShipTransferViewModel {
     public Signal<List<CompanyResources.Row>> resourceStock() {
         return revision.map(ignored -> {
             List<CompanyResources.Row> rows = new ArrayList<>(CompanyResources.credits("transfer-credit-stock", means.credits(), 0));
-            if (CompanyPreparation.required(preparationRoster)) {
+            if (CompanyPreparation.required(preparationRoster) && !CompanyPreparation.squadBill(preparationRoster).isEmpty()) {
                 rows.add(CompanyResources.stock("transfer-stock:marines", preparationStores.commodityName("marines"),
                         preparationStores.commodityIcon("marines"), preparationStores.available("marines")));
             }
             return List.copyOf(rows);
         });
-    }
-
-    public String preparationBill() {
-        if (CerberusCompanyStart.conversionRequired()) return CerberusCompanyStart.instructions();
-        Candidate ship = selected();
-        if (ship == null || !ship.quarters()) return Strings.get("openingShipTransferSelectAShipWithCompanyQuartersAnd");
-        if (ShipsBoats.aboard(ship.ship()).isEmpty()) return Strings.get("openingShipTransferThisHullHasNoBoatBerthChoose");
-        StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
-        // The boat and the squad's stores are both bought, so they are one credit line.
-        long price = (long) CompanyPreparation.boatPrice(preparationRoster, ShipsBoats.carriedBy(ship.ship()))
-                + CompanyPreparation.squadPrice(preparationRoster);
-        if (price > 0) text.append(CompanyResources.creditBill(price, preparationResources.credits())).append('\n');
-        for (var line : CompanyPreparation.squadBill(preparationRoster)) {
-            int available = preparationStores.available(line.commodityId());
-            text.append(CompanyResources.namedBill(preparationStores.commodityName(line.commodityId()), line.quantity(), available));
-            text.append('\n');
-        }
-        return text.append(Strings.get("openingShipTransferCheckedNowEachWorkshopSpendsOnlyWhen")).toString();
     }
 
     /**

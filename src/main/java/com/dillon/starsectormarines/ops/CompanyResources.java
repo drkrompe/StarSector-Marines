@@ -25,6 +25,11 @@ public final class CompanyResources {
         return new Row(id, name, icon, Math.max(0, available), Math.max(0, required));
     }
 
+    /** A price of nothing, for an order the company does not pay for. */
+    public static Row free(String id) {
+        return new Row(id, Strings.get("companyResourceCredits"), CREDITS_ICON, 0, 0, Strings.get("firstOrderFree"));
+    }
+
     /** Something coming back: the amount, never a shortfall. */
     public static Row recovered(String id, String name, String icon, long quantity) {
         return new Row(id, name, icon, Math.max(0, quantity), Math.max(0, quantity));
@@ -89,7 +94,7 @@ public final class CompanyResources {
                 case "nameId" -> id + ":name"; case "shortId" -> id + ":short";
                 case "lineId" -> id + ":line";
                 case "name" -> name; case "icon" -> icon; case "label" -> label();
-                case "cost" -> Strings.format("companyResourceCost", number(required));
+                case "cost" -> note != null ? note : Strings.format("companyResourceCost", number(required));
                 case "stock" -> note != null ? note : number(available);
                 case "shortage" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", number(shortfall())) : "";
                 case "required" -> number(required);

@@ -277,7 +277,8 @@ public final class BoatWorkshop {
      *
      * <p>The same order as a fit, for the same reason: the price is paid in
      * full before anything is stood up, so a failed spend leaves the deck and
-     * the purse exactly as they were.
+     * the purse exactly as they were. The company's first boat is free, a repaired wreck or a new one
+     * alike, and still needs a port to do the work.
      */
     public Result fabricate(int berthIndex) {
         ShuttleType pattern = deck.pattern();
@@ -288,13 +289,15 @@ public final class BoatWorkshop {
         if (standing != null) return new Result(Status.BERTH_OCCUPIED, standing);
         if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         FabricationCost price = fabricationQuote(pattern);
-        if (price == null || !resources.spend(price)) {
+        boolean free = deck.firstBoatFree();
+        if (price == null || !free && !resources.spend(price)) {
             return Result.of(Status.CANNOT_AFFORD);
         }
         CampaignBoat built = deck.fabricate(berthIndex);
         if (built == null) {
             throw new IllegalStateException("validated berth refused the boat built for it");
         }
+        if (free) deck.spendFirstBoat();
         return new Result(Status.FABRICATED, built);
     }
 

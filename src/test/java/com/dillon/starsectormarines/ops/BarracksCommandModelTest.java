@@ -86,6 +86,21 @@ class BarracksCommandModelTest {
         assertEquals(before, roster.squads().size(), "No stores, no squad");
     }
 
+    @Test void theFirstSquadHasNoBillAndTheOneAfterItDoes() {
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        roster.add(new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f));
+        roster.grantFirstSquad();
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
+        var tile = raiseTile(model);
+        assertEquals(false, tile.get("founderDisabled"), "Nothing in the hold or the purse is needed");
+        assertEquals(1, ((List<?>) tile.get("founderCosts")).size());
+        int before = roster.squads().size();
+        model.raiseSquad();
+        assertEquals(before + 1, roster.squads().size());
+        assertEquals(true, raiseTile(model).get("founderDisabled"), "The next one pays");
+    }
+
     @Test void selectionSpansPagesButNotStationedSquadsAndClearDiscardsIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(13 * MarineSquad.CAPACITY);

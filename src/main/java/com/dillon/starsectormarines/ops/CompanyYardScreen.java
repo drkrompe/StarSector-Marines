@@ -34,7 +34,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
         int credits = (int) CampaignBackend.playerFleet().getCargo().getCredits().get();
         String refusal = review.stage() == Stage.COST ? CompanyYard.refusal(ship, CompanyYard.dockedMarket()) : null;
         return model(review.stage(), ship.getShipName(), credits, CompanyYard.reservedCredits(ship),
-                refusal, review.failure(), CerberusCompanyStart.depot() != null,
+                refusal, review.failure(), ship.getId().equals(CerberusCompanyStart.startingShipId()),
                 this::next, this::back, () -> dismissDialog.run());
     }
     private void next() {
@@ -52,7 +52,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
      * {@code credits}: the ship's account as it stands, so after payment on the later pages.
      */
     static Map<String, Object> model(Stage stage, String shipName, int credits, int reserved,
-                                     String refusal, String failure, boolean depot,
+                                     String refusal, String failure, boolean founding,
                                      Runnable next, Runnable back, Runnable leave) {
         int pages = Stage.values().length;
         boolean last = stage.ordinal() == pages - 1;
@@ -62,7 +62,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
         props.put("portrait", CompanyManagementGuide.portrait());
         props.put("manifest", "");
         props.put("note", "");
-        props.put("destination", last && depot ? Strings.get("openingYardNextStep")
+        props.put("destination", last && founding ? Strings.get("openingYardNextStep")
                 : Strings.format("openingYardShip", shipName == null ? "Second Wind" : shipName));
         switch (stage) {
             case COST -> {

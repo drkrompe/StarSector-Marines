@@ -41,7 +41,7 @@ nothing: a lost attempt is a retry, never an alternate story (owner, 2026-10-27)
 | Take Back the Depot — Counterattack | Join the depot advance, capture dispatch under two finite road attacks that start when the company enters it | 9,000 credits; recovered Hound and first Mech Bay restoration | Implemented; linked live acceptance remains |
 
 Castle's first-lift lesson follows Relief: the company repairs its first Hermes
-from the prepaid stores, because Counterattack is its first ferry battle. The
+free, because Counterattack is its first ferry battle. The
 optional A Proper Issue lesson follows it: one free equipment package and
 ordinary deliberate issue. It does not block Counterattack.
 Counterattack's recovery and refitting lesson teaches the owned Hound and its

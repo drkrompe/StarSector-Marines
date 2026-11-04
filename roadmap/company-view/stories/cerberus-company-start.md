@@ -15,7 +15,7 @@ accessible fallback port, but the story stays Jangala's. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship is designated as the company command vessel, which paying does automatically. Designation resumes the
 existing Morgan specialty, squad founding and assignment tutorial, ending at the
-first Jangala contract. The prepaid Hermes waits for the first-lift lesson after Relief.
+first Jangala contract. The free first Hermes waits for the first-lift lesson after Relief.
 
 ## Scope and authority
 
@@ -41,30 +41,20 @@ consignment, with no support freighter. The start supplies 473 spendable credits
 a separate 4,862-credit reserve usable only for the original ship's conversion (the
 yard waives the estimate's 124-credit pressure test when it pays), minimum
 crew plus five, 25 travel supplies and one unit of fuel (owner, 2026-10-25). Fuel burns only in hyperspace.
-The start sets the fleet down in its port's own system, and the yard, Zoey Venn's office and the
-depot all start in it; a re-pick after the port is lost keeps to that system while any qualifying
-port remains there. When a re-pick during the opening (conversion unpaid or depot stores left) does
+The start sets the fleet down in its port's own system, and the yard and Zoey Venn's office
+both start in it; a re-pick after the port is lost keeps to that system while any qualifying
+port remains there. When a re-pick while the conversion is unpaid does
 land across hyperspace, Castle tops the tank up to exactly what the fleet's own fuel use per light
 year needs to reach it, only the shortfall, within its tanks, once per replacement port, and says so
 in one line. Fuel is otherwise bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
-which is why the story Relief carries no squad cap: the depot founds Morgan's squad only, any other
+which is why the story Relief carries no squad cap: Morgan's first squad is free, any other
 pays the full founding bill from the hold, and selling every crewman and both guns at the most
 favourable vanilla prices still falls short (`SecondSquadAffordabilityTest`). Money earned through
 ordinary vanilla play before Relief is the sandbox's business, not the story's. The start also withdraws the Galatia
 Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
 would pay for that squad and contradicts the no-patron premise. The first successful conversion
-of this start's ship establishes a finite depot at that planet: the Hermes bill
-(which covers her stock parts) plus the founding squad's 12 Marines and the credit
-for its stores, derived from the real Hermes and squad prices. The boat and squad bills are earmarked separately; unrelated workshop
-orders cannot consume either allocation. Eligible orders draw their depot stock
-first, then cargo. Existing campaigns retain their funds and depot policy without
-new grants or deductions. The depot is
-available only during interaction with its accessible working planetary port;
-leaving, visiting another market, reloading, or installing another conversion
-cannot replenish it. A port that is lost to the company (gone, decivilized,
-hidden or hostile, but not merely disrupted) releases the stores: they are held at
-the next accessible working yard the company docks at, and stay there. Castle's
-course and the Intel then point to that next yard. Ordinary starts receive no depot.
+of this start's ship makes that planet the company's port. The company's first squad and first
+boat are free first orders (`company-view-nouns.md`).
 
 The start port is chosen once, when the start runs, by the shared `OpeningPort`
 order that Zoey Venn's office also uses (`early-operation-nouns.md`): Jangala, the
