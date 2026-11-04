@@ -295,6 +295,8 @@ public class BriefingScreen implements Screen {
     private List<PlayerFleetPowerSources.SourceShip> cachedPowerSources = java.util.Collections.emptyList();
     /** Power roster available from the committed source ships plus employer. */
     private List<CommandPower> cachedAvailablePowers = java.util.Collections.emptyList();
+    /** The sprite of the Onslaught a debug mission or the cheat brings, which has no fleet member to read it from. */
+    private static final String ONSLAUGHT_SPRITE = "graphics/ships/onslaught/onslaught_base.png";
     /** Stable ids selected into the current mission's command deck. */
     private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
     private boolean commandDeckInitialized;
@@ -564,9 +566,9 @@ public class BriefingScreen implements Screen {
         props.put("powerRows", retainedPowerRows());
         props.put("powerEmpty", cachedAvailablePowers.stream().allMatch(CommandDeck::implied)
                 ? Strings.get("briefingUiNoPowers") : "");
-        props.put("sourceRows", retainedSourceRows());
-        props.put("sourceEmpty", cachedPowerSources.isEmpty()
-                ? Strings.get("briefingUiNoPowerSources") : "");
+        List<BriefingViewModel.ChoiceRow> sourceRows = retainedSourceRows();
+        props.put("sourceRows", sourceRows);
+        props.put("sourceEmpty", sourceRows.isEmpty() ? Strings.get("briefingUiNoPowerSources") : "");
         BriefingViewModel.putLandingCraft(props, mission, lift(),
                 debug && ctx.getDebugCompanyRoster() != null ? ctx.getDebugCompanyRoster().lineReadySoldiers().size()
                         : readiness != null ? readiness.selectedReady() : 0,
@@ -1069,9 +1071,18 @@ public class BriefingScreen implements Screen {
             PlayerFleetPowerSources.SourceShip source = cachedPowerSources.get(i);
             boolean committed = !deselectedPowerSources.contains(source.memberId);
             rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + i,
-                    "choice-row" + (committed ? " selected" : ""),
-                    source.shipName, summarizePowers(source.powers), false,
-                    () -> togglePowerSource(source.memberId), source.spriteName));
+                    "choice-row source-tile" + (committed ? " selected" : ""),
+                    source.shipName, "", false,
+                    () -> togglePowerSource(source.memberId), source.spriteName,
+                    SpecSheets.fleetSupport(source.shipName, source.spriteName, source.powers)));
+        }
+        // A debug mission or the cheat brings the Onslaught with no ship behind it, so it has nothing to hold back.
+        for (CommandPower power : cachedAvailablePowers) {
+            if (!CommandDeck.fleetSupport(power) || cachedPowerSources.stream()
+                    .anyMatch(source -> source.powers.stream().anyMatch(p -> p.id.equals(power.id)))) continue;
+            rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + power.id, "choice-row source-tile selected",
+                    power.displayName, "", false, () -> { }, ONSLAUGHT_SPRITE,
+                    SpecSheets.fleetSupport(Strings.get("briefingVmSourceHeader"), ONSLAUGHT_SPRITE, List.of(power))));
         }
         return List.copyOf(rows);
     }

@@ -2294,7 +2294,7 @@
 		"briefingUiHintUnavailable": "当前选择下不可用。",
 		"briefingUiHintNoDeckSlots": "甲板空位不足。取消选择另一项能力以腾出空间。",
 		"briefingUiNoPowerSources": "没有舰队舰船提供指挥能力。",
-		"briefingUiNoPowers": "舰队和雇主都没有可用的能力。",
+		"briefingUiNoPowers": "没有可用的指挥能力。",
 		"briefingUiPowerSlots": "{0,number,integer} {0,choice,0#个空位|1#个空位|1<个空位}",
 		"briefingUiCommandSlots": "{0,number,integer} / {1,number,integer} 个空位",
 		"briefingVmCarrierHeader": "空中掩护",
@@ -3820,6 +3820,7 @@
 
 		# --- Gear: components, vehicles, mechs: command powers and integral systems ---
 		"gearCommandPower": "指挥能力",
+		"gearFleetSupportPower": "{0}：{1}",
 		"gearPowerActivation": "指挥点和补给在启用时消耗，而不是在选择卡组时。",
 		"gearPowerEffectCloseAirSupport": "呼叫一艘 Mudskipper 炮艇在所选地面上空盘旋并向其开火，然后离开。",
 		"gearPowerEffectDefault": "由已投入的舰队或雇主提供的一项支援能力。",

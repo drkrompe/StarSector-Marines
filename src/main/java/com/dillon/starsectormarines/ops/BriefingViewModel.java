@@ -167,8 +167,11 @@ final class BriefingViewModel {
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none)));
         props.put("powerEmpty", "");
-        props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
+        props.put("sourceRows", List.of(
+                new ChoiceRow("source-siege", "choice-row source-tile selected", "HSS Siege of Raesvelg", "", false, none,
+                        "graphics/ships/onslaught/onslaught_base.png"),
+                new ChoiceRow("source-wolf", "choice-row source-tile", "HSS Kestrel", "", false, none,
+                        "graphics/ships/wolf/wolf_base.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
         BriefingAir.put(props, BriefingAir.read(List.of(

@@ -119,14 +119,10 @@
               <div id="mission-support-stack" class="mission-support-stack">
                 <div id="mission-source-block" class="briefing-section">
                   <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-                  <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
+                  <!-- A square tile per ship, its sprite alone: the hover says what the ship brings. -->
+                  <div id="mission-source-list" class="source-list" style="{sourceListStyle}">
                     <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
-                      <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
-                      <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
-                      <div id="{source.copyId}" class="choice-copy">
-                        <div id="{source.titleId}" class="label compact-type choice-title">{source.title}</div>
-                        <div id="{source.detailId}" class="label tone-muted dense choice-detail">{source.detail}</div>
-                      </div>
+                      <img id="{source.iconId}" class="source-sprite" src="{source.icon}" />
                     </button>
                   </div>
                   <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
@@ -476,9 +472,6 @@
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
   .debug-toggle-arrow { width: 14px; height: 18px; pointer-events: none; }
   .debug-air-image { width: 28px; height: 24px; pointer-events: none; }
-  .source-list .choice-copy { height: 15px; }
-  .source-list .choice-detail { height: 0px; overflow: hidden; }
-  .source-list .choice-row { height: 28px; }
   .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
@@ -557,8 +550,10 @@
   #mission-survey-canvas { width: 404px; height: 270px; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
   #mission-source-list { height: 0px; flex-grow: 1; }
-  .source-list .choice-row { height: 40px; width: 100%; }
-  .source-list .choice-icon { width: 40px; height: 34px; }
+  .source-list { flex-direction: row; gap: 6px; overflow: scroll; }
+  .choice-row.source-tile { width: 68px; height: 68px; padding: 3px; gap: 0px; border-width: 1px; justify-content: center; opacity: 0.45; }
+  .choice-row.source-tile.selected { opacity: 1; }
+  .source-sprite { width: 60px; height: 60px; pointer-events: none; }
   .mission-factions { flex-direction: row; height: 62px; gap: 10px; width: 100%; }
   .faction-identity { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; gap: 6px; }
   .faction-crest { pointer-events: none; }
