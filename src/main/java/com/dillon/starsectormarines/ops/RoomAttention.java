@@ -5,13 +5,11 @@ import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.marine.MarineSoldier;
-import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MechBay;
 
 /**
- * Whether a room has something waiting on the player, for the mark on its page route: wounded or empty billets in
+ * Whether a room has something waiting on the player, for the mark on its page route: empty billets in
  * the line squads, a shuttle that cannot fly, a machine under repair or stripped. Read-only, and it says only where
  * to look; the room says what.
  */
@@ -32,9 +30,6 @@ final class RoomAttention {
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve() || squad.stationed()) continue;
             if (roster.vacancies(squad) > 0) return true;
-            for (MarineSoldier soldier : roster.squadMembers(squad)) {
-                if (soldier.status() == MarineSoldierStatus.WIA) return true;
-            }
         }
         return false;
     }
