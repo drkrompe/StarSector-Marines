@@ -65,7 +65,6 @@ public final class MechLabScreen implements Screen {
             "data/ui/components/mech-lab/mech-lab.mlx"));
 
     private final Reactor reactor = new Reactor();
-    private final MutableSignal<String> bayContextLabel = reactor.signal("");
     private final MutableSignal<String> activeBayLabel = reactor.signal("");
     private final MutableSignal<String> bayNavigatorClasses = reactor.signal("bay-navigator hidden");
     private final MutableSignal<Integer> selectedBayIndex = reactor.signal(0);
@@ -216,7 +215,6 @@ public final class MechLabScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", bayContextLabel);
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
@@ -622,7 +620,6 @@ public final class MechLabScreen implements Screen {
         if (bays.isEmpty()) {
             activeBayLabel.set(Strings.get("openingMechLabNoMechBay"));
             bayNavigatorClasses.set("bay-navigator hidden");
-            bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
             return;
         }
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
@@ -630,7 +627,6 @@ public final class MechLabScreen implements Screen {
         activeBayLabel.set(String.format(Strings.locale(),
                 Strings.get("openingMechLabBayDD"), index + 1, bays.size()));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
-        bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }
 
     private void resetCamera(boolean focused) {

@@ -100,7 +100,6 @@ final class MarineOpsThemes {
                 .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
                 #marine-ops-page-nav { background-color: transparent; background-image: none; }
-                #marine-ops-page-context { color: #aadeff; background-color: transparent; }
                 /* A route fills its slot in the page bar, so it is cut as the slot is. */
                 #marine-ops-page-routes button { corner-cut: 3px; }
                 #marine-ops-page-routes .page-nav-current { background-color: #43798b; color: #dff4ff; }

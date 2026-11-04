@@ -156,7 +156,6 @@ public final class ShipViewScreen implements Screen {
         props.put("survey", survey.row());
         props.put("roomTitle", Strings.get("openingShipViewEngineeringShipCondition"));
         props.put("roomCopy", Strings.get("openingShipViewHoverToInspect"));
-        props.put("contextLabel", Strings.get("openingShipViewShipServices"));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,

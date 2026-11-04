@@ -116,7 +116,6 @@ public final class ShipTransferScreen implements Screen {
         props.put("transferAction", (Runnable) this::transfer);
         props.put("roomTitle", viewModel.roomTitle());
         props.put("roomCopy", viewModel.roomCopy());
-        props.put("contextLabel", viewModel.contextLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 context::roomAboard,
                 this::close,

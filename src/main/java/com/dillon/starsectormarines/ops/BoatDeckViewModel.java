@@ -317,7 +317,7 @@ public final class BoatDeckViewModel {
             ? "panel catalog-panel" : "hidden"); }
     public Signal<String> stageTitle() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
             ? Strings.format("boatDeckStageBerth", berthLabel(berth))
-            : Strings.get("openingUiBoatDeckBoatBayBerths"); }); }
+            : Strings.get("openingUiBoatDeckBayTitle"); }); }
     public Signal<String> stageStatus() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
             ? Strings.get("boatDeckSelectSlot") : Strings.get("openingUiBoatDeckDeckCrewOnWatch"); }); }
     /** SCRAP beside the stage heading while the room is opened on a boat; CONFIRM once armed. */

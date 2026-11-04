@@ -1187,7 +1187,6 @@ class MechLabViewModelTest {
         Map<String, Object> props = new LinkedHashMap<>();
         // Layout evidence, so the heading only has to be a string of about the
         // right length; where the room actually is belongs to the ship.
-        props.put("contextLabel", "CRUISER TROOP TRANSPORT / MIDSHIPS PORT / VEHICLE BAY");
         props.put("activeBayLabel", "BAY 01 / 01");
         props.put("bayNavigatorClasses", "bay-navigator hidden");
         props.put("previousBay", (Runnable) () -> { });

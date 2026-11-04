@@ -109,7 +109,6 @@ public final class MissionSelectScreen implements Screen {
                     () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
             MarineOpsPageNav.routeShared(props, context);
         }
-        props.put("contextLabel", locationLabel());
         putCompanyNews(props, CompanyNotices.current(), () -> {
             var notices = CompanyNotices.current();
             if (context == null || notices.isEmpty()) return;
@@ -263,7 +262,6 @@ public final class MissionSelectScreen implements Screen {
         props.put("planetImage", null);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.ANY_SHIP,
                 none, none, none, none, none, none, none, none);
-        props.put("contextLabel", "Jangala");
         props.put("clientEmpty", "");
         props.put("clients", List.of(
                 new ClientRow("client-debug", "client-name-debug", "client-rep-debug",

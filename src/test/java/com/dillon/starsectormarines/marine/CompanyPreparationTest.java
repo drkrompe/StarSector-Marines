@@ -80,7 +80,7 @@ class CompanyPreparationTest {
         assertNotNull(squad);
         assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
 
-        assertEquals(Step.ASSIGNMENT, induction.step(roster));
+        assertEquals(Step.READY, induction.step(roster));
         roster.assignCaptainToSquad(morgan.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));

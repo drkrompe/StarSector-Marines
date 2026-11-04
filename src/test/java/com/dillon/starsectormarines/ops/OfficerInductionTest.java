@@ -46,9 +46,6 @@ class OfficerInductionTest {
         MarineSquad squad = roster.createSquad();
         assertEquals(Step.FORMATION, induction.step(roster), "Empty formations cannot satisfy induction");
         roster.recruitToSquad(squad.id(), 12);
-        assertEquals(Step.ASSIGNMENT, induction.step(roster));
-        assertFalse(induction.finish(roster));
-        roster.assignCaptainToSquad(morgan.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         induction = roundTrip(induction);

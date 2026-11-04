@@ -1,9 +1,9 @@
-<template props="missionsAction,missionsClasses,settingsAction,settingsClasses,command,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
+<template props="missionsAction,missionsClasses,settingsAction,settingsClasses,command,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="barracks-surface" class="barracks-surface">
   <div id="barracks-root" class="barracks-root">
     <div id="barracks-room-bar" class="panel barracks-room-bar console-header">
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
-      <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
+      <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksTitle}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
       <div id="barracks-stock-slot" class="header-stock-slot">
         <company-resource-stock stockId="barracks-issue-stock" rows="{command.issueCargoStock}" />
@@ -36,8 +36,6 @@
               <div id="{group.commandcapacityId}" class="label muted wrap dense command-capacity">{group.capacity}</div>
             </div>
           </button>
-          <button id="{group.assignId}" class="{group.assignClasses}" disabled="{group.assignDisabled}" onclick="{group.assign}">{group.assignLabel}</button>
-          <div id="{group.reasonId}" class="{group.reasonClasses}">{group.reason}</div>
           </div>
         </div>
       </div>
@@ -157,8 +155,7 @@
         </div>
       </div>
     </div>
-    <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
-    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" />
   </div>
   </div>
 </template>
@@ -188,9 +185,6 @@
   .rail-note { height: 62px; }
   .command-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .command-entry { flex-direction: column; width: 100%; gap: 3px; }
-  .command-assign { width: 100%; height: 28px; font-family: heading; text-align: center; }
-  .command-assign-ready { color: #fff0c2; background-color: #183645; border-color: #dfc588; border-width: 1px; }
-  .command-reason { width: 100%; height: 38px; }
   .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #0d1d25; border-color: #3e6680; }
   .command-card.selected, .formation.selected { background-color: #122934; border-color: #dfc588; }
   .command-card:hover { border-color: #dfc588; }
@@ -259,13 +253,11 @@
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
   .mission-call { width: 190px; }
   .flow-button { white-space: normal; width: 190px; min-height: 38px; font-family: heading; text-align: center; }
-  .assignment-reason { height: 35px; }
   .recruit-stock { flex-direction: row; align-items: center; width: 290px; height: 36px; gap: 8px; padding: 0px 8px; }
   .recruit-draw { flex-direction: row; align-items: center; height: 30px; gap: 8px; }
   .recruit-icon { width: 32px; height: 28px; pointer-events: none; }
   .recruit-count { width: 54px; height: 20px; pointer-events: none; }
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
-  .command-feedback { height: 30px; padding: 6px 9px; color: #b3c3d1; background-color: #071014; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
   .officer-header { flex-direction: row; align-items: start; height: 124px; gap: 16px; }
   .officer-portrait-frame { width: 110px; height: 108px; }

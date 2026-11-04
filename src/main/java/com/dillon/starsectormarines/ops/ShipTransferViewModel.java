@@ -132,7 +132,6 @@ public final class ShipTransferViewModel {
     private final ComputedSignal<String> costClasses;
     private final ComputedSignal<String> roomTitle;
     private final ComputedSignal<String> roomCopy;
-    private final ComputedSignal<String> contextLabel;
 
     /** The player's own fleet, company and purse. */
     public ShipTransferViewModel(Reactor reactor) {
@@ -193,13 +192,6 @@ public final class ShipTransferViewModel {
             return unquartered() ? Strings.get("openingShipTransferCompanyShipFounding")
                     : Strings.get("openingShipTransferCompanyShipTransfer");
         });
-        // Named for the fleet rather than a compartment: this is the only page
-        // in the shell that is not aboard anything in particular.
-        contextLabel = reactor.computed(() -> {
-            revision.get();
-            if (home.get().displaced()) return Strings.get("openingShipTransferCompanyFleetDisplaced");
-            return unquartered() ? Strings.get("openingShipTransferCompanyFleetFounding") : Strings.get("openingShipTransferCompanyFleetTransfer");
-        });
         roomCopy = reactor.computed(() -> {
             revision.get();
             CompanyShipDesignation.Home standing = home.get();
@@ -223,7 +215,6 @@ public final class ShipTransferViewModel {
     public Signal<String> costClasses() { return costClasses; }
     public Signal<String> roomTitle() { return roomTitle; }
     public Signal<String> roomCopy() { return roomCopy; }
-    public Signal<String> contextLabel() { return contextLabel; }
 
     /**
      * The selected candidate's deck, for the plan view. Null if she has none.

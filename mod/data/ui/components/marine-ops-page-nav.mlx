@@ -1,4 +1,4 @@
-<template props="returnAction,hqAction,missionsAction,missionsClasses,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses,contextLabel">
+<template props="returnAction,hqAction,missionsAction,missionsClasses,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,settingsAction,settingsClasses">
   <div id="marine-ops-page-nav" class="">
     <div id="marine-ops-page-bar">
     <img id="marine-ops-page-holder" src="graphics/ui/console/page-bar.svg" />
@@ -54,7 +54,6 @@
       </button>
     </div>
     </div>
-    <div id="marine-ops-page-context" class="label tone-edge">{contextLabel}</div>
   </div>
 </template>
 
@@ -131,22 +130,12 @@
     color: #757f88;
   }
 
-  #marine-ops-page-context {
-    overflow: hidden;
-    width: 0px;
-    flex-grow: 1;
-    padding: 0px 7px;
-    text-align: right;
-    white-space: nowrap;
-    border-width: 0px;
-  }
   /* A room with something waiting on the player: what it is shows in the room. */
   .page-nav-status { display: none; width: 16px; height: 16px; pointer-events: none; }
   #marine-ops-page-routes .page-nav-attention .page-nav-status { display: flex; }
   .page-nav-news { display: none; }
   #marine-ops-page-routes .page-nav-new .page-nav-news { display: flex; color: #ffd200; }
   .console-toggle-lamp { display: none; }
-  .doc-narrow #marine-ops-page-context { display: none; }
   .doc-narrow #marine-ops-page-nav { height: 35px; }
   .doc-narrow #marine-ops-page-bar { width: 1032px; height: 35px; }
   .doc-narrow #marine-ops-page-holder { display: none; }

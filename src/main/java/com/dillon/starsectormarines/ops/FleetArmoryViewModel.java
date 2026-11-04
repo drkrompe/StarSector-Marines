@@ -278,10 +278,6 @@ public final class FleetArmoryViewModel {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : Strings.get("openingFleetArmorySquad");
     }
-    /** The page header's path to this squad's issue; it stands in for the breadcrumb the screen once drew. */
-    public String issueContextLabel() {
-        return Strings.format("openingFleetArmoryIssueContext", selectedSquadName().toUpperCase(Locale.ROOT));
-    }
     public SquadEquipmentPreview currentSquadEquipmentPreview() {
         return squadEquipmentPreview.get();
     }

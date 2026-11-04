@@ -118,6 +118,7 @@ them.
 - The **menu backdrop** (`MenuBackdrop`) is the space behind every page but a battle, as behind the
   base game's own screens: the sky of wherever the fleet is, its stars, and the world it is parked
   at, drawn by the dialog's host before the page. A page's root is a translucent veil and grid over it.
+- A page carries no standing instruction line and no path to itself: a control's hover sheet says what it does, and a room's title is its name.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built
@@ -323,7 +324,7 @@ the retained model.
 14. **Shipboard navigation is spatial.** Company surfaces identify the flagship room
     the captain occupies and phrase transitions as movement between real destinations.
     A persistent top shell owns `RETURN` and routes among real rooms, marks the current
-    room, and keeps the right edge for location context. Drill-down breadcrumbs remain
+    room. Drill-down breadcrumbs remain
     page-specific beneath it; the bottom edge belongs to page content rather than global
     navigation. Future room names do not appear as dead controls before their surfaces exist.
 15. **Session-ending actions are staged.** A compact exit may remain visually quiet,

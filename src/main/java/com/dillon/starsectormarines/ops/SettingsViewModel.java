@@ -27,7 +27,6 @@ final class SettingsViewModel {
         props.put("voiceOverLabel", voiceOverLabel);
         props.put("voiceOverClasses", voiceOverClasses);
         props.put("voiceOverAction", (Runnable) this::toggleVoiceOver);
-        props.put("contextLabel", Strings.get("openingUiSettingsContext"));
     }
 
     /** Settings live in the save, so another may have been loaded since this page last showed. */

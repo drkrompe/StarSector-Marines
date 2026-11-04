@@ -63,7 +63,6 @@ public final class BoatDeckScreen implements Screen {
             "data/ui/components/boat-deck/boat-deck.mlx"));
 
     private final Reactor reactor = new Reactor();
-    private final MutableSignal<String> bayContextLabel = reactor.signal("");
     private final MutableSignal<String> activeBayLabel = reactor.signal("");
     private final MutableSignal<String> bayNavigatorClasses = reactor.signal("bay-navigator hidden");
     private final MutableSignal<String> bayNoteClasses = reactor.signal("hidden");
@@ -185,7 +184,6 @@ public final class BoatDeckScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", bayContextLabel);
         props.put("bayNoteClasses", bayNoteClasses);
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
@@ -514,7 +512,6 @@ public final class BoatDeckScreen implements Screen {
             activeBayLabel.set(Strings.get("openingBoatDeckNoHangar"));
             bayNavigatorClasses.set("bay-navigator hidden");
             bayNoteClasses.set("hidden");
-            bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
             return;
         }
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
@@ -525,7 +522,6 @@ public final class BoatDeckScreen implements Screen {
         // The bay is restored from Engineering; this room only says where.
         bayNoteClasses.set(bays.stream().anyMatch(bay -> deck.rooms().damaged(bay.id()))
                 ? "bay-sealed-note label tone-muted" : "hidden");
-        bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }
 
     @Override

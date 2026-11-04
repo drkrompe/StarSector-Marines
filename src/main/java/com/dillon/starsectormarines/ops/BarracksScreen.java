@@ -150,8 +150,6 @@ public final class BarracksScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("command", viewModel.command().props());
-        props.put("contextLabel", Strings.format("openingBarracksPersonnelCommand",
-                ShipBreadcrumb.of(context.companyDeck().ship(), null)));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 context::roomAboard,
                 this::close,

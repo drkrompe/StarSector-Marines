@@ -130,8 +130,7 @@ class BarracksCommandModelTest {
         var vm = new BarracksViewModel(reactor, roster, () -> 1d);
         var model = vm.command();
         var props = new LinkedHashMap<String, Object>();
-        props.put("command", model.props()); props.put("contextLabel", "PERSONNEL COMMAND");
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
+        props.put("command", model.props());        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                 () -> {}, () -> {}, model::showOverview, () -> {}, () -> {}, () -> {});
         var previous = SvgAsset.setSource(path -> Files.readString(Path.of("mod").resolve(path)));
         try {

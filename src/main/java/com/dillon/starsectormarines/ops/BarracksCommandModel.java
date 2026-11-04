@@ -74,7 +74,6 @@ public final class BarracksCommandModel {
     static final String MISSION_CALL_STYLE = "background-color: #1a4a30; border-color: #78d494; color: #e8d9a7;";
     private MissionReturn missionReturn = MissionReturn.MISSIONS;
     private int page;
-    private String feedback = Strings.get("openingBarracksCommandSelectSquadsThenAssignSelectedOnA");
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 SquadFoundingResources foundingResources,
@@ -143,7 +142,6 @@ public final class BarracksCommandModel {
                 ? Strings.get("openingBarracksCommandDeselectAll") : Strings.get("openingBarracksCommandSelectAll"));
         bind(reactor, "fillSelectedCount", () -> Integer.toString(vacancies(selected)));
         bind(reactor, "fillSelectedDisabled", () -> !canFill(selected));
-        bind(reactor, "feedback", () -> feedback);
         props.put("toggleSelection", (Runnable) () -> {
             if (allInViewSelected()) { resetSelection(); return; }
             filtered().stream().filter(s -> !s.stationed()).forEach(s -> selected.add(s.id()));
@@ -372,20 +370,12 @@ public final class BarracksCommandModel {
     }
     private Map<String, Object> commandRow(String id, MarineCaptain captain, List<MarineSquad> squads) {
         long ready = squads.stream().filter(s -> !s.stationed() && roster.readyCount(s) == MarineSquad.CAPACITY).count();
-        var assignment = roster.previewCaptainAssignment(captain == null ? null : captain.id(), selected);
         return row("id", "command:" + id,
                 "commanderportraitId", "command:" + id + ":portrait", "commandercopyId", "command:" + id + ":copy",
                 "commandnameId", "command:" + id + ":name", "commandsummaryId", "command:" + id + ":summary",
                 "commandcapacityId", "command:" + id + ":capacity",
-                "cardStyle", "height: " + (id.equals("all") ? 126 : selected.isEmpty() ? 158 : 200) + "px;",
-                "cardId", "command:" + id + ":card", "assignId", "command:" + id + ":assign",
-                "assignClasses", id.equals("all") ? "hidden" : "command-assign console-action" + (assignment.valid() ? " command-assign-ready" : ""),
-                "assignLabel", selected.isEmpty() ? Strings.get("openingBarracksCommandSelectSquadsFirst") : Strings.format("openingBarracksCommandAssignSelected", selected.size()),
-                "assignDisabled", id.equals("all") || !assignment.valid(),
-                "assign", (Runnable) () -> assignCommand(captain == null ? null : captain.id()),
-                "reasonId", "command:" + id + ":reason",
-                "reasonClasses", id.equals("all") || selected.isEmpty() ? "hidden" : "label muted wrap command-reason",
-                "reason", assignment.reason(),
+                "cardStyle", "height: 126px;",
+                "cardId", "command:" + id + ":card",
                 "name", id.equals("all") ? Strings.get("openingBarracksCommandAllFormations") : captainName(captain),
                 "portrait", captain != null && captain.portraitSprite() != null ? captain.portraitSprite() : "graphics/ui/console/service-plate.svg",
                 "commanderbadgeId", "command:" + id + ":badge", "portraitframeId", "command:" + id + ":portrait-frame",
@@ -517,20 +507,14 @@ public final class BarracksCommandModel {
     /** Founds a full line squad from stores into a free command slot; refuses when there is none. */
     public void raiseSquad() {
         MarineCaptain officer = raiseCommander();
-        if (officer == null) {
-            feedback = raiseDestination();
-            refresh();
-            return;
-        }
+        if (officer == null) return;
         SquadFoundingWorkshop.Result result = founding.foundSquad();
         if (!result.succeeded()) {
-            feedback = Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust");
             refresh();
             return;
         }
         MarineSquad squad = result.squad();
         roster.assignCaptainToSquads(officer.id(), Set.of(squad.id()));
-        feedback = Strings.format("openingBarracksCommandRaisedSquadUnder", squad.name(), MarineSquad.CAPACITY, captainName(officer));
         page = pages() - 1;
         refresh();
     }
@@ -565,11 +549,6 @@ public final class BarracksCommandModel {
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(muster.vacantCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandHomeCommand2"), captainName(roster.byId(squad.homeCaptainId())))), notes);
     }
-    public void assignCommand(String captainId) {
-        var result = roster.assignCaptainToSquads(captainId, selected);
-        feedback = result.valid() ? Strings.format("openingBarracksCommandSquadsAssignedTo", result.changedSquadCount(), captainName(roster.byId(captainId))) : result.reason();
-        refresh();
-    }
     private int vacancies(Set<String> squadIds) {
         return lineSquads().stream().filter(s -> squadIds.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();
     }
@@ -602,7 +581,13 @@ public final class BarracksCommandModel {
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(squadIds)))),
                 List.of(recruitment(squadIds), Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
-    public SpecSheet fillSelectedSheet() { return fillSheet(Set.copyOf(selected)); }
+    /** The wrench beside Select All; with nothing selected it says what selecting is for. */
+    public SpecSheet fillSelectedSheet() {
+        if (!selected.isEmpty()) return fillSheet(Set.copyOf(selected));
+        return new SpecSheet(Strings.get("openingBarracksCommandFillVacancies"), Strings.format("openingBarracksCommandSquadsSelected", 0),
+                resources.commodityIcon(Commodities.MARINES), "item", List.of(),
+                List.of(Strings.get("openingBarracksCommandFillSelectedHint")));
+    }
     public SpecSheet weaponCardSheet(String squadId) {
         CardFace face = weaponFace(roster.squadById(squadId));
         return face == null ? null : face.sheet();
@@ -669,7 +654,6 @@ public final class BarracksCommandModel {
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
         if (guideVisible() && guideStep == 2 && reserves + cargo > 0) guideStep = 3;
-        feedback = Strings.format("openingBarracksCommandFilledBilletsEnlisted", reserves + cargo);
         refresh();
     }
     private boolean campaignGuidance;
@@ -727,7 +711,7 @@ public final class BarracksCommandModel {
         guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1);
         refresh();
     }
-    /** Acknowledgement only counts on READY: training and a real assignment come first. */
+    /** Acknowledgement only counts on READY: training and a formation come first. */
     private void finishInduction() {
         if (!roster.officerInduction().finish(roster)) return;
         guideOpen = false;
@@ -753,18 +737,13 @@ public final class BarracksCommandModel {
         if (step == Step.SPECIALTY) return dossier() ? "officer-specialty-list" : inductionOfficerTarget();
         if (step == Step.READY) return null;
         if (dossier()) return "command:all";
-        if (step == Step.FORMATION) return "barracks-raise-squad";
-        if (selected.isEmpty()) return "barracks-select-all";
-        return inductionOfficerTarget() + ":assign";
+        return "barracks-raise-squad";
     }
     private List<List<String>> inductionRegions() {
         String target = inductionTarget();
         if (target == null) return List.of();
         if (target.startsWith("officer-specialty-"))
             return List.of(List.of("officer-training", "officer-specialty-list"));
-        if ("barracks-select-all".equals(target) || target.endsWith(":assign"))
-            return List.of(List.of("barracks-selection-tools", "barracks-formation-list", "barracks-page-tools"),
-                    List.of(inductionOfficerTarget() + ":card"));
         return List.of(List.of(target));
     }
     private String inductionHint() {
@@ -775,9 +754,8 @@ public final class BarracksCommandModel {
             case "page-nav-hq" -> Strings.get("openingBarracksCommandChooseACompanyShipInHqBefore");
             case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsToReturnToThe");
             case "barracks-raise-squad" -> Strings.get("openingBarracksCommandRaiseSquadOpensTheEquipmentWorkspaceFound");
-            case "barracks-select-all" -> Strings.get("openingBarracksCommandMarkTheSquadYouWantHerTo");
             case "officer-specialty-list" -> Strings.get("openingBarracksCommandHoverToCompareSpecialties");
-            default -> inductionTarget().endsWith(":assign") ? Strings.get("openingBarracksCommandClickAssignSelectedOnTheCommanderCard") : Strings.get("openingBarracksCommandOpenTheHighlightedOfficerPortrait");
+            default -> Strings.get("openingBarracksCommandOpenTheHighlightedOfficerPortrait");
         };
     }
     public String guideTargetId() {

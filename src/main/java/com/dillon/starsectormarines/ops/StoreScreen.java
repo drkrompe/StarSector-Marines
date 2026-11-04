@@ -153,7 +153,6 @@ public final class StoreScreen implements Screen {
         props.put("resourceStock", viewModel.resourceStock());
         props.put("roomTitle", Strings.get("storeRoomTitle"));
         props.put("roomCopy", Strings.get("storeRoomCopy"));
-        props.put("contextLabel", viewModel.contextLabel());
         props.put("shelfNote", viewModel.shelfNote());
         props.put("categoryRows", viewModel.categoryRows());
         props.put("offerRows", viewModel.rows());

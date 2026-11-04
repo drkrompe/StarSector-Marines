@@ -10,7 +10,7 @@ public final class OfficerInduction implements Serializable {
      * Derived, never saved. The first lift is not a step: the company rides up to Relief on Wayline's truck, and
      * the first Hermes is repaired in the campaign lesson between Relief and Counterattack.
      */
-    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE, SHIP }
+    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, READY, COMPLETE, SHIP }
 
     private final String foundingOfficerId;
     private boolean introduced;
@@ -44,11 +44,10 @@ public final class OfficerInduction implements Serializable {
                 .filter(s -> !s.reserve() && !s.stationed()
                         && roster.readyCount(s) >= (companyPreparation ? MarineSquad.CAPACITY : 1)).toList();
         if (squads.isEmpty()) return Step.FORMATION;
-        if (squads.stream().noneMatch(s -> officer.id().equals(s.homeCaptainId()))) return Step.ASSIGNMENT;
         return Step.READY;
     }
 
-    /** Acknowledgement cannot replace training or an actual squad assignment. */
+    /** Acknowledgement cannot replace training or a formation. */
     public boolean finish(MarineRoster roster) {
         if (step(roster) != Step.READY) return false;
         complete = true;

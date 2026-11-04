@@ -186,7 +186,7 @@
       </div>
     </div>
 
-    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
+    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" />
     <div id="aux-modal" class="{auxiliary.classes}">
       <div id="aux-space-above" class="aux-space" />
       <div id="aux-letter" class="aux-letter console-readout">

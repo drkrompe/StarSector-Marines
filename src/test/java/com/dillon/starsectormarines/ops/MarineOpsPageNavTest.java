@@ -51,7 +51,6 @@ class MarineOpsPageNavTest {
             var props = new LinkedHashMap<String, Object>();
             MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, room -> MarineOpsPageNav.Aboard.NO,
                     () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> visits[0]++);
-            props.put("contextLabel", "COMPANY SHIP / ENGINEERING");
             var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
                     List.of("data/ui/components/marine-ops-page-nav.mlx"));
             try (var markup = loader.reloadAndBuild(new Reactor(), "marine-ops-page-nav", props)) {
@@ -81,7 +80,6 @@ class MarineOpsPageNavTest {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 room -> rooms.getOrDefault(room, MarineOpsPageNav.Aboard.NO),
                 () -> {}, () -> {}, () -> counts[0]++, () -> counts[1]++, () -> counts[2]++, () -> counts[3]++);
-        props.put("contextLabel", "COMPANY FLEET / FOUNDING");
         var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
                 List.of("data/ui/components/marine-ops-page-nav.mlx"));
         try (var markup = loader.reloadAndBuild(new Reactor(), "marine-ops-page-nav", props)) {
@@ -142,7 +140,6 @@ class MarineOpsPageNavTest {
             var props = new LinkedHashMap<String, Object>();
             MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                     () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> visits[0]++);
-            props.put("contextLabel", "COMPANY SHIP / HQ");
             var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
                     List.of("data/ui/components/marine-ops-page-nav.mlx"));
             try (var markup = loader.reloadAndBuild(new Reactor(), "marine-ops-page-nav", props)) {

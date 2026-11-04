@@ -617,8 +617,7 @@ or UI scale; it is neither a fixed pixel box nor a control snapped to one floor 
 Vacant summary cells are informational, while occupied cells remain direct
 refit targets. The asset browser remains the direct way to jump across lances.
 When a generated ship carries more than one vehicle-bay compartment, a separate room
-navigator cycles those actual compartments in fore-to-aft order and derives the ship
-breadcrumb from the bay currently framed. A one-bay ship spends no chrome on the pager.
+navigator cycles those actual compartments in fore-to-aft order. A one-bay ship spends no chrome on the pager.
 Entering the room or selecting a lance presents the wider facility first. This
 overview has no selected chassis and therefore renders neither equipment selectors nor
 socket details; a compact four-gantry rail identifies the assigned assets without
@@ -1062,11 +1061,9 @@ and dedicated female portrait.
 
 After commissioning, Castle introduces Morgan's portrait and guides an actual
 specialty choice. Barracks then guides the free first founding on its Raise Squad tile,
-which includes baseline field kit; with Morgan's command open the squad musters straight into it. A squad that
-reached Barracks unassigned is homed through the capacity-checked Assign Selected
-button on the commander card.
+which includes baseline field kit, and the squad musters straight into Morgan's command.
 Completion requires a current company ship with owned lift, an actually trained
-officer, and a full ready available squad assigned to that officer, followed by
+officer, and a full ready available squad, followed by
 acknowledgement. It returns to the retained briefing, or to HQ's existing Zoey
 Venn course/contact lead for Hold Until Relieved, canonically on Jangala.
 The accessible-office policy remains the mission domain's authority.
@@ -1116,11 +1113,10 @@ There are no saved squad profiles: the player picks each squad's two cards
 individually through its Loadout. A save written while profiles existed gives each
 squad the cards of the profile it was assigned, then drops the profiles.
 
-Select squad cards, then use **Assign Selected** on the desired commander card.
-The button shows the selected count and a live capacity preview; unavailable or
-full officers cannot receive an invalid selection. The Independent card clears
-home command through the same transaction. Viewing an officer dossier is a
-separate action from assignment.
+The company has one ground commander, so there is no assigning squads by hand: a
+raised squad joins Morgan's command when it has a slot, and one without a home
+officer follows the operation commander. Selecting squad cards is for filling
+their vacancies together.
 
 Home-command assignment applies the roster's atomic capacity checks to the whole selection.
 Personnel replacement uses ready reserves first, then the existing one-Marine-per-

@@ -1667,7 +1667,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("transferAction", (Runnable) () -> { });
         props.put("roomTitle", viewModel.roomTitle());
         props.put("roomCopy", viewModel.roomCopy());
-        props.put("contextLabel", viewModel.contextLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
@@ -1827,7 +1826,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         model.command().equipmentWorkspace(() -> navigation.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
         model.command().navigation(navigation::openSquadEquipmentFromBarracks, () -> {}, true);
         var properties = props(model, ship);
-        properties.put("contextLabel", "BARRACKS / COMPANY PREPARATION");
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         List<SnapshotArtifact> frames = new ArrayList<>();
         try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
@@ -2046,7 +2044,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", viewModel.command().props());
-            properties.put("contextLabel", "FLAGSHIP / PERSONNEL COMMAND");
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -2128,7 +2125,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             command.missionReturn(MissionReturn.BRIEFING);
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
-            properties.put("contextLabel", "FLAGSHIP / FIRST COMMAND");
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     () -> { }, () -> { }, command::showOverview, () -> { }, () -> { }, () -> { });
             MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -2316,7 +2312,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 company, company::recruits, company::reinforce);
         CompanyDeck ship = companyShip(context, List::of, () -> MarineOpsContext.companyMarines(company.roster));
         Map<String, Object> properties = props(model, ship);
-        properties.put("contextLabel", ShipBreadcrumb.of(ship.ship(), null) + " / PERSONNEL COMMAND");
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         loader.reload();
         List<SnapshotArtifact> frames = new ArrayList<>();
@@ -2476,7 +2471,6 @@ private static BufferedImage renderBarracks(
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy",
                 "Drag to look around her. Wheel to close in, WASD to walk the view.");
-        props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
@@ -3759,7 +3753,6 @@ private static BufferedImage renderBarracks(
     private static Map<String, Object> props(BarracksViewModel viewModel,
                                              CompanyDeck ship) {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(), null));
         props.put("command", viewModel.command().props());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 MarineOpsPageNav.ANY_SHIP,
@@ -3777,7 +3770,6 @@ private static BufferedImage renderBarracks(
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -3830,7 +3822,6 @@ private static BufferedImage renderBarracks(
         props.put("workshop", workshop);
         props.put("roomTitle", "SECOND WIND / RESTORATION");
         props.put("roomCopy", "Inspect the workshop. Restoring her rooms keeps their place in the hull.");
-        props.put("contextLabel", "COMPANY SHIP / MACHINE SHOP");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.ANY_SHIP,
                 () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
         try (var instance = loader.build(reactor, "ship-view", props)) {
@@ -3867,7 +3858,6 @@ private static BufferedImage renderBarracks(
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "SECOND WIND / ENGINEERING");
         props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "SHIP SERVICES");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 purpose -> ship.has(purpose) ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO,
                 () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
@@ -3919,7 +3909,6 @@ private static BufferedImage renderBarracks(
                                              CompanyDeck ship,
                                              DeckGraph.Compartment bay, int bays) {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(), bay));
         props.put("activeBayLabel", String.format(Locale.ROOT, "BAY 01 / %02d", bays));
         props.put("bayNavigatorClasses",
                 bays > 1 ? "bay-navigator" : "bay-navigator hidden");
@@ -3971,8 +3960,6 @@ private static BufferedImage renderBarracks(
     private static Map<String, Object> props(MechLabViewModel viewModel,
                                              CompanyDeck ship) {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
-                ship.room(RoomPurpose.VEHICLE_BAY)));
         props.put("activeBayLabel", "BAY 01 / 01");
         props.put("bayNavigatorClasses", "bay-navigator hidden");
         props.put("previousBay", (Runnable) () -> { });

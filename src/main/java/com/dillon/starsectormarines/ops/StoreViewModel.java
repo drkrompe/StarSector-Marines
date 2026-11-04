@@ -84,7 +84,6 @@ final class StoreViewModel {
     private final ComputedSignal<String> buyLabel;
     private final ComputedSignal<String> buyClasses;
     private final ComputedSignal<List<CompanyResources.Row>> resourceStock;
-    private final ComputedSignal<String> contextLabel;
 
     private final BooleanSupplier free;
     private List<EquipmentStore.Offer> shelf = List.of();
@@ -197,7 +196,6 @@ final class StoreViewModel {
             revision.get();
             return CompanyResources.credits("store-credit-stock", purse.credits(), 0);
         });
-        contextLabel = reactor.computed(() -> Strings.format("storeContextFmt", marketName.get()));
         refresh();
     }
 
@@ -335,7 +333,6 @@ final class StoreViewModel {
     Signal<String> buyClasses() { return buyClasses; }
     Signal<String> verdict() { return verdictText; }
     Signal<List<CompanyResources.Row>> resourceStock() { return resourceStock; }
-    Signal<String> contextLabel() { return contextLabel; }
 
     boolean shelfEmpty() { return shelf.isEmpty(); }
 

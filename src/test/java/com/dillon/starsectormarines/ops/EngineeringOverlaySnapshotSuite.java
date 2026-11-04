@@ -118,7 +118,6 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
         props.put("survey", model.row()); props.put("workshop", workshop.row());
         props.put("roomTitle", "ENGINEERING // SHIP CONDITION");
         props.put("roomCopy", "Hover to inspect; click to pin. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "SHIP SERVICES");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 purpose -> ship.has(purpose) ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO,
                 () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});

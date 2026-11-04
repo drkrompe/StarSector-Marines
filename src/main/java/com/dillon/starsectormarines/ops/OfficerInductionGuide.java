@@ -17,8 +17,6 @@ final class OfficerInductionGuide {
                     Strings.get("openingOfficerInductionGuideSheHasOneTrainingPointCoverProtects"));
             case FORMATION -> new CompanyManagementGuide.Line("officer-formation", Strings.get("openingOfficerInductionGuidePeopleBeforeOrders"),
                     Strings.get("openingOfficerInductionGuideNowSheNeedsAFormationRaiseA"));
-            case ASSIGNMENT -> new CompanyManagementGuide.Line("officer-assignment", Strings.get("openingOfficerInductionGuideGiveHerACommand"),
-                    Strings.format("openingOfficerInductionGuideSelectTheSquadThenClickAssignSelected", name));
             case READY -> new CompanyManagementGuide.Line("officer-ready", Strings.get("openingOfficerInductionGuideACompanyTakingShape"),
                     Strings.get("openingOfficerInductionGuideGoodSheHasASpecialtyAndPeople"));
             case COMPLETE -> new CompanyManagementGuide.Line("officer-complete", Strings.get("openingOfficerInductionGuideReady"), "");
