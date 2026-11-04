@@ -75,7 +75,7 @@
             <div id="{squad.casualtyId}" class="{squad.casualtyTone}">{squad.casualties}</div>
             <div id="{squad.fireTeamsId}" class="deployment-fireteams">
               <div each="team in squad.fireTeams" key="{team.id}" id="{team.id}" class="deployment-fireteam">
-                <div id="{team.labelId}" class="label heading fireteam-label">{team.label}</div>
+                <div id="{team.labelId}" class="label compact-type fireteam-label">{team.label}</div>
                 <div id="{team.membersId}" class="deployment-members">
                   <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
                     <div id="{member.lineId}" class="deployment-member-line">
@@ -137,7 +137,7 @@
   .deployment-roster { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .roster-heading { flex-direction: row; height: 60px; padding: 9px; border-width: 1px; }
   .roster-heading-copy { flex-direction: column; flex-grow: 1; gap: 5px; }
-  .roster-rule { flex-direction: row; width: 250px; padding: 12px 4px; gap: 14px; }
+  .roster-rule { flex-direction: row; width: 340px; padding: 12px 4px; gap: 14px; }
   .roster-rule .label { width: 0px; height: 18px; flex-grow: 1; text-align: right; }
   .rule-firepower { color: #78d494; }
   .rule-protection { color: #6ed7ff; }
@@ -166,7 +166,7 @@
   .deployment-member.leader .deployment-member-name { color: #ffd464; }
   .deployment-member.unavailable { border-color: #8e4d49; background-color: #27191c; }
   .deployment-member.vacant { opacity: 0.42; background-color: #0c121a; }
-  .deployment-member-line { flex-direction: row; width: 100%; height: 12px; gap: 3px; font-family: compact; }
+  .deployment-member-line { flex-direction: row; width: 100%; height: 12px; gap: 3px; font-family: narrow-compact; }
   .deployment-member-name { width: 0px; height: 12px; flex-grow: 1; color: #c8e0ff; }
   .deployment-member-equipment { width: 46px; height: 12px; text-align: right; color: #a8b7c4; }
   .member-meter-track { width: 100%; height: 2px; background-color: #172231; }

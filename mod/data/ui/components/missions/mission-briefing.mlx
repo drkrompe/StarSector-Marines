@@ -11,12 +11,12 @@
         <div id="mission-scale-symbols" class="threat-symbols">
           <img each="pip in scaleIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
         </div>
-        <div id="mission-scale-name" class="label heading tone-accent">{operationScale}</div>
+        <div id="mission-scale-name" class="label compact-type tone-accent">{operationScale}</div>
         <div id="mission-risk-symbols" class="threat-symbols">
           <div id="mission-risk-pips" class="threat-symbols">
             <img each="pip in riskIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
           </div>
-          <div id="mission-risk-name" class="label heading tone-accent">{operationRisk}</div>
+          <div id="mission-risk-name" class="label compact-type tone-accent">{operationRisk}</div>
         </div>
       </div>
       <div id="mission-reward" class="mission-reward console-readout">
@@ -88,8 +88,8 @@
           </div>
           <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
             <button each="term in termActions" key="{term.id}" id="{term.id}" class="{term.classes}" disabled="{term.disabled}" onclick="{term.action}">
-              <div id="{term.titleId}" class="label heading choice-title">{term.title}</div>
-              <div id="{term.detailId}" class="label tone-muted choice-detail">{term.detail}</div>
+              <div id="{term.titleId}" class="label compact-type choice-title">{term.title}</div>
+              <div id="{term.detailId}" class="label tone-muted dense choice-detail">{term.detail}</div>
             </button>
           </div>
         </div>
@@ -101,8 +101,8 @@
               <img id="{captain.indicatorId}" class="console-rocker" src="{captain.indicatorSource}" />
               <img id="{captain.iconId}" class="choice-icon" src="{captain.icon}" />
               <div id="{captain.copyId}" class="choice-copy">
-                <div id="{captain.titleId}" class="label heading choice-title">{captain.title}</div>
-                <div id="{captain.detailId}" class="label tone-muted choice-detail">{captain.detail}</div>
+                <div id="{captain.titleId}" class="label compact-type choice-title">{captain.title}</div>
+                <div id="{captain.detailId}" class="label tone-muted dense choice-detail">{captain.detail}</div>
               </div>
             </button>
           </div>
@@ -146,8 +146,8 @@
                   <img id="{power.indicatorId}" class="console-rocker" src="{power.indicatorSource}" />
                   <img id="{power.iconId}" class="power-icon" src="{power.icon}" />
                   <div id="{power.copyId}" class="choice-copy">
-                    <div id="{power.titleId}" class="label heading choice-title">{power.title}</div>
-                    <div id="{power.detailId}" class="label tone-muted choice-detail">{power.detail}</div>
+                    <div id="{power.titleId}" class="label compact-type choice-title">{power.title}</div>
+                    <div id="{power.detailId}" class="label tone-muted dense choice-detail">{power.detail}</div>
                   </div>
                 </button>
               </div>
@@ -162,8 +162,8 @@
                       <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
                       <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
                       <div id="{source.copyId}" class="choice-copy">
-                        <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
-                        <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
+                        <div id="{source.titleId}" class="label compact-type choice-title">{source.title}</div>
+                        <div id="{source.detailId}" class="label tone-muted dense choice-detail">{source.detail}</div>
                       </div>
                     </button>
                   </div>
@@ -411,7 +411,7 @@
   .label { overflow: hidden; }
   .mission-briefing-header { flex-direction: row; align-items: center; height: 76px; padding: 8px 10px; gap: 10px; border-width: 2px; }
   .mission-briefing-heading { flex-direction: column; width: 0px; height: 48px; flex-grow: 1; gap: 4px; }
-  #mission-briefing-kicker { height: 17px; }
+  #mission-briefing-kicker { height: 20px; }
   #mission-briefing-title { height: 27px; }
   #mission-briefing-purpose { width: 154px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
@@ -420,9 +420,9 @@
   .mission-captain-list, .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
   .choice-row { flex-direction: row; align-items: center; height: 32px; padding: 3px 5px; gap: 5px; border-width: 2px; text-align: left; }
   .choice-icon { width: 28px; height: 28px; }
-  .choice-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 30px; gap: 2px; overflow: hidden; }
-  .choice-title { height: 14px; white-space: nowrap; }
-  .choice-detail { height: 14px; white-space: nowrap; }
+  .choice-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 32px; gap: 2px; overflow: hidden; }
+  .choice-title { height: 15px; white-space: nowrap; }
+  .choice-detail { height: 15px; white-space: nowrap; }
   .empty-copy { height: 18px; padding: 3px; }
   /* Planning: a top band (lift and deck beside the survey) over the field force, which takes the full width. */
   .mission-planning { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
@@ -524,7 +524,7 @@
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
   .debug-toggle-arrow { width: 14px; height: 18px; pointer-events: none; }
   .debug-air-image { width: 28px; height: 24px; pointer-events: none; }
-  .source-list .choice-copy { height: 14px; }
+  .source-list .choice-copy { height: 15px; }
   .source-list .choice-detail { height: 0px; overflow: hidden; }
   .source-list .choice-row { height: 28px; }
   .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
@@ -533,7 +533,7 @@
   .mission-threat { flex-direction: row; align-items: center; width: 398px; height: 48px; gap: 8px; }
   .threat-symbols { flex-direction: row; align-items: center; min-height: 26px; gap: 4px; }
   #mission-scale-symbols { width: 126px; }
-  #mission-scale-name { width: 86px; height: auto; white-space: normal; }
+  #mission-scale-name { width: 112px; height: auto; white-space: normal; }
   #mission-risk-symbols { width: 170px; }
   #mission-risk-pips { width: 74px; }
   .threat-symbols .indicator { width: 22px; height: 22px; }
@@ -668,4 +668,6 @@
   .air-count { width: 0px; flex-grow: 1; text-align: center; pointer-events: none; }
   #mission-source-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 96px; gap: 4px; }
 
+  .doc-narrow #mission-briefing-purpose { display: none; }
+  .doc-narrow #mission-narration-replay, .doc-narrow #mission-comms-skip { font-family: narrow-heading; }
 </style>

@@ -42,8 +42,8 @@
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
-  #equipment-picker-heading { width: 94px; padding: 5px 2px; }
-  .equipment-picker-tab { width: 190px; height: 30px; padding: 7px 8px; }
+  #equipment-picker-heading { width: 112px; padding: 5px 2px; }
+  .equipment-picker-tab { width: 190px; height: 30px; padding: 2px 8px; }
 
   #loadout-browser-tools { flex-direction: row; height: 26px; gap: 5px; }
   #loadout-browser-summary { width: 84px; padding: 4px 2px; }

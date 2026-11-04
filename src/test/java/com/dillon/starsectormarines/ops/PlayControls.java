@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 
 import java.util.ArrayList;
@@ -84,7 +86,27 @@ final class PlayControls {
             var page = each.document().root().box().borderBox();
             audit(each.document().root(), page.x(), page.y(), page.right(), page.bottom(), found);
         }
-        return found.isEmpty() ? "all controls reachable" : String.join("\n  ", found);
+        for (Live each : live) auditText(each.document(), each.document().root(), found);
+        return found.isEmpty() ? "all controls reachable, all text fits" : String.join("\n  ", found);
+    }
+
+    /** Text wider or taller than the box it was given, which the player sees clipped or spilling. */
+    private static void auditText(UiDocument document, UiElement element, TreeSet<String> found) {
+        if (!element.displayed()) return;
+        String text = element.text();
+        BitmapFont font = text == null || text.isBlank() ? null : document.styles().fontFor(element);
+        var box = element.box().contentBox();
+        if (font != null && box.width() > 0f) {
+            boolean wraps = element.whiteSpace() == UiWhiteSpace.NORMAL;
+            float wide = wraps ? 0f : font.measureWidth(text) - box.width();
+            float tall = (wraps ? font.measureWrappedHeight(text, box.width()) : font.getLineHeight()) - box.height();
+            if (wide > 1f || tall > 1f) {
+                found.add("text " + (element.id() == null ? element.classes() : element.id())
+                        + (wide > 1f ? " wide by " + Math.round(wide) : "") + (tall > 1f ? " tall by " + Math.round(tall) : "")
+                        + " \"" + text.substring(0, Math.min(30, text.length())) + "\"");
+            }
+        }
+        for (UiElement child : element.children()) auditText(document, child, found);
     }
 
     private static void audit(UiElement element, float left, float top, float right, float bottom, TreeSet<String> found) {

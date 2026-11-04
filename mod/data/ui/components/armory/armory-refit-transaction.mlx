@@ -36,7 +36,7 @@
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 18px; padding: 1px 0px; }
   .loadout-range-hint { min-height: 36px; white-space: normal; }
-  .loadout-range-action { width: 132px; height: 30px; padding: 7px 8px; }
+  .loadout-range-action { width: 150px; height: 30px; padding: 2px 8px; }
   .loadout-hint { height: 18px; }
   /* Castle's first proper issue, resumable from the squad's own head while it is offered. */
   #armory-first-refit { width: 340px; height: 30px; padding: 7px 8px; text-align: center; }

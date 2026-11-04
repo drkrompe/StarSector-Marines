@@ -1290,7 +1290,7 @@ not prevent a valid understrength fire team from attempting the work.
 
 Captains' traits read on the officer dossier, and a trait with no mechanic says
 so rather than claiming one; outlook traits read as character. Retained screens assign their compact text
-faces by role (heading, body, compact) rather than one display face everywhere.
+faces by role (heading, body, compact, dense) rather than one display face everywhere.
 
 **The battle squad panel says who is doing the work.** Hovering a marine's card
 in the selected-squad panel shows a running line for this mission: rounds landed

@@ -71,7 +71,7 @@ final class BattleSquadOverlay {
             wireLayout(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard());
+            built.theme(MarineOpsThemes.battle());
             built.layout(viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
             candidate.close();
