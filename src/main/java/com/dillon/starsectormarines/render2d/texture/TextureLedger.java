@@ -6,6 +6,7 @@ import com.fs.starfarer.api.SettingsAPI;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +26,9 @@ import java.util.Set;
  *
  * <p>A texture that was already resident when the ledger first saw it is <em>foreign</em> — the
  * game's own art, another mod's, or a load that went round the ledger — and is never unloaded,
- * because the ledger cannot know who else draws it.
+ * because the ledger cannot know who else draws it. The game loads some of its art only when it
+ * needs it, so being absent proves nothing about a path the game also draws: a caller borrowing
+ * such art says so with {@link #gameOwned}, and it is treated as foreign however it got here.
  *
  * <p>Unloading deletes the GL texture as well as forgetting the path. The game's
  * {@code unloadTexture} only drops its own references to the texture and never calls
@@ -74,6 +77,7 @@ public final class TextureLedger {
     private final Backend backend;
     private final Map<String, Entry> entries = new LinkedHashMap<>();
     private final TextureLease session;
+    private final Set<String> gameOwned = new HashSet<>();
 
     public TextureLedger(Backend backend) {
         this.backend = backend;
@@ -105,13 +109,23 @@ public final class TextureLedger {
         return new TextureLease(this, name, false);
     }
 
+    /**
+     * Marks {@code path} as art the game itself draws, such as a location's sky, so it is never
+     * unloaded: the game keeps its texture after being told to forget the path, and draws a
+     * deleted one as plain white. It stays on the card for the rest of the process, as the art
+     * the game preloads does.
+     */
+    public void gameOwned(String path) {
+        if (path != null) gameOwned.add(path);
+    }
+
     /** Loads {@code path} if it is not resident and records {@code holder} as drawing it. */
     void acquire(TextureLease holder, String path) throws IOException {
         Entry entry = entries.get(path);
         if (entry == null) {
             int resident = backend.residentId(path);
-            boolean foreign = resident != 0;
-            int id = foreign ? resident : backend.load(path);
+            boolean foreign = resident != 0 || gameOwned.contains(path);
+            int id = resident != 0 ? resident : backend.load(path);
             entry = new Entry(foreign, id, backend.bytes(path));
             entries.put(path, entry);
         }
@@ -132,7 +146,7 @@ public final class TextureLedger {
                 continue;
             }
             entries.remove(path);
-            if (entry.foreign) {
+            if (entry.foreign || gameOwned.contains(path)) {
                 kept++;
                 continue;
             }
