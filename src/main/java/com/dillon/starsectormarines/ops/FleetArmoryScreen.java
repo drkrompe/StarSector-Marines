@@ -103,10 +103,7 @@ public final class FleetArmoryScreen implements Screen {
         } else {
             viewModel.refresh();
         }
-        firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), id -> {
-            viewModel.selectSquad(id);
-            showFireTeams();
-        });
+        firstRefit = new FirstRefitModel(reactor, roster, new CampaignEquipmentIssueResources(), this::returnFromWorkspace);
         projectedCampaignHour = campaignHour();
         String requestedSquad = context.takeRequestedArmorySquadId();
         if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
@@ -309,11 +306,10 @@ public final class FleetArmoryScreen implements Screen {
         if (viewport != null) installDocument(false);
     }
 
-    /** First refit is offered before any loadout; leaving it opens the squad it was for. */
+    /** The reward is its own stop: once chosen, the player goes back to the company, not on into a loadout (owner). */
     private void leaveFirstRefit() {
         if (firstRefit != null && !firstRefit.leavable()) return;
-        if (viewModel.selectedSquadId() != null) showFireTeams();
-        else returnFromWorkspace();
+        returnFromWorkspace();
     }
 
     private void showFireTeams() {

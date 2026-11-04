@@ -44,8 +44,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
             public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
-        String[] inspected = {null};
-        var model = new FirstRefitModel(reactor, roster, resources, id -> inspected[0] = id);
+        boolean[] done = {false};
+        var model = new FirstRefitModel(reactor, roster, resources, () -> done[0] = true);
         List<SnapshotArtifact> frames = new ArrayList<>();
         frames.add(resultsFrame(context, roster, false));
         frames.add(resultsFrame(context, roster, true));
@@ -75,8 +75,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.WIA || roster.manningCount(squad) != 10)
             throw new AssertionError("Equipment issue changed personnel readiness");
         if (!roster.firstRefit().complete()) throw new AssertionError("Issue did not complete");
-        frames.add(frame(context, reactor, model, "06-issued.png", "refit-inspect"));
-        if (!squad.id().equals(inspected[0])) throw new AssertionError("Inspect did not route to the issued squad");
+        frames.add(frame(context, reactor, model, "06-issued.png", "refit-done"));
+        if (!done[0]) throw new AssertionError("Continue did not leave the reward");
         return frames;
     }
     private SnapshotArtifact resultsFrame(SnapshotContext context, MarineRoster roster, boolean showPrompt) throws Exception {

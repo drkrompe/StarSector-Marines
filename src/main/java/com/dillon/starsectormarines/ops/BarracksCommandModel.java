@@ -94,8 +94,9 @@ public final class BarracksCommandModel {
         revision = reactor.signal(0);
         props.put("equipmentWorkspace", (Runnable) () -> equipmentWorkspace.run());
         bind(reactor, "equipmentLabel", () -> equipmentUnread() ? Strings.get("openingBarracksCommandEquipmentNew") : Strings.get("openingBarracksCommandEquipment"));
-        bind(reactor, "equipmentClasses", () -> equipmentUnread()
-                ? "flow-button console-action equipment-new" : "flow-button console-action");
+        // Each squad card opens its own loadout; this entry exists only for the First Refit offer, which has no squad yet.
+        bind(reactor, "equipmentClasses", () -> !FirstRefit.available(roster) ? "hidden"
+                : equipmentUnread() ? "flow-button console-action equipment-new" : "flow-button console-action");
         props.put("missions", (Runnable) () -> missions.run());
         bind(reactor, "missionLabel", () -> Strings.get(missionReturn.labelKey(workHere)));
         bind(reactor, "missionClasses", () -> !localMissions ? "hidden"

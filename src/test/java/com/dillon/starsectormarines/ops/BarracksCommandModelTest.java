@@ -144,8 +144,8 @@ class BarracksCommandModelTest {
                 document.requestFocus(instance.requireElement("barracks-fill-selected"), true);
                 assertEquals("barracks-fill-selected", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
                 assertThrows(IllegalArgumentException.class,
-                        () -> document.requestFocus(instance.requireElement("barracks-equipment"), true));
-                click(document, instance, "barracks-equipment");
+                        () -> document.requestFocus(instance.requireElement("page-nav-hq"), true));
+                click(document, instance, "page-nav-hq");
                 assertEquals("barracks-fill-selected", model.guideTargetId(), "Darkened controls do not activate");
                 document.keyPressed(UiKey.ESCAPE, Set.of(), false);
                 instance.flush(); document.advance(0f); guide.update();

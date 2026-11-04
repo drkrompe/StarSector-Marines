@@ -37,7 +37,7 @@ class FirstRefitModelTest {
     @Test void lessonRequiresRealSelectionAndShowsExactlyTwoChoicesThenActualIssue() {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
-        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> { });
+        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
         assertEquals(true, model.row().get().get("disabled"));
         assertEquals(2, ((List<?>) model.row().get().get("paths")).size());
         assertEquals(true, model.row().get().get("disabled"));
@@ -60,7 +60,7 @@ class FirstRefitModelTest {
         var roster = new MarineRoster();
         var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
-        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> { });
+        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
         model.selectSquad(squad.id()); model.selectPath(Path.STEADY_LINE);
         var steady = FirstRefit.weapons(Path.STEADY_LINE).get(0);
         assertEquals(SpecSheets.weapon(steady.primaryDef(), steady.grade()), model.sheet(true, 0));
@@ -89,6 +89,17 @@ class FirstRefitModelTest {
         assertFalse(roster.firstRefit().complete());
     }
 
+    @Test void continuingLeavesTheRewardWithoutNamingASquadToOpen() {
+        MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        int[] left = {0};
+        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> left[0]++);
+        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
+        model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
+        ((Runnable) model.row().get().get("done")).run();
+        assertEquals(1, left[0]);
+    }
+
     @Test void fittingDoesNotRequireAPayment() {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
@@ -96,7 +107,7 @@ class FirstRefitModelTest {
             public EquipmentTemplateCost available() { throw new AssertionError("Fitting must not read cargo"); }
             public boolean spend(EquipmentTemplateCost cost) { throw new AssertionError("Fitting must not spend cargo"); }
         };
-        var model = new FirstRefitModel(new Reactor(), roster, resources, id -> { });
+        var model = new FirstRefitModel(new Reactor(), roster, resources, () -> { });
         model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
         assertTrue(roster.firstRefit().complete());

@@ -113,7 +113,7 @@ them.
   Boat Deck are current
   rooms; the retained document remains the implementation surface underneath that
   spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
-  from Equipment or a squad inspection rather than its own top-level tab. Equipment
+  from a squad card's Loadout rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the base game's own bottom-menu holder image (`tripad_bot_left_button_widget2.png`,

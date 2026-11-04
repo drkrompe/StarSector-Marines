@@ -45,7 +45,7 @@
       </div>
     </div>
     <div id="refit-footer" class="refit-actions">
-    <button id="refit-inspect" class="{lesson.doneClasses}" onclick="{lesson.inspect}">{i18n.openingUiFirstRefitInspectSquad}</button>
+    <button id="refit-done" class="{lesson.doneClasses}" onclick="{lesson.done}">{i18n.lessonContinue}</button>
     </div>
   </div>
 </template>

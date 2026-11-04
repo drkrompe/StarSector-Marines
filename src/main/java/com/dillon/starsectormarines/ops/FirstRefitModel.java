@@ -27,13 +27,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /** Two curated choices over the ordinary squad equipment transaction. */
 final class FirstRefitModel {
     private final MarineRoster roster;
     private final EquipmentIssueResources resources;
-    private final Consumer<String> inspect;
+    private final Runnable done;
     private final MutableSignal<Map<String, Object>> row;
     private String squadId;
     private Path path;
@@ -45,8 +44,8 @@ final class FirstRefitModel {
     private FireTeamBillet currentKit;
     private FireTeamBillet proposedKit;
 
-    FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Consumer<String> inspect) {
-        this.roster = roster; this.resources = resources; this.inspect = inspect;
+    FirstRefitModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources, Runnable done) {
+        this.roster = roster; this.resources = resources; this.done = done;
         row = reactor.signal(Map.of());
         var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
         if (squads.size() == 1) squadId = squads.get(0).id();
@@ -149,7 +148,7 @@ final class FirstRefitModel {
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
         props.put("doneClasses", complete ? "refit-action spec-action" : "refit-hidden");
         props.put("claim", (Runnable) this::claim);
-        props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
+        props.put("done", done);
         props.put("issue", (Runnable) this::issue);
         // The free fitting goes to one line squad. With only one there is nothing to pick,
         // so the picker and its hint step aside; with none, the hint says why.

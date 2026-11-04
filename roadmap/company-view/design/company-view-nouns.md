@@ -223,8 +223,9 @@ chosen. Barracks opens on officer commands (All formations plus one
 card per named officer), with squad selection for bulk orders. The rail offers
 no acting-NCO card: a squad without an officer still fights under its own NCO
 and its card says so, but assignment only ever moves squads to officers. A squad card's Loadout
-opens that squad's Fleet Armory loadout. Equipment opens the same workspace on the
-company's first line squad, or on First Refit while that offer stands. Fleet Armory
+opens that squad's Fleet Armory loadout. Equipment appears only while the First
+Refit offer stands and opens that reward, which returns to the company once chosen,
+never on into a loadout. Fleet Armory
 keeps no squad list of its own: readiness, recovery, reinforcement and home-command
 assignment are all read and ordered on the Barracks formation board.
 
@@ -240,8 +241,8 @@ Wounded marines retain their billet. Historical killed and missing personnel do
 not occupy the current establishment. Readiness is distinct from stationing and
 from squad selection.
 
-The Armory has no separate top-level tab. Barracks owns its Equipment entry,
-and a squad card's Loadout opens that squad directly. Returning preserves the
+The Armory has no separate top-level tab. A squad card's Loadout opens that squad
+directly. Returning preserves the
 Barracks selection. Equipment news marks both the Barracks tab
 and its Equipment entry; entering Barracks alone does not acknowledge the lesson.
 The existing editor and inventory transactions remain authoritative.
