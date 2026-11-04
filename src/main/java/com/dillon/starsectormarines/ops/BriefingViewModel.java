@@ -115,7 +115,7 @@ final class BriefingViewModel {
                 : "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
         putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
-        props.put("deploymentStatus", "Ready to deploy");
+        props.put("deploymentStatus", "");
         props.put("deploymentStatusClasses", "label tone-muted");
         props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
         props.put("rewardTerms", "");

@@ -2552,7 +2552,6 @@
     "briefingUiNeedSquad": "Need {0,number,integer}  ·  found a squad",
     "briefingUiAssignShortfall": "Assign {0,number,integer}",
     "briefingUiBlocked": "Blocked",
-    "briefingUiReadyToDeploy": "Ready to deploy",
     "briefingUiAssignSquads": "Assign squads",
     "briefingUiReinforce": "Reinforce",
     "briefingUiRetrySurvey": "Retry survey",

@@ -1134,7 +1134,7 @@ public class BriefingScreen implements Screen {
                         : readiness != null ? Strings.upper(Strings.format("briefingUiAssignShortfall", readiness.selectedShortfall()))
                         : Strings.upper(Strings.get("briefingUiBlocked"));
         String recovery = !debug && !transportOk ? ShipsBoatsAboard.noLiftReason() : null;
-        props.put("deploymentStatus", recovery != null ? recovery : canAccept ? Strings.get("briefingUiReadyToDeploy") : label);
+        props.put("deploymentStatus", recovery != null ? recovery : canAccept ? "" : label);
         props.put("deployLabel", canAccept ? Strings.get("briefingAccept")
                 : canReinforce ? Strings.get("briefingUiReinforce")
                 : !transportOk || !commandOk || readiness == null || readiness.needsPersonnel()
