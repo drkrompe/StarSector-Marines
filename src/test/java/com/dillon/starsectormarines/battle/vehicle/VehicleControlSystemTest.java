@@ -298,6 +298,110 @@ class VehicleControlSystemTest {
         assertTrue(convoy.control(id).localPlanFailureTime >= clock, "re-aimed, the clock runs on");
     }
 
+    /** Open ground and a clear route: the planner always has an answer. */
+    private static long hullOnOpenGround(ConvoyService convoy, float[] xs, float[] ys) {
+        long id = convoy.spawn(VehicleType.MILITIA_TECHNICAL, Faction.DEFENDER, new VehicleMission(xs, ys, xs, ys, 0f, 4));
+        convoy.body(id).teleport(xs[0], ys[0], 0f);
+        convoy.body(id).speed = 0f;
+        return id;
+    }
+
+    private static void stuckWhereItStands(GroundBody body, VehicleControlComponent s) {
+        s.wallStuckTime = VehicleController.UNDRIVEN_PLAN_SECONDS;
+        s.stuckOriginX = body.x;
+        s.stuckOriginY = body.y;
+        s.stuckOriginFacing = body.facingDegrees;
+    }
+
+    @Test
+    void aPlanThatHasStoppedDrivingTheHullIsNoPlanAndTheClockRuns() {
+        NavigationGrid grid = new NavigationGrid(60, 60);
+        for (int y = 0; y < 60; y++) for (int x = 0; x < 60; x++) grid.setWalkableFloor(x, y);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(60, 60));
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(60, 60), null).convoy();
+        float[] xs = {30.5f, 30.5f}, ys = {10.5f, 50.5f};
+        long id = hullOnOpenGround(convoy, xs, ys);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        VehicleControlComponent s = convoy.control(id);
+        controls.tick(id, .05f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertTrue(s.hasTrajectory(), "fixture check: open ground has a plan");
+
+        convoy.body(id).teleport(xs[0], ys[0], 0f);
+        stuckWhereItStands(convoy.body(id), s);
+        for (int i = 0; i < 10; i++) controls.tick(id, .05f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertFalse(s.hasTrajectory());
+        assertTrue(s.dockingPath != null || s.localPlanFailureTime > 0f, "so the rungs for a hull with no plan run");
+
+        float clock = s.localPlanFailureTime;
+        controls.tick(id, .05f, new float[]{30.5f, 31.5f}, new float[]{10.5f, 50.5f}, VehicleLeg.MOVE_ORDER);
+        assertTrue(s.hasTrajectory(), "a new route's plan gets a try");
+        assertTrue(s.wallStuckTime > 0f, "but a new route frees nothing");
+        assertTrue(s.localPlanFailureTime >= clock, "and the clock stands until the plan has got it clear");
+    }
+
+    /** A slot one hull wide and {@code length} long, up from y=12, the hull's tail just off its end wall, facing up it. */
+    private static VehicleControlSystem hullInASlot(ConvoyService convoy, long[] hull, int length) {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        for (int y = 12; y < 12 + length; y++) for (int x = 18; x <= 20; x++) grid.setWalkableFloor(x, y);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
+        float[] xs = {19.5f, 19.5f}, ys = {14.5f, 38.5f};
+        hull[0] = hullOnOpenGround(convoy, xs, ys);
+        GroundBody body = convoy.body(hull[0]);
+        body.teleport(19.5f, 12.01f + VehicleType.MILITIA_TECHNICAL.visualLengthCells / 2f, 0f);
+        return new VehicleControlSystem(convoy, navigation);
+    }
+
+    @Test
+    void aHullWithNoRoomBehindDrivesOutOverItsNose() {
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        long[] hull = new long[1];
+        VehicleControlSystem controls = hullInASlot(convoy, hull, 12);
+        GroundBody body = convoy.body(hull[0]);
+        VehicleControlComponent s = convoy.control(hull[0]);
+        float[] xs = {19.5f, 19.5f}, ys = {14.5f, 38.5f};
+        controls.tick(hull[0], 0f, xs, ys, VehicleLeg.MOVE_ORDER);
+        float x = body.x, y = body.y;
+        assertTrue(controls.beginDriveOut(body, VehicleType.MILITIA_TECHNICAL, s));
+        for (int i = 0; i < 20; i++) controls.tick(hull[0], .05f, xs, ys, VehicleLeg.MOVE_ORDER);
+        assertTrue(body.y > y + 1f, "up the slot, got " + body.y);
+        assertEquals(x, body.x, 1e-3f, "and straight");
+        assertEquals(0f, body.facingDegrees, 1e-3f);
+        assertTrue(body.speed >= 0f, "forward");
+    }
+
+    @Test
+    void aHullBoxedInAheadAsWellHasNowhereToDriveOut() {
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        long[] hull = new long[1];
+        VehicleControlSystem controls = hullInASlot(convoy, hull, (int) VehicleType.MILITIA_TECHNICAL.visualLengthCells + 1);
+        assertFalse(controls.beginDriveOut(convoy.body(hull[0]), VehicleType.MILITIA_TECHNICAL, convoy.control(hull[0])));
+    }
+
+    @Test
+    void movingOrTurningClearOfWhereItStuckLetsPlansBeTriedAgain() {
+        ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
+        long id = hullOnOpenGround(convoy, new float[]{10f, 20f}, new float[]{10f, 10f});
+        GroundBody body = convoy.body(id);
+        VehicleControlComponent s = new VehicleControlComponent();
+
+        s.wallStuckTime = VehicleController.UNDRIVEN_PLAN_SECONDS - .1f;
+        s.stuckOriginX = body.x;
+        s.stuckOriginY = body.y;
+        s.stuckOriginFacing = body.facingDegrees;
+        assertFalse(VehicleControlSystem.planIsNotDriving(body, s), "a plan gets its time");
+
+        stuckWhereItStands(body, s);
+        assertTrue(VehicleControlSystem.planIsNotDriving(body, s));
+
+        body.teleport(body.x, body.y, VehicleController.STUCK_ESCAPE_DEGREES + 1f);
+        assertFalse(VehicleControlSystem.planIsNotDriving(body, s), "turned");
+        assertEquals(0f, s.wallStuckTime);
+
+        stuckWhereItStands(body, s);
+        body.teleport(body.x + VehicleController.STUCK_ESCAPE_DIST + .1f, body.y, body.facingDegrees);
+        assertFalse(VehicleControlSystem.planIsNotDriving(body, s), "moved");
+    }
+
     @Test
     void aPlanFromWhereItsBackOffsBeganDoesNotEndTheFailure() {
         VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
