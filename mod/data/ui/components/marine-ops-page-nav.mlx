@@ -2,6 +2,7 @@
   <div id="marine-ops-page-nav" class="">
     <div id="marine-ops-page-bar">
     <img id="marine-ops-page-holder" src="graphics/ui/console/page-bar.svg" />
+    <img id="marine-ops-page-holder-compact" src="graphics/ui/console/page-bar-compact.svg" />
     <div id="marine-ops-page-routes">
       <button id="page-nav-return" onclick="{returnAction}">
         <div id="page-nav-return-lamp" class="console-toggle-lamp" />
@@ -49,35 +50,37 @@
 </template>
 
 <style>
-  /* The mod's own bottom menu, in the screen's bottom left corner: eight slots (121x20 on
-     a 128 pitch, the first at 14,22 in the art) hold the eight routes, and a silver wedge
+  /* The mod's own bottom menu, in the screen's bottom left corner: eight slots (148x30 on
+     a 155 pitch, the first at 14,22 in the art) hold the eight routes, and a silver wedge
      rises 12 px above them at the left. Every page's root insets this bar by 12 px and clips
      nothing, so the offsets below reach the corner, and the bar's own row keeps the
-     pages' content out from under the wedge. A ninth route means redrawing
-     page-bar.svg. Nothing here scales, so the art stays one to one. */
+     pages' content out from under the wedge. Past 100% UI scale, where everything is already
+     drawn larger, page-bar-compact.svg (121x20 on a 128 pitch) takes over. A ninth route means
+     redrawing both. Nothing here scales, so the art stays one to one. */
   #marine-ops-page-nav {
     flex-direction: row;
     align-items: center;
-    height: 35px;
+    height: 45px;
     border-width: 0px;
   }
 
-  #marine-ops-page-bar { width: 1030px; height: 35px; }
-  #marine-ops-page-holder { position: absolute; left: -12px; top: 0px; width: 1042px; height: 47px; pointer-events: none; }
+  #marine-ops-page-bar { width: 1246px; height: 45px; }
+  #marine-ops-page-holder { position: absolute; left: -12px; top: 0px; width: 1258px; height: 57px; pointer-events: none; }
+  #marine-ops-page-holder-compact { display: none; position: absolute; left: -12px; top: 0px; width: 1042px; height: 47px; pointer-events: none; }
   #marine-ops-page-routes {
     position: absolute;
     left: 2px;
     top: 22px;
     flex-direction: row;
-    width: 1017px;
-    height: 20px;
+    width: 1233px;
+    height: 30px;
     gap: 7px;
   }
   #marine-ops-page-routes button {
     flex-direction: row;
     align-items: center;
-    width: 113px;
-    height: 20px;
+    width: 140px;
+    height: 30px;
     gap: 2px;
     padding: 0px 4px;
     border-width: 0px;
@@ -132,4 +135,10 @@
   #marine-ops-page-routes .page-nav-new .page-nav-news { display: flex; color: #ffd200; }
   .console-toggle-lamp { display: none; }
   .doc-narrow #marine-ops-page-context { display: none; }
+  .doc-narrow #marine-ops-page-nav { height: 35px; }
+  .doc-narrow #marine-ops-page-bar { width: 1030px; height: 35px; }
+  .doc-narrow #marine-ops-page-holder { display: none; }
+  .doc-narrow #marine-ops-page-holder-compact { display: flex; }
+  .doc-narrow #marine-ops-page-routes { width: 1017px; height: 20px; }
+  .doc-narrow #marine-ops-page-routes button { width: 113px; height: 20px; }
 </style>

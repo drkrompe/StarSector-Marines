@@ -4,11 +4,11 @@
       <button id="{slot.buttonId}" class="slot-select-button" onclick="{slot.select}">
         <div id="{slot.copyId}" class="slot-row-copy">
           <div id="{slot.headerId}" class="slot-row-header">
-            <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+            <div id="{slot.nameId}" class="label compact-type tone-edge slot-name">{slot.name}</div>
           </div>
           <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
-          <div id="{slot.telemetryId}" class="label heading tone-muted slot-telemetry">{slot.telemetry}</div>
-          <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+          <div id="{slot.telemetryId}" class="label compact-type tone-muted slot-telemetry">{slot.telemetry}</div>
+          <div id="{slot.typeId}" class="label compact-type tone-muted slot-type">{slot.type}</div>
         </div>
         <div id="{slot.hardwareId}" class="slot-hardware" style="{slot.hardwareStyle}">
           <div id="{slot.badgeId}" class="{slot.badgeClasses}">{slot.badge}</div>
@@ -38,6 +38,6 @@
   .slot-grid { width: 58px; height: 98px; border-width: 1px; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }
-  .heading { font-family: heading; }
+  .heading { font-family: compact; }
   .hidden { display: none; }
 </style>
