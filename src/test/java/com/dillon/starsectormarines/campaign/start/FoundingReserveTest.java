@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class FoundingReserveTest {
     @Test void reserveBelongsToOriginalHullAndSurvivesReloadWithoutReplenishing() throws Exception {
         var saved = new HashMap<String, Object>(Map.of(CerberusCompanyStart.SHIP_KEY, "original"));
-        assertFalse(FoundingReserve.protectedStart(saved));
         assertEquals(0, FoundingReserve.available(saved, "original"));
         FoundingReserve.issue(saved);
         assertEquals(FoundingReserve.CREDITS, FoundingReserve.available(saved, "original"));
@@ -25,7 +24,6 @@ class FoundingReserveTest {
         try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
             @SuppressWarnings("unchecked") var reloaded = (Map<String, Object>) in.readObject();
             FoundingReserve.issue(reloaded);
-            assertTrue(FoundingReserve.protectedStart(reloaded));
             assertEquals(0, FoundingReserve.available(reloaded, "original"));
         }
     }

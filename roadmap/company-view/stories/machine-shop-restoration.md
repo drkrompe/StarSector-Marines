@@ -26,8 +26,8 @@ indication, a reviewed bill, and the current workshop service.
   scrapped boats, mechs and vehicles return their whole bill, so the player can
   try parts and machines at no material risk. The room keeps its equipped look.
 
-Reclamation is an instantaneous, irreversible workshop transaction using cargo,
-never prepaid starting-depot stores. Reclamation can be used aboard the repaired
+Reclamation is an instantaneous, irreversible workshop transaction using cargo.
+Reclamation can be used aboard the repaired
 home ship without a planetary yard. Output must fit the fleet hold. Tooling in
 this slice is installed equipment attached to this hull; portable tool inventory
 and alternative specialization branches remain future work.

@@ -15,7 +15,6 @@ public final class FoundingReserve {
     public static void issue(Map<String, Object> saved) {
         saved.putIfAbsent(KEY, CREDITS);
     }
-    public static boolean protectedStart(Map<String, Object> saved) { return saved.containsKey(KEY); }
     public static int available(Map<String, Object> saved, String shipId) {
         if (shipId == null || !Objects.equals(shipId, saved.get(CerberusCompanyStart.SHIP_KEY))) return 0;
         Object value = saved.get(KEY);

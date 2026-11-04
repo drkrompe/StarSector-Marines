@@ -126,7 +126,7 @@ public final class BoatDeckScreen implements Screen {
             deck = liveDeck;
             selectedBayIndex.set(0);
             viewModel = new BoatDeckViewModel(reactor, roster.boatDeck(),
-                    CampaignFabricationResources.forBoats(), ShipsBoatsAboard.carrier(),
+                    new CampaignFabricationResources(true), ShipsBoatsAboard.carrier(),
                     this::deckChanged);
             viewModel.reserve(roster.reserveHangar(), () -> ShipRefits.aboard().reserveCapacity());
         } else {
@@ -176,8 +176,8 @@ public final class BoatDeckScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         built.keepScrollFrom(document);
         document = built;
-        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
-                CompanyPreparationGuide.boats(roster, viewModel, context), this::close), this::close);
+        preparationGuide = PreparationGuide.install(built,
+                () -> CompanyPreparationGuide.boats(roster, viewModel, context), this::close);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();

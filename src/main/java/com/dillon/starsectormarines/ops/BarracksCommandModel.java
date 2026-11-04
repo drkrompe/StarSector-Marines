@@ -465,15 +465,21 @@ public final class BarracksCommandModel {
         row.put("founderId", id);
         for (String part : List.of("Heading", "Title", "Middle", "Emblem", "EmblemIcon", "Destination", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
-        boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
+        boolean ready = shown && raiseCommander() != null
+                && (roster.firstSquadFree() || foundingResources.canAfford(SquadFoundingCost.STANDARD));
         row.put("founderClasses", shown ? "raise-squad" : "hidden");
         row.put("founderDisabled", !ready);
         row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
         row.put("founderDestination", shown ? raiseDestination() : "");
         row.put("founderCosts", shown ? foundingCostRows() : List.of());
     }
-    /** The whole founding bill as one line of icons and counts, the price for its stores and then its marines; a short item is marked. */
+    /**
+     * The whole founding bill as one line of icons and counts, the price for its stores and then its marines; a short
+     * item is marked. The company's first squad has no bill, so its one row only says so.
+     */
     private List<Map<String, Object>> foundingCostRows() {
+        if (roster.firstSquadFree())
+            return List.of(foundingCostRow("free", CompanyResources.CREDITS_ICON, Strings.get("firstOrderFree"), false));
         SquadFoundingCost cost = SquadFoundingCost.STANDARD;
         List<Map<String, Object>> rows = new ArrayList<>();
         rows.add(foundingCostRow("credits", CompanyResources.CREDITS_ICON, CompanyResources.number(cost.credits()),

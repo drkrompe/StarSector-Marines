@@ -175,8 +175,7 @@ public final class FleetArmoryScreen implements Screen {
         built.keepScrollFrom(document);
         document = built;
         if (view == View.FIRST_REFIT) CompanyNotices.Notice.FIRST_REFIT.review(roster);
-        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.withDepotAccess(roster,
-                companyLesson(), dismissDialog), this::returnFromWorkspace);
+        preparationGuide = PreparationGuide.install(built, this::companyLesson, this::returnFromWorkspace);
         markupInstance = candidate;
         specSheets = candidateSheets;
         if (previousDocument != null) previousDocument.deactivateInput();

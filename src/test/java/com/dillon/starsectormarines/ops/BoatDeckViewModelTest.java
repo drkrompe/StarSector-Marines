@@ -345,6 +345,30 @@ class BoatDeckViewModelTest {
     }
 
     @Test
+    void theFirstBoatShowsFreeAndAnEmptyPurseCanCommissionIt() {
+        BoatDeck deck = deckOneBoatDown();
+        deck.grantFirstBoat();
+        TestPurse purse = new TestPurse(0);
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(new Reactor(), deck, purse, "Valkyrie");
+        viewModel.boatRows().get().get(2).select().run();
+
+        assertFalse(viewModel.fabricationBlocked().get());
+        assertEquals("", viewModel.fabricationReason().get());
+        assertEquals(0, viewModel.fabricationMaterials().get().get(0).shortfall());
+        assertEquals(0, viewModel.fabricationMaterials().get().get(0).required());
+    }
+
+    @Test
+    void theFirstBoatStillNeedsAPort() {
+        BoatDeck deck = deckOneBoatDown();
+        deck.grantFirstBoat();
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(new Reactor(), deck, new TestPurse(0).away(), "Valkyrie");
+        viewModel.boatRows().get().get(2).select().run();
+
+        assertTrue(viewModel.fabricationBlocked().get());
+    }
+
+    @Test
     void aShortPurseDisablesFabricationAndSaysCredits() {
         BoatDeck deck = deckOneBoatDown();
         TestPurse resources = new TestPurse(41);

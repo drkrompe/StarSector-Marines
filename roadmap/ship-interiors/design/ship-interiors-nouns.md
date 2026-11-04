@@ -1830,7 +1830,7 @@ projects the current room's physical gantry count and rechecks it before fabrica
 smaller rooms never delete already-owned assets.
 
 `CompanyYard` owns installation eligibility and payment at an accessible populated
-planet with a functional spaceport. The start and finite prepaid depot belong to
+planet with a functional spaceport. The start belongs to
 `company-view-nouns.md`; live acceptance remains in `cerberus-company-start.md`.
 
 ## Boundaries

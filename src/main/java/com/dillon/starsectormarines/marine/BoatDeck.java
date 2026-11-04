@@ -100,6 +100,12 @@ public final class BoatDeck implements Serializable {
                 && (recoveredWrecks & (1 << berth)) == 0;
     }
 
+    /** Whether the next boat this deck builds or repairs costs nothing: the company's first. False on an older save. */
+    private boolean firstBoatFree;
+    public boolean firstBoatFree() { return firstBoatFree; }
+    public void grantFirstBoat() { firstBoatFree = true; }
+    public void spendFirstBoat() { firstBoatFree = false; }
+
     /** Only new companies opt out of the one-time legacy starting complement. */
     void requireCommissioning() { commissioningRequired = true; }
 

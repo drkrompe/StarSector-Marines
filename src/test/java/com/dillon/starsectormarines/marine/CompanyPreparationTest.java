@@ -14,11 +14,40 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPreparationTest {
-    @Test void theCompleteBillFundsTheRealBoatAndSquadOrdersExactly() throws Exception {
+    @Test void aNewCompanysFirstSquadAndFirstBoatCostNothingAndTheNextOnesPay() {
         MarineRoster roster = new MarineRoster();
         MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine);
         roster.beginCompanyPreparation(sabine);
+        TestPurse purse = new TestPurse(0);
+        TestStores hold = new TestStores();
+        assertEquals(0, CompanyPreparation.boatPrice(roster, ShuttleType.HERMES));
+        assertEquals(0, CompanyPreparation.squadPrice(roster));
+        assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
+        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 0, purse, hold), "a berth is still needed");
+        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 2, purse, hold));
+
+        assertNotNull(new SquadFoundingWorkshop(roster, hold).foundSquad().squad());
+        assertFalse(roster.firstSquadFree());
+        assertFalse(new SquadFoundingWorkshop(roster, hold).foundSquad().succeeded(), "the second squad pays");
+
+        roster.boatDeck().reconcile("home", ShuttleType.HERMES, 2);
+        BoatWorkshop away = new BoatWorkshop(roster.boatDeck(), new TestPurse(0).away());
+        assertFalse(away.fabricate(0).succeeded(), "free work is still done at a port");
+        assertTrue(roster.boatDeck().firstBoatFree(), "and a refusal leaves it free");
+        BoatWorkshop docked = new BoatWorkshop(roster.boatDeck(), purse);
+        assertTrue(docked.fabricate(0).succeeded());
+        assertEquals(0, purse.spends);
+        assertFalse(docked.fabricate(1).succeeded(), "the second boat pays");
+    }
+
+    @Test void aCompanyWithoutFreeOrdersStillPaysTheCompleteBillExactly() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine);
+        roster.beginCompanyPreparation(sabine);
+        roster.spendFirstSquad();
+        roster.boatDeck().spendFirstBoat();
         OfficerInduction induction = roster.officerInduction();
         assertEquals(Step.SHIP, induction.step(roster));
         // The purse pays the boat and the squad's stores together; the hold supplies the marines.

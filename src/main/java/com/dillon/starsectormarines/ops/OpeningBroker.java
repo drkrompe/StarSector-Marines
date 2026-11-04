@@ -22,7 +22,7 @@ public final class OpeningBroker {
     private OpeningBroker() { }
 
     /**
-     * Current reachable office: the company's own port (Second Wind's yard or depot) when it can be an office, else
+     * Current reachable office: the company's own port (Second Wind's yard) when it can be an office, else
      * the shared {@link OpeningPort} order. Reads campaign facts without creating contacts or save flags.
      */
     public static Destination current() {

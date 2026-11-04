@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A finite prepaid consignment, held at one planet rather than in the ship's hold: credit the yard
- * holds against the first boat, and the first squad's marines and the credit for its stores.
+ * Retired: the prepaid stores an older save still holds for the first boat and the first squad. No
+ * new company gets one, since those two orders are now simply free ({@code MarineRoster.firstSquadFree},
+ * {@code BoatDeck.firstBoatFree}). The class stays under this name and with these fields because saves
+ * name both; {@link CerberusCompanyStart#settleOldDepot} reads one once, through {@link #settle}, and
+ * drops it.
  */
 public final class PreparationDepot implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -22,22 +25,19 @@ public final class PreparationDepot implements Serializable {
     private static final List<String> SQUAD_STORES = List.of("supplies", "food");
     private String marketId;
     private final Map<String, Integer> stock = new LinkedHashMap<>();
-    // Null on legacy saves: their remaining stock keeps its original unrestricted policy.
+    // Null on legacy saves: their remaining stock had an unrestricted policy.
     private Map<String, Integer> boatStock;
     private Map<String, Integer> squadStock;
     /** Prepaid yard credit for the first boat. Null on a save from before boats were priced in credits. */
     private Integer credits;
     /** Prepaid credit for the first squad's stores. Null on a save from before squads were priced in credits. */
     private Integer squadCredits;
-    public enum Purpose { GENERAL, BOAT, SQUAD, PREFLIGHT }
 
-    public PreparationDepot(String marketId) {
-        this(marketId, false);
-    }
-    public PreparationDepot(String marketId, boolean protectedStock) {
+    /** A depot as an older save holds it, whole; saves are the only real source, so this is for tests. */
+    PreparationDepot(String marketId, boolean protectedStock) {
         this.marketId = marketId;
         if (protectedStock) { boatStock = new LinkedHashMap<>(); squadStock = new LinkedHashMap<>(); }
-        credits = BoatFabricationCatalog.recipe(ShuttleType.HERMES).bill().credits();
+        credits = hermesPrice();
         squadCredits = SquadFoundingCost.STANDARD.credits();
         for (var line : SquadFoundingCost.STANDARD.lines())
             (protectedStock ? squadStock : stock).merge(line.commodityId(), line.quantity(), Integer::sum);
@@ -76,82 +76,37 @@ public final class PreparationDepot implements Serializable {
     }
 
     public String marketId() { return marketId; }
-    /** Moves the remaining stores to another port, for a depot whose own port was lost. Nothing is added. */
-    public void relocate(String marketId) {
-        if (marketId == null || marketId.isBlank()) throw new IllegalArgumentException("market id is required");
-        this.marketId = marketId;
-    }
-    public boolean protectedStock() { return boatStock != null && squadStock != null; }
-    public int available(String commodity) { return stock().getOrDefault(commodity, 0); }
-    /** The commodity stores; the yard credit is {@link #credits()}. */
-    public Map<String, Integer> stock() {
-        if (!protectedStock()) return Map.copyOf(stock);
-        var total = new LinkedHashMap<>(boatStock);
-        squadStock.forEach((id, quantity) -> total.merge(id, quantity, Integer::sum));
-        return Map.copyOf(total);
-    }
-    /** All the prepaid credit still held: the first boat's and the first squad's. */
-    public int credits() { return boatCredits() + squadCredits(); }
-    private int boatCredits() { return credits == null ? 0 : credits; }
-    private int squadCredits() { return squadCredits == null ? 0 : squadCredits; }
-    /** Whether anything at all is left: credit or stores. */
-    public boolean holdsAnything() {
-        return credits() > 0 || stock().values().stream().anyMatch(quantity -> quantity > 0);
-    }
-    private Map<String, Integer> stockFor(Purpose purpose) {
-        if (!protectedStock()) return stock;
-        return switch (purpose) {
-            case BOAT -> boatStock;
-            case SQUAD -> squadStock;
-            case GENERAL, PREFLIGHT -> Map.of();
-        };
-    }
-    public int available(String commodity, Purpose purpose) {
-        return purpose == Purpose.PREFLIGHT ? available(commodity) : stockFor(purpose).getOrDefault(commodity, 0);
-    }
 
     /**
-     * The prepaid credit a job of {@code purpose} may draw: once the depot protects its stock, the
-     * boat's credit is the boat's and the squad's the squad's.
+     * What this depot is worth to the company now: a whole allotment still held becomes that free order, and
+     * whatever else is left comes aboard, so nothing is lost and nothing can be spent twice. A squad's allotment
+     * is its marines and its credit; a boat's is the credit for one Hermes.
      */
-    public int credits(Purpose purpose) {
-        return boatShare(purpose) + squadShare(purpose);
-    }
-    private int boatShare(Purpose purpose) {
-        if (purpose == Purpose.PREFLIGHT || purpose == Purpose.BOAT) return boatCredits();
-        return protectedStock() || purpose == Purpose.SQUAD ? 0 : boatCredits();
-    }
-    private int squadShare(Purpose purpose) {
-        if (purpose == Purpose.PREFLIGHT || purpose == Purpose.SQUAD) return squadCredits();
-        return protectedStock() ? 0 : squadCredits();
+    Settlement settle() {
+        Map<String, Integer> goods = new LinkedHashMap<>(stock);
+        if (boatStock != null) boatStock.forEach((id, quantity) -> goods.merge(id, quantity, Integer::sum));
+        if (squadStock != null) squadStock.forEach((id, quantity) -> goods.merge(id, quantity, Integer::sum));
+
+        int forBoat = credits == null ? 0 : credits;
+        boolean freeBoat = forBoat >= hermesPrice();
+        long cash = freeBoat ? forBoat - hermesPrice() : forBoat;
+
+        int forSquad = squadCredits == null ? 0 : squadCredits;
+        boolean freeSquad = forSquad >= SquadFoundingCost.STANDARD.credits()
+                && SquadFoundingCost.STANDARD.lines().stream()
+                        .allMatch(line -> goods.getOrDefault(line.commodityId(), 0) >= line.quantity());
+        cash += freeSquad ? forSquad - SquadFoundingCost.STANDARD.credits() : forSquad;
+        if (freeSquad) SquadFoundingCost.STANDARD.lines()
+                .forEach(line -> goods.merge(line.commodityId(), -line.quantity(), Integer::sum));
+
+        goods.values().removeIf(quantity -> quantity <= 0);
+        return new Settlement(freeSquad, freeBoat, (int) Math.min(Integer.MAX_VALUE, cash), Map.copyOf(goods));
     }
 
-    /** Draws up to {@code requested} prepaid credit, its own purpose's first; the caller first validates the whole price. */
-    public int drawCredits(int requested, Purpose purpose) {
-        if (purpose == Purpose.PREFLIGHT) return 0;
-        int wanted = Math.max(0, requested);
-        int fromSquad, fromBoat;
-        if (purpose == Purpose.SQUAD) {
-            fromSquad = Math.min(wanted, squadShare(purpose));
-            fromBoat = Math.min(wanted - fromSquad, boatShare(purpose));
-        } else {
-            fromBoat = Math.min(wanted, boatShare(purpose));
-            fromSquad = Math.min(wanted - fromBoat, squadShare(purpose));
-        }
-        if (fromBoat > 0) credits -= fromBoat;
-        if (fromSquad > 0) squadCredits -= fromSquad;
-        return fromBoat + fromSquad;
+    private static int hermesPrice() {
+        return BoatFabricationCatalog.recipe(ShuttleType.HERMES).bill().credits();
     }
 
-    /** Caller first validates the whole combined depot/cargo bill. */
-    public int draw(String commodity, int requested) {
-        return draw(commodity, requested, Purpose.GENERAL);
-    }
-    public int draw(String commodity, int requested, Purpose purpose) {
-        if (purpose == Purpose.PREFLIGHT) return 0;
-        var source = stockFor(purpose);
-        int drawn = Math.min(Math.max(0, requested), source.getOrDefault(commodity, 0));
-        if (drawn > 0) source.put(commodity, source.get(commodity) - drawn);
-        return drawn;
-    }
+    /** One depot's worth: the free orders it becomes, and the credits and goods that come aboard. */
+    record Settlement(boolean freeSquad, boolean freeBoat, int credits, Map<String, Integer> goods) { }
 }

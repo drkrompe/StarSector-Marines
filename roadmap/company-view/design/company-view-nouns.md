@@ -71,6 +71,13 @@ shared mapping instead of assigning paths independently in each screen.
   slot. Unlike the workshops' purchases it needs no port (owner): a squad can be raised
   anywhere. Its live bill (credits, then marines) stays on that tile; a partial bill
   creates neither personnel nor squad identity. Barracks is the only place a squad is founded.
+  The company's first squad is a **free first order** and has no bill; see below.
+- **Free first order** — a new company's first line squad and first boat cost nothing and
+  need nothing in cargo (owner: a player reading bills against a few hundred credits thought
+  they were broke). Each is saved once, on the roster and on the boat deck, and spent by the
+  order itself, so a refused order keeps it. The first squad's twelve are the marines Morgan
+  brought, and the first boat is the accessible wreck or a commissioned berth; the boat's work
+  is still done at a port. Each shows **Free** where its bill would be.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Seat kit** — what one marine carries: exactly what the squad's cards issue
@@ -726,8 +733,8 @@ and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
 **Second Wind starts with two wrecked Hermes, not two usable boats.** The accessible
-wreck is repaired for the first ferry job, Counterattack, for the Hermes price,
-drawn from the yard credit the local depot holds. Relief needs no boat: the company rides up to
+wreck is repaired for the first ferry job, Counterattack, as the company's free first boat.
+Relief needs no boat: the company rides up to
 it on Wayline's truck. The repair is Castle's first-lift lesson between the two
 chapters. Restoring the sealed bay exposes the second wreck; its repair
 is a separate paid order. Each original wreck is consumed once by a successful
@@ -917,8 +924,7 @@ vocabulary the player already reads everywhere else. Columns are bounded,
 including for holdings in the millions. The strip includes the resources
 that room can actually draw — the Boat Deck and Mech Lab draw only credits, and
 add a port line (docked: buying open, or no port: fit only); named ready reserves
-remain a separate personnel count. Fleet cargo and the opening depot keep their existing access and earmarking
-rules. Engineering reclamation uses fleet cargo, never the preparation depot.
+remain a separate personnel count. Engineering reclamation uses fleet cargo.
 
 An order shows **Cost** for each charged resource and **Short by** only for a
 positive deficit, with the commodity name and icon. Commodity order is consistent
@@ -947,7 +953,7 @@ never return more than a rebuild would spend. The rate follows the home ship's m
 shop (`machine-shop-restoration.md`): buried or cleared, no recycling and no button;
 repaired machinery, half; installed tooling, three quarters; the reclamation line, the
 whole quote. A hull outside the restoration chain runs its shop as built, at half.
-Recycled credits go to the company's purse, never a depot.
+Recycled credits go to the company's purse.
 
 Scrapping a whole machine follows the same rate. A boat's SCRAP sits in the Boat
 Deck's stage heading beside the berth, as the lab's does over a pad, and takes the
@@ -1038,14 +1044,11 @@ navigation follows current designation and deck readiness while the screen remai
 open: no ship, preparing, and available/missing rooms are live states. Actions
 recheck availability when clicked, including after a later hull transfer.
 
-Ship confirmation checks quarters, at least one compatible boat berth, the
-remaining credits for one boat and the remaining stores for one full twelve-person
-squad. Both derive from the existing fabrication and founding catalogs. Compatible
-owned lift and an already complete ready squad reduce what remains. Cost, Available
-and Short by are shown before confirmation, which rechecks the purse and the hold. Selection spends nothing; each subsequent
-workshop order consumes its own bill. Following the lesson needs no market trip.
-Deliberately pausing to spend or sell those stores elsewhere can still create a
-shortfall; the lesson never manufactures resources or overrides a workshop refusal.
+Ship confirmation checks quarters and at least one compatible boat berth. The first
+squad and first boat are free first orders, so a new company owes nothing at this point;
+a company from an older save that has spent them still has what remains checked here, from
+the existing fabrication and founding catalogs, and pays it. Selection spends nothing. The
+lesson never overrides a workshop refusal.
 
 Lieutenant Morgan Hale is the recurring founding field commander. She commanded
 the escort section on Harker's Claim's ore runs, and the twelve who stayed with
@@ -1059,9 +1062,8 @@ the same time as any wiped officer. The dossier retains her authored background
 and dedicated female portrait.
 
 After commissioning, Castle introduces Morgan's portrait and guides an actual
-specialty choice. Barracks then guides the ordinary twelve-Marine, 36-supply,
-24-food founding transaction on its Raise Squad tile, which includes baseline field
-kit; with Morgan's command open the squad musters straight into it. A squad that
+specialty choice. Barracks then guides the free first founding on its Raise Squad tile,
+which includes baseline field kit; with Morgan's command open the squad musters straight into it. A squad that
 reached Barracks unassigned is homed through the capacity-checked Assign Selected
 button on the commander card.
 Completion requires a current company ship with owned lift, an actually trained
@@ -1145,8 +1147,8 @@ no Barracks surface; giving it one is open progression work
 (`progression-nouns.md`).
 
 The campaign roster holder establishes only the non-deployable reserve formation
-during game load. A new company has no line squad until the player commits the full
-founding bill on the Barracks Raise Squad tile. Company HQ, Barracks and Fleet Armory
+during game load. A new company has no line squad until the player raises its free first
+one on the Barracks Raise Squad tile. Company HQ, Barracks and Fleet Armory
 therefore present honest zero states; with no line squad, Equipment has no loadout
 to open and stays in Barracks. Existing saves retain their named formations.
 
@@ -1507,7 +1509,7 @@ Breadcrumbs retain editor navigation, while the Barracks tab returns to the
 personnel workspace. These containers project the canonical roster; none creates
 parallel organization or another inventory economy.
 
-## Cerberus founding start and planetary stores
+## Cerberus founding start
 
 The optional Cerberus company start is selected through vanilla character creation.
 It gives the player one unconverted Cerberus, 473 spendable credits and travel reserves;
@@ -1526,7 +1528,7 @@ earned command by organizing the escape, while Castle supplied port and convoy
 logistics experience. Earlier player biography remains open. They set out for
 Jangala from the start, on Castle's one contact there, Nessa Venn at Greywater Down.
 Everyone aboard holds worthless company scrip; the real credits Castle quietly saved
-are what pay for the yard, and her finite prepaid consignment explains the stores. Castle holds the
+are what pay for the yard. Castle holds the
 4,862-credit conversion payment (her chits) separately from the fleet account, usable only for
 the original ship's yard conversion. It falls short of the 4,986 estimate by exactly
 the pressure test, which the yard waives whenever the reserve pays, so spending the
@@ -1574,7 +1576,7 @@ road up; and the ore-dust papers that send the company to work (`opening-dialogu
 click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
 bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
-and depot authority. The opening is one walk over that dialog, never a trip back
+authority. The opening is one walk over that dialog, never a trip back
 through its menu: the Jangala arrival hands straight on to the yard storybook, and a
 storybook closed after paying hands straight on to Marine operations at Morgan's
 induction. The ordinary port menu returns only when the player leaves Marine
@@ -1595,39 +1597,21 @@ the track and the next ordinary screen restarts it. A game load forgets every ho
 and lifts the suspension, so a dialog torn down without its dismissal cannot leave a
 campaign silent.
 
-A `PreparationDepot` is a finite prepaid consignment at the planet that converted
-this start's Cerberus: yard credit for one Hermes, at her price, and the first squad's
-twelve Marines with credit for its stores, at their price. It is issued once, saved independently of cargo, and never
-loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
-that depot only while interacting with its accessible working planetary port,
-checks the whole order, then consumes local credit or stock before the company's own. The existing
-fabrication and squad-founding adapters share that authority. New Second Wind starts
-earmark the first Hermes and first squad bills separately: boat jobs cannot consume
-the squad's marines or credit, and other workshop jobs cannot consume either allocation.
-Preparation draws the squad's bill. The Hermes credit stays at the depot through
-Relief and is drawn by the first-lift lesson, while docked there, before
-Counterattack.
-Preparation preflight can inspect both allocations but cannot spend them. Legacy
-depots keep their existing remaining stock and unrestricted spending policy; the boat
-materials they still held become yard credit, and the squad's supplies and food become
-its squad credit, at the conversion prices (Price).
-The depot does not replenish
-on reload or on another conversion; unused stock remains at its planet. Ordinary
-starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
-stores rather than claiming every counted item is in the hold.
+**The retired depot.** Second Wind starts once held a prepaid `PreparationDepot` for the
+first boat and squad at the planet that converted them (owner: the stores read as debt, so
+they became free first orders). Only saves still hold one. On load it settles once:
+each whole allotment left in it (a Hermes' credit; twelve Marines and the squad's credit)
+becomes that free first order, what remains comes aboard as credits and cargo, its port stays
+the company's port, and the depot is dropped. A start still short of its conversion gets
+both orders as a new company does. Any other company in an older save keeps paying.
 
-Leaving a room or its planet dialog spends no stores and completes no preparation
+Leaving a room or its planet dialog completes no preparation
 step. Re-entering through the company shortcut, mission board, or a direct room
 link resumes the required step derived from the saved company: ship, Morgan,
 formation, then assignment. After Relief the first-lift lesson resumes the same
 way from the saved boat deck until a seated boat is airworthy or Counterattack is
-won, and sends the company back to the depot when the Hermes credit is ashore. HQ may present the same guided handoff. Required
+won. HQ may present the same guided handoff. Required
 preparation does not interrupt an active battle, settlement, or developer mission.
-If a remaining order needs reserved stores that are currently ashore, Castle names
-their depot planet and offers Return to Depot, plotting its course and closing the
-company screen. The player docks there and opens Marine operations from the planet
-menu to restore access. This guidance never grants replacement stock or spends the
-bill; the ordinary confirmed workshop order remains the only consumer.
 
 Second Wind's original starting hull reserves a second shuttle bay from the start.
 It is sealed and damaged, supplies no usable berth, and stays visibly distinct
@@ -1823,7 +1807,7 @@ bay is a track with no orders until company vehicles can deploy.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and
-loading saves cannot reset it or replenish the starting depot. The original boat
+loading saves cannot reset it. The original boat
 and its fittings survive; ordinary hull repairs do not restore this bay. Existing
 custom-start saves acquire the reserved damaged bay while retaining their first boat.
 Other hulls retain their ordinary facilities. `cerberus-bay-restoration.md` owns

@@ -79,7 +79,7 @@ public final class CompanyYard {
         int cash = cashCost(reserved);
         if (cash > 0) CampaignBackend.playerFleet().getCargo().getCredits().subtract(cash);
         CampaignBackend.playerFleet().getFleetData().setSyncNeeded();
-        CerberusCompanyStart.establishDepot(member, market);
+        CerberusCompanyStart.conversionPaid(member, market);
         return null;
     }
 }

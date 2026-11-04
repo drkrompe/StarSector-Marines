@@ -55,8 +55,8 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
                 dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDNessaSaysSheLlKeepTheOld"));
             dialog.getTextPanel().addPara(failure != null ? failure
                     : Strings.get("openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces"));
-            if (failure == null && CerberusCompanyStart.depot() != null)
-                dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDOurPrepaidPreparationStoresAreInThis"));
+            if (failure == null && secondWind(ship))
+                dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDOpenMarineOperationsAndNameTheConverted"));
             dialog.getOptionPanel().clearOptions();
             dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
         } else return false;
@@ -69,7 +69,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         FleetMemberAPI ship = CerberusCompanyStart.startingShip();
         if (ship == null) return false;
         memoryMap.get(MemKeys.LOCAL).set(SELECTED, ship.getId());
-        // Keep the planet interaction alive: it is the yard/depot's docking authority.
+        // Keep the planet interaction alive: it is the yard's docking authority.
         dialog.getOptionPanel().clearOptions();
         dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
         dialog.hideTextPanel();
