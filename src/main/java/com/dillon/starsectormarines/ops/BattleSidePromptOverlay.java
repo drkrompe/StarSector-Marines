@@ -94,7 +94,7 @@ final class BattleSidePromptOverlay {
         markup = loader.reloadAndBuild(reactor, COMPONENT, model.props());
         document = new UiDocument(markup.root());
         for (var style : markup.styles()) document.addStyleSheet(style);
-        document.theme(MarineOpsThemes.standard());
+        document.theme(MarineOpsThemes.battle());
     }
 
     /** Whether a point is in the camera's view and clear of the rail the HUD covers. */

@@ -23,6 +23,9 @@ public final class Fonts {
     /** Regular mixed-case body face for retained gameplay documents and dense diagnostics. */
     public static final BitmapFont INSIGNIA_15_AA = new BitmapFont("graphics/fonts/insignia15LTaa.fnt");
 
+    /** The next step up from {@link #INSIGNIA_15_AA}: the body face of out-of-combat menus. */
+    public static final BitmapFont INSIGNIA_17_AA = new BitmapFont("graphics/fonts/insignia17LTaa.fnt");
+
     /** Compact all-caps face for retained section headings. */
     public static final BitmapFont ORBITRON_12_BOLD = new BitmapFont("graphics/fonts/orbitron12bold.fnt");
 

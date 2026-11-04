@@ -35,7 +35,7 @@ final class BattleManualObjectiveOverlay {
             markup = loader.reloadAndBuild(reactor, COMPONENT, model.props());
             document = new UiDocument(markup.root());
             for (var style : markup.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
+            document.theme(MarineOpsThemes.battle());
         }
         update(0f, sim);
     }

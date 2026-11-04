@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
 import com.dillon.starsectormarines.ui.retained.style.UiTheme;
@@ -24,6 +25,8 @@ final class MarineOpsThemes {
                 }
                 .heading { font-family: heading; }
                 .title { font-family: title; }
+                .dense { font-family: small; }
+                .compact-type { font-family: compact; }
                 /* The base game's screen: near-black with a faint blue grid behind everything,
                    and panels that are dark boxes on it with a thin blue line round them. A header
                    stands forward in a brighter line with cut corners; nothing has relief. */
@@ -302,6 +305,16 @@ final class MarineOpsThemes {
                 .hud-glass .pick-refused, .hud-glass .power-disabled { background-color: transparent; border-color: #68b2101a; }
                 .hud-glass .danger-surface { background-color: #ff640024; border-color: #ff640099; color: #ff6400; }
                 .hud-glass .danger-surface:hover { background-color: #ff64003d; border-color: #ff6400; }
+                #marine-ops-page-routes .console-key-legend { font-family: heading; }
+                /* Past 100% UI scale the page is narrower and all of it is drawn larger, so the
+                   menus hold the tighter sizes their narrow layouts were fitted to. */
+                .doc-narrow { font-family: small; }
+                .doc-narrow .console-action, .doc-narrow .console-key-legend { font-family: small; }
+                .doc-narrow .heading, .doc-narrow .spec-tab, .doc-narrow .spec-action,
+                .doc-narrow .hud-glass .console-action,
+                .doc-narrow #marine-ops-page-routes .console-key-legend { font-family: narrow-heading; }
+                .doc-narrow .title { font-family: narrow-title; }
+                .doc-narrow .compact-type { font-family: narrow-compact; }
 
                 """);
     }
@@ -315,6 +328,9 @@ final class MarineOpsThemes {
                 }
                 .heading { font-family: heading; }
                 .title { font-family: title; }
+                .dense { font-family: small; }
+                .compact-type { font-family: compact; }
+
                 .panel { background-color: #071019; border-color: #d2f3ff; }
                 .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
@@ -432,14 +448,42 @@ final class MarineOpsThemes {
                 new Color(0x9F, 0xB2, 0xBA));
     }
 
+    /**
+     * The menus read at the base game's sizes (owner). Its own screens set paragraphs and buttons a good step larger
+     * than a battle's readouts, which have the map to leave room for.
+     */
+    private static final Map<String, BitmapFont> MENU_FONTS = Map.of(
+            "body", Fonts.INSIGNIA_17_AA,
+            "prose", Fonts.INSIGNIA_LARGE,
+            "heading", Fonts.ORBITRON_16,
+            "compact", Fonts.ORBITRON_12_BOLD,
+            "small", Fonts.INSIGNIA_15_AA,
+            "narrow-heading", Fonts.ORBITRON_12_BOLD,
+            "narrow-title", Fonts.ORBITRON_16,
+            "narrow-compact", Fonts.ORBITRON_10,
+            "title", Fonts.ORBITRON_20,
+            "display", Fonts.ORBITRON_24_BOLD);
+
+    /** A battle's overlays stay compact: everything they cover is map. */
+    private static final Map<String, BitmapFont> BATTLE_FONTS = Map.of(
+            "body", Fonts.INSIGNIA_15_AA,
+            "prose", Fonts.INSIGNIA_LARGE,
+            "heading", Fonts.ORBITRON_12_BOLD,
+            "compact", Fonts.ORBITRON_10,
+            "small", Fonts.INSIGNIA_15_AA,
+            "narrow-heading", Fonts.ORBITRON_12_BOLD,
+            "narrow-title", Fonts.ORBITRON_16,
+            "narrow-compact", Fonts.ORBITRON_10,
+            "title", Fonts.ORBITRON_16,
+            "display", Fonts.ORBITRON_24_BOLD);
+
+    /** The standard theme at a battle overlay's sizes. */
+    static UiTheme battle() {
+        return new UiTheme(standard().sheet(), BATTLE_FONTS);
+    }
+
     private static UiTheme theme(String css) {
-        return new UiTheme(StyleSheet.parse(SHEET_NAME, css),
-                Map.of("body", Fonts.INSIGNIA_15_AA,
-                        "prose", Fonts.INSIGNIA_LARGE,
-                        "heading", Fonts.ORBITRON_12_BOLD,
-                        "compact", Fonts.ORBITRON_10,
-                        "title", Fonts.ORBITRON_16,
-                        "display", Fonts.ORBITRON_24_BOLD));
+        return new UiTheme(StyleSheet.parse(SHEET_NAME, css), MENU_FONTS);
     }
 
     record CanvasPalette(Color button, Color selected, Color danger, Color valid,
