@@ -50,7 +50,6 @@ public final class FullscreenWindowRepair {
     private static final IntBuffer RECT = BufferUtils.createIntBuffer(4);
     private static Win32 win32;
     private static boolean disabled;
-    private static boolean wasActive = true;
 
     private FullscreenWindowRepair() {
     }
@@ -59,10 +58,7 @@ public final class FullscreenWindowRepair {
     public static void tick() {
         if (disabled) return;
         try {
-            boolean active = Display.isActive();
-            boolean fullscreen = Display.isFullscreen();
-            if (!active || !fullscreen) {
-                wasActive = active;
+            if (!Display.isActive() || !Display.isFullscreen()) {
                 POLICY.observe(false, 0, 0, 0, 0);
                 return;
             }
@@ -75,11 +71,6 @@ public final class FullscreenWindowRepair {
             DisplayMode mode = Display.getDisplayMode();
             int modeW = mode.getWidth();
             int modeH = mode.getHeight();
-            if (!wasActive) {
-                wasActive = true;
-                LOG.info("Fullscreen refocused: window client " + clientW + "x" + clientH
-                        + ", display mode " + modeW + "x" + modeH);
-            }
             switch (POLICY.observe(true, clientW, clientH, modeW, modeH)) {
                 case REPAIR:
                     LOG.warn("Fullscreen window is " + clientW + "x" + clientH + " but the display mode is "
