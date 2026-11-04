@@ -472,19 +472,20 @@ public final class BarracksCommandModel {
     }
     /**
      * The whole founding bill as one line of icons and counts, the price for its stores and then its marines; a short
-     * item is marked. The company's first squad has no bill, so its one row only says so.
+     * item is marked. The company's first squad shows the same line with each item Free.
      */
     private List<Map<String, Object>> foundingCostRows() {
-        if (roster.firstSquadFree())
-            return List.of(foundingCostRow("free", CompanyResources.CREDITS_ICON, Strings.get("firstOrderFree"), false));
+        boolean free = roster.firstSquadFree();
+        String freeLabel = Strings.get("firstOrderFree");
         SquadFoundingCost cost = SquadFoundingCost.STANDARD;
         List<Map<String, Object>> rows = new ArrayList<>();
-        rows.add(foundingCostRow("credits", CompanyResources.CREDITS_ICON, CompanyResources.number(cost.credits()),
-                foundingResources.credits() < cost.credits()));
+        rows.add(foundingCostRow("credits", CompanyResources.CREDITS_ICON,
+                free ? freeLabel : CompanyResources.number(cost.credits()),
+                !free && foundingResources.credits() < cost.credits()));
         for (SquadFoundingCost.Line line : cost.lines()) {
             rows.add(foundingCostRow(line.commodityId(), foundingResources.commodityIcon(line.commodityId()),
-                    CompanyResources.number(line.quantity()),
-                    foundingResources.available(line.commodityId()) < line.quantity()));
+                    free ? freeLabel : CompanyResources.number(line.quantity()),
+                    !free && foundingResources.available(line.commodityId()) < line.quantity()));
         }
         return rows;
     }

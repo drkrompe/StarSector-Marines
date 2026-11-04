@@ -839,8 +839,6 @@
 		"openingBarracksCommandSelectSquadsThenAssignSelectedOnA": "选择小队，然后在指挥官卡上点击分配所选。扳手用于填补空缺：在该小队的卡上，或在全选旁针对所选小队。",
 		"openingBarracksCommandEquipmentNew": "装备 / 新",
 		"openingBarracksCommandEquipment": "装备",
-		"openingBarracksCommandMissions": "任务",
-		"openingBarracksCommandMissionsWorkHere": "任务 / 此处有工作",
 		"openingBarracksCommandBriefingResume": "简报 / 继续",
 		"openingBarracksCommandOperationsVictoriesMissionXpRecorded": "已记录 {0} 次行动 / {1} 次胜利 / {2} 任务经验",
 		"openingBarracksCommandTrainingPointsOneOnAppointmentOnePer": "{0} 训练点 / 任命时 1 点，每次晋升 1 点 / 选择不可更改",
