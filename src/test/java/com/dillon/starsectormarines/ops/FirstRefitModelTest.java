@@ -38,21 +38,16 @@ class FirstRefitModelTest {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
-        assertEquals(true, model.row().get().get("disabled"));
+        assertEquals(true, model.row().get().get("chooseDisabled"));
         assertEquals(2, ((List<?>) model.row().get().get("paths")).size());
-        assertEquals(true, model.row().get().get("disabled"));
         model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
-        assertEquals(true, model.row().get().get("disabled"));
+        assertEquals(true, model.row().get().get("chooseDisabled"));
         model.selectPath(Path.FORWARD_SCREEN);
         assertEquals(3, ((List<?>) model.inspection().get("teams")).size());
-        assertEquals(true, model.row().get().get("disabled"));
-        model.issue();
-        assertFalse(roster.firstRefit().complete());
-        model.claim();
-        assertEquals(false, model.row().get().get("disabled"));
-        model.issue();
+        assertFalse(roster.firstRefit().claimed(), "Comparing learns nothing");
+        assertEquals(false, model.row().get().get("chooseDisabled"));
+        model.choose();
         assertTrue(roster.firstRefit().complete());
-        assertEquals("4 / 4  KIT ISSUED", model.row().get().get("progress"));
     }
 
     @SuppressWarnings("unchecked")
@@ -89,15 +84,28 @@ class FirstRefitModelTest {
         assertFalse(roster.firstRefit().complete());
     }
 
-    @Test void continuingLeavesTheRewardWithoutNamingASquadToOpen() {
+    @Test void choosingFitsTheSquadAndEndsTheOffer() {
         MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         int[] left = {0};
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> left[0]++);
-        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
-        model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
-        ((Runnable) model.row().get().get("done")).run();
+        String squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id();
+        model.selectSquad(squad); model.selectPath(Path.STEADY_LINE);
+        assertEquals(0, left[0], "Comparing does not leave");
+        model.choose();
+        assertEquals(squad, roster.firstRefit().issuedSquadId());
         assertEquals(1, left[0]);
+    }
+
+    @Test void aClaimFromATwoStepSaveOnlyNeedsTheFitting() {
+        MarineRoster roster = new MarineRoster(); roster.ensureActiveSoldiers(12);
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        roster.firstRefit().claim(roster, Path.FORWARD_SCREEN);
+        var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, () -> { });
+        model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
+        model.choose();
+        assertTrue(roster.firstRefit().complete());
+        assertEquals(Path.FORWARD_SCREEN, roster.firstRefit().chosenPath());
     }
 
     @Test void fittingDoesNotRequireAPayment() {
@@ -109,7 +117,7 @@ class FirstRefitModelTest {
         };
         var model = new FirstRefitModel(new Reactor(), roster, resources, () -> { });
         model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
-        model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
+        model.selectPath(Path.STEADY_LINE); model.choose();
         assertTrue(roster.firstRefit().complete());
     }
 

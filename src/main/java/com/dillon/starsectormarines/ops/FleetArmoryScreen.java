@@ -264,7 +264,7 @@ public final class FleetArmoryScreen implements Screen {
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRST_REFIT
-                ? List.of("first-refit-root", "refit-claim", "refit-issue", "loadout-billets")
+                ? List.of("first-refit-root", "refit-choose", "loadout-billets")
                 : List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",

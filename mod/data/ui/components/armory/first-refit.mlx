@@ -2,15 +2,7 @@
   <div id="first-refit-root" class="refit-root">
     <!-- The reward is a choice the player must make, so the screen carries no page
          navigation: the way out is through the choice. -->
-    <div id="refit-conversation" class="{lesson.conversationClasses}">
-      <img id="refit-portrait" class="refit-portrait" src="graphics/portraits/castle.png" />
-      <div id="refit-dialogue" class="refit-dialogue">
-        <div id="refit-title" class="refit-heading tone-accent">{lesson.title}</div>
-        <div id="refit-progress" class="refit-progress tone-edge">{lesson.progress}</div>
-        <div id="refit-copy" class="refit-copy">{lesson.copy}</div>
-      </div>
-    </div>
-    <div id="refit-work" class="{lesson.workClasses}">
+    <div id="refit-work" class="refit-work">
       <div id="refit-hint" class="{lesson.hintClasses}">{lesson.squadHint}</div>
       <div id="refit-squads" class="{lesson.squadsClasses}">
         <button each="squad in lesson.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">{squad.label}</button>
@@ -40,23 +32,13 @@
       </div>
       <div id="refit-status" class="refit-status tone-edge">{lesson.status}</div>
       <div id="refit-actions" class="refit-actions">
-      <button id="refit-claim" class="{lesson.claimClasses}" disabled="{lesson.claimDisabled}" onclick="{lesson.claim}">{lesson.claimLabel}</button>
-      <button id="refit-issue" class="{lesson.issueClasses}" disabled="{lesson.disabled}" onclick="{lesson.issue}">{i18n.openingUiLoadoutFitSquad}</button>
+      <button id="refit-choose" class="refit-action spec-action" disabled="{lesson.chooseDisabled}" onclick="{lesson.choose}">{lesson.chooseLabel}</button>
       </div>
-    </div>
-    <div id="refit-footer" class="refit-actions">
-    <button id="refit-done" class="{lesson.doneClasses}" onclick="{lesson.done}">{i18n.lessonContinue}</button>
     </div>
   </div>
 </template>
 <style>
   .refit-root { flex-direction: column; padding: 12px; gap: 9px; overflow: hidden; }
-  .refit-conversation { flex-direction: row; height: 86px; padding: 10px; gap: 16px; border-width: 1px; }
-  .refit-portrait { width: 82px; height: 82px; }
-  .refit-dialogue { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
-  .refit-heading { font-family: heading; height: 22px; }
-  .refit-progress { height: 18px; }
-  .refit-copy { min-height: 42px; white-space: normal; }
   .refit-work { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; }
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
