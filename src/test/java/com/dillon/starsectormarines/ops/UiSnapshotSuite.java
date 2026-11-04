@@ -1549,6 +1549,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             terminal.bind(document, instance);
             terminal.advance(0f);
             terminal.advance(1f);
+            if (navOverlay != null) navOverlay.accept(instance);
             BufferedImage frame = renderRelative(renderer, document, width, height, uiScale);
             if (terminal.place()) frame = renderRelative(renderer, document, width, height, uiScale);
             if (hqProps.get("openingGuide") instanceof OpeningWorkGuide guide && guide.visible()) {
@@ -1832,7 +1833,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
             var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(document::addStyleSheet);
-            var guide = BarracksGuideCallout.bind(document, markup, model.command(), model.command()::showOverview);
+            var guide = barracksGuide(context, document, model.command());
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
                     List.of(CompanyNotices.Notice.FIRST_REFIT));
             frames.add(new SnapshotArtifact("01-barracks-equipment-new.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
@@ -2028,11 +2029,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 viewModel.command().selectCommand(captain.id());
             }
-            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+            if (!state.startsWith("guide") && !state.equals("empty")) viewModel.command().dismissGuide();
             if (state.startsWith("guide-line-")) {
                 // tutorial-copy pages to one line of the walkthrough with its own Next.
                 for (int line = Integer.parseInt(state.substring(11)); line > 0; line--)
-                    ((Runnable) viewModel.command().props().get("guideNext")).run();
+                    viewModel.command().guideNext();
             } else if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
@@ -2054,7 +2055,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 for (var style : instance.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());
-                var guide = BarracksGuideCallout.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
+                var guide = barracksGuide(context, document, viewModel.command());
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 bindings.update(document, instance, viewModel, hints);
@@ -2136,7 +2137,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
-                var guide = BarracksGuideCallout.bind(document, instance, command, command::showOverview);
+                var guide = barracksGuide(context, document, command);
                 Consumer<String> capture = name -> frames.add(new SnapshotArtifact("induction-" + name + "-" + (int)(scale * 100) + "pct.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, scale)));
                 Consumer<String> click = id -> {
@@ -2159,7 +2160,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
-                click.accept("officer-formations");
+                click.accept("command:all");
                 capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
                 if (roster.squads().stream().noneMatch(s -> !s.reserve() && sabine.id().equals(s.homeCaptainId())))
@@ -2175,7 +2176,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 if (roster.officerInduction().step(roster) != Step.READY)
                     throw new IllegalStateException("Real assignment controls did not advance induction");
                 capture.accept("06-ready");
-                click.accept("guide-next");
+                click.accept("preparation-continue");
                 if (roster.officerInductionRequired() || command.guideVisible())
                     throw new IllegalStateException("Ready acknowledgement failed to unlock deployment");
                 capture.accept("07-complete");
@@ -2258,6 +2259,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     /** The callout {@code tutorial-copy} mounts over the next room rendered; null renders the room as it is. */
     private static Supplier<PreparationGuide.Lesson> guideOverlay;
+    /** What a suite marks on the page bar before the Company HQ is drawn, for a look study of the bar. */
+    static Consumer<MarkupInstance> navOverlay;
 
     private static UiDocument roomDocument(UiElement root) {
         return guideOverlay == null ? new UiDocument(root) : PreparationGuide.document(root);
@@ -2323,7 +2326,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
-            var guide = BarracksGuideCallout.bind(document, instance, model.command(), model.command()::showOverview);
+            var guide = barracksGuide(context, document, model.command());
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings(new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             cardBindings.update(document, instance, model, hints);
@@ -2334,14 +2337,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             hints.bindLive(instance.requireElement("barracks-recruit-stock"), model.command()::recruitSheet);
             hints.bindLive(instance.requireElement("barracks-fill-selected"), model.command()::fillSelectedSheet);
             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
-            click.accept("guide-dismiss");
+            click.accept("preparation-later");
             click.accept("command:" + company.captain.id());
             frames.add(new SnapshotArtifact("flow-officer-dossier.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             click.accept("officer-specialty-TACTICAL_COVER-rank-1");
             if (company.captain.career().level(OfficerSpecialty.TACTICAL_COVER) != 1)
                 throw new IllegalStateException("Officer training did not commit through the dossier");
             frames.add(new SnapshotArtifact("flow-officer-trained.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("officer-formations");
+            click.accept("command:all");
             for (int i = 0; i < 2; i++) click.accept("formation:" + company.squads.get(i).id() + ":mark");
             frames.add(new SnapshotArtifact("flow-01-selected.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("formation:" + company.squads.get(2).id()));
@@ -2369,15 +2372,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    private static PreparationGuide barracksGuide(SnapshotContext context, UiDocument document, BarracksCommandModel command) {
+        return PreparationGuide.callouts(document, command::guideCallout, command::showOverview,
+                new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                        List.of("data/ui/components/company/preparation-guide.mlx")));
+    }
+
     private static BufferedImage renderGuidedBarracks(HeadlessUiRenderer renderer, UiDocument document,
-                                                        BarracksGuideCallout guide, int width, int height, float scale) {
+                                                        PreparationGuide guide, int width, int height, float scale) {
         renderRelative(renderer, document, width, height, scale);
         guide.update();
         return renderRelative(renderer, document, width, height, scale);
     }
 
     private static void clickBarracksFlow(UiDocument document, MarkupInstance instance, String id) {
-        Rect box = instance.requireElement(id).box().borderBox();
+        Rect box = PreparationGuide.find(document.root(), id).box().borderBox();
         if (box.width() <= 0 || box.height() <= 0 || box.y() < 0 || box.bottom() > 1080) {
             throw new IllegalStateException("Barracks control outside viewport: " + id);
         }
@@ -2408,7 +2417,7 @@ private static BufferedImage renderBarracks(
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
         // A lesson over this room stands alone: the walkthrough would sit in front of the same board.
-        if (guideOverlay != null) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+        if (guideOverlay != null) viewModel.command().dismissGuide();
         CompanyDeck ship = companyShip(context, List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

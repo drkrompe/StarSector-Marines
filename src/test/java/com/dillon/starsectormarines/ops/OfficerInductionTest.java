@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,7 +69,8 @@ class OfficerInductionTest {
             if (!source.isDebug()) assertThrows(IllegalStateException.class,
                     () -> MissionLaunch.requireOfficerInductionComplete(roster, source));
         }
-        action(model, "guideNext");
+        assertNull(model.guideCallout().action(), "Ready shows only where pressing it does something");
+        assertNull(model.guideCallout().corner(), "Required induction has no set-aside");
         assertTrue(roster.officerInductionRequired());
         model.resumeGuide();
         assertTrue(model.guideVisible());
@@ -77,6 +79,30 @@ class OfficerInductionTest {
         assertTrue(model.guideVisible(), "Officer lesson remains visible in dossier");
         assertEquals("officer-specialty-list", model.guideTargetId(), "the lesson points at the whole tree, not one rank");
         assertEquals(Step.SPECIALTY, roster.officerInduction().step(roster));
+        assertNull(model.guideCallout().action());
+    }
+
+    @Test void onlyReadyHasAReadyButtonAndLeavingTheDossierIsAllFormations() {
+        OfficerInduction induction = begin();
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
+        model.selectCommand(sabine.id());
+        sabine.train(OfficerSpecialty.TACTICAL_COVER);
+        assertEquals(Step.FORMATION, induction.step(roster));
+        assertEquals("command:all", model.guideTargetId(), "The rail's first entry is the way back to the board");
+        assertNull(model.guideCallout().action());
+        model.selectCommand("all");
+        assertEquals("barracks-raise-squad", model.guideTargetId());
+
+        var squad = roster.createSquad();
+        roster.recruitToSquad(squad.id(), 12);
+        roster.assignCaptainToSquads(sabine.id(), Set.of(squad.id()));
+        assertEquals(Step.READY, induction.step(roster));
+        var ready = model.guideCallout();
+        assertNull(ready.target(), "Ready is on the callout; no other control is the next step");
+        assertTrue(ready.regions().isEmpty());
+        ready.action().action().run();
+        assertTrue(induction.complete());
+        assertNull(model.guideCallout());
     }
 
     @Test void reopeningPreservesChoicesAndKeepsTheFoundingOfficer() {

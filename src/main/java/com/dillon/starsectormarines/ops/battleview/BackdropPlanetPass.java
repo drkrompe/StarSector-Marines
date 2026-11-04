@@ -88,9 +88,11 @@ final class BackdropPlanetPass implements CanvasHostPass {
             + "    gl_FragColor = vec4(color, alpha * smoothstep(1.0, 1.0 - edge, d));\n"
             + "}\n";
 
-    /** Over the far shoulder, so the lit limb is the part the hull leaves showing. */
-    private static final float SUN_X = 0.74f, SUN_Y = 0.42f, SUN_Z = 0.30f;
-    private static final float BRIGHTNESS = 0.62f;
+    /** Where the light falls from, as a direction towards it, and how much of it reaches the surface. */
+    record Light(float x, float y, float z, float brightness) {
+        /** Over the far shoulder, so the lit limb is the part the hull leaves showing. */
+        static final Light BEHIND_THE_HULL = new Light(0.74f, 0.42f, 0.30f, 0.62f);
+    }
 
     /** One per process: a program belongs to the GL context, not to one visit to a page. */
     private static final ShaderProgram PROGRAM =
@@ -98,14 +100,16 @@ final class BackdropPlanetPass implements CanvasHostPass {
 
     private final ShipBackdrop.Planet planet;
     private final float centerX, centerY, radius, time;
+    private final Light light;
 
     /** The centre and radius are in host pixels from the viewport's lower left. */
-    BackdropPlanetPass(ShipBackdrop.Planet planet, float centerX, float centerY, float radius, float time) {
+    BackdropPlanetPass(ShipBackdrop.Planet planet, float centerX, float centerY, float radius, float time, Light light) {
         this.planet = planet;
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
         this.time = time;
+        this.light = light;
     }
 
     @Override
@@ -131,14 +135,14 @@ final class BackdropPlanetPass implements CanvasHostPass {
         PROGRAM.set2f("turn", time * planet.spin() / 360f, time * planet.cloudSpin() / 360f);
         PROGRAM.set2f("tilt", cos(planet.tilt()), sin(planet.tilt()));
         PROGRAM.set2f("pitch", cos(planet.pitch()), sin(planet.pitch()));
-        float sun = (float) Math.sqrt(SUN_X * SUN_X + SUN_Y * SUN_Y + SUN_Z * SUN_Z);
-        PROGRAM.set3f("sun", SUN_X / sun, SUN_Y / sun, SUN_Z / sun);
+        float sun = (float) Math.sqrt(light.x() * light.x() + light.y() * light.y() + light.z() * light.z());
+        PROGRAM.set3f("sun", light.x() / sun, light.y() / sun, light.z() / sun);
         setColor("tint", planet.tint(), 1f);
         // No cloud texture samples black with no alpha, so an absent layer needs no branch.
         setColor("cloudTint", planet.cloudTint(), cloudSprite == null ? 0f : 1f);
         setColor("atmosphere", planet.atmosphere(), 1f);
         PROGRAM.set1f("atmosphereReach", reach);
-        PROGRAM.set1f("brightness", BRIGHTNESS);
+        PROGRAM.set1f("brightness", light.brightness());
         PROGRAM.set1f("edge", 2f / radius);
         PROGRAM.set1f("alpha", alphaMult);
 

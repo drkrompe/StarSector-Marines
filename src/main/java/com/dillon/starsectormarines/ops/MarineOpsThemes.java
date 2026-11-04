@@ -21,17 +21,17 @@ final class MarineOpsThemes {
                 :root {
                     font-family: body;
                     color: #c6d8e7;
-                    background-color: #03090d;
+                    background-color: transparent;
                 }
                 .heading { font-family: heading; }
                 .title { font-family: title; }
                 .dense { font-family: small; }
                 .compact-type { font-family: compact; }
-                /* The base game's screen: near-black with a faint blue grid behind everything,
+                /* The base game's screen: space behind everything through a dark veil and a faint blue grid,
                    and panels that are dark boxes on it with a thin blue line round them. A header
                    stands forward in a brighter line with cut corners; nothing has relief. */
                 .panel {
-                    background-color: #050f14a6;
+                    background-color: #050f1464;
                     border-color: #335060;
                     border-style: solid;
                     background-image: none;
@@ -40,8 +40,8 @@ final class MarineOpsThemes {
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root,
                 .mech-lab-root, .boat-deck-root, .store-root, .transfer-root,
-                .ship-view-root, .barracks-root {
-                    background-color: #03090d;
+                .ship-view-root, .barracks-root, .settings-root, .polity-root {
+                    background-color: #03090d1a;
                     border-color: #335060;
                     border-style: solid;
                     grid-lines: 32px #46c8ff1c;
@@ -49,7 +49,7 @@ final class MarineOpsThemes {
                 /* Spoken lines over a battle hold a firm backing, whatever ground is under them. */
                 #company-subtitle, #story-subtitle { background-color: #050f14f0; }
                 .surface-dark {
-                    background-color: #02070af2;
+                    background-color: #02070acc;
                     background-image: none;
                     border-color: #335060;
                     border-style: solid;
@@ -115,19 +115,19 @@ final class MarineOpsThemes {
                 .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
                 .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
                 .console-section, .mission-briefing-root .section-heading-row {
-                    background-color: #050f14d9;
+                    background-color: #050f1464;
                     border-color: #335060;
                     border-style: solid;
                     background-image: none;
                 }
                 .console-readout {
-                    background-color: #02070af2;
+                    background-color: #02070acc;
                     border-color: #2c6a7e;
                     border-style: solid;
                     background-image: none;
                 }
                 .console-well, .mission-detail-image-wrap, .commitment-section {
-                    background-color: #02070af2;
+                    background-color: #02070acc;
                     border-color: #335060;
                     border-style: solid;
                     background-image: none;

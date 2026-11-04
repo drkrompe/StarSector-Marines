@@ -75,7 +75,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
                                  int replenishable) {
         props.put("deployLamps", List.of(DeployWarnings.undermanned(ready, 24),
                 DeployWarnings.casualties(roster, selected, replenishable),
-                DeployWarnings.damage(List.of(), 0f), DeployWarnings.lift(null)));
+                DeployWarnings.damage(List.of(), 0f), DeployWarnings.lift(null, List.of(), 0f, null)));
         props.put("replenishLabel", replenishable > 0 && !selected.isEmpty() ? "REPLENISH +1" : "");
         props.put("replenishClasses", replenishable > 0 && !selected.isEmpty() ? "" : "briefing-assign-hidden");
         props.put("replenishDisabled", false);

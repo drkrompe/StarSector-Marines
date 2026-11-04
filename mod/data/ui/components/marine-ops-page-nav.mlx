@@ -15,16 +15,19 @@
       </button>
       <button id="page-nav-barracks" class="{barracksClasses}" onclick="{barracksAction}">
         <div id="page-nav-barracks-lamp" class="console-toggle-lamp" />
+        <img id="page-nav-barracks-status" class="page-nav-status" src="graphics/ui/console/nav-attention-wounded.svg" />
         <div id="page-nav-barracks-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-barracks-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavBarracks}</div>
       </button>
       <button id="page-nav-mech-lab" class="{mechLabClasses}" onclick="{mechLabAction}">
         <div id="page-nav-mech-lab-lamp" class="console-toggle-lamp" />
+        <img id="page-nav-mech-lab-status" class="page-nav-status" src="graphics/ui/console/nav-attention-repair.svg" />
         <div id="page-nav-mech-lab-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-mech-lab-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavMechLab}</div>
       </button>
       <button id="page-nav-boats" class="{boatsClasses}" onclick="{boatsAction}">
         <div id="page-nav-boats-lamp" class="console-toggle-lamp" />
+        <img id="page-nav-boats-status" class="page-nav-status" src="graphics/ui/console/nav-attention-repair.svg" />
         <div id="page-nav-boats-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-boats-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavBoats}</div>
       </button>
@@ -131,6 +134,9 @@
     white-space: nowrap;
     border-width: 0px;
   }
+  /* A room with something waiting on the player: what it is shows in the room. */
+  .page-nav-status { display: none; width: 16px; height: 16px; pointer-events: none; }
+  #marine-ops-page-routes .page-nav-attention .page-nav-status { display: flex; }
   .page-nav-news { display: none; }
   #marine-ops-page-routes .page-nav-new .page-nav-news { display: flex; color: #ffd200; }
   .console-toggle-lamp { display: none; }

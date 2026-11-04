@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.campaign.start.OpeningPort;
+import com.dillon.starsectormarines.marine.BoatDeck;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -44,6 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -86,6 +89,26 @@ final class PlayCompany {
     private static Map<String, Object> saved;
 
     private PlayCompany() {
+    }
+
+    /** Leaves the company's shuttles as a battle would: one or all under repair, or every berth empty. */
+    static void boats(String state) {
+        BoatDeck deck = roster.boatDeck();
+        ShipsBoatsAboard.reconcile(deck);
+        List<String> ids = deck.boats().stream().filter(Objects::nonNull).map(CampaignBoat::id).toList();
+        Map<String, Float> damage = new HashMap<>();
+        switch (state) {
+            case "one-repairing" -> damage.put(ids.get(0), 0.5f);
+            case "all-repairing" -> ids.forEach(id -> damage.put(id, 0.5f));
+            case "none" -> deck.lose(ids);
+            default -> throw new IllegalArgumentException("unknown boats state: " + state);
+        }
+        deck.settleRecovery("play-" + state, damage, List.of(), 0f);
+    }
+
+    /** Puts a story mission behind the company, so the board offers what follows it. */
+    static void storyDone(String missionId) {
+        roster.markStoryComplete(missionId);
     }
 
     /** Installs the stand-in as the campaign backend, for the rest of the run. */

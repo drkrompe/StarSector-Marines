@@ -59,7 +59,6 @@ public final class BarracksCommandModel {
     private final Map<String, Object> props = new LinkedHashMap<>();
     private final Set<String> selected = new LinkedHashSet<>();
     private String command = "all";
-    private boolean dossier;
     private boolean guideOpen;
     private Runnable preparationComplete = () -> { };
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
@@ -103,11 +102,8 @@ public final class BarracksCommandModel {
                 : "tool-button console-action");
         bind(reactor, "missionStyle", () -> localMissions && missionReturn.calls(workHere) ? MISSION_CALL_STYLE : "");
         bind(reactor, "commands", this::commands);
-        bind(reactor, "formationClasses", () -> dossier ? "hidden" : "formation-board panel console-section");
-        bind(reactor, "dossierClasses", () -> dossier ? "officer-dossier panel console-section" : "hidden");
-        bind(reactor, "dossierButtonClasses", () -> selectedOfficer() == null ? "hidden" : "flow-button console-action");
-        props.put("openDossier", (Runnable) () -> { dossier = selectedOfficer() != null; refresh(); });
-        props.put("closeDossier", (Runnable) () -> { dossier = false; refresh(); });
+        bind(reactor, "formationClasses", () -> dossier() ? "hidden" : "formation-board panel console-section");
+        bind(reactor, "dossierClasses", () -> dossier() ? "officer-dossier panel console-section" : "hidden");
         bind(reactor, "officerName", () -> selectedOfficer() == null ? "" : captainName(selectedOfficer()));
         bind(reactor, "officerPortrait", () -> selectedOfficer() == null || selectedOfficer().portraitSprite() == null
                 ? "graphics/ui/console/service-plate.svg" : selectedOfficer().portraitSprite());
@@ -136,40 +132,10 @@ public final class BarracksCommandModel {
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
         bind(reactor, "issueCargoStock", this::issueCargoStock);
-        bind(reactor, "guideClasses", () -> guideVisible() ? "guide-callout console-readout" : "guide-callout hidden");
-        bind(reactor, "guideTitle", () -> inductionRequired()
-                ? Strings.format("openingOfficerGuideHeading", CompanyManagementGuide.speaker(), guideLine().title())
-                : Strings.format("openingManagementGuideHeading", CompanyManagementGuide.speaker(),
-                        guideStep + 1, CompanyManagementGuide.lines().size(), guideLine().title()));
-        bind(reactor, "guidePortrait", CompanyManagementGuide::portrait);
-        bind(reactor, "guideText", () -> guideLine().text());
-        bind(reactor, "guideStatus", this::guideHint);
-        bind(reactor, "guideDismissDisabled", () -> inductionRequired() || !guideVisible());
-        bind(reactor, "guideDismissClasses", () -> inductionRequired() ? "hidden" : "guide-dismiss console-action");
         bind(reactor, "guideHelpDisabled", () -> !inductionRequired() && CompanyManagementGuide.lines().isEmpty());
-        bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || inductionRequired() || guideStep == 0);
-        bind(reactor, "guideNextDisabled", () -> !guideVisible() || (inductionRequired() ? inductionStep() != Step.READY : guideStep + 1 >= CompanyManagementGuide.lines().size()));
         bind(reactor, "guideHelpLabel", () -> inductionRequired() ? Strings.get("openingBarracksCommandCastleSLesson") : Strings.get("openingBarracksCommandCompanyGuide"));
-        bind(reactor, "guidePreviousClasses", () -> inductionRequired() ? "hidden" : "tool-button console-action");
-        bind(reactor, "guideProgressClasses", () -> inductionRequired() ? "guide-progress" : "hidden");
-        bind(reactor, "guideProgressImage", this::guideProgressImage);
-        bind(reactor, "guideNextLabel", () -> inductionRequired() ? Strings.get("openingBarracksCommandReady") : Strings.get("openingBarracksCommandNext"));
-        bind(reactor, "guideDismissLabel", () -> Strings.get("openingBarracksCommandDismiss"));
-        bind(reactor, "guideCloseHint", () -> inductionRequired() ? Strings.get("openingBarracksCommandUseTheHighlightedControl")
-                : Strings.get("openingBarracksCommandUseTheHighlightedControlEscToDismiss"));
         props.put("guideHelp", (Runnable) this::resumeGuide);
-        props.put("guidePrevious", (Runnable) () -> { if (inductionRequired()) return; guideStep = Math.max(0, guideStep - 1); refresh(); });
-        props.put("guideNext", (Runnable) () -> {
-            if (inductionRequired()) {
-                if (roster.officerInduction().finish(roster)) {
-                    guideOpen = false; refresh();
-                    if (roster.officerInduction().companyPreparation()) preparationComplete.run();
-                }
-                refresh(); return;
-            }
-            guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
-        props.put("guideDismiss", (Runnable) this::dismissGuide);
-        bind(reactor, "title", this::title);
+        bind(reactor, "title", () -> Strings.get("openingBarracksCommandCompanyFormations"));
         bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnel", lineSquads().size(), roster.lineReadySoldiers().size()));
         bind(reactor, "scopeSummary", () -> Strings.format("openingBarracksCommandSquadsInViewSelected", filtered().size(), selected.size()));
         bind(reactor, "empty", () -> filtered().isEmpty() ? Strings.get("openingBarracksCommandNoSquadsMatchThisViewChooseRaise") : "");
@@ -207,9 +173,11 @@ public final class BarracksCommandModel {
     public Set<String> selected() { return Set.copyOf(selected); }
     public void refresh() { revision.update(n -> n + 1); }
     public void leave() { refresh(); }
-    public void showOverview() { dossier = false; refresh(); }
+    /** All Formations: the board. An officer on the rail opens their dossier; there is no per-officer board. */
+    public void showOverview() { command = "all"; refresh(); }
+    private boolean dossier() { return selectedOfficer() != null; }
     public void selectCommand(String id) {
-        command = id; dossier = selectedOfficer() != null;
+        command = id;
         if (inductionRequired() && selectedOfficer() == inductionOfficer())
             roster.officerInduction().introduce(selectedOfficer());
         resetSelection();
@@ -229,7 +197,6 @@ public final class BarracksCommandModel {
     private String group(MarineSquad squad) {
         return roster.byId(squad.homeCaptainId()) == null ? "independent" : squad.homeCaptainId();
     }
-    private String title() { return "all".equals(command) ? Strings.get("openingBarracksCommandCompanyFormations") : captainName(roster.byId(command)); }
     private String profileName(MarineSquad squad) {
         var weapon = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
         return weapon != null ? weapon.displayName() : Strings.get("openingBarracksCommandIndividualIssue");
@@ -706,7 +673,7 @@ public final class BarracksCommandModel {
     public void campaignGuidance(boolean active) { if (campaignGuidance != active) { campaignGuidance = active; refresh(); } }
     public boolean guideVisible() {
         if (campaignGuidance && !inductionRequired()) return false;
-        return guideOpen && (inductionRequired() || !dossier && !CompanyManagementGuide.lines().isEmpty());
+        return guideOpen && (inductionRequired() || !dossier() && !CompanyManagementGuide.lines().isEmpty());
     }
     public void dismissGuide() {
         if (inductionRequired()) return;
@@ -715,53 +682,81 @@ public final class BarracksCommandModel {
         refresh();
     }
     public void resumeGuide() {
-        if (!inductionRequired()) { dossier = false; guideOpen = true; refresh(); return; }
-        dossier = false;
         command = "all";
-        guideOpen = true; resetSelection();
+        guideOpen = true;
+        if (inductionRequired()) resetSelection(); else refresh();
     }
-    private String guideProgressImage() {
-        if (inductionRequired() && roster.officerInduction().companyPreparation()) {
-            int index = switch (inductionStep()) {
-                case SHIP -> 0;
-                case INTRODUCTION, SPECIALTY -> 1;
-                case FORMATION -> 2;
-                default -> 3;
-            };
-            return "graphics/ui/officers/preparation-step-" + index + ".svg";
+    /** The walkthrough counts its lines in words; the first command walks the preparation's milestones. */
+    private String inductionProgressImage() {
+        int index = switch (inductionStep()) {
+            case SHIP -> 0;
+            case INTRODUCTION, SPECIALTY -> 1;
+            case FORMATION -> 2;
+            default -> 3;
+        };
+        return "graphics/ui/officers/preparation-step-" + index + ".svg";
+    }
+    private static final int GUIDE_HEIGHT = 360;
+
+    /** What Castle shows now, or null. The buttons are the ones that do something at this step. */
+    public PreparationGuide.Callout guideCallout() {
+        if (!guideVisible()) return null;
+        var line = guideLine();
+        if (inductionRequired()) {
+            var ready = inductionStep() == Step.READY
+                    ? new PreparationGuide.Button(Strings.get("openingBarracksCommandReady"), this::finishInduction) : null;
+            return new PreparationGuide.Callout(CompanyManagementGuide.portrait(), CompanyManagementGuide.speaker(),
+                    line.title(), inductionProgressImage(), null, line.text(), inductionHint(), null, null, null, ready,
+                    inductionTarget(), true, inductionRegions(), GUIDE_HEIGHT,
+                    // READY points at nothing else, so it sits on the board rather than over the room's heading.
+                    ready != null ? "barracks-formation-board" : null);
         }
-        return "graphics/ui/officers/induction-step-"
-                + (inductionRequired() ? Math.min(4, inductionStep().ordinal()) : 0) + ".svg";
+        int lines = CompanyManagementGuide.lines().size();
+        return new PreparationGuide.Callout(CompanyManagementGuide.portrait(), CompanyManagementGuide.speaker(),
+                line.title(), null, Strings.format("openingManagementGuideProgress", guideStep + 1, lines), line.text(),
+                guideHint(), new PreparationGuide.Button(Strings.get("lessonSkip"), this::dismissGuide), this::dismissGuide,
+                guideStep == 0 ? null : new PreparationGuide.Button(Strings.get("openingUiShipboardBarracksPrevious"), this::guidePrevious),
+                guideStep + 1 >= lines ? null : new PreparationGuide.Button(Strings.get("openingBarracksCommandNext"), this::guideNext),
+                guideTargetId(), true, guideRegions(), GUIDE_HEIGHT, null);
+    }
+    public void guidePrevious() { guideStep = Math.max(0, guideStep - 1); refresh(); }
+    public void guideNext() {
+        guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1);
+        refresh();
+    }
+    /** Acknowledgement only counts on READY: training and a real assignment come first. */
+    private void finishInduction() {
+        if (!roster.officerInduction().finish(roster)) return;
+        guideOpen = false;
+        refresh();
+        if (roster.officerInduction().companyPreparation()) preparationComplete.run();
     }
     public boolean inductionRequired() { return roster.officerInductionRequired(); }
     private Step inductionStep() { return roster.officerInduction().step(roster); }
     private MarineCaptain inductionOfficer() { return roster.officerInduction().officer(roster); }
-    private String inductionOfficerTarget() {
-        MarineCaptain officer = inductionOfficer();
-        return officer == null ? "barracks-command-list" : "command:" + officer.id();
-    }
+    /** Founding id, not the live officer: a target that no longer resolves just lights nothing. */
+    private String inductionOfficerTarget() { return "command:" + roster.officerInduction().foundingOfficerId(); }
     private String officerBiography() {
         OfficerInduction induction = roster.officerInduction();
         return selectedOfficer() != null && induction != null && induction.foundingOfficerId().equals(selectedOfficer().id())
                 ? Strings.get("openingBarracksCommandSabineHaleFoundingFieldCommanderAFormer")
                 : "";
     }
+    /** The next real control for the one founding commander; READY has none, Ready is on the callout itself. */
     private String inductionTarget() {
         Step step = inductionStep();
         if (step == Step.SHIP) return "page-nav-hq";
         if (step == Step.INTRODUCTION) return inductionOfficerTarget();
-        if (step == Step.SPECIALTY)
-            return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
-                    : "officer-specialty-list";
-        if (step == Step.READY) return inductionOfficerTarget();
-        if (dossier) return "officer-formations";
+        if (step == Step.SPECIALTY) return dossier() ? "officer-specialty-list" : inductionOfficerTarget();
+        if (step == Step.READY) return null;
+        if (dossier()) return "command:all";
         if (step == Step.FORMATION) return "barracks-raise-squad";
-        if (!"all".equals(command)) return "command:all";
         if (selected.isEmpty()) return "barracks-select-all";
-        return inductionOfficer() == null ? "barracks-command-list" : "command:" + inductionOfficer().id() + ":assign";
+        return inductionOfficerTarget() + ":assign";
     }
     private List<List<String>> inductionRegions() {
         String target = inductionTarget();
+        if (target == null) return List.of();
         if (target.startsWith("officer-specialty-"))
             return List.of(List.of("officer-training", "officer-specialty-list"));
         if ("barracks-select-all".equals(target) || target.endsWith(":assign"))
@@ -775,11 +770,9 @@ public final class BarracksCommandModel {
                 : Strings.get("openingBarracksCommandChooseReadyToCompleteInductionThenReturn");
         return switch (inductionTarget()) {
             case "page-nav-hq" -> Strings.get("openingBarracksCommandChooseACompanyShipInHqBefore");
-            case "officer-formations" -> Strings.get("openingBarracksCommandChooseViewFormationsToReturnToThe");
+            case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsToReturnToThe");
             case "barracks-raise-squad" -> Strings.get("openingBarracksCommandRaiseSquadOpensTheEquipmentWorkspaceFound");
-            case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsSoTheUnassignedSquad");
             case "barracks-select-all" -> Strings.get("openingBarracksCommandMarkTheSquadYouWantHerTo");
-            case "barracks-command-list" -> Strings.get("openingBarracksCommandRecruitAnAvailableOfficerToContinue");
             case "officer-specialty-list" -> Strings.get("openingBarracksCommandHoverToCompareSpecialties");
             default -> inductionTarget().endsWith(":assign") ? Strings.get("openingBarracksCommandClickAssignSelectedOnTheCommanderCard") : Strings.get("openingBarracksCommandOpenTheHighlightedOfficerPortrait");
         };

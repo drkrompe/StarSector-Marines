@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
@@ -14,7 +16,8 @@ import java.util.Locale;
 
 /**
  * The briefing's warning lamps beside Deploy: four standing checks on the force as it would launch. A lit
- * lamp never blocks the launch; its hover says what is wrong and how it clears.
+ * lamp warns and its hover says what is wrong and how it clears; only LIFT can say the launch is refused, which
+ * the launch boundary decides ({@link DetachmentResolver#hasRequiredTransport}), never the lamp.
  */
 final class DeployWarnings {
     private DeployWarnings() { }
@@ -36,13 +39,17 @@ final class DeployWarnings {
         }
     }
 
-    /** One lamp: dark when its check passes, lit amber when it does not. */
-    record Lamp(Kind kind, boolean lit, SpecSheet hint) implements MarkupPropertySource {
+    /** One lamp: dark when its check passes, lit amber when it does not, red when the launch is refused over it. */
+    record Lamp(Kind kind, boolean lit, boolean refused, SpecSheet hint) implements MarkupPropertySource {
+        Lamp(Kind kind, boolean lit, SpecSheet hint) {
+            this(kind, lit, false, hint);
+        }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> kind.id();
-                case "classes" -> "deploy-lamp" + (lit ? " deploy-lamp-lit" : "");
+                case "classes" -> "deploy-lamp" + (lit ? " deploy-lamp-lit" : "") + (refused ? " deploy-lamp-refused" : "");
                 case "iconId" -> kind.id() + ":icon";
                 case "icon" -> kind.icon;
                 case "labelId" -> kind.id() + ":label";
@@ -114,23 +121,46 @@ final class DeployWarnings {
                 "command", List.of(), notes));
     }
 
-    /** Every bay machine that stays aboard, and why. */
-    static Lamp lift(BriefingLift.Readout readout) {
+    /**
+     * What keeps the lift off the ground: every shuttle that cannot fly, and every bay machine that stays aboard.
+     * Lit red when the operation cannot launch for want of a shuttle, the one lamp whose check is also a refusal.
+     *
+     * @param boats   the company boats, or empty where this operation does not ride them
+     * @param refused why the launch is refused for want of lift, or null when it is not
+     */
+    static Lamp lift(BriefingLift.Readout readout, Collection<CampaignBoat> boats, float day, String refused) {
         List<String> notes = new ArrayList<>();
-        if (readout != null) {
-            for (BriefingLift.Machine machine : readout.machines()) {
-                if (!machine.status().drops) notes.add(Strings.format("deployLampLiftMachine", machine.name(),
-                        BriefingLift.statusLine(machine)));
+        int flying = 0;
+        int repairing = 0;
+        for (CampaignBoat boat : boats) {
+            if (boat.flightReady(day)) {
+                flying++;
+            } else if (!boat.missingParts().isEmpty()) {
+                notes.add(Strings.format("deployLampLiftShuttleIncomplete", boat.displayName(),
+                        BoatDeckViewModel.missingNames(boat)));
+            } else {
+                repairing++;
+                notes.add(Strings.format("deployLampLiftShuttleRepair", boat.displayName(),
+                        hoursToFit(boat.repairUntilDay(), day)));
             }
         }
-        boolean lit = !notes.isEmpty();
-        if (lit) {
-            notes.add(Strings.get("briefingLiftWhy" + readout.machines().stream()
-                    .filter(m -> !m.status().drops).findFirst().orElseThrow().status().name()));
-        } else {
-            notes.add(Strings.get("deployLampLiftClear"));
+        if (repairing > 0) notes.add(Strings.get("boatRepairCopy"));
+        if (flying < boats.size() && refused == null) notes.add(flying > 0
+                ? Strings.format("deployLampLiftShuttlesFly", flying, boats.size())
+                : Strings.get("deployLampLiftEmployer"));
+        BriefingLift.Machine stranded = null;
+        if (readout != null) {
+            for (BriefingLift.Machine machine : readout.machines()) {
+                if (machine.status().drops) continue;
+                if (stranded == null) stranded = machine;
+                notes.add(Strings.format("deployLampLiftMachine", machine.name(), BriefingLift.statusLine(machine)));
+            }
         }
-        return new Lamp(Kind.LIFT, lit, new SpecSheet(Strings.get("deployLampLiftTitle"), "", null,
-                "command", List.of(), notes));
+        if (stranded != null) notes.add(Strings.get("briefingLiftWhy" + stranded.status().name()));
+        if (refused != null) notes.add(0, refused);
+        boolean lit = !notes.isEmpty();
+        if (!lit) notes.add(Strings.get("deployLampLiftClear"));
+        return new Lamp(Kind.LIFT, lit, refused != null, new SpecSheet(Strings.get("deployLampLiftTitle"),
+                refused != null ? Strings.get("deployLampLiftRefused") : "", null, "command", List.of(), notes));
     }
 }

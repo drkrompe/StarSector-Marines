@@ -87,7 +87,7 @@
   .transfer-commit.current { border-color: #31485f; opacity: 0.6; }
   .transfer-commit.unaffordable { border-color: #c44b4b; opacity: 0.55; }
   .commit-label { height: auto; text-align: center; white-space: normal; }
-  .transfer-plan { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
+  .transfer-plan { background-color: #03090d; width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
   .verdict-bar { flex-direction: row; height: 66px; padding: 8px 9px; gap: 10px; border-width: 2px; align-items: center; }
   .verdict { width: 54%; flex-grow: 0; height: auto; white-space: normal; }
   .transfer-cost { width: 0px; height: auto; text-align: left; flex-grow: 1; white-space: normal; }

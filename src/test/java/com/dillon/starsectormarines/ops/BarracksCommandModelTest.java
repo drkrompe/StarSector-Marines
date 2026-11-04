@@ -128,10 +128,12 @@ class BarracksCommandModelTest {
                 var document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
-                var guide = BarracksGuideCallout.bind(document, instance, model, model::showOverview);
+                var guide = PreparationGuide.callouts(document, model::guideCallout, model::showOverview,
+                        new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                                List.of("data/ui/components/company/preparation-guide.mlx")));
                 document.layout(1920, 1080);
                 guide.update();
-                assertEquals("graphics/portraits/castle.png", value(model, "guidePortrait"));
+                assertEquals("graphics/portraits/castle.png", model.guideCallout().portrait());
                 assertEquals("formation:" + squad.id() + ":mark", model.guideTargetId());
                 click(document, instance, model.guideTargetId());
                 assertEquals(1, model.selected().size(), "Squad selection works while Castle is speaking");
@@ -139,7 +141,7 @@ class BarracksCommandModelTest {
                 guide.update();
                 assertEquals("barracks-fill-selected", model.guideTargetId());
                 var target = instance.requireElement(model.guideTargetId()).box().borderBox();
-                var panel = instance.requireElement("barracks-guide").box().borderBox();
+                var panel = PreparationGuide.find(document.root(), "preparation-callout").box().borderBox();
                 assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
                 document.requestFocus(instance.requireElement("barracks-fill-selected"), true);
                 assertEquals("barracks-fill-selected", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
@@ -154,10 +156,10 @@ class BarracksCommandModelTest {
                 guide.update();
                 assertTrue(model.guideVisible());
                 assertEquals("barracks-fill-selected", model.guideTargetId(), "Reopening resumes the lesson");
-                action(model, "guideNext");
-                action(model, "guideNext");
+                model.guideNext();
+                model.guideNext();
                 instance.flush(); document.advance(0f); guide.update();
-                click(document, instance, "guide-dismiss");
+                click(document, instance, "preparation-later"); guide.update();
                 click(document, instance, "barracks-select-all");
                 assertTrue(model.selected().isEmpty(), "With every squad in view selected, the toggle deselects");
 
@@ -195,10 +197,8 @@ class BarracksCommandModelTest {
                 assertEquals(0, officer.career().availablePoints(officer.rank()));
                 click(document, instance, "officer-specialty-TACTICAL_COVER-rank-1");
                 assertEquals(1, officer.career().level(OfficerSpecialty.TACTICAL_COVER), "Disabled training cannot spend twice");
-                click(document, instance, "officer-formations");
-                assertEquals("hidden", value(model, "dossierClasses"));
-                click(document, instance, "barracks-officer-dossier");
-                assertEquals("officer-dossier panel console-section", value(model, "dossierClasses"));
+                click(document, instance, "command:all");
+                assertEquals("hidden", value(model, "dossierClasses"), "All Formations is the way back to the board");
             }
         } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }
@@ -212,7 +212,7 @@ class BarracksCommandModelTest {
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }
     private static void action(BarracksCommandModel model, String key) { ((Runnable) model.props().get(key)).run(); }
     private static void click(UiDocument document, MarkupInstance instance, String id) {
-        var box = instance.requireElement(id).box().borderBox();
+        var box = PreparationGuide.find(document.root(), id).box().borderBox();
         assertTrue(box.width() > 0 && box.height() > 0, id);
         assertTrue(box.y() >= 0 && box.bottom() <= 1080, id);
         float x = box.x() + box.width() / 2f, y = box.y() + box.height() / 2f;

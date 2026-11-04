@@ -473,8 +473,12 @@ decides nothing itself (`BriefingLift`). Beside Deploy, four **warning lamps**
 sum the force as it would launch: strength under the recommendation, wounded or
 empty billets in the selected squads (hours until the wounded are fit, and what
 Replenish can draw for the empty ones), lance mechs under repair (hours left),
+and what keeps the lift down: shuttles under repair or missing a part (hours left, or
+the part),
 and machines that stay aboard. A lamp is dark while its check passes, lit amber
-when not, and never blocks the launch; its words are its hover
+when not, and warns without blocking. The launch boundary alone refuses a launch with
+no lift (`DetachmentResolver`); then Deploy and the LIFT lamp are red and the words
+beside Deploy say what clears it. A lamp's words are its hover
 (`DeployWarnings`). Beside the lift row, the briefing's **air cover**
 shows what flies over the company as plans in the same hand: one tile per fighter
 type with how many aircraft its carriers put up (one a bay, every carrier aboard,

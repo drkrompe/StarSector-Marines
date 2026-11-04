@@ -115,6 +115,9 @@ them.
   spatial frame. Fleet Armory is the Equipment workspace within Barracks, reached
   from a squad card's Loadout rather than its own top-level tab. Equipment
   notices belong to Barracks and clear only when the relevant offer is reviewed.
+- The **menu backdrop** (`MenuBackdrop`) is the space behind every page but a battle, as behind the
+  base game's own screens: the sky of wherever the fleet is, its stars, and the world it is parked
+  at, drawn by the dialog's host before the page. A page's root is a translucent veil and grid over it.
 - The **page bar** is the shell's persistent navigation, at the foot of every room:
   the mod's own holder (`page-bar.svg`), shown one to one in the screen's bottom left
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built
@@ -131,6 +134,11 @@ them.
   whose deck is still being laid out shows it waiting and keeps its action.
   `BOATS` names the hangar exactly as `MECH LAB` names the vehicle bay, so the
   gating is a property of the route rather than something each screen remembers.
+  A route may also wear a **status mark**, a small amber symbol beside its words while
+  that room has something waiting on the player: a cross on Barracks for wounded or empty
+  billets, a wrench on Shuttles and the Mech Lab for what cannot fly or is under repair
+  (`RoomAttention`). It says where to look; the room says what, and a mission's own
+  warnings stay on its briefing (`DeployWarnings`).
 - A **spec sheet** is the bounded hover overlay that says what one catalog item
   is: a heading with the item's crest, a subtitle of designation, role, tier,
   grade or access, stat rows with meters measured against catalog-wide
@@ -375,12 +383,13 @@ opening does not authorize unrelated controls that happen to lie inside its boun
 Scrolling from an allowed control may move its enclosing pane; darkened areas
 consume input, and pointer events do not bubble into unrelated ancestor actions.
 Castle's dialogue controls remain available. Escape (including from a search field)
-or Dismiss immediately removes the restriction; Company Guide resumes it.
+or Skip immediately removes the restriction; Company Guide resumes it.
 Successful preparation orders advance the guide. Next skips an unnecessary lesson
 without issuing an order. Guidance never owns a gameplay transition or requires audio.
 Mission preparation navigation preserves the existing salvage settlement gate.
 
-Interactive tutorials use this spotlight and callout treatment. Whenever a character is talking, show
+Interactive tutorials use this spotlight and the one callout, `PreparationGuide`, whose
+props decide which lines and buttons show. Whenever a character is talking, show
 their portrait with their name and readable dialogue to draw attention to the
 speaker; audio alone is not the character presentation. This convention applies
 to future tutorial and conversation surfaces as well as existing story subtitles.

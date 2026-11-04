@@ -311,7 +311,7 @@
   .doc-narrow .garage-status { opacity: 0; }
   .doc-narrow .garage-back { width: 64px; }
   .doc-narrow .garage-scrap { width: 84px; }
-  .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
+  .mech-doll-canvas { background-color: #03090d; width: 100%; height: 0px; flex-grow: 1; }
   .overview-rail { flex-direction: row; align-items: center; width: 100%; height: 76px; gap: 5px; }
   .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }
   /* A card per pad at its own width: a lone pad must not stretch across the rail. */
