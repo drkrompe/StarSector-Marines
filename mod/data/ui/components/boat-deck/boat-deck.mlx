@@ -1,6 +1,6 @@
 <template props="missionsAction,missionsClasses,settingsAction,settingsClasses,filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,readinessRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="boat-deck-root" class="boat-deck-root">
-    <div id="boat-deck-room-bar" class="panel room-bar">
+    <div id="boat-deck-room-bar" class="panel room-bar console-header">
       <img id="boat-deck-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="boat-deck-room-name" class="label heading tone-edge">{i18n.openingUiBoatDeckTitle}</div>
       <div id="boat-bay-navigator" class="{bayNavigatorClasses}">
@@ -137,7 +137,7 @@
 </template>
 
 <style>
-  .header-stock-slot { flex-direction: column; width: 490px; height: 46px; }
+  .header-stock-slot { flex-direction: row; justify-content: flex-end; align-items: center; width: 490px; height: 46px; }
   .company-credit-bill { height: 36px; }
 
   .boat-deck-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
@@ -146,7 +146,7 @@
   .section-title { height: 19px; padding: 1px 3px; }
   .compact-action { width: 146px; height: 26px; padding: 3px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
-  .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px; gap: 10px; }
+  .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px 4px 10px; gap: 12px; }
   #boat-deck-room-name { width: 290px; }
   .bay-navigator { flex-direction: row; width: 205px; height: 24px; gap: 3px; }
   .bay-step { width: 32px; height: 24px; padding: 2px; }
@@ -255,7 +255,7 @@
 
   .boat-deck-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .hidden { display: none; }
-  .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
-  .room-bar { border-width: 1px; background-color: #0d1e26; border-color: #3b627b; }
+  .workshop-service-plate { width: 58px; height: 30px; pointer-events: none; }
+  .room-bar { border-width: 2px; }
   .garage-heading, .stage-heading { border-width: 0px; border-color: #3b627b; }
 </style>
