@@ -121,7 +121,7 @@ them.
   into the frame, with one route in each of its eight slots. A ninth route means
   redrawing it. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
-  room, reached from the page bar. Each setting is saved with the game and starts from
+  room, reached from the page bar, each setting a compact card in a grid. Each is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the
   store's or the mission board's, stays there.
 - A **page route** is one button on the shell's persistent navigation, and a
