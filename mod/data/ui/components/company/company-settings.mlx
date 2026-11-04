@@ -1,0 +1,35 @@
+<template props="voiceOverLabel,voiceOverClasses,voiceOverAction,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,settingsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,settingsClasses,shopAction,shopClasses">
+  <div id="settings-root" class="settings-root">
+    <div id="settings-bar" class="panel settings-bar console-header">
+      <img id="settings-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
+      <div id="settings-title" class="label heading tone-edge">{i18n.openingUiSettingsTitle}</div>
+      <div id="settings-copy" class="label tone-muted">{i18n.openingUiSettingsCopy}</div>
+    </div>
+    <div id="settings-main" class="panel console-section settings-main">
+      <div id="settings-voice-over" class="settings-row">
+        <div id="settings-voice-over-copy" class="settings-row-copy">
+          <div id="settings-voice-over-name" class="label heading tone-accent settings-row-name">{i18n.openingUiSettingsVoiceOver}</div>
+          <div id="settings-voice-over-detail" class="label settings-row-detail">{i18n.openingUiSettingsVoiceOverDetail}</div>
+        </div>
+        <button id="settings-voice-over-key" class="{voiceOverClasses}" onclick="{voiceOverAction}">
+          <div id="settings-voice-over-signal" class="console-command-signal" />
+          <div id="settings-voice-over-legend" class="console-key-legend">{voiceOverLabel}</div>
+        </button>
+      </div>
+    </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" settingsAction="{settingsAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" settingsClasses="{settingsClasses}" contextLabel="{contextLabel}" />
+  </div>
+</template>
+
+<style>
+  .settings-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .settings-bar { flex-direction: row; height: 54px; padding: 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  #settings-title { width: 282px; height: auto; white-space: normal; }
+  #settings-copy { width: 0px; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
+  .settings-main { flex-direction: column; height: 0px; flex-grow: 1; padding: 14px; gap: 10px; border-width: 2px; overflow: hidden; }
+  .settings-row { flex-direction: row; align-items: center; height: 78px; flex-grow: 0; padding: 8px 14px; gap: 24px; border-width: 1px; border-color: #2c485a; background-color: #0a171d; }
+  .settings-row-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .settings-row-name { height: 20px; }
+  .settings-row-detail { height: auto; white-space: normal; }
+  .settings-key { width: 140px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
+</style>

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.audio.VoiceOver;
 import com.dillon.starsectormarines.marine.HegemonyAuxiliaryWarrant;
 import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -11,7 +10,6 @@ import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
-import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -32,12 +30,6 @@ public final class CompanyHqScreen implements Screen {
             "data/ui/components/company/company-hq.mlx");
 
     private final Reactor reactor = new Reactor();
-    private final MutableSignal<String> voiceOverLabel =
-            reactor.signal(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
-    private final MutableSignal<String> voiceOverHintClasses =
-            reactor.signal(CompanyHqViewModel.voiceOverHintClasses(false));
-    private final MutableSignal<String> voiceOverClasses =
-            reactor.signal(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final HqActionDesk actionDesk = new HqActionDesk(reactor, newsDesk);
     private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
@@ -106,13 +98,7 @@ public final class CompanyHqScreen implements Screen {
         Map<String, Object> props = viewModel.props();
         props.put("debugAction", (Runnable) () -> { if (Cheats.enabled()) context.goTo(ScreenId.DEBUG_MISSIONS); });
         props.put("debugClasses", Cheats.enabled() ? "hq-debug console-action" : "hq-debug-hidden");
-        // Another save may have been loaded since this screen last built.
-        voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
-        props.put("voiceOverLabel", voiceOverLabel);
-        props.put("voiceOverHintClasses", voiceOverHintClasses);
-        voiceOverClasses.set(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
-        props.put("voiceOverClasses", voiceOverClasses);
-        props.put("voiceOverAction", (Runnable) this::toggleVoiceOver);
+        MarineOpsPageNav.routeSettings(props, context);
         newsDesk.put(props);
         actionDesk.put(props);
         auxiliary.put(props);
@@ -219,12 +205,6 @@ public final class CompanyHqScreen implements Screen {
         if (context != null) context.openStore();
     }
 
-    private void toggleVoiceOver() {
-        VoiceOver.setEnabled(!VoiceOver.enabled());
-        voiceOverLabel.set(CompanyHqViewModel.voiceOverLabel(VoiceOver.enabled()));
-        voiceOverClasses.set(CompanyHqViewModel.voiceOverClasses(VoiceOver.enabled()));
-    }
-
     private void onClose() {
         if (dismissDialog != null) dismissDialog.run();
     }
@@ -240,11 +220,7 @@ public final class CompanyHqScreen implements Screen {
         }
         if (intelTerminal.place() && viewport != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
         intelTerminal.advance(dt);
-        if (markupInstance != null) {
-            voiceOverHintClasses.set(CompanyHqViewModel.voiceOverHintClasses(
-                    markupInstance.requireElement("company-hq-voice-over").hovered()));
-            markupInstance.flush();
-        }
+        if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.HQ, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();

@@ -1,4 +1,4 @@
-<template props="voiceOverAction,voiceOverLabel,voiceOverHintClasses,voiceOverClasses,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
+<template props="settingsAction,settingsClasses,auxiliary,handover,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,financeHeader,runway,runwayCaption,runwayClasses,financeRows,actions,cash,shopAction,shopClasses">
   <div id="company-hq-root" class="company-hq-root">
 
     <div id="company-hq-main" class="company-hq-main">
@@ -37,10 +37,6 @@
             <div id="company-hq-strip-runway" class="{runwayClasses}">{runway}</div>
             <div id="company-hq-strip-cash" class="label tone-muted strip-cash">{cash}</div>
           </div>
-          <button id="company-hq-voice-over" class="{voiceOverClasses}" onclick="{voiceOverAction}">
-            <div id="company-hq-voice-over-signal" class="console-command-signal" />
-            <div id="company-hq-voice-over-legend" class="console-key-legend">{voiceOverLabel}</div>
-          </button>
           <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">{i18n.openingUiCompanyHqDebugMissions}</button>
         </div>
         <div id="company-hq-board-columns" class="board-columns">
@@ -190,12 +186,7 @@
       </div>
     </div>
 
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
-    <div id="company-hq-voice-over-hint-row" class="{voiceOverHintClasses}">
-      <div id="company-hq-voice-over-hint-space" class="aux-space" />
-      <div id="company-hq-voice-over-hint" class="label hq-voice-over-hint">{i18n.openingUiCompanyHqVoiceOverHint}</div>
-      <div id="company-hq-voice-over-hint-margin" class="hq-voice-over-hint-margin" />
-    </div>
+    <marine-ops-page-nav settingsAction="{settingsAction}" settingsClasses="{settingsClasses}" returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
     <div id="aux-modal" class="{auxiliary.classes}">
       <div id="aux-space-above" class="aux-space" />
       <div id="aux-letter" class="aux-letter console-readout">
@@ -272,10 +263,6 @@
   .hq-wings { min-height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
 .hq-debug-hidden { display: none; }
-.hq-voice-over { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
-.hq-voice-over-hint-row { position: absolute; left: 0px; top: 478px; width: 100%; height: 74px; flex-direction: row; pointer-events: none; }
-.hq-voice-over-hint { width: 440px; height: 56px; padding: 8px 10px; white-space: normal; border-width: 1px; border-color: #4f83a4; background-color: #0c1a21; pointer-events: none; }
-.hq-voice-over-hint-margin { width: 23px; pointer-events: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }

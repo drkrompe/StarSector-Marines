@@ -34,6 +34,8 @@ public enum ScreenId {
      * at a market, so it needs no deck, and it is reachable only while the fleet can trade there.
      */
     STORE,
+    /** The company's settings. Not aboard, so a company with no ship can still reach them. */
+    SETTINGS,
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,

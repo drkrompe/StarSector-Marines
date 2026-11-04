@@ -244,7 +244,7 @@ class ShipRoomAvailabilityTest {
         // compartment would let a hull exist the player cannot navigate.
         Set<MarineOpsPageNav.Page> notRooms = EnumSet.of(
                 MarineOpsPageNav.Page.HQ, MarineOpsPageNav.Page.SHIP_TRANSFER,
-                MarineOpsPageNav.Page.SHIP_VIEW);
+                MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.Page.STORE, MarineOpsPageNav.Page.SETTINGS);
         for (MarineOpsPageNav.Page page : MarineOpsPageNav.Page.values()) {
             if (notRooms.contains(page)) {
                 assertEquals(null, page.room(),

@@ -179,7 +179,7 @@ its earlier request for support if that request has not started playing).
 Story subtitles identify the actual speaker and portrait and remain readable
 for the recorded duration even
 when sound is muted or unavailable, in both strategic and direct-control views.
-The **voice-over switch** on Company HQ (`VoiceOver`) silences all recorded speech:
+The **voice-over switch** on the Settings page (`VoiceOver`) silences all recorded speech:
 narration, radio, officer replies, marine barks and film dialogue. Subtitles and all
 other sound stay. It is saved with the game and on until the player turns it off.
 Speech runs in real time while simulation speed changes; pause allows the
