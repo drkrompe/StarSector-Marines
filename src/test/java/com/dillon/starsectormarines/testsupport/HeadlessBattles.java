@@ -10,8 +10,8 @@ import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
-import com.dillon.starsectormarines.battle.scene.ProvingGround;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.ProvingGroundSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
@@ -85,8 +85,8 @@ public final class HeadlessBattles {
             case "working-passage" -> basin(ShepherdBasin.Visit.WORKING_PASSAGE, options(rest));
             case "proving-ground" -> {
                 JSONObject options = options(rest);
-                yield ProvingGround.build(SurfacePalette.valueOf(options.optString("surface", "VERDANT").toUpperCase(Locale.ROOT)),
-                        options.optLong("seed", 7L));
+                yield ProvingGroundSetup.create(SurfacePalette.valueOf(options.optString("surface", "VERDANT").toUpperCase(Locale.ROOT)),
+                        options.optLong("seed", ProvingGroundSetup.SEED));
             }
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };

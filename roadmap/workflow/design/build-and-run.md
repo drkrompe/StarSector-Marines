@@ -68,8 +68,9 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
 - **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
   generated colony map, beside its buildings and with trees planted ahead, with no
-  enemy and no end, for feeling how machines drive (`ProvingGround`; options
-  `surface=` and `seed=`). Click one, Tab to take it over.
+  enemy and no end, for feeling how machines drive (`ProvingGroundSetup`; options
+  `surface=` and `seed=`). Click one, Tab to take it over. Debug Missions lists the
+  same battle under Diagnostics, where a company of one squad lands with it.
 - **Controls** are the screens' own. In a catalog mission F9 leaves the battle for
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
