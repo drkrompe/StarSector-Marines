@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -94,7 +95,9 @@ class BarracksCommandModelTest {
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
         var tile = raiseTile(model);
         assertEquals(false, tile.get("founderDisabled"), "Nothing in the hold or the purse is needed");
-        assertEquals(1, ((List<?>) tile.get("founderCosts")).size());
+        for (Object row : (List<?>) tile.get("founderCosts")) {
+            assertEquals(Strings.get("firstOrderFree"), ((Map<?, ?>) row).get("label"), "Every item on the line says so");
+        }
         int before = roster.squads().size();
         model.raiseSquad();
         assertEquals(before + 1, roster.squads().size());
