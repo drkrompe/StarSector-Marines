@@ -27,11 +27,11 @@
   .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
   .card-chip-icon { width: 44px; height: 44px; pointer-events: none; }
   .card-chip-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
-  .card-chip-kind { height: 14px; color: #8995a0; }
+  .card-chip-kind { height: 15px; color: #8995a0; font-family: small; }
   .card-chip-weapon .card-chip-kind { color: #53c6e8; }
   .card-chip-armor .card-chip-kind { color: #dfb84d; }
-  .card-chip-name { height: 18px; color: #eaf3ff; overflow: hidden; }
-  .card-chip-rating { width: 0px; text-align: right; }
+  .card-chip-name { height: 18px; color: #eaf3ff; overflow: hidden; font-family: small; }
+  .card-chip-rating { width: 0px; text-align: right; font-family: small; }
   .card-chip-weapon .card-chip-rating { color: #53c6e8; }
   .card-chip-armor .card-chip-rating { color: #dfb84d; }
   .card-chip-compact { height: 34px; gap: 4px; padding: 0px 6px 0px 0px; }
@@ -40,6 +40,7 @@
   .card-chip-compact .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
   .card-chip-compact .card-chip-icon { width: 30px; height: 30px; }
   .card-chip-compact .card-chip-kind { display: none; }
+  .card-chip-compact .card-chip-name { height: 30px; white-space: normal; }
   .card-chip-compact .card-chip-rating { width: 34px; }
   .card-chip.card-chip-empty { display: none; }
 </style>

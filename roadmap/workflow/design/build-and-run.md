@@ -66,6 +66,11 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `cordon`, `salvage-rights`, `cold-start`, `working-passage`, each with its
   `:key=value` options; `fixture:<path>`), or the bare name of a fixture in
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
+- **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
+  generated colony map, beside its buildings and with trees planted ahead, with no
+  enemy and no end, for feeling how machines drive (`ProvingGroundSetup`; options
+  `surface=` and `seed=`). Click one, Tab to take it over. Debug Missions lists the
+  same battle under Diagnostics, where a company of one squad lands with it.
 - **Controls** are the screens' own. In a catalog mission F9 leaves the battle for
   the catalog with nothing settled; with `-Pbattle` it rebuilds the battle, and
   continuing from a finished battle quits, printing the tick and the winner.
@@ -105,7 +110,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
 - **`-PplayUiScale=<scale>`** runs the window at a Starsector UI scale (in PowerShell,
   quote it: `"-PplayUiScale=1.5"`). The script step `audit <label>` reports every
-  clickable control cut off by the page or a non-scrolling clip, so a screen can be
+  clickable control cut off by the page or a non-scrolling clip, and every label wider or taller
+  than its box, so a screen can be
   checked at 125%, 133% and 150% without reading frames.
 - **`-PplayServer[=<port>]`** opens a live diagnosis server, so a Claude session can
   question the battle while the owner plays it (`PlayDiagnosis`). See below. Off by

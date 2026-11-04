@@ -53,7 +53,7 @@
   .loadout-team-row { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; }
   .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #091419; overflow: hidden; }
   .loadout-billet.selected { border-color: #e0b957; background-color: #112630; }
-  .loadout-member-name { height: 16px; overflow: hidden; font-family: heading; }
+  .loadout-member-name { height: 16px; overflow: hidden; font-family: compact; }
   .loadout-member-head { flex-direction: row; height: 76px; gap: 6px; }
   .loadout-member-portrait { width: 76px; height: 76px; pointer-events: none; border-width: 1px; border-color: #050809; background-color: #0c1213; }
   /* The kit lines sit in a black well, as the Mech Lab stores do; each is a mount: a stores card's
@@ -64,7 +64,7 @@
   .loadout-part { flex-direction: column; justify-content: center; height: 0px; flex-grow: 1; gap: 1px; padding: 0px 4px; border-width: 2px; border-style: outset; border-color: #294456; background-color: #0b181f; }
   .loadout-part.empty { border-style: solid; background-color: #0b181f55; border-color: #1e313e60; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
-  .loadout-part-label { height: 13px; color: #8995a0; pointer-events: none; }
+  .loadout-part-label { height: 15px; color: #8995a0; pointer-events: none; font-family: small; }
   /* A brick is the one size every fitting room draws hardware at (FittingBricks: 40px on a
      1080-line document); a mount is 1x2, one row of two. */
   .loadout-part-bricks { flex-direction: row; align-items: center; height: 42px; gap: 6px; pointer-events: none; }
@@ -72,7 +72,7 @@
   .loadout-part-brick-change { flex-direction: row; align-items: center; width: 86px; height: 42px; gap: 6px; pointer-events: none; }
   .loadout-part-arrow { width: 10px; height: 10px; pointer-events: none; }
   .loadout-member-stats { flex-direction: column; width: 0px; flex-grow: 1; height: 75px; }
-  .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; }
+  .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; font-family: small; }
   .loadout-stat-label { width: 40px; }
   /* Short of height a billet keeps every stat and draws its kit small, without slot names or a portrait; its bricks and hovers still say what each is. */
   .doc-short .loadout-member-portrait { display: none; }
