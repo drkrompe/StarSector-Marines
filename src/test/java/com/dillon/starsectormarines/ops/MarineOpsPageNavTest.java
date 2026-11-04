@@ -32,6 +32,19 @@ class MarineOpsPageNavTest {
         }
     }
 
+    @Test void theBoardsMarkShowsOnlyFromOtherPagesWhileThereIsWork() {
+        var before = MarineOpsPageNav.workHere;
+        try {
+            MarineOpsPageNav.workHere = () -> true;
+            assertTrue(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.BARRACKS, null, 0f));
+            assertFalse(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.MISSIONS, null, 0f));
+            MarineOpsPageNav.workHere = () -> false;
+            assertFalse(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.BARRACKS, null, 0f));
+        } finally {
+            MarineOpsPageNav.workHere = before;
+        }
+    }
+
     @Test void engineeringIsAlwaysReachableAndHighlightsItsOwnTabAtBothScales() throws Exception {
         for (int width : new int[]{1920, 1280}) {
             int[] visits = {0};

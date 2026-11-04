@@ -126,6 +126,9 @@ final class MarineOpsPageNav {
     /** Whether this dialog has a planet whose work to show; its host says so when it opens. */
     static BooleanSupplier missionsOpen = () -> true;
 
+    /** Whether a contact at this planet has work the company may take; its host says so when it opens. */
+    static BooleanSupplier workHere = () -> false;
+
     private MarineOpsPageNav() {
     }
 
@@ -226,12 +229,18 @@ final class MarineOpsPageNav {
             markup.requireElement(id)
                     .classed("page-nav-absent", available == Aboard.NO)
                     .classed("page-nav-waiting", available == Aboard.UNKNOWN)
-                    .classed("page-nav-attention", available != Aboard.NO && RoomAttention.needed(page, roster, day))
+                    .classed("page-nav-attention", available != Aboard.NO && attention(page, current, roster, day))
                     .classed("page-nav-new", available != Aboard.NO
                             && notices.stream().anyMatch(notice -> notice.page == page))
                     .classed("selected", selected)
                     .classed("page-nav-current", selected);
         }
+    }
+
+    /** The mark on a route. The board's says there is work to see, which is nothing to say on the board itself. */
+    static boolean attention(Page page, Page current, MarineRoster roster, float day) {
+        if (page == Page.MISSIONS) return current != Page.MISSIONS && workHere.getAsBoolean();
+        return RoomAttention.needed(page, roster, day);
     }
 
     private static Page navigationPage(Page page) {

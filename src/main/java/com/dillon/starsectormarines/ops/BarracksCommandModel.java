@@ -64,16 +64,15 @@ public final class BarracksCommandModel {
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
     private int guideStep;
     private Runnable equipmentWorkspace = () -> { };
-    private Runnable missions = () -> { };
+    private Runnable resumeBriefing = () -> { };
     private Consumer<String> editEquipment = id -> { };
-    private boolean localMissions;
+    private boolean boardHere;
     /**
-     * The calling way back to work, a primary-action green. Inline because the theme is the
+     * The mission in progress calling the company back, a primary-action green. Inline because the theme is the
      * cascade's final layer and repaints every button's surface, a class's included.
      */
     static final String MISSION_CALL_STYLE = "background-color: #1a4a30; border-color: #78d494; color: #e8d9a7;";
     private MissionReturn missionReturn = MissionReturn.MISSIONS;
-    private boolean workHere;
     private int page;
     private String feedback = Strings.get("openingBarracksCommandSelectSquadsThenAssignSelectedOnA");
 
@@ -95,12 +94,10 @@ public final class BarracksCommandModel {
         // Each squad card opens its own loadout; this entry exists only for the First Refit offer, which has no squad yet.
         bind(reactor, "equipmentClasses", () -> !FirstRefit.available(roster) ? "hidden"
                 : equipmentUnread() ? "flow-button console-action equipment-new" : "flow-button console-action");
-        props.put("missions", (Runnable) () -> missions.run());
-        bind(reactor, "missionLabel", () -> Strings.get(missionReturn.labelKey(workHere)));
-        bind(reactor, "missionClasses", () -> !localMissions ? "hidden"
-                : missionReturn.calls(workHere) ? "tool-button console-action mission-call"
-                : "tool-button console-action");
-        bind(reactor, "missionStyle", () -> localMissions && missionReturn.calls(workHere) ? MISSION_CALL_STYLE : "");
+        props.put("resumeBriefing", (Runnable) () -> resumeBriefing.run());
+        bind(reactor, "briefingClasses", () -> missionReturn == MissionReturn.BRIEFING
+                ? "tool-button console-action mission-call" : "hidden");
+        props.put("briefingStyle", MISSION_CALL_STYLE);
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier() ? "hidden" : "formation-board panel console-section");
         bind(reactor, "dossierClasses", () -> dossier() ? "officer-dossier panel console-section" : "hidden");
@@ -786,7 +783,7 @@ public final class BarracksCommandModel {
     public String guideTargetId() {
         if (inductionRequired()) return inductionTarget();
         if (lineSquads().isEmpty()) return "barracks-raise-squad";
-        if (guideStep == 3) return localMissions ? "barracks-missions" : "page-nav-return";
+        if (guideStep == 3) return boardHere ? "page-nav-missions" : "page-nav-return";
         if (guideStep <= 1 || selected.isEmpty()) return guideSquadTarget();
         return "barracks-fill-selected";
     }
@@ -817,7 +814,7 @@ public final class BarracksCommandModel {
     private String guideHint() {
         if (inductionRequired()) return inductionHint();
         if (lineSquads().isEmpty()) return Strings.get("openingBarracksCommandStartWithRaiseSquadComeBackHere");
-        if (guideStep == 3) return localMissions ? Strings.get("openingBarracksCommandUseMissionsWhenYouAreReadyFor") : Strings.get("openingBarracksCommandUseReturnWhenYouAreReadyTo");
+        if (guideStep == 3) return boardHere ? Strings.get("openingBarracksCommandUseMissionsWhenYouAreReadyFor") : Strings.get("openingBarracksCommandUseReturnWhenYouAreReadyTo");
         if (selected.isEmpty() || guideStep <= 1) return Strings.get("openingBarracksCommandSelectAReceivingSquadOnTheBoard");
         return Strings.format("openingBarracksCommandFillVacanciesIfNeededOrNextTo", recruitment(Set.copyOf(selected)).replace("\n", Strings.get("separatorPath")));
     }
@@ -831,10 +828,9 @@ public final class BarracksCommandModel {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", Strings.get("openingBarracksCommandGuideUnavailable"), "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
-    /** Where the way back to work leads, and whether a contact at this planet has work the company may take. */
-    public void missionReturn(MissionReturn value, boolean workHere) {
+    /** Where the way back to work leads; a mission in progress shows its own key, as the page bar's route is always the board. */
+    public void missionReturn(MissionReturn value) {
         missionReturn = value;
-        this.workHere = workHere;
         refresh();
     }
     private boolean equipmentUnread() {
@@ -842,9 +838,9 @@ public final class BarracksCommandModel {
                 && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
     }
     public void equipmentWorkspace(Runnable action) { equipmentWorkspace = action; }
-    public void navigation(Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
-        this.editEquipment = editEquipment; this.missions = missions;
-        this.localMissions = localMissions; refresh();
+    public void navigation(Consumer<String> editEquipment, Runnable resumeBriefing, boolean boardHere) {
+        this.editEquipment = editEquipment; this.resumeBriefing = resumeBriefing;
+        this.boardHere = boardHere; refresh();
     }
     private static Map<String, Object> row(Object... pairs) {
         Map<String, Object> result = new LinkedHashMap<>();

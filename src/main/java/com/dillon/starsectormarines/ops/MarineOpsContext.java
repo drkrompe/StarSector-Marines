@@ -864,6 +864,11 @@ public class MarineOpsContext {
 
     /** Magic factionId for the synthetic debug client. {@link MissionGenerator} branches on this. */
     public static final String DEBUG_CLIENT_FACTION_ID = "marines_debug_client";
+
+    /** Whether a contact at this planet has work the company may take. */
+    boolean workHere() {
+        return clients.stream().anyMatch(client -> !client.locked && !DEBUG_CLIENT_FACTION_ID.equals(client.factionId));
+    }
     /** Local mission-only client for a committed civilian distress response. */
     public static final String DISTRESS_CLIENT_FACTION_ID =
             "marines_distress_net_client";

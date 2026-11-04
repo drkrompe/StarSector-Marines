@@ -123,7 +123,7 @@ them.
   corner, its top right rounded and a silver wedge rising at its top left so it reads as built
   into the frame, with one route in each of its nine slots, each about the size of the base
   game's own (148x30). Past 100% UI scale, where everything is already drawn larger, a compact
-  holder (`page-bar-compact.svg`) takes over. A tenth route means redrawing both. Missions is one of the routes, the contract board, absent in space since the board is the work at a planet; a dialog opened at a planet starts there, one opened from the map at HQ. A page's root does not clip, so the bar can reach that corner.
+  holder (`page-bar-compact.svg`) takes over. A tenth route means redrawing both. Missions is one of the routes, the contract board, absent in space since the board is the work at a planet, and marked from other pages while a contact there has work the company may take; a dialog opened at a planet starts there, one opened from the map at HQ. A page's root does not clip, so the bar can reach that corner.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar, each setting a compact card in a grid. Each is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the
