@@ -54,6 +54,34 @@ class DozerBladeTest {
         assertTrue(DozerBlade.canPush(grid, topology, null, 4, 1), "a fortified wall worn under the threshold");
     }
 
+    @Test void ceilingAndRateGoByWeightThenByBlade() {
+        assertEquals(DozerBlade.ULTRA_HEAVY_CEILING, DozerBlade.ceiling(VehicleType.Weight.ULTRA_HEAVY, false));
+        assertEquals(DozerBlade.ULTRA_HEAVY_PER_SECOND, DozerBlade.rate(VehicleType.Weight.ULTRA_HEAVY, false));
+        assertEquals(DozerBlade.MAX_PUSH_STRUCTURE, DozerBlade.ceiling(VehicleType.DOZER_BREACHER));
+        assertEquals(DozerBlade.PUSH_PER_SECOND, DozerBlade.rate(VehicleType.DOZER_BREACHER));
+        for (VehicleType.Weight weight : new VehicleType.Weight[]{
+                VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM, VehicleType.Weight.HEAVY}) {
+            assertEquals(0, DozerBlade.ceiling(weight, false), "no wall falls to a bladeless " + weight + " hull");
+            assertEquals(0f, DozerBlade.rate(weight, false), weight.name());
+        }
+        assertTrue(DozerBlade.ULTRA_HEAVY_CEILING < 150, "a fortified wall holds against weight alone");
+    }
+
+    @Test void aHullBearsOnItsOwnWidthAndTheDozerOnItsBlade() {
+        assertEquals(DozerBlade.BLADE_WIDTH_CELLS, DozerBlade.bearingWidth(VehicleType.DOZER_BREACHER));
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+        assertEquals(tank.visualWidthCells, DozerBlade.bearingWidth(tank));
+    }
+
+    @Test void theCeilingDecidesWhatIsPushable() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 1, 1, 80);
+        assertTrue(DozerBlade.canPush(grid, topology, null, 1, 1, 80));
+        assertFalse(DozerBlade.canPush(grid, topology, null, 1, 1, 79));
+        assertFalse(DozerBlade.canPush(grid, topology, null, 1, 1, 0), "a hull with no ceiling pushes nothing");
+    }
+
     @Test void pushesSandbagBarricades() throws Exception {
         TileRegistry previous = TileRegistry.installed();
         TileRegistry registry = new TileRegistry();

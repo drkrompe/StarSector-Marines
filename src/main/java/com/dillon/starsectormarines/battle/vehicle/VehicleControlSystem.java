@@ -58,6 +58,8 @@ public final class VehicleControlSystem {
     /** Hulls that can't act this tick: a Brute's charge stalls them ({@code colony-breach-nouns.md}, Brute). */
     private LongPredicate stalled = id -> false;
     private HoverSkirt skirt;
+    /** A hover hull heavy enough to crush: its skirt's view laid over the tracks' crush view. */
+    private HoverSkirt heavySkirt;
     /** Heavy-lift hulls' tracks, or {@code null} where no map editor is wired: such a hull then drives the live grid. */
     private HeavyTracks tracks;
     /** Medium and heavy hulls' ramming of light barricades, or {@code null} where it is switched off. */
@@ -104,22 +106,30 @@ public final class VehicleControlSystem {
      * ({@link BarricadeRam}), else the grid it moves over.
      */
     NavigationGrid planningGrid(VehicleType type) {
-        if (blade != null && type.hasBlade()) return blade.planningGrid();
-        return rams(type) ? ram.planningGrid(type) : motionGrid(type);
+        if (crushesWalls(type)) return blade.planningGrid(type, motionGrid(type));
+        // A ramming hover hull's barricades are not in its skirt's view: it rams what it meets but plans round them.
+        return rams(type) && !type.isHover() ? ram.planningGrid(type) : motionGrid(type);
     }
+
+    private boolean crushesWalls(VehicleType type) { return blade != null && type.crushesWalls(); }
 
     /**
      * The grid a hull physically moves over: the skirt's hover view for a hover hull, which really does float over
-     * the water it opens ({@link HoverSkirt}); the tracks' crush view for a heavy-lift hull, whose undergrowth gives
-     * as it is driven into ({@link HeavyTracks}); else the live grid — a dozer's wall is there until it is pushed
-     * down.
+     * the water it opens ({@link HoverSkirt}), laid over the crush view for one heavy enough to crush; the tracks'
+     * crush view for a heavier hull, whose undergrowth gives as it is driven into ({@link HeavyTracks}); else the
+     * live grid — a crushing hull's wall is there until it is pushed down.
      */
     NavigationGrid motionGrid(VehicleType type) {
+        boolean crushes = tracks != null && type.crushesUndergrowth();
         if (type.isHover()) {
+            if (crushes) {
+                if (heavySkirt == null) heavySkirt = new HoverSkirt(navigation, tracks);
+                return heavySkirt.motionGrid();
+            }
             if (skirt == null) skirt = new HoverSkirt(navigation);
             return skirt.motionGrid();
         }
-        if (tracks != null && type.crushesUndergrowth()) return tracks.motionGrid();
+        if (crushes) return tracks.motionGrid();
         return navigation.getGrid();
     }
 
@@ -133,8 +143,8 @@ public final class VehicleControlSystem {
 
     /** The route cost a hull's own move-order proof pays. */
     TerrainCostField costField(VehicleType type) {
-        if (type.isHover()) return HoverSkirt.costField(navigation.getTopology());
-        TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
+        TerrainCostField cost = type.isHover() ? HoverSkirt.costField(navigation.getTopology())
+                : TerrainCostField.from(navigation.getTopology());
         if (tracks != null && type.crushesUndergrowth()) cost = HeavyTracks.costField(navigation.getGrid(), cost);
         return rams(type) ? ram.costField(type, cost) : cost;
     }
@@ -1380,7 +1390,7 @@ public final class VehicleControlSystem {
     }
 
     private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
-        return blade != null && type.hasBlade() && blade.push(body, type, s, dt);
+        return crushesWalls(type) && blade.push(body, type, s, dt);
     }
 
     /**
@@ -1389,7 +1399,7 @@ public final class VehicleControlSystem {
      */
     private boolean bladeGrinds(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
         if (rams(type)) return ram.shove(body, type, s, dt);
-        return blade != null && type.hasBlade() && blade.grind(body, type, s, dt);
+        return crushesWalls(type) && blade.grind(body, type, s, dt);
     }
 
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,

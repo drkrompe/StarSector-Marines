@@ -62,7 +62,7 @@ public record MachineCapabilities(boolean armed, boolean fedWeapons, boolean dro
         StructureDef fitted = VehicleGun.fit(type, weapon);
         boolean fed = fed(weapon) || fitted != null && fitted.mount.ammoCapacity > 0;
         // The gun tanks' rear flanks take the launchers (the Onager and the laser tank, not the dozer).
-        boolean pointDefenceHost = type.isTank() && type.weight() == VehicleType.Weight.HEAVY;
+        boolean pointDefenceHost = type.isTank() && type.weight().atLeast(VehicleType.Weight.HEAVY);
         return new MachineCapabilities(true, fed, droneHost, pointDefenceHost);
     }
 

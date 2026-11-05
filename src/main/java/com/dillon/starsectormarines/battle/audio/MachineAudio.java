@@ -163,6 +163,7 @@ public final class MachineAudio {
         if (was == null || count <= was || !heard) return;
         float hit = throttle(impactSpeed, type.maxSpeed);
         float pitch = switch (type.weight()) {
+            case ULTRA_HEAVY -> .7f;
             case HEAVY -> .8f;
             case MEDIUM -> .95f;
             case LIGHT -> 1.15f;
