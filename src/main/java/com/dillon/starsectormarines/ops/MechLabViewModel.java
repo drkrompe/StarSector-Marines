@@ -565,11 +565,6 @@ public final class MechLabViewModel {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             return recipe != null ? recipe.displayName() : Strings.get("openingMechLabSelectAPattern");
         }));
-        props.put("buildKind", reactor.computed(() -> {
-            MechFabricationCatalog.Recipe recipe = previewRecipe();
-            if (recipe == null) return "";
-            return Strings.get(recipe.variant() != null ? "openingMechLabChassis" : "openingMechLabVehicle");
-        }));
         // A chassis's default role; a hull has none, and comes with no gun to name in its place.
         props.put("buildRole", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
@@ -1691,7 +1686,7 @@ public final class MechLabViewModel {
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
             rows.add(catalogRow(base, "catalog-preview", variant, null, null, null, patternClasses(recipe),
-                    recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge fabrication",
+                    recipe.displayName(), "", "catalog-badge hidden",
                     Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabFrameStats", Math.round(variant.armorCapacity), Math.round(variant.maxStructure)),
                     "", "catalog-delta hidden",
@@ -1719,7 +1714,7 @@ public final class MechLabViewModel {
             if (type == null) continue;
             String base = "mech-catalog:" + recipe.id();
             rows.add(catalogRow(base, "catalog-preview", null, null, null, type, patternClasses(recipe),
-                    recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge fabrication",
+                    recipe.displayName(), "", "catalog-badge hidden",
                     Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",

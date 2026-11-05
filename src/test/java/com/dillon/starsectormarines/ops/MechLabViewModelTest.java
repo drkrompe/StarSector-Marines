@@ -531,7 +531,6 @@ class MechLabViewModelTest {
         MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
                 .filter(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.LRM_CARRIER)))
                 .findFirst().orElseThrow();
-        assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
         assertEquals(1, apc.materials().size());
         apc.select().run();
