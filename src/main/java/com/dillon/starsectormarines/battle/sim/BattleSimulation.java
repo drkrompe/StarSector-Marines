@@ -959,6 +959,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public FireField fireFieldIfPresent() { BattleFire made = fire; return made == null ? null : made.field(); }
 
+    @Override
+    public boolean squadRuns(int squadId) { return squadMoveOrders.isRunning(squadId); }
+
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
 
@@ -4606,11 +4609,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
     }
 
-    /** A person out of the fire's way does not walk back into it; see {@link FireEscape#waitsAtEdge}. */
+    /**
+     * A person out of the fire's way does not walk back into it; see {@link FireEscape#waitsAtEdge}. A squad the
+     * player told to run does: the run is his last word on the move.
+     */
     private boolean waitsAtFireEdge(long u) {
         if (fire == null || fire.field().burningCount() == 0) return false;
         UnitType type = identity().type(u);
         if (type.isSwarm() || type.isGroundVehicle() || type.isMachineFrame() || type.isDrone()) return false;
+        Squad squad = squadOf(u);
+        if (squad != null && squadRuns(squad.id)) return false;
         int[] path = world.path(u);
         int next = world.pathIdx(u);
         if (next >= Paths.cellCount(path)) return false;
