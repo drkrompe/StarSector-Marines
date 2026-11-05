@@ -28,11 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 /**
- * Persisted mech-squad and finite subsystem inventory authority. Installed
- * components count against owned stock and a refit returns the target's current
- * component before evaluating the replacement.
+ * Persisted mech-squad and finite subsystem inventory authority. Its stores are spares only, kept as the Shuttle Deck
+ * keeps hers ({@link PartStores}): a refit takes the incoming part off the shelf and stows whatever comes off the
+ * machine, and what is fitted is read off the machines, never counted against the shelf.
  */
 public final class MechBay implements Serializable {
 
@@ -42,8 +43,16 @@ public final class MechBay implements Serializable {
     private List<CampaignMechSquad> squads = new ArrayList<>();
     /** Migration input only: loader stock from before loaders were internals. */
     private Map<String, Integer> ownedReplenishers = new HashMap<>();
+    /** Spare weapon assemblies, by {@link MechWeaponComponent#id}. */
+    private PartStores weaponStores = new PartStores();
+    /** Spare internals, by {@link MechInternal#id}. */
+    private PartStores internalStores = new PartStores();
+    /**
+     * Migration input only: a save from before {@link #weaponStores} counted every weapon owned, fitted ones included.
+     * {@link #readResolve} turns what is not fitted into spares and empties it.
+     */
     private Map<String, Integer> ownedWeapons = new HashMap<>();
-    /** Owned internal assemblies by {@link MechInternal#id}, installed copies included. */
+    /** Migration input only, as {@link #ownedWeapons} is: owned internals, fitted ones included. */
     private Map<String, Integer> ownedInternals = new HashMap<>();
     /**
      * Vehicle kits owned in a save from before every kit became an internal: migration input only, read and emptied by
@@ -171,6 +180,7 @@ public final class MechBay implements Serializable {
         bay.starterPatternsOnly = false;
         bay.knownPatternIds = allPatternIds();
         bay.seedLegacyStarterAssets();
+        bay.settleOwnedCounts();
         return bay;
     }
 
@@ -215,18 +225,11 @@ public final class MechBay implements Serializable {
         return null;
     }
 
-    /**
-     * Acquisition seam for a vehicle: it takes a vacant gantry, and its engine, plating and the internals in its
-     * compartment become the company's, as a mech's internals come with it.
-     */
+    /** Acquisition seam for a vehicle: it takes a vacant gantry with whatever is fitted to it; stores are untouched. */
     public boolean addVehicle(String squadId, CampaignVehicle vehicle) {
         CampaignMechSquad squad = squadById(squadId);
-        if (squad == null || vehicle == null || vehicleById(vehicle.id()) != null
-                || mechById(vehicle.id()) != null || !squad.add(vehicle)) return false;
-        if (vehicle.engine() != null) addInternal(vehicle.engine().id, 1);
-        if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
-        for (MechInternal part : vehicle.compartment()) addInternal(part.id, 1);
-        return true;
+        return squad != null && vehicle != null && vehicleById(vehicle.id()) == null
+                && mechById(vehicle.id()) == null && squad.add(vehicle);
     }
 
     /** Builds one bare hull ({@link CampaignVehicle#hull}) onto a vacant gantry in the selected lance. */
@@ -251,22 +254,15 @@ public final class MechBay implements Serializable {
         if (vehicleIds == null) return 0;
         int lost = 0;
         for (String vehicleId : vehicleIds) {
-            CampaignVehicle vehicle = removeVehicle(vehicleId);
-            if (vehicle == null) continue;
-            // The parts in its compartment, the plating at its armor point and the engine at its core go down with it.
-            if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
-            if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
-            if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
-            for (MechInternal part : vehicle.compartment()) strike(ownedInternals, part.id);
-            lost++;
+            // What is fitted to it goes down with it; the spares on the shelf are untouched.
+            if (removeVehicle(vehicleId) != null) lost++;
         }
         return lost;
     }
 
     /**
-     * Takes a mech off its gantry into the reserve hangar: its fitted parts leave the owned counts
-     * with it, so they never read as spares while it is stored. {@link #addMech} owns them again.
-     * Null when no gantry holds it.
+     * Takes a mech off its gantry into the reserve hangar, its fitted parts with it; stores are untouched. Null when no
+     * gantry holds it.
      */
     CampaignMech stowMech(String mechId) {
         CampaignMech mech = mechById(mechId);
@@ -275,21 +271,12 @@ public final class MechBay implements Serializable {
 
     /** Takes a vehicle off its gantry into the reserve hangar, its parts, plating and engine with it; null when none holds it. */
     CampaignVehicle stowVehicle(String vehicleId) {
-        CampaignVehicle vehicle = removeVehicle(vehicleId);
-        if (vehicle != null) {
-            if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
-            if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
-            if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
-            for (MechInternal part : vehicle.compartment()) strike(ownedInternals, part.id);
-        }
-        return vehicle;
+        return removeVehicle(vehicleId);
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its gun and internals again ({@link #addVehicle}). */
+    /** Puts a stored vehicle back on a vacant gantry with what is fitted to it ({@link #addVehicle}). */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
-        if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
-        if (vehicle.gun() != null) addWeapon(vehicle.gun().id, 1);
-        return true;
+        return canAddMech(squadId) && addVehicle(squadId, vehicle);
     }
 
     /** Takes a vehicle off its gantry; null when no gantry holds it. */
@@ -333,8 +320,8 @@ public final class MechBay implements Serializable {
             for (MechMountSlot slot : MechMountSlot.values()) {
                 MechWeaponComponent lost = report.lostMounts()[slot.ordinal()];
                 if (lost == null || mech.weaponAt(slot) != lost) continue;
+                // Destroyed with its mount: it goes nowhere, not to stores.
                 mech.installWeapon(slot, null);
-                strike(ownedWeapons, lost.id);
                 assembliesLost++;
             }
             MechDamage taken = MechDamage.of(report);
@@ -377,35 +364,76 @@ public final class MechBay implements Serializable {
         CampaignMech mech = mechById(mechId);
         if (mech == null) return false;
         for (CampaignMechSquad squad : squads) {
-            if (squad.mechById(mechId) == mech) return squad.remove(mech);
-        }
-        return false;
-    }
-
-    /** Breaks a vehicle up; its parts stay owned and are spares in stores again. */
-    public boolean scrapVehicle(String vehicleId) {
-        return vehicleId != null && removeVehicle(vehicleId) != null;
-    }
-
-    /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
-    private boolean loseChassis(CampaignMech mech) {
-        for (CampaignMechSquad squad : squads) {
-            if (squad.mechById(mech.id()) != mech || !squad.remove(mech)) continue;
-            for (MechMountSlot slot : MechMountSlot.values()) {
-                MechWeaponComponent component = mech.weaponAt(slot);
-                if (component != null) strike(ownedWeapons, component.id);
-            }
-            for (MechInternal internal : fittedInternals(mech)) strike(ownedInternals, internal.id);
+            if (squad.mechById(mechId) != mech || !squad.remove(mech)) continue;
+            stowAll(fittedParts(mech));
             return true;
         }
         return false;
     }
 
-    private static void strike(Map<String, Integer> owned, String id) {
-        Integer count = owned.get(id);
-        if (count == null) return;
-        if (count <= 1) owned.remove(id);
-        else owned.put(id, count - 1);
+    /** Breaks a vehicle up; what is fitted to it goes to stores as spares. */
+    public boolean scrapVehicle(String vehicleId) {
+        CampaignVehicle vehicle = vehicleId == null ? null : removeVehicle(vehicleId);
+        if (vehicle == null) return false;
+        stowAll(fittedParts(vehicle));
+        return true;
+    }
+
+    /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
+    private boolean loseChassis(CampaignMech mech) {
+        for (CampaignMechSquad squad : squads) {
+            if (squad.mechById(mech.id()) == mech && squad.remove(mech)) return true;
+        }
+        return false;
+    }
+
+    /** What one machine carries, part id by count: its weapons apart from its internals, as stores keep them. */
+    private record Parts(Map<String, Integer> weapons, Map<String, Integer> internals) {
+        Parts() { this(new HashMap<>(), new HashMap<>()); }
+        void weapon(MechWeaponComponent component) { if (component != null) weapons.merge(component.id, 1, Integer::sum); }
+        void internal(MechInternal internal) { if (internal != null) internals.merge(internal.id, 1, Integer::sum); }
+    }
+
+    private static Parts fittedParts(CampaignMech mech) {
+        Parts parts = new Parts();
+        for (MechMountSlot slot : MechMountSlot.values()) parts.weapon(mech.weaponAt(slot));
+        for (MechInternal internal : fittedInternals(mech)) parts.internal(internal);
+        return parts;
+    }
+
+    private static Parts fittedParts(CampaignVehicle vehicle) {
+        Parts parts = new Parts();
+        parts.weapon(vehicle.gun());
+        parts.internal(vehicle.engine());
+        parts.internal(vehicle.plating());
+        for (MechInternal part : vehicle.compartment()) parts.internal(part);
+        return parts;
+    }
+
+    private void stowAll(Parts parts) {
+        parts.weapons().forEach(weaponStores::stow);
+        parts.internals().forEach(internalStores::stow);
+    }
+
+    /**
+     * Settles stores after a refit, by what it changed on the machine: each part that went on was taken off the shelf,
+     * each that came off is stowed. One rule for every fit, strip and move, on a mech and a vehicle alike.
+     */
+    private void settle(Parts before, Parts after) {
+        settle(weaponStores, before.weapons(), after.weapons());
+        settle(internalStores, before.internals(), after.internals());
+    }
+
+    private static void settle(PartStores stores, Map<String, Integer> before, Map<String, Integer> after) {
+        Set<String> ids = new HashSet<>(before.keySet());
+        ids.addAll(after.keySet());
+        for (String id : ids) {
+            int change = after.getOrDefault(id, 0) - before.getOrDefault(id, 0);
+            if (change < 0) stores.stow(id, -change);
+            for (int i = 0; i < change; i++) {
+                if (!stores.take(id)) throw new IllegalStateException("a refit fitted a part stores did not hold: " + id);
+            }
+        }
     }
 
     /** What one battle's writeback did to the bay. */
@@ -417,14 +445,10 @@ public final class MechBay implements Serializable {
         return "support_vehicle_" + String.format(Locale.ROOT, "%02d", serial);
     }
 
-    /** Acquisition seam: a chassis arrives with its currently installed subsystem. */
+    /** Acquisition seam: a chassis arrives with whatever is fitted to it; stores are untouched. */
     public boolean addMech(String squadId, CampaignMech mech) {
         CampaignMechSquad squad = squadById(squadId);
-        if (squad == null || mech == null || mechById(mech.id()) != null
-                || !squad.add(mech)) return false;
-        addInstalledWeapons(mech);
-        addInstalledInternals(mech);
-        return true;
+        return squad != null && mech != null && mechById(mech.id()) == null && squad.add(mech);
     }
 
     public boolean canAddMech(String squadId) {
@@ -453,14 +477,8 @@ public final class MechBay implements Serializable {
     public CampaignMech fabricateFrame(String squadId, MechVariant variant) {
         CampaignMech mech = fabricateChassis(squadId, variant);
         if (mech == null) return null;
-        // fabricateChassis owned the standard fit's parts; a frame never had them.
-        for (MechInternal internal : fittedInternals(mech)) strike(ownedInternals, internal.id);
-        for (MechMountSlot slot : MechMountSlot.values()) {
-            MechWeaponComponent component = mech.weaponAt(slot);
-            if (component != null && !MechFrameBudget.integral(variant, slot)) strike(ownedWeapons, component.id);
-        }
+        // The standard fit's parts were never in stores, so stripping them makes no spares.
         mech.stripToFrame();
-        for (MechInternal internal : fittedInternals(mech)) addInternal(internal.id, 1);
         return mech;
     }
 
@@ -476,8 +494,9 @@ public final class MechBay implements Serializable {
         return mech;
     }
 
+    /** Every copy the company has: the spares and those fitted to machines on the gantries. */
     public int ownedWeapon(String componentId) {
-        return Math.max(0, ownedWeapons.getOrDefault(componentId, 0));
+        return availableWeapon(componentId) + installedWeapon(componentId);
     }
 
     public int installedWeapon(String componentId) {
@@ -497,18 +516,20 @@ public final class MechBay implements Serializable {
         return installed;
     }
 
+    /** The spares in stores. */
     public int availableWeapon(String componentId) {
-        return Math.max(0, ownedWeapon(componentId) - installedWeapon(componentId));
+        return weaponStores.count(componentId);
     }
 
-    /** Acquisition seam for recovered or fabricated weapon assemblies. */
+    /** Acquisition seam for recovered or fabricated weapon assemblies: spares into stores. */
     public void addWeapon(String componentId, int quantity) {
         if (MechWeaponComponent.findById(componentId) == null || quantity <= 0) return;
-        ownedWeapons.merge(componentId, quantity, Integer::sum);
+        weaponStores.stow(componentId, quantity);
     }
 
+    /** Every copy the company has: the spares and those fitted to machines on the gantries. */
     public int ownedInternal(String internalId) {
-        return Math.max(0, ownedInternals.getOrDefault(internalId, 0));
+        return availableInternal(internalId) + installedInternal(internalId);
     }
 
     public int installedInternal(String internalId) {
@@ -538,28 +559,25 @@ public final class MechBay implements Serializable {
         return fitted;
     }
 
+    /** The spares in stores. */
     public int availableInternal(String internalId) {
-        return Math.max(0, ownedInternal(internalId) - installedInternal(internalId));
+        return internalStores.count(internalId);
     }
 
-    /** Acquisition seam for fabricated or recovered internal assemblies. */
+    /** Acquisition seam for fabricated or recovered internal assemblies: spares into stores. */
     public void addInternal(String internalId, int quantity) {
         if (MechInternal.findById(internalId) == null || quantity <= 0) return;
-        ownedInternals.merge(internalId, quantity, Integer::sum);
+        internalStores.stow(internalId, quantity);
     }
 
     /** Takes one spare weapon assembly out of stores; false, and nothing taken, when none is free. */
     public boolean takeWeapon(String componentId) {
-        if (availableWeapon(componentId) <= 0) return false;
-        strike(ownedWeapons, componentId);
-        return true;
+        return weaponStores.take(componentId);
     }
 
     /** Takes one spare internal out of stores; false, and nothing taken, when none is free. */
     public boolean takeInternal(String internalId) {
-        if (availableInternal(internalId) <= 0) return false;
-        strike(ownedInternals, internalId);
-        return true;
+        return internalStores.take(internalId);
     }
 
     /**
@@ -578,7 +596,9 @@ public final class MechBay implements Serializable {
 
     /** As above, at {@code at} (a bay, or a cell) where it will go. */
     public boolean fitRackPart(String vehicleId, MechInternal part, MechCompartment.Spot at) {
-        return canFitRackPart(vehicleId, part) && vehicleById(vehicleId).fitRack(part, at);
+        if (!canFitRackPart(vehicleId, part)) return false;
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return refit(vehicle, () -> vehicle.fitRack(part, at));
     }
 
     /** Takes one bank or vent array off a vehicle's rack back to stores; without a bank it stays off the drop. */
@@ -589,7 +609,7 @@ public final class MechBay implements Serializable {
     /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
     public boolean stripRackPart(String vehicleId, MechInternal part, MechCompartment.Spot from) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.removeRack(part, from);
+        return vehicle != null && refit(vehicle, () -> vehicle.removeRack(part, from));
     }
 
     /** Whether {@code gun} would go in the vehicle's gun card: an armed hull, and a weapon of the card's type and size. */
@@ -608,13 +628,13 @@ public final class MechBay implements Serializable {
                 || availableWeapon(gun.id) <= 0) {
             return false;
         }
-        return vehicle.fitGun(gun);
+        return refit(vehicle, () -> vehicle.fitGun(gun));
     }
 
     /** Takes the weapon out of a vehicle's gun card back to stores; the hull fires its own gun again. */
     public boolean stripGun(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.stripGun();
+        return vehicle != null && refit(vehicle, vehicle::stripGun);
     }
 
     /** Whether {@code engine} would go at the vehicle's engine core: any engine. */
@@ -631,13 +651,13 @@ public final class MechBay implements Serializable {
         if (vehicle == null || !CampaignVehicle.takesEngine(engine) || availableInternal(engine.id) <= 0) {
             return false;
         }
-        return vehicle.fitEngine(engine);
+        return refit(vehicle, () -> vehicle.fitEngine(engine));
     }
 
     /** Takes the engine off a vehicle's engine core back to stores; the hull is incomplete until another is fitted. */
     public boolean stripEngine(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.stripEngine();
+        return vehicle != null && refit(vehicle, vehicle::stripEngine);
     }
 
     /** Whether {@code plating} would go at the vehicle's armor point: any plating, in place of the plate it wears. */
@@ -654,13 +674,13 @@ public final class MechBay implements Serializable {
         if (vehicle == null || !CampaignVehicle.takesPlating(plating) || availableInternal(plating.id) <= 0) {
             return false;
         }
-        return vehicle.fitPlating(plating);
+        return refit(vehicle, () -> vehicle.fitPlating(plating));
     }
 
     /** Takes the plate off a vehicle's armor point back to stores; the hull then stays off the drop until one is fitted. */
     public boolean stripPlating(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.stripPlating();
+        return vehicle != null && refit(vehicle, vehicle::stripPlating);
     }
 
     /**
@@ -710,7 +730,9 @@ public final class MechBay implements Serializable {
         if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) return true;
         if (availableInternal(internal.id) <= 0
                 || !withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) return false;
+        Parts before = fittedParts(mech);
         mech.installInternal(internal.role, internal, at);
+        settle(before, fittedParts(mech));
         return true;
     }
 
@@ -723,9 +745,11 @@ public final class MechBay implements Serializable {
     public boolean stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = mechById(mechId);
         if (mech == null || role == null || mech.internal(role) == null) return false;
-        if (role.compartment()) return mech.removePart(mech.internal(role));
-        mech.installInternal(role, null);
-        return true;
+        if (role.compartment()) return refit(mech, () -> mech.removePart(mech.internal(role)));
+        return refit(mech, () -> {
+            mech.installInternal(role, null);
+            return true;
+        });
     }
 
     /** Takes one {@code part} out of the mech's compartment back to stores. */
@@ -736,7 +760,7 @@ public final class MechBay implements Serializable {
     /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
     public boolean stripPart(String mechId, MechInternal part, MechCompartment.Spot from) {
         CampaignMech mech = mechById(mechId);
-        return mech != null && part != null && part.role.compartment() && mech.removePart(part, from);
+        return mech != null && part != null && part.role.compartment() && refit(mech, () -> mech.removePart(part, from));
     }
 
     /**
@@ -750,20 +774,7 @@ public final class MechBay implements Serializable {
      * @return how many spare components were destroyed
      */
     public int loseSpares() {
-        int destroyed = 0;
-        for (String componentId : new ArrayList<>(ownedWeapons.keySet())) {
-            int installed = installedWeapon(componentId);
-            destroyed += Math.max(0, ownedWeapon(componentId) - installed);
-            if (installed <= 0) ownedWeapons.remove(componentId);
-            else ownedWeapons.put(componentId, installed);
-        }
-        for (String internalId : new ArrayList<>(ownedInternals.keySet())) {
-            int installed = installedInternal(internalId);
-            destroyed += Math.max(0, ownedInternal(internalId) - installed);
-            if (installed <= 0) ownedInternals.remove(internalId);
-            else ownedInternals.put(internalId, installed);
-        }
-        return destroyed;
+        return weaponStores.clear() + internalStores.clear();
     }
 
     public boolean canInstallWeapon(String mechId, MechMountSlot slot, String componentId) {
@@ -792,7 +803,9 @@ public final class MechBay implements Serializable {
         if (component == mech.weaponAt(slot)) return true;
         if (availableWeapon(componentId) <= 0
                 || !withinBudget(mechId, mech.fit().withWeapon(slot, component))) return false;
+        Parts before = fittedParts(mech);
         mech.installWeapon(slot, component);
+        settle(before, fittedParts(mech));
         observeLabFit();
         return true;
     }
@@ -809,8 +822,10 @@ public final class MechBay implements Serializable {
                 mech.variant()).socket(socketId);
         if (socket == null || socket.factoryLocked()) return false;
         if (mech.weaponAt(slot) == null) return false;
-        mech.installWeapon(slot, null);
-        return true;
+        return refit(mech, () -> {
+            mech.installWeapon(slot, null);
+            return true;
+        });
     }
 
     /**
@@ -883,21 +898,39 @@ public final class MechBay implements Serializable {
         activeSquadId = squad.id();
         // The legacy starter shipped with a spare accelerated loader beside the fitted one.
         ownedInternals.merge(MechInternal.ACCELERATED_LOADER.id, 1, Math::max);
+        // Written as the old owned counts, fitted parts included, and settled into spares after (settleOwnedCounts).
         for (CampaignMech mech : squad.mechs()) {
-            addInstalledWeapons(mech);
-            addInstalledInternals(mech);
+            Parts parts = fittedParts(mech);
+            parts.weapons().forEach((id, count) -> ownedWeapons.merge(id, count, Integer::sum));
+            parts.internals().forEach((id, count) -> ownedInternals.merge(id, count, Integer::sum));
         }
     }
 
-    private void addInstalledInternals(CampaignMech mech) {
-        for (MechInternal internal : fittedInternals(mech)) addInternal(internal.id, 1);
+    /** Runs one refit on a mech and settles stores by what it changed; false, and nothing settled, when it refused. */
+    private boolean refit(CampaignMech mech, BooleanSupplier change) {
+        Parts before = fittedParts(mech);
+        if (!change.getAsBoolean()) return false;
+        settle(before, fittedParts(mech));
+        return true;
     }
 
-    private void addInstalledWeapons(CampaignMech mech) {
-        for (MechMountSlot slot : MechMountSlot.values()) {
-            MechWeaponComponent component = mech.weaponAt(slot);
-            if (component != null) addWeapon(component.id, 1);
-        }
+    /** As {@link #refit(CampaignMech, BooleanSupplier)}, on a vehicle. */
+    private boolean refit(CampaignVehicle vehicle, BooleanSupplier change) {
+        Parts before = fittedParts(vehicle);
+        if (!change.getAsBoolean()) return false;
+        settle(before, fittedParts(vehicle));
+        return true;
+    }
+
+    /**
+     * Turns the old owned counts, fitted copies included, into spares: what the gantries do not carry is on the
+     * shelf. Empties them, so it settles a save once.
+     */
+    private void settleOwnedCounts() {
+        ownedWeapons.forEach((id, owned) -> weaponStores.stow(id, (owned == null ? 0 : owned) - installedWeapon(id)));
+        ownedInternals.forEach((id, owned) -> internalStores.stow(id, (owned == null ? 0 : owned) - installedInternal(id)));
+        ownedWeapons.clear();
+        ownedInternals.clear();
     }
 
     private int nextAvailableSerial() {
@@ -963,6 +996,7 @@ public final class MechBay implements Serializable {
             return true;
         });
         renamed.forEach((id, count) -> ownedWeapons.merge(id, count, Integer::sum));
+        weaponStores.rekey(id -> MechWeaponComponent.findById(id) == null ? id : MechWeaponComponent.findById(id).id);
         Set<String> patterns = new HashSet<>();
         knownPatternIds.removeIf(id -> {
             if (!id.startsWith(MechPattern.PREFIX + "weapon:")) return false;
@@ -980,6 +1014,8 @@ public final class MechBay implements Serializable {
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         if (ownedInternals == null) ownedInternals = new HashMap<>();
         if (ownedKits == null) ownedKits = new HashMap<>();
+        if (weaponStores == null) weaponStores = new PartStores();
+        if (internalStores == null) internalStores = new PartStores();
         retireArmorKits();
         retireKitsToInternals();
         ownedKits.clear();
@@ -991,6 +1027,7 @@ public final class MechBay implements Serializable {
         // A retired weapon (the light rocket pod, the pre-rename SRM-3 (QS) id) is dropped from stores and patterns;
         // a mech still holding one falls back to its chassis's stock weapon (CampaignMech.resolve).
         ownedWeapons.keySet().removeIf(id -> MechWeaponComponent.findById(id) == null);
+        weaponStores.dropIf(id -> MechWeaponComponent.findById(id) == null);
         knownPatternIds.removeIf(id -> id.startsWith(MechPattern.PREFIX + "weapon:") && MechPattern.parse(id) == null);
         // A renamed weapon (the cannons and lasers before their <Family>-<N> names, the linear cannon now the HC-10) is carried
         // over to its successor's id in stores and patterns; a mech's fitted id resolves the same way (findById).
@@ -1017,6 +1054,8 @@ public final class MechBay implements Serializable {
             int installed = installedInternal(internal.id);
             if (installed > 0) ownedInternals.merge(internal.id, installed, Math::max);
         }
+        // A save from before spares were kept apart counted fitted copies as owned: what is not fitted is a spare.
+        settleOwnedCounts();
         if (labLesson == 0 && mechById(WaylineHound.ID) != null) beginLabLesson();
         // The lesson ends at the first fit; a save inside the retired refit or ready steps has already fitted.
         if (labLesson == 3 || labLesson == 4) labLesson = 5;
@@ -1031,8 +1070,11 @@ public final class MechBay implements Serializable {
         if (component == null || mech.weaponAt(target) != null
                 || !canInstallWeapon(mechId, source, component.id)
                 || !canInstallWeapon(mechId, target, component.id)) return false;
-        mech.installWeapon(target, component);
-        mech.installWeapon(source, null);
+        refit(mech, () -> {
+            mech.installWeapon(target, component);
+            mech.installWeapon(source, null);
+            return true;
+        });
         observeLabFit();
         return true;
     }
