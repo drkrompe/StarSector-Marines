@@ -2,8 +2,8 @@
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">{i18n.openingUiArmorySquadDoctrineLoadouts}</div>
-      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">{i18n.openingUiArmorySquadDoctrineWeaponLoadouts}</button>
-      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">{i18n.openingUiArmorySquadDoctrineTacticSheets}</button>
+      <button id="show-weapon-picker" accesskey="1" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">{i18n.openingUiArmorySquadDoctrineWeaponLoadouts}</button>
+      <button id="show-armor-picker" accesskey="2" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">{i18n.openingUiArmorySquadDoctrineTacticSheets}</button>
     </div>
 
     <div id="loadout-browser-tools">
