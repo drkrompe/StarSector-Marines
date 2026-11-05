@@ -23,6 +23,24 @@ class CompanyMechLedgerTest {
         assertEquals(List.of(), ledger.damage());
     }
 
+    @Test void everyLandedMechIsFieldedButOnlyAnOwnedOneWritesBack() {
+        CompanyMechLedger ledger = new CompanyMechLedger();
+        MechLoadoutComponent owned = bulwark();
+        MechLoadoutComponent supplied = bulwark();
+        ledger.land("owned", "Rook", owned);
+        ledger.land(null, null, supplied);
+        hit(supplied.sectionsFor(710f, 710f, 300f, 300f), MechSection.LEFT_SHOULDER, 120f);
+
+        List<CompanyMechLedger.Fielded> fielded = ledger.fielded();
+
+        assertEquals(2, fielded.size());
+        assertEquals("Rook", fielded.get(0).displayName());
+        assertEquals(1f, fielded.get(0).report().structureFraction()[MechSection.TORSO.ordinal()]);
+        assertTrue(fielded.get(0).report().fitted()[MechSection.LEFT_SHOULDER.ordinal()]);
+        assertTrue(fielded.get(1).report().destroyed()[MechSection.LEFT_SHOULDER.ordinal()]);
+        assertEquals(List.of(), ledger.damage());
+    }
+
     @Test void aHitMechReportsItsSectionsAndLostMounts() {
         CompanyMechLedger ledger = new CompanyMechLedger();
         MechLoadoutComponent loadout = bulwark();

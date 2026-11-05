@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
-import com.dillon.starsectormarines.battle.power.CloseAirSupport;
-import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.DamageDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -20,10 +17,10 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The briefing's air cover as pictures: one plan per aircraft type the fleet sends, with how many aircraft it
- * puts up. Aircraft are a standing strength, not a stock of sorties: one flies from each carrier bay and one
- * per gunship, so the count is airframes. Fighter wings come from every carrier aboard and close air support from a gunship in the fleet; both
- * are what the company brings, not choices, so nothing here toggles. Words are in each tile's hover.
+ * The briefing's air cover as pictures: one plan per fighter type the carriers send, with how many aircraft it
+ * puts up. Aircraft are a standing strength, not a stock of sorties: one flies from each carrier bay, so the count
+ * is airframes. Wings come from every carrier aboard and are what the company brings, not choices, so nothing here
+ * toggles. Words are in each tile's hover. A gunship is called in battle, so it is fleet support, not air cover.
  */
 final class BriefingAir {
 
@@ -44,14 +41,8 @@ final class BriefingAir {
         }
     }
 
-    /**
-     * Fighter types in the order the carriers first carry them, one aircraft a bay, then the gunship when the
-     * mission resolved close air support: one for each fleet ship that brings it, or one the contract lends.
-     *
-     * @param gunshipShips names of the committed fleet ships whose presence brings close air support
-     */
-    static List<Craft> read(List<PlayerFleetWings.CarrierBay> carriers, List<CommandPower> powers,
-                            List<String> gunshipShips) {
+    /** Fighter types in the order the carriers first carry them, one aircraft a bay. */
+    static List<Craft> read(List<PlayerFleetWings.CarrierBay> carriers) {
         Map<FighterProfile, Integer> aircraft = new LinkedHashMap<>();
         Map<FighterProfile, List<String>> sources = new LinkedHashMap<>();
         for (PlayerFleetWings.CarrierBay carrier : carriers == null ? List.<PlayerFleetWings.CarrierBay>of() : carriers) {
@@ -69,18 +60,6 @@ final class BriefingAir {
                     Strings.upper(name), entry.getValue(), new SpecSheet(name,
                     Strings.format("briefingAirWingRole", entry.getValue()), null, "command", List.of(),
                     List.of(Strings.format("briefingAirFrom", String.join(", ", sources.get(profile)))))));
-        }
-        for (CommandPower power : powers == null ? List.<CommandPower>of() : powers) {
-            if (!(power instanceof CloseAirSupport)) continue;
-            String name = ShuttleType.MUDSKIPPER.displayName();
-            List<String> ships = gunshipShips == null ? List.of() : gunshipShips;
-            int count = Math.max(1, ships.size());
-            List<String> notes = new ArrayList<>(List.of(Strings.get("briefingAirGunshipNote")));
-            if (!ships.isEmpty()) notes.add(Strings.format("briefingAirFrom", String.join(", ", ships)));
-            crafts.add(new Craft("briefing-air-gunship", DamageDollCanvas.GUNSHIP_DOLL, Strings.upper(name),
-                    count, new SpecSheet(name, Strings.format("briefingAirGunshipRole", count),
-                    null, "command", List.of(), List.copyOf(notes))));
-            break;
         }
         return List.copyOf(crafts);
     }

@@ -9,23 +9,18 @@ import com.fs.starfarer.api.campaign.FleetAssignment;
  */
 public enum HostileFleetStatus {
     /** On station, patrolling or defending: it will answer. */
-    AVAILABLE("hostileShipStatusAvailable"),
+    AVAILABLE,
     /** In a battle already, with anyone (including the player). */
-    IN_BATTLE("hostileShipStatusInBattle"),
+    IN_BATTLE,
     /** Despawning, or returning to a base to despawn. */
-    DESPAWNING("hostileShipStatusDespawning"),
+    DESPAWNING,
     /** The fleet's own AI is fleeing. */
-    FLEEING("hostileShipStatusFleeing"),
+    FLEEING,
     /**
      * Committed elsewhere: flagged busy, intercepting, following, raiding, delivering, resupplying,
      * or travelling or attacking somewhere other than the target world.
      */
-    BUSY("hostileShipStatusBusy");
-
-    /** Strings key of the short phrase that names this state. */
-    public final String stringsKey;
-
-    HostileFleetStatus(String stringsKey) { this.stringsKey = stringsKey; }
+    BUSY;
 
     public boolean free() { return this == AVAILABLE; }
 

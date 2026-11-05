@@ -109,7 +109,7 @@
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
             <button id="{squad.markId}" class="{squad.selectClasses}" disabled="{squad.disabled}" onclick="{squad.toggle}">
-              <canvas id="{squad.musterId}" class="formation-muster" width="260" height="78" />
+              <canvas id="{squad.musterId}" class="formation-muster" width="260" height="82" />
               <div id="{squad.cardsId}" class="card-faces">
                 <armory-card-chip chip="{squad.weaponCard}" />
                 <armory-card-chip chip="{squad.armorCard}" />
@@ -156,13 +156,13 @@
 </template>
 
 <style>
-  .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
-  .doc-narrow .header-stock-slot { width: 220px; }
+  /* Fitted to its two figures: marines and credits, room for a credit balance in the billions. */
+  .header-stock-slot { flex-direction: row; justify-content: flex-end; align-items: center; width: 340px; height: 46px; }
   .barracks-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   .section-heading { height: 19px; }
-  .barracks-room-bar { flex-direction: row; height: 54px; padding: 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  .barracks-room-bar { flex-direction: row; height: 54px; padding: 4px 8px 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
   .issue-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
   #barracks-issue-stock-title { width: 92px; height: 18px; }
   .issue-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }
@@ -201,9 +201,9 @@
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 190px; gap: 6px; padding: 8px; border-width: 2px; border-color: #3a5f77; background-color: #0c1b23; }
+  .formation { flex-direction: column; width: 260px; height: 194px; gap: 6px; padding: 8px; border-width: 2px; border-color: #3a5f77; background-color: #0c1b23; }
   .formation.selected { border-color: #dfc588; background-color: #122935; }
-  .formation-select { flex-direction: column; width: 100%; height: 156px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #0c1b23; }
+  .formation-select { flex-direction: column; width: 100%; height: 160px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #0c1b23; }
   .formation-select:hover { background-color: #112732; }
   .formation.selected .formation-select { background-color: #122935; }
   .formation.stationed .formation-select { opacity: 1; }
@@ -218,7 +218,7 @@
   .fill-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
   .good { color: #a9b8c5; }
-  .formation-muster { width: 260px; height: 78px; pointer-events: none; }
+  .formation-muster { width: 260px; height: 82px; pointer-events: none; }
   .raise-tile { border-color: #2b4658; background-color: #081217; }
   .raise-tile:hover { border-color: #dfc588; background-color: #0c1b23; }
   .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }
@@ -232,7 +232,7 @@
   .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 28px; padding: 0px 6px; gap: 6px; border-width: 1px; border-color: #315166; background-color: #060e12; overflow: hidden; }
   .raise-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 4px; }
   .raise-cost-icon { width: 22px; height: 22px; pointer-events: none; }
-  .raise-cost-count { width: 0px; flex-grow: 1; height: 18px; color: #dfc588; }
+  .raise-cost-count { width: 0px; flex-grow: 1; height: 18px; color: #dfc588; font-family: small; }
   .raise-cost.short .raise-cost-count { color: #eea296; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
   .loadout-button { width: 96px; height: 28px; padding: 2px 4px; }

@@ -166,6 +166,8 @@ public class MarineOpsContext {
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
+    /** The answer to {@link #workHere}, kept because the page bar asks every frame; dropped with the missions. */
+    private Boolean workHere;
 
     private CompanyDeck companyDeck;
     /** The ship {@link #companyDeck} was generated for, so a transfer rebuilds it. */
@@ -549,6 +551,8 @@ public class MarineOpsContext {
         }
         if (screen == ScreenId.BARRACKS && CompanyPreparation.required(roster))
             officerInductionRequested = true;
+        // The board is shown greyed while there is nothing on it, and however a route gets there, HQ stands in.
+        if (screen == ScreenId.MISSION_SELECT && !boardOpen()) screen = ScreenId.COMPANY_HQ;
         if (screen == ScreenId.MISSION_SELECT) storyRetry.reset();
         this.currentScreen = screen;
     }
@@ -824,6 +828,7 @@ public class MarineOpsContext {
         marineSquadSelectionInitialized = false;
         marineDeploymentCapacity = 0;
         missionsByClient.clear();
+        workHere = null;
     }
 
     /**
@@ -862,12 +867,32 @@ public class MarineOpsContext {
         return generated;
     }
 
+    /** Whether the board has anything to show: work at this planet, a hostile contact, or the debug client the Debug key lists at a market. */
+    boolean boardOpen() {
+        return planet != null && (boardHasContent(clients, workHere()) || Cheats.enabled() && market != null);
+    }
+
+    /** A contact that will not deal with the company still has a place on the board, though it is no work to mark the tab for. */
+    static boolean boardHasContent(List<Client> clients, boolean work) {
+        return work || clients.stream().anyMatch(client -> client.locked);
+    }
+
     /** Magic factionId for the synthetic debug client. {@link MissionGenerator} branches on this. */
     public static final String DEBUG_CLIENT_FACTION_ID = "marines_debug_client";
 
     /** Whether a contact at this planet has work the company may take. */
     boolean workHere() {
-        return clients.stream().anyMatch(client -> !client.locked && !DEBUG_CLIENT_FACTION_ID.equals(client.factionId));
+        if (workHere == null) workHere = clients.stream().anyMatch(client -> offersWork(client, getMissionsFor(client)));
+        return workHere;
+    }
+
+    /**
+     * Whether a contact has anything to take: a contract, or the stationing a patron or the
+     * company's own colony offers instead. A broker listed only to refer the company elsewhere has not.
+     */
+    static boolean offersWork(Client client, List<Mission> contracts) {
+        if (client.locked || DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) return false;
+        return !contracts.isEmpty() || isPolityClient(client) || client.patronHouseId != -1L;
     }
     /** Local mission-only client for a committed civilian distress response. */
     public static final String DISTRESS_CLIENT_FACTION_ID =

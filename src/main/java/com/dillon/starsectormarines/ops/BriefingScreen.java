@@ -39,7 +39,6 @@ import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
-import com.dillon.starsectormarines.ops.detachment.HostileShipIntel;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
@@ -66,7 +65,6 @@ import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -504,9 +502,6 @@ public class BriefingScreen implements Screen {
             return BriefingViewModel.withEmptyStyles(props);
         }
 
-        props.put("missionKicker", Strings.join("separatorDot", SupplyRouteCampaign.operationLabel(mission),
-                Strings.format("briefingUiKickerRisk", Strings.upper(Strings.get(mission.risk.displayKey))),
-                Strings.get("missionSelectTier" + mission.tier.name())));
         props.put("missionTitle", mission.name);
         narration.put(props);
         WaylineNarration.Line briefingLine = displayedBriefingNarration();
@@ -517,7 +512,6 @@ public class BriefingScreen implements Screen {
         }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         MissionDialogue.put(props, "mission", mission);
-        props.put("missionRows", retainedMissionRows());
         BriefingViewModel.putReward(props, mission);
         putFactionIdentities(props, mission);
         PreparedSurvey preparedSurvey = survey.peek();
@@ -569,9 +563,9 @@ public class BriefingScreen implements Screen {
         props.put("powerRows", retainedPowerRows());
         props.put("powerEmpty", cachedAvailablePowers.stream().allMatch(CommandDeck::implied)
                 ? Strings.get("briefingUiNoPowers") : "");
-        props.put("sourceRows", retainedSourceRows());
-        props.put("sourceEmpty", cachedPowerSources.isEmpty()
-                ? Strings.get("briefingUiNoPowerSources") : "");
+        List<BriefingViewModel.ChoiceRow> sourceRows = retainedSourceRows();
+        props.put("sourceRows", sourceRows);
+        props.put("sourceEmpty", sourceRows.isEmpty() ? Strings.get("briefingUiNoPowerSources") : "");
         BriefingViewModel.putLandingCraft(props, mission, lift(),
                 debug && ctx.getDebugCompanyRoster() != null ? ctx.getDebugCompanyRoster().lineReadySoldiers().size()
                         : readiness != null ? readiness.selectedReady() : 0,
@@ -588,7 +582,7 @@ public class BriefingScreen implements Screen {
         }
         BriefingLift.Readout liftReadout = liftReadout(mission);
         BriefingLift.put(props, liftReadout);
-        BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
+        BriefingAir.put(props, BriefingAir.read(cachedCarriers));
         putRetainedActions(props, mission, readiness);
         putDeployLamps(props, mission, readiness, liftReadout);
         return BriefingViewModel.withEmptyStyles(props);
@@ -643,13 +637,6 @@ public class BriefingScreen implements Screen {
         debugDrawerExpanded = !debugDrawerExpanded;
         rebuild();
         document.requestFocus(markupInstance.requireElement("mission-debug-toggle"), keyboardFocus);
-    }
-
-    private List<BriefingViewModel.InfoRow> retainedMissionRows() {
-        String hostileShip = surveyPlan == null ? null
-                : HostileShipIntel.line(surveyPlan.hostileShip(), Strings::get);
-        return hostileShip == null ? List.of()
-                : List.of(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedTermActions(Mission mission) {
@@ -1081,9 +1068,19 @@ public class BriefingScreen implements Screen {
             PlayerFleetPowerSources.SourceShip source = cachedPowerSources.get(i);
             boolean committed = !deselectedPowerSources.contains(source.memberId);
             rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + i,
-                    "choice-row" + (committed ? " selected" : ""),
-                    source.shipName, summarizePowers(source.powers), false,
-                    () -> togglePowerSource(source.memberId), source.spriteName));
+                    "choice-row source-tile" + (committed ? " selected" : ""),
+                    source.shipName, "", false,
+                    () -> togglePowerSource(source.memberId), source.spriteName,
+                    SpecSheets.fleetSupport(source.shipName, source.spriteName, source.powers)));
+        }
+        // A contract's gunship, a debug mission or the cheat brings fleet support with no ship to hold back.
+        for (CommandPower power : cachedAvailablePowers) {
+            if (!CommandDeck.fleetSupport(power) || cachedPowerSources.stream()
+                    .anyMatch(source -> source.powers.stream().anyMatch(p -> p.id.equals(power.id)))) continue;
+            rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + power.id, "choice-row source-tile selected",
+                    power.displayName, "", false, () -> { }, SpecSheets.fleetSupportSprite(power),
+                    SpecSheets.fleetSupport(Strings.get("briefingVmSourceHeader"),
+                            SpecSheets.fleetSupportSprite(power), List.of(power))));
         }
         return List.copyOf(rows);
     }
@@ -1137,7 +1134,7 @@ public class BriefingScreen implements Screen {
                         : readiness != null ? Strings.upper(Strings.format("briefingUiAssignShortfall", readiness.selectedShortfall()))
                         : Strings.upper(Strings.get("briefingUiBlocked"));
         String recovery = !debug && !transportOk ? ShipsBoatsAboard.noLiftReason() : null;
-        props.put("deploymentStatus", recovery != null ? recovery : canAccept ? Strings.get("briefingUiReadyToDeploy") : label);
+        props.put("deploymentStatus", recovery != null ? recovery : canAccept ? "" : label);
         props.put("deployLabel", canAccept ? Strings.get("briefingAccept")
                 : canReinforce ? Strings.get("briefingUiReinforce")
                 : !transportOk || !commandOk || readiness == null || readiness.needsPersonnel()
@@ -1187,25 +1184,28 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * The warning lamps beside Deploy and the Replenish key over the field force. A debug or stationing
-     * briefing has no live company to warn about, so it shows neither.
+     * The warning lamps beside Deploy and the Replenish key over the field force. A stationing briefing
+     * launches nothing and shows neither; a debug briefing reads the lamps off its own sandbox force, and
+     * has no Replenish since its squads cost the company nothing.
      */
     private void putDeployLamps(Map<String, Object> props, Mission mission, PersonnelReadiness readiness,
                                 BriefingLift.Readout liftReadout) {
         MarineRoster roster = liveRoster();
-        if (mission.source.isDebug() || mission.source == MissionSource.STATIONING || roster == null
-                || readiness == null) return;
+        boolean debug = mission.source.isDebug();
+        if (mission.source == MissionSource.STATIONING || roster == null || !debug && readiness == null) return;
         float day = CampaignClock.dayFloat();
-        Set<String> selected = ctx.getSelectedMarineSquadIds();
+        Set<String> selected = debug ? Set.of() : ctx.getSelectedMarineSquadIds();
         int replenishable = roster.readyReserveCount() + MarinePersonnelLogistics.availableCargoMarines();
         CampaignMechSquad lance = roster.mechBay().activeSquad();
         props.put("deployLamps", List.of(
-                DeployWarnings.undermanned(readiness.selectedReady(), MissionForceEnvelope.recommendedPersonnel(mission)),
+                DeployWarnings.undermanned(debug ? ctx.getDebugSquadCount() * MarineSquad.CAPACITY : readiness.selectedReady(),
+                        MissionForceEnvelope.recommendedPersonnel(mission)),
                 DeployWarnings.casualties(roster, selected, replenishable),
-                DeployWarnings.damage(lance == null ? List.of() : lance.mechs(), day),
+                DeployWarnings.damage(debug || lance == null ? List.of() : lance.mechs(), day),
                 DeployWarnings.lift(liftReadout,
-                        mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? List.of() : ShipsBoatsAboard.boats(), day,
+                        debug || mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? List.of() : ShipsBoatsAboard.boats(), day,
                         isTransportSufficient(mission, lift()) ? null : ShipsBoatsAboard.noLiftReason())));
+        if (debug) return;
         int vacant = 0;
         for (String id : selected) {
             MarineSquad squad = roster.squadById(id);
@@ -1239,7 +1239,7 @@ public class BriefingScreen implements Screen {
     static void requireRetainedElements(MarkupInstance component) {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
-                "mission-briefing-body", "mission-overview", "mission-info-rows",
+                "mission-briefing-body", "mission-overview",
                 "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-readout", "mission-assign",
@@ -1900,16 +1900,6 @@ public class BriefingScreen implements Screen {
         MarineRoster roster = script != null ? script.roster() : null;
         return CaptainDeploymentPolicy.isValidCommand(roster,
                 ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
-    }
-
-    /** Committed fleet ships whose presence brings close air support: each is one gunship over the field. */
-    private List<String> gunshipShips() {
-        List<String> out = new ArrayList<>();
-        for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
-            if (deselectedPowerSources.contains(source.memberId)) continue;
-            if (source.powers.stream().anyMatch(p -> CloseAirSupport.ID.equals(p.id))) out.add(source.shipName);
-        }
-        return out;
     }
 
     /** The carriers that fly: every one aboard. */

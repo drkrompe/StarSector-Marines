@@ -1074,8 +1074,7 @@ public final class UnitRenderService implements RenderSystem {
         String[] pods = berth.doorGuns != null ? berth.doorGunPods : berth.airframe.podKitFor(TurretRole.A2G);
         ParkedGuns guns = parkedGuns.get(berth);
         if (guns == null || !Arrays.equals(guns.kit(), kit) || !Arrays.equals(guns.pods(), pods)) {
-            guns = new ParkedGuns(kit.clone(), pods == null ? null : pods.clone(), AirArmament.mounts(kit, pods,
-                    berth.airframe.renderHullId(), berth.facingDegrees, berth.doorGuns != null));
+            guns = new ParkedGuns(kit.clone(), pods == null ? null : pods.clone(), AirArmament.mounts(berth, berth.facingDegrees));
             parkedGuns.put(berth, guns);
         }
         if (guns.mounts().length == 0) return;

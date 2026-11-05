@@ -1,6 +1,6 @@
 <template props="missionsAction,missionsClasses,settingsAction,settingsClasses,repair,lessonClasses,lessonTitle,lessonCopy,lessonActionLabel,lessonAction,lessonPause,lessonResumeClasses,lessonResume,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,garageTitle,garageStatus,dragNoteTitle,dragNoteCopy,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,buildPanelClasses,buildName,buildKind,buildLore,buildWeightIcon,buildWeightClasses,buildWeightStyle,buildMeters,catalogRuleClasses,buildCredit,buildCrest,buildCrestClasses,buildStats,buildMaterials,buildLabel,buildDisabled,buildAction,performanceMeters,budgetText,budgetClasses,shipRefitText,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,backToLance,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,materialStock,categoryFilterPills,categoryFilterClasses,allPartsClasses,showAllParts,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="mech-lab-root" class="mech-lab-root">
-    <div id="mech-lab-room-bar" class="panel room-bar">
+    <div id="mech-lab-room-bar" class="panel room-bar console-header">
       <img id="mech-lab-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="mech-lab-room-name" class="label heading tone-edge">{i18n.openingUiMechLabTitle}</div>
       <div id="mech-bay-navigator" class="{bayNavigatorClasses}">
@@ -179,8 +179,7 @@
 </template>
 
 <style>
-  .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
-  .doc-narrow .header-stock-slot { width: 480px; }
+  .header-stock-slot { flex-direction: row; justify-content: flex-end; align-items: center; width: 490px; height: 46px; }
   .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -198,7 +197,7 @@
   .castle-controls { flex-direction: row; align-items: center; height: 30px; gap: 10px; }
   .lesson-action { width: 148px; height: 28px; font-family: heading; text-align: center; }
   .lesson-key-hint { width: 0px; flex-grow: 1; min-height: 30px; white-space: normal; }
-  .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px; gap: 10px; }
+  .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px 4px 10px; gap: 12px; }
   #mech-lab-room-name { width: 430px; height: 20px; }
   .doc-narrow #mech-lab-room-name { width: 300px; }
   .bay-navigator { flex-direction: row; align-items: center; width: 205px; height: 24px; gap: 3px; }
@@ -335,7 +334,7 @@
   /* The shared navigation stays scoped here; other rooms own their own rhythm. */
   #mech-lab-root #marine-ops-page-nav { align-items: center; }
   #mech-lab-root #marine-ops-page-routes { height: 34px; }
-  .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
-  .room-bar { border-width: 1px; background-color: #0d1e26; border-color: #3b627b; }
+  .workshop-service-plate { width: 58px; height: 30px; pointer-events: none; }
+  .room-bar { border-width: 2px; }
   .garage-heading, .stage-heading { border-width: 0px; border-color: #3b627b; }
 </style>

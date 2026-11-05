@@ -1,4 +1,4 @@
-<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvagePlaybackClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvagePlaybackClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,forceClasses,forceInsetClasses,fieldTiles,repairSummary,repairClasses,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -56,6 +56,19 @@
         <div id="mission-results-scene" class="{sceneClasses}">
           <img id="results-scene-image" class="results-scene-image" src="{sceneImage}" />
           <div id="results-scene-caption" class="label heading tone-muted scene-caption">{sceneCaption}</div>
+        </div>
+        <div id="mission-results-force" class="{forceClasses}">
+          <div id="mission-results-force-heading" class="force-heading">
+            <div id="mission-results-force-title" class="label heading tone-edge force-title">{i18n.resultsScreenFieldForce}</div>
+            <div id="mission-results-force-repair" class="{repairClasses}">{repairSummary}</div>
+          </div>
+          <div id="mission-results-field-inset" class="{forceInsetClasses}">
+            <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
+              <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
+              <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="124" height="66" />
+              <div id="{tile.countId}" class="{tile.countClasses}">{tile.count}</div>
+            </div>
+          </div>
         </div>
         <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
           <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
@@ -160,6 +173,23 @@
   .results-squad-top .label { width: 0px; flex-grow: 1; }
   .results-squad-summary { width: 190px; text-align: right; }
   .personnel-empty { height: 22px; }
+  /* The briefing's field force as the battle left it: seats emptied, dolls worn, words in hovers. */
+  .results-force { flex-direction: column; gap: 4px; }
+  .force-heading { flex-direction: row; align-items: center; height: 24px; gap: 12px; }
+  .force-title { width: 0px; flex-grow: 1; }
+  .force-repair { width: 420px; text-align: right; }
+  .field-inset { display: grid; width: 100%; padding: 6px; gap: 6px; border-width: 2px; overflow: scroll; }
+  .field-inset-one { height: 88px; }
+  .field-inset-two { height: 168px; }
+  .field-tile { flex-direction: row; align-items: center; width: 158px; height: 72px; padding: 2px; gap: 2px; border-width: 1px; }
+  .field-tile.field-tile-refused { border-color: #a8473c; }
+  .field-tile.field-tile-stack { border-color: #6fc4a8; }
+  .field-count { position: absolute; left: 106px; top: 44px; width: 48px; height: 24px; padding-top: 4px; text-align: center; border-width: 1px; border-color: #6fc4a8; background-color: #0c1412; pointer-events: none; }
+  .field-count.field-count-repair { border-color: #dfc588; }
+  .field-count.field-count-lost { border-color: #a8473c; }
+  .field-muster { width: 152px; height: 66px; pointer-events: none; }
+  .field-doll { width: 124px; height: 66px; pointer-events: none; }
+  .field-absent { position: absolute; width: 0px; height: 0px; overflow: hidden; }
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }

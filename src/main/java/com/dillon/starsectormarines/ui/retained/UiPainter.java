@@ -221,8 +221,19 @@ final class UiPainter {
                 metrics.surfaceWidth() * 0.5f, metrics.surfaceHeight() * 0.5f,
                 image.width() * fit / metrics.scaleX(),
                 image.height() * fit / metrics.scaleY(),
-                0f, Color.WHITE);
+                0f, imageTint(source));
     }
+
+    /**
+     * What an image is drawn through. The base game's credit sign is a white stencil it colours as it
+     * draws it, in the gold of its own credit readout; anything else carries its own colours.
+     */
+    static Color imageTint(String source) {
+        return GAME_CREDIT_SIGN.equals(source) ? GAME_CREDIT_GOLD : Color.WHITE;
+    }
+
+    private static final String GAME_CREDIT_SIGN = "graphics/ui/icons/fleettab/credits_24x24.png";
+    private static final Color GAME_CREDIT_GOLD = new Color(255, 210, 0);
 
     static Rect canvasVisibleBounds(CanvasMetrics metrics, Rect documentClip) {
         float left = metrics.toCanvasX(documentClip.x());

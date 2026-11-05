@@ -1,12 +1,10 @@
-<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
+<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,rewardTermsStyle,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="mission-briefing-heading" class="mission-briefing-heading">
-        <div id="mission-briefing-kicker" class="label heading tone-accent">{missionKicker}</div>
-        <div id="mission-briefing-title" class="label title tone-edge">{missionTitle}</div>
+        <div id="mission-briefing-title" class="label title tone-accent">{missionTitle}</div>
       </div>
-      <div id="mission-briefing-purpose" class="label heading tone-muted">{screenHeader}</div>
       <div id="mission-threat" class="mission-threat" tabindex="0">
         <div id="mission-scale-symbols" class="threat-symbols">
           <img each="pip in scaleIndicators" key="{pip.id}" id="{pip.id}" class="{pip.classes}" src="{pip.image}" />
@@ -60,16 +58,10 @@
               </div>
             </div>
           </div>
-          <div id="mission-reward-terms" class="label tone-muted">{rewardTerms}</div>
+          <div id="mission-reward-terms" class="label tone-muted" style="{rewardTermsStyle}">{rewardTerms}</div>
           <div id="mission-flavor" class="label mission-flavor surface-dark" style="{missionFlavorStyle}">{missionFlavor}</div>
           <div id="mission-dialogue-wrap" class="mission-flavor" style="{missionDialogueStyle}">
             <mission-dialogue turns="{missionDialogue}" />
-          </div>
-          <div id="mission-info-rows" class="mission-info-rows">
-            <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row">
-              <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-              <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-            </div>
           </div>
           <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
             <button each="term in termActions" key="{term.id}" id="{term.id}" class="{term.classes}" disabled="{term.disabled}" onclick="{term.action}">
@@ -127,14 +119,10 @@
               <div id="mission-support-stack" class="mission-support-stack">
                 <div id="mission-source-block" class="briefing-section">
                   <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-                  <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
+                  <!-- A square tile per ship, its sprite alone: the hover says what the ship brings. -->
+                  <div id="mission-source-list" class="source-list" style="{sourceListStyle}">
                     <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
-                      <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
-                      <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
-                      <div id="{source.copyId}" class="choice-copy">
-                        <div id="{source.titleId}" class="label compact-type choice-title">{source.title}</div>
-                        <div id="{source.detailId}" class="label tone-muted dense choice-detail">{source.detail}</div>
-                      </div>
+                      <img id="{source.iconId}" class="source-sprite" src="{source.icon}" />
                     </button>
                   </div>
                   <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
@@ -377,12 +365,9 @@
   .mission-briefing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-briefing-header { flex-direction: row; align-items: center; height: 76px; padding: 8px 10px; gap: 10px; border-width: 2px; }
-  .mission-briefing-heading { flex-direction: column; width: 0px; height: 48px; flex-grow: 1; gap: 4px; }
-  #mission-briefing-kicker { height: 20px; }
+  .mission-briefing-heading { flex-direction: column; justify-content: center; width: 0px; height: 48px; flex-grow: 1; }
   #mission-briefing-title { height: 27px; }
-  #mission-briefing-purpose { width: 154px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .mission-info-rows { flex-direction: column; gap: 4px; }
   .compact-row { height: 30px; padding: 3px; }
   .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
   .choice-row { flex-direction: row; align-items: center; height: 32px; padding: 3px 5px; gap: 5px; border-width: 2px; text-align: left; }
@@ -487,23 +472,19 @@
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
   .debug-toggle-arrow { width: 14px; height: 18px; pointer-events: none; }
   .debug-air-image { width: 28px; height: 24px; pointer-events: none; }
-  .source-list .choice-copy { height: 15px; }
-  .source-list .choice-detail { height: 0px; overflow: hidden; }
-  .source-list .choice-row { height: 28px; }
   .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
-  .mission-threat { flex-direction: row; align-items: center; width: 398px; height: 48px; gap: 8px; }
+  .mission-threat { flex-direction: row; align-items: center; width: 416px; height: 48px; gap: 8px; }
   .threat-symbols { flex-direction: row; align-items: center; min-height: 26px; gap: 4px; }
   #mission-scale-symbols { width: 126px; }
   #mission-scale-name { width: 112px; height: auto; white-space: normal; }
-  #mission-risk-symbols { width: 170px; }
+  #mission-risk-symbols { width: 188px; }
   #mission-risk-pips { width: 74px; }
   .threat-symbols .indicator { width: 22px; height: 22px; }
-  #mission-risk-name { width: 88px; height: auto; white-space: normal; padding: 0px 4px; }
+  #mission-risk-name { width: 106px; height: auto; white-space: normal; padding: 0px 4px; }
   .indicator.dim { opacity: 0.18; }
   .mission-flavor { white-space: normal; padding: 0px; border-width: 0px; background-color: transparent; }
-  .mission-info-rows { gap: 14px; }
   .info-row { flex-direction: column; align-items: start; height: 46px; padding: 0px; gap: 4px; border-width: 0px; }
   .info-label { width: auto; white-space: normal; height: auto; }
   .info-value { width: auto; flex-grow: 0; text-align: left; white-space: normal; height: auto; }
@@ -562,7 +543,6 @@
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
   #mission-reward-value { height: 26px; }
-  #mission-reward-terms { min-height: 34px; white-space: normal; }
   .mission-survey-slot { flex-direction: column; width: 428px; }
   .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 10px; gap: 4px; border-width: 2px; }
   #mission-survey-heading { height: 20px; }
@@ -570,8 +550,10 @@
   #mission-survey-canvas { width: 404px; height: 270px; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
   #mission-source-list { height: 0px; flex-grow: 1; }
-  .source-list .choice-row { height: 40px; width: 100%; }
-  .source-list .choice-icon { width: 40px; height: 34px; }
+  .source-list { flex-direction: row; gap: 6px; overflow: scroll; }
+  .choice-row.source-tile { width: 68px; height: 68px; padding: 3px; gap: 0px; border-width: 1px; justify-content: center; opacity: 0.45; }
+  .choice-row.source-tile.selected { opacity: 1; }
+  .source-sprite { width: 60px; height: 60px; pointer-events: none; }
   .mission-factions { flex-direction: row; height: 62px; gap: 10px; width: 100%; }
   .faction-identity { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; gap: 6px; }
   .faction-crest { pointer-events: none; }
@@ -630,6 +612,5 @@
   .air-count { width: 0px; flex-grow: 1; text-align: center; pointer-events: none; }
   #mission-source-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 96px; gap: 4px; }
 
-  .doc-narrow #mission-briefing-purpose { display: none; }
   .doc-narrow #mission-narration-replay, .doc-narrow #mission-comms-skip { font-family: narrow-heading; }
 </style>

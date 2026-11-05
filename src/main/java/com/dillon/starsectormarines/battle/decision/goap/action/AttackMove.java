@@ -170,7 +170,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         if (assault.isBaseOfFire()) {
             long contact = sim.resolveUnit(assault.sharedContactId());
             if (contact != 0L) {
-                holdBaseOfFire(member, contact, sim);
+                holdBaseOfFire(member, contact, squad, sim);
                 return ActionStatus.RUNNING;
             }
         }
@@ -455,7 +455,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
      * member improves its position inside a short leash instead of joining the
      * assault it is supposed to be covering.
      */
-    private void holdBaseOfFire(long member, long contact, BattleControl sim) {
+    private void holdBaseOfFire(long member, long contact, Squad squad, BattleControl sim) {
         sim.world().setTargetId(member, contact);
         float distance = TacticalScoring.cellDistance(
                 sim.world().x(member), sim.world().y(member),
@@ -466,9 +466,9 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
             sim.combat().setFireIntent(member, contact, FireStance.STANCED, true);
             return;
         }
-        int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member, contact, sim.world().cellX(member), sim.world().cellY(member),
-                BASE_OF_FIRE_LEASH);
+        int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                member, contact, squad, sim.getSimTickIndex(),
+                sim.world().cellX(member), sim.world().cellY(member), BASE_OF_FIRE_LEASH);
         if (firingPos == null) {
             LaneSidestep.holdGround(member, sim);
             return;

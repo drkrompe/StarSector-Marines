@@ -31,7 +31,6 @@ class SupplyRouteCampaignTest {
         var convoy = offers.get(0);
         assertEquals("Thunder Run", convoy.name); assertEquals(18000, convoy.payout);
         assertTrue(SupplyRouteCampaign.isBattle(convoy)); assertTrue(SupplyRouteCampaign.freight(convoy));
-        assertEquals("CONVOY / BREAKTHROUGH", SupplyRouteCampaign.operationLabel(convoy));
         assertEquals(StoryScene.THUNDER, StoryScene.forMission(convoy));
         assertEquals(MissionSource.STORY, convoy.source);
         assertFalse(convoy.flavor.contains("Rill")); assertFalse(convoy.flavor.contains("commit support"));

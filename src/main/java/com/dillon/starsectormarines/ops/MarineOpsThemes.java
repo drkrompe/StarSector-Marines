@@ -197,7 +197,7 @@ final class MarineOpsThemes {
                 .supply-filter.selected, .catalog-filter-pill.selected {
                     background-color: #6e5400; border-color: #c9a227; color: #ffd200;
                 }
-                button.good-surface { background-color: #1e5a3a; color: #a3ef80; border-color: transparent; }
+                button.good-surface { background-color: #1e5a3a; color: #f2fff6; border-color: transparent; }
                 button.good-surface:hover { background-color: #2a7a4e; }
                 button.warning-surface { background-color: #5a4610; color: #ffd200; border-color: transparent; }
                 button.warning-surface:hover { background-color: #755c15; }
@@ -309,6 +309,7 @@ final class MarineOpsThemes {
                 .hud-glass .danger-surface { background-color: #ff640024; border-color: #ff640099; color: #ff6400; }
                 .hud-glass .danger-surface:hover { background-color: #ff64003d; border-color: #ff6400; }
                 #marine-ops-page-routes .console-key-legend { font-family: heading; }
+                .mission-briefing-actions .console-key-legend { font-family: heading; }
                 /* Past 100% UI scale the page is narrower and all of it is drawn larger, so the
                    menus hold the tighter sizes their narrow layouts were fitted to. */
                 .doc-narrow { font-family: small; }

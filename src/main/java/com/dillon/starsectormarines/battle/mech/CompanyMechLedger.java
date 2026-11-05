@@ -20,10 +20,48 @@ import java.util.Map;
 public final class CompanyMechLedger {
 
     private final Map<String, MechLoadoutComponent> mechs = new LinkedHashMap<>();
+    private final List<Landed> landed = new ArrayList<>();
 
     /** Marks a landed mech as the company's own {@code campaignId}; null ids are unowned. */
     public void tag(String campaignId, MechLoadoutComponent loadout) {
         if (campaignId != null && loadout != null) mechs.put(campaignId, loadout);
+    }
+
+    /**
+     * Records a mech landed on this field under {@code displayName}, which may be null, and tags it
+     * when it is the company's own. An unowned mech writes nothing back, but the debrief still shows it.
+     */
+    public void land(String campaignId, String displayName, MechLoadoutComponent loadout) {
+        if (loadout == null) return;
+        tag(campaignId, loadout);
+        landed.add(new Landed(campaignId, displayName, loadout));
+    }
+
+    /** Every mech that landed, in landing order, with what the battle left of it: the debrief's force. */
+    public List<Fielded> fielded() {
+        if (landed.isEmpty()) return List.of();
+        List<Fielded> out = new ArrayList<>(landed.size());
+        for (Landed mech : landed) {
+            MechSections sections = mech.loadout().sections();
+            MechSections.Report report = sections != null ? sections.report() : whole(mech.loadout());
+            out.add(new Fielded(mech.campaignId(), mech.displayName(), mech.loadout().variant, report,
+                    mech.loadout().wreckSpawned || report.chassisLost()));
+        }
+        return Collections.unmodifiableList(out);
+    }
+
+    /** The record of a mech nobody hit: its sections are not divided until the first hit. */
+    private static MechSections.Report whole(MechLoadoutComponent loadout) {
+        int n = MechSection.values().length;
+        boolean[] fitted = new boolean[n];
+        float[] full = new float[n];
+        for (MechSection section : MechSection.values()) {
+            MechMountSlot slot = section.mount();
+            fitted[section.ordinal()] = slot == null || loadout.mounts()[slot.ordinal()] != null;
+            full[section.ordinal()] = 1f;
+        }
+        return new MechSections.Report(loadout.variant.bodyPlan().id(), fitted, full, full.clone(), new boolean[n],
+                new MechWeaponComponent[MechMountSlot.values().length]);
     }
 
     /**
@@ -44,6 +82,21 @@ public final class CompanyMechLedger {
             out.add(new Damage(entry.getKey(), report, chassisLost));
         }
         return Collections.unmodifiableList(out);
+    }
+
+    private record Landed(String campaignId, String displayName, MechLoadoutComponent loadout) {
+    }
+
+    /**
+     * One mech that took the field, frozen for the debrief.
+     *
+     * @param campaignId the company mech it is, or null for one the company does not own
+     * @param displayName its name, or null when it has none of its own
+     * @param report its sections as the battle left them; whole when nothing hit it
+     * @param lost the chassis died
+     */
+    public record Fielded(String campaignId, String displayName, MechVariant variant,
+                          MechSections.Report report, boolean lost) {
     }
 
     /**

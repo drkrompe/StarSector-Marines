@@ -19,7 +19,6 @@ import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
-import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 
@@ -54,7 +53,6 @@ final class BriefingViewModel {
         props.put("replenishDisabled", true);
         props.put("replenishAction", (Runnable) () -> { });
         props.put("forceSelectedClasses", "label heading tone-edge");
-        props.put("screenHeader", Strings.get("briefingVmScreenHeader"));
         props.put("missionDialogue", List.of());
         props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
         props.put("missionFlavorStyle", "");
@@ -88,7 +86,6 @@ final class BriefingViewModel {
     /** A Colony Breach briefing with the hive-posture choice showing, Opportunistic selected. */
     static Map<String, Object> colonyBreachPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
-        props.put("missionKicker", "EXTRACTION  ·  HIGH RISK  ·  Colony Breach");
         props.put("missionTitle", "Civilian Evacuation — Asharu");
         props.put("missionFlavor", "Relief stores are committed. Hold the evacuation "
                 + "corridor until the civilian lifts are clear.");
@@ -112,20 +109,16 @@ final class BriefingViewModel {
         Runnable none = () -> { };
         boolean late = conquest;
         putLeadership(props, conquest);
-        props.put("missionKicker", late ? "CONQUEST  ·  SEVERE COMMITMENT" : "SABOTAGE  ·  MEDIUM RISK");
         props.put("missionTitle", late ? "CONQUEST — Full Strength" : "SABOTAGE — First Contract");
         props.put("missionFlavor", late
                 ? "Commit a campaign army across three active drop zones. Six shuttles cycle squads into contested lanes until the enemy front collapses."
                 : "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
-        props.put("missionRows", List.of(
-                info("presence", "Field presence", late ? "Unrestricted" : "1 active squad / reserves off-map", ""),
-                info("opposition", "Expected opposition", late ? "Veteran core / elites probable" : "Regular core / veterans possible", "")));
         putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
-        props.put("deploymentStatus", "Ready to deploy");
+        props.put("deploymentStatus", "");
         props.put("deploymentStatusClasses", "label tone-muted");
         props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
-        props.put("rewardTerms", "Payable on successful completion");
+        props.put("rewardTerms", "");
         putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
@@ -173,15 +166,19 @@ final class BriefingViewModel {
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none)));
         props.put("powerEmpty", "");
-        props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
+        props.put("sourceRows", List.of(
+                new ChoiceRow("source-siege", "choice-row source-tile selected", "HSS Siege of Raesvelg", "", false, none,
+                        "graphics/ships/onslaught/onslaught_base.png"),
+                new ChoiceRow("source-wolf", "choice-row source-tile", "HSS Kestrel", "", false, none,
+                        "graphics/ships/wolf/wolf_base.png"),
+                new ChoiceRow("source-mudskipper", "choice-row source-tile selected", "HSS Mudlark", "", false, none,
+                        "graphics/ships/mudskipper/mudskipper.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
         BriefingAir.put(props, BriefingAir.read(List.of(
                 new PlayerFleetWings.CarrierBay("HSS Kestrel's Due", null,
                         List.of(FighterProfile.TALON, FighterProfile.TALON, FighterProfile.BROADSWORD)),
-                new PlayerFleetWings.CarrierBay("HSS Ordinance", null, List.of(FighterProfile.WASP))),
-                List.of(new CloseAirSupport()), List.of("HSS Mudlark")));
+                new PlayerFleetWings.CarrierBay("HSS Ordinance", null, List.of(FighterProfile.WASP)))));
         props.put("assignLabel", Strings.get("briefingUiAssignSquads"));
         props.put("assignClasses", "briefing-assign-hidden");
         props.put("assignDisabled", true);
@@ -321,7 +318,7 @@ final class BriefingViewModel {
         int salvage = mission.contractSalvageNegotiated & 0xff;
         props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
                 ? Strings.format("briefingVmSalvageTerms", salvage)
-                : Strings.get(payment > 0 ? "briefingVmPayableOnSuccess" : "briefingVmNoCashReward"));
+                : payment > 0 ? "" : Strings.get("briefingVmNoCashReward"));
     }
 
     static void putSurvey(Map<String, Object> props, BriefingSurvey map, String pending) {
@@ -502,7 +499,7 @@ final class BriefingViewModel {
         // The count carries the readiness tone the summary line used to: danger when the commitment cannot launch.
         props.put("forceSelectedClasses", "label heading "
                 + (String.valueOf(props.get("personnelClasses")).contains("tone-danger") ? "tone-danger" : "tone-edge"));
-        for (String key : List.of("powerEmpty", "sourceEmpty")) {
+        for (String key : List.of("rewardTerms", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
                     ? "height: 0px; padding: 0px; overflow: hidden"

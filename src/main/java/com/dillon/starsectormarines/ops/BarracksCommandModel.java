@@ -469,7 +469,8 @@ public final class BarracksCommandModel {
                 free ? freeLabel : CompanyResources.number(cost.credits()),
                 !free && foundingResources.credits() < cost.credits()));
         for (SquadFoundingCost.Line line : cost.lines()) {
-            rows.add(foundingCostRow(line.commodityId(), foundingResources.commodityIcon(line.commodityId()),
+            rows.add(foundingCostRow(line.commodityId(),
+                    Commodities.MARINES.equals(line.commodityId()) ? CompanyResources.MARINES_ICON : foundingResources.commodityIcon(line.commodityId()),
                     free ? freeLabel : CompanyResources.number(line.quantity()),
                     !free && foundingResources.available(line.commodityId()) < line.quantity()));
         }
@@ -634,10 +635,11 @@ public final class BarracksCommandModel {
 
     private List<Map<String, Object>> issueCargoStock() {
         revision.get();
-        return List.of(row("id", "barracks-recruit-stock", "copyId", "barracks-recruit-stock-copy", "iconId", "barracks-recruit-stock-icon",
-                "labelId", "barracks-recruit-stock-count", "nameId", "barracks-recruit-stock-label",
-                "name", resources.commodityName(Commodities.MARINES), "icon", resources.commodityIcon(Commodities.MARINES),
-                "stock", CompanyResources.number(cargoMarines.getAsInt())));
+        return List.of(
+                row("id", "barracks-credit-stock", "iconId", "barracks-credit-stock-icon", "labelId", "barracks-credit-stock-count",
+                        "icon", CompanyResources.CREDITS_ICON, "stock", CompanyResources.number(foundingResources.credits())),
+                row("id", "barracks-recruit-stock", "iconId", "barracks-recruit-stock-icon", "labelId", "barracks-recruit-stock-count",
+                        "icon", CompanyResources.MARINES_ICON, "stock", CompanyResources.number(cargoMarines.getAsInt())));
     }
 
     public void reinforceSelected() { fill(Set.copyOf(selected)); }

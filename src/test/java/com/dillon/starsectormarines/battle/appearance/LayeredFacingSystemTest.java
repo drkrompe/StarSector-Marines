@@ -35,6 +35,37 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void aOneTickShoveNeitherStartsTheStrideNorTurnsTheBodyButWalkingDoes() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long id = sim.spawn(new EntitySpec("blue", Faction.MARINE, UnitType.MARINE_BLUE, 5, 5));
+        long unshoved = sim.spawn(new EntitySpec("blue", Faction.MARINE, UnitType.MARINE_BLUE, 9, 5));
+        FacingSystem facing = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
+
+        sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, 1.5f);
+        facing.tick();
+        assertEquals(0, i(sim, id, BattleComponents.LAYERED_FLAGS) & LayeredAppearance.FLAG_MOVING);
+        assertEquals(f(sim, unshoved, BattleComponents.LAYERED_FACING_DEGREES),
+                f(sim, id, BattleComponents.LAYERED_FACING_DEGREES));
+
+        sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, 2f);
+        facing.tick();
+        facing.tick();
+        assertTrue((i(sim, id, BattleComponents.LAYERED_FLAGS) & LayeredAppearance.FLAG_MOVING) != 0,
+                "a real walk reads within a few frames");
+    }
+
+    @Test
+    public void aControlledBodyWalksTheTickItMoves() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long id = sim.spawn(new EntitySpec("blue", Faction.MARINE, UnitType.MARINE_BLUE, 5, 5));
+        sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, 1f);
+        new FacingSystem(sim.getEntityWorld(), c, sim.getRoster()).tick(id, Float.NaN, Float.NaN);
+        assertTrue((i(sim, id, BattleComponents.LAYERED_FLAGS) & LayeredAppearance.FLAG_MOVING) != 0);
+    }
+
+    @Test
     public void onlyConvertedActorsCarryInfantryLayeredAnimation() {
         BattleSimulation sim = arena();
         BattleComponents c = sim.getBattleComponents();

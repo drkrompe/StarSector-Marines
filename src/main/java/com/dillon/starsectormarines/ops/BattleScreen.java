@@ -7,9 +7,6 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicDirector;
 import com.dillon.starsectormarines.battle.audio.BattleMusicFacts;
-import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
-import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
-import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
@@ -350,13 +347,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final BattleMusicDirector battleMusic = BattleMusicDirector.shipped(audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
-    private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
     private final MachineAudio machineAudio = new MachineAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
-    private final CompanyOfficer companyOfficer = new CompanyOfficer();
-    private final OperationRadio operationRadio = new OperationRadio();
 
     private final ArmoryRangeTrial rangeTrial;
     private final MarineOpsContext rangeContext;
@@ -393,18 +387,11 @@ public class BattleScreen implements Screen, BattleUiContext {
             attachedSimulation = nextSimulation;
             if (storyNarration != null) storyNarration.stop();
             storySubtitles.detach();
-            radioChatter.reset();
-            companyOfficer.reset();
-            operationRadio.reset();
             mechFootsteps.reset();
             machineAudio.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
-                            nextSimulation), line -> {
-                        companyOfficer.stop();
-                        operationRadio.stop();
-                        radioChatter.reserveVoice(line.durationSeconds());
-                    });
+                            nextSimulation));
         }
         boolean freshBattle = loadedSimulation != nextSimulation;
         loadedSimulation = nextSimulation;
@@ -538,7 +525,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         pickAmbient(gridW, gridH);
         distantBoomTimer = nextDistantBoomGap();
-        radioChatter.reset();
     }
 
     /** Plays the director's cue, if any, and logs a change of music state with its reason. */
@@ -855,8 +841,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
-        companyOfficer.stop();
-        operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
         storySubtitles.detach();
         exitDirectControl();
@@ -1642,39 +1626,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** Mission dialogue owns the channel ahead of squad chatter; presentation uses real time. */
+    /** Mission dialogue is the battle's only radio; presentation uses real time. */
     private void advanceVoices(BattleSimulation sim, float dt) {
-        operationRadio.observe(sim);
         if (storyNarration != null) {
             storyNarration.advance(dt, sim.getPlayerStoryBeatsAfter(storyNarration.cursor()),
                     speedMultiplier <= 0f, sim.isComplete());
         }
-        boolean channelBusy = storyNarration != null && storyNarration.busy();
-        boolean running = speedMultiplier > 0f && !sim.isComplete();
-        if (sim.isComplete()) companyOfficer.discardPending();
-        CompanyOfficer.Line response = companyOfficer.advance(dt, running, channelBusy || operationRadio.busy());
-        if (response != null) radioChatter.reserveVoice(response.durationSeconds());
-        OperationRadio.Transmission turn = operationRadio.advance(dt, running, sim.isComplete(),
-                channelBusy || companyOfficer.busy());
-        if (turn != null) radioChatter.reserveVoice(turn.line().durationSeconds());
-
-        // Confirmed tactical reports get first use of an open channel; assignment exchanges are ambient.
-        BattleRadioChatter.Emission emission = radioChatter.advance(running ? dt : 0f, sim,
-                running && !channelBusy && !companyOfficer.busy() && !operationRadio.busy());
-        if (emission != null) {
-            OperationRadio.Transmission report = operationRadio.report(emission.cue());
-            // Without the cast's catalog a report goes unspoken: there is no other radio bank.
-            if (report != null) {
-                radioChatter.reserveVoice(report.line().durationSeconds());
-                // Company command answers once the report clears the channel.
-                companyOfficer.heard(emission.cue());
-            }
-        } else if (running && !channelBusy && !companyOfficer.busy() && radioChatter.voiceAvailable()) {
-            OperationRadio.Transmission opening = operationRadio.beginExchange();
-            if (opening != null) radioChatter.reserveVoice(opening.line().durationSeconds());
-        }
-        storySubtitles.update(storyNarration != null ? storyNarration.current() : null,
-                companyOfficer.current(), operationRadio.current(), dt);
+        storySubtitles.update(storyNarration != null ? storyNarration.current() : null, dt);
     }
 
     private void retreatFromBattle() {

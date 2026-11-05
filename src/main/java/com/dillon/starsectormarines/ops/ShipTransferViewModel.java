@@ -512,7 +512,7 @@ public final class ShipTransferViewModel {
             List<CompanyResources.Row> rows = new ArrayList<>(CompanyResources.credits("transfer-credit-stock", means.credits(), 0));
             if (CompanyPreparation.required(preparationRoster) && !CompanyPreparation.squadBill(preparationRoster).isEmpty()) {
                 rows.add(CompanyResources.stock("transfer-stock:marines", preparationStores.commodityName("marines"),
-                        preparationStores.commodityIcon("marines"), preparationStores.available("marines")));
+                        CompanyResources.MARINES_ICON, preparationStores.available("marines")));
             }
             return List.copyOf(rows);
         });

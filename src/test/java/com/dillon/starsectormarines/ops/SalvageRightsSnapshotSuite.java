@@ -255,7 +255,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                                    List<SnapshotArtifact> frames, String prefix) throws Exception {
         var props = BriefingViewModel.campaignPreviewProps(false);
         props.put("missionTitle", mission.name);
-        props.put("missionKicker", mission.name.toUpperCase() + " / ASHARU");
         MissionDialogue.put(props, "mission", mission);
         BriefingViewModel.putReward(props, mission);
         BriefingViewModel.putFactionIdentity(props, "employer", "Basin Reclamation Cooperative", null);
@@ -267,13 +266,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                 24, "Second Wind");
         boolean passage = ShepherdRecoveryProgress.workingPassage(mission.id);
         boolean cold = ShepherdRecoveryProgress.coldStart(mission.id);
-        props.put("missionRows", passage ? List.of(
-                BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
-                BriefingViewModel.info("departure", "Departure", "Escort Morrow through the pump bend and narrows to the eastern yard", "")) : cold ? List.of(
-                BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
-                BriefingViewModel.info("repair", "Repair", "Escort the rig, restore shore power and cover construction and repairs", "")) : List.of(
-                BriefingViewModel.info("presence", "Field presence", mission.fieldPresencePolicy.briefingText(), ""),
-                BriefingViewModel.info("inspection", "Inspection", "Protect both technicians at Morrow's southern service access", "")));
         var audio = new BriefingReviewAudio();
         var comms = new BriefingComms(new NarrationPlayer(audio::play));
         var recordings = WaylineNarration.parse(new JSONObject(Files.readString(

@@ -695,15 +695,9 @@ relation to another, reports the company's state up to Castle, and answers
 Castle for the whole landing. She never reports a single squad's contact the way
 a callsign does, and she never speaks for the ship.
 
-She takes part in the same exchanges under the same rules: sampled from
-accepted assignments, sharing the voice budget, rotating with the callsign cast.
-Her exchanges are **alternatives, not replacements**. Castle keeps talking to
-squads directly, exactly as today; an exchange about more than one squad, or
-about the company as a whole, may be voiced either way, Castle to a callsign or
-Castle through Morgan, and the rotation picks between them. Single-squad
-contact reports stay with the callsigns. She is not bound to any squad's roster name. She speaks only in battles she is actually
-deployed in; when she is wounded or left aboard, the net runs exactly as it does
-today. Examples:
+The battle has no unscripted radio (owner), so these are authored mission lines.
+She is not bound to any squad's roster name, and she speaks only in battles she is
+actually deployed in. Examples:
 
 | Exchange | Lines |
 |---|---|

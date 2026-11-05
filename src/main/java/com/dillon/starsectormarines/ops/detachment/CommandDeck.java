@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.power.WolfStrike;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,9 +13,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop and close air
- * support are implied rather than chosen: machines in the bay with lift for them, or a gunship in the fleet,
- * are the call, so neither is shown on the deck, costs a slot, or stays behind when the mission resolved it.
+ * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop and fleet support are
+ * implied rather than chosen: machines in the bay with lift for them, or a committed Mudskipper, Wolf or Onslaught,
+ * are the call, so none is shown on the deck, costs a slot, or stays behind when the mission resolved it.
  */
 public final class CommandDeck {
 
@@ -27,7 +29,12 @@ public final class CommandDeck {
 
     /** Whether a power comes with what the company brings instead of sitting on the deck. */
     public static boolean implied(CommandPower power) {
-        return power instanceof ArmorDropPower || power instanceof CloseAirSupport;
+        return power instanceof ArmorDropPower || fleetSupport(power);
+    }
+
+    /** Whether a power is a ship of the fleet itself over the battle: the briefing's Fleet Support commits it. */
+    public static boolean fleetSupport(CommandPower power) {
+        return power instanceof CloseAirSupport || power instanceof WolfStrike || power instanceof SpawnInOnslaught;
     }
 
     public static int used(List<CommandPower> available, Collection<String> selectedIds) {

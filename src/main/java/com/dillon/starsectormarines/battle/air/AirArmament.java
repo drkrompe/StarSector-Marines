@@ -74,6 +74,20 @@ public final class AirArmament {
     }
 
     /**
+     * The guns on the aircraft kept in {@code berth}: a yard's door guns where she has been refitted,
+     * which keep their slots' arcs as a company boat's do, else her airframe's own. One answer for
+     * her standing on the berth and flying off it, so a sortie carries what she was just seen wearing.
+     */
+    public static MountedTurret[] mounts(AirfieldService.Berth berth, float noseFacing) {
+        Airframe airframe = berth.airframe;
+        if (berth.doorGuns != null) {
+            return mounts(berth.doorGuns, berth.doorGunPods, airframe.renderHullId(), noseFacing, true);
+        }
+        return mounts(airframe.kitFor(TurretRole.A2G), airframe.podKitFor(TurretRole.A2G),
+                airframe.renderHullId(), noseFacing, false);
+    }
+
+    /**
      * {@code kit} put on {@code hullId}'s weapon slots, gun {@code i} on slot {@code i}, each
      * aligned to {@code noseFacing}; a mount left empty in the kit stays empty.
      */

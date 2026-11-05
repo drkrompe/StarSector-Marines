@@ -52,12 +52,10 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
     static Map<String, Object> junctionProps(Mission mission) {
         var props = BriefingViewModel.campaignPreviewProps(false);
         props.put("missionTitle", mission.name);
-        props.put("missionKicker", "CAPTURE / HOLD / LOW RISK");
         props.put("missionFlavor", "Capture Weigh Station, Freight Yard and Junction Dispatch together. Our militia will hold your gains while the company advances.");
         props.put("rewardValue", "12,000 credits");
         props.put("personnelSummary", "Two formations / 24 marines aboard");
         props.put("experienceSummary", "Company infantry / recovered Hound");
-        props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Recommended", "Two full squads; any deployable squad may launch", "")));
         props.put("sourceRows", List.of());
         props.put("sourceEmpty", "Wayline / contracted heavy lift");
         BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);

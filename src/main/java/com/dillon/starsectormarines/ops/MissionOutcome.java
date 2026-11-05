@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
@@ -177,6 +178,10 @@ public final class MissionOutcome {
      * the battle; settlement turns it into lost assemblies, repairs and lost chassis.
      */
     public final List<CompanyMechLedger.Damage> mechDamage;
+    /** Every mech that landed and what the battle left of it, for the debrief's force; settlement reads {@link #mechDamage}. */
+    public final List<CompanyMechLedger.Fielded> fieldedMechs;
+    /** Every vehicle that landed and whether it was wrecked, for the debrief's force. */
+    public final List<ConvoyService.FieldedVehicle> fieldedVehicles;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
     /**
@@ -300,6 +305,8 @@ public final class MissionOutcome {
         this.shipsCalled = b.shipsCalled == null ? Collections.emptyList() : List.copyOf(b.shipsCalled);
         this.vehiclesLost = b.vehiclesLost == null ? Collections.emptyList() : List.copyOf(b.vehiclesLost);
         this.mechDamage = b.mechDamage == null ? Collections.emptyList() : List.copyOf(b.mechDamage);
+        this.fieldedMechs = b.fieldedMechs == null ? Collections.emptyList() : List.copyOf(b.fieldedMechs);
+        this.fieldedVehicles = b.fieldedVehicles == null ? Collections.emptyList() : List.copyOf(b.fieldedVehicles);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.takenSoldierIds = immutableIds(b.takenSoldierIds);
@@ -418,6 +425,8 @@ public final class MissionOutcome {
         private List<ShipSupportResult> shipsCalled = Collections.emptyList();
         private List<String> vehiclesLost = Collections.emptyList();
         private List<CompanyMechLedger.Damage> mechDamage = Collections.emptyList();
+        private List<CompanyMechLedger.Fielded> fieldedMechs = Collections.emptyList();
+        private List<ConvoyService.FieldedVehicle> fieldedVehicles = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> takenSoldierIds = Collections.emptySet();
@@ -655,6 +664,16 @@ public final class MissionOutcome {
 
         public Builder vehiclesLost(List<String> vehiclesLost) {
             this.vehiclesLost = vehiclesLost;
+            return this;
+        }
+
+        public Builder fieldedMechs(List<CompanyMechLedger.Fielded> fieldedMechs) {
+            this.fieldedMechs = fieldedMechs;
+            return this;
+        }
+
+        public Builder fieldedVehicles(List<ConvoyService.FieldedVehicle> fieldedVehicles) {
+            this.fieldedVehicles = fieldedVehicles;
             return this;
         }
 

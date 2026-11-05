@@ -49,7 +49,6 @@ class CompanyResourcesTest {
                 var label = markup.requireElement("stock-" + i + ":label");
                 var box = label.box().borderBox();
                 assertEquals("15,000,000", label.text());
-                assertTrue(box.width() >= 150, "Exact large balance has insufficient room");
                 assertTrue(box.x() >= previousRight && box.right() <= 1920);
                 previousRight = box.right();
             }

@@ -36,6 +36,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheet.Stat;
 
+import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -99,7 +101,44 @@ public final class SpecSheets {
 
     /** Deck capacity and activation costs are distinct, both read from the actual power. */
     public static SpecSheet commandPower(CommandPower power) {
-        String effect = switch (power.id) {
+        List<SpecSheet.Stat> stats = new ArrayList<>();
+        if (!CommandDeck.implied(power)) {
+            stats.add(stat("Deck capacity", Strings.format("gearDeckSlots", power.slotWeight)));
+        }
+        stats.add(stat("Command points / use", oneDecimal(power.cpCost)));
+        stats.add(stat("Supplies / use", Integer.toString(power.supplyCost)));
+        stats.add(stat("Cooldown", Strings.format("gearSeconds", oneDecimal(power.cooldownSeconds))));
+        stats.add(stat("Uses per battle", power.maxCharges == 0
+                ? Strings.get("gearUnlimited") : Integer.toString(power.maxCharges)));
+        return new SpecSheet(power.displayName, Strings.get("gearCommandPower"), commandPowerIcon(power), "command",
+                List.copyOf(stats), powerNotes(effect(power), power));
+    }
+
+    /** A Fleet Support tile's hover: what its ship brings, one power in full or several by name and effect. */
+    public static SpecSheet fleetSupport(String shipName, String sprite, List<CommandPower> powers) {
+        if (powers.size() == 1) {
+            SpecSheet power = commandPower(powers.get(0));
+            return new SpecSheet(power.title(), shipName, sprite, power.accent(), power.stats(), power.notes());
+        }
+        List<String> notes = new ArrayList<>();
+        for (CommandPower power : powers) {
+            notes.add(Strings.format("gearFleetSupportPower", power.displayName, effect(power)));
+        }
+        return new SpecSheet(shipName, Strings.get("briefingVmSourceHeader"), sprite, "command", List.of(),
+                List.copyOf(notes));
+    }
+
+    /** The ship a fleet support power flies, for a tile with no fleet member to read a sprite from. */
+    public static String fleetSupportSprite(CommandPower power) {
+        return switch (power.id) {
+            case CloseAirSupport.ID -> "graphics/ships/mudskipper/mudskipper.png";
+            case WolfStrike.ID -> "graphics/ships/wolf/wolf_base.png";
+            default -> "graphics/ships/onslaught/onslaught_base.png";
+        };
+    }
+
+    private static String effect(CommandPower power) {
+        return switch (power.id) {
             case MechSupport.ID -> Strings.get("gearPowerEffectMechSupport");
             case OrbitalBarrage.ID -> Strings.get("gearPowerEffectOrbitalBarrage");
             case CloseAirSupport.ID -> Strings.get("gearPowerEffectCloseAirSupport");
@@ -108,14 +147,6 @@ public final class SpecSheets {
             case SpawnInOnslaught.ID -> Strings.get("gearPowerEffectSpawnInOnslaught");
             default -> Strings.get("gearPowerEffectDefault");
         };
-        return new SpecSheet(power.displayName, Strings.get("gearCommandPower"), commandPowerIcon(power), "command",
-                List.of(stat("Deck capacity", Strings.format("gearDeckSlots", power.slotWeight)),
-                        stat("Command points / use", oneDecimal(power.cpCost)),
-                        stat("Supplies / use", Integer.toString(power.supplyCost)),
-                        stat("Cooldown", Strings.format("gearSeconds", oneDecimal(power.cooldownSeconds))),
-                        stat("Uses per battle", power.maxCharges == 0
-                                ? Strings.get("gearUnlimited") : Integer.toString(power.maxCharges))),
-                powerNotes(effect, power));
     }
 
     private static List<String> powerNotes(String effect, CommandPower power) {

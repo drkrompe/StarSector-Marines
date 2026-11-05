@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.WolfStrike;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.power.AirStrikePower;
 import org.junit.jupiter.api.Test;
 
@@ -285,5 +287,17 @@ class SpecSheetsTest {
 
     private static String titleCase(String constant) {
         return constant.charAt(0) + constant.substring(1).toLowerCase(Locale.ROOT);
+    }
+
+    @Test
+    void aFleetSupportHoverSaysWhatItsShipBrings() {
+        SpecSheet wolf = SpecSheets.fleetSupport("HSS Kestrel", "wolf.png", List.of(new WolfStrike()));
+        assertEquals("HSS Kestrel", wolf.subtitle());
+        assertTrue(wolf.stats().stream().noneMatch(stat -> stat.label().equals("Deck capacity")));
+
+        SpecSheet onslaught = SpecSheets.fleetSupport("HSS Siege", "onslaught.png",
+                List.of(new OrbitalBarrage(), new SpawnInOnslaught()));
+        assertEquals("HSS Siege", onslaught.title());
+        assertEquals(2, onslaught.notes().size());
     }
 }

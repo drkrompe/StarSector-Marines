@@ -108,6 +108,7 @@ com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSui
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.FirstRefitSnapshotSuite
+com.dillon.starsectormarines.ops.DebriefForceSnapshotSuite
 com.dillon.starsectormarines.ops.CompanyPrologueSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderBuildSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderStanceSceneSnapshotSuite
@@ -165,7 +166,6 @@ com.dillon.starsectormarines.ops.DistrictEscortSnapshotSuite
 com.dillon.starsectormarines.ops.YardOwnersSnapshotSuite
 com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.battle.power.HeavyLiftSceneSnapshotSuite
-com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite
 com.dillon.starsectormarines.tools.damageauthoring.DamageSnapshotSuite
 com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite
 com.dillon.starsectormarines.battle.command.AssaultMusterSceneSnapshotSuite

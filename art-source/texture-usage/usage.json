@@ -43093,66 +43093,6 @@
     }
    }
   },
-  "graphics/portraits/radio-hammer.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/portraits/radio-jackal.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/portraits/radio-kestrel.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/portraits/radio-ox.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/portraits/radio-rivet.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/portraits/radio-viper.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:radio-portraits": {
-     "displayWidth": 176.0,
-     "displayHeight": 176.0,
-     "domain": "ui"
-    }
-   }
-  },
   "graphics/portraits/morgan-hale.png": {
    "sliced": false,
    "sources": {
