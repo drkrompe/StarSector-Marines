@@ -197,6 +197,8 @@ public final class AirfieldService {
         public ShipBayRoute shipRoute;
         /** Host grounding is independent of tactical servicing. */
         public boolean grounded;
+        /** The host wants her kept on this berth for now, such as while a yard is working on her. */
+        public boolean keptHome;
         /**
          * The door guns on her mounts, mount by mount as {@link Airframe#kitFor} lists them, or
          * null for her airframe's own. Set by a host whose yard refits the boat while she stands
@@ -216,7 +218,7 @@ public final class AirfieldService {
 
         /** Whether this berth can put an aircraft in the air right now. */
         public boolean airworthy() {
-            return state == BerthState.PARKED && !grounded;
+            return state == BerthState.PARKED && !grounded && !keptHome;
         }
     }
 

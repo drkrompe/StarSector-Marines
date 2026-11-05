@@ -3056,6 +3056,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.takeOffTheField(entityId);
     }
 
+    /**
+     * Puts an away aircraft straight back on its berth. A craft launched this very tick still has
+     * its parked unit standing there, since the field takes that off on its next tick; that unit
+     * goes now, as landing would forget it and leave a second hull on the stand.
+     */
+    public void callHome(AirfieldService.Berth berth) {
+        if (berth.state != AirfieldService.BerthState.AWAY) return;
+        if (berth.airframeId != 0L) {
+            takeOffTheField(berth.airframeId);
+            berth.airframeId = 0L;
+        }
+        airSystem.callHome(berth);
+    }
+
     public long spawnShuttle(ShuttleType type, Faction faction,
                              float lzX, float lzY, float entryX, float entryY,
                              float exitX, float exitY, float pendingDelay) {

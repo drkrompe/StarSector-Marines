@@ -469,6 +469,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-door-opening-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, DOOR_OPENING)),
+                new SnapshotArtifact("boat-deck-armed-departure-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, AT_OPENING, 0)),
+                new SnapshotArtifact("boat-deck-called-home-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, CALLED_HOME, 0)),
                 new SnapshotArtifact("boat-deck-departure-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, AT_OPENING)),
@@ -3502,7 +3508,7 @@ private static BufferedImage renderBarracks(
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.
         ship.doorGuns(deck::doorGuns).refitDoorGuns();
         if (openBoat) viewModel.selectBoatAction(0).run();
-        if (hardpoint >= 0) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
+        if (hardpoint >= 0 && openBoat) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
         if (departure == STRIPPED) viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.DRIVE));
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
@@ -3522,7 +3528,15 @@ private static BufferedImage renderBarracks(
                     .filter(row -> BoatFitting.STANDARD_PLATING.id().equals(row.itemId()))
                     .findFirst().orElseThrow().card().recycle().action().run();
         }
-        if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
+        if (departure == AT_OPENING || departure == CALLED_HOME) seekHangarDeparture(ship, bay);
+        if (departure == CALLED_HOME) {
+            // Opened on the very boat at the door, as the room does: she is back on her berth next tick.
+            ship.keepBoatHome(viewModel.selectedBerthIndex());
+            ship.advance(0.2f);
+            if (ship.scene().simulation().getAirEntityIds().length != 0) {
+                throw new IllegalStateException("The opened boat is not the one that was flying");
+            }
+        }
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
@@ -3580,7 +3594,7 @@ private static BufferedImage renderBarracks(
      * overview with one boat in the reserve hangar and her berth vacant; or the fleet away from a port.
      */
     private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
-            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8, NO_PORT = 9, POD = 10;
+            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8, NO_PORT = 9, POD = 10, CALLED_HOME = 11;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
