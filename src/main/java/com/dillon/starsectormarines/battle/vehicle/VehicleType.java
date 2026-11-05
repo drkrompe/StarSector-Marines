@@ -48,6 +48,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override
         public GroundBody createBody() { return Apc.body(this); }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
     },
     /**
      * The mortar carrier: the APC chassis with the troop bay given over to a 120 mm mortar on a roof turntable, a
@@ -68,6 +69,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
     },
     /**
      * The Onager, the Hegemony's heavy repulsor tank and the convoy's heavy spearhead (hegemony-armor-line.md): an
@@ -79,7 +81,7 @@ public enum VehicleType {
      * Its sheet is the owner's concept turned to point left (art-source/vehicles/heavy-repulsor).
      */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/heg-heavy-repulsor.png", 0, 4, -90f,
-            0, Onager.DRAWN_LENGTH, 3.6f * Onager.SCALE, 2.22f * Onager.SCALE, 2.9f, .8f, 2.4f, .8f, 3.0f,
+            0, Onager.DRAWN_LENGTH, Onager.VISUAL_LENGTH, Onager.VISUAL_WIDTH, 2.9f, .8f, 2.4f, .8f, 3.0f,
             1, 0f, Onager.TURRET_MOUNT_Y, 0f, 0f, Onager.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -234,6 +236,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
         // The pod is 0.9 cells long and stays centred on the turntable however it is raised.
         @Override public float turretRaiseFold() { return .78f; }
     },
@@ -432,7 +435,16 @@ public enum VehicleType {
          * (roof bearing, tyre bands, running gear) grows with it; the width keeps a radius-1 route clearance.
          */
         static final float SCALE = 1.6f;
-        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2.25f * SCALE, VISUAL_WIDTH = .9f * SCALE;
+        /** How far the painted nose runs ahead of the hull's centre, cells (army-apc.png, 1.85 measured). */
+        static final float PAINTED_NOSE = 1.85f;
+        /**
+         * How far the footprint's front edge sits behind the painted nose, cells: the nose overhangs the ground it
+         * touches, as though lifted a little off it (owner, 2026-11-05). The footprint is centred on the hull, so its
+         * rear edge stands as far aft: the tail plate, with the tow hooks left out.
+         */
+        static final float NOSE_INSET = .25f;
+        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2f * (PAINTED_NOSE - NOSE_INSET),
+                VISUAL_WIDTH = .9f * SCALE;
         static final float MAX_SPEED = 2.8f, ACCEL = 1.8f, BRAKING = 3.5f;
         static final float DEBOARD_INTERVAL = .8f, LOOK_AHEAD = 2.2f;
         static final float TURRET_MOUNT_Y = .15208333f * SCALE;
@@ -463,6 +475,12 @@ public enum VehicleType {
          */
         static final float SCALE = 4.3f / 4f;
         static final float DRAWN_LENGTH = 4f * SCALE;
+        /**
+         * The footprint, fitted to the painted hull (heg-heavy-repulsor.png): long enough to take the wedge nose where
+         * it is half a cell across, leaving its point and the tail's chamfer outside; as wide as the hull's flanks,
+         * which run 2.37 cells across through the middle.
+         */
+        static final float VISUAL_LENGTH = 3.7f, VISUAL_WIDTH = 2.36f;
         /** The concept's turret ring, 21.3 px of the 768 px frame ahead of the hull's centre. */
         static final float TURRET_MOUNT_Y = .110841f * SCALE;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
@@ -734,6 +752,13 @@ public enum VehicleType {
 
     /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
     public float fluxVentHalfSpanCells() { return 0f; }
+
+    /**
+     * How far the footprint's front edge ({@link #visualLengthCells}) sits behind the painted nose, cells, so the nose
+     * overhangs it as though lifted a little off the ground: the APC chassis's, a quarter cell. Zero for a hull whose
+     * footprint runs to its nose.
+     */
+    public float noseInsetCells() { return 0f; }
 
     /** Where this hull's tracks or wheels meet the ground, as its sprite paints them ({@link RunningGear}). */
     public RunningGear runningGear() { return RunningGear.of(this); }

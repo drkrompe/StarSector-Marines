@@ -33,6 +33,35 @@ class VehicleFootprintSpriteTest {
         }
     }
 
+    /**
+     * A hull with a nose inset ({@link VehicleType#noseInsetCells}) has its painted nose overhang the footprint's front
+     * edge by that much: the frames point their noses left, and the hull is drawn centred on its footprint.
+     */
+    @Test
+    void anInsetNoseOverhangsTheFootprintByItsInset() throws IOException {
+        for (VehicleType type : VehicleType.values()) {
+            Path sheet = Path.of("mod", type.spritePath);
+            if (type.noseInsetCells() <= 0f || !Files.isRegularFile(sheet)) continue;
+            float overhang = paintedNoseAheadCells(ImageIO.read(sheet.toFile()), type) - type.visualLengthCells / 2f;
+            assertTrue(Math.abs(overhang - type.noseInsetCells()) <= NOSE_TOLERANCE, String.format(
+                    "%s: nose overhangs its footprint %.2f cells, inset %.2f", type, overhang, type.noseInsetCells()));
+        }
+    }
+
+    /** How near the overhang must come to the inset, cells: under a hundredth of the hull's length. */
+    static final float NOSE_TOLERANCE = .03f;
+
+    /** How far ahead of the frame's centre the live frame's paint runs, cells; the frames point their noses left. */
+    static float paintedNoseAheadCells(BufferedImage sheet, VehicleType type) {
+        int frameWidth = sheet.getWidth() / type.frameCount, x0 = type.spriteFrame * frameWidth;
+        for (int x = x0; x < x0 + frameWidth; x++) {
+            for (int y = 0; y < sheet.getHeight(); y++) {
+                if ((sheet.getRGB(x, y) >>> 24) > 32) return (frameWidth / 2f - (x - x0)) * type.drawnLengthCells / frameWidth;
+            }
+        }
+        return Float.NaN;
+    }
+
     private static void check(VehicleType type, String axis, float footprint, float painted) {
         float ratio = footprint / painted;
         assertTrue(ratio >= NARROWEST && ratio <= WIDEST, String.format(
