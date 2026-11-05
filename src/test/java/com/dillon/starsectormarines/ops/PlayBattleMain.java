@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -319,6 +322,7 @@ public final class PlayBattleMain {
         String load = System.getProperty("play.load", "").strip();
         if (!load.isEmpty()) PlayCompany.restore(PlaySaves.read(load));
         Cheats.setEnabled(true);
+        SpecSheetLayer.registerSceneSource(SpecSheets.SCENE_WEAPON, WeaponPreviewScenes::new);
 
         BattleSimulation sim = null;
         if (source != null) {
