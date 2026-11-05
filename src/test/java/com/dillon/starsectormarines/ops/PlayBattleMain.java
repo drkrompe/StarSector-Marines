@@ -173,11 +173,10 @@ public final class PlayBattleMain {
             }
             plugin = new MarineOpsPanelPlugin(context, null);
             plugin.positionChanged(position);
-            // Leaving a room lands on the board, where the dialog opens; leaving the board, or a world without work, closes it.
+            // Return closes the dialog from any page, as the game's does.
             plugin.setOnBack(() -> {
                 if (direct) finished = true;
-                else if (context.getCurrentScreen() == ScreenId.MISSION_SELECT || !context.boardOpen()) leaving = true;
-                else context.goTo(ScreenId.MISSION_SELECT);
+                else leaving = true;
             });
         }
 

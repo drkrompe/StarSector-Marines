@@ -250,7 +250,7 @@ public final class FleetArmoryScreen implements Screen {
     private void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 context::roomAboard,
-                this::returnFromWorkspace,
+                this::leaveMenus,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
@@ -316,6 +316,11 @@ public final class FleetArmoryScreen implements Screen {
 
     private void returnFromWorkspace() {
         context.returnFromFleetArmoryWorkspace();
+    }
+
+    /** The page bar's Return leaves the menus, as it does from every other page; Back steps out of the workspace. */
+    private void leaveMenus() {
+        if (dismissDialog != null) dismissDialog.run();
     }
 
     @Override
