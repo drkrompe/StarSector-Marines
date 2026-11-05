@@ -31,7 +31,7 @@ public final class LanceSlotCanvas implements CanvasProducer {
         if (letter == null) throw new IllegalArgumentException("pad letter required");
         this.letter = letter;
         this.machine = mech != null ? new MechChassisPreviewCanvas(mech, assets)
-                : vehicle != null ? VehiclePreviewCanvas.of(vehicle) : null;
+                : vehicle != null ? VehiclePreviewCanvas.of(vehicle, assets) : null;
     }
 
     @Override

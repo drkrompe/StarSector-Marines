@@ -3839,7 +3839,7 @@
 		# --- Gear: components, vehicles, mechs: vehicles ---
 		"vehicleTypeNameHEAVY_APC": "机枪运兵车",
 		"vehicleTypeNameFIRE_SUPPORT_APC": "迫击炮车",
-		"vehicleTypeNameBREAKTHROUGH_TANK": "双管炮坦克",
+		"vehicleTypeNameBREAKTHROUGH_TANK": "Onager",
 		"vehicleTypeNameLASER_TANK": "脉冲激光坦克",
 		"vehicleTypeNameDOZER_BREACHER": "机枪推土破障车",
 		"vehicleTypeNameMILITIA_TECHNICAL": "机枪武装卡车",
@@ -3865,7 +3865,7 @@
 		"vehicleTypeClassCARGO_CARRIER": "Dray",
 		"gearCatalogVehicleHEAVY_APCDescription": "六名陆战队员躲在一挺车顶机枪后面，坐在任何港口车库都能维护的轮式车体里。机枪用于开进去和开出来；没人会把它当成火力支援。",
 		"gearCatalogVehicleFIRE_SUPPORT_APCDescription": "把载员舱让给车顶转台上一门 120 毫米迫击炮的 Packhorse。它在目标射程之外作战，在导弹发射架早已打空之后仍能持续投弹。",
-		"gearCatalogVehicleBREAKTHROUGH_TANKDescription": "军队的坦克，也是车队的重型矛头：双管火炮、厚重装甲，转弯需要很大空间。",
+		"gearCatalogVehicleBREAKTHROUGH_TANKDescription": "军队的坦克，也是车队的重型矛头：一门重炮、厚重装甲，转弯需要很大空间。",
 		"gearCatalogVehicleLASER_TANKDescription": "Onager 的车体，在原本装火炮的位置装上了舰船的爆发激光。它清除人员和无人机比任何火炮都快，但打不开建筑，对真正的装甲也只能削下碎屑。",
 		"gearCatalogVehicleDOZER_BREACHERDescription": "Onager 的车体，配上推土铲和双联机枪：战线上最厚的装甲，最慢的速度。它直接穿过路障和普通墙壁，而不是绕过去。",
 		"gearCatalogVehicleMILITIA_TECHNICALDescription": "一辆工坊皮卡，装有枢轴机枪和焊接装甲。装甲挡得住步枪火力，所以它可以停在路上吸引火力；简陋的火箭仍能打穿它。",

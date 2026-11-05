@@ -429,6 +429,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-lab-asset-picker-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
+                // The picker's thumbnails read each hull's gun card: a weapon's own drawing, a head and an empty ring.
+                new SnapshotArtifact("mech-lab-hull-gun-cards-wide.png",
+                        renderMechLab(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                true, false, false, false, null, "hull-gun-cards")),
                 new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true, false, false,
@@ -2598,6 +2602,18 @@ private static BufferedImage renderBarracks(
         for (var plan : SquadEquipmentDoctrines.armorPlans()) roster.armory().acquireArmorPlan(plan.id());
     }
 
+    /** A bought hull with the first weapon its gun card takes that does, or does not, wear a head on its sheet. */
+    private static void addHullWithGun(MechBay bay, String id, VehicleType type, boolean wearsHead) {
+        bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull(id, CampaignVehicle.className(type), type));
+        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
+            if (CampaignVehicle.takesGun(type, weapon) && type.wearsHeadOf(weapon) == wearsHead) {
+                bay.addWeapon(weapon.id, 1);
+                bay.fitGun(id, weapon);
+                return;
+            }
+        }
+    }
+
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
@@ -3134,6 +3150,13 @@ private static BufferedImage renderBarracks(
             bay.fitPlating(tank.id(), MechInternal.COMPOSITE_PLATING);
             viewModel.gantryRows().get().get(3).select().run();
         }
+        if ("hull-gun-cards".equals(materialHint)) {
+            for (CampaignMech mech : List.copyOf(bay.activeSquad().mechs())) bay.scrapMech(mech.id());
+            addHullWithGun(bay, "gun_card_army", VehicleType.BREAKTHROUGH_TANK, true);
+            addHullWithGun(bay, "gun_card_head", VehicleType.LASER_TANK, true);
+            addHullWithGun(bay, "gun_card_white", VehicleType.LASER_TANK, false);
+            addHullWithGun(bay, "gun_card_apc", VehicleType.HEAVY_APC, false);
+        }
         // Spare assemblies in stores, each with its RECYCLE and green recovery; one card armed.
         if ("recycle-weapons".equals(materialHint)) {
             bay.addWeapon(MechWeaponComponent.SRM_5.id, 2);
@@ -3307,6 +3330,7 @@ private static BufferedImage renderBarracks(
             document.layout(initialViewport.documentWidth(), initialViewport.documentHeight());
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
+                    && !"hull-gun-cards".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
                     && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")

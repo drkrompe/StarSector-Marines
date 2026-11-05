@@ -270,7 +270,7 @@ public final class MechLabViewModel {
         selectedMechDoctrine = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             CampaignVehicle vehicle = selectedVehicle();
-            if (vehicle != null) return vehicleArmament(vehicle.type());
+            if (vehicle != null) return vehicleArmament(vehicle);
             if (mech == null) return fabricatingChassis() ? Strings.get("openingMechLabChassisForge") : Strings.get("openingMechLabDoctrineUnavailable");
             return Strings.join("separatorDot", roleLabel(mech.role()), doctrineAdvice(mech.role()));
         });
@@ -1176,7 +1176,7 @@ public final class MechLabViewModel {
                         base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), null, vehicle,
                         vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
                         vehicle.displayName(), vehicleIdentity(vehicle.type()),
-                        vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
+                        vehicleArmament(vehicle), Strings.get("openingUiMechLabOpenGantry"),
                         "label heading mech-card-action", () -> selectVehicle(vehicle.id())));
                 continue;
             }
@@ -2899,6 +2899,13 @@ public final class MechLabViewModel {
         String turret = turretName(type);
         return turret != null ? Strings.format("openingMechLabVehicleTurret", turret)
                 : Strings.get("openingMechLabVehicleUnarmed");
+    }
+
+    /** What a campaign hull carries now: the weapon in its gun card, or its own gun only on a hull from an older save. */
+    private static String vehicleArmament(CampaignVehicle vehicle) {
+        if (vehicle.gun() != null) return Strings.format("openingMechLabVehicleTurret", vehicle.gun().displayName());
+        if (vehicle.hasOwnGun() || !vehicle.type().hasTurretWeapon()) return vehicleArmament(vehicle.type());
+        return Strings.format("openingMechLabVehicleTurret", Strings.get("vehicleDollNoGun"));
     }
 
     /** The turret's catalog name; a generic label when the catalog is not loaded. */
