@@ -29,7 +29,7 @@ final class MechSocketConsole {
     private static final float HEADER_INSET = 16f;
     private static final float HEADER_END = 10f;
     /** What a header keeps beside its name: the tick and inset before it, a warning mark after. */
-    private static final float LABEL_RESERVE = 40f;
+    static final float LABEL_RESERVE = 40f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
     private static final Color PLATE_SOLID = new Color(0x08, 0x0b, 0x09);
@@ -124,19 +124,9 @@ final class MechSocketConsole {
                 : compartment && warnings.bankRequired() && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
         boolean recommended = warnings.shown() && !fixed && empty
                 && (socket.id() == SocketId.PLATING || warnings.noWeapon() && socket.type().weaponPoint());
-        boolean warns = missing || recommended;
-        Color warning = recommended ? HardpointBricks.RECOMMENDED : RED;
-        float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
+        float pulse = pulse(time);
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
-        plate(c, x, y, w, h, missing ? MISSING_PLATE : recommended ? HardpointBricks.RECOMMENDED_PLATE : PLATE);
-        // An empty socket wears its hardpoint colour on the rim, so what it takes reads at a glance.
-        HardpointBricks.rim(c, x, y, w, h, CUT, warns ? new Color(warning.getRed(), warning.getGreen(), warning.getBlue(),
-                (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
-                : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), warns ? 2f : 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, fixed || sealed != null ? MUTED : warns ? warning : socketTone);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
-                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (warns) drawWarningBadge(c, x + w - 26f, y + 5f, warning);
+        frame(c, x, y, w, h, socket.label(), socketTone, empty && !fixed, fixed || sealed != null, missing, recommended, time);
         if (fixed) drawLock(c, x + w - 22f, y + 5f);
 
         HardpointBricks.Layout bricks = placed(t, socket);
@@ -187,6 +177,32 @@ final class MechSocketConsole {
                     new Color(accent.getRed(), accent.getGreen(), accent.getBlue(),
                             (int) (180 + pulse * 65)), selected || draggingHere ? 2.4f : 1.4f, 17, 5);
         }
+    }
+
+    /** The slow pulse every card's warning and selection breathe on. */
+    static float pulse(double time) {
+        return (float) (.5 + .5 * Math.sin(time * 3.5));
+    }
+
+    /**
+     * The plate, rim, tick, name and warning mark a socket card wears on any machine, mech, vehicle or shuttle. Red is a
+     * part the machine cannot go without, yellow one it is better for, and each pulses with a triangle by the name.
+     *
+     * @param open  an empty socket, which wears its colour full on the rim so what it takes reads at a glance
+     * @param muted a card no part goes on, whose tick is grey
+     */
+    static void frame(CanvasContext c, float x, float y, float w, float h, String label, Color tone, boolean open,
+                      boolean muted, boolean missing, boolean recommended, double time) {
+        boolean warns = missing || recommended;
+        Color warning = recommended ? HardpointBricks.RECOMMENDED : RED;
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : recommended ? HardpointBricks.RECOMMENDED_PLATE : PLATE);
+        HardpointBricks.rim(c, x, y, w, h, CUT, warns ? new Color(warning.getRed(), warning.getGreen(), warning.getBlue(),
+                (int) (150 + pulse(time) * 105)) : open ? tone
+                : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), warns ? 2f : 1.2f);
+        c.fillRect(x + 8, y + 7, 3, 9, muted ? MUTED : warns ? warning : tone);
+        c.text(Fonts.ORBITRON_12_BOLD, fit(label, w - LABEL_RESERVE), x + 16,
+                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
+        if (warns) drawWarningBadge(c, x + w - 26f, y + 5f, warning);
     }
 
     /** Whether the compartment holds a part of {@code role}. */

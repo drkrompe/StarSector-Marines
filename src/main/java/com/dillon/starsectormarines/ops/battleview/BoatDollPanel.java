@@ -40,8 +40,6 @@ final class BoatDollPanel {
     /** Below the bricks: a margin, not a caption. A part's name is the board tooltip's. */
     private static final float FOOT = 10f;
     private static final float SIDE = 12f;
-    private static final float HEADER_INSET = 16f;
-    private static final float HEADER_END = 10f;
     private static final float CORE_WIDTH = 150f;
     private static final float CORE_HEIGHT = 96f;
     private static final float CUT = 6f;
@@ -50,7 +48,6 @@ final class BoatDollPanel {
     private static final Color GRID = new Color(0x5e, 0x96, 0xd2, 20);
     private static final Color EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
-    private static final Color MISSING_PLATE = new Color(0x1c, 0x08, 0x08, 214);
     private static final Color SILVER = new Color(0xd3, 0xd0, 0xc5);
     private static final Color MUTED = new Color(0x91, 0x98, 0x8e);
     private static final Color AMBER = new Color(0xed, 0xc2, 0x73);
@@ -213,7 +210,7 @@ final class BoatDollPanel {
 
     /** A socket's card: its bricks, or its header where that is wider, as on the Mech Lab's board. */
     private static float width(BoatDoll.Slot slot) {
-        float header = HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth(slot.title()) + HEADER_END;
+        float header = Fonts.ORBITRON_12_BOLD.measureWidth(slot.title()) + MechSocketConsole.LABEL_RESERVE;
         return Math.max(header, bricks(slot.kind(), 0f, 0f).width() + SIDE * 2f);
     }
 
@@ -246,29 +243,18 @@ final class BoatDollPanel {
     }
 
     /**
-     * One socket: the plate, its name, and its bricks with the fitted piece over
-     * them. Selected or under the pointer, it wears the lab's amber brackets. A
-     * required socket left empty warns as the lab's empty engine well does: a dark
-     * red plate, a pulsing red rim and a warning triangle by its name. An empty armor point, or a hardpoint on a
-     * boat with no gun anywhere, which she can fly without, warns the same way in yellow.
+     * One socket, on the card every machine wears ({@link MechSocketConsole#frame}), with its bricks and the fitted piece
+     * over them. Selected or under the pointer, it wears the lab's amber brackets.
      */
     private static void console(CanvasContext c, CardTarget t, BoatDoll.Slot slot, boolean hot, double seconds) {
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         Color tone = BoatHardware.tone(slot.kind());
-        boolean missing = slot.missing();
-        boolean recommended = slot.recommended();
-        boolean warns = missing || recommended;
-        Color warning = recommended ? HardpointBricks.RECOMMENDED : REFUSES;
-        float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
-        plate(c, x, y, w, h, missing ? MISSING_PLATE : recommended ? HardpointBricks.RECOMMENDED_PLATE : PLATE);
-        HardpointBricks.rim(c, x, y, w, h, CUT, warns ? withAlpha(warning, (int) (150 + pulse * 105))
-                : withAlpha(tone, 70), warns ? 2f : 1.2f);
-        c.fillRect(x + 8f, y + 7f, 3f, 9f, warns ? warning : tone);
-        c.text(Fonts.ORBITRON_12_BOLD, clip(slot.title(), w - 24f, Fonts.ORBITRON_12_BOLD), x + 16f,
-                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
+        float pulse = MechSocketConsole.pulse(seconds);
+        boolean empty = slot.itemId() == null && slot.podItemId() == null;
+        MechSocketConsole.frame(c, x, y, w, h, slot.title(), tone, empty, false, slot.missing(), slot.recommended(), seconds);
         HardpointBricks.Layout bricks = cardBricks(t, slot.kind());
         HardpointBricks.drawEmpty(c, bricks, tone);
-        // A bare hardpoint is its empty bricks and nothing on them; a missing required part, the warning on them.
+        // A bare hardpoint is its empty bricks and nothing on them.
         if (slot.kind() == BoatDoll.Kind.HARDPOINT) {
             // Two positions, each its own gun: an open one stays open for a second 2x1 gun.
             if (slot.itemId() != null) BoatHardware.drawAt(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 0, 255);
@@ -279,14 +265,12 @@ final class BoatDollPanel {
                     || BoatHardware.piece(slot.kind(), slot.itemId()).rows() < bricks.rows()) {
                 seam(c, bricks, tone);
             }
-            if (recommended) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f, warning);
         }
         else if (slot.itemId() != null) {
             BoatHardware.Piece piece = BoatHardware.piece(slot.kind(), slot.itemId());
             BoatHardware.drawClosed(c, bricks, piece);
             BoatHardware.draw(c, bricks, piece, 255);
         }
-        else if (warns) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f, warning);
         if (slot.selected() || hot) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
                     withAlpha(AMBER, (int) (180 + pulse * 65)), slot.selected() ? 2.4f : 1.4f, 17f, 5f);
@@ -357,14 +341,6 @@ final class BoatDollPanel {
         c.fillRect(x + CUT, y, w - CUT * 2f, h, fill);
         c.fillQuad(x, y + CUT, x + CUT, y, x + CUT, y + h, x, y + h - CUT, fill);
         c.fillQuad(x + w - CUT, y, x + w, y + CUT, x + w, y + h - CUT, x + w - CUT, y + h, fill);
-    }
-
-    /** The lab's warning mark: a triangle with an exclamation mark, {@code size} px square at its top-left corner. */
-    private static void warning(CanvasContext c, float left, float top, float size, Color tone) {
-        float stroke = Math.max(2f, size / 9f);
-        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, tone);
-        c.fillRect(left + (size - stroke) * .5f, top + size * .33f, stroke, size * .33f, MISSING_PLATE);
-        c.fillRect(left + (size - stroke) * .5f, top + size * .78f, stroke, stroke, MISSING_PLATE);
     }
 
     static Color withAlpha(Color color, int alpha) {
