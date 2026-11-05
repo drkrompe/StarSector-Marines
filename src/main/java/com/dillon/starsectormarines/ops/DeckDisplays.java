@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Live readouts on the command deck's televisions: sector charts with drifting contacts,
  * radar sweeps, scrolling telemetry, oscilloscope traces, bar meters, a flagship schematic
- * under a scan line, comms traffic and the quartermaster's ledger.
+ * under a scan line with its compartments lit in turn, comms traffic and the quartermaster's ledger.
  *
  * <p>Each {@link CommandDeckLayout.Display} is a quad behind a hole in the plate. Content is
  * authored in the screen's own unit square and carried onto the quad through the
@@ -38,6 +38,8 @@ import java.util.Map;
  */
 final class DeckDisplays {
     static final String SHIP_SVG = "graphics/ui/hq-command-deck/deck-ship.svg";
+    /** One filled layer per compartment of {@link #SHIP_SVG}. */
+    static final String SECTIONS_SVG = "graphics/ui/hq-command-deck/deck-ship-sections.svg";
     static final String SECTOR_SVG = "graphics/ui/hq-command-deck/deck-sector.svg";
     static final String GLOW_SPRITE = "graphics/battle/fx/aircraft-engine-glow.png";
 
@@ -65,6 +67,7 @@ final class DeckDisplays {
     private final Ink glass = new Ink();
     private final Ink ink = new Ink();
     private SvgAsset ship;
+    private SvgAsset sections;
     private SvgAsset sector;
     private boolean svgFailed;
     private Screen[] frame = new Screen[0];
@@ -97,10 +100,12 @@ final class DeckDisplays {
         if (svgFailed || ship != null) return;
         try {
             ship = SvgAsset.load(SHIP_SVG);
+            sections = SvgAsset.load(SECTIONS_SVG);
             sector = SvgAsset.load(SECTOR_SVG);
         } catch (RuntimeException unavailable) {
             // A host with no asset source (a bare unit test) draws the canvas-only fallbacks.
             ship = null;
+            sections = null;
             sector = null;
             svgFailed = true;
         }
@@ -206,7 +211,7 @@ final class DeckDisplays {
                 case TELEMETRY -> telemetry(out, 0.07f, 0.93f);
                 case WAVEFORM -> waveform(out);
                 case BARS -> bars(out);
-                case SCHEMATIC -> schematic(out, owner.ship);
+                case SCHEMATIC -> schematic(out, owner.ship, owner.sections);
                 case COMMS -> comms(out);
                 case LEDGER -> ledger(out);
             }
@@ -377,14 +382,15 @@ final class DeckDisplays {
             return 0.12f + 0.82f * n * n * (3f - 2f * n);
         }
 
-        /** The flagship's plan under a travelling scan line; one compartment blinks at a time. */
-        private void schematic(Ink out, SvgAsset plan) {
-            float shipW = Math.min(0.9f, 0.62f * 3f / Math.max(0.1f, aspect));
+        /** The flagship's plan under a travelling scan line; one compartment lights at a time. */
+        private void schematic(Ink out, SvgAsset plan, SvgAsset compartments) {
+            float ratio = plan == null ? 1.25f : plan.viewBox()[2] / plan.viewBox()[3];
+            float shipH = Math.min(0.72f, 0.9f * Math.max(0.1f, aspect) / ratio);
+            float shipW = shipH * ratio / Math.max(0.1f, aspect);
             float u0 = 0.5f - shipW * 0.5f, u1 = 0.5f + shipW * 0.5f;
-            float shipH = shipW * aspect / 3f;
-            float v0 = 0.44f - shipH * 0.5f, v1 = 0.44f + shipH * 0.5f;
+            float v0 = 0.48f - shipH * 0.5f, v1 = 0.48f + shipH * 0.5f;
             if (plan != null) {
-                out.svg(this, plan, u0, v0, u1, v1, phosphor, lit(175));
+                out.svg(this, plan, u0, v0, u1, v1, phosphor, lit(190));
             } else {
                 float[] hull = {0.05f, 0.5f, 0.15f, 0.2f, 0.7f, 0.1f, 0.97f, 0.5f, 0.7f, 0.9f, 0.15f, 0.8f};
                 for (int i = 0; i < hull.length; i += 2) {
@@ -393,28 +399,16 @@ final class DeckDisplays {
                             u0 + hull[j] * shipW, v0 + hull[j + 1] * shipH, px(1.2f), phosphor, lit(175));
                 }
             }
-            float[] bulkheads = {18f, 30f, 46f, 64f, 84f, 98f};
-            int beat = (int) Math.floor(t / 1.3f);
-            int section = Math.floorMod(Math.round(hash(beat, seed) * 100f), bulkheads.length - 1);
-            boolean upper = hash(beat, seed ^ 9) < 0.5f;
-            float blink = 0.5f + 0.5f * (float) Math.sin(t * 9f);
-            out.rect(this, u0 + shipW * bulkheads[section] / 120f, upper ? v0 + shipH * 0.2f : v0 + shipH * 0.5f,
-                    u0 + shipW * bulkheads[section + 1] / 120f, upper ? v0 + shipH * 0.5f : v0 + shipH * 0.8f,
-                    hot, lit(60 + 90 * blink));
+            if (compartments != null && compartments.geometry().layerCount() > 0) {
+                int beat = (int) Math.floor(t / 1.3f);
+                int section = Math.floorMod(Math.round(hash(beat, seed) * 1000f), compartments.geometry().layerCount());
+                float blink = 0.5f + 0.5f * (float) Math.sin(t * 9f);
+                out.svgLayer(this, compartments, section, u0, v0, u1, v1, hot, lit(70 + 110 * blink));
+            }
             float scan = frac(t / 3.4f);
             float su = u0 + shipW * scan;
-            out.rect(this, Math.max(u0, su - 0.05f), v0 - 0.04f, su, v1 + 0.04f, trace, lit(40));
-            out.line(this, su, v0 - 0.06f, su, v1 + 0.06f, px(1.2f), hot, lit(230));
-            float barV = Math.min(0.9f, v1 + 0.12f);
-            out.rect(this, 0.08f, barV, 0.92f, barV + 0.05f, trace, lit(50));
-            out.rect(this, 0.08f, barV, 0.08f + 0.84f * scan, barV + 0.05f, phosphor, lit(170));
-            if (heightPx > 26f) {
-                for (int i = 0; i < 4; i++) {
-                    float len = 0.08f + 0.12f * hash(beat + i, seed ^ 3);
-                    float u = 0.08f + i * 0.22f;
-                    out.rect(this, u, 0.06f, u + len, 0.1f, trace, lit(130));
-                }
-            }
+            out.rect(this, Math.max(u0, su - 0.05f), v0, su, v1, trace, lit(46));
+            out.line(this, su, v0 - 0.01f, su, v1 + 0.01f, px(1.2f), hot, lit(230));
         }
 
         /** Channels of traffic sliding across, a level per channel, and the arrival flash. */
@@ -578,26 +572,32 @@ final class DeckDisplays {
 
         /** An SVG stretched over a unit-square box and carried through the screen's projection. */
         void svg(Screen s, SvgAsset asset, float u0, float v0, float u1, float v1, int rgb, int alpha) {
-            float[] box = asset.viewBox();
-            CanvasMeshBatch batch = asset.geometry();
-            float su = (u1 - u0) / box[2], sv = (v1 - v0) / box[3];
-            for (int i = 0; i < batch.layerCount(); i++) {
-                CanvasMeshBatch.Layer layer = batch.layer(i);
+            for (int i = 0; i < asset.geometry().layerCount(); i++) {
+                CanvasMeshBatch.Layer layer = asset.geometry().layer(i);
                 Color color = layer.color();
                 int layerRgb = rgb((color.getRed() * ((rgb >> 16) & 0xff)) / 255,
                         (color.getGreen() * ((rgb >> 8) & 0xff)) / 255, (color.getBlue() * (rgb & 0xff)) / 255);
-                int layerAlpha = color.getAlpha() * alpha / 255;
-                CanvasMesh mesh = layer.mesh();
-                float[] p = new float[6];
-                for (int vtx = 0; vtx + 2 < mesh.vertexCount(); vtx += 3) {
-                    for (int k = 0; k < 3; k++) {
-                        float u = u0 + (mesh.x(vtx + k) - box[0]) * su;
-                        float v = v0 + (mesh.y(vtx + k) - box[1]) * sv;
-                        p[k * 2] = s.mapX(u, v);
-                        p[k * 2 + 1] = s.mapY(u, v);
-                    }
-                    triangle(layerRgb, layerAlpha, p[0], p[1], p[2], p[3], p[4], p[5]);
+                mesh(s, asset, layer.mesh(), u0, v0, u1, v1, layerRgb, color.getAlpha() * alpha / 255);
+            }
+        }
+
+        /** One layer of an SVG in one flat colour, whatever colour the SVG gives it. */
+        void svgLayer(Screen s, SvgAsset asset, int index, float u0, float v0, float u1, float v1, int rgb, int alpha) {
+            mesh(s, asset, asset.geometry().layer(index).mesh(), u0, v0, u1, v1, rgb, alpha);
+        }
+
+        private void mesh(Screen s, SvgAsset asset, CanvasMesh mesh, float u0, float v0, float u1, float v1, int rgb, int alpha) {
+            float[] box = asset.viewBox();
+            float su = (u1 - u0) / box[2], sv = (v1 - v0) / box[3];
+            float[] p = new float[6];
+            for (int vtx = 0; vtx + 2 < mesh.vertexCount(); vtx += 3) {
+                for (int k = 0; k < 3; k++) {
+                    float u = u0 + (mesh.x(vtx + k) - box[0]) * su;
+                    float v = v0 + (mesh.y(vtx + k) - box[1]) * sv;
+                    p[k * 2] = s.mapX(u, v);
+                    p[k * 2 + 1] = s.mapY(u, v);
                 }
+                triangle(rgb, alpha, p[0], p[1], p[2], p[3], p[4], p[5]);
             }
         }
     }
