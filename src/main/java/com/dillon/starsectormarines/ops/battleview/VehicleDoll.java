@@ -27,12 +27,12 @@ import java.util.List;
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
  * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the compartment.</p>
  */
-final class VehicleDoll {
+public final class VehicleDoll {
 
     private VehicleDoll() { }
 
     /** The cards a hull of {@code type} shows: the auxiliary compartment's bay or bays ({@link VehicleRack#grids}) near last. */
-    static List<SocketDef> sockets(VehicleType type) {
+    public static List<SocketDef> sockets(VehicleType type) {
         List<SocketDef> sockets = new ArrayList<>();
         sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
                 "@gearSocketEngine"));

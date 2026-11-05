@@ -392,7 +392,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void vehicleGantryShowsReadOnlyHullWithoutFittingControls() {
+    void aVehicleGantryOpensAsAMechsDoes() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle vehicle = new CampaignVehicle(
                 "support_vehicle_01", "Mule 01", VehicleType.HEAVY_APC);
@@ -426,9 +426,11 @@ class MechLabViewModelTest {
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());
-        assertTrue(viewModel.slotRows().get().isEmpty());
+        assertFalse(viewModel.slotRows().get().isEmpty(), "a hull lists its live cards as a mech lists its mounts");
         assertFalse(viewModel.slotRackClasses().get().contains("hidden"), "a vehicle has the specifications column too");
-        assertTrue(viewModel.slotIntroClasses().get().contains("hidden"), "a vehicle has no mount list to introduce");
+        assertTrue(viewModel.browsingStores().get(), "a hull opens on every part, as a mech does");
+        assertFalse(viewModel.categoryFilterPills().get().isEmpty());
+        viewModel.selectSlot(SocketId.AUXILIARY);
         assertTrue(onlyRackParts(viewModel.catalogRows().get()), "the auxiliary compartment lists only compartment parts");
         assertTrue(viewModel.categoryFilterPills().get().isEmpty());
         assertNull(viewModel.installedWeapon(SocketId.LEFT_ARM));
@@ -1125,6 +1127,36 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void aHeavyHullsSecondBaySelectsAndItsLockedCardsDoNot() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(1).select().run();
+
+        viewModel.selectSlot(SocketId.AUXILIARY_2);
+        assertEquals(SocketId.AUXILIARY_2, viewModel.selectedSocket());
+        viewModel.selectSlot(SocketId.RIGHT_SHOULDER);
+        assertEquals(SocketId.AUXILIARY_2, viewModel.selectedSocket(), "the systems card is sealed");
+    }
+
+    @Test
+    void aStoreRowReadsWhatThePartWouldMakeOfAHull() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        bay.addInternal(MechInternal.HEAVY_PLATING.id, 1);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(1).select().run();
+        viewModel.selectSlot(SocketId.PLATING);
+
+        MechLabViewModel.CatalogRow heavy = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals(MechInternal.HEAVY_PLATING.displayName())).findFirst().orElseThrow();
+        assertTrue(heavy.delta().startsWith(Strings.get("openingMechLabDeltaArmor")), heavy.delta());
+        assertFalse(heavy.detail().contains("MASS"), "a hull has no mass budget");
+    }
+
+    @Test
     void aVehicleTakesPlatingAtItsArmorPointByDropAndOnlyEverReplacesIt() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
@@ -1325,7 +1357,6 @@ class MechLabViewModelTest {
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
-        props.put("slotIntroClasses", viewModel.slotIntroClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());

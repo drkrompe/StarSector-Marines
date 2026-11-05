@@ -253,7 +253,6 @@ public final class MechLabScreen implements Screen {
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
-        props.put("slotIntroClasses", viewModel.slotIntroClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
