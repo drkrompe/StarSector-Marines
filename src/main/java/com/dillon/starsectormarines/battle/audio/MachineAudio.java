@@ -45,6 +45,12 @@ public final class MachineAudio {
 
     /** A hull running into something that stops it: vanilla's ship-on-rock collision, under our own id. */
     public static final String HULL_BUMP = "marines_hull_bump";
+    /**
+     * A hull's weight bringing a wall, a window bay, a barricade or a prop down: the clip a Brute plays as the wall it
+     * breaks gives way ({@code SwarmAudio}'s wall break), so the built world falls with one voice whatever brought it
+     * down.
+     */
+    public static final String CRUSH = "marines_breach_brute_wall_break";
 
     public static final String ENGINE_TRACKED = "marines_engine_tracked";
     public static final String ENGINE_TURBINE = "marines_engine_turbine";
@@ -76,10 +82,13 @@ public final class MachineAudio {
     private final Map<Object, Boolean> venting = new IdentityHashMap<>();
     /** Each hull's bump count as last heard; a hull first seen does not replay the bumps it already had. */
     private final Map<Object, Integer> bumped = new IdentityHashMap<>();
+    /** Each hull's crush count as last heard; a hull first seen does not replay what it already brought down. */
+    private final Map<Object, Integer> crushed = new IdentityHashMap<>();
 
     public void reset() {
         venting.clear();
         bumped.clear();
+        crushed.clear();
     }
 
     /** The voice a hull's engine speaks with: a gas turbine for the high-tech laser hull and the hover
@@ -149,8 +158,10 @@ public final class MachineAudio {
             VehicleType type = convoy.vehicleType(id);
             boolean heard = !over && audible(convoy.faction(id), body.x, body.y, fog, lx, ly);
             bump(body, body.bumps, heard, type, body.lastBumpSpeed, body.x, body.y, out);
+            crush(body, body.crushes, heard, type, body.lastCrushX, body.lastCrushY, out);
         }
         bumped.keySet().retainAll(live);
+        crushed.keySet().retainAll(live);
     }
 
     /**
@@ -169,6 +180,18 @@ public final class MachineAudio {
             case LIGHT -> 1.15f;
         };
         cues.add(new Cue(HULL_BUMP, pitch, .3f + .6f * hit, x, y));
+    }
+
+    /**
+     * One hull's crushes: a cue, at the last piece that fell, when its count has risen since last frame; one a frame
+     * however many fell, so a row going down at speed is one break, not a stack of them. Deeper and louder for an
+     * ultra-heavy hull. A hull first seen cues nothing.
+     */
+    void crush(Object key, int count, boolean heard, VehicleType type, float x, float y, List<Cue> cues) {
+        Integer was = crushed.put(key, count);
+        if (was == null || count <= was || !heard) return;
+        boolean ultra = type.weight() == VehicleType.Weight.ULTRA_HEAVY;
+        cues.add(new Cue(CRUSH, ultra ? .8f : .9f, ultra ? .35f : .3f, x, y));
     }
 
     private void turretVents(BattleSimulation sim, float lx, float ly, boolean over,

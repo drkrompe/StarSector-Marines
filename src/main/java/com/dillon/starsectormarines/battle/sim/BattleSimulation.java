@@ -2312,6 +2312,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return resupply.caches();
     }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
+    public DoodadService getDoodadService() { return doodadService; }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
     public com.dillon.starsectormarines.battle.world.model.Buildings getBuildings() { return fogOfWar.getBuildings(); }
     /** Faction-contributor set for the fog-of-war reveal. */

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-05 — a crushing hull pushes what is built and the destruction path brings down: a building's window bays with its walls, and registered equipment and furniture with barricades; each piece it brings down plays the Brute's wall break (owner; weight crushes walls). Also 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1328,18 +1328,24 @@ names it is carried to the Onager (`VehicleType.fromSavedName`, `VehicleTypeSave
 
 **Weight crushes walls** (`WallCrush`; `VehicleType.crushesWalls`). A heavy or ultra-heavy hull (the laser tank,
 the Scorpion and the repulsor Onager) opens ordinary walls and barricades with its own nose, because of its mass,
-not a part (owner: heavy vehicles break ordinary walls, not fortified ones). A blocking cell is
-*pushable* when its structure is spent through the ordinary wall channel — a
-wall cell or a sandbag, fence or crate barricade — and is above zero and at most
-the hull's **ceiling**: 100 for a heavy or ultra-heavy hull. Ordinary city and gated-housing walls fall to it;
+not a part (owner: heavy vehicles break ordinary walls, not fortified ones). It pushes what is **built** and what the
+ordinary destruction path brings down: a blocking cell or a movement-blocking shared edge is *pushable* when its
+structure, read where that path spends it, is above zero and at most the hull's **ceiling**: 100 for a heavy or
+ultra-heavy hull. Built is a wall cell, a window cell in a wall, a **window bay** (the window edge in a building's wall
+line, whose floor cell is open), a sandbag, fence or crate barricade, and registered equipment, furniture or a drum
+cluster, each of which has its damaged and destroyed art; so a hull that opens a building's walls opens its window
+bays and the furniture behind them as well (owner). Ordinary city and gated-housing walls fall to it;
 fortified and fortress walls (150 and up) stand until fire has worn them under the ceiling, so a fort is still opened
 by fire and charges first. A fort's or an objective's works are pushed by nothing, as they are rammed by nothing.
-Natural obstructions, registered equipment and entity-owned fixtures are never pushed. Low crash debris under the
+Natural obstructions (undergrowth is the tracks' to crush) and fixtures nothing can bring down (a turret's mount, a
+prop with no damage art, a parked truck) are never pushed. Low crash debris under the
 hull is graded flat. The hull bears on a strip just past its nose, its own width, and spends its **rate** on every
-pushable cell in it at once: 80 structure a second for an ultra-heavy hull, 50 for a heavy hull, which grinds a city
+pushable cell in it and every pushable edge it spans at once: 80 structure a second for an ultra-heavy hull, 50 for a heavy hull, which grinds a city
 wall down in two seconds rather than one and a quarter. Pushing is done through the same destruction path a
-breaching charge uses: a pushed wall becomes rubble, a pushed barricade its destroyed art, and the cell is ordinary
-walkable ground for every vehicle and unit afterwards. Driving onto what it pushes the hull also spends its
+breaching charge and a Brute's charge use: a pushed wall becomes rubble, a pushed barricade or prop its destroyed art,
+and the cell or edge is ordinary open ground for every vehicle and unit afterwards. Each piece that falls plays the
+clip a Brute plays as a wall gives way (`MachineAudio.CRUSH`, `GroundBody.recordCrush`), once a frame however many
+fell, at the last of them, deeper and louder for an ultra-heavy hull. Driving onto what it pushes the hull also spends its
 **momentum** on it (`HullMomentum`): half its mass in tonnes times its speed squared, at 10.4 structure apiece, so
 about 3,500 for the Onager at its top speed; weight separates the two classes again here, an ultra-heavy hull
 carrying nearly twice a gun tank's mass through a row of walls. Only the cells its nose reaches that tick take it.
@@ -1353,7 +1359,7 @@ recovery treats it as any other wall.
 
 Route proof for a wall-crushing hull reads a **breach view**: a routing copy of
 the grid it moves over (its crush view, or a heavy skirt's view) with every cell
-under its ceiling open. Its move-order proof and rolling local planner both use
+and edge under its ceiling open. Its move-order proof and rolling local planner both use
 it, so ground the hull can open is reachable for it and for nobody else, while its
 physical sweep still reads the grid it moves over — which is what holds the hull
 against a wall until it has pushed it down. Gun tanks are common and the map moves

@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -14,24 +16,29 @@ import java.util.List;
  * What a wall-crushing hull ({@link VehicleType#crushesWalls()}) pushes through, how fast, and the view of the map its
  * route proof reads. A heavy or ultra-heavy hull crushes by its own weight on its nose: there is no blade on any hull.
  *
- * <p><b>The rule.</b> A blocking cell is <em>pushable</em> when its structure is spent through the ordinary wall
- * channel — a wall cell, or a sandbag, fence or crate barricade — and that structure is above zero and no more than
- * the hull's ceiling ({@link #ceiling}: {@link #HEAVY_CEILING} and {@link #ULTRA_HEAVY_CEILING} by weight). Ordinary
- * city walls (100) and gated-housing walls (80) fall to each; fortified and fortress walls (150 and up) do not, until
- * fire has worn them under the ceiling. Natural obstructions (rock, trees, summit terrain), a fort's or an objective's
- * works ({@link NavigationGrid.CellTag#WORKS}), registered equipment and entity-owned fixtures (a turret's mount) are
- * never pushed. Low crash debris under the hull and its bearing strip is graded flat: the cell keeps its terrain and
- * loses the slowing tag.
+ * <p><b>The rule.</b> The hull pushes down what the ordinary destruction path brings down and what is built, not
+ * grown: a blocking cell or a movement-blocking shared edge is <em>pushable</em> when its structure ({@link #structure})
+ * is above zero and no more than the hull's ceiling ({@link #ceiling}: {@link #HEAVY_CEILING} and
+ * {@link #ULTRA_HEAVY_CEILING} by weight). Built means a wall cell, a window cell in a wall, a window bay (the
+ * {@link SharedEdgeBarrier.Kind#WINDOW} edge in a building's wall line, {@link #canPushEdge}), a sandbag, fence or crate
+ * barricade, and registered equipment, furniture or a drum cluster (each with its damaged and destroyed art), so a hull
+ * that opens a building's walls opens its window bays and the furniture behind them too. Ordinary city walls (100) and
+ * gated-housing walls (80) fall to each; fortified and fortress walls (150 and up) do not, until fire has worn them
+ * under the ceiling. Natural obstructions (rock, trees, summit terrain: {@link HeavyTracks} crushes undergrowth), a
+ * fort's or an objective's works ({@link NavigationGrid.CellTag#WORKS}) and fixtures nothing can bring down (a
+ * turret's mount, a prop without damage art) are never pushed. Low crash debris under the hull and its bearing strip
+ * is graded flat: the cell keeps its terrain and loses the slowing tag.
  *
  * <p><b>The bearing strip.</b> A hull bears on a strip just past its nose ({@link #bearingWidth}): the hull's own
  * width, since it has nothing wider than itself to push with, so the gap it cuts is its own width.
  *
  * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #HEAVY_PER_SECOND} for a heavy hull,
  * {@link #ULTRA_HEAVY_PER_SECOND} for an ultra-heavy one) of structure per second on every pushable cell it bears on
- * at once, through
- * {@link MapEditor#damageWall} — the same destruction path a breaching charge uses. A pushed wall becomes rubble and a
- * pushed barricade its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit from then
- * on. Opening is the only direction it edits: like every destruction op, it can only make the map more permissive, so
+ * at once, and on every pushable edge it spans, through
+ * {@link MapEditor#damageWall} and {@link MapEditor#damageEdgeBarrier} — the same destruction paths a breaching charge
+ * and a Brute's charge use. A pushed wall becomes rubble and a pushed barricade or prop its destroyed art, and the cell
+ * or edge is ordinary open ground for every vehicle and unit from then on. Each piece that falls is counted on the
+ * hull ({@link GroundBody#recordCrush}) for the crush sound. Opening is the only direction it edits: like every destruction op, it can only make the map more permissive, so
  * nothing derived from it is invalidated beyond the ordinary opened-cell flush.
  *
  * <p><b>Momentum.</b> A hull driving onto what it pushes spends its way on the cells its nose reaches that tick
@@ -45,7 +52,7 @@ import java.util.List;
  * holds it, it {@link #grind grinds} them at its rate. Its route proof counts that ground open, so its turns may sweep
  * there; without this a hull stood against a wall its own plan had driven it into.
  *
- * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A crushing
+ * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell and edge open. A crushing
  * hull's move-order proof and its rolling local planner read that view, laid over the grid it moves over (its
  * tracks' crush view, or a heavy skirt's), so ground it can open counts as reachable for it and for nobody else; its
  * physical sweep still reads the grid it moves over, which is what holds the hull against a wall until it has pushed
@@ -87,9 +94,18 @@ public final class WallCrush {
     /** Cells the hull bears on this tick, as x/y pairs. Host-thread scratch: vehicles are driven serially. */
     private final int[] bearing = new int[64];
     private int bearingCount;
+    /** Pushable edges the hull bears on this tick, as x/y/direction-ordinal triples. */
+    private final int[] bearingEdges = new int[96];
+    private int bearingEdgeCount;
     /** Cells the hull's nose hits this tick, as x/y pairs. */
     private final int[] struck = new int[64];
     private int struckCount;
+    /** Pushable edges the hull's nose hits this tick, as x/y/direction-ordinal triples. */
+    private final int[] struckEdges = new int[96];
+    private int struckEdgeCount;
+    /** Every cell a strip or footprint overlaps this tick, as x/y pairs: what an edge must lie between. */
+    private final int[] overlapped = new int[128];
+    private int overlappedCount;
     /** Whether something the hull cannot push holds it this tick ({@link #grind}). */
     private boolean heldElsewhere;
     /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
@@ -136,12 +152,38 @@ public final class WallCrush {
         if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
                 || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
                 || grid.hasTag(x, y, NavigationGrid.CellTag.WORKS)) return false;
-        int structure = grid.getWallHp(x, y);
-        if (structure <= 0 || structure > most) return false;
+        int structure = structure(grid, topology, doodads, x, y);
+        return structure > 0 && structure <= most;
+    }
+
+    /**
+     * The structure a push on closed cell {@code (x, y)} has to spend, read where {@link MapEditor#damageWall} will
+     * spend it: the first destructible prop a hit reaches when it is built ({@link DoodadService#builtPropStructureAt}:
+     * none for a rock or a natural object), else the cell's own wall structure when it is a wall or a window cell and
+     * no fixture. Zero where nothing the hull can bring down holds the cell.
+     */
+    static int structure(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
         if (doodads != null && doodads.damageablePropIdAt(x, y, topology) != null) {
-            return doodads.barricadeAt(x, y, topology);
+            return doodads.builtPropStructureAt(x, y, topology);
         }
-        return topology.isWall(x, y) && !topology.isFixture(x, y);
+        if (!topology.isWall(x, y) && !topology.isWindow(x, y) || topology.isFixture(x, y)) return 0;
+        return grid.getWallHp(x, y);
+    }
+
+    /**
+     * Whether a hull whose ceiling is {@code most} can push the shared edge on {@code direction} of cell
+     * {@code (x, y)} down right now: a movement-blocking edge barrier (a window bay) whose structure is above zero and
+     * no more than {@code most}, on no works ground either side. See the class rule.
+     */
+    public static boolean canPushEdge(NavigationGrid grid, int x, int y, Direction direction, int most) {
+        int nx = x + direction.dx, ny = y + direction.dy;
+        if (!grid.inBounds(x, y) || !grid.inBounds(nx, ny)) return false;
+        SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+        if (barrier == null || !barrier.kind().blocksMovement()) return false;
+        if (grid.hasTag(x, y, NavigationGrid.CellTag.WORKS) || grid.hasTag(nx, ny, NavigationGrid.CellTag.WORKS)) {
+            return false;
+        }
+        return barrier.structure() > 0 && barrier.structure() <= most;
     }
 
     /** Whether the hull grades cell {@code (x, y)}: low crash debris on open ground. */
@@ -151,8 +193,9 @@ public final class WallCrush {
     }
 
     /**
-     * A routing copy of {@code grid} with every cell an ultra-heavy hull could push open on all sides, as it would
-     * leave it. The live grid is not touched. Cells only: a closed shared edge stays closed.
+     * A routing copy of {@code grid} with every cell an ultra-heavy hull could push open on all sides, and every
+     * edge it could push open, as it would leave them. The live grid is not touched. A closed shared edge it cannot
+     * push stays closed.
      */
     public static NavigationGrid breachView(NavigationGrid grid, CellTopology topology, DoodadService doodads) {
         return breachView(grid, grid, topology, doodads, ULTRA_HEAVY_CEILING);
@@ -170,6 +213,12 @@ public final class WallCrush {
                 if (!canPush(grid, topology, doodads, x, y, most)) continue;
                 copy.setWalkable(x, y, true);
                 copy.openAllEdges(x, y);
+            }
+        }
+        for (int i = 0; i < grid.edgeBarrierCount(); i++) {
+            SharedEdgeBarrier barrier = grid.edgeBarrierAt(i);
+            if (canPushEdge(grid, barrier.cellX(), barrier.cellY(), barrier.direction(), most)) {
+                copy.openSharedEdge(barrier.cellX(), barrier.cellY(), barrier.direction());
             }
         }
         return copy;
@@ -229,16 +278,19 @@ public final class WallCrush {
                     if (grades(grid, x, y)) grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
                 });
         bearingCount = 0;
+        overlappedCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, stripOffset,
                 stripLength, bearingWidth(type), grid, (x, y) -> {
                     if (grades(grid, x, y)) grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
+                    overlap(x, y);
                     if (!canPush(grid, topology, doodads, x, y, most)) return;
                     if (bearingCount * 2 >= bearing.length) return;
                     bearing[bearingCount * 2] = x;
                     bearing[bearingCount * 2 + 1] = y;
                     bearingCount++;
                 });
-        if (bearingCount == 0) {
+        bearingEdgeCount = spannedEdges(grid, most, bearingEdges, false);
+        if (bearingCount == 0 && bearingEdgeCount == 0) {
             control.bladeCarry = 0f;
             return false;
         }
@@ -246,9 +298,7 @@ public final class WallCrush {
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
         strike(body, type, grid, topology, spend, dt);
-        if (spend > 0) {
-            for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
-        }
+        if (spend > 0) spendOnBearing(body, spend);
         return true;
     }
 
@@ -265,9 +315,11 @@ public final class WallCrush {
         CellTopology topology = navigation.getTopology();
         int most = ceiling(type);
         bearingCount = 0;
+        overlappedCount = 0;
         heldElsewhere = false;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
                 type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
+                    overlap(x, y);
                     if (grid.isWalkable(x, y)) return;
                     if (!canPush(grid, topology, doodads, x, y, most) || bearingCount * 2 >= bearing.length) {
                         heldElsewhere = true;
@@ -277,14 +329,80 @@ public final class WallCrush {
                     bearing[bearingCount * 2 + 1] = y;
                     bearingCount++;
                 });
-        if (heldElsewhere || bearingCount == 0) return false;
+        if (heldElsewhere) return false;
+        bearingEdgeCount = spannedEdges(grid, most, bearingEdges, true);
+        if (bearingEdgeCount < 0 || bearingCount == 0 && bearingEdgeCount == 0) return false;
         float pending = control.bladeCarry + rate(type) * dt;
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
-        if (spend > 0) {
-            for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
-        }
+        if (spend > 0) spendOnBearing(body, spend);
         return true;
+    }
+
+    /** Notes a cell the current strip or footprint overlaps. */
+    private void overlap(int x, int y) {
+        if (overlappedCount * 2 >= overlapped.length) return;
+        overlapped[overlappedCount * 2] = x;
+        overlapped[overlappedCount * 2 + 1] = y;
+        overlappedCount++;
+    }
+
+    private boolean overlaps(int x, int y) {
+        for (int i = 0; i < overlappedCount; i++) {
+            if (overlapped[i * 2] == x && overlapped[i * 2 + 1] == y) return true;
+        }
+        return false;
+    }
+
+    /** The two directions each shared edge is read from, so each is read once: from its west or south cell. */
+    private static final Direction[] FORWARD_EDGES = {Direction.E, Direction.N};
+    private static final Direction[] DIRECTIONS = Direction.values();
+
+    /**
+     * The pushable edges between two cells both overlapped this tick, written to {@code out} as x/y/direction
+     * triples: a convex strip or footprint that overlaps both cells of an edge crosses it. With {@code strict}, an
+     * edge between two open cells that is closed and cannot be pushed answers {@code -1}: something else holds the
+     * hull.
+     */
+    private int spannedEdges(NavigationGrid grid, int most, int[] out, boolean strict) {
+        int count = 0;
+        for (int i = 0; i < overlappedCount; i++) {
+            int x = overlapped[i * 2], y = overlapped[i * 2 + 1];
+            for (Direction direction : FORWARD_EDGES) {
+                int nx = x + direction.dx, ny = y + direction.dy;
+                if (!overlaps(nx, ny)) continue;
+                if (canPushEdge(grid, x, y, direction, most)) {
+                    if (count * 3 >= out.length) continue;
+                    out[count * 3] = x;
+                    out[count * 3 + 1] = y;
+                    out[count * 3 + 2] = direction.ordinal();
+                    count++;
+                } else if (strict && grid.isWalkable(x, y) && grid.isWalkable(nx, ny)
+                        && !grid.isSharedEdgePassable(x, y, direction)) {
+                    return -1;
+                }
+            }
+        }
+        return count;
+    }
+
+    /** Spends {@code spend} on every cell and edge the hull bears on, counting each that falls. */
+    private void spendOnBearing(GroundBody body, int spend) {
+        for (int i = 0; i < bearingCount; i++) damageCell(body, bearing[i * 2], bearing[i * 2 + 1], spend);
+        for (int i = 0; i < bearingEdgeCount; i++) {
+            damageEdge(body, bearingEdges[i * 3], bearingEdges[i * 3 + 1], bearingEdges[i * 3 + 2], spend);
+        }
+    }
+
+    private void damageCell(GroundBody body, int x, int y, int amount) {
+        if (amount > 0 && editor.damageWall(x, y, amount)) body.recordCrush(x + .5f, y + .5f);
+    }
+
+    private void damageEdge(GroundBody body, int x, int y, int direction, int amount) {
+        Direction d = DIRECTIONS[direction];
+        if (amount > 0 && editor.damageEdgeBarrier(x, y, d, amount)) {
+            body.recordCrush(x + .5f + d.dx * .5f, y + .5f + d.dy * .5f);
+        }
     }
 
     /**
@@ -301,30 +419,54 @@ public final class WallCrush {
         int most = ceiling(type);
         float reach = OVERLAP_CELLS + body.speed * dt + CONTACT_CELLS;
         struckCount = 0;
+        overlappedCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees,
                 type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, bearingWidth(type), grid,
                 (x, y) -> {
+                    overlap(x, y);
                     if (!canPush(grid, topology, doodads, x, y, most) || struckCount * 2 >= struck.length) return;
                     struck[struckCount * 2] = x;
                     struck[struckCount * 2 + 1] = y;
                     struckCount++;
                 });
-        if (struckCount == 0) return;
+        struckEdgeCount = spannedEdges(grid, most, struckEdges, false);
+        int pieces = struckCount + struckEdgeCount;
+        if (pieces == 0) return;
         int standing = 0;
-        for (int i = 0; i < struckCount; i++) standing += Math.max(0, grid.getWallHp(struck[i * 2], struck[i * 2 + 1]) - spend);
+        for (int i = 0; i < struckCount; i++) standing += left(grid, topology, struck[i * 2], struck[i * 2 + 1], spend);
+        for (int i = 0; i < struckEdgeCount; i++) standing += edgeLeft(grid, i, spend);
         if (impact >= standing) {
             // It goes through: what it hits falls, and what that took comes off its way.
             for (int i = 0; i < struckCount; i++) {
                 int x = struck[i * 2], y = struck[i * 2 + 1];
-                editor.damageWall(x, y, Math.max(0, grid.getWallHp(x, y) - spend));
+                damageCell(body, x, y, left(grid, topology, x, y, spend));
+            }
+            for (int i = 0; i < struckEdgeCount; i++) {
+                damageEdge(body, struckEdges[i * 3], struckEdges[i * 3 + 1], struckEdges[i * 3 + 2],
+                        edgeLeft(grid, i, spend));
             }
             body.speed = HullMomentum.speedAfter(tonnes, body.speed, standing);
             return;
         }
         // It is brought up: its whole way goes into what it hits, shared.
-        int share = (int) (impact / struckCount);
-        for (int i = 0; i < struckCount; i++) editor.damageWall(struck[i * 2], struck[i * 2 + 1], share);
+        int share = (int) (impact / pieces);
+        for (int i = 0; i < struckCount; i++) damageCell(body, struck[i * 2], struck[i * 2 + 1], share);
+        for (int i = 0; i < struckEdgeCount; i++) {
+            damageEdge(body, struckEdges[i * 3], struckEdges[i * 3 + 1], struckEdges[i * 3 + 2], share);
+        }
         body.speed = 0f;
+    }
+
+    /** What a struck cell has left once this tick's push of {@code spend} has gone into it. */
+    private int left(NavigationGrid grid, CellTopology topology, int x, int y, int spend) {
+        return Math.max(0, structure(grid, topology, doodads, x, y) - spend);
+    }
+
+    /** What struck edge {@code i} has left once this tick's push of {@code spend} has gone into it. */
+    private int edgeLeft(NavigationGrid grid, int i, int spend) {
+        SharedEdgeBarrier barrier = grid.getEdgeBarrier(struckEdges[i * 3], struckEdges[i * 3 + 1],
+                DIRECTIONS[struckEdges[i * 3 + 2]]);
+        return barrier == null ? 0 : Math.max(0, barrier.structure() - spend);
     }
 
     /** One ceiling's breach view over one kind of base, caught up cell by cell while its base keeps its identity. */
@@ -354,6 +496,9 @@ public final class WallCrush {
                     int cell = live.changedCellAt(sequence);
                     int x = cell % live.getWidth(), y = cell / live.getWidth();
                     grid.syncRoutingCell(over, cell, 0L);
+                    for (Direction direction : Direction.CARDINALS) {
+                        if (canPushEdge(live, x, y, direction, most)) grid.openSharedEdge(x, y, direction);
+                    }
                     if (!canPush(live, topology, doodads, x, y, most)) continue;
                     grid.setWalkable(x, y, true);
                     grid.openAllEdges(x, y);

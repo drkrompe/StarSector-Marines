@@ -204,6 +204,15 @@ public final class PropDamage {
         return null;
     }
 
+    /** The structure left in the first surviving registered prop owning this cell, or 0 where none stands. */
+    public int standingStructureAt(int x, int y) {
+        if (!grid.inBounds(x, y)) return 0;
+        List<Entry> at = owners.get(grid.index(x, y));
+        if (at == null) return 0;
+        for (int i = 0; i < at.size(); i++) if (at.get(i).hp > 0) return at.get(i).hp;
+        return 0;
+    }
+
     public CoverPropDamage.Result damage(int x, int y, int amount, long attack, ClearedCell cleared) {
         if (!grid.inBounds(x, y)) return CoverPropDamage.Result.NOT_COVER_PROP;
         List<Entry> at = owners.get(grid.index(x, y));

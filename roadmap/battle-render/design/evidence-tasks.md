@@ -94,7 +94,8 @@ squad, telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`,
 (what a squad is doing and why, from directive to members), `command` (each
 side's mission command and every objective), `presence` (what keeps the company
 in play: ground bodies, boats, reserve powers, each objective), `airbase` (the Cordon's air base: each bay's airframe and
-state, and its own sorties), and,
+state, and its own sorties), `crush` (every closed cell and blocking edge by what
+holds it, counted as pushed or held by a wall-crushing hull, `WallCrush`), and,
 after `hitlog on`, `hits target=ID` / `hits-by attacker target=ID` (every
 resolved hit with penetration, plate rating and arc, and what went to armor and
 structure). Sources: `thunder-run[:seed=N,...]` and `fixture:<path>`; without

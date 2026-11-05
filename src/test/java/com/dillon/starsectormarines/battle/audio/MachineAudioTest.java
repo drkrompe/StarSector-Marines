@@ -64,6 +64,25 @@ class MachineAudioTest {
     }
 
     @Test
+    void aCrushCuesTheBrutesWallBreakOnceAFrameWhereThePieceFell() {
+        MachineAudio audio = new MachineAudio();
+        Object hull = new Object();
+        List<MachineAudio.Cue> cues = new ArrayList<>();
+        VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
+
+        audio.crush(hull, 2, true, onager, 4.5f, 6.5f, cues);
+        assertTrue(cues.isEmpty(), "a hull first seen does not replay what it already brought down");
+        audio.crush(hull, 5, true, onager, 4.5f, 6.5f, cues);
+        assertEquals(1, cues.size(), "three pieces in a frame are one break");
+        assertEquals(MachineAudio.CRUSH, cues.get(0).soundId());
+        assertEquals(4.5f, cues.get(0).cellX());
+        assertEquals(6.5f, cues.get(0).cellY());
+        audio.crush(hull, 5, true, onager, 4.5f, 6.5f, cues);
+        audio.crush(hull, 6, false, onager, 4.5f, 6.5f, cues);
+        assertEquals(1, cues.size(), "nothing new, or unheard, is silent");
+    }
+
+    @Test
     void aBumpCuesOnceWhenTheCountRisesLouderTheHarderItHit() {
         MachineAudio audio = new MachineAudio();
         Object hull = new Object();

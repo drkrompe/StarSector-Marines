@@ -79,6 +79,21 @@ public abstract class GroundBody {
         lastBumpSpeed = speed;
     }
 
+    /**
+     * Crushes: how many pieces of the built world (a wall, a window bay, a barricade, a prop) the hull's weight has
+     * brought down ({@link WallCrush}), and where the last one stood, in cells. Presentation reads them for the crush
+     * sound; nothing in the simulation does.
+     */
+    public int crushes;
+    public float lastCrushX, lastCrushY;
+
+    /** A piece the hull bore on fell at {@code (x, y)}, in cells. */
+    public void recordCrush(float x, float y) {
+        crushes++;
+        lastCrushX = x;
+        lastCrushY = y;
+    }
+
     /** Accepted signed chassis travel for distance-driven tread UVs, never a render clock. */
     public double visualTravelCells, visualYawRadians;
 

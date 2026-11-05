@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -16,6 +18,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -143,6 +146,90 @@ class WallCrushTest {
         }
     }
 
+    /**
+     * A building's window bay is a floor cell in its wall line whose outward edge carries a window: it is pushable
+     * where the walls beside it are, by the same ceiling, and never on works ground. The breach view opens it and
+     * leaves the live grid's edge closed.
+     */
+    @Test void aWindowBayIsPushableWhereverTheWallsItSitsInAre() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        windowBay(grid, topology);
+        assertFalse(grid.isSharedEdgePassable(10, 9, Direction.N), "the bay holds a hull on the live grid");
+        assertTrue(WallCrush.canPush(grid, topology, null, 9, 10), "the wall beside it");
+        assertTrue(WallCrush.canPushEdge(grid, 10, 9, Direction.N, WallCrush.ULTRA_HEAVY_CEILING), "the bay");
+        assertTrue(WallCrush.canPushEdge(grid, 10, 10, Direction.S, WallCrush.HEAVY_CEILING), "from either side");
+        assertFalse(WallCrush.canPushEdge(grid, 10, 9, Direction.N, 0), "a hull with no ceiling pushes nothing");
+        assertFalse(WallCrush.canPushEdge(grid, 11, 9, Direction.N, WallCrush.ULTRA_HEAVY_CEILING), "an open edge");
+
+        NavigationGrid view = WallCrush.breachView(grid, topology, null);
+        assertTrue(view.isSharedEdgePassable(10, 9, Direction.N), "open to the hull's plan");
+        assertFalse(grid.isSharedEdgePassable(10, 9, Direction.N), "the live grid is untouched");
+
+        grid.markWorks(10, 10);
+        assertFalse(WallCrush.canPushEdge(grid, 10, 9, Direction.N, WallCrush.ULTRA_HEAVY_CEILING), "a fort's window");
+    }
+
+    /** Pushing from a standstill into a wall row with a window bay in it: the bay goes down with the walls. */
+    @Test void pushBreaksTheWindowBayWithTheWallsBesideItAndCountsEachPiece() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        windowBay(grid, topology);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        VehicleControlComponent control = new VehicleControlComponent();
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            for (int tick = 0; tick < 60; tick++) crush.push(body, type, control, 1f / 30f);
+            assertNull(grid.getEdgeBarrier(10, 9, Direction.N), "the window is down");
+            assertTrue(grid.isSharedEdgePassable(10, 9, Direction.N), "and its edge open");
+            assertTrue(grid.isWalkable(9, 10) && grid.isWalkable(11, 10), "with the walls beside it");
+            assertEquals(3, body.crushes, "two walls and a window fell");
+        }
+    }
+
+    /** At its top speed the hull's way carries it through a bay and its walls at the first touch. */
+    @Test void atSpeedItGoesThroughAWindowBayAtOnce() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        windowBay(grid, topology);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        body.speed = type.maxSpeed;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            assertTrue(grid.isSharedEdgePassable(10, 9, Direction.N));
+            assertTrue(body.speed > 0f, "checked, not stopped");
+        }
+    }
+
+    /**
+     * Registered equipment (a pallet stack, with its damaged and destroyed art) is built, so it is pushable as a
+     * barricade is, by its own structure against the ceiling.
+     */
+    @Test void pushesRegisteredEquipment() throws Exception {
+        TileRegistry previous = TileRegistry.installed();
+        TileRegistry registry = new TileRegistry();
+        for (String sheet : new String[]{"doodads", "compound-yard-damage"})
+            registry.ingestSheet(new JSONObject(Files.readString(Path.of("mod/data/tilesets/" + sheet + ".tileset.json"))));
+        TileRegistry.install(registry);
+        try {
+            NavigationGrid grid = floor();
+            CellTopology topology = new CellTopology(SIZE, SIZE);
+            Doodad pallets = new Doodad(2, 2, registry.doodad("doodad.industrial-pallet-stack"), 0, false);
+            for (int y = 0; y < pallets.footprintCellsY; y++)
+                for (int x = 0; x < pallets.footprintCellsX; x++) grid.setWalkable(2 + x, 2 + y, false);
+            DoodadService doodads = new DoodadService(grid);
+            doodads.addDoodad(pallets);
+            assertTrue(WallCrush.canPush(grid, topology, doodads, 2, 2), "equipment under the ceiling");
+            assertFalse(WallCrush.canPush(grid, topology, doodads, 2, 2, 99), "and not over it");
+            assertFalse(WallCrush.canPush(grid, topology, doodads, 2 + pallets.footprintCellsX, 2), "beside it");
+        } finally {
+            TileRegistry.install(previous);
+        }
+    }
+
     @Test void breachViewOpensExactlyThePushableCellsAndLeavesTheLiveGrid() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
@@ -263,6 +350,13 @@ class WallCrushTest {
             int left = grid.getWallHp(10, 10);
             assertTrue(left > 0 && left < 100 - (int) (WallCrush.ULTRA_HEAVY_PER_SECOND / 30f), "and is worn by it: " + left);
         }
+    }
+
+    /** Row 10 from x 9 to 11: a city wall, a window bay looking south out of floor cell (10, 10), a city wall. */
+    private static void windowBay(NavigationGrid grid, CellTopology topology) {
+        wall(grid, topology, 9, 10, 100);
+        wall(grid, topology, 11, 10, 100);
+        grid.placeEdgeBarrier(10, 10, Direction.S, SharedEdgeBarrier.Kind.WINDOW);
     }
 
     /** An ultra-heavy hull driving north with its nose bearing on row 10 from x 9 to 11. */
