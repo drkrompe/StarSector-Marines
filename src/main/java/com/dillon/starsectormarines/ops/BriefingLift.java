@@ -347,7 +347,12 @@ public final class BriefingLift {
 
     /** What the machine is, in capitals over its doll: the chassis, or the vehicle type's last word when it will not fit. */
     static String shortLabel(ArmorLoad load) {
-        String name = Strings.upper(load.isVehicle() ? typeName(load) : load.mech().variant().displayName());
+        return shortLabel(load.isVehicle() ? typeName(load) : load.mech().variant().displayName());
+    }
+
+    /** {@code type} in capitals over a doll, or its last word when it will not fit. */
+    static String shortLabel(String type) {
+        String name = Strings.upper(type);
         if (Fonts.ORBITRON_10.measureWidth(name) <= DOLL_WIDTH - 6f) return name;
         return name.substring(name.lastIndexOf(' ') + 1);
     }

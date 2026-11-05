@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -64,6 +65,23 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         if (billets.size() != MarineSquad.CAPACITY) {
             throw new IllegalArgumentException("a squad muster requires twelve billets");
         }
+    }
+
+    /** This muster with {@code lost} marines' seats empty, for a roster that has not struck them off. */
+    public SquadMuster without(Set<String> lost) {
+        List<Billet> left = new ArrayList<>(billets.size());
+        int gone = 0;
+        for (Billet billet : billets) {
+            if (billet.marineId() == null || !lost.contains(billet.marineId())) {
+                left.add(billet);
+                continue;
+            }
+            gone++;
+            left.add(new Billet(billet.index(), null, Strings.get("battleMusterVacant"), "", State.VACANT, false, false));
+        }
+        if (gone == 0) return this;
+        return new SquadMuster(squadId, squadName, stationed, left, readyCount - gone, vacantCount + gone,
+                missingCount, killedCount);
     }
 
     /**

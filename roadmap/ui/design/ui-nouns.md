@@ -488,6 +488,15 @@ text and casualty facts remain separate and authoritative. Art never sits behind
 readable prose or occupies the tactical survey. Inapplicable story
 art uses the ordinary planetary view and reserves no debrief image panel.
 
+The debrief repeats the briefing's field force as the battle left it (owner): the same
+picture tiles, squads with their lost marines' seats empty and machines with their damage
+dolls worn, the words in hovers, above the personnel records. Its heading gives the days
+until the force is fully repaired: the longest single repair among the machines that took
+the field and came back, since gantries work side by side, read from each mech's own clock so
+it matches the Mech Lab. A machine that stayed aboard is not on the field and does not count,
+and a lost one owes no repair. A debug battle settles nothing, so it shows every machine it
+landed and quotes what the gantry would take (`DebriefForce`).
+
 The briefing groups a compact mission dossier beside the selected force and its
 command deck, with a tactical survey on the right. Contract payment is a prominent
 employer authorization readout, using the negotiated cash multiplier and salvage

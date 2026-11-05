@@ -277,6 +277,33 @@ public final class DamageDollCanvas implements CanvasProducer {
             immobile = false;
         }
 
+        /**
+         * Shows what a battle left of a mech, for the debrief. {@code lost} reads every section as destroyed, a
+         * chassis that died whole included. An empty mount reads as the battle reads it, outline only.
+         */
+        public void readReport(MechVariant variant, MechSections.Report report, boolean lost) {
+            begin(dollPath(variant));
+            for (MechSection section : MechSection.values()) {
+                int i = section.ordinal();
+                set(DollLocation.of(section).ordinal(), report.fitted()[i], true, report.armorFraction()[i],
+                        report.structureFraction()[i], lost || report.destroyed()[i]);
+            }
+            int torso = DollLocation.TORSO.ordinal();
+            set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
+        /** Shows a vehicle wrecked: the debrief has no more to say of one. */
+        public void readWrecked(VehicleType type) {
+            begin(dollPath(type));
+            for (DollLocation location : DollLocation.values()) set(location.ordinal(), true, false, 0f, 0f, true);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
         /** Shows an aircraft's plan whole: the briefing counts sorties, not damage. */
         public void readAircraft(String dollPath) {
             begin(dollPath);

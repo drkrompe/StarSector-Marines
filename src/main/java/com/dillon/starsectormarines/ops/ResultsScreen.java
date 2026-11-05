@@ -25,6 +25,9 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.SquadMuster;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
@@ -35,9 +38,11 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 
@@ -54,6 +59,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     private MissionOutcome narratedOutcome;
     private MissionOutcome presentedOutcome;
     private MarkupInstance resultMarkup;
+    private final ArmoryPreviewAssets marineSprites = new ArmoryPreviewAssets();
+    private List<Object> fieldTiles = List.of();
 
     @Override protected void onAttach() {
         MissionOutcome outcome = context.getLastOutcome();
@@ -72,6 +79,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     @Override protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
         resultMarkup = instance;
         rewardPrompt.bind(built, instance, this::onCancel);
+        DebriefForce.install(built, instance, fieldTiles, marineSprites);
+        DebriefForce.bindHints(specSheets(), instance, fieldTiles);
     }
 
     @Override protected void onAdvance(float dt) {
@@ -89,6 +98,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             if(script!=null && script.state().corvusWayline!=null)script.state().corvusWayline.acknowledgeAftermath();
         }
         debriefNarration.stop();
+        marineSprites.release();
         resultMarkup = null;
     }
 
@@ -120,9 +130,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 MissionDebriefConversation.recordings(outcome, WaylineNarration.builtins())));
         props.put("salvageStop", (Runnable) debriefNarration::stop);
         props.put("personnelHeader", personnelHeader(outcome));
-        List<PersonnelRow> personnel = personnelRows(outcome);
-        props.put("squadRows", personnel);
-        props.put("personnelEmpty", personnel.isEmpty() ? noPersonnelMessage(outcome) : "");
+        MarineRoster roster = reportedRoster(outcome);
+        Personnel personnel = personnel(outcome, roster);
+        props.put("squadRows", personnel.rows());
+        props.put("personnelEmpty", personnel.rows().isEmpty() ? noPersonnelMessage(outcome) : "");
+        List<DebriefForce.Machine> machines = DebriefForce.machines(outcome, liveBay(outcome, roster),
+                Global.getSector() != null ? CampaignClock.dayFloat() : 0f);
+        fieldTiles = DebriefForce.put(props, personnel.squads(), machines);
         props.put("secondaryClasses", "hidden");
         props.put("secondaryLabel", "");
         props.put("secondaryAction", (Runnable) () -> { });
@@ -178,6 +192,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
         putFirstRefit(props, null, null, () -> { });
+        DebriefForce.put(props, List.of(), List.of());
         return props;
     }
 
@@ -472,14 +487,31 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return MessageFormat.format(Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
     }
 
-    private List<PersonnelRow> personnelRows(MissionOutcome outcome) {
-        if (outcome == null) return List.of();
+    /** The roster this outcome's marines are on: a debug battle's detached company never reaches the campaign's. */
+    private MarineRoster reportedRoster(MissionOutcome outcome) {
+        if (outcome != null && outcome.missionSource.isDebug()) return context.getDebugCompanyRoster();
         MarineRosterScript script = MarineRosterScript.getInstance();
-        MarineRoster roster = script != null ? script.roster() : null;
+        return script != null ? script.roster() : null;
+    }
+
+    /** The bay whose repair clocks this battle started; a debug battle settles nothing, so it has none. */
+    private static MechBay liveBay(MissionOutcome outcome, MarineRoster roster) {
+        return outcome == null || outcome.missionSource.isDebug() || roster == null ? null : roster.mechBay();
+    }
+
+    private record Personnel(List<PersonnelRow> rows, List<BriefingViewModel.SquadPicture> squads) {
+        static final Personnel NONE = new Personnel(List.of(), List.of());
+    }
+
+    private Personnel personnel(MissionOutcome outcome, MarineRoster roster) {
+        if (outcome == null) return Personnel.NONE;
+        // A debug battle settles nobody, so its fates are rolled here for the report alone.
+        Map<String, MarineSoldierStatus> unsettled = outcome.missionSource.isDebug()
+                ? MissionResolver.resolvePersonnelOutcomes(outcome) : null;
         Map<String, MarineSoldierStatus> dispositions = new HashMap<>();
         for (String id : outcome.survivingSoldierIds) dispositions.put(id, MarineSoldierStatus.ACTIVE);
-        for (String id : outcome.fallenSoldierIds) dispositions.put(id, rolledFate(roster, id));
-        for (String id : outcome.withdrawalStragglerSoldierIds) dispositions.put(id, rolledFate(roster, id));
+        for (String id : outcome.fallenSoldierIds) dispositions.put(id, rolledFate(roster, unsettled, id));
+        for (String id : outcome.withdrawalStragglerSoldierIds) dispositions.put(id, rolledFate(roster, unsettled, id));
         List<MarineSquad> deployed = deployedSquads(outcome, roster, dispositions);
         boolean namedStationing = outcome.missionSource == MissionSource.STATIONING
                 && !outcome.deployedFireteamIds.isEmpty();
@@ -490,17 +522,28 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 }
             }
         }
-        if (roster == null || dispositions.isEmpty()) return List.of();
+        if (roster == null || dispositions.isEmpty()) return Personnel.NONE;
+        Set<String> gone = new HashSet<>();
+        for (Map.Entry<String, MarineSoldierStatus> entry : dispositions.entrySet()) {
+            if (entry.getValue() == MarineSoldierStatus.KIA || entry.getValue() == MarineSoldierStatus.MIA) gone.add(entry.getKey());
+        }
         List<PersonnelRow> rows = new ArrayList<>();
-        for (MarineSquad squad : deployed) rows.add(personnelRow(roster, squad, dispositions, rows.size()));
-        return List.copyOf(rows);
+        List<BriefingViewModel.SquadPicture> squads = new ArrayList<>();
+        for (MarineSquad squad : deployed) {
+            PersonnelRow row = personnelRow(roster, squad, dispositions, rows.size());
+            SquadMuster muster = SquadMuster.from(roster, squad.id());
+            if (muster != null) squads.add(DebriefForce.squad(squads.size(), muster.without(gone), row));
+            rows.add(row);
+        }
+        return new Personnel(List.copyOf(rows), List.copyOf(squads));
     }
 
     /** A rolled marine still on duty went down and came home, which the debrief calls wounded. */
-    private static MarineSoldierStatus rolledFate(MarineRoster roster, String id) {
+    private static MarineSoldierStatus rolledFate(MarineRoster roster, Map<String, MarineSoldierStatus> unsettled, String id) {
         MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
         if (soldier == null) return MarineSoldierStatus.KIA;
-        return soldier.status() == MarineSoldierStatus.ACTIVE ? MarineSoldierStatus.WIA : soldier.status();
+        MarineSoldierStatus status = unsettled != null ? unsettled.getOrDefault(id, soldier.status()) : soldier.status();
+        return status == MarineSoldierStatus.ACTIVE ? MarineSoldierStatus.WIA : status;
     }
 
     private static List<MarineSquad> deployedSquads(MissionOutcome outcome,

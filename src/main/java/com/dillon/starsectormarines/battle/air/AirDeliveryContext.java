@@ -158,6 +158,7 @@ public final class AirDeliveryContext {
                 faction, mission);
         roster.convoy().body(id).teleport(x, y, facingDeg);
         roster.convoy().tagCompanyVehicle(id, spec.campaignId());
+        roster.convoy().recordFielded(id, spec);
         return id;
     }
 
@@ -247,9 +248,9 @@ public final class AirDeliveryContext {
         roster.machineHosts().register(unit, systems);
     }
 
-    /** Marks a landed mech as the company's own {@code campaignId}, so its damage writes back. */
-    public void tagCompanyMech(String campaignId, MechLoadoutComponent loadout) {
-        roster.companyMechs().tag(campaignId, loadout);
+    /** Records a landed mech for the debrief and, under a {@code campaignId}, so its damage writes back. */
+    public void landMech(String campaignId, String displayName, MechLoadoutComponent loadout) {
+        roster.companyMechs().land(campaignId, displayName, loadout);
     }
 
     public void deployResupplyCache(int cellX, int cellY) {

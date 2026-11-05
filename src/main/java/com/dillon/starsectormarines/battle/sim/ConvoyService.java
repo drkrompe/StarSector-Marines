@@ -99,6 +99,7 @@ public final class ConvoyService implements BodyCarrier {
 
     /** Entity id to the mech-bay vehicle it realizes; only company vehicles are here. */
     private final Map<Long, String> companyVehicles = new LinkedHashMap<>();
+    private final Map<Long, VehicleDeploymentSpec> fieldedVehicles = new LinkedHashMap<>();
 
     /** Held footprint masks, so a route question does not erode the whole map again. */
     private final VehicleClearances clearances = new VehicleClearances();
@@ -263,6 +264,27 @@ public final class ConvoyService implements BodyCarrier {
     /** Marks {@code id} as the company's own vehicle {@code campaignId}, so its loss writes back. */
     public void tagCompanyVehicle(long id, String campaignId) {
         if (id != 0L && campaignId != null) companyVehicles.put(id, campaignId);
+    }
+
+    /** Records a landed vehicle for the debrief, whoever owns it. */
+    public void recordFielded(long id, VehicleDeploymentSpec spec) {
+        if (id != 0L && spec != null) fieldedVehicles.put(id, spec);
+    }
+
+    /** Every vehicle landed on this field, in deployment order, and whether it was wrecked. */
+    public List<FieldedVehicle> fieldedVehicles() {
+        List<FieldedVehicle> out = new ArrayList<>(fieldedVehicles.size());
+        for (Map.Entry<Long, VehicleDeploymentSpec> entry : fieldedVehicles.entrySet()) {
+            VehicleMission mission = mission(entry.getKey());
+            VehicleDeploymentSpec spec = entry.getValue();
+            out.add(new FieldedVehicle(spec.campaignId(), spec.callsign(), spec.type(),
+                    mission != null && mission.state == VehicleState.WRECKED));
+        }
+        return out;
+    }
+
+    /** One vehicle that took the field, frozen for the debrief; a null {@code campaignId} is not the company's. */
+    public record FieldedVehicle(String campaignId, String callsign, VehicleType type, boolean lost) {
     }
 
     /**

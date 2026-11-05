@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,14 +28,7 @@ public final class BayManifest {
 
         /** Chassis or hull name: {@code Hound}, {@code Heavy APC}. */
         public String typeName() {
-            if (!isVehicle()) return load.mech().variant().displayName();
-            StringBuilder name = new StringBuilder();
-            for (String word : load.vehicle().type().name().toLowerCase(Locale.ROOT).split("_")) {
-                if (name.length() > 0) name.append(' ');
-                name.append(word.equals("apc") ? "APC"
-                        : Character.toUpperCase(word.charAt(0)) + word.substring(1));
-            }
-            return name.toString();
+            return isVehicle() ? vehicleName(load.vehicle().type()) : load.mech().variant().displayName();
         }
 
         /** The machine's campaign callsign, or {@code null} for an unnamed one. */
@@ -70,4 +65,15 @@ public final class BayManifest {
     public int size() { return entries.size(); }
 
     public Entry get(int index) { return entries.get(index); }
+
+    /** A vehicle hull's name, from its type. */
+    public static String vehicleName(VehicleType type) {
+        StringBuilder name = new StringBuilder();
+        for (String word : type.name().toLowerCase(Locale.ROOT).split("_")) {
+            if (name.length() > 0) name.append(' ');
+            name.append(word.equals("apc") ? "APC"
+                    : Character.toUpperCase(word.charAt(0)) + word.substring(1));
+        }
+        return name.toString();
+    }
 }

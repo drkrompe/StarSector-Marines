@@ -67,7 +67,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         loadout.installMissileReplenisher(deployment.missileReplenisher());
         context.attachMechLoadout(mech, loadout);
         context.carryMechWear(mech, loadout, deployment.wear());
-        context.tagCompanyMech(deployment.campaignId(), loadout);
+        context.landMech(deployment.campaignId(), deployment.displayName(), loadout);
         context.hostMachineSystems(mech, deployment.deployedFrame().systems());
         Squad squad = context.squad(context.mission.squadId);
         if (squad != null) {

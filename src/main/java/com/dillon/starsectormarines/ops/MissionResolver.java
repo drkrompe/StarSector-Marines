@@ -450,6 +450,8 @@ public final class MissionResolver {
                 .shipsCalled(ShipSupportResult.allOf(sim.warships().called()))
                 .vehiclesLost(sim.convoy().lostCompanyVehicleIds())
                 .mechDamage(sim.companyMechs().damage())
+                .fieldedMechs(sim.companyMechs().fielded())
+                .fieldedVehicles(sim.convoy().fieldedVehicles())
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .takenSoldierIds(takenSoldierIds)

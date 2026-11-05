@@ -108,6 +108,7 @@ com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSui
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.FirstRefitSnapshotSuite
+com.dillon.starsectormarines.ops.DebriefForceSnapshotSuite
 com.dillon.starsectormarines.ops.CompanyPrologueSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderBuildSceneSnapshotSuite
 com.dillon.starsectormarines.battle.tender.TenderStanceSceneSnapshotSuite
