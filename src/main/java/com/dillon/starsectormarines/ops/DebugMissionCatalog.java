@@ -65,7 +65,7 @@ public final class DebugMissionCatalog {
         BLIND_WATCH("The Corvus Account", "Blind Watch", "Cover the planters at the three Warion installations.", 3, true),
         COLD_ACCOUNT("The Corvus Account", "A Cold Account", "Secure the records, withdraw and call in the Navy on Garnir.", 5, true),
         MILITIA_RELIEF("Repeatable work", "Militia Relief", "A fresh checkpoint relief posting.", 1, false),
-        DEPOT_CLEARANCE("Repeatable work", "Depot Clearance", "Clear the depot without the story Hound or warehouse counterattacks.", 1, false),
+        DEPOT_CLEARANCE("Repeatable work", "Depot Clearance", "Clear the depot and hold dispatch against both road attacks, without the story Hound.", 1, false),
         CREW_RECOVERY("Shelved concepts", "Crew Recovery concept", "Detached rescue variation; no campaign posting.", 2, true),
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
         VETERANS_JOB("Shelved concepts", "Broker's Cache concept", "Raid the broker's cache and extract; no campaign posting.", 3, false),

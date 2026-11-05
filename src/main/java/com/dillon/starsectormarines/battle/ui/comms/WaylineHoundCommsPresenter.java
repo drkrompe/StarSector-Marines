@@ -16,12 +16,13 @@ public final class WaylineHoundCommsPresenter {
         for (var event : sim.getPlayerStoryBeatsAfter(cursor)) {
             cursor = event.sequence();
             if (sim.isComplete()) continue;
-            BattleCommsFeed.Notice notice = notice(event.id());
+            BattleCommsFeed.Notice notice = notice(event.id(), sim.getWaylineHound() != null);
             if (notice != null) feed.post(notice);
         }
     }
 
-    static BattleCommsFeed.Notice notice(String key) {
+    /** @param hound whether this battle has the recoverable walker, since a repeat of the depot has none to call on */
+    static BattleCommsFeed.Notice notice(String key, boolean hound) {
         return switch (key) {
             case WaylineHoundRecovery.FOUND -> new BattleCommsFeed.Notice(Strings.get("battleCommsWaylineFoundTitle"),
                     Strings.get("battleCommsWaylineFoundBody"),
@@ -33,13 +34,13 @@ public final class WaylineHoundCommsPresenter {
                     Strings.get("battleCommsWaylineLostBody"),
                     BattleCommsFeed.Tone.WARNING, 12f);
             case DepotHoldSequence.CAPTURED -> new BattleCommsFeed.Notice(Strings.get("battleCommsDepotCapturedTitle"),
-                    Strings.get("battleCommsDepotCapturedBody"),
+                    Strings.get(hound ? "battleCommsDepotCapturedBody" : "battleCommsDepotCapturedBodyNoHound"),
                     BattleCommsFeed.Tone.WARNING, 12f);
             case DepotHoldSequence.FIRST -> new BattleCommsFeed.Notice(Strings.get("battleCommsDepotFirstTitle"),
                     Strings.get("battleCommsDepotFirstBody"),
                     BattleCommsFeed.Tone.DANGER, 10f);
             case DepotHoldSequence.WARNING -> new BattleCommsFeed.Notice(Strings.get("battleCommsDepotWarningTitle"),
-                    Strings.get("battleCommsDepotWarningBody"),
+                    Strings.get(hound ? "battleCommsDepotWarningBody" : "battleCommsDepotWarningBodyNoHound"),
                     BattleCommsFeed.Tone.WARNING, 10f);
             case DepotHoldSequence.SECOND -> new BattleCommsFeed.Notice(Strings.get("battleCommsDepotSecondTitle"),
                     Strings.get("battleCommsDepotSecondBody"),

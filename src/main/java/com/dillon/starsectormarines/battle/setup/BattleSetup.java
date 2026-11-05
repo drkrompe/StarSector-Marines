@@ -1370,7 +1370,7 @@ public final class BattleSetup {
         return createOpeningOperation(seed, manifest, employerShips, kind, profile, false);
     }
 
-    /** The unique Wayline chapter may include its recoverable walker; repeatables never do. */
+    /** The unique Wayline chapter includes its recoverable walker; a repeatable never does, and faces the same force. */
     public static BattleSimulation createOpeningOperation(
             long seed, List<ShuttleAssignment> manifest, int employerShips,
             OpeningOperationKind kind, TargetProfile profile, boolean recoverHound) {
@@ -1561,8 +1561,8 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.ALLY,
                 new OpeningOperationCommand(Faction.ALLY), disclosure);
         sim.installOpeningStoryHooks(commandFacts);
-        if (recoverHound && depot != null) {
-            sim.installWaylineHound(CounterattackDepot.HOUND_X, CounterattackDepot.HOUND_Y);
+        if (depot != null) {
+            if (recoverHound) sim.installWaylineHound(CounterattackDepot.HOUND_X, CounterattackDepot.HOUND_Y);
             List<List<EntitySpec>> reserves = new ArrayList<>();
             for (int wave = 0; wave < 2; wave++) for (int road = 0; road < 2; road++) {
                 List<EntitySpec> force = new ArrayList<>();
