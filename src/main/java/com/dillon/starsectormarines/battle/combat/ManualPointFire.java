@@ -53,9 +53,13 @@ public final class ManualPointFire {
         return weapon.interceptableProjectile || arcs(weapon);
     }
 
-    /** A rocket with a warhead: a round a player throws at ground rather than along a bearing. */
+    /**
+     * A round a player throws at ground rather than along a bearing: a rocket with a warhead, or a beam with a
+     * splash, whose pulse burns where it is pointed (a laser held on grass lights it) rather than running on to its
+     * full reach.
+     */
     public static boolean bursts(WeaponDef weapon) {
-        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+        return (weapon.interceptableProjectile || weapon.hitscanBeam()) && weapon.aoeRadius > 0f;
     }
 
     /**

@@ -1,14 +1,19 @@
 package com.dillon.starsectormarines.battle.fire;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.Arrays;
 
 /**
  * Where a unit in the way of fire goes (`fire-nouns.md`, Pathing). A unit needs
- * to move when it stands in a burning cell, or on fuel within {@link #THREAT_RADIUS}
+ * to move when it stands in or beside a burning cell (beside, it is still
+ * burnt: {@link FireHarm}), or on fuel within {@link #THREAT_RADIUS}
  * of one: a front moves about as fast as a man walks, so waiting for it to arrive
- * is waiting to be overtaken. It goes to the nearest <em>safe</em> cell within {@link #SEARCH_RADIUS}:
+ * is waiting to be overtaken. A route that takes it out of the way within
+ * {@link #SEARCH_RADIUS} cells without entering the fire is walked on
+ * ({@link #routeLeavesTheWay}), so an order away from the fire is obeyed.
+ * Otherwise it goes to the nearest <em>safe</em> cell within {@link #SEARCH_RADIUS}:
  * walkable, out of and not beside the fire, and unable to burn (burnt out, or bare).
  * Ground just ahead of a front is not safe, because the front overtakes it. Steps
  * into burning cells count {@link #THROUGH_FIRE_STEP} times, so a thin front is
@@ -39,10 +44,10 @@ public final class FireEscape {
 
     public static boolean enabled() { return ENABLED; }
 
-    /** Whether a unit at a cell is in the fire's way: in a burning cell, or on fuel near one. */
+    /** Whether a unit at a cell is in the fire's way: in or beside a burning cell, or on fuel near one. */
     public static boolean needsToMove(FireField field, int x, int y) {
         if (field == null || field.burningCount() == 0) return false;
-        if (field.isBurning(x, y)) return true;
+        if (FireEffects.refusedAsRefuge(field, x, y)) return true;
         if (!field.canBurn(x, y)) return false;
         for (int dy = -THREAT_RADIUS; dy <= THREAT_RADIUS; dy++)
             for (int dx = -THREAT_RADIUS; dx <= THREAT_RADIUS; dx++)
@@ -52,13 +57,36 @@ public final class FireEscape {
 
     /**
      * Whether a unit out of the fire's way should wait rather than take its
-     * route's next step, into a burning cell: the route costing sends routes
-     * round a fire where there is a way round, so one still into it has nowhere
-     * else to go, and a fire passes. A unit in the fire's way walks on.
+     * route's next step, when that step or the one after it is a burning cell:
+     * the route costing sends routes round a fire where there is a way round, so
+     * one still into it has nowhere else to go, and a fire passes. It waits a
+     * cell back from the flames, where it is not burnt. The caller drops a route
+     * held here long enough, so its order re-plans against the fire as it now
+     * lies. A unit in the fire's way walks on.
      */
-    public static boolean waitsAtEdge(FireField field, int x, int y, int nextX, int nextY) {
-        if (!ENABLED || field == null || field.burningCount() == 0 || !field.isBurning(nextX, nextY)) return false;
-        return !needsToMove(field, x, y);
+    public static boolean waitsAtEdge(FireField field, int x, int y, int[] path, int next) {
+        if (!ENABLED || field == null || field.burningCount() == 0) return false;
+        int cells = Paths.cellCount(path);
+        boolean intoFire = false;
+        for (int i = next; i < cells && i <= next + 1 && !intoFire; i++)
+            intoFire = field.isBurning(Paths.cellX(path, i), Paths.cellY(path, i));
+        return intoFire && !needsToMove(field, x, y);
+    }
+
+    /**
+     * Whether a route, from its cell {@code next}, reaches a cell out of the
+     * fire's way within {@link #SEARCH_RADIUS} cells without stepping into a
+     * burning one: the way out a unit's own route (its order) already offers.
+     */
+    public static boolean routeLeavesTheWay(FireField field, int[] path, int next) {
+        if (field == null) return false;
+        int cells = Paths.cellCount(path);
+        for (int i = next; i < cells && i < next + SEARCH_RADIUS; i++) {
+            int cx = Paths.cellX(path, i), cy = Paths.cellY(path, i);
+            if (field.isBurning(cx, cy)) return false;
+            if (!needsToMove(field, cx, cy)) return true;
+        }
+        return false;
     }
 
     /** Whether a cell is somewhere to stay: out of and not beside the fire, and unable to burn. */

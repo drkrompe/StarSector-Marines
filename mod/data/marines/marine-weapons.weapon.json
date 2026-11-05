@@ -806,11 +806,19 @@
         "accuracy": 0.85,
         "cooldown": 1.59,
         "penetration": 3.0,
+        "contact": {
+          "damage": 16.0,
+          "penetration": 3.0
+        },
         "burstCount": 4,
         "burstSpacing": 0.13,
         "hitSpread": 0.2,
         "roundVelocity": 320.0,
         "flightSec": 0.05,
+        "aoeRadius": 0.5,
+        "wallDamage": 10,
+        "wallDamageRadius": 0.6,
+        "incendiaryHeat": 65,
         "noiseMagnitude": 0.5
       },
       "render": {
@@ -895,11 +903,19 @@
         "accuracy": 0.85,
         "cooldown": 1.8,
         "penetration": 2.0,
+        "contact": {
+          "damage": 8.0,
+          "penetration": 2.0
+        },
         "burstCount": 14,
         "burstSpacing": 0.1,
         "hitSpread": 0.2,
         "roundVelocity": 320.0,
         "flightSec": 0.05,
+        "aoeRadius": 0.4,
+        "wallDamage": 4,
+        "wallDamageRadius": 0.6,
+        "incendiaryHeat": 36,
         "noiseMagnitude": 0.4
       },
       "render": {

@@ -363,6 +363,8 @@ class WallCrushTest {
         wall(grid, topology, 10, 10, 100);
         VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         GroundBody body = noseAtRow10(type);
+        // Its tail a little into row 5, as the nose fixture's nose is into row 10, whatever the hull's length.
+        body.y = 5.9f + type.visualLengthCells * .5f;
         VehicleControlComponent control = new VehicleControlComponent();
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
             WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);

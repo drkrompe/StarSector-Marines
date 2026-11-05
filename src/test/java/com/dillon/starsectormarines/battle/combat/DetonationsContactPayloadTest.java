@@ -104,6 +104,32 @@ class DetonationsContactPayloadTest {
         assertEquals(96f, sim.world().armor(neighbor), EPS);
     }
 
+    /** A small burst at a wall's face (a laser pulse that stopped there) wears that wall and none beyond its reach. */
+    @Test
+    void aSmallBurstAtAWallsFaceWearsThatWallAndNoneBeyondItsReach() {
+        int size = 12;
+        NavigationGrid grid = new NavigationGrid(size, size);
+        CellTopology topology = new CellTopology(size, size);
+        for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) grid.setWalkableFloor(x, y);
+        for (int x : new int[] {6, 8}) {
+            grid.setWalkable(x, 5, false);
+            grid.setWallHp(x, 5, 100);
+            topology.setWall(x, 5, true);
+        }
+        BattleSimulation sim = new BattleSimulation(grid, topology);
+
+        sim.detonateNow(new PendingDetonation(
+                CombatTelemetryService.NO_ATTACKER,
+                6f, 5.5f, 0f,
+                /*aoeRadius*/ 0.5f, 10f, 3f,
+                /*wallDamage*/ 10, Faction.MARINE, /*aerialDelivery*/ false,
+                /*wallDamageRadius*/ 0.6f, /*spawnDustOnWallBreak*/ false,
+                /*friendlyFireImmune*/ false, /*authoredAftermath*/ false));
+
+        assertEquals(90, grid.getWallHp(6, 5), "the struck wall takes the burst's structure damage");
+        assertEquals(100, grid.getWallHp(8, 5), "a wall past its reach is untouched");
+    }
+
     @Test
     void structuralBlastDestroysWindowAndImmediatelyOpensItsSharedEdge() {
         BattleSimulation sim = openArena();

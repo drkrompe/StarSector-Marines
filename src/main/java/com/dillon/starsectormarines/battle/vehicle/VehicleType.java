@@ -48,7 +48,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override
         public GroundBody createBody() { return Apc.body(this); }
-        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
+        @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
      * The mortar carrier: the APC chassis with the troop bay given over to a 120 mm mortar on a roof turntable, a
@@ -69,7 +69,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
-        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
+        @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
      * The Onager, the Hegemony's heavy repulsor tank and the convoy's heavy spearhead (hegemony-armor-line.md): an
@@ -95,6 +95,7 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public float turretRingShareOfWidth() { return Onager.RING_SHARE_OF_WIDTH; }
+        @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
      * The Scorpion, the Hegemony's medium tank (hegemony-armor-line.md): a lighter tracked hull below the Onager,
@@ -104,7 +105,7 @@ public enum VehicleType {
      * ({@link TurretHead}). Its sheet is the owner's concept turned to point left (art-source/vehicles/medium-tank).
      */
     MEDIUM_TANK("graphics/battle/vehicles/heg-medium-tank.png", 0, 4, -90f,
-            0, MediumTank.DRAWN_LENGTH, 3.35f, 1.75f, 3.6f, 1.4f, 3.2f, .8f, 2.8f,
+            0, MediumTank.DRAWN_LENGTH, MediumTank.VISUAL_LENGTH, 1.75f, 3.6f, 1.4f, 3.2f, .8f, 2.8f,
             1, 0f, MediumTank.TURRET_MOUNT_Y, 0f, 0f, MediumTank.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID, 520f, 360f, 15f, 1.35f, 1.0f) {
         @Override public GroundBody createBody() {
@@ -115,6 +116,7 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public float turretRingShareOfWidth() { return MediumTank.RING_SHARE_OF_WIDTH; }
+        @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
      * Breakthrough hull with a ship's burst laser where the twin cannons were. A ship mounts this emitter as
@@ -234,7 +236,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
-        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
+        @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
         // The pod is 0.9 cells long and stays centred on the turntable however it is raised.
         @Override public float turretRaiseFold() { return .78f; }
     },
@@ -435,13 +437,8 @@ public enum VehicleType {
         static final float SCALE = 1.6f;
         /** How far the painted nose runs ahead of the hull's centre, cells (army-apc.png, 1.85 measured). */
         static final float PAINTED_NOSE = 1.85f;
-        /**
-         * How far the footprint's front edge sits behind the painted nose, cells: the nose overhangs the ground it
-         * touches, as though lifted a little off it (owner, 2026-11-05). The footprint is centred on the hull, so its
-         * rear edge stands as far aft: the tail plate, with the tow hooks left out.
-         */
-        static final float NOSE_INSET = .25f;
-        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2f * (PAINTED_NOSE - NOSE_INSET),
+        /** The footprint, its nose lifted; its rear edge falls at the tail plate, the tow hooks left out. */
+        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2f * (PAINTED_NOSE - LIFTED_NOSE_INSET),
                 VISUAL_WIDTH = .9f * SCALE;
         static final float MAX_SPEED = 2.8f, ACCEL = 1.8f, BRAKING = 3.5f;
         static final float DEBOARD_INTERVAL = .8f, LOOK_AHEAD = 2.2f;
@@ -458,9 +455,20 @@ public enum VehicleType {
         }
     }
 
+    /**
+     * How far a Hegemony hull's footprint stops behind its painted nose, cells ({@link #noseInsetCells}): the nose
+     * overhangs the ground it touches, as though lifted a little off it (owner, 2026-11-05). A footprint is centred on
+     * its hull, so its rear edge stands as far aft of the centre as the front stands ahead.
+     */
+    static final float LIFTED_NOSE_INSET = .25f;
+
     /** The medium tank's sheet registration (art-source/vehicles/medium-tank/pack.py). */
     private static final class MediumTank {
         static final float DRAWN_LENGTH = 3.84f;
+        /** How far the painted nose runs ahead of the hull's centre, cells (heg-medium-tank.png, 1.70 measured). */
+        static final float PAINTED_NOSE = 1.70f;
+        /** The footprint's length, its nose lifted; its rear edge falls a little inside the tail. */
+        static final float VISUAL_LENGTH = 2f * (PAINTED_NOSE - LIFTED_NOSE_INSET);
         /** The concept's turret ring, 37.7 px of the 768 px frame ahead of the hull's centre. */
         static final float TURRET_MOUNT_Y = .188545f;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
@@ -477,12 +485,18 @@ public enum VehicleType {
          */
         static final float SCALE = 4.3f / 4f;
         static final float DRAWN_LENGTH = 4f * SCALE;
+        /** How far the painted wedge nose runs ahead of the hull's centre, cells (heg-heavy-repulsor.png, 1.94 measured). */
+        static final float PAINTED_NOSE = 1.94f;
+        /** The hull's painted width through its flanks, cells, measured. */
+        static final float PAINTED_WIDTH = 2.37f;
         /**
-         * The footprint, fitted to the painted hull (heg-heavy-repulsor.png): long enough to take the wedge nose where
-         * it is half a cell across, leaving its point and the tail's chamfer outside; as wide as the hull's flanks,
-         * which run 2.37 cells across through the middle.
+         * How far each side of the footprint stands inside the painted flank, cells: the skirt's flanks overhang the
+         * ground a little, as the nose does (owner, 2026-11-05).
          */
-        static final float VISUAL_LENGTH = 3.7f, VISUAL_WIDTH = 2.36f;
+        static final float SIDE_INSET = .08f;
+        /** The footprint, its nose lifted, its rear edge a little inside the tail, its sides inside the flanks. */
+        static final float VISUAL_LENGTH = 2f * (PAINTED_NOSE - LIFTED_NOSE_INSET),
+                VISUAL_WIDTH = PAINTED_WIDTH - 2f * SIDE_INSET;
         /** The concept's turret ring, 21.3 px of the 768 px frame ahead of the hull's centre. */
         static final float TURRET_MOUNT_Y = .110841f * SCALE;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
@@ -787,7 +801,7 @@ public enum VehicleType {
 
     /**
      * How far the footprint's front edge ({@link #visualLengthCells}) sits behind the painted nose, cells, so the nose
-     * overhangs it as though lifted a little off the ground: the APC chassis's, a quarter cell. Zero for a hull whose
+     * overhangs it as though lifted a little off the ground: the Hegemony line's ({@link #LIFTED_NOSE_INSET}). Zero for a hull whose
      * footprint runs to its nose.
      */
     public float noseInsetCells() { return 0f; }

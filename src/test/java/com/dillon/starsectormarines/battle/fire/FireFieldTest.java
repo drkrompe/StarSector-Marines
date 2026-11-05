@@ -172,6 +172,28 @@ class FireFieldTest {
         assertEquals(FireFuel.GRASS.load * FireField.STEP_TICKS, out - caught);
     }
 
+    /**
+     * Sustained fire (`fire-nouns.md`, Starting fires): a touch of heat too small to catch a cell alone lights it when
+     * it keeps coming faster than the cell cools, and never when it comes slower. A laser's pulses are such touches.
+     */
+    @Test
+    void heatTooSmallToCatchAloneLightsACellWhenItKeepsComing() {
+        int touch = Math.round(FireFuel.ignition(FireFuel.GRASS.bit) * FireField.CATCH_LOW) - 1;
+        for (int every : new int[] {0, FireField.STEP_TICKS, FireField.STEP_TICKS * 15}) {
+            int[] fuel = new int[W * H];
+            fuel[5 * W + 5] = FireFuel.GRASS.bit;
+            FireField f = field(fuel, 7L);
+            boolean caught = false;
+            for (int t = 0; t < 30 * 10 && !caught; t++) {
+                if (every == 0 ? t == 0 : t % every == 0) f.addHeat(5, 5, touch);
+                f.tick(t);
+                caught = f.stateAt(5 * W + 5) != FireField.UNBURNT;
+            }
+            assertEquals(every == FireField.STEP_TICKS, caught,
+                    "a touch of " + touch + (every == 0 ? " once" : " every " + every + " ticks"));
+        }
+    }
+
     @Test
     void anIgniterLightsWhatIsRoundItUntilItGoesOut() {
         int[] fuel = new int[W * H];

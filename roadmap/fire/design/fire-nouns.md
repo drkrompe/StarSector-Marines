@@ -240,19 +240,24 @@ crossing it is the difference between a squad that goes round a burning band
 and one that walks into it and dies there.
 
 **Getting out of the way** (`FireEscape`). A person in the fire's way moves
-before doing anything else: in a burning cell, or standing on fuel within
-three cells of one, because waiting for a front to arrive is waiting to be
-overtaken, however slowly it walks. He goes to the
+before doing anything else: in or beside a burning cell (beside, he is still
+burnt), or standing on fuel within three cells of one, because waiting for a
+front to arrive is waiting to be overtaken, however slowly it walks. A route
+of his own that takes him out of the way within sixteen cells without
+entering the fire is walked on, so an order to regroup away from it is
+obeyed; otherwise he goes to the
 nearest safe cell, one out of and not beside the fire that cannot burn (burnt
 out or bare); ground just ahead of a front is not safe, since the front takes
 it. Steps through burning cells count five times, so a thin front is crossed
 into the burnt ground behind it and a deep one is outrun to bare ground. For a
 marine this is a reflex below grenade evasion and above everything else
 (`InfantryReflexes.IN_FIRE`): he neither shoots nor takes up a new step until
-he is out. Out of the way, nobody but the swarm, armour and drones steps from
-a clear cell into a burning one: the walk waits at the fire's edge, wherever
-the route came from, since the route costing already sent it round where
-there was a way round and a fire passes. A squad holding ground the fire
+he is out. Out of the way, nobody but the swarm, armour and drones walks into
+a burning cell: the walk waits a cell back from the flames, where it is not
+burnt, wherever the route came from, since the route costing already sent it
+round where there was a way round and a fire passes. A route held there for
+the route-stall time is dropped, so its order re-plans against the fire as it
+now lies rather than waiting on one planned before the fire crossed it. A squad holding ground the fire
 takes therefore stands off at the edge and returns when it has burnt out.
 `-Dbattle.fire.stepOut=false` is the control.
 
@@ -327,6 +332,13 @@ does not set Conquest alight.
   thermite charge with little blast) and the **pack flamer** (a short, flat,
   seven-cell lob of burning gel, whose tank refills itself a charge at a time
   in the field, `regenSeconds` on the item, rather than from the truck).
+- **Lasers.** The large pulse lasers, the PL-3 and the PL-3 (Sweep), carry a
+  little heat in every pulse, too little for one pulse to catch grass. Held on
+  one patch, pulse after pulse comes faster than the ground cools (it keeps
+  seven eighths of its heat a fire step), and the patch catches: a PL-3 lights
+  grass on its second burst or so, a PL-3 (Sweep) by the end of a held stream.
+  A player pointing one at ground burns that ground
+  (`ManualPointFire.bursts`) rather than running on to its full reach.
 - **Incendiary rounds.** A fire mission may be incendiary
   (`FireMission.incendiary`): the tubes serving it load incendiary rounds for
   the bodies on its ground. A bomber may be called with firebombs
