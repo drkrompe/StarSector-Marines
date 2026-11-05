@@ -11,7 +11,9 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
  * A marine in the fire's way gets out of it before doing anything else
  * (`fire-nouns.md`, Pathing): in a burning cell, or on fuel near one
  * ({@link FireEscape#needsToMove}). He walks on along a route that already
- * ends somewhere safe, and otherwise goes to {@link FireEscape#refuge}. Either
+ * ends somewhere safe or takes him out of the way without entering the fire
+ * ({@link FireEscape#routeLeavesTheWay}), so an order to regroup away from it
+ * is obeyed, and otherwise goes to {@link FireEscape#refuge}. Either
  * way he neither shoots nor takes up a new step until he is out of the way. Out
  * of it, his movement waits at the fire's edge rather than step back in
  * ({@link FireEscape#waitsAtEdge}, applied where every route is walked).
@@ -30,8 +32,9 @@ final class FireStepOut {
         if (!FireEscape.needsToMove(field, x, y)) return false;
         int[] path = sim.world().path(unit);
         int next = sim.world().pathIdx(unit);
-        if (next < Paths.cellCount(path) && FireEscape.isSafe(field, Paths.destX(path), Paths.destY(path))
-                && !field.isBurning(Paths.cellX(path, next), Paths.cellY(path, next))) {
+        if (next < Paths.cellCount(path) && !field.isBurning(Paths.cellX(path, next), Paths.cellY(path, next))
+                && (FireEscape.isSafe(field, Paths.destX(path), Paths.destY(path))
+                    || FireEscape.routeLeavesTheWay(field, path, next))) {
             sim.advanceMovement(unit);
             return true;
         }
