@@ -287,6 +287,11 @@ public final class BoatDeck implements Serializable {
         return Collections.unmodifiableSet(known);
     }
 
+    /** The shelf itself, for the shared part shop ({@link PartShop}). */
+    PartStores stores() {
+        return stores;
+    }
+
     /** How many of one part are in stores. */
     public int spares(String partId) {
         return stores.count(partId);
