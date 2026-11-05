@@ -15,16 +15,25 @@ import java.util.List;
  *
  * <p>{@code campaignId} is null for a debug or mission-supplied vehicle the company does
  * not own; such a vehicle has nothing to write back.
+ *
+ * <p>{@code noOwnGun}: a null {@code gun} is an empty gun card, the hull's turret bare, rather than the hull's own gun.
  */
 public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type,
                                     VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun,
-                                    List<MechInternal> compartment) {
+                                    List<MechInternal> compartment, boolean noOwnGun) {
 
     public VehicleDeploymentSpec {
         if (type == null) throw new IllegalArgumentException("Vehicle type is required");
         plating = plating == null ? VehiclePlating.FACTORY : plating;
         engine = engine == null ? VehicleEngine.STOCK : engine;
         compartment = compartment == null ? VehicleRack.stockFit(type) : List.copyOf(compartment);
+    }
+
+    /** A vehicle whose empty gun card, if it has one, is the hull's own gun. */
+    public VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type,
+                                 VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun,
+                                 List<MechInternal> compartment) {
+        this(campaignId, callsign, type, plating, engine, gun, compartment, false);
     }
 
     /** A vehicle with its hull's stock compartment ({@link VehicleRack#stockFit}): its bank, vent arrays and loader. */

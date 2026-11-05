@@ -180,6 +180,7 @@ public final class MechLabScreen implements Screen {
             dollCanvas.installedWeapons(viewModel::installedWeapon);
             dollCanvas.installedCompartment(viewModel::installedCompartment);
             dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            dollCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
             dollCanvas.installedRack(viewModel::installedRack);
             dollCanvas.rackIncomplete(viewModel::rackIncomplete);
             built.canvases().set(dollElement, dollCanvas);

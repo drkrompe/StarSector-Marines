@@ -29,8 +29,8 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 | Large | 3x2 | red (energy) | laser tank |
 
 The medium and large cards are the ones the stock guns already imply, so those hulls do not change; the small
-class is new, and it is where the work is. A hull's own gun stays no part (an empty card is that gun), so a small
-hull's stock gun may be larger than its card, which is the point of the class: it is a hull-size statement, not a
+class is new, and it is where the work is. A bought hull has no gun at all (`mechs-nouns.md`); only an older save's hull keeps an own gun, no part, so a small
+hull's older gun may be larger than its card, which is the point of the class: it is a hull-size statement, not a
 claim about the stock gun.
 
 ## The small weapons
@@ -91,7 +91,7 @@ selector, geometry, weapon definition and Store entry. The burst laser is restat
 16-damage pulses on a 1.8-second cycle at 38 flux, the flux hog) and the PD laser likewise (ten 7-damage pulses on a
 1.6-second cycle at 16 flux, running cool, with the held-lance loop sound); both are first proposals for the balance
 pass. The PD laser tank is gone as a hull: `PD_LASER_TANK`, its turret structure and weapon, its sheet, strings,
-fabrication, tier and credits entries are deleted, and a laser tank with the PD laser fitted is what it was. The hull's
+fabrication, tier and credits entries are deleted, and a laser tank with the PD laser fitted is what it was. An older save's hull's
 own gun, with no part fitted, is still the burst laser turret; emplacement and drone PD lasers and the tank's
 active protection (now a rack kit) are untouched.
 

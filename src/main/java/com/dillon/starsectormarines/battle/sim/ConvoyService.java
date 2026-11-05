@@ -140,7 +140,7 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
         return spawn(loadout.type(), loadout.plating(), loadout.engine(), loadout.gun(),
-                loadout.compartment(), faction, mission);
+                loadout.compartment(), loadout.noOwnGun(), faction, mission);
     }
 
     /**
@@ -173,7 +173,17 @@ public final class ConvoyService implements BodyCarrier {
     public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, List<MechInternal> compartment, Faction faction,
                       VehicleMission mission) {
-        if (weapon == null) weapon = type.ownGun();
+        return spawn(type, plating, engine, weapon, compartment, false, faction, mission);
+    }
+
+    /**
+     * As above; with {@code noOwnGun} a null {@code weapon} is an empty gun card on any hull: its ring stands bare, as a
+     * modular hull's does, and it reads as a shot-away turret.
+     */
+    public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
+                      MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, Faction faction,
+                      VehicleMission mission) {
+        if (weapon == null && !noOwnGun) weapon = type.ownGun();
         HullReservoir.Frame flux = VehicleRack.frame(compartment);
         if (flux == null) flux = HullReservoir.stockFrame(type);
         // The engine runs on the reservoir as a mech's does: the military engine's penalty comes off its dissipation.
@@ -197,7 +207,7 @@ public final class ConvoyService implements BodyCarrier {
         GroundTurret turret = gun != null
                 ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), loader,
                         HullTurretSection.forHull(type, fitted)) : null;
-        if (turret != null && weapon == null && type.hasModularTurret()) turret.removed = true;
+        if (turret != null && weapon == null && (noOwnGun || type.hasModularTurret())) turret.removed = true;
         if (turret != null && weapon != null) {
             turret.structure = fittedStructure;
             turret.weapon = weapon;

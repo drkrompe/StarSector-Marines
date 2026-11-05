@@ -51,8 +51,10 @@ class MechBayVehicleTest {
         assertEquals(VehicleType.HEAVY_APC, vehicle.type());
         assertEquals(vehicle, bay.vehicleById(vehicle.id()));
         assertEquals(before - MechFabricationCatalog.vehicle(VehicleType.HEAVY_APC).cost().credits(), resources.credits);
-        // Sold as a bare hull: its own plate, an empty engine core and compartment, so it stays in its gantry.
-        assertEquals(MechInternal.FACTORY_PLATING, vehicle.plating());
+        // Sold as a bare hull: nothing at any point, so it stays in its gantry.
+        assertNull(vehicle.plating());
+        assertNull(vehicle.gun());
+        assertFalse(vehicle.hasOwnGun());
         assertNull(vehicle.engine());
         assertTrue(vehicle.rackInternals().isEmpty());
         assertFalse(vehicle.complete());

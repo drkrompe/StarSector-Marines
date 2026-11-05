@@ -195,7 +195,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     pitchAxisY = uy * pitchCos + (float) Math.sin(pitch);
                 }
                 boolean modular = type.hasModularTurret();
-                if (modular) {
+                // An empty gun card, on any hull: no part in it, so the ring stands bare.
+                boolean bareRing = turret != null && turret.removed;
+                if (modular || bareRing) {
                     // The ring is bare machinery; the collar in it turns with the head, so the player sees the head driven.
                     float ringShade = wrecked ? WRECK_SHADE : 1f;
                     float ringX = cam.cellToScreenX(body.x + mountWorldX);
@@ -215,7 +217,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                 turretStateFacing, ringShade, ringShade, ringShade, alphaMult);
                     }
                 }
-                if (modular && (turret == null || turret.removed)) {
+                if (bareRing || modular && turret == null) {
                     // No part in the gun card: the ring stands bare, and the hull has no turret and no gun.
                 } else if (gun == null) {
                     if (raised) {
@@ -313,7 +315,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             length * cellPx, gunFacing, lengthScale, widthScale, shade, alphaMult);
                 }
                 if (locations != null && locations.turret() != null
-                        && wornPlateOnTurretFrame(modular, turret != null && turret.removed, gun != null)) {
+                        && wornPlateOnTurretFrame(modular || bareRing, bareRing, gun != null)) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
                     float wear = VehicleScuffs.wear(locations.turret().armor(), locations.turret().maxArmor());
                     if (mask != null && wear > 0f) {

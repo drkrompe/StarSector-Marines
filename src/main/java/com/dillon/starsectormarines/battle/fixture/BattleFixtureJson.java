@@ -823,6 +823,7 @@ public final class BattleFixtureJson {
                     if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
                     if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     if (vehicle.gun() != null) frozen.put("gun", vehicle.gun().id);
+                    if (vehicle.noOwnGun()) frozen.put("noOwnGun", true);
                     JSONArray compartment = new JSONArray();
                     for (MechInternal part : vehicle.compartment()) compartment.put(part.id);
                     frozen.put("compartment", compartment);
@@ -946,7 +947,7 @@ public final class BattleFixtureJson {
                                 ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
                                 : VehicleEngine.STOCK,
                         frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null,
-                        compartment));
+                        compartment, frozen.optBoolean("noOwnGun", false)));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(

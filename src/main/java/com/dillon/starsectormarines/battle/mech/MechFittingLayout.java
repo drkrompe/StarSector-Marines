@@ -19,7 +19,17 @@ import java.util.Map;
 public final class MechFittingLayout {
 
     public static final int MAX_GRID_COLUMNS = 3;
-    public static final int MAX_GRID_ROWS = 3;
+    public static final int MAX_GRID_ROWS = 4;
+    /** A weapon point holds one weapon, two columns wide and one to {@link #MAX_GRID_ROWS} rows deep. */
+    public static final int WEAPON_POINT_COLUMNS = 2;
+
+    /**
+     * The one rule for space at an install point, on every machine: a part goes only where its whole footprint has
+     * room, as authored and never turned, so a 2x2 part does not go in a one-row point.
+     */
+    public static boolean hasRoom(int pointColumns, int pointRows, int columns, int rows) {
+        return columns > 0 && rows > 0 && columns <= pointColumns && rows <= pointRows;
+    }
 
     public enum SocketId {
         CORE("@gearSocketEngineCore"),
@@ -64,6 +74,11 @@ public final class MechFittingLayout {
         SocketType(String label) { this.label = label; }
 
         public String label() { return Strings.resolve(label); }
+
+        /** Whether a point of this type holds a weapon. */
+        public boolean weaponPoint() {
+            return this == BALLISTIC || this == ENERGY || this == MISSILE || this == OMNI;
+        }
     }
 
     public record SocketDef(SocketId id, SocketType type,
@@ -81,6 +96,9 @@ public final class MechFittingLayout {
                     || gridRows < 1 || gridRows > MAX_GRID_ROWS
                     || footprintWidthHull <= 0f || footprintHeightHull <= 0f) {
                 throw new IllegalArgumentException("socket capacity and footprint must be positive");
+            }
+            if (type.weaponPoint() && gridColumns != WEAPON_POINT_COLUMNS) {
+                throw new IllegalArgumentException("a weapon point is " + WEAPON_POINT_COLUMNS + " columns wide");
             }
         }
 
@@ -102,9 +120,7 @@ public final class MechFittingLayout {
         public int capacity() { return gridColumns * gridRows; }
 
         public boolean accommodates(int columns, int rows) {
-            return columns > 0 && rows > 0
-                    && ((columns <= gridColumns && rows <= gridRows)
-                        || (columns <= gridRows && rows <= gridColumns));
+            return hasRoom(gridColumns, gridRows, columns, rows);
         }
     }
 

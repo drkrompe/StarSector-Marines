@@ -2660,6 +2660,20 @@ private static BufferedImage renderBarracks(
                         false, false, RESERVE_STRIP)));
     }
 
+    static List<SnapshotArtifact> renderBoughtMachines(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("mech-bulwark.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-bought-mech.BULWARK")),
+                new SnapshotArtifact("vehicle-heavy-apc.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-bought-vehicle.HEAVY_APC")),
+                new SnapshotArtifact("vehicle-fire-support.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-bought-vehicle.FIRE_SUPPORT_APC")));
+    }
+
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
@@ -2985,6 +2999,18 @@ private static BufferedImage renderBarracks(
             machineName = CampaignVehicle.className(type) + " 01";
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, new CampaignVehicle("doll_vehicle", machineName, type));
         }
+        // One machine as the workshop sells it, nothing fitted.
+        if (materialHint != null && materialHint.startsWith("machine-bought-mech.")) {
+            MechVariant variant = MechVariant.valueOf(materialHint.substring("machine-bought-mech.".length()));
+            bay = new MechBay();
+            machineName = bay.fabricateFrame(MechBay.STARTER_SQUAD_ID, variant).displayName();
+        }
+        if (materialHint != null && materialHint.startsWith("machine-bought-vehicle.")) {
+            VehicleType type = VehicleType.valueOf(materialHint.substring("machine-bought-vehicle.".length()));
+            bay = new MechBay();
+            machineName = CampaignVehicle.className(type) + " 01";
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("bought_vehicle", machineName, type));
+        }
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             bay = new MechBay();
             bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
@@ -3225,6 +3251,7 @@ private static BufferedImage renderBarracks(
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
             fittingCanvas.installedWeapons(viewModel::installedWeapon);
+            fittingCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
             fittingCanvas.installedRack(viewModel::installedRack);

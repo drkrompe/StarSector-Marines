@@ -91,10 +91,12 @@ class MechCompartmentTest {
     void aBareFrameNeedsABankButNotALoaderToDrop() {
         CampaignMech mech = CampaignMech.frame("frame", MechVariant.HOUND);
         assertTrue(mech.compartment().isEmpty(), "a bought frame brings no loader");
-        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK), mech.missingInternals());
+        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.PLATING, MechInternal.Role.CAPACITOR_BANK),
+                mech.missingInternals());
         assertEquals(MissileReplenisherComponent.NONE, mech.missileReplenisher());
 
         mech.installInternal(MechInternal.Role.ENGINE, MechInternal.INDUSTRIAL_ENGINE);
+        mech.installInternal(MechInternal.Role.PLATING, MechInternal.FACTORY_PLATING);
         mech.installInternal(MechInternal.Role.CAPACITOR_BANK, BIG_BANK);
         assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f), "a loader is a choice, not a gap");
         assertEquals(MissileReplenisherComponent.NONE, mech.freezeForDeployment().missileReplenisher());

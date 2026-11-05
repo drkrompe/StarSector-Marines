@@ -118,9 +118,9 @@ final class MechSocketConsole {
         List<MechCompartment.Placement> here = compartment ? MechCompartment.in(parts, socket.id()) : null;
         boolean empty = installed == null && preview == null && internal == null
                 && (here == null || here.isEmpty());
-        // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the
+        // An empty engine well or armor point, or a compartment with no capacitor bank, keeps the mech off the
         // drop manifest; it warns.
-        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE ? empty
+        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE || socket.id() == SocketId.PLATING ? empty
                 : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();

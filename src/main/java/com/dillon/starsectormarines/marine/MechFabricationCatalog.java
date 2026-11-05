@@ -167,8 +167,8 @@ public final class MechFabricationCatalog {
 
     /**
      * A chassis is sold as a bare frame: the authored bill is the standard-fit machine's, less
-     * what its removable weapons, engine and compartment parts cost as parts. Plating and
-     * factory-locked hardware are the frame and stay in its price.
+     * what its removable weapons, engine, plating and compartment parts cost as parts.
+     * Factory-locked hardware is the frame and stays in its price.
      */
     private static Recipe chassis(MechVariant variant, String provenance, int credits) {
         STANDARD_FIT.put(variant, new FabricationCost(credits));
@@ -179,6 +179,7 @@ public final class MechFabricationCatalog {
             if (weapon != null && !MechFrameBudget.integral(variant, slot)) frame -= weaponCost(weapon).credits();
         }
         frame -= internalCost(stock.engine()).credits();
+        frame -= internalCost(stock.plating()).credits();
         for (MechInternal part : stock.compartment()) frame -= internalCost(part).credits();
         return new Recipe("recipe.chassis." + variant.id, null, provenance, null, variant, null, null,
                 new FabricationCost(Math.max(MINIMUM_FRAME, frame)));
@@ -189,11 +190,14 @@ public final class MechFabricationCatalog {
 
     /**
      * A vehicle is sold as a bare hull, as a chassis is a bare frame: the authored bill is the standard-fit hull's,
-     * less what its engine and compartment parts cost as parts. Its own gun and factory plating are the hull.
+     * less what its engine, plating, gun and compartment parts cost as parts. A stock gun with no part to price stays
+     * in the bill.
      */
     private static Recipe vehicle(VehicleType type, String provenance, int credits) {
         VEHICLE_STANDARD_FIT.put(type, new FabricationCost(credits));
-        int hull = credits - internalCost(MechInternal.INDUSTRIAL_ENGINE).credits();
+        int hull = credits - internalCost(MechInternal.INDUSTRIAL_ENGINE).credits()
+                - internalCost(MechInternal.FACTORY_PLATING).credits();
+        if (type.standardPart() != null) hull -= weaponCost(type.standardPart()).credits();
         for (MechInternal part : VehicleRack.stockFit(type)) hull -= internalCost(part).credits();
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
                 provenance, null, null, null, type, new FabricationCost(Math.max(MINIMUM_FRAME, hull)));
