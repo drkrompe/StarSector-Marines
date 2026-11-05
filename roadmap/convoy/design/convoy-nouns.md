@@ -348,7 +348,8 @@ where it has one, so the perception components stay off every chassis.
 generic chassis: its footprint, drive, plate, gun card size and bay. Its **footprint** is a rectangle centred on the
 hull, fitted to the painted body: what it collides, routes, crushes and is struck by. A hull may set its front edge
 back from the painted nose by a **nose inset** (`VehicleType.noseInsetCells`), so the nose overhangs the ground as
-though lifted a little off it: the APC chassis, a quarter cell. Everything that makes one
+though lifted a little off it: the Hegemony line (the APC chassis, the Onager and the medium tank), a quarter cell. A centred
+footprint's rear edge stands as far aft, so it falls a little inside the tail. Everything that makes one
 machine differ from another of the same hull is equipment: the engine in its engine core, the
 plating at its armor point, the part in its gun card, the parts in its auxiliary
 compartment. An instance is the hull with one such loadout (`VehicleDeploymentSpec`), and every hull in
@@ -1290,7 +1291,7 @@ fits it pivots like any hull (Neutral pivot); slip and player-owned tank logisti
 are not modeled.
 
 The **Onager** (`BREAKTHROUGH_TANK`, Prestige, Heavy lift) is the Hegemony's **heavy repulsor tank** (owner,
-`hegemony-armor-line.md`): an ultra-heavy hull on a repulsor skirt, broad and short, its footprint 3.7 by 2.36
+`hegemony-armor-line.md`): an ultra-heavy hull on a repulsor skirt, broad and short, its footprint 3.38 by 2.21
 cells fitted to its painted hull. Tan and olive plate with orange hazard panels, a layered prow, slab side
 pods, exposed pipework between them, and the round turret ring a little forward of centre. It hovers, so it
 floats over water and rubble as a skirt does (`HoverSkirt`, the hover line), and it weighs eighty tonnes, so it
