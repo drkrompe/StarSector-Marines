@@ -93,16 +93,13 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
      * @param facingDeg where the mount points, degrees off the nose with port positive
      * @param arcDeg how far it traverses about that facing
      * @param placed whether the hull publishes a weapon slot for this hardpoint at all
-     * @param missing whether this socket is empty and the boat cannot fly without it: it warns
+     * @param missing whether this socket is empty and the boat cannot fly without it: it warns in red
+     * @param recommended whether this socket is empty and the boat can fly without it, but should not: it warns in
+     *     yellow, an armor point with no plate or a hardpoint on a boat with no gun anywhere
      */
     public record Slot(String key, Kind kind, String itemId, String podItemId, String title, String fitted, String tier,
                        boolean selected, float localX, float localY, float facingDeg, float arcDeg, boolean placed,
-                       boolean missing) {
-
-        /** Whether this is an empty armor point: she can fly without a plate, with no armor, so it warns in yellow. */
-        public boolean recommended() {
-            return kind == Kind.PLATING && itemId == null;
-        }
+                       boolean missing, boolean recommended) {
 
         /** The item filling one position: a hardpoint's top or bottom, or for any other socket its one part. */
         public String itemAt(int position) {
@@ -120,16 +117,16 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
                 case POWER -> Kind.POWER;
             };
             return new Slot(slotKey(slot), kind, itemId, null, title, fitted, tier, selected, 0f, 0f, 0f, 0f, false,
-                    missing);
+                    missing, kind == Kind.PLATING && itemId == null);
         }
 
         public static Slot hardpoint(int index, String itemId, String podItemId, String title, String fitted,
-                                     String tier, boolean selected, WeaponSlot mount) {
+                                     String tier, boolean selected, WeaponSlot mount, boolean unarmed) {
             return mount == null
                     ? new Slot(HARDPOINT_KEY + index, Kind.HARDPOINT, itemId, podItemId, title, fitted, tier, selected,
-                            0f, 0f, 0f, 0f, false, false)
+                            0f, 0f, 0f, 0f, false, false, unarmed)
                     : new Slot(HARDPOINT_KEY + index, Kind.HARDPOINT, itemId, podItemId, title, fitted, tier, selected,
-                            mount.localX(), mount.localY(), mount.angleDeg(), mount.arcDeg(), true, false);
+                            mount.localX(), mount.localY(), mount.angleDeg(), mount.arcDeg(), true, false, unarmed);
         }
     }
 }
