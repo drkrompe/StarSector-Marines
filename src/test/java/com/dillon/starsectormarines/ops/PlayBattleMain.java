@@ -148,7 +148,7 @@ public final class PlayBattleMain {
         private final PositionAPI position;
         private final boolean direct;
         private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, () -> this.finished = true,
-                name -> this.loading = name, () -> this.saving = true, () -> this.startingOver = true);
+                name -> this.loading = name, () -> this.saving = true, () -> this.startingOver = true, grant -> this.granting = grant);
         private final TextureLease menuImages = TextureLedger.shared().lease("playBattle world menu");
         private Context context;
         private MarineOpsPanelPlugin plugin;
@@ -157,6 +157,7 @@ public final class PlayBattleMain {
         private String loading;
         private boolean saving;
         private boolean startingOver;
+        private Runnable granting;
         private ScreenId lastScreen;
         private boolean finished;
 
@@ -189,6 +190,12 @@ public final class PlayBattleMain {
             if (saving) {
                 saving = false;
                 save("save-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")));
+                menu.detach();
+                menu.attach(position, null, () -> { });
+            }
+            if (granting != null) {
+                granting.run();
+                granting = null;
                 menu.detach();
                 menu.attach(position, null, () -> { });
             }

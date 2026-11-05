@@ -1,4 +1,4 @@
-<template props="worlds,quitAction,saves,saveAction,newAction">
+<template props="worlds,quitAction,saves,saveAction,newAction,stockpile,creditsAction,marinesAction">
   <div id="world-menu-root" class="world-root">
     <div id="world-menu-header" class="world-header console-header">
       <img id="world-menu-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -30,6 +30,11 @@
       <div id="world-menu-saves-title" class="label heading tone-edge">SAVES</div>
       <button id="world-menu-save" class="world-save-now" onclick="{saveAction}">Save here</button>
       <button id="world-menu-new" class="world-save-now" onclick="{newAction}">New campaign</button>
+      <div id="world-menu-stockpile" class="label tone-muted">{stockpile}</div>
+      <div id="world-menu-grants" class="world-grants">
+        <button id="world-menu-credits" class="world-grant" onclick="{creditsAction}">+20,000 credits</button>
+        <button id="world-menu-marines" class="world-grant" onclick="{marinesAction}">+20,000 marines</button>
+      </div>
       <div id="world-menu-save-list" class="world-save-list">
         <button each="save in saves" key="{save.id}" id="{save.id}" class="world-save-row" onclick="{save.action}">
           <div id="{save.nameId}" class="label">{save.name}</div>
@@ -51,6 +56,8 @@
 .world-saves { flex-direction: column; width: 420px; padding: 12px; gap: 8px; border-width: 1px; }
 .world-saves .label { height: 24px; }
 .world-save-now { height: 40px; border-width: 1px; font-family: heading; text-align: center; }
+.world-grants { flex-direction: row; height: 40px; gap: 8px; }
+.world-grant { width: 0px; flex-grow: 1; border-width: 1px; font-family: heading; text-align: center; }
 .world-save-list { flex-direction: column; flex-grow: 1; height: 0px; gap: 6px; overflow: scroll; }
 .world-save-row { flex-direction: column; height: 58px; padding: 6px 10px; gap: 2px; border-width: 1px; text-align: left; }
 .world-save-row .label { height: 20px; pointer-events: none; }
