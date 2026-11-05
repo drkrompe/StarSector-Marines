@@ -64,7 +64,7 @@ The allied side:
   calling redoubt (`CordonLogistics.support`), the very behaviour the armour's
   sectors replaced because on a front hundreds of cells wide it spent the
   battle driving.
-- **Nobody allied escorts a beat's hull.** L2's ammo truck and R1's dozer ask
+- **Nobody allied escorts a beat's hull.** L2's ammo truck and R1's Onager ask
   the company for two squads (`GunsDryBeat.call`, `ClearRoadBeat.call`); the
   armour beside the road they drive does not move.
 - **The radio said only "calling".** The company could not tell a redoubt with
@@ -103,7 +103,7 @@ allies say what they are already doing about it:
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
 | **Town calling** (the Road) | a swarm body is inside the cut-off town's wall, or half its defenders are down (nobody but the company comes for it) | none is inside for the settle window while more than half its defenders stand (a bled town calls for the rest of the battle: nobody reinforces it); or it is overrun |
-| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells; a convoy: the armour gave it a hull for every post, and one is alongside) | none is, or a convoy's escort went short |
+| **Escorted** (a convoy, truck or Onager) | an armed allied hull is alongside it (a truck or Onager: an armed hull, a Hound or a street team within 14 cells; a convoy: the armour gave it a hull for every post, and one is alongside) | none is, or a convoy's escort went short |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
 causes; Uncovered is new. The company is never told what the swarm is doing
@@ -126,7 +126,7 @@ convoys and beat hulls on the road; the density), returning tasks the
    re-homed only when that redoubt falls or is given up. A carrier between
    carries stands behind the redoubt it last fed, not the latest caller.
 3. **Escorts come out of the surplus.** A convoy first, then a beat's truck or
-   dozer, each takes the nearest hulls above their sector's floor, at most one
+   Onager, each takes the nearest hulls above their sector's floor, at most one
    hull from any one sector, and never a calling redoubt's last hull. What it
    cannot take that way it goes without, and says so (*Escorted* is false), so
    the company knows to walk with it. A convoy is *Escorted* only when the
@@ -134,7 +134,7 @@ convoys and beat hulls on the road; the density), returning tasks the
    sector's own hull standing beside the road at the gap is not going with it,
    and one technical at the compound's gate is not an escort of three
    (`CordonAlliedRules.convoyEscorted`). The hulls go home when the escort ends.
-   In a city, which fields no hulls, a truck or dozer with no hull free takes a
+   In a city, which fields no hulls, a truck or Onager with no hull free takes a
    walking escort out of the same surplus (`CordonAlliedRules.escorts` takes
    hulls, mechs and teams alike): a Hound from a sector above its pair, or a
    street mouth's rifle team while its pair stands, since a team counts nothing
@@ -146,12 +146,12 @@ convoys and beat hulls on the road; the density), returning tasks the
    The escort keeps beside its truck, to its right, else its left, and behind it
    where neither side has ground off the truck's way: an escort is never sent
    onto the road ahead of the truck it escorts.
-   **Escorted means alongside, not assigned.** A truck or dozer with an escort
+   **Escorted means alongside, not assigned.** A truck or Onager with an escort
    coming waits where it was set down until the escort is beside it, then the
    two drive at the slower one's pace, and it holds whenever the escort falls
    behind; one that has none free sets out alone at once, and one whose escort
    never comes goes on without it (after a minute and a half waiting, half a
-   minute holding). R1's dozer does not wait: staged forward to beat the first
+   minute holding). R1's Onager does not wait: staged forward to beat the first
    convoy to the wreck, it sets out at once and keeps to its escort only once
    under way. Gone alone is final: it is offered no escort again, and the
    company is called to walk with it, rather than waiting for each new escort in
@@ -182,8 +182,8 @@ twelve of its walls, `CordonArmour.throughStreet`) and every later hull's flank
 post moved to the nearest street cell within sixteen
 (`CordonAlliedRules.roadbound`), but not on the Road: there the town's main
 street is the convoys' road, and hulls parked on the streets beside it stood
-in their way and the dozer's. A beat's hull (L2's ammunition truck, R1's
-dozer) wants one hull beside it, a convoy one a post; the truck and the dozer
+in their way and the Onager's. A beat's hull (L2's ammunition truck, R1's
+Onager) wants one hull beside it, a convoy one a post; the truck and the Onager
 keep to theirs (`EscortPace`, rule 3).
 
 ## The producer
@@ -389,7 +389,7 @@ line held.
 - **`cordon-urban-hammer`: where the company waits in a city.** One hammer
   behind the middle; two hammers behind redoubts 1-2 and 3-4 (recommended); or
   spread behind every redoubt.
-- **`cordon-beat-escort`: who escorts L2's truck and R1's dozer.** Picked: the
+- **`cordon-beat-escort`: who escorts L2's truck and R1's Onager.** Picked: the
   sector's armour, the company only where none is free (the convoy's rule).
   Built.
 

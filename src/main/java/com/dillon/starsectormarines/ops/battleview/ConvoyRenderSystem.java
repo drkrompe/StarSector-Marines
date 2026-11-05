@@ -17,8 +17,6 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Emits the {@link RenderLayer#CONVOY} layer — ground convoy vehicles (supply
@@ -110,7 +108,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             HullLocations locations = wrecked ? null : convoy.locations(id);
             if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
             boolean activeProtection = !wrecked && convoy.carriesActiveProtection(id);
-            if (activeProtection && !APS_ON_TURRET.contains(type)) {
+            if (activeProtection) {
                 // The active protection's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
                 LayeredSpriteCache aps = sprites.vehicleKitActiveProtection();
                 if (aps != null) {
@@ -162,7 +160,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 LayeredSpriteCache gun = turret == null ? null
                         : VehicleGunArt.sprite(sprites, type, turret.weapon);
                 float recoilCells = gun != null ? VehicleGun.recoilCells(type, turret.weapon) : type.turretRecoilCells();
-                // Firing kicks the gun alone: a fitted weapon's drawing or a head's gun layer, never the housing.
+                // Firing kicks the gun alone: a fitted weapon's drawing, never a head over it.
                 float recoil = 0f;
                 if (!wrecked && recoilCells > 0f) {
                     for (var shot : ctx.sim.getActiveShots()) if (shot.shooterId == id) {
@@ -170,8 +168,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         recoil = Math.max(recoil, recoilCells * Math.max(0f, 1f - age / .22f));
                     }
                 }
-                VehicleType.GunLayer gunLayer = wrecked || gun != null ? null
-                        : type.gunLayer(turret == null ? null : turret.weapon);
                 float drawFacingDeg = turretFacingDeg;
                 boolean raised = !wrecked && turret != null && turret.raises(type) && turret.elevation > 0f;
                 // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
@@ -235,33 +231,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         tDrawLong *= (float) Math.hypot(pitchAxisX, pitchAxisY);
                         tDrawShort *= 1f + RAISE_WIDEN * (1f - pitchCos);
                     }
-                    if (gunLayer != null && !raised && gunLayer.frame() < frames.frames.length) {
-                        // The gun under the housing, kicked back along its bearing; what slides aft goes under the face.
-                        SpriteSheetFrames.Frame gf = frames.frames[gunLayer.frame()];
-                        int stripH = Math.round(gf.h * VehicleType.GunLayer.STRIP_SHARE);
-                        int stripW = Math.round(gf.w * gunLayer.cutShare());
-                        float[] at = gunLayerCentre(drawCellX, drawCellY, turretStateFacing,
-                                type.turretVisualCells * gunLayer.centreAheadShare(), recoil);
-                        out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
-                                gf.x, gf.y + stripH * gunLayer.strip(), stripW, stripH,
-                                cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
-                                tDrawLong * stripW / gf.w, tDrawShort * stripH / gf.h,
-                                drawFacingDeg, 1f, 1f, 1f, alphaMult);
-                    }
                     out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                             tf.x, tf.y, tf.w, tf.h,
                             cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
                             tDrawLong, tDrawShort, drawFacingDeg,
                             1f, 1f, 1f, alphaMult);
-                    if (activeProtection && APS_ON_TURRET.contains(type)) {
-                        // The launchers ride the turret housing's rear flanks and the panels its cheeks.
-                        LayeredSpriteCache aps = sprites.vehicleKitActiveProtectionTurret();
-                        if (aps != null) {
-                            out.addSprite(RenderLayer.CONVOY, aps.sprite, cam.cellToScreenX(drawCellX),
-                                    cam.cellToScreenY(drawCellY), tDrawLong, tDrawShort, drawFacingDeg,
-                                    1f, 1f, 1f, alphaMult);
-                        }
-                    }
                 } else {
                     // The fitted weapon is the turret: its own drawing, turning on the mount ring, with the
                     // weapon's own recoil and raise, at the length it fires from ({@link VehicleGun}). A wreck keeps
@@ -362,17 +336,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     /**
-     * Where a head's gun layer is centred, in cells: {@code aheadCells} along the turret's bearing from the head's centre
-     * ({@code headX}, {@code headY}), less the gun's {@code recoilCells} kick. The housing stays at the head's centre
-     * whatever the kick.
-     */
-    static float[] gunLayerCentre(float headX, float headY, float bearingDeg, float aheadCells, float recoilCells) {
-        float bearing = (float) Math.toRadians(bearingDeg);
-        float along = aheadCells - recoilCells;
-        return new float[] {headX - (float) Math.sin(bearing) * along, headY + (float) Math.cos(bearing) * along};
-    }
-
-    /**
      * Whether a worn turret's scuffs are drawn: only over a turret drawn from the sheet (a hull's own turret or a head),
      * whose footprint the mask is cut from. A bare ring has no turret to mark, and a weapon drawn as its own drawing does
      * not fill that footprint, so marks there would land on the gun and the bare deck.
@@ -381,11 +344,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
         return !(modular && bareRing) && !weaponDrawing;
     }
 
-    /**
-     * The hulls whose turret is the Onager's angular housing, on which active protection rides with the turret
-     * where the Parapet wore it; any other hull wears it on its deck.
-     */
-    private static final Set<VehicleType> APS_ON_TURRET = EnumSet.of(VehicleType.BREAKTHROUGH_TANK);
 
     /** How wide the turning collar is drawn against the turret ring it rides in. */
     static final float COLLAR_SHARE_OF_RING = .86f;

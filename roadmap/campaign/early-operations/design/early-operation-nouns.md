@@ -105,7 +105,7 @@ visits and issues the kit unlocked by each). A rival crew
 holds the yard in strength (`SalvageRightsForce`): hired guns beside the scrappers
 in every building, ship guns in sandbag nests round the yard and cradle
 (`BasinGunNests`, which arms each visit's own nests), point defence on the cradle,
-two technicals, a dozer, a salvaged Warden and two of Morrow's drones the
+two technicals, an Onager, a salvaged Warden and two of Morrow's drones the
 occupiers woke. The south road's response brings a technical and a tank up
 behind its infantry. Vale's party musters at the apron's far edge until the
 receiving store falls, then inside the secured workshop, out of the occupied

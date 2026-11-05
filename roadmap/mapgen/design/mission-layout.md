@@ -117,8 +117,8 @@ optional (reported, and the map stands).
   The patch). A deferred piece resolving a structure of that name takes the
   placed one instead of siting it.
 - **Block.** Cells closed or fortified by hand: a barricade (hedgehogs and
-  crates, which fire breaks and a dozer blade pushes), a wreck across a road
-  (closed to vehicles until a dozer clears it; laid as crate stacks until
+  crates, which fire breaks and an ultra-heavy hull crushes), a wreck across a road
+  (closed to vehicles until an Onager clears it; laid as crate stacks until
   there is wreck art), or sandbag positions facing a direction.
 - **Props.** Props set down by hand, each a doodad by id at a cell and turn,
   laid with the works (or with the structures, when a structures-phase

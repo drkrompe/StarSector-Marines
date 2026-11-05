@@ -22,7 +22,9 @@ class MachineAudioTest {
 
     @Test
     void eachHullClassSpeaksWithItsOwnEngine() {
-        assertEquals(MachineAudio.ENGINE_TRACKED, MachineAudio.engineVoice(VehicleType.BREAKTHROUGH_TANK).soundId());
+        assertEquals(MachineAudio.ENGINE_TRACKED, MachineAudio.engineVoice(VehicleType.MEDIUM_TANK).soundId());
+        assertEquals(MachineAudio.ENGINE_TURBINE, MachineAudio.engineVoice(VehicleType.BREAKTHROUGH_TANK).soundId(),
+                "the repulsor Onager rides its fans");
         assertEquals(MachineAudio.ENGINE_TRACKED, MachineAudio.engineVoice(VehicleType.HEAVY_APC).soundId());
         assertEquals(MachineAudio.ENGINE_TURBINE, MachineAudio.engineVoice(VehicleType.LASER_TANK).soundId());
         assertEquals(MachineAudio.ENGINE_WHEELED, MachineAudio.engineVoice(VehicleType.MILITIA_TECHNICAL).soundId());

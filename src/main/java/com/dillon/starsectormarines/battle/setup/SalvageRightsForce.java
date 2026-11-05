@@ -15,7 +15,7 @@ import java.util.Random;
 /**
  * The rival crew holding Basin's yard on Salvage Rights' night, sized for the company that comes to it after A Cold
  * Account: five squads and four machines, one of them heavy. Scrappers stiffened with hired guns hold every building
- * and the cradle; their machines are what they could make run (two technicals, a dozer, a Warden they pulled out of
+ * and the cradle; their machines are what they could make run (two technicals, a salvaged Onager, a Warden they pulled out of
  * the wreckfall, and two of Morrow's own drones they have woken); point defence cut from the wreck covers the cradle
  * against rockets. The south road's reserve comes up behind a technical and a tank once the company reaches the
  * cradle. The guns are the map's ({@code BasinGunNests}). UNTUNED first pass: unplayed against the company.
@@ -42,7 +42,7 @@ final class SalvageRightsForce {
     static final List<Hull> YARD_MACHINES = List.of(
             new Hull(VehicleType.MILITIA_TECHNICAL, 102, 96, 180f),
             new Hull(VehicleType.SRM_TECHNICAL, 84, 124, 180f),
-            new Hull(VehicleType.DOZER_BREACHER, 72, 104, 180f),
+            new Hull(VehicleType.BREAKTHROUGH_TANK, 72, 104, 180f),
             new Hull(VehicleType.DRONE_SKIMMER, 120, 101, 180f),
             new Hull(VehicleType.DRONE_SKIMMER, 146, 110, 180f));
     /** The salvaged machine standing over the cradle. */

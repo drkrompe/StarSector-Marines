@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines;
 
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.marine.VehicleTypeSaveConverter;
+import com.thoughtworks.xstream.XStream;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.campaign.CampaignEventListener;
@@ -84,6 +86,12 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     private static final Logger LOG = Global.getLogger(StarsectorMarinesModPlugin.class);
     /** Under {@code saves/common/}, with the {@code .data} suffix the settings API adds. */
     private static final String TEXTURE_USAGE_FILE = "marines_texture_usage";
+
+    /** A save naming a retired hull loads it as the hull it was carried to ({@link VehicleTypeSaveConverter}). */
+    @Override
+    public void configureXStream(XStream x) {
+        x.registerConverter(new VehicleTypeSaveConverter(), XStream.PRIORITY_VERY_HIGH);
+    }
 
     @Override
     public void onApplicationLoad() throws Exception {

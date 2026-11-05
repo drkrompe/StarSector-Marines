@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NeutralPivotTest {
 
@@ -30,6 +31,13 @@ class NeutralPivotTest {
         NavigationGrid grid = new NavigationGrid(20, 20);
         for (int y = 0; y < 20; y++) for (int x = 9; x <= 10; x++) grid.setWalkableFloor(x, y);
         assertEquals(0, NeutralPivot.clearDirection(10f, 10f, 0f, 90f, LENGTH, WIDTH, grid));
+    }
+
+    @Test
+    void aHeavySkirtYawsQuickerThanTracksAndSlowerThanALightSkirt() {
+        float heavySkirt = NeutralPivot.rateDegPerSec(VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(heavySkirt > NeutralPivot.rateDegPerSec(VehicleType.LASER_TANK));
+        assertTrue(heavySkirt < NeutralPivot.rateDegPerSec(VehicleType.HOVER_SCOUT));
     }
 
     private static NavigationGrid open(int w, int h) {

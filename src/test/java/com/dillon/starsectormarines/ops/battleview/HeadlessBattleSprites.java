@@ -131,7 +131,6 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final EnumMap<TurretHead, LayeredSpriteCache> turretHeads = new EnumMap<>(TurretHead.class);
     private final EnumMap<TurretHead, LayeredSpriteCache> turretHeadWrecks = new EnumMap<>(TurretHead.class);
     private final LayeredSpriteCache kitActiveProtection;
-    private final LayeredSpriteCache kitActiveProtectionTurret;
     private final EnumMap<MechWeaponComponent, LayeredSpriteCache> gunDrawings = new EnumMap<>(MechWeaponComponent.class);
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
@@ -209,7 +208,6 @@ final class HeadlessBattleSprites extends BattleSprites {
             if (wreck != null) turretHeadWrecks.put(head, wreck);
         }
         kitActiveProtection = optionalLayer("graphics/battle/vehicles/kit-active-protection.png");
-        kitActiveProtectionTurret = optionalLayer("graphics/battle/vehicles/kit-active-protection-turret.png");
         for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
             String path = VehicleGunArt.vehicleDrawingPath(weapon);
             LayeredSpriteCache drawing = path == null ? null : optionalLayer(path);
@@ -382,7 +380,6 @@ final class HeadlessBattleSprites extends BattleSprites {
         return head == null ? null : (wrecked ? turretHeadWrecks : turretHeads).get(head);
     }
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
-    @Override public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return kitActiveProtectionTurret; }
     @Override public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return gunDrawings.get(weapon); }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }

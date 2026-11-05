@@ -25,7 +25,9 @@ all facing LEFT, strict top-down.
   `turret-prompt.txt` / `wreck-prompt.txt`: target as identity/material
   authority, guide as geometry authority. Provenance sits beside each.
 - `pack.py` + `registration.json` produce the sheet. Hull frames are copied
-  verbatim from `army-tank.png`.
+  verbatim from `army-tank.png`, which is retired from `mod/` (the Onager is the
+  repulsor now): restore it from Git history before rerunning. Only the turret
+  frame it writes (`kit-active-protection/screened-turret-frame.png`) is used.
 
 ```
 python art-source/vehicles/tank-screened/guide.py   # targets and guides only

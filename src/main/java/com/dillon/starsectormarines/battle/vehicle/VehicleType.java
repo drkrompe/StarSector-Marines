@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
@@ -69,22 +70,29 @@ public enum VehicleType {
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
     },
     /**
-     * The Onager, the army's tank and the convoy's heavy spearhead. Turns on conservative rolling arcs, and on the spot
-     * where no arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
+     * The Onager, the Hegemony's heavy repulsor tank and the convoy's heavy spearhead (hegemony-armor-line.md): an
+     * ultra-heavy hull on a repulsor skirt, broad and short, that floats over water and rubble as a skirt does and
+     * crushes ordinary walls and barricades in its path by its own weight ({@link WallCrush}). Its weapon is drawn
+     * under the shared Hegemony head ({@link TurretHead}). Turns on conservative rolling arcs, and on the spot where no
+     * arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
      * ({@code MechInternal.ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
+     * Its sheet is the owner's concept turned to point left (art-source/vehicles/heavy-repulsor).
      */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 9, -90f,
-            0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/heg-heavy-repulsor.png", 0, 4, -90f,
+            0, Onager.DRAWN_LENGTH, 3.6f, 2.22f, 2.9f, .8f, 2.4f, .8f, 3.0f,
+            1, 0f, Onager.TURRET_MOUNT_Y, 0f, 0f, Onager.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
-            // Bounded curvature is deliberately shared with route proof and collision checks.
-            return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
+            // Bounded curvature is deliberately shared with route proof and collision checks. A skirt slews its
+            // heading faster than a tracked hull steers, but eighty tonnes on it swings slowly: a first figure for
+            // the playtest.
+            return new BicycleBody(2.4f, 34f, 110f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }
         @Override public float turretRecoilCells() { return .18f; }
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
+        @Override public float turretRingShareOfWidth() { return Onager.RING_SHARE_OF_WIDTH; }
     },
     /**
      * The Scorpion, the Hegemony's medium tank (hegemony-armor-line.md): a lighter tracked hull below the Onager,
@@ -131,22 +139,6 @@ public enum VehicleType {
         @Override public int turretFiringFrame() { return 4; }
         @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
         @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
-    },
-    /**
-     * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
-     * the cannons, the heaviest plate of the line and the slowest drive. Its sheet carries the
-     * breakthrough hull drawn at this longer frame's scale with the blade ahead of the nose, and
-     * the APC's twin-MG frames at their own 1.42-cell registration (art-source/vehicles/tank-dozer).
-     * The blade is real: it pushes through barricades and ordinary walls in its path ({@link DozerBlade}).
-     */
-    DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
-            0, 4.6f, 3.8f, 2.2f, 2.4f, .9f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, 0f, 0f, 1.42f, -90f,
-            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1400f, 1000f, 38f, 1.45f, 1.1f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(2.8f, 30f, 80f, accel, brakingAccel, maxSpeed);
-        }
-        @Override public ArmorArcs.Profile armorArcs() { return arcs(DOZER_ARCS); }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -352,7 +344,7 @@ public enum VehicleType {
 
     /**
      * What this hull's plate is worth on each arc a hit can arrive on ({@link ArmorArcs}): one shared profile, the
-     * front strongest and the rear weakest, with the tank line and the dozer on a steeper one of their own. The turret
+     * front strongest and the rear weakest, with the tank line on a steeper one of its own. The turret
      * of an armed hull meets the same profile on its own facing. {@code -Dbattle.vehicle.armorArcs=false} is the
      * control: every arc the hull's one plate.
      */
@@ -383,15 +375,9 @@ public enum VehicleType {
     /**
      * The tank line's: a thick sloped glacis, flanks a little thinner than the hull's nominal plate, and a thin
      * engine deck. The flank is deliberately mild: a tank caught broadside by a low-penetration gun is in a long, close
-     * fight, and at 0.85 plate a dozer's MG out-traded the line's cannon tanks across a street.
+     * fight, and at 0.85 plate a heavily plated machine-gun hull out-traded the line's cannon tanks across a street.
      */
     static final ArmorArcs.Profile TANK_ARCS = new ArmorArcs.Profile(1f, 1.15f, 1f, .95f, .6f, .6f);
-
-    /**
-     * The dozer's: the tank line's flanks and engine deck without the glacis bonus. Its blade and appliqué already
-     * make its plate the heaviest of the line, the best armor per credit there is.
-     */
-    static final ArmorArcs.Profile DOZER_ARCS = new ArmorArcs.Profile(1f, 1f, 1f, .95f, .6f, .6f);
 
     /**
      * The rocket pickup's: welded sheet with nothing sloped about it, so no front bonus. With one, the cheapest rig
@@ -462,6 +448,15 @@ public enum VehicleType {
         static final float RING_SHARE_OF_WIDTH = .62f;
     }
 
+    /** The Onager's sheet registration (art-source/vehicles/heavy-repulsor/pack.py). */
+    private static final class Onager {
+        static final float DRAWN_LENGTH = 4.0f;
+        /** The concept's turret ring, 21.3 px of the 768 px frame ahead of the hull's centre. */
+        static final float TURRET_MOUNT_Y = .110841f;
+        /** The ring's collar spans this share of the hull's width, measured off the concept. */
+        static final float RING_SHARE_OF_WIDTH = .5345f;
+    }
+
     /**
      * The share of the hull's width its turret ring spans ({@link VehicleGun#mountCells}), so a closed head sits on the
      * ring its art paints. Most hulls' rings span seven tenths of it.
@@ -480,9 +475,9 @@ public enum VehicleType {
      * Whether this hull rides a hover skirt. Hover decides only the ground a hull crosses: a skirt floats over water
      * and rubble a wheel or a track cannot cross ({@link HoverSkirt}). What it shoves, rams and crushes, and what it
      * weighs, go by its {@link #weight()}, so a heavy repulsor shoves and crushes as a tracked hull of its weight
-     * does; today's hover hulls, Tri-Tachyon's light skirts, are light.
+     * does: Tri-Tachyon's light skirts are light, the Onager's repulsor ultra-heavy.
      */
-    public boolean isHover() { return this == HOVER_SCOUT || this == DRONE_SKIMMER; }
+    public boolean isHover() { return this == HOVER_SCOUT || this == DRONE_SKIMMER || this == BREAKTHROUGH_TANK; }
 
     /**
      * Whether this hull shoves bodies out of its way, by contact and by bow wave: by its weight
@@ -494,28 +489,22 @@ public enum VehicleType {
     /** A hover hull of light weight: a skirt that barely touches the ground, with no purchase and almost no mass. */
     private boolean lightSkirt() { return isHover() && weight() == Weight.LIGHT; }
 
-    /** The tracked gun tanks: the breakthrough hull, the variants built on it, and the medium tank. */
+    /** The gun tanks: the Onager on its repulsor, the laser tank and the medium tank on tracks. */
     public boolean isTank() {
-        return this == BREAKTHROUGH_TANK || this == LASER_TANK || this == DOZER_BREACHER || this == MEDIUM_TANK;
+        return this == BREAKTHROUGH_TANK || this == LASER_TANK || this == MEDIUM_TANK;
     }
 
     /**
-     * Whether this hull carries a dozer blade, a part wider than its hull. Only the dozer breacher does, until it is
-     * retired; what the blade opens is {@link #crushesWalls()}, which every ultra-heavy hull shares by its weight.
+     * Whether this hull opens ordinary walls and barricades in its path ({@link WallCrush}): every ultra-heavy hull,
+     * by its own weight on its nose ({@link Weight#crushesWalls}). Its route proof and rolling planner read the breach
+     * view instead of the grid it moves over.
      */
-    public boolean hasBlade() { return this == DOZER_BREACHER; }
-
-    /**
-     * Whether this hull opens ordinary walls and barricades in its path ({@link DozerBlade}): every ultra-heavy hull,
-     * by its own weight on its nose ({@link Weight#crushesWalls}), and the dozer by its blade. Its route proof and
-     * rolling planner read the breach view instead of the grid it moves over.
-     */
-    public boolean crushesWalls() { return weight().crushesWalls() || hasBlade(); }
+    public boolean crushesWalls() { return weight().crushesWalls(); }
 
     /**
      * Whether this hull flattens undergrowth and lone boulders it drives into ({@link HeavyTracks}), by its weight
      * ({@link Weight#crushesUndergrowth}), on tracks, wheels or a skirt: the APC lines, the rocket technical, the
-     * dozer and the gun tanks. A pickup, a scout car, a hauler or a light hover hull is stopped. Its planning and its
+     * gun tanks. A pickup, a scout car, a hauler or a light hover hull is stopped. Its planning and its
      * motion read the crush view.
      */
     public boolean crushesUndergrowth() { return weight().crushesUndergrowth(); }
@@ -564,14 +553,13 @@ public enum VehicleType {
     }
 
     /**
-     * The hull's weight class: the pickups, hover hulls and haulers are light, the APC lines, the missile
-     * carriers and the dozer medium, the gun tanks heavy. No hull is ultra-heavy yet.
+     * The hull's weight class: the pickups, Tri-Tachyon's hover hulls and haulers are light, the APC lines and the
+     * missile carriers medium, the laser and medium tanks heavy, and the Onager ultra-heavy.
      */
     public Weight weight() {
-        if (this == BREAKTHROUGH_TANK || this == LASER_TANK || this == MEDIUM_TANK) {
-            return Weight.HEAVY;
-        }
-        if (isApc() || this == SRM_TECHNICAL || this == DOZER_BREACHER) return Weight.MEDIUM;
+        if (this == BREAKTHROUGH_TANK) return Weight.ULTRA_HEAVY;
+        if (this == LASER_TANK || this == MEDIUM_TANK) return Weight.HEAVY;
+        if (isApc() || this == SRM_TECHNICAL) return Weight.MEDIUM;
         return Weight.LIGHT;
     }
 
@@ -585,7 +573,9 @@ public enum VehicleType {
      * How hard the ground holds the hull against a slide, as decelerations in cells a second squared: along
      * the hull, where a wheel rolls and a track does not, and across it, where both scrub. A light hover skirt
      * barely touches the ground either way; a heavier skirt is pressed down by its weight and holds across as a
-     * wheel nearly does, a first figure for the playtest to tune.
+     * wheel nearly does, a first figure for the playtest to tune. Along the hull it holds no harder than a wheel
+     * rolls, so the Onager's eighty tonnes coast on after the throttle is off, and across it slides more than a
+     * tracked hull would before the skirt bites: the repulsor's drift.
      */
     public float gripAlong() {
         if (lightSkirt()) return .8f;
@@ -599,8 +589,8 @@ public enum VehicleType {
         return hasAnimatedTreads() ? 7f : 6f;
     }
 
-    /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
-    public boolean hasAnimatedTreads() { return isApc() || isTank(); }
+    /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden, and a skirt has none. */
+    public boolean hasAnimatedTreads() { return (isApc() || isTank()) && !isHover(); }
 
     /** Multiplier on the hull sprite's colour; white for every hull drawn as painted. */
     public float[] hullTint() { return NO_TINT; }
@@ -627,20 +617,21 @@ public enum VehicleType {
 
     /**
      * Whether this hull's turret is a modular head on an exposed turret ring ({@code vehicle-card-sizes.md}): a hull
-     * with no part in its gun card has the bare ring and no gun. The gun tanks: the laser tank and the Onager. Every
-     * other hull still carries the gun its sheet was drawn with.
+     * with no part in its gun card has the bare ring and no gun. The laser tank alone; a hull with a closed head
+     * ({@link #turretHead}) shows the head with nothing in its slot, and every other hull still carries the gun its
+     * sheet was drawn with.
      */
-    public boolean hasModularTurret() { return this == LASER_TANK || this == BREAKTHROUGH_TANK; }
+    public boolean hasModularTurret() { return this == LASER_TANK; }
 
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
     /**
      * The closed head this hull draws over its fitted weapon ({@link TurretHead}), or null for a hull whose weapon stands
      * bare on its ring. The APC wears the Hegemony head (hegemony-armor-line.md). Its mortar and LRM carriers share its
      * Hegemony hull but keep their open turntables: their weapons stand up to fire, which a closed head would hide.
-     * The medium tank wears it too.
+     * The medium tank and the Onager wear it too.
      */
     public TurretHead turretHead() {
-        return this == HEAVY_APC || this == MEDIUM_TANK ? TurretHead.HEGEMONY : null;
+        return this == HEAVY_APC || this == MEDIUM_TANK || this == BREAKTHROUGH_TANK ? TurretHead.HEGEMONY : null;
     }
 
     public TurretMountStyle mountStyle() {
@@ -681,69 +672,21 @@ public enum VehicleType {
      * whether or not it fires). A hull's heads are painted at one registration, so they share the turret's drawn size,
      * pivot and muzzle.
      */
-    public record HeadFrames(int live, int wreck, int firing, GunLayer gun) {
-        public HeadFrames(int live, int wreck, int firing) { this(live, wreck, firing, null); }
-    }
-
-    /**
-     * A live head's gun, drawn as a layer of its own under the housing so that firing kicks the gun alone and never the
-     * housing (art-source/vehicles/tank/heads): the live frame is the housing with the gun cut away, and the gun is
-     * strip {@code strip} of frame {@code frame}, one of three equal horizontal strips. A strip stands for the head
-     * frame's middle third, from the frame's leading (muzzle) edge back to {@code cutShare} of its width, where the
-     * housing's face covers the gun's seat.
-     */
-    public record GunLayer(int frame, int strip, float cutShare) {
-        /** The share of a frame's height a gun strip spans: a third. */
-        public static final float STRIP_SHARE = 1f / 3f;
-
-        /** How far ahead of the head frame's centre the strip's centre stands, as a share of the frame's width. */
-        public float centreAheadShare() { return .5f - cutShare / 2f; }
-    }
-
-    /** Where the Onager's housing face cuts its guns off, as a share of the head frame's width (pack.py's cut). */
-    private static final float ONAGER_GUN_CUT_SHARE = 289f / 768f;
-    private static final int ONAGER_GUN_FRAME = 8;
+    public record HeadFrames(int live, int wreck, int firing) {}
 
     private static final HeadFrames LASER_WHITE_HEAD = new HeadFrames(1, 3, 4);
     private static final HeadFrames LASER_RED_HEAD = new HeadFrames(5, 6, 7);
-    /** The Onager's approved single-cannon turret, the heavy cannon's head (art-source/vehicles/tank). */
-    private static final HeadFrames ONAGER_HEAVY_CANNON_HEAD = new HeadFrames(1, 3, -1,
-            new GunLayer(ONAGER_GUN_FRAME, 0, ONAGER_GUN_CUT_SHARE));
-    /** The Onager's housing with an autocannon and a rotary gun (art-source/vehicles/tank/heads). */
-    private static final HeadFrames ONAGER_AUTOCANNON_HEAD = new HeadFrames(4, 5, -1,
-            new GunLayer(ONAGER_GUN_FRAME, 1, ONAGER_GUN_CUT_SHARE));
-    private static final HeadFrames ONAGER_ROTARY_HEAD = new HeadFrames(6, 7, -1,
-            new GunLayer(ONAGER_GUN_FRAME, 2, ONAGER_GUN_CUT_SHARE));
-
-    /**
-     * The gun layer a live turret draws under its housing ({@link GunLayer}): that of the head {@code weapon} wears,
-     * or for a null weapon the head of the hull's standard part; null for a turret drawn whole.
-     */
-    public GunLayer gunLayer(MechWeaponComponent weapon) {
-        MechWeaponComponent fitted = weapon != null ? weapon : standardPart();
-        HeadFrames head = fitted == null ? null : headFrames(fitted.tankHead());
-        return head == null ? null : head.gun();
-    }
 
     /**
      * The frames of the turret head this hull's sheet paints for {@code head}, or null for a head the hull does not
-     * carry ({@link MechWeaponComponent#tankHead}): each hull declares its own heads. The laser tank carries the white
-     * and red laser heads; the Onager the heads on its angular turret housing.
+     * carry ({@link MechWeaponComponent#tankHead}): each hull declares its own heads. The laser tank alone carries
+     * heads on its sheet, the white and red laser heads.
      */
     public HeadFrames headFrames(MechWeaponComponent.TankHead head) {
-        if (head == null || head == MechWeaponComponent.TankHead.NONE) return null;
-        return switch (this) {
-            case LASER_TANK -> switch (head) {
-                case WHITE -> LASER_WHITE_HEAD;
-                case RED -> LASER_RED_HEAD;
-                default -> null;
-            };
-            case BREAKTHROUGH_TANK -> switch (head) {
-                case HEAVY_CANNON -> ONAGER_HEAVY_CANNON_HEAD;
-                case AUTOCANNON -> ONAGER_AUTOCANNON_HEAD;
-                case ROTARY -> ONAGER_ROTARY_HEAD;
-                default -> null;
-            };
+        if (head == null || this != LASER_TANK) return null;
+        return switch (head) {
+            case WHITE -> LASER_WHITE_HEAD;
+            case RED -> LASER_RED_HEAD;
             default -> null;
         };
     }
@@ -810,12 +753,12 @@ public enum VehicleType {
     public final int capacity;
     /**
      * The sprite frame's long side (nose to tail) as drawn, cells: the scale the hull is painted at. Drawing only;
-     * the frame runs past the hull to its blade, wheels and transparent margin.
+     * the frame runs past the hull to its wheels and transparent margin.
      */
     public final float drawnLengthCells;
     /**
      * The footprint's length, nose to tail, cells: what the simulation collides, routes, crushes and is struck by.
-     * The hull body's painted length, leaving out a dozer's blade.
+     * The hull body's painted length.
      */
     public final float visualLengthCells;
     /**
@@ -928,8 +871,24 @@ public enum VehicleType {
         return switch (this) {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
             case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER, MEDIUM_TANK -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
+            case BREAKTHROUGH_TANK, LASER_TANK -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }
+
+    /**
+     * The hull a saved name stands for, matched without case: a hull's own name, or for a retired hull the hull it was
+     * carried to (the dozer breacher to the Onager, whose weight now opens the walls its blade did); null for a name
+     * that is neither. Saves, pattern ids and fixtures read hulls through it.
+     */
+    public static VehicleType fromSavedName(String name) {
+        if (name == null) return null;
+        String upper = name.trim().toUpperCase(Locale.ROOT);
+        if (RETIRED_DOZER.equals(upper)) return BREAKTHROUGH_TANK;
+        for (VehicleType type : values()) if (type.name().equals(upper)) return type;
+        return null;
+    }
+
+    /** The retired dozer breacher's saved name: migration input only ({@link #fromSavedName}). */
+    public static final String RETIRED_DOZER = "DOZER_BREACHER";
 }

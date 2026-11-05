@@ -717,9 +717,8 @@ being a tank-only gap.
 A hull's plate depends on the arc a hit arrives on (`convoy-nouns.md`, a hull's
 plate depends on the arc), so a machine caught off its front pays for it. The
 shared hull profile is front 1.0 rating / 1.1 plate, side 0.9 / 0.9, rear
-0.75 / 0.7. The tank line is 1.0 / 1.15, 1.0 / 0.95 and 0.6 / 0.6. The dozer is
-the tank line without the glacis bonus, and the SRM technical the hull profile
-without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
+0.75 / 0.7. The tank line is 1.0 / 1.15, 1.0 / 0.95 and 0.6 / 0.6. The SRM technical is the hull profile
+without its front bonus (the dozer, once the tank line without its glacis bonus, is retired). `-Dbattle.vehicle.armorArcs=false` is the control.
 
 - **The harness set hulls down side-on, and fixing that moved the street rows.**
   `armorMatchup` teleported attacking hulls to 0° and defending hulls to 180°.
@@ -1214,7 +1213,7 @@ plus the bills of the mech racks it carries: the LRM carrier is the heavy APC's
 plus an SRM-5 (38/27/72/6). The measure is
 bulk only and ignores armor rating, so it is not effective durability. The
 dozer is the best armor per credit in the game, and raising its bill past the
-Bulwark's would break this rule, so it stays as it is.
+Bulwark's would break this rule, so it stayed as it was until it was retired (`hegemony-armor-line.md`).
 
 **The missile carriers in a duel** (`armorMatchup`, one machine a side, four
 seeds, three grounds, both roles; no spotter, so the LRM carrier fires only on its
@@ -1294,8 +1293,8 @@ internals vocabulary without the doll.
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | Armor drop selection (shipped; `mechs-nouns.md`, armor drop) | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
-| Tank variant art (shipped; `convoy-nouns.md`) | Art for the dozer breacher, offered. The heavy-gun tank was removed (owner, 2026-10-22). |
-| Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
+| Tank variant art (shipped; `convoy-nouns.md`) | Art for the dozer breacher, offered; the dozer is since retired (`hegemony-armor-line.md`). The heavy-gun tank was removed (owner, 2026-10-22). |
+| Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade cleared ground other vehicles can follow; the ultra-heavy Onager now does it by its weight (`convoy-nouns.md`, weight crushes walls). |
 | Light roles (shipped; `convoy-nouns.md`, light roles) | Supply pickup through the resupply authority; spotter pickup through fog and commander contacts; both field rigs. |
 | Missile carriers (shipped; `convoy-nouns.md`, the missile carriers) | LRM carrier (spotted indirect anti-armor fire, stand-off) and SRM technical (ambusher field rig); both hold fire at men. |
 

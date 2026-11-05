@@ -243,7 +243,7 @@ established names (Hegemony as 霸主) is a translation-review question.
 | pulse / beam / lance laser | 脉冲激光 / 光束激光 / 长矛激光 | |
 | rotary cannon / chaingun / autocannon / pintle gun / pulse emitter | 转管炮 / 链炮 / 自动炮 / 枢轴机枪 / 脉冲发射器 | |
 | pickup / troop carrier / APC | 皮卡 / 运兵车 / 装甲运兵车 | |
-| dozer breacher / hover scout / standoff carrier | 推土破障车 / 悬浮侦察车 / 远程发射车 | |
+| hover scout / standoff carrier | 悬浮侦察车 / 远程发射车 | |
 | Hold Until Relieved / Take Back the Depot / Open the Junction / Route Security | 坚守待援 / 夺回仓库 / 打通 Junction / 路线安保 | mission names; recurring: 民兵解围, 仓库清剿 |
 | mission types Assault / Conquest / Extraction / Raid / Sabotage | 突击 / 征服 / 撤离 / 突袭 / 破坏 | |
 | risk Low / Medium / High | 低 / 中 / 高 | |

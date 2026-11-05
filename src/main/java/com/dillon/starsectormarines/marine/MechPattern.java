@@ -73,7 +73,6 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.MEDIUM_TANK, EquipmentAccessTier.ADVANCED);
         // The ladder above each line's first hull: each variant is its own card.
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
-        VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.LASER_TANK, EquipmentAccessTier.PRESTIGE);
         // The light roles: lines of their own, one hull each.
         VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
@@ -243,13 +242,9 @@ public record MechPattern(Kind kind, String definitionId) {
         return Collections.unmodifiableList(patterns);
     }
 
+    /** A retired hull's id reads as the hull it was carried to ({@link VehicleType#fromSavedName}). */
     private static VehicleType safeVehicle(String id) {
-        if (id == null) return null;
-        try {
-            return VehicleType.valueOf(id.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException unknown) {
-            return null;
-        }
+        return VehicleType.fromSavedName(id);
     }
 
     private static MechVariant safeVariant(String id) {

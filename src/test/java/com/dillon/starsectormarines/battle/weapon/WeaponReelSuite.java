@@ -362,16 +362,7 @@ public final class WeaponReelSuite implements SnapshotSuite {
             hulls.add(type);
         }
         for (VehicleType type : hulls) vehicle(out, type, type.standardPart(), kebab(type.name()));
-        // The Onager's other heads, and the laser tank's red one.
-        for (MechWeaponComponent gun : MechWeaponComponent.values()) {
-            if (gun == VehicleType.BREAKTHROUGH_TANK.standardPart()) continue;
-            MechWeaponComponent.TankHead head = gun.tankHead();
-            if (VehicleType.BREAKTHROUGH_TANK.headFrames(head) != null
-                    && (gun == MechWeaponComponent.AC_6 || gun == MechWeaponComponent.CHAINGUN
-                    || gun == MechWeaponComponent.CHAINGUN_HF)) {
-                vehicle(out, VehicleType.BREAKTHROUGH_TANK, gun, "breakthrough-tank-" + kebab(gun.name()));
-            }
-        }
+        // The laser tank's red head.
         vehicle(out, VehicleType.LASER_TANK, MechWeaponComponent.PL_3_SWEEP, "laser-tank-pl-3-sweep");
     }
 

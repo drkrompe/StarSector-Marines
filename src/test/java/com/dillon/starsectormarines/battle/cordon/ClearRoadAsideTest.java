@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** R1's dozer pulling aside once the road is open ({@link ClearRoadBeat#aside}). */
+/** R1's Onager pulling aside once the road is open ({@link ClearRoadBeat#aside}). */
 class ClearRoadAsideTest {
 
     /** A straight road east along y = 50. */

@@ -178,25 +178,20 @@ public enum MechWeaponComponent {
 
     /**
      * The turret head a gun tank draws for a weapon of this family in its gun card, instead of the weapon's own drawing:
-     * the laser tank's white and red laser heads, and the Onager's heads, its turret housing with the family's gun.
+     * the laser tank's white and red laser heads.
      */
-    public enum TankHead { NONE, WHITE, RED, HEAVY_CANNON, AUTOCANNON, ROTARY }
+    public enum TankHead { NONE, WHITE, RED }
 
     /**
      * The turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrames}): the
      * PL-3 the white head the laser tank has always carried, the PL-3 (Sweep) the red head the retired PD laser tank
-     * carried, the HC cannons (the HC-20 and the HC-10, both one large bore) the Onager's single-cannon
-     * turret; the AC autocannons and DC demolition cannons the Onager's autocannon head, the chainguns and the light
-     * machine gun its rotary head. A weapon whose head its hull does not carry, and every other weapon, is drawn as its own drawing on the
-     * mount ring.
+     * carried. Every other weapon is drawn as its own drawing, on the mount ring or under a hull's closed head
+     * ({@code VehicleType.turretHead}).
      */
     public TankHead tankHead() {
         return switch (this) {
             case PL_3 -> TankHead.WHITE;
             case PL_3_SWEEP -> TankHead.RED;
-            case HC_10, HC_20 -> TankHead.HEAVY_CANNON;
-            case AC_6, AC_6_QS, DC_5, DC_4_QS -> TankHead.AUTOCANNON;
-            case CHAINGUN, CHAINGUN_HF, LIGHT_MACHINE_GUN -> TankHead.ROTARY;
             default -> TankHead.NONE;
         };
     }

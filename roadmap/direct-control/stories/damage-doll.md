@@ -38,7 +38,7 @@ as goofy). Each part of the outline is a location, coloured by its state.
   showing), structure hit, destroyed. A destroyed location is drawn hatched dark
   red; an unfitted one is outline only.
 - Silhouettes: three mechs (Hound, Bulwark, Warden) and the vehicle families
-  (APC, tank, dozer, technical, truck, scout car, hover scout, drone skimmer, LRM
+  (APC, tank, technical, truck, scout car, hover scout, drone skimmer, LRM
   carrier, hauler). Variants of a family share a doll.
 - The style is MechWarrior Online's: flat angular panels that tile without
   overlapping, a constant gap between neighbours, a bright outline in the

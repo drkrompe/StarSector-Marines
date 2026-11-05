@@ -380,7 +380,7 @@ public final class CordonSetup {
 
     /**
      * The ground a convoy's road is proved on: the map's as the battle will stand it, every nest a gun is seated in
-     * closed, with the wreck across the corridor (beat R1) cleared, as the dozer will clear it. The wreck closes the
+     * closed, with the wreck across the corridor (beat R1) cleared, as the Onager will clear it. The wreck closes the
      * road to trucks until then, so the corridor runs through it. A nest is open floor on the map and a gun's cell from
      * setup: a corridor found past a picket nest's open cell (urban Road seed 6, at the gap) ran its trucks into a
      * chicane three cells wide between that gun and the redoubt's wall, and every convoy stood short of the gap.

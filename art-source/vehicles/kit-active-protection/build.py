@@ -1,26 +1,24 @@
-"""Build the active-protection overlays: the hull and Onager turret overlays in mod/graphics/battle/vehicles/
-(kit-active-protection{,-turret}.png) and one per mech chassis in mod/graphics/battle/mech-modular-topdown/
+"""Build the active-protection overlays: the hull overlay in mod/graphics/battle/vehicles/
+(kit-active-protection.png) and one per mech chassis in mod/graphics/battle/mech-modular-topdown/
 (active-protection-<chassis>.png).
 
 The active protection was the retired Parapet's own turret (art-source/vehicles/tank-screened, whose pack.py writes
 screened-turret-frame.png here): an interceptor
 launcher box on each rear flank of the turret and a sensor panel inset on each cheek, painted by ImageGen onto the
 approved breakthrough turret. Now that it is a compartment internal, those painted launchers and panels are lifted off
-that turret as an overlay: on the Onager they ride its turret housing where the Parapet wore them, and on any other gun
-tank they are set on the hull deck, launchers on the rear flanks inside the tracks and panels on the front cheeks.
+that turret as an overlay set on a gun tank's hull deck (the Onager wears the shared Hegemony head now, so no tank
+carries that housing), launchers on the rear flanks inside the tracks and panels on the front cheeks.
 
 Sources (both 768x768 live turret frames):
   * screened-turret-frame.png: the Parapet's live turret frame (army-tank-screened.png frame 1);
-  * stock-turret-frame.png: the breakthrough's live turret frame (army-tank.png frame 1), the same registration.
+  * stock-turret-frame.png: the retired tracked Onager's live turret frame, the same registration.
 A part is the pixels the two frames disagree on inside its box (the fit, not the housing under it). Each is scaled
 from the turret frame's 98.6 px/cell (7.789194 cells) to the hull frame's 178.6 px/cell (4.3 cells), so it keeps its
 painted size, and set on the hull frame with a soft shadow down and right, as the sheets' baked shadows fall.
 
-Vehicle outputs, each one 768x768 frame facing LEFT:
-  * kit-active-protection-turret.png, in the Onager's turret frame registration: the fit where the Parapet wore it,
-    on the angular turret housing every Onager head shares, so it turns with the head;
-  * kit-active-protection.png, in the breakthrough hull frame's registration: the fit bolted to the hull deck, for a
-    gun tank whose heads are not that housing (the laser tank), drawn exactly over the live hull.
+Vehicle output, one 768x768 frame facing LEFT:
+  * kit-active-protection.png, in the laser tank's 4.3-cell hull frame registration: the fit bolted to the hull deck,
+    drawn over any gun tank's live hull.
 
 A mech fits the same part (mechs-nouns.md, one machine, one part catalog), so the same four lifted parts are set on
 each chassis too: one 208x208 overlay per chassis, facing UP in that chassis sprite's registration, drawn over the
@@ -42,7 +40,6 @@ GRAPHICS = HERE.parents[2] / "mod" / "graphics" / "battle"
 VEHICLES = GRAPHICS / "vehicles"
 MECHS = GRAPHICS / "mech-modular-topdown"
 OUT = VEHICLES / "kit-active-protection.png"
-OUT_TURRET = VEHICLES / "kit-active-protection-turret.png"
 FRAME = 768
 TURRET_PX_PER_CELL = FRAME / 7.789194
 HULL_PX_PER_CELL = FRAME / 4.3
@@ -144,23 +141,19 @@ def main():
     screened = Image.open(HERE / "screened-turret-frame.png").convert("RGBA")
     stock = Image.open(HERE / "stock-turret-frame.png").convert("RGBA")
     hull = Image.new("RGBA", (FRAME, FRAME), (0, 0, 0, 0))
-    turret = Image.new("RGBA", (FRAME, FRAME), (0, 0, 0, 0))
     pieces = []
     for box, centre in PARTS:
         piece = part(screened, stock, box)
         pieces.append(piece)
-        turret.alpha_composite(piece, box[:2])
         w, h = round(piece.width * SCALE), round(piece.height * SCALE)
         resized = piece.convert("RGBa").resize((w, h), Image.LANCZOS).convert("RGBA")
         hull.alpha_composite(resized, (round(centre[0] - w / 2), round(centre[1] - h / 2)))
     shadowed(hull, SHADOW_OFFSET, 4).save(OUT)
-    # On the turret the parts are painted where they stood, with their own baked shading: no added shadow.
-    turret.save(OUT_TURRET)
     overlays = {}
     for name, anchors in MECH_ANCHORS.items():
         overlays[name] = mech_overlay(pieces, anchors)
         overlays[name].save(MECHS / f"active-protection-{name}.png")
-    print(f"wrote {OUT}, {OUT_TURRET} and {len(overlays)} mech overlays in {MECHS}")
+    print(f"wrote {OUT} and {len(overlays)} mech overlays in {MECHS}")
     if "--preview" in sys.argv:
         directory = Path(sys.argv[sys.argv.index("--preview") + 1])
         preview(directory, overlays)

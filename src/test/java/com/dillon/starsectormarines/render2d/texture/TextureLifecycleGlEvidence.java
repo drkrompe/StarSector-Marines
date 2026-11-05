@@ -73,7 +73,7 @@ class TextureLifecycleGlEvidence {
     private static final List<String> SHARED = List.of(TileManifest.SHEET, TileManifest.DOODAD_SHEET);
     /** Drawn by a battle and nothing else. */
     private static final List<String> BATTLE_ONLY = List.of(
-            "graphics/battle/vehicles/army-tank.png",
+            "graphics/battle/vehicles/heg-heavy-repulsor.png",
             "graphics/structures/swarm-ooze.png",
             "graphics/decals/decals.png");
     /** The game's own art, already on the card before the mod asked for it. */

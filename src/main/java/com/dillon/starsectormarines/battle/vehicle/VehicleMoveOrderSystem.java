@@ -322,7 +322,7 @@ public final class VehicleMoveOrderSystem {
     private float[][] planRoute(long id, int cellX, int cellY) {
         VehicleType type = convoy.vehicleType(id);
         GroundBody body = convoy.body(id);
-        // A bladed hull proves its route over the ground it can open, and a hover hull over the water it floats on.
+        // A wall-crushing hull proves its route over the ground it can open, and a hover hull over the water it floats on.
         NavigationGrid grid = controlSystem.planningGrid(type);
 
         VehicleClearance clearance = convoy.clearances().of(grid, type);

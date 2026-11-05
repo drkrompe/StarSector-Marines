@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The Onager's modular turret heads ({@code vehicle-card-sizes.md}, {@code convoy-nouns.md}): every ballistic part its
+ * The Onager's weapons under the shared Hegemony head ({@code convoy-nouns.md}, the tank): every ballistic part its
  * gun card takes, fitted, on real ground at three poses, with and without the active-protection kit; then worn turret
  * plate, the bare ring and wrecks. Owner-facing look frames only; there is no verdict.
  */
@@ -58,7 +58,7 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
 
     @Override public String id() { return "tank-heads"; }
 
-    @Override public String label() { return "Onager modular turret heads, worn plate and wrecks"; }
+    @Override public String label() { return "Onager weapons under the Hegemony head, worn plate and wrecks"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {

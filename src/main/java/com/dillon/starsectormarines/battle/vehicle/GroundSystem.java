@@ -130,8 +130,14 @@ public class GroundSystem {
         moveOrderSystem.setGuardPlanner(planner);
     }
 
-    /** Gives bladed hulls the blade that opens ground ahead of them. */
-    public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
+    /** Gives ultra-heavy hulls the wall crush that opens ground ahead of them. */
+    public void setWallCrush(WallCrush crush) { controlSystem.setWallCrush(crush); }
+
+    /**
+     * The map {@code type}'s own planning reads: a wall-crushing hull's breach view, a ramming hull's, or the grid it
+     * moves over, as its move order proves its route over. For scripted beats that drive a hull.
+     */
+    public NavigationGrid planningGrid(VehicleType type) { return controlSystem.planningGrid(type); }
 
     public void setTracks(HeavyTracks tracks) { controlSystem.setTracks(tracks); }
 

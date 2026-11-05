@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -419,7 +419,7 @@ rating and plate are worth on a given hit depends on its arc (below).
   `turretPoolShare`). Today only the gun tanks (the Onager and the laser tank) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
   that loses its gun). A hull with no section is one body and its gun
-  cannot be lost. That covers the APCs, the technical, the dozer's MG and the
+  cannot be lost. That covers the APCs, the technical and the
   light roles. Any armed hull may author one later. The turret's emplacement
   durability in the turret catalog is the turret's as an emplacement, and a
   hull never reads it. A turret on a hull is part of the hull's own pools,
@@ -492,9 +492,8 @@ round. It applies to whichever plate the hit meets (above).
 - **One shared profile, per-type overrides.** Every hull's front is rating 1.0
   and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line has a
   thick glacis (1.0 / 1.15), mild flanks (1.0 / 0.95) and a thin engine deck
-  (0.6 / 0.6). The dozer is the tank line without the glacis bonus, and the SRM
-  technical's welded sheet is the shared profile without its front bonus. Both
-  overrides keep a cheaper or sidegrade hull from beating a dearer one by facing
+  (0.6 / 0.6). The SRM technical's welded sheet is the shared profile without its
+  front bonus. Both overrides keep a cheaper or sidegrade hull from beating a dearer one by facing
   alone (`heavy-equipment-progression.md`, balance is not parity).
 - **The turret faces its own way.** A hit rolled onto the turret is read against
   the turret's facing, not the hull's. A turret trained on its target shows that
@@ -693,8 +692,9 @@ The launchers and their power cost the hull six hundredths of its speed and acce
 (`MachineSystems.speedFactor`). Among hulls only the armed gun tanks (the Onager, the laser tank) take it; a mech
 takes it too, the same mount riding the mech (`mechs-nouns.md`, one machine, one part catalog)
 (`heavy-equipment-progression.md`, the AT LRM against a tank); a stock tank carries none. Its
-launcher boxes and sensor panels are drawn over the live laser tank's hull, and on the Onager over its
-turret housing, turning with whatever head it wears (`kit-active-protection.png`, `art-source/vehicles/kit-active-protection`).
+launcher boxes and sensor panels are drawn over any gun tank's live hull deck (`kit-active-protection.png`,
+`art-source/vehicles/kit-active-protection`), registered to the laser tank's frame; on the Onager's and the medium
+tank's broader concept hulls the overlay is not yet refitted to their decks.
 The mount lasts the battle, ends with the hull, and is mounted
 once: a spent magazine is not refilled. `-Dbattle.vehicle.activeProtection=false`
 is the control.
@@ -768,7 +768,7 @@ it while it points within 20° and otherwise stopping and pivoting until it
 points within 3°. Every step is swept against the live ground like any other
 move, so the corridor's proof guides the hull and the ground decides; a pivot
 that would clip leaves the hull to the turnaround and the ordinary brake,
-reroute and give-up. A dozer turns through ground its blade could push as it
+reroute and give-up. A wall-crushing hull turns through ground it could push as it
 drives through it, holding the turn while its hull grinds that ground down.
 Turning toward the corridor counts as progress for the stall clock, and the
 forward planner is asked again at its ordinary cadence, taking the hull back
@@ -920,7 +920,7 @@ cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
 
 **There is one machine gun.** Every machine-gun hull (the APC, the militia
-technical, the dozer) carries the mech light machine gun as its own gun
+technical) carries the mech light machine gun as its own gun
 (`VehicleType.ownGun`): the rotary, held-trigger gun a mech wears, fed from its
 belt, in the hull's heavy-MG carriage (traverse, flux bank, hit shares) and
 drawn as a fitted weapon is, on the hull's mount ring. The heavy MG survives only
@@ -1258,8 +1258,8 @@ retains the same existing cross-domain behavior as an autonomous hull.
   It never edits the battlefield: no walkability write, no line-of-sight
   write, no clearance invalidation. A combat outcome must not be able to
   reshape the map's connectivity, because nothing validates the map a
-  mid-battle closure leaves behind. A living dozer blade is the one vehicle
-  that edits terrain, and only in the opening direction, through the map
+  mid-battle closure leaves behind. A living ultra-heavy hull's nose is the one vehicle
+  part that edits terrain, and only in the opening direction, through the map
   editor's destruction path: like every destruction op it can only make the
   map more permissive, so the ordinary opened-cell flush is all it needs.
 - A vehicle is a unit with a hull. It reads its durability the way every other
@@ -1280,24 +1280,25 @@ rebuilt mid-leg is an ordinary new corridor.
 A **heavy lead** is a story-support tank with finite armor, structure and a
 single-cannon magazine. Its independently traversing turret uses normal
 ballistic contact and blast payloads, so it can breach a gun line while lighter
-escorts screen infantry. It carries no passengers. The tracked silhouette uses
-a conservative rolling-turn envelope shared by route proof and body motion;
-where no rolling turn fits it pivots like any hull (Neutral pivot); track
-slip and player-owned tank logistics are not modeled.
+escorts screen infantry. It carries no passengers. Its drive uses a conservative
+rolling-turn envelope shared by route proof and body motion; where no rolling turn
+fits it pivots like any hull (Neutral pivot); slip and player-owned tank logistics
+are not modeled.
 
-Its overhead hull has a broad, flat-fronted glacis between the tracks and a recessed
-engine deck at the rear, with continuous track tops and layered shoulder
-plates. The compact independent turret distinguishes its separate angular cheeks
-and narrow mantlet from the rear bustle. Both components retain their authored frame centers so
-traverse cannot move the bearing. A short, single barrel follows a centered
-ballistic hardpoint; its two-round autoloaded burst retains the existing damage
-and cadence. Armor volume comes from sloped planes and bevels,
-not a tilted camera or baked ground shadow. Its Abrams/Type 10-inspired shape, faded
-ochre paint and replacement panels depict scavenged, century-old Hegemony surplus.
-This provenance is Marine Operations art direction, not a claim about vanilla canon.
+The **Onager** (`BREAKTHROUGH_TANK`, Prestige, Heavy lift) is the Hegemony's **heavy repulsor tank** (owner,
+`hegemony-armor-line.md`): an ultra-heavy hull on a repulsor skirt, broad and short, its footprint 3.6 by 2.22
+cells measured off the owner's concept. Tan and olive plate with orange hazard panels, a layered prow, slab side
+pods, exposed pipework between them, and the round turret ring a little forward of centre. It hovers, so it
+floats over water and rubble as a skirt does (`HoverSkirt`, the hover line), and it weighs eighty tonnes, so it
+shoves, crushes undergrowth and **crushes ordinary walls and barricades with its own nose** (weight crushes walls,
+below). Its drive is a first figure for the playtest (owner): 2.9 cells a second, slow to get going (0.8) and slow
+to stop (2.4), since a skirt holds the ground less than a track; the heavy skirt's grip, 1.5 along and 4 across, so
+it coasts and drifts more than a tracked tank; a 34° bounded turn slewed at 110° a second; and a 45° a second
+neutral pivot, between tracks and a light skirt. Its sheet is the concept turned to point left with an ImageGen
+wreck registered to it (`art-source/vehicles/heavy-repulsor/`).
 
-The tank's exposed tread tops scroll separately from its fixed armor and track
-end caps. Accepted signed chassis travel drives their UV phase after the
+A tracked tank's exposed tread tops (the laser tank's and the medium tank's) scroll separately from its fixed
+armor and track end caps; the Onager hovers and has none. Accepted signed chassis travel drives their UV phase after the
 collision sweep; yaw adds outer-track travel and subtracts inner-track travel.
 Reversing reverses the texture motion, and a stopped, blocked or destroyed hull
 does not animate. Teleport resets the presentation odometers. This does not
@@ -1310,82 +1311,55 @@ permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
 use the shared presentation drains and cause no secondary damage, cover,
 concealment or navigation changes.
 
-**The Onager's turret is modular** (`VehicleType.hasModularTurret`; owner, 2026-10-30: one tank,
-modular heads). Its gun is the part in its cannon card, and the part decides the head the turret
-wears: one approved angular housing with the family's gun in its mantlet, painted on the tank's
-sheet at the turret's registration (`VehicleType.headFrames`, `MechWeaponComponent.tankHead`). The
-HC cannons (the HC-20 and the HC-10, each one large bore) wear the approved single-cannon turret;
-the AC-6, AC-6 (QS), DC-5 and DC-4 (QS) the autocannon head; the chainguns and the light machine
-gun the rotary head. Each head has its own live and wreck frame, so a head turns, scuffs and burns as
-the turret it is, and every shot leaves the one muzzle the heads share. **A head's gun is a layer of its
-own under the housing, and firing kicks the gun alone** (owner, 2026-10-30; `VehicleType.GunLayer`): the
-housing never moves with a shot, and each gun is seated back into the housing face until its muzzle is the
-shared one, so no head shows more barrel than the heavy cannon's. With its card empty the
-Onager shows the bare army-green ring and has no gun; a spawn that names no part (a scene, a
-mission, `VehicleDeploymentSpec.standard`) fits the HC-20 (`VehicleType.standardPart`).
-A part with no head of its own would stand on the gun plate on the ring; every part the card
-takes today has a head. Art: `art-source/vehicles/tank/heads/`.
+**The Onager's weapon is drawn under the shared Hegemony head** (`TurretHead.HEGEMONY`,
+`VehicleType.turretHead`; `hegemony-armor-line.md`), as the APC's and the medium tank's are: the part in its
+cannon card is drawn as its own mech drawing, its barrel through the head's slot, so every part the card takes
+needs no art of its own. The head is sized from the ring its art paints (`VehicleType.turretRingShareOfWidth`,
+0.53 of its width). Its turret section and its large ballistic card are unchanged. With its card empty it shows
+the head with nothing in its slot; a spawn that names no part (a scene, a mission,
+`VehicleDeploymentSpec.standard`) fits the HC-20 (`VehicleType.standardPart`). Only the laser tank keeps a
+modular turret with heads painted on its own sheet (`VehicleType.hasModularTurret`, `headFrames`).
 
-The tank's variants each draw from their own sheet with the same four
-registered slots. The dozer breacher is the breakthrough hull with a broad blade on
-push arms ahead of the glacis; its longer footprint frame draws the hull at the
-same on-screen size, so its tread bands are the tank's scaled about the frame
-center. In place of the cannon turret it carries the light machine gun every
-machine-gun hull carries, on its mount ring. Both keep authored wreck
-frames; the dozer's blade buckles and tears with its hull
-(`art-source/vehicles/tank-dozer/`). There is no long-gun tank: the heavy-gun
-variant was removed (owner, 2026-10-22) because its single long barrel read as
-goofy at game scale; the tank line's anti-armor answer is the breakthrough cannon.
+The laser tank draws from its own sheet with the four registered slots. There is no long-gun tank: the heavy-gun
+variant was removed (owner, 2026-10-22) because its single long barrel read as goofy at game scale; the tank line's
+anti-armor answer is the breakthrough cannon. **The dozer breacher is retired** (owner, `hegemony-armor-line.md`):
+there is no blade on any hull, and what it opened is the weight rule below. A save, a learned pattern or a card that
+names it is carried to the Onager (`VehicleType.fromSavedName`, `VehicleTypeSaveConverter`).
 
-**Weight crushes walls** (`DozerBlade`, named for the blade until the dozer is
-retired; `VehicleType.crushesWalls`). An ultra-heavy hull opens ordinary walls and
-barricades with its own nose, because of its mass, not a part; the dozer does the
-same with its blade until it goes. A blocking cell is
+**Weight crushes walls** (`WallCrush`; `VehicleType.crushesWalls`). An ultra-heavy hull opens ordinary walls
+and barricades with its own nose, because of its mass, not a part. A blocking cell is
 *pushable* when its structure is spent through the ordinary wall channel — a
 wall cell or a sandbag, fence or crate barricade — and is above zero and at most
-the hull's **ceiling**: 100 for an ultra-heavy hull, as for the blade. Ordinary
-city and gated-housing walls fall to it; fortified and fortress walls (150 and up)
-stand until fire has worn them under the ceiling, so a fort is still opened by
-fire and charges first, and an ultra-heavy hull's greater mass shows in the
-momentum it carries through a wall, not in what it can open. A heavy hull crushes
-no wall: it rams barricades and stops at walls (below). Natural obstructions,
-registered equipment and entity-owned fixtures are never pushed. Low crash debris
-under the hull is graded flat. The hull bears on a strip just past its nose, its
-own width for an ultra-heavy hull and the painted blade's, wider than the hull, for
-the dozer, and spends its **rate**, 80 structure a second for either, on every
-pushable cell in it at once, through the same
-destruction path a breaching charge uses: a pushed wall becomes rubble, a
-pushed barricade its destroyed art, and the cell is ordinary walkable ground for
-every vehicle and unit afterwards. A dozer driving onto what it pushes also
-spends its **momentum** on it (`HullMomentum`): half its mass in tonnes times
-its speed squared, at 10.4 structure apiece, so 360 at its top speed. Only the
-cells its nose reaches that tick take it. Where its momentum covers all they
-have left they fall at once and it drives on at the speed the rest gives: one
-crate barricade checks it to about nine tenths of its way, a row of housing
-wall across its blade to about half. Where it does not, they share it and the
-dozer is brought up, for the blade to finish at its rate: a row of city wall
-stops it just short. Where its hull rather than its blade is held by
-pushable cells, its tail or flank swung into a house wall as it turns, and
-nothing else holds it, it grinds them down at the same rate: its route counts
-that ground open, so its turns may sweep there. Bearing on pushable ground is
-progress, so the wall-contact and stall recovery leave a pushing hull alone;
-bearing on a fortified wall is not, and recovery treats it as any other wall.
+the hull's **ceiling**, 100. Ordinary city and gated-housing walls fall to it; fortified and fortress walls (150
+and up) stand until fire has worn them under the ceiling, so a fort is still opened by fire and charges first, and
+an ultra-heavy hull's mass shows in the momentum it carries through a wall, not in what it can open. A heavy hull
+crushes no wall: it rams barricades and stops at walls (below). Natural obstructions, registered equipment and
+entity-owned fixtures are never pushed. Low crash debris under the hull is graded flat. The hull bears on a strip
+just past its nose, its own width, and spends its **rate**, 80 structure a second, on every pushable cell in it at
+once, through the same destruction path a breaching charge uses: a pushed wall becomes rubble, a pushed barricade
+its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit afterwards. Driving onto
+what it pushes it also spends its **momentum** on it (`HullMomentum`): half its mass in tonnes times its speed
+squared, at 10.4 structure apiece, so about 3,500 for the Onager at its top speed. Only the cells its nose reaches
+that tick take it. Where its momentum covers all they have left they fall at once and it drives on at the speed the
+rest gives: a row of city wall across its nose checks it to about nine tenths of its way, which is how far its mass
+carries it through a block. Where it does not, at a crawl, they share it and the hull is brought up, to finish them
+at its rate. Where its hull rather than its nose is held by pushable cells, its tail or flank swung into a house wall
+as it turns, and nothing else holds it, it grinds them down at the same rate: its route counts that ground open, so
+its turns may sweep there. Bearing on pushable ground is progress, so the wall-contact and stall recovery leave a
+pushing hull alone; bearing on a fortified wall is not, and recovery treats it as any other wall.
 
 Route proof for a wall-crushing hull reads a **breach view**: a routing copy of
 the grid it moves over (its crush view, or a heavy skirt's view) with every cell
 under its ceiling open. Its move-order proof and rolling local planner both use
 it, so ground the hull can open is reachable for it and for nobody else, while its
 physical sweep still reads the grid it moves over — which is what holds the hull
-against a wall until it has pushed it down. No hull is ultra-heavy yet; the
-repulsor Onager joins the class when the dozer is retired
-(`hegemony-armor-line.md`). A troop
-carrier ordered across an intact wall goes no farther than its near side;
-ordered again after the dozer is through, its ordinary proof finds the gap. Wall cells cost a route dearly, so
-the dozer breaches only where going round is dearer. The convoy's dispatched
-delivery proof is unchanged; the blade reaches player-ordered and directly
-driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
-troop APC drives through, against a control where the APC alone is held at the
-wall.
+against a wall until it has pushed it down. A troop carrier ordered across an intact wall goes no farther than its
+near side; ordered again after the Onager is through, its ordinary proof finds the gap. Wall cells cost a route
+dearly, so the Onager crushes through only where going round is dearer. The convoy's dispatched delivery proof is
+unchanged; the crush reaches player-ordered and directly driven hulls and scripted beats
+(`BattleSimulation.vehiclePlanningGrid`; the Cordon's Clear the road sends the Onager). Acceptance is the
+`wall-crush` scene: the Onager opens a gap a troop APC drives through, against a control where the APC alone is held
+at the wall.
 
 A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
@@ -1395,23 +1369,23 @@ two crowns is crushable only while every standing tree on it is undergrowth, so
 a dead tree leaning into a living oak holds where they meet, and a summit cell
 never is. Infantry and light hulls (the pickups, the scout car, the hauler and the
 light hover skirts) are stopped by it as by any natural solid. Every hull of medium
-weight or more (the APC lines, the rocket technical, the dozer and the gun tanks),
+weight or more (the APC lines, the rocket technical and the gun tanks),
 whatever it runs on, drives into it, so an APC is never trapped in a wood a tank can leave:
 whatever crushable cells its footprint covers after a move are crushed through
 the map editor's destruction path, so a tree falls whole to its felled art, a
 boulder to its rubble, and the ground is open for everyone afterwards. Each
-crushed cell takes 120 structure of the hull's momentum, as the blade's
-obstacles do, so a gun tank flattens a sapling barely slowed and an APC loses a
+crushed cell takes 120 structure of the hull's momentum, as a crushed
+wall does, so a gun tank flattens a sapling barely slowed and an APC loses a
 tenth of its way to one and half to a thicket of three at once: a wood is driven
-through in lurches, the lighter the hull the harder. Undergrowth gives at once, so unlike the blade's
-breach view the tracks' **crush view** is read by planning and motion alike, as
+through in lurches, the lighter the hull the harder. Undergrowth gives at once, so unlike a wall-crushing
+hull's breach view the tracks' **crush view** is read by planning and motion alike, as
 a hover hull's skirt view is. It keeps its identity and catches up with the
 live grid's change log cell by cell, so the clearance mask over it catches up
 too rather than being rebuilt each time the map moves, and a move order still
 snaps to the nearest cell the hull can reach. Crushable ground is priced as
 rubble, so a tank goes round a thicket where going round is cheap and through it
 where it is not. Living mature trees, mineral formations, hills and every wall
-stay solid; the dozer's breach view is laid over its crush view. Small and
+stay solid; a wall-crushing hull's breach view is laid over the view it moves over. Small and
 medium rocks, shrubs and grass tufts were open ground for every hull already.
 Living young trees give way as dead ones do (owner's pick, over dead trees
 only), which the forest generator relies on when it replants a tank lane with
@@ -1425,9 +1399,9 @@ A medium or heavy hull **rams** light barricades (`BarricadeRam`; owner's pick,
 2026-10-27). A cell is *rammable* while it is closed and holds a sandbag, fence or
 crate piece of structure 100 or less that is not a fort's or an objective's works:
 works are rammed by nothing, as a Brute's charge rams them rather than bowling them
-over. Every hull that crushes undergrowth but those that crush walls (the dozer and
-any ultra-heavy hull), which push barricades down with the walls, drives into rammable cells spending its **momentum** on them, as
-the blade does: where its way covers all the pieces its footprint reaches they fall
+over. Every hull that crushes undergrowth but those that crush walls (the ultra-heavy
+Onager), which push barricades down with the walls, drives into rammable cells spending its **momentum** on them, as
+a wall-crushing hull does: where its way covers all the pieces its footprint reaches they fall
 at once to their destroyed art and it drives on at the speed the rest gives, so an
 APC at full speed keeps about nine tenths of its way through one piece and a gun
 tank barely notices a row; where it does not, they share its way and it is brought
@@ -1570,7 +1544,7 @@ and fires once it is inside its reach.
 ### The medium tank
 
 The **Scorpion** (`MEDIUM_TANK`, Advanced, Medium lift, Junction on the Kit Ladder) is the Hegemony's medium
-tank, a hull of its own below the Onager (owner, `hegemony-armor-line.md`): faster (3.6 cells a second, 3.1 for the
+tank, a hull of its own below the Onager (owner, `hegemony-armor-line.md`): faster (3.6 cells a second, 2.9 for the
 Onager), thinner (520 structure, 360 armor at rating 15), shorter (a 3.35 by 1.75 cell footprint) and cheaper (13,200
 credits for the standard fit). It sits at the bottom of the heavy weight class, so it crushes undergrowth, rams
 barricades and takes the tank line's arcs, turret section and slow reverse; but a Medium lift carries it, so it is
@@ -1581,7 +1555,7 @@ Its gun card is **a two-row ballistic card** (`VehicleGunCard.MEDIUM_CANNON`, ca
 demolition cannons and the chainguns, never the HC-20. A spawn that names no part fits the HC-10. It is not a
 modular turret; the fitted weapon is drawn as its own mech drawing under the shared Hegemony head
 (`TurretHead.HEGEMONY`), as on the APC, the head sized to the ring its art paints
-(`VehicleType.turretRingShareOfWidth`, 0.62 of its width). It runs on tracks the way the Onager does today: the
+(`VehicleType.turretRingShareOfWidth`, 0.62 of its width). It runs on tracks the way the Onager once did: the
 bounded-curvature drive, the tracked pivot rate, `HeavyTracks`, and tread tops that scroll with travel, two straight
 runs a side where its links show past the armour skirts. Its sheet is the owner's concept turned to point left, with
 an ImageGen wreck registered to it and the head as its fallback turret frames (`art-source/vehicles/medium-tank/`).
@@ -1686,7 +1660,7 @@ skirt floats over open water and rides rubble and low crash debris at full speed
 (`HoverSkirt`): its **hover view** is a routing copy of the grid with water open and the
 debris tag cleared, and a hover hull's move-order proof, rolling planner, recovery and
 physical sweep all read it, because the hull really does cross that water. That differs
-from the dozer's breach view, which only route proof reads while the sweep holds the
+from a wall-crushing hull's breach view, which only route proof reads while the sweep holds the
 hull against a standing wall. Nothing else opens: walls, natural obstructions, low cover
 and a closed shore edge still stop it, and nobody else gains the cells. Its route cost
 prices water and rubble as open ground. What the skirt gives up is **purchase**: a hover
@@ -1778,7 +1752,7 @@ A wheeled or tracked hull moving over loose ground throws soft puffs off its tra
 wheels or track ends, back down their own lines, and raises nothing on pavement. Those
 lines are the hull's **running gear** (`RunningGear`), measured off its sprite: the
 centre line of each track or wheel row and where it touches down fore and aft. They are
-not the footprint, which leaves out jutting wheels and a dozer's blade, so dust and a
+not the footprint, which leaves out jutting wheels, so dust and a
 lost drive's smoke come off the gear the paint shows. A hover skirt blows a low ring of haze, and
 spray over water, whether or not it moves. The puffs are queued as events that every host
 draws through its particle system, and they draw nothing from the simulation's random

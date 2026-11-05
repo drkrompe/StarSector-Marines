@@ -166,7 +166,7 @@ final class CordonSetPieces {
             out.add(new Block(GAP_POSITIONS, positions, BlockKind.SANDBAG, new int[]{0, front}, false));
         }
         // The wreck's ground is held, not built on: laid at generation it closed the road to every convoy all battle
-        // (nothing clears it until the R1 dozer exists), so it is the beat's to lay when it runs.
+        // (nothing clears it until the R1 onager exists), so it is the beat's to lay when it runs.
         List<int[]> wreck = wreck(ground, corridor, gap);
         if (!wreck.isEmpty()) {
             int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;

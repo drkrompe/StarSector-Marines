@@ -88,7 +88,6 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.MEDIUM_TANK, "@gearFabricationMediumVehicleStandardFit", 13200),
             // Variants cost more than the hull they improve on.
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 8410),
-            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 21270),
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
             vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 22500),
             // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.

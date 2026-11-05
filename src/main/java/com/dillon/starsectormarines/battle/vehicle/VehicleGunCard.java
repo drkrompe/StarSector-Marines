@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
  * footprint is the only cap on a weapon's power. A small card is unlocked, an omni slot that takes any one-row part.
  */
 public enum VehicleGunCard {
-    /** Small, unlocked: the APCs, the dozer, the technicals and the hover scout. */
+    /** Small, unlocked: the APCs, the technicals and the hover scout. */
     SMALL(null, 1),
     CANNON(HardpointType.BALLISTIC, 3),
     /** The medium tank's: any two-row ballistic gun, the HC-10 and the autocannons, never the HC-20. */

@@ -53,7 +53,7 @@ class VehicleWeightTest {
             Weight weight = type.weight();
             assertEquals(weight.shoves(type.isHover()), type.repelsBodies(), type.name());
             assertEquals(weight.crushesUndergrowth(), type.crushesUndergrowth(), type.name());
-            assertEquals(weight.crushesWalls() || type.hasBlade(), type.crushesWalls(), type.name());
+            assertEquals(weight.crushesWalls(), type.crushesWalls(), type.name());
             assertEquals(type.crushesUndergrowth() && !type.crushesWalls(), type.ramsBarricades(), type.name());
             assertEquals(weight.massTonnes(type.isHover()), type.massTonnes(), type.name());
         }

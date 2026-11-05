@@ -42,13 +42,13 @@ import java.util.Set;
 /**
  * The breakthrough hull and its variants side by side, live and wrecked, then the same
  * line in a short gun-range fight. Art review: the Parapet's active protection, the laser
- * tank's ship-mounted emitter and the dozer must read as different tanks at game scale, and their
+ * tank's ship-mounted emitter and the medium tank must read as different tanks at game scale, and their
  * guns must leave from the drawn muzzle.
  */
 public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
             VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
-            VehicleType.DOZER_BREACHER);
+            VehicleType.MEDIUM_TANK);
     /**
      * What each hull of the line carries beside its stock compartment: the Parapet is the Onager with active
      * protection ({@link VehicleStockFit#PARAPET}).
@@ -57,7 +57,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         return List.of(List.of(), List.of(MechInternal.ACTIVE_PROTECTION), List.of(), List.of());
     }
     private static final List<String> NAMES = List.of(
-            "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "PULSE-LASER TANK", "DOZER BREACHER");
+            "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "PULSE-LASER TANK", "MEDIUM TANK");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -103,7 +103,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, 32.5f, 19.5f, 52);
             artifacts.add(new SnapshotArtifact("lineup.png", renderer.render(sim,
-                    "Tank variants | Onager, Parapet (Onager + active protection kit), burst laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
+                    "Tank variants | Onager, Parapet (Onager + active protection kit), burst laser, medium tank / live and wrecked / crosses mark the ballistic muzzle"
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
@@ -346,7 +346,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 }
                 BufferedImage frame = renderer.render(sim,
                         "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | breakthrough, "
-                                + " Parapet, burst laser, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
+                                + " Parapet, burst laser, medium tank against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
                         labels.build(), impacts);
                 frames.add(frame);
                 int inFlight = sim.getActiveShots().size();

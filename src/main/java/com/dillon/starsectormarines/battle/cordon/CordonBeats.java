@@ -21,7 +21,7 @@ import java.util.Locale;
 /**
  * A Cordon battle's running beats ({@code cordon-nouns.md}, Optional objectives): what every beat may
  * read (the plan, the laid layout, the corridor, the sequence), the allied command that drives the
- * beats' own hulls (the ammo truck, the dozer), and the places the beats want the company. The
+ * beats' own hulls (the ammo truck, the Onager), and the places the beats want the company. The
  * sequence advances it each tick; it advances the hulls, then the board.
  */
 public final class CordonBeats {

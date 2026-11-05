@@ -49,8 +49,8 @@ public final class VehicleGun {
 
     /**
      * The diameter of the armoured plate that turns with {@code weapon} on {@code type}'s mount ring, in cells: the
-     * gunner's shield the light-machine-gun hulls carry their gun on (the APC, the militia technical and the dozer,
-     * {@link VehicleType#ownGun}), and on a modular hull in army green (the Onager) the plate a weapon with no head of
+     * gunner's shield the light-machine-gun hulls carry their gun on (the APC and the militia technical,
+     * {@link VehicleType#ownGun}), and on a modular hull in army green the plate a weapon with no head of
      * its own stands on, the fallback until its family has a head. Zero for a hull with a closed family head over its
      * weapon ({@link VehicleType#turretHead}), and everywhere else: the white laser hull's
      * weapons stand in their own bases on the collar, a weapon drawn as the hull's own head needs none, any other fixed

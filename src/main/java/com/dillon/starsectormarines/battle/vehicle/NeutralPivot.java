@@ -30,6 +30,11 @@ public final class NeutralPivot {
     static final float TRACKED_DEG_PER_SEC = 40f;
     /** A hover skirt yawing on its fans, quicker than tracks. */
     static final float HOVER_DEG_PER_SEC = 60f;
+    /**
+     * A heavy skirt yawing its weight round on its fans: quicker than tracks, slower than a light skirt. The Onager's
+     * eighty tonnes; a first figure for the playtest.
+     */
+    static final float HEAVY_SKIRT_DEG_PER_SEC = 45f;
     /** A wheeled hull's last-resort shunt, slow, so it reads as working the hull round rather than spinning it. */
     static final float WHEELED_DEG_PER_SEC = 15f;
 
@@ -57,7 +62,9 @@ public final class NeutralPivot {
     /** How fast {@code type} turns on the spot, degrees a second; zero when it cannot (or under the control). */
     public static float rateDegPerSec(VehicleType type) {
         if (!ENABLED || type == null) return 0f;
-        if (type.isHover()) return HOVER_DEG_PER_SEC;
+        if (type.isHover()) {
+            return type.weight().atLeast(VehicleType.Weight.HEAVY) ? HEAVY_SKIRT_DEG_PER_SEC : HOVER_DEG_PER_SEC;
+        }
         if (type.isTank()) return TRACKED_DEG_PER_SEC;
         return WHEELED_DEG_PER_SEC;
     }

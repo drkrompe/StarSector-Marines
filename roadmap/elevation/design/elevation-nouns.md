@@ -41,7 +41,7 @@ what it was: an obstacle, not a level.
   holders stand to see and shoot down, and where they can be seen from below.
 - A **cliff face** is the band of cells between a tier and the tier below it.
   Face cells are not walkable for anything on the ground, are permanent
-  natural solid (`CellTag.NATURAL_SOLID`: wall damage, demolition, dozers and
+  natural solid (`CellTag.NATURAL_SOLID`: wall damage, demolition, a wall-crushing hull and
   crashes never open them), and carry the height of the tier they hold up. A
   face is at least one cell wide, because every ground-movement authority —
   infantry A*, the swarm's flow fields, vehicle clearance erosion, the mech

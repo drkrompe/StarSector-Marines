@@ -514,7 +514,7 @@ drawn in to the kerb with no yard at all. The works are:
   ground has no gun, and a holdout without works has none.
 
 The works are the ordinary pieces with their ordinary rules: fence, crates and
-sandbag are destructible cover props, so a charge, a shell, a dozer or a Brute
+sandbag are destructible cover props, so a charge, a shell, an Onager or a Brute
 opens them as it opens any fence; the trucks do not break. They never stand on
 the cohort's walk to the lift, a pad or a protected zone, and they are refused
 outright, leaving the holdout with sandbag aprons across its doors (the

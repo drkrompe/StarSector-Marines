@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
+import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
@@ -25,37 +25,37 @@ import java.util.function.IntPredicate;
 
 /**
  * R1, Clear the road ({@code cordon-nouns.md}, Optional objectives): a wreck lies across the corridor in
- * the suburb, past the gap, and the base's dozer has to push it off before the first convoy needs the
+ * the suburb, past the gap, and the base's Onager has to push it off before the first convoy needs the
  * road. The wreck is laid only when this beat is rolled, at setup, on the ground the layout held for it
- * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no dozer to clear it
- * a laid wreck stopped every convoy. The base's dozer starts moved up behind the gap and drives the corridor
- * to the far side of the wreck, its blade opening the way, with an escort out of the allied armour's surplus that it
+ * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no Onager to clear it
+ * a laid wreck stopped every convoy. The base's Onager starts moved up behind the gap and drives the corridor
+ * to the far side of the wreck, crushing its way through by its weight, with an escort out of the allied armour's surplus that it
  * keeps to once under way ({@link EscortPace}), and the company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
  * when the road through the wreck is open before the first convoy's lead truck reaches it; fails when the
- * dozer dies first, or the convoy reaches a wreck still across the road (the dozer keeps at it for the
+ * Onager dies first, or the convoy reaches a wreck still across the road (the Onager keeps at it for the
  * convoys after).
  */
 final class ClearRoadBeat extends CordonBeat {
 
     /** Cells either side of the road's middle that must be open for a truck. */
     static final int ROAD_HALF = 1;
-    /** Corridor cells past the wreck the dozer pulls aside at once the road is open. */
+    /** Corridor cells past the wreck the Onager pulls aside at once the road is open. */
     static final int PAST = 8;
-    /** Cells off the road's middle the dozer pulls aside to once the road is open, nearest tried first. */
+    /** Cells off the road's middle the Onager pulls aside to once the road is open, nearest tried first. */
     static final int[] ASIDE = {6, 9, 12, 16};
-    /** Corridor cells past the wreck tried in turn for the place the dozer pulls aside beside. */
+    /** Corridor cells past the wreck tried in turn for the place the Onager pulls aside beside. */
     static final int[] ALONG = {PAST, PAST + 6, PAST + 12, PAST / 2};
     /**
-     * Cells an aside place keeps from every corridor cell on either axis: off the road, not on its edge. The dozer's
-     * half-width and a truck's beside it, and a little more: four left the dozer on the inside of a bend the trucks cut.
+     * Cells an aside place keeps from every corridor cell on either axis: off the road, not on its edge. The Onager's
+     * half-width and a truck's beside it, and a little more: four left the Onager on the inside of a bend the trucks cut.
      */
     static final int OFF_ROAD = 6;
     /** Corridor cells either side of a place its heading is read across. */
     static final int HEADING_SPAN = 3;
-    /** Corridor cells short of the gap the dozer starts. */
+    /** Corridor cells short of the gap the Onager starts. */
     static final int FORWARD = 12;
-    /** Cells from a shut road cell the dozer's blade works it. */
-    static final float BLADE_REACH = 6.5f;
+    /** Cells from a shut road cell the Onager works it. */
+    static final float CRUSH_REACH = 6.5f;
     /** Corridor cells short of the wreck a convoy's truck needs the road open. */
     static final int NEEDED = 12;
     private static final String CRATES = "doodad.industrial-crate-stack";
@@ -64,18 +64,18 @@ final class ClearRoadBeat extends CordonBeat {
     /** The wreck's cells across the road's middle a truck needs open. */
     private final List<int[]> road = new ArrayList<>();
     private int wreckIndex = -1;
-    private long dozer;
+    private long onager;
     private boolean sent, through, cleared;
-    /** The shut road cell the dozer was last sent to. */
+    /** The shut road cell the Onager was last sent to. */
     private int[] target;
-    /** Blade push not yet spent as whole structure points. */
+    /** Push not yet spent as whole structure points. */
     private float push;
-    /** How the dozer keeps to its escort once under way: it holds when the escort falls behind. */
+    /** How the Onager keeps to its escort once under way: it holds when the escort falls behind. */
     private EscortPace pace;
-    /** The cell the dozer was sent aside to once the road was open, or {@code null}; and every cell tried. */
+    /** The cell the Onager was sent aside to once the road was open, or {@code null}; and every cell tried. */
     private int[] aside;
     private final List<int[]> asideTried = new ArrayList<>();
-    /** The nearest the dozer has come to its aside place, and the tick it last came nearer. */
+    /** The nearest the Onager has come to its aside place, and the tick it last came nearer. */
     private float asideNearest;
     private int asideSince;
 
@@ -83,16 +83,16 @@ final class ClearRoadBeat extends CordonBeat {
         super(beats);
     }
 
-    /** The rule: open before the first convoy needs it; a dead dozer or a convoy at a shut road fails. */
-    static Status rule(boolean cleared, boolean dozerAlive, boolean convoyAtWreck) {
+    /** The rule: open before the first convoy needs it; a dead Onager or a convoy at a shut road fails. */
+    static Status rule(boolean cleared, boolean onagerAlive, boolean convoyAtWreck) {
         if (cleared) return Status.SUCCEEDED;
-        if (!dozerAlive || convoyAtWreck) return Status.FAILED;
+        if (!onagerAlive || convoyAtWreck) return Status.FAILED;
         return Status.ACTIVE;
     }
 
     /**
      * Lays the wreck on its held ground, at setup: every open cell of the site closed to movement and open to
-     * sight, a crate stack on it the blade can push. Returns the cells laid.
+     * sight, a crate stack on it the Onager can push. Returns the cells laid.
      */
     static List<int[]> lay(BattleSimulation sim, int[] site) {
         List<int[]> laid = new ArrayList<>();
@@ -122,7 +122,7 @@ final class ClearRoadBeat extends CordonBeat {
         return laid;
     }
 
-    /** Lays the wreck and sets the dozer down at the base end of the road: at setup. */
+    /** Lays the wreck and sets the Onager down at the base end of the road: at setup. */
     void setUp(BattleSimulation sim) {
         wreck.addAll(lay(sim, beats.bounds(CordonPlan.CORRIDOR_WRECK)));
         List<int[]> corridor = beats.corridor();
@@ -145,8 +145,8 @@ final class ClearRoadBeat extends CordonBeat {
     /** The wreck's cells as laid, for evidence. */
     List<int[]> wreck() { return wreck; }
 
-    /** The dozer, or {@code 0} before it is set down; and whether the road through the wreck is open. */
-    long dozer() { return dozer; }
+    /** The Onager, or {@code 0} before it is set down; and whether the road through the wreck is open. */
+    long onager() { return onager; }
 
     boolean cleared() { return cleared; }
 
@@ -159,25 +159,25 @@ final class ClearRoadBeat extends CordonBeat {
         if (!sent) {
             sent = true;
             // Moved up behind the gap before the battle: from the base it lost the race to the first convoy on
-            // every long corridor (a dozer is a third of a truck's pace).
-            dozer = setDown(sim, convoys);
-            if (dozer == 0L) return Status.LAPSED;
+            // every long corridor (a dozer went at a third of a truck's pace; an Onager is not much quicker).
+            onager = setDown(sim, convoys);
+            if (onager == 0L) return Status.LAPSED;
             // It sets out at once and keeps to its escort only once under way: staged forward to beat the first convoy
             // to the wreck, it lost that race in town, where no hull is ever free to escort it, by waiting the two
             // seconds a truck at the base gives the armour to offer one.
             pace = new EscortPace(tick);
-            pace.release(sim, dozer);
+            pace.release(sim, onager);
             setOut(sim);
         }
-        if (!cleared && CordonBeats.alive(sim, dozer)) pace.step(sim, dozer, beats.escortOf(dozer));
+        if (!cleared && CordonBeats.alive(sim, onager)) pace.step(sim, onager, beats.escortOf(onager));
         int[] lead = convoys.truck(sim, 1, 0);
         boolean atWreck = lead != null && !convoys.detoured() && lead[0] >= wreckIndex - NEEDED;
-        return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
+        return rule(cleared, CordonBeats.alive(sim, onager), atWreck);
     }
 
     /**
-     * Sets the dozer down behind the gap, at the first corridor cell {@link #startIndex} offers that it can drive to
-     * the wreck from, over the ground its blade opens, and facing along that route's first leg
+     * Sets the Onager down behind the gap, at the first corridor cell {@link #startIndex} offers that it can drive to
+     * the wreck from, over the ground its weight opens, and facing along that route's first leg
      * ({@link SupplyDelivery#facing}); where none can, where it always was, facing the front. Set down at the corridor
      * cell {@link #FORWARD} short of the gap whatever lay there, it stood in town where its footprint could not turn
      * onto the street (every route refused at its first bend), or snapped into a yard walled all round, and never
@@ -188,11 +188,11 @@ final class ClearRoadBeat extends CordonBeat {
     private long setDown(BattleSimulation sim, CordonConvoys convoys) {
         List<int[]> corridor = beats.corridor();
         int preferred = Math.max(convoys.entry(), convoys.gapIndex() - FORWARD);
-        VehicleType type = VehicleType.DOZER_BREACHER;
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
         VehicleClearance stand = VehicleClearance.erode(sim.getGrid(), radius);
-        // The move order proves a bladed hull's route over the blade's view of the map; so does this.
-        NavigationGrid view = sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
+        // The move order proves a wall-crushing hull's route over its breach view of the map; so does this.
+        NavigationGrid view = sim.vehiclePlanningGrid(type);
         VehicleClearance mask = VehicleClearance.erode(view, radius);
         TerrainCostField cost = TerrainCostField.from(sim.getTopology());
         int[] mid = corridor.get(wreckIndex);
@@ -216,19 +216,19 @@ final class ClearRoadBeat extends CordonBeat {
         return beats.command().deploy(sim, type, at[0][0], at[0][1], facing);
     }
 
-    /** Whether the dozer set down at {@code cell} can set out from it whichever way its route leaves. */
+    /** Whether the Onager set down at {@code cell} can set out from it whichever way its route leaves. */
     static boolean setsOutFrom(int[] cell, NavigationGrid view) {
-        return TurnAwareCorridor.canSetOutFrom(cell[0] + .5f, cell[1] + .5f, VehicleType.DOZER_BREACHER, view);
+        return TurnAwareCorridor.canSetOutFrom(cell[0] + .5f, cell[1] + .5f, VehicleType.BREAKTHROUGH_TANK, view);
     }
 
     /** Cells a move order looks round its goal for ground the hull fits, as {@code VehicleMoveOrderSystem} does. */
     private static final int ORDER_SNAP = 6;
 
-    /** Corridor cells either side of the preferred start tried in turn for the dozer's, nearest first, back before on. */
+    /** Corridor cells either side of the preferred start tried in turn for the Onager's, nearest first, back before on. */
     static final int[] START_STEPS = {0, -3, 3, -6, 6, -9, 9, -12, -15, -18, -21, -24};
 
     /**
-     * The corridor cell the dozer is set down at: the first of {@link #START_STEPS} from {@code preferred}, within
+     * The corridor cell the Onager is set down at: the first of {@link #START_STEPS} from {@code preferred}, within
      * {@code lo..hi}, that {@code drives} to the wreck; {@code -1} where none does.
      */
     static int startIndex(int preferred, int lo, int hi, IntPredicate drives) {
@@ -241,28 +241,28 @@ final class ClearRoadBeat extends CordonBeat {
     }
 
     /**
-     * Sends the dozer onto the wreck's own middle, which only the blade's view of the ground opens: sent past it, the
-     * dozer drove round the wreck through the fields and pushed nothing.
+     * Sends the Onager onto the wreck's own middle, which only its breach view of the ground opens: sent past it, the
+     * onager drove round the wreck through the fields and pushed nothing.
      */
     private void setOut(BattleSimulation sim) {
         int[] at = beats.corridor().get(wreckIndex);
-        beats.command().station(sim, dozer, at[0], at[1]);
+        beats.command().station(sim, onager, at[0], at[1]);
     }
 
     /** The road through the wreck opened: the convoys' routes are laid again through it, even after a failure. */
     @Override
     void watch(BattleSimulation sim, int tick) {
-        if (pace != null && !active() && CordonBeats.alive(sim, dozer)) {
-            // Its escort ends with the beat; the dozer keeps at the wreck for the convoys after, on its own.
-            pace.release(sim, dozer);
+        if (pace != null && !active() && CordonBeats.alive(sim, onager)) {
+            // Its escort ends with the beat; the Onager keeps at the wreck for the convoys after, on its own.
+            pace.release(sim, onager);
         }
         if (cleared) {
-            // A pull-aside the move order gave up on leaves the dozer on the road: the next place, until one is
+            // A pull-aside the move order gave up on leaves the Onager on the road: the next place, until one is
             // reached or none is left.
-            // So does one it is wedged on: a dozer pinned against a fence beside the road neither moves nor is refused.
-            if (aside == null || !CordonBeats.alive(sim, dozer)) return;
-            VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(dozer);
-            GroundBody body = sim.convoy().body(dozer);
+            // So does one it is wedged on: an Onager pinned against a fence beside the road neither moves nor is refused.
+            if (aside == null || !CordonBeats.alive(sim, onager)) return;
+            VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(onager);
+            GroundBody body = sim.convoy().body(onager);
             float d = body.distanceTo(aside[0] + .5f, aside[1] + .5f);
             if (d < asideNearest - ASIDE_PROGRESS) {
                 asideNearest = d;
@@ -270,8 +270,8 @@ final class ClearRoadBeat extends CordonBeat {
             }
             boolean gaveUp = refused != null && refused.requestedX() == aside[0] && refused.requestedY() == aside[1];
             VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
-            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(dozer);
-            boolean underWay = orders.pending(dozer)
+            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(onager);
+            boolean underWay = orders.pending(onager)
                     || order != null && order.requestedX() == aside[0] && order.requestedY() == aside[1];
             if (asideTried.size() < ASIDE_TRIES && (gaveUp || asideStalled(d, tick - asideSince, underWay))) {
                 pullAside(sim);
@@ -288,44 +288,44 @@ final class ClearRoadBeat extends CordonBeat {
         }
         if (closed == null) {
             cleared = true;
-            if (pace != null) pace.release(sim, dozer);
+            if (pace != null) pace.release(sim, onager);
             beats.sequence().convoys().relay(sim);
             pullAside(sim);
             return;
         }
-        if (sent && pace != null && pace.setOut() && CordonBeats.alive(sim, dozer)) drive(sim, closed);
+        if (sent && pace != null && pace.setOut() && CordonBeats.alive(sim, onager)) drive(sim, closed);
     }
 
     /**
-     * Sends the dozer off the road past the wreck, so it is not in the trucks' way: the first place {@link #aside}
+     * Sends the Onager off the road past the wreck, so it is not in the trucks' way: the first place {@link #aside}
      * offers that its footprint stands on and it can drive to from where it is, and that was not tried before.
      */
     private void pullAside(BattleSimulation sim) {
-        if (!CordonBeats.alive(sim, dozer)) return;
-        GroundBody body = sim.convoy().body(dozer);
-        VehicleType type = sim.convoy().vehicleType(dozer);
+        if (!CordonBeats.alive(sim, onager)) return;
+        GroundBody body = sim.convoy().body(onager);
+        VehicleType type = sim.convoy().vehicleType(onager);
         VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
         TerrainCostField cost = TerrainCostField.from(sim.getTopology());
-        int[] from = VehicleRoutePlanner.snapToMask(mask, (int) body.x, (int) body.y, BLADE_SNAP);
-        // Its move order proves a bladed hull's route over the ground the blade opens; that view is asked only where
-        // no place is reached over open ground, so the dozer pushes through a yard wall only when it must.
-        NavigationGrid view = sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
-        VehicleClearance bladeMask = VehicleClearance.erode(view, VehicleClearance.radiusForWidth(type.visualWidthCells));
-        int[] bladeFrom = VehicleRoutePlanner.snapToMask(bladeMask, (int) body.x, (int) body.y, BLADE_SNAP);
+        int[] from = VehicleRoutePlanner.snapToMask(mask, (int) body.x, (int) body.y, CRUSH_SNAP);
+        // Its move order proves a wall-crushing hull's route over the ground its weight opens; that view is asked only where
+        // no place is reached over open ground, so the Onager pushes through a yard wall only when it must.
+        NavigationGrid view = sim.vehiclePlanningGrid(type);
+        VehicleClearance breachMask = VehicleClearance.erode(view, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        int[] breachFrom = VehicleRoutePlanner.snapToMask(breachMask, (int) body.x, (int) body.y, CRUSH_SNAP);
         aside = aside(beats.corridor(), wreckIndex, (x, y) -> {
             if (tried(x, y)) return false;
             return from != null && mask.isPassable(x, y) && VehicleRoutePlanner.routeDrivable(from[0], from[1], x, y,
                     sim.getGrid(), cost, mask, type) != null;
         }, (x, y) -> {
             if (tried(x, y)) return false;
-            return bladeFrom != null && mask.isPassable(x, y) && VehicleRoutePlanner.routeDrivable(bladeFrom[0],
-                    bladeFrom[1], x, y, view, cost, bladeMask, type) != null;
+            return breachFrom != null && mask.isPassable(x, y) && VehicleRoutePlanner.routeDrivable(breachFrom[0],
+                    breachFrom[1], x, y, view, cost, breachMask, type) != null;
         });
         if (aside == null) return;
         asideTried.add(aside);
         asideNearest = body.distanceTo(aside[0] + .5f, aside[1] + .5f);
         asideSince = sim.getSimTickIndex();
-        beats.command().station(sim, dozer, aside[0], aside[1]);
+        beats.command().station(sim, onager, aside[0], aside[1]);
     }
 
     private boolean tried(int x, int y) {
@@ -334,46 +334,46 @@ final class ClearRoadBeat extends CordonBeat {
     }
 
     /**
-     * Where the dozer pulls aside: the first place {@link #aside(List, int, Ground)} offers over {@code open} ground,
-     * and only where none is, the first it offers over {@code bladed} ground, which its blade opens on the way. In town
-     * no place beside the road could be driven to round the blocks, the dozer stood on a street one hull wide past the
+     * Where the Onager pulls aside: the first place {@link #aside(List, int, Ground)} offers over {@code open} ground,
+     * and only where none is, the first it offers over {@code crushed} ground, which its weight opens on the way. In town
+     * no place beside the road could be driven to round the blocks, the Onager stood on a street one hull wide past the
      * wreck, and the outbound convoys halted at it all battle.
      */
-    static int[] aside(List<int[]> corridor, int wreckIndex, Ground open, Ground bladed) {
+    static int[] aside(List<int[]> corridor, int wreckIndex, Ground open, Ground crushed) {
         int[] place = aside(corridor, wreckIndex, open);
-        return place != null ? place : aside(corridor, wreckIndex, bladed);
+        return place != null ? place : aside(corridor, wreckIndex, crushed);
     }
 
-    /** Cells nearer its aside place the dozer must come to count as moving toward it. */
+    /** Cells nearer its aside place the Onager must come to count as moving toward it. */
     static final float ASIDE_PROGRESS = 1f;
-    /** Cells from its aside place the dozer has pulled aside. */
+    /** Cells from its aside place the Onager has pulled aside. */
     static final float ASIDE_REACHED = 3f;
-    /** Ticks the dozer may go without coming nearer its aside place before the next is tried. */
+    /** Ticks the Onager may go without coming nearer its aside place before the next is tried. */
     static final int ASIDE_STALL_TICKS = Math.round(8f / BattleSimulation.TICK_DT);
 
-    /** Aside places the dozer is sent to at most: after that it stays where the last one left it. */
+    /** Aside places the Onager is sent to at most: after that it stays where the last one left it. */
     static final int ASIDE_TRIES = 4;
 
     /**
-     * Whether the dozer is wedged short of its aside place: still under way to it, not there, and no nearer for
+     * Whether the Onager is wedged short of its aside place: still under way to it, not there, and no nearer for
      * {@link #ASIDE_STALL_TICKS}. A move order pinned against a fence neither progresses nor is given up on, and the
-     * dozer stood on the road. One whose order is done has arrived as near as it stops, and is not sent on: re-sent
+     * onager stood on the road. One whose order is done has arrived as near as it stops, and is not sent on: re-sent
      * every few seconds, it wandered beside the road among the trucks.
      */
     static boolean asideStalled(float distance, int ticksSinceProgress, boolean underWay) {
         return underWay && distance > ASIDE_REACHED && ticksSinceProgress >= ASIDE_STALL_TICKS;
     }
 
-    /** Cells round the dozer its footprint is looked for when it plans its pull-aside. */
-    static final int BLADE_SNAP = 4;
+    /** Cells round the Onager its footprint is looked for when it plans its pull-aside. */
+    static final int CRUSH_SNAP = 4;
 
-    /** Whether the dozer can stand on a cell and drive there. */
+    /** Whether the Onager can stand on a cell and drive there. */
     interface Ground {
         boolean takes(int x, int y);
     }
 
     /**
-     * Where the dozer pulls aside once the road is open: beside the corridor past the wreck, square to the road's
+     * Where the Onager pulls aside once the road is open: beside the corridor past the wreck, square to the road's
      * heading there, on either side and at each of {@link #ASIDE} cells out, nearest first and the right before the
      * left, at each of the {@link #ALONG} places past the wreck in turn; only cells {@link #OFF_ROAD} clear of every
      * corridor cell, and the first {@code ground} takes. {@code null} where none is. A fixed step south-east of the
@@ -408,22 +408,22 @@ final class ClearRoadBeat extends CordonBeat {
     }
 
     /**
-     * Keeps the dozer at the wreck until the road through it is open. The move order stops a hull short of a
-     * goal it cannot stand on, so the blade often never bore on the wreck; a dozer standing within
-     * {@link #BLADE_REACH} of a shut road cell pushes it at the blade's own rate ({@link DozerBlade#PUSH_PER_SECOND})
+     * Keeps the Onager at the wreck until the road through it is open. The move order stops a hull short of a
+     * goal it cannot stand on, so its nose often never bore on the wreck; an Onager standing within
+     * {@link #CRUSH_REACH} of a shut road cell pushes it at its weight's own rate ({@link WallCrush#ULTRA_HEAVY_PER_SECOND})
      * through the ordinary wall-damage path. Once it has worked at the wreck it is sent on past it.
      */
     private void drive(BattleSimulation sim, int[] closed) {
-        GroundBody body = sim.convoy().body(dozer);
-        if (Math.abs(body.x - closed[0]) <= BLADE_REACH && Math.abs(body.y - closed[1]) <= BLADE_REACH) {
+        GroundBody body = sim.convoy().body(onager);
+        if (Math.abs(body.x - closed[0]) <= CRUSH_REACH && Math.abs(body.y - closed[1]) <= CRUSH_REACH) {
             through = true;
-            push += DozerBlade.PUSH_PER_SECOND * BattleSimulation.TICK_DT;
+            push += WallCrush.ULTRA_HEAVY_PER_SECOND * BattleSimulation.TICK_DT;
             int spend = (int) push;
             push -= spend;
             if (spend > 0) sim.mapEditor().damageWall(closed[0], closed[1], spend);
         } else if (target != closed) {
             target = closed;
-            beats.command().station(sim, dozer, closed[0], closed[1]);
+            beats.command().station(sim, onager, closed[0], closed[1]);
         }
     }
 
@@ -431,11 +431,11 @@ final class ClearRoadBeat extends CordonBeat {
     String describe(BattleSimulation sim) {
         int open = 0;
         for (int[] c : road) if (sim.getGrid().isWalkable(c[0], c[1])) open++;
-        String hull = !CordonBeats.alive(sim, dozer) ? "dozer gone" : String.format(Locale.ROOT,
-                "dozer at %.0f,%.0f structure %.0f", sim.convoy().body(dozer).x, sim.convoy().body(dozer).y,
-                sim.convoy().structure(dozer));
-        VehicleMoveOrderService.RefusedOrder refused = CordonBeats.alive(sim, dozer)
-                ? sim.getVehicleMoveOrderService().refusal(dozer) : null;
+        String hull = !CordonBeats.alive(sim, onager) ? "onager gone" : String.format(Locale.ROOT,
+                "onager at %.0f,%.0f structure %.0f", sim.convoy().body(onager).x, sim.convoy().body(onager).y,
+                sim.convoy().structure(onager));
+        VehicleMoveOrderService.RefusedOrder refused = CordonBeats.alive(sim, onager)
+                ? sim.getVehicleMoveOrderService().refusal(onager) : null;
         int[] at = beats.corridor().get(wreckIndex);
         return "wreck " + wreck.size() + " cells at corridor cell " + wreckIndex + " (" + at[0] + "," + at[1] + "), "
                 + open + "/" + road.size() + " road cells open; " + hull + (through ? ", through" : "")
@@ -447,21 +447,21 @@ final class ClearRoadBeat extends CordonBeat {
 
     @Override
     long escortHull(BattleSimulation sim) {
-        return !cleared && CordonBeats.alive(sim, dozer) && (pace == null || !pace.alone()) ? dozer : 0L;
+        return !cleared && CordonBeats.alive(sim, onager) && (pace == null || !pace.alone()) ? onager : 0L;
     }
 
     @Override
     int[] call(BattleSimulation sim) {
-        if (!CordonBeats.alive(sim, dozer) || beats.covered(dozer)) return null;
-        GroundBody body = sim.convoy().body(dozer);
+        if (!CordonBeats.alive(sim, onager) || beats.covered(onager)) return null;
+        GroundBody body = sim.convoy().body(onager);
         return new int[]{(int) body.x, (int) body.y, 2};
     }
 
-    /** The dozer while it is on the field, else the wreck. */
+    /** The Onager while it is on the field, else the wreck. */
     @Override
     int[] place(BattleSimulation sim) {
-        if (CordonBeats.alive(sim, dozer)) {
-            GroundBody body = sim.convoy().body(dozer);
+        if (CordonBeats.alive(sim, onager)) {
+            GroundBody body = sim.convoy().body(onager);
             return new int[]{(int) body.x, (int) body.y};
         }
         return wreck.isEmpty() ? null : wreck.get(wreck.size() / 2);

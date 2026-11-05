@@ -12,23 +12,21 @@ import java.util.List;
 
 /**
  * What a wall-crushing hull ({@link VehicleType#crushesWalls()}) pushes through, how fast, and the view of the map its
- * route proof reads. An ultra-heavy hull crushes by its own weight on its nose; the dozer breacher, until it is
- * retired, by its blade. The class keeps the blade's name until the dozer goes.
+ * route proof reads. An ultra-heavy hull crushes by its own weight on its nose: there is no blade on any hull.
  *
  * <p><b>The rule.</b> A blocking cell is <em>pushable</em> when its structure is spent through the ordinary wall
  * channel — a wall cell, or a sandbag, fence or crate barricade — and that structure is above zero and no more than
- * the hull's ceiling ({@link #ceiling}: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE} by the
- * blade). Ordinary city walls (100) and gated-housing walls (80) fall to either; fortified and fortress walls (150 and
- * up) do not, until fire has worn them under the ceiling. Natural obstructions (rock, trees, summit terrain),
+ * the hull's ceiling ({@link #ceiling}: {@link #ULTRA_HEAVY_CEILING} by weight). Ordinary city walls (100) and
+ * gated-housing walls (80) fall; fortified and fortress walls (150 and up) do not, until fire has worn them under the
+ * ceiling. Natural obstructions (rock, trees, summit terrain),
  * registered equipment and entity-owned fixtures (a turret's mount) are never pushed. Low crash debris under the hull
  * and its bearing strip is graded flat: the cell keeps its terrain and loses the slowing tag.
  *
  * <p><b>The bearing strip.</b> A hull bears on a strip just past its nose ({@link #bearingWidth}): the hull's own
- * width for an ultra-heavy hull, which has nothing wider than itself to push with, so the gap it cuts is its own
- * width; the painted blade's ({@link #BLADE_WIDTH_CELLS}) for the dozer.
+ * width, since it has nothing wider than itself to push with, so the gap it cuts is its own width.
  *
- * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #ULTRA_HEAVY_PER_SECOND} by weight, the blade's
- * {@link #PUSH_PER_SECOND}) of structure per second on every pushable cell it bears on at once, through
+ * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #ULTRA_HEAVY_PER_SECOND} by weight) of
+ * structure per second on every pushable cell it bears on at once, through
  * {@link MapEditor#damageWall} — the same destruction path a breaching charge uses. A pushed wall becomes rubble and a
  * pushed barricade its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit from then
  * on. Opening is the only direction it edits: like every destruction op, it can only make the map more permissive, so
@@ -51,25 +49,16 @@ import java.util.List;
  * physical sweep still reads the grid it moves over, which is what holds the hull against a wall until it has pushed
  * it down.
  */
-public final class DozerBlade {
+public final class WallCrush {
 
-    /** The heaviest structure the blade will push. Ordinary walls and barricades are at or under it. */
-    public static final int MAX_PUSH_STRUCTURE = 100;
-    /** Structure spent per second on each cell the blade bears on. A full ordinary wall goes in 1.25 s. */
-    public static final float PUSH_PER_SECOND = 80f;
     /**
      * The heaviest structure an ultra-heavy hull crushes: ordinary city and gated-housing walls and every barricade,
-     * as the blade does, while a fortified wall (150 and up) holds until fire has worn it under, so a fort is still
+     * while a fortified wall (150 and up) holds until fire has worn it under, so a fort is still
      * opened by fire and charges first. Its greater mass shows in the momentum it carries through, not in the ceiling.
      */
     public static final int ULTRA_HEAVY_CEILING = 100;
-    /** Structure an ultra-heavy hull's weight spends per second on each cell it bears on: the blade's rate. */
+    /** Structure an ultra-heavy hull's weight spends per second on each cell it bears on: a full ordinary wall in 1.25 s. */
     public static final float ULTRA_HEAVY_PER_SECOND = 80f;
-    /**
-     * How wide the blade bears, cells: the painted blade, wider than the hull behind it, so the gap it cuts is one the
-     * hull drives through.
-     */
-    static final float BLADE_WIDTH_CELLS = 2.5f;
     /** How far past the hull's nose the bearing strip reaches, cells. */
     static final float REACH_CELLS = .6f;
     /** How far back from the nose the bearing strip starts, so a cell already touching the hull is still pushed. */
@@ -90,43 +79,35 @@ public final class DozerBlade {
     private boolean heldElsewhere;
     /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
     private final List<View> views = new ArrayList<>(2);
-    private HeavyTracks tracks;
 
-    public DozerBlade(NavigationService navigation, MapEditor editor, DoodadService doodads) {
+    public WallCrush(NavigationService navigation, MapEditor editor, DoodadService doodads) {
         this.navigation = navigation;
         this.editor = editor;
         this.doodads = doodads;
     }
 
-    /**
-     * The heaviest structure {@code type} pushes: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE}
-     * by a blade, none for a hull that crushes no walls.
-     */
-    public static int ceiling(VehicleType type) { return ceiling(type.weight(), type.hasBlade()); }
+    /** The heaviest structure {@code type} pushes: {@link #ULTRA_HEAVY_CEILING} by weight, none for a hull that crushes no walls. */
+    public static int ceiling(VehicleType type) { return ceiling(type.weight()); }
 
-    /** The ceiling of a hull of {@code weight}, with or without a {@code blade}: weight first, then the blade. */
-    static int ceiling(VehicleType.Weight weight, boolean blade) {
-        if (weight.crushesWalls()) return ULTRA_HEAVY_CEILING;
-        return blade ? MAX_PUSH_STRUCTURE : 0;
+    /** The ceiling of a hull of {@code weight}. */
+    static int ceiling(VehicleType.Weight weight) {
+        return weight.crushesWalls() ? ULTRA_HEAVY_CEILING : 0;
     }
 
     /** Structure a second {@code type} spends on each cell it bears on; none for a hull that crushes no walls. */
-    public static float rate(VehicleType type) { return rate(type.weight(), type.hasBlade()); }
+    public static float rate(VehicleType type) { return rate(type.weight()); }
 
-    /** The rate of a hull of {@code weight}, with or without a {@code blade}. */
-    static float rate(VehicleType.Weight weight, boolean blade) {
-        if (weight.crushesWalls()) return ULTRA_HEAVY_PER_SECOND;
-        return blade ? PUSH_PER_SECOND : 0f;
+    /** The rate of a hull of {@code weight}. */
+    static float rate(VehicleType.Weight weight) {
+        return weight.crushesWalls() ? ULTRA_HEAVY_PER_SECOND : 0f;
     }
 
-    /** How wide {@code type} bears, cells: its blade where it has one, else its own hull. */
-    public static float bearingWidth(VehicleType type) {
-        return type.hasBlade() ? BLADE_WIDTH_CELLS : type.visualWidthCells;
-    }
+    /** How wide {@code type} bears, cells: its own hull. */
+    public static float bearingWidth(VehicleType type) { return type.visualWidthCells; }
 
-    /** Whether the blade can push cell {@code (x, y)} down right now. See the class rule. */
+    /** Whether an ultra-heavy hull can push cell {@code (x, y)} down right now. See the class rule. */
     public static boolean canPush(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
-        return canPush(grid, topology, doodads, x, y, MAX_PUSH_STRUCTURE);
+        return canPush(grid, topology, doodads, x, y, ULTRA_HEAVY_CEILING);
     }
 
     /** Whether a hull whose ceiling is {@code most} can push cell {@code (x, y)} down right now. */
@@ -149,11 +130,11 @@ public final class DozerBlade {
     }
 
     /**
-     * A routing copy of {@code grid} with every cell the blade could push open on all sides, as the blade would leave
-     * it. The live grid is not touched. Cells only: a closed shared edge stays closed.
+     * A routing copy of {@code grid} with every cell an ultra-heavy hull could push open on all sides, as it would
+     * leave it. The live grid is not touched. Cells only: a closed shared edge stays closed.
      */
     public static NavigationGrid breachView(NavigationGrid grid, CellTopology topology, DoodadService doodads) {
-        return breachView(grid, grid, topology, doodads, MAX_PUSH_STRUCTURE);
+        return breachView(grid, grid, topology, doodads, ULTRA_HEAVY_CEILING);
     }
 
     /**
@@ -171,14 +152,6 @@ public final class DozerBlade {
             }
         }
         return copy;
-    }
-
-    /** The crush view the dozer's breach view is laid over, for {@link #planningGrid()}. */
-    public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
-
-    /** The dozer's breach view, laid over its tracks' crush view, for scripted beats that drive the dozer. */
-    public NavigationGrid planningGrid() {
-        return planningGrid(VehicleType.DOZER_BREACHER, tracks != null ? tracks.motionGrid() : navigation.getGrid());
     }
 
     /**

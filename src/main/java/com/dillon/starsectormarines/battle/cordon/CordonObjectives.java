@@ -76,7 +76,7 @@ public final class CordonObjectives {
                     Set.of(CordonSetPieces.GRANARY), Set.of(), 1, pay(2_000, null, 0), cost("bloom.heart.biomass", 1),
                     () -> new GranaryBeat(beats), beats));
         } else {
-            out.add(beat(CLEAR_ROAD, "Clear the road", "A wreck lies across the corridor: escort the base's dozer to push it off before the first convoy.",
+            out.add(beat(CLEAR_ROAD, "Clear the road", "A wreck lies across the corridor: escort the base's Onager to push it off before the first convoy.",
                     Set.of(CordonPlan.CORRIDOR_WRECK), Set.of(MAW_ON_ROAD), 2, pay(3_000, "heavy_machinery", 5), cost("bloom.cordon.road_delayed", 1),
                     () -> new ClearRoadBeat(beats), beats));
             out.add(beat(TRUCK_DOWN, "A truck goes down", "A loaded truck breaks down in the suburb: cover its people back through the gap.",

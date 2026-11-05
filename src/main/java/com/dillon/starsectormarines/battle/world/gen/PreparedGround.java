@@ -96,8 +96,8 @@ public final class PreparedGround {
 
     /**
      * A one-cell obstacle prop at the world cell — a hedgehog or a crate stack, by doodad id. Closed to movement,
-     * open to sight, and a registered cover prop, so it is a barricade: shells and charges break it and a dozer
-     * blade pushes it down. Refused quietly where the cell is not {@linkplain #open open} or the art is missing.
+     * open to sight, and a registered cover prop, so it is a barricade: shells and charges break it and an
+     * ultra-heavy hull crushes it. Refused quietly where the cell is not {@linkplain #open open} or the art is missing.
      */
     public static boolean obstacle(GenContext ctx, int x, int y, String doodadId) {
         if (!open(ctx, x, y)) return false;

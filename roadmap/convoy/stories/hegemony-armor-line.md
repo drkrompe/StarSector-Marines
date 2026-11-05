@@ -1,6 +1,6 @@
 # Story — The Hegemony armour line: a shared turret head, a new APC, a medium tank and a repulsor Onager
 
-Status: IN PROGRESS (slices 1, 2, 3 and 5 shipped: the Hegemony head, the APC and its carriers on the Hegemony hull, weight split from hover, and the medium tank; slices 4 and 6 remain)
+Status: IN PROGRESS (slices 1 to 5 shipped: the Hegemony head, the APC and its carriers on the Hegemony hull, weight split from hover, the repulsor Onager with the dozer retired, and the medium tank; slice 6, the balance pass, remains)
 
 Written: 2026-11-05
 
@@ -93,10 +93,14 @@ tuned in the playtest, not by evidence alone.
    weight, hover only of the ground (a light skirt alone shoves nothing); a heavy skirt's view is the hover view over
    the crush view. `DozerBlade` reads its ceiling, rate and bearing width from the hull: an ultra-heavy hull crushes
    at 100 and 80 a second across its own width, the dozer by its blade as before. No hull is ultra-heavy yet.
-4. **The repulsor Onager**: art, footprint, wreck, no treads, the dozer retired and its saves carried. It moves into
-   `ULTRA_HEAVY`; `DozerBlade` and `hasBlade` go with the dozer (the class renamed for the weight rule). A heavy,
-   not ultra-heavy, hover hull would ram barricades it meets but plan round them, since the rammer's view is not
-   laid over the skirt's; none is planned.
+4. **Shipped.** **The repulsor Onager** (`convoy-nouns.md`, the Onager; weight crushes walls): the concept turned to
+   point left with an ImageGen wreck registered on it (`art-source/vehicles/heavy-repulsor`), a 3.6 by 2.22 footprint,
+   no treads, `ULTRA_HEAVY` on a heavy skirt, its cannon card under the Hegemony head sized to the painted ring. The
+   dozer is retired: `DozerBlade` became `WallCrush`, `hasBlade` and the Onager's sheet heads went, and a save,
+   pattern or card naming the dozer loads as the Onager (`VehicleType.fromSavedName`). Evidence: `createSnapshots
+   -Psnapshot=tank` look shots (live, turning, wreck, crushing a wall row) and the `wall-crush`, `vehicle-ram` and
+   `hover-line` scenes. A heavy, not ultra-heavy, hover hull would ram barricades it meets but plan round them, since
+   the rammer's view is not laid over the skirt's; none is planned.
 5. **Shipped.** **The medium tank**: `MEDIUM_TANK`, the concept packed with an ImageGen wreck and the head as its
    fallback turret frames (`art-source/vehicles/medium-tank`), two tread runs a side, a two-row ballistic card, store,
    doll and Kit Ladder station. Evidence: `createSnapshots -Psnapshot=medium-tank`.
@@ -108,5 +112,8 @@ tuned in the playtest, not by evidence alone.
 - Proposed in slice 3, the owner's to confirm: `HEAVY` hulls keep ramming barricades (`BarricadeRam`) and crush no
   walls; the ultra-heavy ceiling is 100, the blade's, so fortified walls (150 and up) hold until fire wears them
   under and a fort is still opened by fire and charges. Its mass shows in how far through a wall row it carries.
-- The repulsor Onager's grip and drift; a heavy skirt's first figure (1.5 along, 4 across) is the playtest's to tune.
+- The repulsor Onager's drive is a first figure for the playtest (owner): 2.9 cells a second, 0.8 to get going and
+  2.4 to stop, a 34° turn at 110° a second, a 45° a second pivot, a heavy skirt's grip of 1.5 along and 4 across.
+- The active-protection kit's deck overlay is registered to the laser tank's frame, not yet refitted to the Onager's
+  or the medium tank's deck; the Onager's doll is still the tracked tank's outline.
 - The laser tank stays on today's hull until a Tri-Tachyon head and hull are drawn.

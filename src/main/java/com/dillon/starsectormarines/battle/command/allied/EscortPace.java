@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * since when, gone on alone) and applies it through the hull's {@link VehicleMission#speedCap}, the brake a
  * mission driver already has. Mission-neutral: who escorts is the mission's (an {@link SupplyDelivery.Escort}), a hull
  * or a walker (a mech, a rifle team's leader), and the pair keeps to the slower one's pace either way; the Cordon's
- * ammunition trucks and R1's dozer are paced by it, and the heart's trucks can be.
+ * ammunition trucks and R1's Onager are paced by it, and the heart's trucks can be.
  */
 public final class EscortPace {
 

@@ -178,7 +178,7 @@ def octagon(x0, y0, x1, y1, c):
 # matching edge of both views; the end plate is FRONT in one view and REAR in the
 # other.
 
-def tank(name, turret_w=24, turret_top=50, heavy=False, dozer=False):
+def tank(name, turret_w=24, turret_top=50, heavy=False):
     d = Doll(name)
     for cx, rear in views():
         vl, vr = sides(rear)
@@ -192,11 +192,6 @@ def tank(name, turret_w=24, turret_top=50, heavy=False, dozer=False):
         d.panel("HULL", [(-28, 76), (28, 76), (28, 92), (-28, 92)], cx)
         out = 50
         d.pair(vl, vr, [(-out + 4, 80), (-28, 76), (-28, 92), (-out, 92)], cx)
-        if dozer and not rear:
-            d.pair("DRIVE", "DRIVE", octagon(-50, 92, -34, 120, 3), cx)
-            d.panel("FRONT", [(-34, 92), (34, 92), (34, 120), (-34, 120)], cx)
-            d.panel("FRONT", [(-56, 120), (56, 120), (52, 146), (-52, 146)], cx)
-            continue
         d.pair("DRIVE", "DRIVE", octagon(-50, 92, -34, 146, 4), cx)
         if rear:
             d.panel("REAR", [(-34, 92), (34, 92), (34, 138), (-34, 138)], cx)
@@ -540,7 +535,6 @@ def store_icon(doll, name, colour, inset_more=0.4, stroke=4):
 def main():
     written = [
         tank("tank"),
-        tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
         tank("tank-medium", turret_w=20, turret_top=56),
         apc("apc"),
         apc("lrm-carrier", launcher=True),

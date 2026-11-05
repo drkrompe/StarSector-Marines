@@ -56,7 +56,7 @@ class BruteChargeRulesTest {
         assertEquals(0f, BruteChargeRules.outcome(Kind.HEAVY_MECH).holdSeconds(), "a heavy mech keeps its feet");
 
         assertEquals(Kind.HEAVY_VEHICLE, BruteChargeRules.vehicleKind(VehicleType.BREAKTHROUGH_TANK.weight()));
-        assertEquals(Kind.MEDIUM_VEHICLE, BruteChargeRules.vehicleKind(VehicleType.DOZER_BREACHER.weight()));
+        assertEquals(Kind.MEDIUM_VEHICLE, BruteChargeRules.vehicleKind(VehicleType.HEAVY_APC.weight()));
         assertEquals(Kind.LIGHT_VEHICLE, BruteChargeRules.vehicleKind(VehicleType.MILITIA_TECHNICAL.weight()));
         assertEquals(Kind.LIGHT_MECH, BruteChargeRules.mechKind(.8f));
         assertEquals(Kind.MEDIUM_MECH, BruteChargeRules.mechKind(1.2f));

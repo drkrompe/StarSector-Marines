@@ -53,8 +53,8 @@ public final class VehicleControlSystem {
     private final NavigationService navigation;
     private final boolean progressiveRecovery;
     private final int recoveryExpansionsPerTick;
-    /** The dozer blade, or {@code null} where no map editor is wired (bare control tests). */
-    private DozerBlade blade;
+    /** What an ultra-heavy hull crushes, or {@code null} where no map editor is wired (bare control tests). */
+    private WallCrush crush;
     /** Hulls that can't act this tick: a Brute's charge stalls them ({@code colony-breach-nouns.md}, Brute). */
     private LongPredicate stalled = id -> false;
     private HoverSkirt skirt;
@@ -81,8 +81,8 @@ public final class VehicleControlSystem {
         this.recoveryExpansionsPerTick = Math.max(1, recoveryExpansionsPerTick);
     }
 
-    /** Gives bladed hulls their blade. Without one a dozer drives as the cannonless tank it looks like. */
-    public void setBlade(DozerBlade blade) { this.blade = blade; }
+    /** Gives ultra-heavy hulls the wall crush. Without one they stop at walls as a heavy hull does. */
+    public void setWallCrush(WallCrush crush) { this.crush = crush; }
 
     /** Gives heavy-lift hulls their tracks. Without them a tank stops at undergrowth as a lighter hull does. */
     public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
@@ -102,16 +102,16 @@ public final class VehicleControlSystem {
     public void setStall(LongPredicate stalled) { this.stalled = stalled; }
 
     /**
-     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, a ramming hull's breach view
+     * The grid a hull's own planning reads: a wall-crushing hull's breach view, a ramming hull's breach view
      * ({@link BarricadeRam}), else the grid it moves over.
      */
     NavigationGrid planningGrid(VehicleType type) {
-        if (crushesWalls(type)) return blade.planningGrid(type, motionGrid(type));
+        if (crushesWalls(type)) return crush.planningGrid(type, motionGrid(type));
         // A ramming hover hull's barricades are not in its skirt's view: it rams what it meets but plans round them.
         return rams(type) && !type.isHover() ? ram.planningGrid(type) : motionGrid(type);
     }
 
-    private boolean crushesWalls(VehicleType type) { return blade != null && type.crushesWalls(); }
+    private boolean crushesWalls(VehicleType type) { return crush != null && type.crushesWalls(); }
 
     /**
      * The grid a hull physically moves over: the skirt's hover view for a hover hull, which really does float over
@@ -460,7 +460,7 @@ public final class VehicleControlSystem {
             // A hull that turns on the spot has a deeper answer than braking: follow the corridor itself, which
             // route proof drove at the chassis's turning circle wherever one fits and pivots it at the bends where
             // none does, stopping to pivot whenever the corridor turns further than it can steer. Tracks and skirts
-            // do so at once, before any turnaround: a dozer set down in a narrow street spent half a minute driving
+            // do so at once, before any turnaround: a crushing hull set down in a narrow street spent half a minute driving
             // a Reeds-Shepp loop round its junction where it could have turned where it stood. Wheels pivot only once
             // braking, the turnaround and the reroute have all failed.
             boolean pivotsFirst = !s.brushing && NeutralPivot.onRoutes(type);
@@ -807,7 +807,7 @@ public final class VehicleControlSystem {
     /** {@link NeutralPivot#clearDirection} for the hull as it stands, judged by {@link SoftBrush} when brushing. */
     private int clearDirection(GroundBody body, VehicleType type, float targetDeg, boolean brushing) {
         if (brushing) return brush.clearDirection(body.x, body.y, body.facingDegrees, targetDeg, type, motionGrid(type));
-        // A bladed hull turns through what it grinds down, as it drives through it (pivotStep).
+        // A wall-crushing hull turns through what it grinds down, as it drives through it (pivotStep).
         return NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, targetDeg,
                 type.visualLengthCells, type.visualWidthCells, planningGrid(type));
     }
@@ -1390,16 +1390,16 @@ public final class VehicleControlSystem {
     }
 
     private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
-        return crushesWalls(type) && blade.push(body, type, s, dt);
+        return crushesWalls(type) && crush.push(body, type, s, dt);
     }
 
     /**
-     * Whether a bladed hull, at the pose its move would reach, is held only by ground it grinds down
-     * ({@link DozerBlade#grind}), or a ramming hull only by barricades it shoves at ({@link BarricadeRam#shove}).
+     * Whether a wall-crushing hull, at the pose its move would reach, is held only by ground it grinds down
+     * ({@link WallCrush#grind}), or a ramming hull only by barricades it shoves at ({@link BarricadeRam#shove}).
      */
     private boolean bladeGrinds(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
         if (rams(type)) return ram.shove(body, type, s, dt);
-        return crushesWalls(type) && blade.grind(body, type, s, dt);
+        return crushesWalls(type) && crush.grind(body, type, s, dt);
     }
 
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,

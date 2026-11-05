@@ -820,9 +820,9 @@ road itself, where a parked car is in the trucks' way. Escorts come only out
 of the **surplus**: the nearest hulls whose sector stands above its floor, at
 most one from any one sector, never a calling redoubt's last; what the convoy
 cannot take that way it goes without. They go back to their sectors when it is
-home. An ammunition truck and R1's dozer are escorted the same way, one hull
+home. An ammunition truck and R1's Onager are escorted the same way, one hull
 beside each, after the convoys, and only by an armed hull. A city fields no
-hulls, so there a truck or dozer with no hull free takes a **walking escort**
+hulls, so there a truck or Onager with no hull free takes a **walking escort**
 out of the same surplus: a sector's Hound above its pair (a relief pair, a
 Hound off the gantry walking up), or a street mouth's rifle team while the
 sector's pair still stands (a team counts nothing toward the floor, so it is
@@ -1137,7 +1137,7 @@ it, or a column marching to it). It answers a breach with a two-squad
 **relief** that holds until the redoubt has been quiet for a settle window, a
 bleed only when no help is coming, an uncovered sector by holding its posts
 until a machine is back, the road's convoys and the optional objectives as
-before (a beat's truck or dozer only when no allied hull escorts it), and the
+before (a beat's truck or Onager only when no allied hull escorts it), and the
 base when it is overrun; outside a tide a third
 of the company stays uncommitted. The uncommitted wait by density: the reserve
 behind the middle of the line in open country, the hinge between the middle
@@ -1177,7 +1177,7 @@ line: any redoubt calling, the first its focus, the redoubts lost against those
 allowed, and the window's time left. Tides are never foreseen on it, as on the radio. The rolled beats
 follow in the Optional section, in roll order: each beaconed where it is
 while it runs (where it calls the company, else its own place: the gate, the
-gap, the wreck or dozer, the bore's site, else its set piece), saying when it
+gap, the wreck or Onager, the bore's site, else its set piece), saying when it
 wants Marines now, and struck once failed or lapsed. A beat with no place yet
 (a truck that has not gone down) is listed without a beacon.
 
@@ -1281,7 +1281,7 @@ setup and steps with the sequence; a beat asks the company for squads at its
 place, and the company's commander gives the beats at most half its squads,
 after the convoys and before calling redoubts; a squad on a beat keeps it rather than being
 re-chosen each frame. A beat's hulls (the ammo truck,
-the dozer) are the allies', driven by their own command and escorted out of
+the Onager) are the allies', driven by their own command and escorted out of
 the armour's surplus; the beat asks the company for its two squads only while
 no allied hull is with them or on its way to them. Evidence forces a set
 with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
@@ -1294,7 +1294,7 @@ with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 | L4 | `bore_behind` | eruption site (a city's cleared lot) | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
 | L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
 | L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
-| R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
+| R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's Onager, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The Onager dies, or the convoy reaches a shut road (the Onager keeps on; routes are laid again when it opens) |
 | R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap to the camp | Four reach the camp | Fewer than four can be |
 | R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate, its people (the wounded) boarding slowly enough to fill its seats over that time | It leaves loaded | It is lost first |
 | R4 | `militia` | none | When the last convoy is at the gate the town militia go to the gap and hold it (allied, never the player's) | One reaches the gap | All die on the way (lapses when none is left to ride) |
@@ -1306,19 +1306,19 @@ simplest faithful form of the owner's card: the ammo truck appears at the
 base's gate rather than the dump, and "low" is a rationed rate of fire, not a
 magazine (a truck the base cannot send yet is asked for again until one goes); the granary is torched by bringing its walls down through the
 ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
-rather than left as a wreck, so the convoys after it still drive; the dozer starts behind the gap, not at the base (from
+rather than left as a wreck, so the convoys after it still drive; the Onager starts behind the gap, not at the base (from
 the base it lost the race to the first convoy on every long corridor), at the
 nearest corridor cell there it can drive to the wreck from over the ground its
-blade opens, facing along that route (set down wherever the corridor lay, in
+weight opens, facing along that route (set down wherever the corridor lay, in
 town it stood where it could not turn onto the street, or in a yard walled all
 round, and never set out), and a
-dozer standing at a shut road cell pushes it at the blade's rate even where
-its move order stopped it short of the blade bearing; it pulls aside onto
+Onager standing at a shut road cell crushes it at its rate even where
+its move order stopped it short of bearing on it; it pulls aside onto
 the first cell square to the road past the wreck, either side and further out
 in turn, that keeps six cells clear of the corridor and that it can drive to,
 and tries the next when its move order gives up on one or, still under way, it comes no
 nearer for eight seconds, four places at most; only where no such place is reached over
-open ground does it take one its blade pushes through to (in town none was, and it stood
+open ground does it take one it crushes through to (in town none was, and it stood
 on a street one hull wide while the outbound convoys halted at it) (a fixed step off the road put it in a wall, and it stood
 wedged in the convoys' way); R4's militia
 stay allied; R6 waits for a natural fall, since a scripted one would spend the

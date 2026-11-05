@@ -388,7 +388,7 @@ public final class CordonPlan {
     public static final String CORRIDOR_PIECES = "corridor-pieces";
     /**
      * The wreck across the Road's corridor past the gap (beat R1). The layout holds its ground; laid as a block it
-     * closes the road to trucks until a dozer clears it, which acceptance proves the corridor through.
+     * closes the road to trucks until an Onager clears it, which acceptance proves the corridor through.
      */
     public static final String CORRIDOR_WRECK = "corridor-wreck";
     /** A city's supply roads, followed along its streets with the works. */

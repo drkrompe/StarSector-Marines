@@ -49,8 +49,7 @@ public final class MechPatternPicker {
                     MechPattern.of(VehicleType.HEAVY_APC),
                     MechPattern.of(VehicleType.LRM_CARRIER)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
-                    MechPattern.of(MechWeaponComponent.DC_5),
-                    MechPattern.of(VehicleType.DOZER_BREACHER)),
+                    MechPattern.of(MechWeaponComponent.DC_5)),
             FactionMechLoadouts.LIONS_GUARD_ID, Set.of(
                     MechPattern.of(MechVariant.WARDEN),
                     MechPattern.of(MechWeaponComponent.THERMAL_LANCE),

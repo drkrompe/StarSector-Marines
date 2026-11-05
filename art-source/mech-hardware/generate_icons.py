@@ -673,19 +673,6 @@ def bay_drones():
     return s
 
 
-def systems_blade():
-    """A dozer blade face-on: the curved moldboard with its cutting edge, and the push arms and
-    rams that hold it to the hull."""
-    s = path('M 10 40 Q 75 20 140 40 L 140 92 Q 75 76 10 92 Z', D)
-    s += path('M 10 96 Q 75 82 140 96 L 140 106 Q 75 92 10 106 Z', MID)
-    s += path('M 18 46 Q 75 30 132 46 L 132 50 Q 75 34 18 50 Z', L)
-    for x in (34, 104):
-        s += rect(x, 112, 12, 72, D, rx=2)
-        s += rect(x + 3, 118, 3, 50, LS)
-    s += rect(56, 118, 9, 50, MID, rx=2) + rect(85, 118, 9, 50, MID, rx=2)
-    return s
-
-
 def kit_active_protection():
     """Active protection on the rack: a radar panel beside a launcher box of six countermeasure tubes."""
     s = block(8, 14, 58, 86, 5)
@@ -783,7 +770,6 @@ def vehicles(f):
     f['vehicle-turret-mortar'] = banded(150, 200, upright2(mortar(75, 10, 190, 100)), 'MOR')
     f['vehicle-bay-supply'] = banded(150, 200, bay_supply(), 'SUP')
     f['vehicle-bay-drones'] = banded(150, 200, bay_drones(), 'DRN')
-    f['vehicle-systems-blade'] = banded(150, 200, systems_blade(), 'BLD')
     f['vehicle-systems-mast'] = banded(150, 200, systems_mast(), 'OPT')
     f['vehicle-systems-secondary'] = banded(150, 200, upright2(autogun(75, 10, 190, 34)), 'AUX')
     f['kit-applique-plate'] = banded(150, 100, kit_plate(), 'APP')

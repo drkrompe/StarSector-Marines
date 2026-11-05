@@ -35,8 +35,7 @@ class MachinePartRequirementsTest {
     void aHullOffersAFedWeaponOnlyWhenItsGunDrawsOnAmmunition() {
         assertFalse(VehicleRack.takes(VehicleType.SUPPLY_TRUCK, MechInternal.READY_RACK), "no gun to feed");
         assertTrue(VehicleRack.takes(VehicleType.SUPPLY_TRUCK, MechInternal.SPALL_LINER));
-        for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
-                VehicleType.DOZER_BREACHER)) {
+        for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL)) {
             assertTrue(VehicleRack.takes(beltFed, MechInternal.READY_RACK), "a belt-fed gun's belt deepens: " + beltFed);
         }
     }
@@ -73,7 +72,7 @@ class MachinePartRequirementsTest {
     void activeProtectionNeedsAGunAndFlanksForItsLaunchersOnEitherMachine() {
         assertTrue(VehicleRack.takes(VehicleType.BREAKTHROUGH_TANK, MechInternal.ACTIVE_PROTECTION));
         assertTrue(VehicleRack.takes(VehicleType.LASER_TANK, MechInternal.ACTIVE_PROTECTION));
-        for (VehicleType other : List.of(VehicleType.DOZER_BREACHER, VehicleType.HEAVY_APC, VehicleType.LRM_CARRIER,
+        for (VehicleType other : List.of(VehicleType.HEAVY_APC, VehicleType.LRM_CARRIER,
                 VehicleType.MILITIA_TECHNICAL, VehicleType.SUPPLY_TRUCK, VehicleType.HOVER_SCOUT)) {
             assertFalse(VehicleRack.takes(other, MechInternal.ACTIVE_PROTECTION), "not a gun tank: " + other);
         }

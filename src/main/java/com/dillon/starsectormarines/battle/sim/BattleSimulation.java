@@ -174,7 +174,6 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.BarricadeRam;
-import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.HeavyTracks;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
@@ -191,6 +190,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.AirTurrets;
@@ -598,8 +598,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private boolean companyEverInPlay;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
-    /** The dozer's blade: what it pushes, and the view of the map a bladed hull's route proof reads. */
-    private DozerBlade blade;
     private final List<ParkedAircraft> parkedAircraft = new ArrayList<>();
     /**
      * Transient visual side-effects — persistent ground decals, smoking wrecks,
@@ -1874,15 +1872,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             heavy.setLaneDiscipline(true);
             missilePods.setLaneDiscipline(true);
         }
-        blade = new DozerBlade(navigation, mapEditor, doodadService);
-        groundSystem.setBlade(blade);
+        groundSystem.setWallCrush(new WallCrush(navigation, mapEditor, doodadService));
         // Heavy-lift hulls flatten the undergrowth and lone boulders they drive into (HeavyTracks); its switch is the
         // control, under which every hull stops at them.
         HeavyTracks tracks = null;
         if (!"false".equalsIgnoreCase(System.getProperty(HeavyTracks.PROPERTY))) {
             tracks = new HeavyTracks(navigation, mapEditor);
             groundSystem.setTracks(tracks);
-            blade.setTracks(tracks);
         }
         // Medium and heavy hulls drive through the light barricades their way covers (BarricadeRam); its switch is the
         // control, under which every hull stops at them.
@@ -2963,8 +2959,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The runtime map-modification ops: breaches, rubble, and opened sally doors. */
     public MapEditor mapEditor() { return mapEditor; }
 
-    /** The dozer's blade, whose {@link DozerBlade#planningGrid} is the map a bladed hull's move order is proved over. */
-    public DozerBlade blade() { return blade; }
+    /**
+     * The map {@code type}'s move order is proved over: a wall-crushing hull's breach view laid over the ground it moves
+     * over, a ramming hull's, or that ground itself.
+     */
+    public NavigationGrid vehiclePlanningGrid(VehicleType type) { return groundSystem.planningGrid(type); }
 
     /** The battle's sally doors: forts' ports and the doors walled places have where their walls send a holder round. */
     public SallyDoors sallyDoors() { return sallyDoors; }

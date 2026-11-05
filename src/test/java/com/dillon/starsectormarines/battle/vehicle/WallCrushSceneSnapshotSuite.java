@@ -11,21 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The dozer breach scene's frames, from the same run that produced its verdicts: both loops at 1920x1080 and 100%
+ * The wall-crush scene's frames, from the same run that produced its verdicts: both loops at 1920x1080 and 100%
  * scale, whole map plus a full-size close view on the breach. The scene's walls have no art, so every standing wall
- * cell is marked each frame — ordinary wall in one colour, fortified in another — and the gap the blade makes shows
+ * cell is marked each frame — ordinary wall in one colour, fortified in another — and the gap the Onager crushes shows
  * as marks disappearing. Every fourth close frame is also written as a PNG still.
  */
-public final class DozerBreachSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
+public final class WallCrushSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
-    public DozerBreachSceneSnapshotSuite() {
-        super(new DozerBreachScene(15), 1920, 1080);
+    public WallCrushSceneSnapshotSuite() {
+        super(new WallCrushScene(15), 1920, 1080);
     }
 
     @Override protected boolean showImpactEffects() { return true; }
 
     @Override protected float[] closeView(String loopId) {
-        return new float[] {22f, (DozerBreachScene.WALL_Y0 + DozerBreachScene.WALL_Y1) / 2f + 2f, 44f};
+        return new float[] {22f, (WallCrushScene.WALL_Y0 + WallCrushScene.WALL_Y1) / 2f + 2f, 44f};
     }
 
     @Override protected float closeViewScale() { return 1f; }
@@ -34,20 +34,20 @@ public final class DozerBreachSceneSnapshotSuite extends BehaviorSceneSnapshotSu
         NavigationGrid grid = simulation.getGrid();
         List<ReviewAnnotation.Cell> ordinary = new ArrayList<>();
         List<ReviewAnnotation.Cell> fortified = new ArrayList<>();
-        for (int y = DozerBreachScene.WALL_Y0; y <= DozerBreachScene.WALL_Y1; y++) {
-            for (int x = 0; x < DozerBreachScene.WIDTH; x++) {
+        for (int y = WallCrushScene.WALL_Y0; y <= WallCrushScene.WALL_Y1; y++) {
+            for (int x = 0; x < WallCrushScene.WIDTH; x++) {
                 if (grid.isWalkable(x, y)) continue;
-                (x < DozerBreachScene.FORTIFIED_X ? ordinary : fortified).add(new ReviewAnnotation.Cell(x, y));
+                (x < WallCrushScene.FORTIFIED_X ? ordinary : fortified).add(new ReviewAnnotation.Cell(x, y));
             }
         }
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder()
-                .cells(ordinary, "WALL " + DozerBreachScene.ORDINARY_STRUCTURE, ReviewStyle.NOTE)
-                .cells(fortified, "FORTIFIED " + DozerBreachScene.FORTIFIED_STRUCTURE, ReviewStyle.KEEP)
-                .label(DozerBreachScene.APC_GOAL_X + .5f, DozerBreachScene.APC_GOAL_Y + 2.5f, "APC GOAL",
+                .cells(ordinary, "WALL " + WallCrushScene.ORDINARY_STRUCTURE, ReviewStyle.NOTE)
+                .cells(fortified, "FORTIFIED " + WallCrushScene.FORTIFIED_STRUCTURE, ReviewStyle.KEEP)
+                .label(WallCrushScene.APC_GOAL_X + .5f, WallCrushScene.APC_GOAL_Y + 2.5f, "APC GOAL",
                         ReviewStyle.LANDING);
         for (long id : simulation.getConvoyVehicleIds()) {
             GroundBody body = simulation.convoy().body(id);
-            String name = simulation.convoy().vehicleType(id) == VehicleType.DOZER_BREACHER ? "DOZER" : "APC";
+            String name = simulation.convoy().vehicleType(id) == VehicleType.BREAKTHROUGH_TANK ? "ONAGER" : "APC";
             marks.label(body.x, body.y - 3.2f, name, ReviewStyle.NOTE);
         }
         return marks.build();

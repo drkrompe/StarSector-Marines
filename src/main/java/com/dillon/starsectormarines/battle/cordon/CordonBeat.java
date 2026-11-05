@@ -51,7 +51,7 @@ abstract class CordonBeat implements ObjectiveRuntime {
     String describe(BattleSimulation sim) { return ""; }
 
     /**
-     * A hull of the beat's own on the road that wants an allied escort beside it (R1's dozer), or {@code 0}. Asked only
+     * A hull of the beat's own on the road that wants an allied escort beside it (R1's Onager), or {@code 0}. Asked only
      * while active. The surplus armour takes it ({@code cordon-allied-command.md}, rule 3); the beat's {@link #call}
      * asks the company only when no hull was free.
      */

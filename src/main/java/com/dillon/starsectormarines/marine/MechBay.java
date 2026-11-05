@@ -90,9 +90,14 @@ public final class MechBay implements Serializable {
         return patternId != null && knownPatternIds.contains(patternId);
     }
 
-    /** True when the pattern was registered and not yet known. Never removes a pattern. */
+    /**
+     * True when the pattern was registered and not yet known. Never removes a pattern. A retired hull's card teaches the
+     * pattern of the hull it was carried to ({@link VehicleType#fromSavedName}).
+     */
     public boolean learnPattern(String patternId) {
-        return MechPattern.parse(patternId) != null && knownPatternIds.add(patternId);
+        MechPattern pattern = MechPattern.parse(patternId);
+        if (pattern == null) return false;
+        return knownPatternIds.add(patternId.startsWith(MechPattern.PREFIX + "vehicle:") ? pattern.id() : patternId);
     }
 
     public Set<String> knownPatternIds() {
@@ -974,6 +979,22 @@ public final class MechBay implements Serializable {
         knownPatternIds.addAll(patterns);
     }
 
+    /**
+     * A retired hull's learned pattern (the dozer breacher's) is the pattern of the hull it was carried to; its fabricated
+     * hulls are carried in the save itself ({@code VehicleTypeSaveConverter}).
+     */
+    private void migrateRetiredVehicles() {
+        Set<String> carried = new HashSet<>();
+        knownPatternIds.removeIf(id -> {
+            if (!id.startsWith(MechPattern.PREFIX + "vehicle:")) return false;
+            MechPattern pattern = MechPattern.parse(id);
+            if (pattern == null || pattern.id().equals(id)) return false;
+            carried.add(pattern.id());
+            return true;
+        });
+        knownPatternIds.addAll(carried);
+    }
+
     private Object readResolve() {
         if (squads == null) squads = new ArrayList<>();
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
@@ -995,6 +1016,7 @@ public final class MechBay implements Serializable {
         // A renamed weapon (the cannons and lasers before their <Family>-<N> names, the linear cannon now the HC-10) is carried
         // over to its successor's id in stores and patterns; a mech's fitted id resolves the same way (findById).
         migrateRenamedWeapons();
+        migrateRetiredVehicles();
         squads.removeIf(squad -> squad == null);
         if (!foundingModelInitialized) seedLegacyStarterAssets();
         else ensureSupportSquad();

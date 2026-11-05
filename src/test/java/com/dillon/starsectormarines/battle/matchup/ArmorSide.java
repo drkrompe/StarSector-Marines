@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  *   item    := stock | refit | role=&lt;role&gt;
  *            | arms|la|ra|ls|rs = &lt;weapon&gt;|none   arms=chaingun (arms: every arm mount; la/ra: one arm)
  *            | engine|plating|capacitors|vents = &lt;internal&gt;|none
- *   vehicle := ['vehicle:'] &lt;VehicleType, kebab case&gt;  breakthrough-tank (technical, scout, dozer accepted)
+ *   vehicle := ['vehicle:'] &lt;VehicleType, kebab case&gt;  breakthrough-tank (technical, scout accepted)
  * </pre>
  *
  * Every mech starts from its factory fit: its own weapons on the stock frame. {@code refit} fills the internals with
@@ -313,7 +313,6 @@ public record ArmorSide(List<Unit> units) {
         switch (id) {
             case "technical" -> { return VehicleType.MILITIA_TECHNICAL; }
             case "scout" -> { return VehicleType.SCOUT_CAR; }
-            case "dozer" -> { return VehicleType.DOZER_BREACHER; }
             default -> { }
         }
         for (VehicleType type : VehicleType.values()) if (vehicleId(type).equals(id)) return type;

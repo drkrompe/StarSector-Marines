@@ -14,8 +14,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * opens: walls, natural obstructions, barricades and every closed edge between two dry cells stay exactly as they are,
  * so low cover still stops it.
  *
- * <p><b>Why both planning and motion.</b> The dozer's breach view ({@link DozerBlade#breachView}) is read only by
- * route proof, and its sweep reads the live grid, because the wall really is there until the blade pushes it down.
+ * <p><b>Why both planning and motion.</b> A crushing hull's breach view ({@link WallCrush#breachView}) is read only by
+ * route proof, and its sweep reads the live grid, because the wall really is there until the hull pushes it down.
  * Water really is crossable for a hover hull, so its rolling planner, its recovery and its collision sweep all read
  * this view; route proof that the sweep then refused would leave the hull holding at the shore.
  *

@@ -173,7 +173,7 @@ at a barricade, counts for a fraction of what it does to a house wall, and a
 charge rams a barricade on works rather than bowling it over. The wall keeps
 its hit points, so it is still light enough for a Brute to choose to break,
 and everything else's wall damage (a demolition charge, a shell, fire, a
-dozer) is unchanged. So a field-grade wall still opens to a Brute, but in
+Onager) is unchanged. So a field-grade wall still opens to a Brute, but in
 something like the time a squad needs to answer the call, rather than the five
 seconds a house wall takes. Ordinary buildings carry no mark.
 

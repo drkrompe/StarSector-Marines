@@ -89,7 +89,7 @@ A mission's **allied table** reads the density and lists, per tool, whether
 it is in, its count or cadence, its origin piece on the layout and its
 first task. The table is the mission's whole statement of its allied forces;
 no tool appears that the table does not list. A story beat may add a tool
-(L2's ammo truck, R1's dozer) through the same producer, at its own time.
+(L2's ammo truck, R1's Onager) through the same producer, at its own time.
 
 ## The delivery hook
 
@@ -119,7 +119,7 @@ delivers nothing.
   offered no escort after (`EscortPace.alone`). The
   decision is one pure rule (`EscortPace.rule`), applied through the hull's
   speed cap, so any road hull can be paced: the Cordon paces its trucks and
-  R1's dozer, and the heart's trucks can take the same seam.
+  R1's Onager, and the heart's trucks can take the same seam.
 - The Cordon is the first user: each redoubt's `GunStock` is a recipient, and
   its allied line command asks for a truck when the stock runs low; L2
   (`GunsDryBeat`) only empties one redoubt's gun towers, and the same request

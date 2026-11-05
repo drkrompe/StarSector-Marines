@@ -17,8 +17,8 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
  * way: each cell it crushes takes {@link #CRUSH_STRUCTURE} of its momentum ({@link HullMomentum}), so a tank flattens
  * a sapling barely slowed and an APC lurches through a thicket.
  *
- * <p><b>Why both planning and motion.</b> Unlike the dozer's wall, which really is there until the blade has worn it
- * down ({@link DozerBlade}), undergrowth gives at once, so the hull's route proof, rolling planner, recovery and
+ * <p><b>Why both planning and motion.</b> Unlike a wall, which really is there until an ultra-heavy hull has worn it
+ * down ({@link WallCrush}), undergrowth gives at once, so the hull's route proof, rolling planner, recovery and
  * collision sweep all read {@link #motionGrid()}, as a hover hull's read its skirt's view ({@link HoverSkirt}).
  *
  * <p><b>The view is kept, not rebuilt.</b> A hover hull is rare and its view is copied afresh whenever the map moves;

@@ -23,14 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.LRM_CARRIER,
-            VehicleType.FIRE_SUPPORT_APC, VehicleType.DOZER_BREACHER,
-            VehicleType.LASER_TANK);
+            VehicleType.FIRE_SUPPORT_APC, VehicleType.LASER_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.LRM_CARRIER).accessTier());
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
-        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
+        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.LASER_TANK).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(MechInternal.ACTIVE_PROTECTION).accessTier(),
                 "the Parapet's interceptor system is a Prestige part, as the hull was");
         for (VehicleType type : VARIANTS) {
@@ -46,7 +45,7 @@ class VehicleVariantLadderTest {
     void liftClassFollowsTheHullAndMatchesTheWeightClass() {
         assertEquals(LiftClass.MEDIUM, VehicleType.LRM_CARRIER.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
-        assertEquals(LiftClass.HEAVY, VehicleType.DOZER_BREACHER.liftClass());
+        assertEquals(LiftClass.HEAVY, VehicleType.LASER_TANK.liftClass());
         for (VehicleType type : VARIANTS) {
             assertEquals(type.liftClass().name(), MechPattern.weightClass(type).name(), type.name());
         }
@@ -79,9 +78,6 @@ class VehicleVariantLadderTest {
         assertTrue(support.hasTurretWeapon());
 
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        VehicleType dozer = VehicleType.DOZER_BREACHER;
-        assertTrue(dozer.maxArmor > tank.maxArmor && dozer.maxSpeed < tank.maxSpeed);
-        assertEquals(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, dozer.turretStructureId);
         VehicleStockFit parapet = VehicleStockFit.PARAPET;
         assertEquals(tank, parapet.type, "the Parapet is the Onager with active protection on its rack");
         assertTrue(MechCompartment.systems(parapet.compartment).activeProtection());

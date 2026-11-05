@@ -14,7 +14,7 @@ import java.util.List;
  * derivation of the grid's topology, which {@link VehicleClearanceCache} tracks exactly, so a held one answers the
  * same as a fresh one.
  *
- * <p>A grid is held by identity. The live grid keeps its identity for the whole battle; a planning view (a dozer's
+ * <p>A grid is held by identity. The live grid keeps its identity for the whole battle; a planning view (a crushing hull's
  * breach view, a hover hull's water view) is a new grid each time the live map moves, so the slot that held the
  * previous view is reused for it. A handful of slots covers every grid a battle asks about at once.
  *

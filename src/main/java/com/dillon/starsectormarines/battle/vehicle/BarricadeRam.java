@@ -16,7 +16,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
  * ({@link DoodadService#barricadeAt}) with structure above zero and at most {@link #MAX_STRUCTURE}, and is not a
  * fort's or an objective's works ({@link CellTag#WORKS}): those are rammed by nothing, as a Brute's charge rams them
  * rather than bowling them over. A hull of medium weight or more ({@link VehicleType#ramsBarricades}) driving into
- * rammable cells spends its momentum on them ({@link HullMomentum}), as the dozer does on what its nose reaches. Where
+ * rammable cells spends its momentum on them ({@link HullMomentum}), as an ultra-heavy hull does on what its nose reaches. Where
  * its way covers all they have left they fall now, each to its destroyed art through the ordinary wall channel, and
  * it drives on at the speed the rest gives: an APC at full speed keeps about nine tenths of its way through one crate,
  * a gun tank barely notices a row. Where its way does not cover them they share it, and the hull is brought up.

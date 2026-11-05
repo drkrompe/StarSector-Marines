@@ -5894,13 +5894,6 @@
      "mapWidth": 144,
      "mapHeight": 112
     },
-    "snapshot:dozer-breach": {
-     "displayWidth": 41.7,
-     "displayHeight": 57.1,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
-    },
     "snapshot:elevation-options": {
      "displayWidth": 41.7,
      "displayHeight": 57.1,
@@ -9164,13 +9157,6 @@
      "mapWidth": 40,
      "mapHeight": 30
     },
-    "snapshot:dozer-breach": {
-     "displayWidth": 131.7,
-     "displayHeight": 99.2,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
-    },
     "snapshot:engineering-overlays": {
      "displayWidth": 131.7,
      "displayHeight": 99.2,
@@ -11687,13 +11673,6 @@
      "domain": "world",
      "mapWidth": 40,
      "mapHeight": 30
-    },
-    "snapshot:dozer-breach": {
-     "displayWidth": 63.2,
-     "displayHeight": 75.5,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
     },
     "snapshot:engineering-overlays": {
      "displayWidth": 63.2,
@@ -16726,13 +16705,6 @@
      "domain": "world",
      "mapWidth": 144,
      "mapHeight": 112
-    },
-    "snapshot:dozer-breach": {
-     "displayWidth": 27.4,
-     "displayHeight": 107.5,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
     },
     "snapshot:elevation-options": {
      "displayWidth": 27.4,
@@ -29566,13 +29538,6 @@
      "mapWidth": 560,
      "mapHeight": 336
     },
-    "snapshot:dozer-breach": {
-     "displayWidth": 2633.1,
-     "displayHeight": 493.7,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
-    },
     "snapshot:equipment-localization": {
      "displayWidth": 497.8,
      "displayHeight": 84.9,
@@ -29633,112 +29598,6 @@
     "test": {
      "displayWidth": 983.0,
      "displayHeight": 184.3,
-     "domain": "world",
-     "mapWidth": 400,
-     "mapHeight": 240
-    }
-   }
-  },
-  "graphics/battle/vehicles/army-tank-dozer.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:dozer-breach": {
-     "displayWidth": 5046.9,
-     "displayHeight": 1261.7,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
-    },
-    "snapshot:tank-variants": {
-     "displayWidth": 5046.9,
-     "displayHeight": 1261.7,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 40
-    }
-   }
-  },
-  "graphics/battle/vehicles/army-tank.png": {
-   "sliced": false,
-   "sources": {
-    "commander-heart": {
-     "displayWidth": 5383.8,
-     "displayHeight": 1495.5,
-     "domain": "world",
-     "mapWidth": 400,
-     "mapHeight": 240
-    },
-    "commander-thunder-run": {
-     "displayWidth": 8412.3,
-     "displayHeight": 2336.8,
-     "domain": "world",
-     "mapWidth": 320,
-     "mapHeight": 144
-    },
-    "snapshot:apc": {
-     "displayWidth": 8412.3,
-     "displayHeight": 2336.8,
-     "domain": "world",
-     "mapWidth": 320,
-     "mapHeight": 144
-    },
-    "snapshot:brute-charge": {
-     "displayWidth": 19228.3,
-     "displayHeight": 5341.2,
-     "domain": "world",
-     "mapWidth": 40,
-     "mapHeight": 20
-    },
-    "snapshot:fire-burn": {
-     "displayWidth": 5383.8,
-     "displayHeight": 1495.5,
-     "domain": "world",
-     "mapWidth": 400,
-     "mapHeight": 240
-    },
-    "snapshot:freight-vehicles": {
-     "displayWidth": 8412.3,
-     "displayHeight": 2336.8,
-     "domain": "world",
-     "mapWidth": 320,
-     "mapHeight": 144
-    },
-    "snapshot:mech-duel-range": {
-     "displayWidth": 18927.7,
-     "displayHeight": 5257.8,
-     "domain": "world",
-     "mapWidth": 120,
-     "mapHeight": 41
-    },
-    "snapshot:missile-carriers": {
-     "displayWidth": 19228.3,
-     "displayHeight": 5341.2,
-     "domain": "world",
-     "mapWidth": 104,
-     "mapHeight": 60
-    },
-    "snapshot:tank": {
-     "displayWidth": 19228.3,
-     "displayHeight": 5341.2,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 40
-    },
-    "snapshot:tank-variants": {
-     "displayWidth": 19228.3,
-     "displayHeight": 5341.2,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 40
-    },
-    "snapshot:ui": {
-     "displayWidth": 15050.7,
-     "displayHeight": 3438.0,
-     "domain": "ui"
-    },
-    "test": {
-     "displayWidth": 5383.8,
-     "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,
      "mapHeight": 240
@@ -59521,13 +59380,6 @@
      "mapWidth": 144,
      "mapHeight": 112
     },
-    "snapshot:dozer-breach": {
-     "displayWidth": 2340.6,
-     "displayHeight": 4388.6,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
-    },
     "snapshot:elevation": {
      "displayWidth": 1365.3,
      "displayHeight": 2560.0,
@@ -63977,13 +63829,6 @@
      "domain": "world",
      "mapWidth": 144,
      "mapHeight": 112
-    },
-    "snapshot:dozer-breach": {
-     "displayWidth": 4388.6,
-     "displayHeight": 1920.0,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 48
     },
     "snapshot:elevation": {
      "displayWidth": 2560.0,

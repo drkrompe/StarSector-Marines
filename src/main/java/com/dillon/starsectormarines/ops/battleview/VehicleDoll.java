@@ -116,7 +116,7 @@ public final class VehicleDoll {
         List<String> stems = new ArrayList<>(List.of(
                 "engine-industrial", "engine-uprated", "engine-military",
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
-                "vehicle-systems-blade", "vehicle-systems-mast", "vehicle-systems-secondary"));
+                "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
         stems.addAll(List.of("vehicle-srm-5", "bl-1"));
         return List.copyOf(stems);
@@ -151,8 +151,7 @@ public final class VehicleDoll {
             case ARMS -> gunArt(type);
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
-            case RIGHT_SHOULDER -> type.hasBlade() ? "vehicle-systems-blade"
-                    : type.sightCells() > 0f ? "vehicle-systems-mast" : "vehicle-systems-secondary";
+            case RIGHT_SHOULDER -> type.sightCells() > 0f ? "vehicle-systems-mast" : "vehicle-systems-secondary";
             default -> null;
         };
     }
@@ -169,7 +168,6 @@ public final class VehicleDoll {
         List<String> systems = new ArrayList<>();
         if (!type.secondaryMounts().isEmpty()) systems.add(Strings.get("vehicleDollSecondary"));
         if (type.sightCells() > 0f) systems.add(Strings.get("vehicleDollSightMast"));
-        if (type.hasBlade()) systems.add(Strings.get("vehicleDollBlade"));
         return systems;
     }
 

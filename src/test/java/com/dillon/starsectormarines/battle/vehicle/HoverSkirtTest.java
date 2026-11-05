@@ -93,11 +93,12 @@ class HoverSkirtTest {
         assertTrue(TerrainCostField.from(topology).costAt(1, 1) > open, "a wheel still avoids it");
     }
 
-    @Test void onlyTheHoverLineHasASkirtAndOnlyItPushesNobody() {
+    @Test void theHoverLineAndTheOnagerHaveASkirtAndOnlyALightSkirtPushesNobody() {
         for (VehicleType type : VehicleType.values()) {
-            boolean hover = type == VehicleType.HOVER_SCOUT || type == VehicleType.DRONE_SKIMMER;
+            boolean lightSkirt = type == VehicleType.HOVER_SCOUT || type == VehicleType.DRONE_SKIMMER;
+            boolean hover = lightSkirt || type == VehicleType.BREAKTHROUGH_TANK;
             assertEquals(hover, type.isHover(), type.name());
-            assertEquals(!hover, type.repelsBodies(), type.name());
+            assertEquals(!lightSkirt, type.repelsBodies(), type.name());
             if (hover) assertFalse(type.hasAnimatedTreads(), type.name());
         }
     }

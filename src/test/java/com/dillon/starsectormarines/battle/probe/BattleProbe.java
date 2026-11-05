@@ -310,8 +310,8 @@ public final class BattleProbe {
         int gx = a.intAt(1), gy = a.intAt(2);
         VehicleType type = sim.convoy().vehicleType(id);
         GroundBody body = sim.convoy().body(id);
-        // A bladed hull's move order is proved over the ground its blade can open.
-        NavigationGrid g = type.hasBlade() && sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
+        // A wall-crushing hull's move order is proved over the ground its weight can open.
+        NavigationGrid g = sim.vehiclePlanningGrid(type);
         VehicleClearance clearance = VehicleClearance.erode(g, VehicleClearance.radiusForWidth(type.visualWidthCells));
         TerrainCostField cost = TerrainCostField.from(sim.getTopology());
         String fromOption = a.option("from", "");

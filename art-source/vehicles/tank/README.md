@@ -1,5 +1,10 @@
 # Breakthrough tank and single cannon
 
+**Retired.** The Onager is now the heavy repulsor tank (`art-source/vehicles/heavy-repulsor`), and the sheet this
+package packed, `army-tank.png`, has been removed from `mod/`. The masters stay because the laser tank's hull guide
+(`art-source/vehicles/tank-laser`) is drawn from `master.png`; recover the sheet from Git history if
+`tank-screened/pack.py` must be rerun.
+
 Built-in ImageGen produced the approved Abrams/Type 10-inspired hull and armor
 from the original prompt in `prompt.txt`. The current `guide.ps1` / `guide.png`
 retain that flat-fronted chassis and angular turret, with a shorter single cannon.

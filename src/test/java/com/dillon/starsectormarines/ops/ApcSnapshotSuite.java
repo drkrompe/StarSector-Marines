@@ -125,12 +125,11 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
     }
 
     /** The hulls whose own gun is the light machine gun, a row each, in the order the look shot stands them. */
-    private static final VehicleType[] MACHINE_GUN_HULLS = {VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
-            VehicleType.DOZER_BREACHER};
-    private static final String[] MACHINE_GUN_NAMES = {"apc", "technical", "dozer"};
+    private static final VehicleType[] MACHINE_GUN_HULLS = {VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL};
+    private static final String[] MACHINE_GUN_NAMES = {"apc", "technical"};
 
     /**
-     * The APC, the militia technical and the dozer with their light machine gun, a row each at the four hull headings,
+     * The APC and the militia technical with their light machine gun, a row each at the four hull headings,
      * every turret sweeping a full turn off its hull's axis over the recording: the gun on its mount at play zoom, a row
      * at a time, and close on one hull of each.
      */

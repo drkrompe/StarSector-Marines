@@ -22,7 +22,7 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 
 | Class | Card | Lock | Hulls |
 | --- | --- | --- | --- |
-| Small | 1x2 | omni | APC, dozer, militia technical, SRM technical, hover scout |
+| Small | 1x2 | omni | APC, militia technical, SRM technical, hover scout |
 | Medium | 2x2 | yellow (ballistic) | fire-support (mortar) APC |
 | Medium | 2x2 | green (missile) | LRM carrier |
 | Large | 3x2 | yellow (ballistic) | breakthrough tank (Onager) |
@@ -35,7 +35,7 @@ claim about the stock gun.
 
 ## The small weapons
 
-Slice 1 is shipped: the small omni card (`VehicleGunCard.SMALL`, the APCs, dozer, technicals and hover scout) and
+Slice 1 is shipped: the small omni card (`VehicleGunCard.SMALL`, the APCs, technicals and hover scout) and
 the light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `BL_1`; the light rocket pod shipped with
 them and was retired for the SRM-3 (QS), owner 2026-10-30), each a one-row mech part with its own drawing, liveries, selector, geometry, weapon definition, catalogue and Store
 entries; their stats are first proposals awaiting the balance pass. The text below is the original problem, kept

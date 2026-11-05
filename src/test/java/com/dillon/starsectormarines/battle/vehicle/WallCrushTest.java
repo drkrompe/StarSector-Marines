@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The blade's clearing rule, its breach view and one hull's push, each on a hand-laid grid. */
-class DozerBladeTest {
+/** The ultra-heavy crush rule, its breach view and one hull's push, each on a hand-laid grid. */
+class WallCrushTest {
 
     private static final int SIZE = 20;
 
@@ -39,47 +39,41 @@ class DozerBladeTest {
         grid.setWalkable(8, 1, false);
         grid.setWallHp(8, 1, 50);
 
-        assertTrue(DozerBlade.canPush(grid, topology, null, 1, 1), "ordinary wall");
-        assertTrue(DozerBlade.canPush(grid, topology, null, 2, 1), "gated-housing wall");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 3, 1), "one point over the threshold");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 4, 1), "fortified wall");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 5, 1), "a wall nothing can breach");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 6, 1), "natural obstruction");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 7, 1), "entity-owned fixture");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 8, 1), "blocked but not a wall");
-        assertFalse(DozerBlade.canPush(grid, topology, null, 9, 1), "open floor");
-        assertFalse(DozerBlade.canPush(grid, topology, null, -1, 1), "off the map");
+        assertTrue(WallCrush.canPush(grid, topology, null, 1, 1), "ordinary wall");
+        assertTrue(WallCrush.canPush(grid, topology, null, 2, 1), "gated-housing wall");
+        assertFalse(WallCrush.canPush(grid, topology, null, 3, 1), "one point over the threshold");
+        assertFalse(WallCrush.canPush(grid, topology, null, 4, 1), "fortified wall");
+        assertFalse(WallCrush.canPush(grid, topology, null, 5, 1), "a wall nothing can breach");
+        assertFalse(WallCrush.canPush(grid, topology, null, 6, 1), "natural obstruction");
+        assertFalse(WallCrush.canPush(grid, topology, null, 7, 1), "entity-owned fixture");
+        assertFalse(WallCrush.canPush(grid, topology, null, 8, 1), "blocked but not a wall");
+        assertFalse(WallCrush.canPush(grid, topology, null, 9, 1), "open floor");
+        assertFalse(WallCrush.canPush(grid, topology, null, -1, 1), "off the map");
 
         grid.setWallHp(4, 1, 90);
-        assertTrue(DozerBlade.canPush(grid, topology, null, 4, 1), "a fortified wall worn under the threshold");
+        assertTrue(WallCrush.canPush(grid, topology, null, 4, 1), "a fortified wall worn under the threshold");
     }
 
-    @Test void ceilingAndRateGoByWeightThenByBlade() {
-        assertEquals(DozerBlade.ULTRA_HEAVY_CEILING, DozerBlade.ceiling(VehicleType.Weight.ULTRA_HEAVY, false));
-        assertEquals(DozerBlade.ULTRA_HEAVY_PER_SECOND, DozerBlade.rate(VehicleType.Weight.ULTRA_HEAVY, false));
-        assertEquals(DozerBlade.MAX_PUSH_STRUCTURE, DozerBlade.ceiling(VehicleType.DOZER_BREACHER));
-        assertEquals(DozerBlade.PUSH_PER_SECOND, DozerBlade.rate(VehicleType.DOZER_BREACHER));
+    @Test void ceilingRateAndBearingGoByWeight() {
+        assertEquals(WallCrush.ULTRA_HEAVY_CEILING, WallCrush.ceiling(VehicleType.Weight.ULTRA_HEAVY));
+        assertEquals(WallCrush.ULTRA_HEAVY_PER_SECOND, WallCrush.rate(VehicleType.Weight.ULTRA_HEAVY));
         for (VehicleType.Weight weight : new VehicleType.Weight[]{
                 VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM, VehicleType.Weight.HEAVY}) {
-            assertEquals(0, DozerBlade.ceiling(weight, false), "no wall falls to a bladeless " + weight + " hull");
-            assertEquals(0f, DozerBlade.rate(weight, false), weight.name());
+            assertEquals(0, WallCrush.ceiling(weight), "no wall falls to a " + weight + " hull");
+            assertEquals(0f, WallCrush.rate(weight), weight.name());
         }
-        assertTrue(DozerBlade.ULTRA_HEAVY_CEILING < 150, "a fortified wall holds against weight alone");
-    }
-
-    @Test void aHullBearsOnItsOwnWidthAndTheDozerOnItsBlade() {
-        assertEquals(DozerBlade.BLADE_WIDTH_CELLS, DozerBlade.bearingWidth(VehicleType.DOZER_BREACHER));
-        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        assertEquals(tank.visualWidthCells, DozerBlade.bearingWidth(tank));
+        assertTrue(WallCrush.ULTRA_HEAVY_CEILING < 150, "a fortified wall holds against weight alone");
+        VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
+        assertEquals(onager.visualWidthCells, WallCrush.bearingWidth(onager), "it bears on its own width");
     }
 
     @Test void theCeilingDecidesWhatIsPushable() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
         wall(grid, topology, 1, 1, 80);
-        assertTrue(DozerBlade.canPush(grid, topology, null, 1, 1, 80));
-        assertFalse(DozerBlade.canPush(grid, topology, null, 1, 1, 79));
-        assertFalse(DozerBlade.canPush(grid, topology, null, 1, 1, 0), "a hull with no ceiling pushes nothing");
+        assertTrue(WallCrush.canPush(grid, topology, null, 1, 1, 80));
+        assertFalse(WallCrush.canPush(grid, topology, null, 1, 1, 79));
+        assertFalse(WallCrush.canPush(grid, topology, null, 1, 1, 0), "a hull with no ceiling pushes nothing");
     }
 
     @Test void pushesSandbagBarricades() throws Exception {
@@ -94,8 +88,8 @@ class DozerBladeTest {
             grid.setWalkable(2, 2, false);
             DoodadService doodads = new DoodadService(grid);
             doodads.addDoodad(new Doodad(2, 2, registry.doodad("doodad.sandbag-straight-n"), 0, false));
-            assertTrue(DozerBlade.canPush(grid, topology, doodads, 2, 2));
-            assertFalse(DozerBlade.canPush(grid, topology, doodads, 3, 2));
+            assertTrue(WallCrush.canPush(grid, topology, doodads, 2, 2));
+            assertFalse(WallCrush.canPush(grid, topology, doodads, 3, 2));
         } finally {
             TileRegistry.install(previous);
         }
@@ -106,7 +100,7 @@ class DozerBladeTest {
         CellTopology topology = new CellTopology(SIZE, SIZE);
         wall(grid, topology, 4, 4, 100);
         wall(grid, topology, 5, 4, 150);
-        NavigationGrid view = DozerBlade.breachView(grid, topology, null);
+        NavigationGrid view = WallCrush.breachView(grid, topology, null);
         assertTrue(view.isWalkable(4, 4));
         assertFalse(view.isWalkable(5, 4));
         assertFalse(grid.isWalkable(4, 4), "the live grid is untouched");
@@ -119,98 +113,112 @@ class DozerBladeTest {
     @Test void gradesCrashDebrisOnOpenGroundOnly() {
         NavigationGrid grid = floor();
         grid.setTag(3, 3, NavigationGrid.CellTag.CRASH_DEBRIS, true);
-        assertTrue(DozerBlade.grades(grid, 3, 3));
-        assertFalse(DozerBlade.grades(grid, 4, 3));
+        assertTrue(WallCrush.grades(grid, 3, 3));
+        assertFalse(WallCrush.grades(grid, 4, 3));
     }
 
     /**
-     * A dozer facing north with its nose a cell short of a wall row. Its blade bears on the four cells across its
-     * width in the next row and nothing further: those under the threshold come down, the fortified one stands, and
-     * the cells beside the blade and the row behind are untouched.
+     * An ultra-heavy hull facing north with its nose a cell short of a wall row. Its nose bears on the four cells
+     * across its width in the next row and nothing further: those under the threshold come down, the fortified one
+     * stands, and the cells beside it and the row behind are untouched.
      */
-    @Test void pushOpensOnlyTheCellsTheBladeBearsOn() {
+    @Test void pushOpensOnlyTheCellsTheNoseBearsOn() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
         for (int x = 5; x <= 15; x++) {
             wall(grid, topology, x, 10, x == 9 ? 150 : 100);
             wall(grid, topology, x, 11, 100);
         }
-        VehicleType type = VehicleType.DOZER_BREACHER;
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         GroundBody body = type.createBody();
         body.x = 10f;
         body.y = 10.1f - type.visualLengthCells * .5f;
         body.facingDegrees = 0f;
         VehicleControlComponent control = new VehicleControlComponent();
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
-            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
-            assertTrue(blade.push(body, type, control, 1f / 30f), "the blade bears on pushable cells");
-            for (int tick = 1; tick < 60; tick++) blade.push(body, type, control, 1f / 30f);
-            assertFalse(blade.push(body, type, control, 1f / 30f),
-                    "against what is left, a fortified cell, the blade does no work: the hull is stuck, not pushing");
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, control, 1f / 30f), "the nose bears on pushable cells");
+            for (int tick = 1; tick < 60; tick++) crush.push(body, type, control, 1f / 30f);
+            assertFalse(crush.push(body, type, control, 1f / 30f),
+                    "against what is left, a fortified cell, it does no work: the hull is stuck, not pushing");
             for (int x : new int[]{8, 10, 11}) {
                 assertTrue(grid.isWalkable(x, 10), "pushed " + x);
                 assertEquals(CellTopology.GroundKind.RUBBLE, topology.getGroundKind(x, 10));
             }
             assertFalse(grid.isWalkable(9, 10), "fortified cell stands");
-            for (int x : new int[]{5, 6, 7, 12, 13, 14, 15}) assertFalse(grid.isWalkable(x, 10), "beside the blade " + x);
+            for (int x : new int[]{5, 6, 7, 12, 13, 14, 15}) assertFalse(grid.isWalkable(x, 10), "beside the nose " + x);
             for (int x = 5; x <= 15; x++) assertFalse(grid.isWalkable(x, 11), "row behind " + x);
         }
     }
 
-    @Test void pushSpendsStructureAtTheBladeRate() {
+    @Test void pushSpendsStructureAtTheWeightsRate() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
         wall(grid, topology, 10, 10, 100);
-        VehicleType type = VehicleType.DOZER_BREACHER;
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         GroundBody body = type.createBody();
         body.x = 10.5f;
         body.y = 10.1f - type.visualLengthCells * .5f;
         VehicleControlComponent control = new VehicleControlComponent();
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
-            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
-            for (int tick = 0; tick < 30; tick++) blade.push(body, type, control, 1f / 30f);
-            assertEquals(100 - (int) DozerBlade.PUSH_PER_SECOND, grid.getWallHp(10, 10), 1);
-            assertFalse(blade.push(new BicycleBody(2.8f, 30f, 80f, 1f, 1f, 1f), type, control, 1f / 30f),
-                    "a blade bearing on open floor does no work");
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            for (int tick = 0; tick < 30; tick++) crush.push(body, type, control, 1f / 30f);
+            assertEquals(100 - (int) WallCrush.ULTRA_HEAVY_PER_SECOND, grid.getWallHp(10, 10), 1);
+            assertFalse(crush.push(new BicycleBody(2.8f, 30f, 80f, 1f, 1f, 1f), type, control, 1f / 30f),
+                    "a nose bearing on open floor does no work");
             assertEquals(0f, control.bladeCarry);
         }
     }
 
-    @Test void aDozerDrivingOntoOneBarricadeCellGoesThroughItAndKeepsMostOfItsWay() {
+    @Test void anUltraHeavyHullDrivingOntoOneBarricadeCellGoesThroughItAndKeepsMostOfItsWay() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
         wall(grid, topology, 10, 10, 100);
-        VehicleType type = VehicleType.DOZER_BREACHER;
-        GroundBody body = dozerAtRow10(type);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
         body.speed = type.maxSpeed;
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
-            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
-            assertTrue(blade.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, new VehicleControlComponent(), 1f / 30f));
             assertTrue(grid.isWalkable(10, 10), "down at the first touch, not pushed over seconds");
             assertTrue(body.speed > type.maxSpeed * .8f && body.speed < type.maxSpeed, "checked, not stopped: " + body.speed);
         }
     }
 
-    @Test void aDozerDrivingOntoAWallAcrossItsBladeIsBroughtUpAndTheWallTakesItsWay() {
+    @Test void atSpeedItsMassCarriesItThroughAWallRow() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);
         for (int x = 8; x <= 12; x++) wall(grid, topology, x, 10, 100);
-        VehicleType type = VehicleType.DOZER_BREACHER;
-        GroundBody body = dozerAtRow10(type);
-        // Short of full speed: at full speed its blade's three cells of city wall are less than its way, and it goes through.
-        body.speed = type.maxSpeed * .8f;
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        body.speed = type.maxSpeed;
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
-            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
-            assertTrue(blade.push(body, type, new VehicleControlComponent(), 1f / 30f));
-            assertEquals(0f, body.speed, "its whole way went into the wall");
-            assertFalse(grid.isWalkable(10, 10), "a city wall across the blade stands the hit");
-            int left = grid.getWallHp(10, 10);
-            assertTrue(left > 0 && left < 100 - (int) (DozerBlade.PUSH_PER_SECOND / 30f), "and is worn by it: " + left);
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            for (int x = 9; x <= 11; x++) assertTrue(grid.isWalkable(x, 10), "down at the first touch " + x);
+            assertTrue(body.speed > type.maxSpeed * .8f, "eighty tonnes are checked, not stopped: " + body.speed);
         }
     }
 
-    /** A dozer driving north with its blade bearing on row 10 from x 9 to 12. */
-    private static GroundBody dozerAtRow10(VehicleType type) {
+    @Test void atACrawlItIsBroughtUpAndTheWallTakesItsWay() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        for (int x = 8; x <= 12; x++) wall(grid, topology, x, 10, 100);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        body.speed = .25f;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            assertEquals(0f, body.speed, "its whole way went into the wall");
+            assertFalse(grid.isWalkable(10, 10), "a city wall across its nose stands the hit");
+            int left = grid.getWallHp(10, 10);
+            assertTrue(left > 0 && left < 100 - (int) (WallCrush.ULTRA_HEAVY_PER_SECOND / 30f), "and is worn by it: " + left);
+        }
+    }
+
+    /** An ultra-heavy hull driving north with its nose bearing on row 10 from x 9 to 11. */
+    private static GroundBody noseAtRow10(VehicleType type) {
         GroundBody body = type.createBody();
         body.x = 10.5f;
         body.y = 10.1f - type.visualLengthCells * .5f;

@@ -55,7 +55,7 @@ public final class CordonAlliedRules {
     /**
      * Whether the line's hulls keep to the streets (rule 5): in a town, where armour cannot leave them. Open country
      * is driven anywhere, and a city's sectors are held by mechs. Not on the Road: there the town's main street is the
-     * convoys' road, and a hull parked on the streets beside it stood in their way and the dozer's (town Road held 0
+     * convoys' road, and a hull parked on the streets beside it stood in their way and the Onager's (town Road held 0
      * of 12 with the streets kept, 2 of 12 without).
      */
     static boolean roadbound(CordonPlan.Density density, CordonVariant variant) {

@@ -41,7 +41,7 @@ import java.util.function.Consumer;
  * yard and are carried up, or walk the whole way where no carrier goes forward.
  *
  * <p>It also says the radio's two allied items the company hears ({@link #uncovered}, {@link #helpComing}) and hands
- * the armour the road hulls that want an escort (its own trucks, a beat's dozer).
+ * the armour the road hulls that want an escort (its own trucks, a beat's Onager).
  */
 public final class CordonLineCommand {
 
@@ -497,7 +497,7 @@ public final class CordonLineCommand {
         return Map.copyOf(deliveries);
     }
 
-    /** The road hulls that want an armed escort: trucks on the road, then the beats' hulls (a dozer). */
+    /** The road hulls that want an armed escort: trucks on the road, then the beats' hulls (an Onager). */
     private List<Long> roadHulls(BattleSimulation sim) {
         List<Long> out = new ArrayList<>();
         for (SupplyDelivery d : deliveries.keySet()) {

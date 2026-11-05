@@ -49,7 +49,7 @@ import java.util.function.Consumer;
  * other machine to the sector that needs it most, and from there to a convoy's escort when the armour's surplus is
  * asked for one ({@link CordonArmour}).
  *
- * <p>It is the Cordon's {@link AlliedDepot}: a machine sent from it (a beat's truck or dozer) sets out
+ * <p>It is the Cordon's {@link AlliedDepot}: a machine sent from it (a beat's truck or onager) sets out
  * from the threshold outside the machine door, and nothing is sent while the swarm is on the apron.
  */
 public final class CordonLogistics implements AlliedDepot {

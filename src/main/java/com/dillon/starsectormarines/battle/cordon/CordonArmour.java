@@ -36,7 +36,7 @@ import java.util.function.UnaryOperator;
  * of reach of the front (a redoubt is deeper than a heavy machine gun's range) and shot at nothing.
  * Several on one redoubt take turns on the two sides, each a step further back.
  *
- * <p>On the Road the armour also escorts the convoys, and on either line an ammunition truck or a beat's dozer on
+ * <p>On the Road the armour also escorts the convoys, and on either line an ammunition truck or a beat's Onager on
  * the road: the hulls nearest the place it wants its escort leave their sectors and drive there, out of the surplus
  * only ({@link CordonAlliedRules#escorts}: above their sector's floor, one a sector, never a calling redoubt's last),
  * and go back to their sectors when it is out. In a city, which fields no hulls, a road hull takes a walking escort out
@@ -94,7 +94,7 @@ public final class CordonArmour {
     private final Map<CordonRedoubt, int[]> gateOf = new HashMap<>();
     /** Each convoy's escort posts, or {@code null} off the Road. */
     private Function<BattleSimulation, List<int[][]>> escorts;
-    /** The hulls on the road that want an escort beside them: ammunition trucks, a beat's dozer; or {@code null}. */
+    /** The hulls on the road that want an escort beside them: ammunition trucks, a beat's Onager; or {@code null}. */
     private Function<BattleSimulation, List<Long>> hullEscorts;
     /** Machines each manned redoubt keeps on its posts ({@link CordonAlliedRules#coverFloor}). */
     private int floor = 1;
@@ -140,7 +140,7 @@ public final class CordonArmour {
         this.escorts = escorts;
     }
 
-    /** Has the armour escort single hulls on the road (a truck, a dozer): each wants one hull beside it. */
+    /** Has the armour escort single hulls on the road (a truck, an Onager): each wants one hull beside it. */
     public void escortHulls(Function<BattleSimulation, List<Long>> hulls) {
         this.hullEscorts = hulls;
     }

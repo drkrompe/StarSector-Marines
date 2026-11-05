@@ -4,17 +4,17 @@ package com.dillon.starsectormarines.battle.vehicle;
  * A hull's momentum spent on ground it breaks. A moving hull carries kinetic energy, half its mass in tonnes times
  * its speed in cells a second squared, and {@link #STRUCTURE_PER_ENERGY} turns that into structure: what the hull
  * could break by driving into it. What it breaks costs it the energy that structure took, so it drives on at the
- * speed what is left gives, slowed in proportion to what gave rather than stopped dead: a dozer at full speed bulls
- * through a crate barricade barely checked and comes up short at a city wall, and a tank flattens a sapling almost
+ * speed what is left gives, slowed in proportion to what gave rather than stopped dead: an Onager at full speed carries
+ * through a row of city wall barely checked, an APC lurches through a crate barricade, and a tank flattens a sapling almost
  * without noticing it where an APC lurches.
  */
 public final class HullMomentum {
     private HullMomentum() {}
 
     /**
-     * Structure a tonne-cell²/s² of kinetic energy breaks. A dozer at its top speed carries 360: one cell of crate
-     * barricade (100) leaves it most of its way, a row of housing wall across its blade (four cells at 80) about half,
-     * and a row of city wall (four at 100) stops it just short, for its blade to finish.
+     * Structure a tonne-cell²/s² of kinetic energy breaks. An Onager (80 t) at its top speed carries about 3,500: a
+     * row of city wall across its nose (four cells at 100) leaves it nine tenths of its way, which is how far its mass
+     * carries it through a block. Only a wall-crushing hull's nose spends it on walls ({@link WallCrush}).
      */
     public static final float STRUCTURE_PER_ENERGY = 10.4f;
 

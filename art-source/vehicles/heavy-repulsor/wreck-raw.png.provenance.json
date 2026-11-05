@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad72-ab76-7d41-9bdf-dad3b4e1e0db",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad72-ab76-7d41-9bdf-dad3b4e1e0db\\exec-604035d3-3432-4c71-a865-5f28b69543f9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\heavy-repulsor\\wreck-raw.png",
+    "sha256": "9a7c0234927e21c5b8b56619dc2b24093c554cb8d1819fc151b4379ef8a4f52c",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\heavy-repulsor\\wreck.prompt.txt",
+  "promptSha256": "314221a0fcfc9287d3f64caed5107fcc3096004e89f23c48b4773d8e5b14cad9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: same position, size and outline\n\nUse case: precise-object-edit. Asset type: registered 2D game vehicle destruction sprite.\nImage 1 is the exact geometry guide and edit target: a top-down heavy Hegemony repulsor hover tank on a transparent canvas, nose at the TOP. Create the DESTROYED version of this SAME hull in precisely the same position, size, outline and proportions, so a live-to-wreck swap does not jump. Keep the nose at the top, the pointed layered armour prow with its orange hazard plates, the broad slab side pods running the full length, the exposed pipework between the plates, the round turret ring forward of centre with its segmented collar, the two grated engine louvres and the central exhaust stack aft, the rear deck with its tow shackles, and the tan, sand and olive plate with orange hazard panels. It is a hover hull: no tracks, no wheels. Keep the overhead orthographic camera; no perspective, no visible vertical sidewalls.\nChange only damage and surface condition: burst one engine louvre into a dark opaque burned recess with buckled grating, crack and sag one side pod with a torn plate hanging askew and its lift vents scorched black, chip, puncture and scorch the prow plates while keeping the prow readable, sever and blacken several pipes between the plates, blacken the turret ring's collar but leave the ring itself round and opaque (a separate turret sits on it), soot streaks and blistered paint along both sides. Plate tears convey a very heavy, thick-armoured hull. Keep enough tan paint and orange panels that the wreck stays recognisable.\nGenuine transparent background outside the hull, including all negative space. Paint opaque dark metal inside ruptures, never transparent holes. No flames, smoke, glow, explosion, ground shadow, floor, debris outside the hull's bounds, people, labels or extra parts. Restrained detailed painted game-sprite finish matching the original exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-heavy-repulsor-tank.png",
+      "sha256": "5374201a833ac9d13528b9c06746ecb5d34a3facf0a9e0112194f947d31919b6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: same position, size and outline"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one destroyed-hull variant, preserving the original alignment, outline, and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 41896,
+    "cached_input_tokens": 33536,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 470,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.1
+}

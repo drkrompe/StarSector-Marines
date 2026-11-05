@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Where R1's dozer is set down behind the gap ({@link ClearRoadBeat#startIndex}). */
+/** Where R1's Onager is set down behind the gap ({@link ClearRoadBeat#startIndex}). */
 class ClearRoadSetDownTest {
 
     @Test
@@ -45,7 +45,7 @@ class ClearRoadSetDownTest {
 
     @Test
     void neverInAStreetTooNarrowForItToSetOutWhicheverWayItsRouteLeaves() {
-        // A street three cells wide: a route along it may be proved, but the dozer turned onto any other heading
+        // A street three cells wide: a route along it may be proved, but the Onager turned onto any other heading
         // there swings its blade or its tail into the walls.
         assertFalse(ClearRoadBeat.setsOutFrom(new int[]{10, 20}, ground(9, 11)));
         assertTrue(ClearRoadBeat.setsOutFrom(new int[]{10, 20}, ground(0, 39)));

@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * R1, Clear the road, as the owner would see it ({@code cordon-nouns.md}, Optional objectives): the town Road the probe
  * plays, played once unrecorded to find the tick the road through the wreck opens, then played again to before it
- * and recorded through the look preset with the camera on the dozer, as its blade opens the wreck and it pulls aside.
+ * and recorded through the look preset with the camera on the Onager, as its blade opens the wreck and it pulls aside.
  *
  * <p>{@code -Dsnapshot.cordonClearRoad.seed=8} and {@code .ticks=900} choose the battle and the length; the shot opens
  * {@link #LEAD} of the ticks before the road opens. Opt-in: it plays a battle twice before it draws.
@@ -32,7 +32,7 @@ public final class CordonClearRoadLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "cordon-clear-road-look"; }
 
-    @Override public String label() { return "Cordon: the dozer opening the wreck across the Road's corridor"; }
+    @Override public String label() { return "Cordon: the Onager opening the wreck across the Road's corridor"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -54,13 +54,13 @@ public final class CordonClearRoadLookSuite implements SnapshotSuite {
                 40, 30, placement -> {
                     BattleSimulation sim = battle(seed);
                     while (sim.getSimTickIndex() < from) sim.advance(BattleSimulation.TICK_DT);
-                    placement.subject("dozer", beat(sim).dozer());
+                    placement.subject("onager", beat(sim).onager());
                     System.out.printf("    [look/clear-road] seed %d: %s, recorded from tick %d%n", seed,
                             beat(sim).describe(sim), sim.getSimTickIndex());
                     return sim;
                 }, placement -> List.of(
-                        LookReview.View.follow("play", placement, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS, "dozer"),
-                        LookReview.View.follow("close", placement, 32f, "dozer")), ticks, EVERY, 3)
+                        LookReview.View.follow("play", placement, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS, "onager"),
+                        LookReview.View.follow("close", placement, 32f, "onager")), ticks, EVERY, 3)
                 .withStills(0, frames / 4, Math.round(frames * LEAD), 3 * frames / 4, frames - 1));
     }
 

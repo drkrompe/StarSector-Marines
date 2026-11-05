@@ -51,7 +51,7 @@ class ArmorMatchupEvidence {
                     VehicleType.HEAVY_APC, VehicleType.FIRE_SUPPORT_APC,
                     VehicleType.LRM_CARRIER, VehicleType.BREAKTHROUGH_TANK,
                     VehicleType.LASER_TANK,
-                    VehicleType.DOZER_BREACHER, VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
+                    VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
                     VehicleType.SRM_TECHNICAL)
             .filter(VehicleType::hasTurretWeapon)
             .toList();

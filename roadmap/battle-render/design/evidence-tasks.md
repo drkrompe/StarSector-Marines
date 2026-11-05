@@ -223,7 +223,7 @@ replayed twice). Writes `armor-matchups.md`, `armor-matchups.csv` and
   where `arms` fits every arm mount, `la`/`ra` one Bulwark arm, `none` empties a
   mount, `refit` fills the best buildable internals, and an over-budget fit runs
   labelled) or a `VehicleType` in kebab case (`breakthrough-tank`, `technical`,
-  `scout`, `dozer`).
+  `scout`, `medium-tank`).
 - Scenarios: `open-ground`; `hull-down` (berms hide the defenders' hulls);
   `street` (defenders behind the last two corners).
 - Attackers are moved as a player would: to a cell at about 70% of their

@@ -165,7 +165,6 @@ public class BattleSprites {
     private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeads = new EnumMap<>(TurretHead.class);
     private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeadWrecks = new EnumMap<>(TurretHead.class);
     private LayeredSpriteCache vehicleKitActiveProtection;
-    private LayeredSpriteCache vehicleKitActiveProtectionTurret;
     private final EnumMap<MechWeaponComponent, LayeredSpriteCache> vehicleGunDrawings =
             new EnumMap<>(MechWeaponComponent.class);
 
@@ -318,8 +317,6 @@ public class BattleSprites {
      * art did not load.
      */
     public LayeredSpriteCache vehicleKitActiveProtection() { return vehicleKitActiveProtection; }
-    /** The same fit in the Onager's turret frame registration, turning with the turret housing. Null when not loaded. */
-    public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return vehicleKitActiveProtectionTurret; }
     /** The drawing a hull carries {@code weapon} in instead of the mech's ({@link VehicleGunArt#vehicleDrawingPath}); null for none. */
     public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return vehicleGunDrawings.get(weapon); }
     /** Pools under fallen layered bodies; empty when the art did not load. */
@@ -1406,7 +1403,6 @@ public class BattleSprites {
             if (wreck != null) vehicleTurretHeadWrecks.put(head, wreck);
         }
         vehicleKitActiveProtection = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection.png");
-        vehicleKitActiveProtectionTurret = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection-turret.png");
         for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
             String path = VehicleGunArt.vehicleDrawingPath(weapon);
             LayeredSpriteCache drawing = path == null ? null : loadLayeredSprite(path);
