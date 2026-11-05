@@ -13,7 +13,6 @@
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
-      <button id="barracks-briefing" class="{command.briefingClasses}" style="{command.briefingStyle}" onclick="{command.resumeBriefing}">{i18n.openingBarracksCommandBriefingResume}</button>
     </div>
     <div id="barracks-command-board" class="command-board">
       <div id="barracks-command-rail" class="command-rail panel console-section">
@@ -241,7 +240,6 @@
   .barracks-surface { flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { height: 0px; flex-grow: 1; }
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
-  .mission-call { width: 190px; }
   .flow-button { white-space: normal; width: 190px; min-height: 38px; font-family: heading; text-align: center; }
   .recruit-stock { flex-direction: row; align-items: center; width: 290px; height: 36px; gap: 8px; padding: 0px 8px; }
   .recruit-draw { flex-direction: row; align-items: center; height: 30px; gap: 8px; }

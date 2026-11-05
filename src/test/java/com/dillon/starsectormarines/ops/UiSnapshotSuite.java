@@ -1829,7 +1829,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             @Override public void goTo(ScreenId screen) { routes.add(screen); }
         };
         model.command().equipmentWorkspace(() -> navigation.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
-        model.command().navigation(navigation::openSquadEquipmentFromBarracks, () -> {}, true);
+        model.command().navigation(navigation::openSquadEquipmentFromBarracks, true);
         var properties = props(model, ship);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         List<SnapshotArtifact> frames = new ArrayList<>();
@@ -2041,12 +2041,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
             }
-            if (state.startsWith("call-")) {
-                // The way back to work: no key, or the key of a mission in progress.
-                viewModel.command().navigation(id -> { }, () -> { }, true);
-                viewModel.command().missionReturn(state.contains("briefing") ? MissionReturn.BRIEFING
-                        : MissionReturn.MISSIONS);
-            }
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", viewModel.command().props());
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
@@ -2126,8 +2120,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     snapshotSquadFoundingResources(), () -> 12,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             var command = model.command();
-            command.navigation(id -> { }, () -> { }, true);
-            command.missionReturn(MissionReturn.BRIEFING);
+            command.navigation(id -> { }, true);
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
             MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,

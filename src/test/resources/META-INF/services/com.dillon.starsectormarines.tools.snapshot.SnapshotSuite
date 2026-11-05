@@ -36,7 +36,6 @@ com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.MachineDollSnapshotSuite
 com.dillon.starsectormarines.ops.BoatConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
-com.dillon.starsectormarines.ops.BarracksMissionCallSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksMedicSnapshotSuite
 com.dillon.starsectormarines.ops.OfficerDossierSnapshotSuite
 com.dillon.starsectormarines.ops.FirstContractSnapshotSuite

@@ -388,8 +388,11 @@ notice remains a resume route. Narration waits until the reward prompt is deferr
 Opening the lesson from the debrief settles the operation first (owner): pending
 salvage is reviewed on the salvage screen, whose confirm then opens the Armory, and
 the Armory's way back is the company's own page. No company page is reached with a
-fought mission still selected, so Barracks' own Briefing key only ever resumes an
-unfought mission (`MissionReturn`); the way to the board is the page bar's route.
+fought mission still selected, so finishing the company's preparation only ever returns
+to an unfought mission's briefing (`MissionReturn`); Barracks has no key of its own for it,
+and the way to the board and the mission waiting on it is the page bar's route. A squad
+raised while a mission waits joins its selection (`offerMarineSquads`); one the player left
+out stays out.
 
 Reward, fit, and navigation actions use compact buttons in action rows, never
 full-width acceptance bars. The two equipment choices remain comparison cards.

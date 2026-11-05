@@ -54,6 +54,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,8 @@ public class MarineOpsContext {
     private boolean captainSelectionInitialized;
     /** Persistent squads selected for the current mission's player-controlled seats. */
     private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
+    /** The squads the selection has already taken or been offered, so one left out stays out. */
+    private final Set<String> offeredMarineSquadIds = new HashSet<>();
     private String squadSelectionMissionId;
     /** Distinguishes an intentional empty selection from the legacy implicit-whole-line state. */
     private boolean marineSquadSelectionInitialized;
@@ -500,7 +503,16 @@ public class MarineOpsContext {
                 if (squadId != null) selectedMarineSquadIds.add(squadId);
             }
         }
+        offeredMarineSquadIds.clear();
+        offeredMarineSquadIds.addAll(selectedMarineSquadIds);
         markMarineSquadSelectionInitialized();
+    }
+
+    /** Takes the squads among {@code squadIds} new since the selection was made: a squad raised while the mission waited. */
+    public void offerMarineSquads(Iterable<String> squadIds) {
+        for (String squadId : squadIds) {
+            if (offeredMarineSquadIds.add(squadId)) selectedMarineSquadIds.add(squadId);
+        }
     }
 
     public boolean hasInitializedMarineSquadSelectionFor(Mission mission) {

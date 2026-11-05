@@ -41,6 +41,21 @@ class MarineOpsRoutingTest {
     }
 
     @Test
+    void aSquadRaisedWhileAMissionWaitsJoinsItsSelectionAndOneLeftOutStaysOut() {
+        MarineOpsContext context = new MarineOpsContext(null);
+        context.setSelectedMission(Mission.builder().id("mission").build());
+        context.replaceMarineSquadSelection(List.of("first", "second"));
+        context.toggleMarineSquad("second");
+
+        context.offerMarineSquads(List.of("first", "second", "raised"));
+        assertEquals(List.of("first", "raised"), List.copyOf(context.getSelectedMarineSquadIds()));
+
+        context.toggleMarineSquad("raised");
+        context.offerMarineSquads(List.of("first", "second", "raised"));
+        assertEquals(List.of("first"), List.copyOf(context.getSelectedMarineSquadIds()));
+    }
+
+    @Test
     @DisplayName("a page that is somewhere aboard declares itself as one")
     void theRoomsAboardAreTheGatedOnes() {
         assertTrue(ScreenId.BARRACKS.aboard());

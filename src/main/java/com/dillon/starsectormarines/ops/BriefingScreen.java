@@ -1851,12 +1851,12 @@ public class BriefingScreen implements Screen {
 
     private void initializeCaptainFormation(Mission mission) {
         if (mission == null || mission.source.isDebug()
-                || mission.source == MissionSource.STATIONING
-                || ctx.hasInitializedMarineSquadSelectionFor(mission)) return;
+                || mission.source == MissionSource.STATIONING) return;
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script != null ? script.roster() : null;
-        ctx.replaceMarineSquadSelection(CaptainDeploymentPolicy.defaultSquadIds(
-                roster, ctx.getSelectedCaptain()));
+        List<String> formation = CaptainDeploymentPolicy.defaultSquadIds(roster, ctx.getSelectedCaptain());
+        if (ctx.hasInitializedMarineSquadSelectionFor(mission)) ctx.offerMarineSquads(formation);
+        else ctx.replaceMarineSquadSelection(formation);
     }
 
     /** The officers the current squad selection puts in the field. */

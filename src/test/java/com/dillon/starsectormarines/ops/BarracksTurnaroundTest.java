@@ -38,7 +38,7 @@ class BarracksTurnaroundTest {
             @Override public void goTo(ScreenId screen) { routes.add(screen); }
         };
         model.equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
-        model.navigation(context::openSquadEquipmentFromBarracks, () -> {}, false);
+        model.navigation(context::openSquadEquipmentFromBarracks, false);
         model.toggle(squad.id());
         assertEquals(Strings.get("openingBarracksCommandEquipmentNew"), value(model, "equipmentLabel"));
         ((Runnable) model.cards().get(0).get("loadout")).run();

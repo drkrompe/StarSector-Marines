@@ -195,7 +195,7 @@ class BarracksCommandModelTest {
                         .noneMatch(row -> "command:independent".equals(((Map<?, ?>) row).get("id"))),
                         "The rail offers officers only; there is no acting-NCO command card");
                 String[] loadout = {null};
-                model.navigation(id -> loadout[0] = id, () -> { }, false);
+                model.navigation(id -> loadout[0] = id, false);
                 click(document, instance, "formation:" + squad.id() + ":loadout");
                 assertEquals(squad.id(), loadout[0], "Loadout opens that squad's equipment workspace");
                 assertEquals(1, model.selected().size());

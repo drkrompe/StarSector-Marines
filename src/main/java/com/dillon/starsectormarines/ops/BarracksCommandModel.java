@@ -64,15 +64,8 @@ public final class BarracksCommandModel {
     public void onPreparationComplete(Runnable action) { preparationComplete = action; }
     private int guideStep;
     private Runnable equipmentWorkspace = () -> { };
-    private Runnable resumeBriefing = () -> { };
     private Consumer<String> editEquipment = id -> { };
     private boolean boardHere;
-    /**
-     * The mission in progress calling the company back, a primary-action green. Inline because the theme is the
-     * cascade's final layer and repaints every button's surface, a class's included.
-     */
-    static final String MISSION_CALL_STYLE = "background-color: #1a4a30; border-color: #78d494; color: #e8d9a7;";
-    private MissionReturn missionReturn = MissionReturn.MISSIONS;
     private int page;
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
@@ -93,10 +86,6 @@ public final class BarracksCommandModel {
         // Each squad card opens its own loadout; this entry exists only for the First Refit offer, which has no squad yet.
         bind(reactor, "equipmentClasses", () -> !FirstRefit.available(roster) ? "hidden"
                 : equipmentUnread() ? "flow-button console-action equipment-new" : "flow-button console-action");
-        props.put("resumeBriefing", (Runnable) () -> resumeBriefing.run());
-        bind(reactor, "briefingClasses", () -> missionReturn == MissionReturn.BRIEFING
-                ? "tool-button console-action mission-call" : "hidden");
-        props.put("briefingStyle", MISSION_CALL_STYLE);
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier() ? "hidden" : "formation-board panel console-section");
         bind(reactor, "dossierClasses", () -> dossier() ? "officer-dossier panel console-section" : "hidden");
@@ -805,18 +794,13 @@ public final class BarracksCommandModel {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", Strings.get("openingBarracksCommandGuideUnavailable"), "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
-    /** Where the way back to work leads; a mission in progress shows its own key, as the page bar's route is always the board. */
-    public void missionReturn(MissionReturn value) {
-        missionReturn = value;
-        refresh();
-    }
     private boolean equipmentUnread() {
         return FirstRefit.available(roster)
                 && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
     }
     public void equipmentWorkspace(Runnable action) { equipmentWorkspace = action; }
-    public void navigation(Consumer<String> editEquipment, Runnable resumeBriefing, boolean boardHere) {
-        this.editEquipment = editEquipment; this.resumeBriefing = resumeBriefing;
+    public void navigation(Consumer<String> editEquipment, boolean boardHere) {
+        this.editEquipment = editEquipment;
         this.boardHere = boardHere; refresh();
     }
     private static Map<String, Object> row(Object... pairs) {
