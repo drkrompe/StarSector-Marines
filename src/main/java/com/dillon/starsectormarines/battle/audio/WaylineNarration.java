@@ -37,7 +37,7 @@ public final class WaylineNarration {
     /** The Colony Breach catalog's mission id: the breach is a campaign event, not a story chapter, so it is keyed by the battle. */
     public static final String COLONY_BREACH = "story_colony_breach";
     private static final Pattern SUPPLY_ROUTE_ID = Pattern.compile(
-            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1-4])_(?:0|[1-9][0-9]*)_[1-9][0-9]*");
+            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1-4])_(0|[1-9][0-9]*)_[1-9][0-9]*");
     private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
             BrokenSupplyRouteProgress.JUNCTION, "story_supply_route_junction",
             BrokenSupplyRouteProgress.LIFT, "story_supply_route_last_lift",
@@ -156,7 +156,9 @@ public final class WaylineNarration {
 
     /**
      * The chapter a mission flies, whatever its source: a retry, repeat, replay or debug run hears the story's
-     * lines wherever a story version exists. Source decides what a mission settles, never what it says.
+     * lines wherever a story version exists. Source decides what a mission settles, never what it says. Depot
+     * Clearance and Route Security are the two exceptions (owner): their jobs keep their own written terms, since
+     * the story's lines speak of a Hound the depot job lacks and of a first trip to Relay Nine.
      */
     public static String storyMissionId(Mission mission) {
         if (mission == null || mission.id == null) return null;
@@ -164,7 +166,8 @@ public final class WaylineNarration {
         if (scenario == null) scenario = CompletedReplays.scenario(mission);
         if (scenario != null) return scenarioMissionId(scenario);
         for (OpeningOperationKind kind : OpeningOperationKind.values())
-            if (kind.missionId.equals(mission.id) || kind.recurringId.equals(mission.id)) return kind.missionId;
+            if (kind.missionId.equals(mission.id)
+                    || kind != OpeningOperationKind.COUNTERATTACK && kind.recurringId.equals(mission.id)) return kind.missionId;
         if (WellhollowBloomCampaign.owns(mission.id))
             return WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.chapterOf(mission.id));
         if (AgreusArcCampaign.owns(mission.id)) return agreusMissionId(mission.id);
@@ -178,7 +181,10 @@ public final class WaylineNarration {
             case COLD_ACCOUNT -> "story_corvus_cold_account";
         };
         Matcher attempt = SUPPLY_ROUTE_ID.matcher(mission.id);
-        return attempt.matches() ? SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1))) : null;
+        if (!attempt.matches()) return null;
+        int chapter = Integer.parseInt(attempt.group(1));
+        boolean routeSecurity = chapter == BrokenSupplyRouteProgress.RELAY && !attempt.group(2).equals("0");
+        return routeSecurity ? null : SUPPLY_CHAPTERS.get(chapter);
     }
 
     private static String agreusMissionId(String id) {
@@ -194,10 +200,10 @@ public final class WaylineNarration {
         if (scenario.wellhollow() != null) return WellhollowBloomCampaign.narrationMissionId(scenario.wellhollow());
         return switch (scenario) {
             case RELIEF, MILITIA_RELIEF -> OpeningOperationKind.RELIEF.missionId;
-            case COUNTERATTACK, DEPOT_CLEARANCE -> OpeningOperationKind.COUNTERATTACK.missionId;
+            case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
             case JUNCTION -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.JUNCTION);
             case LAST_LIFT, CREW_RECOVERY -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
-            case RELAY_NINE, ROUTE_SECURITY -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
+            case RELAY_NINE -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
             case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
             case DUST_LEDGER -> "story_corvus_dust_ledger";
             case BLIND_WATCH -> "story_corvus_blind_watch";
