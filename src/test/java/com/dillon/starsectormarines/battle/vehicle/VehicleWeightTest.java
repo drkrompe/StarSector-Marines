@@ -34,9 +34,9 @@ class VehicleWeightTest {
         }
     }
 
-    @Test void onlyUltraHeavyCrushesWallsAndItIsTheHeaviest() {
+    @Test void heavyAndUltraHeavyCrushWallsAndUltraHeavyIsTheHeaviest() {
         for (Weight weight : Weight.values()) {
-            assertEquals(weight == Weight.ULTRA_HEAVY, weight.crushesWalls(), weight.name());
+            assertEquals(weight == Weight.HEAVY || weight == Weight.ULTRA_HEAVY, weight.crushesWalls(), weight.name());
         }
         float last = 0f;
         for (Weight weight : Weight.values()) {

@@ -81,7 +81,7 @@ public final class VehicleControlSystem {
         this.recoveryExpansionsPerTick = Math.max(1, recoveryExpansionsPerTick);
     }
 
-    /** Gives ultra-heavy hulls the wall crush. Without one they stop at walls as a heavy hull does. */
+    /** Gives heavy and ultra-heavy hulls the wall crush. Without one they stop at walls as a medium hull does. */
     public void setWallCrush(WallCrush crush) { this.crush = crush; }
 
     /** Gives heavy-lift hulls their tracks. Without them a tank stops at undergrowth as a lighter hull does. */
@@ -134,11 +134,12 @@ public final class VehicleControlSystem {
     }
 
     /**
-     * Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view or a
-     * ramming hull's breach view.
+     * Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view, or a
+     * ramming or crushing hull's breach view.
      */
     boolean isKeptView(NavigationGrid grid) {
-        return tracks != null && grid == tracks.currentView() || ram != null && ram.isView(grid);
+        return tracks != null && grid == tracks.currentView() || ram != null && ram.isView(grid)
+                || crush != null && crush.isKeptView(grid);
     }
 
     /** The route cost a hull's own move-order proof pays. */
@@ -146,6 +147,7 @@ public final class VehicleControlSystem {
         TerrainCostField cost = type.isHover() ? HoverSkirt.costField(navigation.getTopology())
                 : TerrainCostField.from(navigation.getTopology());
         if (tracks != null && type.crushesUndergrowth()) cost = HeavyTracks.costField(navigation.getGrid(), cost);
+        if (crushesWalls(type)) return crush.costField(type, cost);
         return rams(type) ? ram.costField(type, cost) : cost;
     }
 
@@ -586,11 +588,11 @@ public final class VehicleControlSystem {
             targetSpeed = -targetSpeed * 0.5f;
         }
 
-        // A blade bearing on a wall is working, not stuck: pushing it down is this tick's progress.
+        // A hull bearing on a wall is working, not stuck: pushing it down is this tick's progress.
         boolean pushing = targetSpeed > 0f && bladeWorks(body, type, s, dt);
         if (pushing) s.timeSinceProgress = 0f;
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        // Nor is a hull its turn has swung into what its blade could push: it grinds it down.
+        // Nor is a hull its turn has swung into what it could push: it grinds it down.
         if (!pushing && targetSpeed > 0f && bladeGrinds(body, type, s, dt)) {
             pushing = true;
             s.timeSinceProgress = 0f;
@@ -831,7 +833,7 @@ public final class VehicleControlSystem {
         float owed = NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees));
         body.pivot(s.pivotDirection * Math.min(rate * dt, owed), dt);
         if (!brushing && bladeGrinds(body, type, s, dt)) {
-            // Swinging into what its blade could push: it holds the turn and grinds it down.
+            // Swinging into what it could push: it holds the turn and grinds it down.
             applyPose(body, new Pose(prevX, prevY, prevFacing));
             return true;
         }

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 /**
  * Atomic campaign authority for fitting and building a ship's boat.
@@ -45,13 +46,8 @@ public final class BoatWorkshop {
         BoatFitting fitting = BoatFitting.findById(partId);
         BoatGun gun = fitting == null ? BoatGun.findById(partId) : null;
         if (fitting == null && gun == null) return Result.of(Status.UNKNOWN_FITTING);
-        FabricationCost bill = fitting != null ? fitting.bill() : gun.bill();
-        if (bill == null) return Result.of(Status.NOT_FABRICABLE);
-        if (!deck.knowsPart(partId)) return Result.of(Status.NOT_LEARNED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        if (!resources.spend(resources.quote(bill))) return Result.of(Status.CANNOT_AFFORD);
-        deck.stow(partId);
-        return Result.of(Status.PART_FABRICATED);
+        return Result.of(status(PartShop.build(resources, deck.stores(), partId, priceOf(partId),
+                deck.knowsPart(partId))));
     }
 
     /**
@@ -60,8 +56,7 @@ public final class BoatWorkshop {
      * cannot recycle. It does not ask whether a spare is in stores; {@link #recycle} does.
      */
     public FabricationCost recycleQuote(String partId) {
-        FabricationCost bill = billOf(partId);
-        return bill == null ? null : resources.reclamation().recover(resources.quote(bill));
+        return PartShop.recycleQuote(resources, priceOf(partId));
     }
 
     /**
@@ -74,13 +69,7 @@ public final class BoatWorkshop {
             return Result.of(Status.UNKNOWN_FITTING);
         }
         if (billOf(partId) == null) return Result.of(Status.NOT_FABRICABLE);
-        if (deck.spares(partId) <= 0) return Result.of(Status.NO_SPARE);
-        if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
-        FabricationCost back = recycleQuote(partId);
-        if (back == null) return Result.of(Status.NOTHING_TO_RECOVER);
-        if (!resources.credit(back)) return Result.of(Status.NO_HOLD);
-        deck.take(partId);
-        return Result.of(Status.RECYCLED);
+        return Result.of(status(PartShop.recycle(resources, deck.stores(), partId, priceOf(partId))));
     }
 
     /**
@@ -138,6 +127,28 @@ public final class BoatWorkshop {
         return pattern != null && pattern != ShuttleType.HERMES;
     }
 
+    /** What building one {@code partId} costs now, or null for a part with no bill. */
+    private FabricationCost priceOf(String partId) {
+        FabricationCost bill = billOf(partId);
+        return bill == null ? null : resources.quote(bill);
+    }
+
+    /** The shop's answer in the Boat Deck's words. */
+    private static Status status(PartShop.Outcome outcome) {
+        return switch (outcome) {
+            case BUILT -> Status.PART_FABRICATED;
+            case RECYCLED -> Status.RECYCLED;
+            case NOT_FABRICABLE -> Status.NOT_FABRICABLE;
+            case NOT_LEARNED -> Status.NOT_LEARNED;
+            case NO_MARKET -> Status.NO_MARKET;
+            case CANNOT_AFFORD -> Status.CANNOT_AFFORD;
+            case NO_SPARE -> Status.NO_SPARE;
+            case WORKSHOP_IDLE -> Status.WORKSHOP_IDLE;
+            case NOTHING_TO_RECOVER -> Status.NOTHING_TO_RECOVER;
+            case NO_HOLD -> Status.NO_HOLD;
+        };
+    }
+
     private static FabricationCost billOf(String partId) {
         BoatFitting fitting = BoatFitting.findById(partId);
         if (fitting != null) return fitting.bill();
@@ -160,9 +171,11 @@ public final class BoatWorkshop {
         BoatFitting outgoing = boat.fittingIn(fitting.slot());
         if (outgoing != null && fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        if (!deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
-        boat.install(fitting);
-        if (outgoing != null) deck.stow(outgoing.id());
+        if (deck.spares(fitting.id()) <= 0) return new Result(Status.NO_SPARE, boat);
+        refit(boat, () -> {
+            boat.install(fitting);
+            return true;
+        });
         return new Result(Status.FITTED, boat);
     }
 
@@ -174,10 +187,11 @@ public final class BoatWorkshop {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         if (slot == null) return new Result(Status.NOTHING_TO_STRIP, boat);
-        BoatFitting outgoing = boat.fittingIn(slot);
-        if (outgoing == null) return new Result(Status.NOTHING_TO_STRIP, boat);
-        boat.clear(slot);
-        deck.stow(outgoing.id());
+        if (boat.fittingIn(slot) == null) return new Result(Status.NOTHING_TO_STRIP, boat);
+        refit(boat, () -> {
+            boat.clear(slot);
+            return true;
+        });
         return new Result(Status.STRIPPED, boat);
     }
 
@@ -194,9 +208,11 @@ public final class BoatWorkshop {
         BoatGun outgoing = boat.gunOn(hardpoint);
         if (outgoing == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        if (!deck.take(gun.id())) return new Result(Status.NO_SPARE, boat);
-        boat.installGun(hardpoint, gun);
-        if (outgoing != null) deck.stow(outgoing.id());
+        if (deck.spares(gun.id()) <= 0) return new Result(Status.NO_SPARE, boat);
+        refit(boat, () -> {
+            boat.installGun(hardpoint, gun);
+            return true;
+        });
         return new Result(Status.FITTED, boat);
     }
 
@@ -205,10 +221,11 @@ public final class BoatWorkshop {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
-        BoatGun gun = boat.gunOn(hardpoint);
-        if (gun == null) return new Result(Status.NOTHING_TO_STRIP, boat);
-        boat.installGun(hardpoint, null);
-        deck.stow(gun.id());
+        if (boat.gunOn(hardpoint) == null) return new Result(Status.NOTHING_TO_STRIP, boat);
+        refit(boat, () -> {
+            boat.installGun(hardpoint, null);
+            return true;
+        });
         return new Result(Status.STRIPPED, boat);
     }
 
@@ -223,12 +240,21 @@ public final class BoatWorkshop {
         BoatGun gun = boat.gunOn(from);
         if (gun == null) return new Result(Status.NOTHING_TO_STRIP, boat);
         if (from == to) return new Result(Status.ALREADY_FITTED, boat);
-        BoatGun displaced = boat.gunOn(to);
-        if (displaced == gun) return new Result(Status.ALREADY_FITTED, boat);
-        boat.installGun(from, null);
-        boat.installGun(to, gun);
-        if (displaced != null) deck.stow(displaced.id());
+        if (boat.gunOn(to) == gun) return new Result(Status.ALREADY_FITTED, boat);
+        refit(boat, () -> {
+            boat.installGun(from, null);
+            boat.installGun(to, gun);
+            return true;
+        });
         return new Result(Status.FITTED, boat);
+    }
+
+    /**
+     * Runs one refit on a boat and settles the deck's stores by what it changed, as every machine's refit is settled
+     * ({@link PartStores#refit}): the part that went on leaves the shelf, whatever came off goes onto it.
+     */
+    private void refit(CampaignBoat boat, BooleanSupplier change) {
+        PartStores.refit(change, new PartStores.Shelf(deck.stores(), boat::fittedParts));
     }
 
     /**

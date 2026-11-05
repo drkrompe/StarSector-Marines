@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1326,40 +1326,47 @@ anti-armor answer is the breakthrough cannon. **The dozer breacher is retired** 
 there is no blade on any hull, and what it opened is the weight rule below. A save, a learned pattern or a card that
 names it is carried to the Onager (`VehicleType.fromSavedName`, `VehicleTypeSaveConverter`).
 
-**Weight crushes walls** (`WallCrush`; `VehicleType.crushesWalls`). An ultra-heavy hull opens ordinary walls
-and barricades with its own nose, because of its mass, not a part. A blocking cell is
+**Weight crushes walls** (`WallCrush`; `VehicleType.crushesWalls`). A heavy or ultra-heavy hull (the laser tank,
+the Scorpion and the repulsor Onager) opens ordinary walls and barricades with its own nose, because of its mass,
+not a part (owner: heavy vehicles break ordinary walls, not fortified ones). A blocking cell is
 *pushable* when its structure is spent through the ordinary wall channel — a
 wall cell or a sandbag, fence or crate barricade — and is above zero and at most
-the hull's **ceiling**, 100. Ordinary city and gated-housing walls fall to it; fortified and fortress walls (150
-and up) stand until fire has worn them under the ceiling, so a fort is still opened by fire and charges first, and
-an ultra-heavy hull's mass shows in the momentum it carries through a wall, not in what it can open. A heavy hull
-crushes no wall: it rams barricades and stops at walls (below). Natural obstructions, registered equipment and
-entity-owned fixtures are never pushed. Low crash debris under the hull is graded flat. The hull bears on a strip
-just past its nose, its own width, and spends its **rate**, 80 structure a second, on every pushable cell in it at
-once, through the same destruction path a breaching charge uses: a pushed wall becomes rubble, a pushed barricade
-its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit afterwards. Driving onto
-what it pushes it also spends its **momentum** on it (`HullMomentum`): half its mass in tonnes times its speed
-squared, at 10.4 structure apiece, so about 3,500 for the Onager at its top speed. Only the cells its nose reaches
-that tick take it. Where its momentum covers all they have left they fall at once and it drives on at the speed the
-rest gives: a row of city wall across its nose checks it to about nine tenths of its way, which is how far its mass
-carries it through a block. Where it does not, at a crawl, they share it and the hull is brought up, to finish them
-at its rate. Where its hull rather than its nose is held by pushable cells, its tail or flank swung into a house wall
-as it turns, and nothing else holds it, it grinds them down at the same rate: its route counts that ground open, so
-its turns may sweep there. Bearing on pushable ground is progress, so the wall-contact and stall recovery leave a
-pushing hull alone; bearing on a fortified wall is not, and recovery treats it as any other wall.
+the hull's **ceiling**: 100 for a heavy or ultra-heavy hull. Ordinary city and gated-housing walls fall to it;
+fortified and fortress walls (150 and up) stand until fire has worn them under the ceiling, so a fort is still opened
+by fire and charges first. A fort's or an objective's works are pushed by nothing, as they are rammed by nothing.
+Natural obstructions, registered equipment and entity-owned fixtures are never pushed. Low crash debris under the
+hull is graded flat. The hull bears on a strip just past its nose, its own width, and spends its **rate** on every
+pushable cell in it at once: 80 structure a second for an ultra-heavy hull, 50 for a heavy hull, which grinds a city
+wall down in two seconds rather than one and a quarter. Pushing is done through the same destruction path a
+breaching charge uses: a pushed wall becomes rubble, a pushed barricade its destroyed art, and the cell is ordinary
+walkable ground for every vehicle and unit afterwards. Driving onto what it pushes the hull also spends its
+**momentum** on it (`HullMomentum`): half its mass in tonnes times its speed squared, at 10.4 structure apiece, so
+about 3,500 for the Onager at its top speed; weight separates the two classes again here, an ultra-heavy hull
+carrying nearly twice a gun tank's mass through a row of walls. Only the cells its nose reaches that tick take it.
+Where its momentum covers all they have left they fall at once and it drives on at the speed the rest gives: a row
+of city wall across its nose checks the Onager to about nine tenths of its way. Where it does not, at a crawl, they
+share it and the hull is brought up, to finish them at its rate. Where its hull rather than its nose is held by
+pushable cells, its tail or flank swung into a house wall as it turns, and nothing else holds it, it grinds them down
+at the same rate: its route counts that ground open, so its turns may sweep there. Bearing on pushable ground is
+progress, so the wall-contact and stall recovery leave a pushing hull alone; bearing on a fortified wall is not, and
+recovery treats it as any other wall.
 
 Route proof for a wall-crushing hull reads a **breach view**: a routing copy of
 the grid it moves over (its crush view, or a heavy skirt's view) with every cell
 under its ceiling open. Its move-order proof and rolling local planner both use
 it, so ground the hull can open is reachable for it and for nobody else, while its
 physical sweep still reads the grid it moves over — which is what holds the hull
-against a wall until it has pushed it down. A troop carrier ordered across an intact wall goes no farther than its
-near side; ordered again after the Onager is through, its ordinary proof finds the gap. Wall cells cost a route
-dearly, so the Onager crushes through only where going round is dearer. The convoy's dispatched delivery proof is
-unchanged; the crush reaches player-ordered and directly driven hulls and scripted beats
-(`BattleSimulation.vehiclePlanningGrid`; the Cordon's Clear the road sends the Onager). Acceptance is the
-`wall-crush` scene: the Onager opens a gap a troop APC drives through, against a control where the APC alone is held
-at the wall.
+against a wall until it has pushed it down. Gun tanks are common and the map moves
+all battle, so the view is **kept**, as the crush view is: it catches up with the
+live grid's change log cell by cell, one view per ceiling, and a move order over it
+still snaps to the nearest reachable cell; one over a skirt's view (the Onager's), which is copied
+afresh when the map moves, is copied with it. Pushable cells cost the route what a
+rammed barricade does, so a crushing hull breaks through only where going round is dearer. A troop carrier ordered
+across an intact wall goes no farther than its near side; ordered again after the Onager is through, its ordinary
+proof finds the gap. The convoy's dispatched delivery proof is unchanged; the crush reaches player-ordered and
+directly driven hulls and scripted beats (`BattleSimulation.vehiclePlanningGrid`; the Cordon's Clear the road sends
+the Onager). Acceptance is the `wall-crush` scene: the Onager opens a gap a troop APC drives through, against a
+control where the APC alone is held at the wall.
 
 A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
@@ -1395,16 +1402,16 @@ across young or creep-killed wood drives through it, felling what it touches
 living mature wood holds every hull, and a scout car is held by the young wood
 that a troop APC crushes through.
 
-A medium or heavy hull **rams** light barricades (`BarricadeRam`; owner's pick,
+A medium hull **rams** light barricades (`BarricadeRam`; owner's pick,
 2026-10-27). A cell is *rammable* while it is closed and holds a sandbag, fence or
 crate piece of structure 100 or less that is not a fort's or an objective's works:
 works are rammed by nothing, as a Brute's charge rams them rather than bowling them
-over. Every hull that crushes undergrowth but those that crush walls (the ultra-heavy
-Onager), which push barricades down with the walls, drives into rammable cells spending its **momentum** on them, as
-a wall-crushing hull does: where its way covers all the pieces its footprint reaches they fall
+over. Every hull that crushes undergrowth but those that crush walls (every
+heavy or ultra-heavy hull), which push barricades down with the walls, so
+every medium hull, drives into rammable cells spending its **momentum** on them, as
+a crushing hull does: where its way covers all the pieces its footprint reaches they fall
 at once to their destroyed art and it drives on at the speed the rest gives, so an
-APC at full speed keeps about nine tenths of its way through one piece and a gun
-tank barely notices a row; where it does not, they share its way and it is brought
+APC at full speed keeps about nine tenths of its way through one piece; where it does not, they share its way and it is brought
 up. A hull held by rammable cells and nothing else shoves at them at 40 structure a
 second until they give, and that counts as progress for its recovery, so a hull that
 came at a barricade slowly still gets through, slowly. Each hull plans over its own
@@ -1413,9 +1420,9 @@ top speed carries, kept and caught up with the live grid cell by cell as the cru
 view is; its sweep still reads the crush view, where the piece stands until it is
 rammed. Rammable ground costs a route more than rubble, so a hull goes round a
 barricade where going round is short. `-Dbattle.vehicle.ramBarricades=false` is the
-control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC and a gun
-tank cross a sandbag and fence line with no way round, slowed and not stopped, where
-the control APC is held at it.
+control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC rams and a gun
+tank crushes its way across a sandbag and fence line with no way round, slowed and not
+stopped, where the control APC is held at it.
 
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the

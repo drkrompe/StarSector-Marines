@@ -94,7 +94,10 @@ public final class DirectControlSession {
     private final TenderSystem tenders;
     private BiPredicate<Integer, Integer> revealed;
     private Warship ship;
-    /** The tender whose hull is {@link #ship}, when the hull under control is one; its helm is the tender's. */
+    /**
+     * The tender whose hull is {@link #ship}, when the hull under control is one and not a recovery host; its helm is
+     * the tender's.
+     */
     private Tender tender;
     private final TenderPilot.Pad tenderPad = new TenderPilot.Pad();
 
@@ -491,6 +494,8 @@ public final class DirectControlSession {
         if (!canEnterWarship(candidate)) return false;
         ship = candidate;
         tender = tenders == null ? null : tenders.of(candidate);
+        // A recovery host is flown as a plain warship: its builds are ordered from the ship panel, not laid by hand.
+        if (tender != null && tender.recoveryHost()) tender = null;
         tenderPad.reset();
         selectedWeapon = 0;
         intent = ManualIntent.NEUTRAL;

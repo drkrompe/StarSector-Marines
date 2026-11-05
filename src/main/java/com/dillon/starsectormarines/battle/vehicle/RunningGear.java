@@ -30,10 +30,11 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
     /** The gear of {@code type}, off its sheet's hull frame. */
     static RunningGear of(VehicleType type) {
         return switch (type) {
-            // Six wheels jutting past the hull; the rear axle at 602 px of 768.
+            // The Hegemony hull's six wheels (art-source/vehicles/apc/hegemony), rows centred 152 px either side, the
+            // rear axle at 618 px of 768 and the front at 230.
             case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER ->
-                    ofFrame(type, 768f, 162f, 218f, 187f);
-            // Tracks the length of the hull, rows centred 182 px either side.
+                    ofFrame(type, 768f, 152f, 234f, 154f);
+            // The laser tank's tracks the length of the hull, rows centred 182 px either side.
             case LASER_TANK -> ofFrame(type, 768f, 182f, 316f, 300f);
             // The medium tank's tracks, rows centred 158 px either side, from the drive sprocket aft to the nose's idlers.
             case MEDIUM_TANK -> ofFrame(type, 768f, 158f, 326f, 282f);

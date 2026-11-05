@@ -384,7 +384,7 @@ public class VehicleRoutePlannerTest {
     }
 
     /**
-     * The captured refusal (dozer-breach scene): an APC parked nose-in at a wall line, ordered through the six-cell
+     * The captured refusal (the dozer-breach scene, now wall-crush): an APC parked nose-in at a wall line, ordered through the six-cell
      * gap a dozer pushed in it. The cheapest route runs along the wall and turns into the gap at its corner, a bend
      * the APC cannot drive; each retry's disc on the failed bend shut a little more of the gap mouth until there was
      * no route at all. Coming at the gap from further back, the bend is one it can drive.

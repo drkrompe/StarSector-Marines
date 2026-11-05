@@ -399,7 +399,7 @@ public final class MissionObjectiveFamilies {
         var layout = intervention.layout();
         boolean evidence = intervention.phase() == ColdAccountIntervention.Phase.EVIDENCE;
         String blocker = !evidence && !intervention.companyRecovered()
-                ? intervention.outsideWithdrawal() > 0 ? Strings.get("objectiveColdAccountReachPickup")
+                ? intervention.outsideWithdrawal() > 0 || intervention.landingZoneComing() > 0 ? Strings.get("objectiveColdAccountReachPickup")
                 : intervention.pendingArrivals() ? Strings.get("objectiveColdAccountArrivals") : Strings.get("objectiveColdAccountAwaiting") : "";
         return at("cold-account", evidence ? Strings.get("objectiveColdAccountOffice") : Strings.get("objectiveColdAccountPickup"), state(intervention),
                 Strings.named("objectivePhase", intervention.phase().name()), Strings.get("objectiveColdAccountSteps"),

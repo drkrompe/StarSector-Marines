@@ -593,7 +593,8 @@ public final class WarshipSystem {
      * Counts a bounded ship's station time down and, when it is spent, sends it
      * away: it hovers off the map along the line from the map's centre through
      * where it stands (its nose direction if it is at the centre) at its own speed,
-     * and is removed once it has cleared the edge or, failing that, after
+     * climbing as it goes, and is removed once it is into the cloud deck
+     * ({@link Warship#intoTheDeck}), once it has cleared the edge, or failing both after
      * {@link Warship#DEPARTURE_LIMIT_SECONDS}. A ship whose side has an approved edge ({@code edge}) flies out across
      * that instead, and is never timed off the map short of {@link Warship#EDGE_EXIT_LIMIT_SECONDS}.
      */
@@ -619,7 +620,7 @@ public final class WarshipSystem {
         }
         if (!ship.departing()) return;
         ship.addDepartingSeconds(dt);
-        if (ship.throughDeck() && ship.departingSeconds() >= WarshipAtmosphere.CLIMB_SECONDS) {
+        if (ship.intoTheDeck()) {
             // Into the cloud deck: gone from the battle without crossing an edge.
             ship.markPhysicallyDeparted();
             return;
@@ -1249,8 +1250,7 @@ public final class WarshipSystem {
     /** A wanted heading moving more than this in one tick is a fresh choice, not a drift a helm leads. */
     static final float MAX_LED_DRIFT_DEGREES_PER_TICK = 1f;
 
-    private static void turnHull(float dt, Warship ship) {
-        if (ship.lowHovering()) return;
+    static void turnHull(float dt, Warship ship) {
         if (ship.piloted()) {
             WarshipHelm.steer(ship);
         } else {
@@ -1324,6 +1324,10 @@ public final class WarshipSystem {
         } else if (ship.isPassingThrough() && !bring
                 && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Flying a route with no instruction to bring guns to bear, it points along its travel.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+        } else if (ship.remoteOrder() == Warship.RemoteOrder.MOVE && !bring
+                && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Sent somewhere by the player with nothing to fight, it goes nose first and keeps that heading on arrival.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
         } else if (!bring && WarshipEscort.liveLead(ship) != null) {
             // A screen with nothing to fight keeps its charge's course, in line beside it.

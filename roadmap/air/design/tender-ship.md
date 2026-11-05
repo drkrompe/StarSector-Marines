@@ -143,7 +143,10 @@ footprint is that hull's own length and beam; it sizes her body and keeps
 construction off the ground under her, and nothing else. She flies: terrain never
 blocks her mission travel, remote moves or direct control, exactly as for every
 other overhead hull (owner, 2026-10-30). The earlier rule that her swept footprint
-had to clear terrain made most move orders fail and is retired.
+had to clear terrain made most move orders fail and is retired. She turns toward
+her travel like any hull, and the footprint turns with her (owner, 2026-11-05).
+Her builds are ordered from the ship menu only: under direct control she is flown
+as a plain warship with no build keys.
 
 **A recovery host builds wherever the player has seen open ground** (owner,
 2026-10-30), on Cold Start and Working Passage alike: anywhere off the hull

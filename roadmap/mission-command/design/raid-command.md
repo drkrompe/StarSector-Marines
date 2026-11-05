@@ -53,7 +53,9 @@ Once near it they can adopt the usual contact-driven defence; survival and
 opportunity fire remain available during travel. A distant contact must not
 pin the security element in overwatch at its landing zone.
 After seizure, every available squad receives a spread withdrawal rally around
-egress. Service and withdrawal retain their exact destination through remembered
+egress, a squad standing under the player's order included: a withdrawal goes
+past a lease, and a squad left holding beside a pickup would never be sent up
+its ramp. Service and withdrawal retain their exact destination through remembered
 contact and anonymous sound bearings. A servicing mech holds the interaction
 cell until mission command changes the order: passing nearby once does not
 release it onto a tactical roam leash. Survival can still preempt execution,

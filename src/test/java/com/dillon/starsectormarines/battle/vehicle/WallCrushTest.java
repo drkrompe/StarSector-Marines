@@ -16,6 +16,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The ultra-heavy crush rule, its breach view and one hull's push, each on a hand-laid grid. */
@@ -54,17 +55,64 @@ class WallCrushTest {
         assertTrue(WallCrush.canPush(grid, topology, null, 4, 1), "a fortified wall worn under the threshold");
     }
 
-    @Test void ceilingRateAndBearingGoByWeight() {
+    @Test void ceilingAndRateGoByWeight() {
         assertEquals(WallCrush.ULTRA_HEAVY_CEILING, WallCrush.ceiling(VehicleType.Weight.ULTRA_HEAVY));
         assertEquals(WallCrush.ULTRA_HEAVY_PER_SECOND, WallCrush.rate(VehicleType.Weight.ULTRA_HEAVY));
-        for (VehicleType.Weight weight : new VehicleType.Weight[]{
-                VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM, VehicleType.Weight.HEAVY}) {
+        assertEquals(WallCrush.HEAVY_CEILING, WallCrush.ceiling(VehicleType.Weight.HEAVY));
+        assertEquals(WallCrush.HEAVY_PER_SECOND, WallCrush.rate(VehicleType.Weight.HEAVY));
+        assertTrue(WallCrush.HEAVY_PER_SECOND < WallCrush.ULTRA_HEAVY_PER_SECOND, "a heavy hull grinds slower");
+        for (VehicleType.Weight weight : new VehicleType.Weight[]{VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM}) {
             assertEquals(0, WallCrush.ceiling(weight), "no wall falls to a " + weight + " hull");
             assertEquals(0f, WallCrush.rate(weight), weight.name());
         }
-        assertTrue(WallCrush.ULTRA_HEAVY_CEILING < 150, "a fortified wall holds against weight alone");
+        for (int ceiling : new int[]{WallCrush.HEAVY_CEILING, WallCrush.ULTRA_HEAVY_CEILING}) {
+            assertTrue(ceiling >= 100, "an ordinary city wall falls to weight");
+            assertTrue(ceiling < 150, "a fortified wall holds against weight alone");
+        }
+    }
+
+    @Test void aFortsWorksAreNeverPushed() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 1, 1, 80);
+        grid.markWorks(1, 1);
+        assertFalse(WallCrush.canPush(grid, topology, null, 1, 1, 100));
+    }
+
+    /** A crushing hull's breach view keeps its identity as the map moves, and catches up with what changed. */
+    @Test void aCrushingHullsBreachViewIsKeptAndCaughtUp() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 4, 4, 100);
+        VehicleType tank = VehicleType.MEDIUM_TANK;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            NavigationGrid view = crush.planningGrid(tank, grid);
+            assertTrue(view.isWalkable(4, 4), "an ordinary wall is open to a heavy hull's plan");
+            assertTrue(crush.isKeptView(view));
+            wall(grid, topology, 6, 6, 80);
+            wall(grid, topology, 7, 6, 150);
+            assertSame(view, crush.planningGrid(tank, grid), "kept, not rebuilt");
+            assertTrue(view.isWalkable(6, 6), "a new housing wall is caught up open");
+            assertFalse(view.isWalkable(7, 6), "a new fortified wall is caught up closed");
+        }
+    }
+
+    @Test void aCrushingHullsRoutePaysForWhatItBreaks() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        topology.setGroundKind(4, 4, CellTopology.GroundKind.STREET);
+        wall(grid, topology, 4, 4, 100);
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            TerrainCostField cost = crush.costField(VehicleType.BREAKTHROUGH_TANK, TerrainCostField.from(topology));
+            assertEquals(WallCrush.ROUTE_COST, cost.costAt(4, 4), 1e-6f);
+        }
+    }
+
+    @Test void aHullBearsOnItsOwnWidth() {
         VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
-        assertEquals(onager.visualWidthCells, WallCrush.bearingWidth(onager), "it bears on its own width");
+        assertEquals(onager.visualWidthCells, WallCrush.bearingWidth(onager));
     }
 
     @Test void theCeilingDecidesWhatIsPushable() {

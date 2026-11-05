@@ -130,7 +130,7 @@ public class GroundSystem {
         moveOrderSystem.setGuardPlanner(planner);
     }
 
-    /** Gives ultra-heavy hulls the wall crush that opens ground ahead of them. */
+    /** Gives heavy and ultra-heavy hulls the wall crush that opens ground ahead of them. */
     public void setWallCrush(WallCrush crush) { controlSystem.setWallCrush(crush); }
 
     /**

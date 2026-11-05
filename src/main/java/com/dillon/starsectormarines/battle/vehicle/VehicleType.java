@@ -43,7 +43,7 @@ public enum VehicleType {
             Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
             Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
             /*turretFrame*/ 1, /*turretMountX*/ 0f, Apc.TURRET_MOUNT_Y,
-            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 1.42f, /*turretSpriteFacingOffsetDeg*/ -90f,
+            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 1.42f * Apc.SCALE, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override
@@ -63,7 +63,7 @@ public enum VehicleType {
     FIRE_SUPPORT_APC("graphics/battle/vehicles/mortar-carrier.png", 0, 4, -90f,
             0, Apc.DRAWN_LENGTH, Apc.VISUAL_LENGTH, Apc.VISUAL_WIDTH, Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
             Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
-            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, 2.4f, -90f,
+            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, Apc.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID,
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
@@ -229,12 +229,12 @@ public enum VehicleType {
     LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
             0, Apc.DRAWN_LENGTH, Apc.VISUAL_LENGTH, Apc.VISUAL_WIDTH, Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
             Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
-            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, 2.4f, -90f,
+            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, Apc.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID,
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
-        // The pod is 0.72 cells long and stays centred on the turntable however it is raised.
+        // The pod is 0.9 cells long and stays centred on the turntable however it is raised.
         @Override public float turretRaiseFold() { return .78f; }
     },
     /**
@@ -426,14 +426,21 @@ public enum VehicleType {
      * differ only in the turret and the troop bay.
      */
     private static final class Apc {
-        static final float DRAWN_LENGTH = 2.4f, VISUAL_LENGTH = 2.25f, VISUAL_WIDTH = .9f;
+        /**
+         * The APC's size, a quarter larger than the olive hull's 2.4 / 2.25 / 0.9 (owner, 2026-11-05: the Hegemony
+         * carrier read as a car beside the tanks). Its sheet is unchanged, so everything registered in its frame pixels
+         * (roof bearing, tyre bands, running gear) grows with it; the width keeps a radius-1 route clearance.
+         */
+        static final float SCALE = 1.25f;
+        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2.25f * SCALE, VISUAL_WIDTH = .9f * SCALE;
         static final float MAX_SPEED = 2.8f, ACCEL = 1.8f, BRAKING = 3.5f;
         static final float DEBOARD_INTERVAL = .8f, LOOK_AHEAD = 2.2f;
-        static final float TURRET_MOUNT_Y = .15208333f;
+        static final float TURRET_MOUNT_Y = .15208333f * SCALE;
         static final float STRUCTURE = 220f, ARMOR = 160f, ARMOR_RATING = 18f;
         static final float INCOMING_ACCURACY = 1.25f, HIT_HALF_HEIGHT = .75f;
 
         static GroundBody body(VehicleType type) {
+            // The wheelbase keeps the olive hull's 1.6, so the larger hull turns where the old one did.
             return new BicycleBody(/*wheelbaseCells*/ 1.6f, /*maxSteeringDeg*/ 22f, /*steeringSlewDegPerSec*/ 150f,
                     type.accel, type.brakingAccel, type.maxSpeed);
         }
@@ -495,9 +502,9 @@ public enum VehicleType {
     }
 
     /**
-     * Whether this hull opens ordinary walls and barricades in its path ({@link WallCrush}): every ultra-heavy hull,
-     * by its own weight on its nose ({@link Weight#crushesWalls}). Its route proof and rolling planner read the breach
-     * view instead of the grid it moves over.
+     * Whether this hull opens ordinary walls and barricades in its path ({@link WallCrush}): every heavy and
+     * ultra-heavy hull, by its own weight on its nose ({@link Weight#crushesWalls}). Its route proof and rolling
+     * planner read the breach view instead of the grid it moves over.
      */
     public boolean crushesWalls() { return weight().crushesWalls(); }
 
@@ -511,7 +518,7 @@ public enum VehicleType {
 
     /**
      * Whether this hull drives through the light barricades its way covers ({@link BarricadeRam}): every hull that
-     * crushes undergrowth but those that crush walls, which open barricades as they open walls.
+     * crushes undergrowth but those that crush walls, which open barricades as they open walls; so the medium hulls.
      */
     public boolean ramsBarricades() { return crushesUndergrowth() && !crushesWalls(); }
 
@@ -533,10 +540,11 @@ public enum VehicleType {
         public boolean crushesUndergrowth() { return this != LIGHT; }
 
         /**
-         * Whether a hull of this weight crushes ordinary walls and barricades with its own nose: ultra-heavy only. A
-         * heavy hull rams barricades ({@link BarricadeRam}) and stops at walls.
+         * Whether a hull of this weight crushes ordinary walls and barricades with its own nose: heavy and ultra-heavy
+         * (owner: heavy vehicles break ordinary walls, not fortified ones). A medium hull rams barricades
+         * ({@link BarricadeRam}) and stops at walls.
          */
-        public boolean crushesWalls() { return this == ULTRA_HEAVY; }
+        public boolean crushesWalls() { return atLeast(HEAVY); }
 
         /**
          * Mass in tonnes: a pickup about a Brute's weight and a light skirt ({@code hover}) less, an APC several

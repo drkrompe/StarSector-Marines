@@ -10,16 +10,17 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 /**
- * What a medium or heavy hull drives through: a light barricade (a sandbag, fence or crate piece) its way covers.
+ * What a medium hull drives through: a light barricade (a sandbag, fence or crate piece) its way covers.
  *
  * <p><b>The rule.</b> A cell is <em>rammable</em> when it is closed, holds a registered cover prop
  * ({@link DoodadService#barricadeAt}) with structure above zero and at most {@link #MAX_STRUCTURE}, and is not a
  * fort's or an objective's works ({@link CellTag#WORKS}): those are rammed by nothing, as a Brute's charge rams them
- * rather than bowling them over. A hull of medium weight or more ({@link VehicleType#ramsBarricades}) driving into
- * rammable cells spends its momentum on them ({@link HullMomentum}), as an ultra-heavy hull does on what its nose reaches. Where
- * its way covers all they have left they fall now, each to its destroyed art through the ordinary wall channel, and
- * it drives on at the speed the rest gives: an APC at full speed keeps about nine tenths of its way through one crate,
- * a gun tank barely notices a row. Where its way does not cover them they share it, and the hull is brought up.
+ * rather than bowling them over. A medium hull ({@link VehicleType#ramsBarricades}; a heavier one crushes them with
+ * the walls, {@link WallCrush}) driving into rammable cells spends its momentum on them ({@link HullMomentum}), as a
+ * crushing hull does on what its nose reaches. Where its way covers all they have left they fall now, each to its
+ * destroyed art through the ordinary wall channel, and it drives on at the speed the rest gives: an APC at full speed
+ * keeps about nine tenths of its way through one crate. Where its way does not cover them they share it, and the hull
+ * is brought up.
  *
  * <p><b>Held.</b> A hull brought up against rammable cells, and held by nothing else, shoves at them at
  * {@link #SHOVE_PER_SECOND} until they give, so a hull that came at a barricade slowly still gets through, slowly. It
