@@ -555,6 +555,15 @@ public enum VehicleType {
     public boolean hasModularTurret() { return this == LASER_TANK || this == BREAKTHROUGH_TANK; }
 
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
+    /**
+     * The closed head this hull draws over its fitted weapon ({@link TurretHead}), or null for a hull whose weapon stands
+     * bare on its ring. The APC is first (hegemony-armor-line.md, slice 1); its mortar and LRM carriers follow with its
+     * Hegemony hull.
+     */
+    public TurretHead turretHead() {
+        return this == HEAVY_APC ? TurretHead.HEGEMONY : null;
+    }
+
     public TurretMountStyle mountStyle() {
         return switch (this) {
             case LASER_TANK -> TurretMountStyle.WHITE;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.vehicle.TurretHead;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -127,6 +128,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredSpriteCache turretBase;
     private final LayeredSpriteCache turretBaseLight;
     private final LayeredSpriteCache gunPlate;
+    private final EnumMap<TurretHead, LayeredSpriteCache> turretHeads = new EnumMap<>(TurretHead.class);
     private final LayeredSpriteCache kitActiveProtection;
     private final LayeredSpriteCache kitActiveProtectionTurret;
     private final EnumMap<MechWeaponComponent, LayeredSpriteCache> gunDrawings = new EnumMap<>(MechWeaponComponent.class);
@@ -199,6 +201,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         turretBase = optionalLayer("graphics/battle/vehicles/turret-base-medium.png");
         turretBaseLight = optionalLayer("graphics/battle/vehicles/turret-base-light.png");
         gunPlate = optionalLayer("graphics/battle/vehicles/gun-plate.png");
+        for (TurretHead head : TurretHead.values()) {
+            LayeredSpriteCache sprite = optionalLayer("graphics/battle/vehicles/" + head.texture);
+            if (sprite != null) turretHeads.put(head, sprite);
+        }
         kitActiveProtection = optionalLayer("graphics/battle/vehicles/kit-active-protection.png");
         kitActiveProtectionTurret = optionalLayer("graphics/battle/vehicles/kit-active-protection-turret.png");
         for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
@@ -369,6 +375,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
     @Override public LayeredSpriteCache vehicleGunPlate() { return gunPlate; }
+    @Override public LayeredSpriteCache vehicleTurretHead(TurretHead head) {
+        return head == null ? null : turretHeads.get(head);
+    }
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
     @Override public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return kitActiveProtectionTurret; }
     @Override public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return gunDrawings.get(weapon); }

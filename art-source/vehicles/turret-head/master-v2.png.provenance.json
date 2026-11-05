@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad46-dfe4-7de2-b76b-ba72efd1a1e6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad46-dfe4-7de2-b76b-ba72efd1a1e6\\exec-638c59f5-283d-4039-90fa-1cdb82f6ebba.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-head\\master-v2.png",
+    "sha256": "26fdaa6bf0bbb9715c23e5d34bbc18f854deb8484685cc04ea60039edd633c22",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\turret-head\\prompt.txt",
+  "promptSha256": "1c906e5f166667dddaa09101704eed50785235fce328b43a9f424e1b7206f563",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move\nImage 2: Material, finish and detail density authority: match this rendering, but replace its roof hatch as the brief says\nImage 3: Material/style only; not layout\n\nA single armoured vehicle turret head for a top-down 2D tactical game, seen from straight above (orthographic, no perspective tilt), its gun port pointing to the top of the image.\n\nReference 1 is the exact silhouette, layout and scale: fill it in, never move, resize or reshape it. Keep its parts where they are: the round base skirt, the chamfered octagonal housing, the raised mantlet block across the front, the short rear bustle, the round commander's hatch behind the centre (draw it as a small plain cupola with a few periscope blocks and a hinged lid; no arrows, no markings, no ring of hazard paint: it must not look like an empty turret socket), and the black slot through the middle of the mantlet, open to the front edge. The slot must stay an empty dark opening with nothing in it: no barrel, no gun, no weapon of any kind. A separate weapon layer is drawn underneath and shows through the slot.\n\nReferences 2 and 3 are material and style only, not layout: Hegemony military armour of the same family. Match their painted top-down rendering exactly: weathered tan and sand-coloured plates with olive-drab under-plates, bolted and riveted panel seams, small round vision blocks, pipes and cable runs in the recesses, chipped orange hazard panels on the mantlet corners and housing edges, worn dark-steel trim. Light from the upper left, soft, consistent with the references.\n\nTrue transparent background, including all negative space; no ground, no cast shadow slab, no border, no text, no hull, no other objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\turret-head\\guide.png",
+      "sha256": "6e535846b6b43fa9a08b42d8c5c9f09c78c2e54e6f39664513a798c0c26d35bb",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\turret-head\\master.png",
+      "sha256": "e5e8f37acd10d4b25d7b517133acfd9a9b04b84b3b489962590b924824b8b3e3",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material, finish and detail density authority: match this rendering, but replace its roof hatch as the brief says"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-heavy-repulsor-tank.png",
+      "sha256": "5374201a833ac9d13528b9c06746ecb5d34a3facf0a9e0112194f947d31919b6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact geometry and the supplied armour finishes, with a small commander’s cupola and an empty gun slot.\n"
+  ],
+  "usage": {
+    "input_tokens": 48526,
+    "cached_input_tokens": 36992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 649,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.3
+}

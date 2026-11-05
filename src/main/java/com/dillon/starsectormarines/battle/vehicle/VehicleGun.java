@@ -31,6 +31,12 @@ public final class VehicleGun {
     /** How far a laser's muzzle shows past the edge of the turret ring on a modular turret, in cells: two rows, one row. */
     private static final float PROTRUSION_CELLS = .16f;
     private static final float LIGHT_PROTRUSION_CELLS = .08f;
+    /**
+     * The least a weapon's muzzle shows past the front of a closed head's mantlet, in cells ({@link #headCells}): two
+     * rows, one row. A longer gun shows its own length.
+     */
+    private static final float HEAD_PROTRUSION_CELLS = .24f;
+    private static final float LIGHT_HEAD_PROTRUSION_CELLS = .16f;
 
     /** The diameter of the round base a laser on a modular turret is housed in, in cells: two rows or more, one row. */
     private static final float BASE_CELLS = 1.25f;
@@ -48,15 +54,30 @@ public final class VehicleGun {
      * The diameter of the armoured plate that turns with {@code weapon} on {@code type}'s mount ring, in cells: the
      * gunner's shield the light-machine-gun hulls carry their gun on (the APC, the militia technical and the dozer,
      * {@link VehicleType#ownGun}), and on a modular hull in army green (the Onager) the plate a weapon with no head of
-     * its own stands on, the fallback until its family has a head. Zero everywhere else: the white laser hull's
+     * its own stands on, the fallback until its family has a head. Zero for a hull with a closed family head over its
+     * weapon ({@link VehicleType#turretHead}), and everywhere else: the white laser hull's
      * weapons stand in their own bases on the collar, a weapon drawn as the hull's own head needs none, any other fixed
      * hull's fitted weapon stands on the ring, and an empty card has nothing.
      */
     public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
-        if (weapon == null || lengthCells(type, weapon) <= 0f) return 0f;
+        if (weapon == null || lengthCells(type, weapon) <= 0f || type.turretHead() != null) return 0f;
         boolean machineGunHull = type.ownGun() != null;
         boolean headlessOnArmyTurret = type.hasModularTurret() && type.mountStyle() != TurretMountStyle.WHITE;
         return machineGunHull || headlessOnArmyTurret ? mountCells(type) * PLATE_SHARE_OF_MOUNT : 0f;
+    }
+
+    /**
+     * The side of a head's square sprite over its base circle's diameter, measured from the art
+     * (art-source/vehicles/turret-head/build.py): the mantlet and bustle run past the circle.
+     */
+    private static final float HEAD_SHARE_OF_MOUNT = 1.1497f;
+
+    /**
+     * The side of the closed head drawn over {@code type}'s fitted weapon, in cells: its base circle covers the mount
+     * ring exactly, whatever the weapon. Zero for a hull with no head ({@link VehicleType#turretHead}).
+     */
+    public static float headCells(VehicleType type) {
+        return type.turretHead() == null ? 0f : mountCells(type) * HEAD_SHARE_OF_MOUNT;
     }
 
     /** The diameter of the mount ring a fitted weapon stands on, in cells. */
@@ -81,7 +102,11 @@ public final class VehicleGun {
             float past = weapon.footprintRows >= 2 ? PROTRUSION_CELLS : LIGHT_PROTRUSION_CELLS;
             return (mountCells(type) / 2f + past) / (1f - RING_FROM_REAR);
         }
-        return MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
+        float own = MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
+        if (type.turretHead() == null || own <= 0f) return own;
+        // Under a closed head the barrel must clear the mantlet: a gun shorter than that is drawn long enough to.
+        float past = weapon.footprintRows >= 2 ? HEAD_PROTRUSION_CELLS : LIGHT_HEAD_PROTRUSION_CELLS;
+        return Math.max(own, (headCells(type) / 2f + past) / (1f - RING_FROM_REAR));
     }
 
     /** How far the drawn weapon kicks back on {@code type} as it fires, in cells. */

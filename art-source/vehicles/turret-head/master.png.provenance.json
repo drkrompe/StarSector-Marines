@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad45-b6af-7072-afa8-e4c488c6bf90",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad45-b6af-7072-afa8-e4c488c6bf90\\exec-de02c8f2-3dd6-4465-be87-0b101c199023.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-head\\master.png",
+    "sha256": "e5e8f37acd10d4b25d7b517133acfd9a9b04b84b3b489962590b924824b8b3e3",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\turret-head\\prompt.txt",
+  "promptSha256": "45ce003d92649cc2a6dd310ed53d8145c6bad3b037e3390e11633426d26c2de3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\n\nA single armoured vehicle turret head for a top-down 2D tactical game, seen from straight above (orthographic, no perspective tilt), its gun port pointing to the top of the image.\n\nReference 1 is the exact silhouette, layout and scale: fill it in, never move, resize or reshape it. Keep its parts where they are: the round base skirt, the chamfered octagonal housing, the raised mantlet block across the front, the short rear bustle, the round commander's hatch behind the centre, and the black slot through the middle of the mantlet, open to the front edge. The slot must stay an empty dark opening with nothing in it: no barrel, no gun, no weapon of any kind. A separate weapon layer is drawn underneath and shows through the slot.\n\nReferences 2 and 3 are material and style only, not layout: Hegemony military armour of the same family. Match their painted top-down rendering exactly: weathered tan and sand-coloured plates with olive-drab under-plates, bolted and riveted panel seams, small round vision blocks, pipes and cable runs in the recesses, chipped orange hazard panels on the mantlet corners and housing edges, worn dark-steel trim. Light from the upper left, soft, consistent with the references.\n\nTrue transparent background, including all negative space; no ground, no cast shadow slab, no border, no text, no hull, no other objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\turret-head\\guide.png",
+      "sha256": "6e535846b6b43fa9a08b42d8c5c9f09c78c2e54e6f39664513a798c0c26d35bb",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-heavy-repulsor-tank.png",
+      "sha256": "5374201a833ac9d13528b9c06746ecb5d34a3facf0a9e0112194f947d31919b6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one turret image using the first reference for exact geometry and the other two for materials and finish."
+  ],
+  "usage": {
+    "input_tokens": 48385,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 616,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.5
+}

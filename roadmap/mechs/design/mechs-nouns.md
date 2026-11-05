@@ -414,14 +414,14 @@ increasing an encounter's total armored threat.
   or by a roof drawing of its own where it has one (`VehicleGunArt.vehicleDrawingPath`: the light machine gun on a pintle,
   `pintle-lmg.png`, art in `art-source/vehicles/pintle-lmg/`), cut with its barrel on the sprite's centre column so it
   turns on the ring's centre and its muzzle is where its shots leave, a side drum hanging off that axis,
-  on a light-machine-gun hull (the APCs, the militia technical, the dozer) standing on an armoured gun plate that turns in the ring with it (`gun-plate.png`,
+  on a light-machine-gun hull (the militia technical, the dozer) standing on an armoured gun plate that turns in the ring with it (`gun-plate.png`,
   `VehicleGun.plateCells`, art in `art-source/vehicles/gun-plate/`), so even the light machine gun reads as a turret,
   at the scale where a mech's hull width is 1.5 of the hull's visual width, so a wider hull carries a bigger gun;
   and the weapon owns its effects, which come from the same mech geometry the mech renderer reads
   (`MechHardpointGeometry`): one muzzle at the tip of its drawing, out from the ring it turns on, the kick it
   has on a mech (the rapid guns and pods kick, the cannons and lasers stay planted), casings and scorch only
   for a ballistic weapon on a ballistic carriage, and a missile pod standing up to fire as an arcing rack does
-  (`GroundTurret.raises`). A rotary mech gun keeps its feed (`GroundTurret.rotary`, `RotaryFeed`): the driver's held
+  (`GroundTurret.raises`). A hull of a family with a closed turret head (`TurretHead`; the APC, `hegemony-armor-line.md`) draws no plate: the weapon goes under the head, which covers the ring and turns with it, and a gun too short to clear the head's mantlet is drawn long enough to, its muzzle with it (`VehicleGun.headCells`, `VehicleGun.lengthCells`). A rotary mech gun keeps its feed (`GroundTurret.rotary`, `RotaryFeed`): the driver's held
   button or the gunner's lease on a target spins the barrels up and releases rounds at the rate they have reached
   off the belt, each committing its own flux, as on a mech; it has no cooldown and no burst. It does not open walls
   on a machine assault's order. A wreck keeps the weapon it carried, on its ring where it last pointed, charred and

@@ -204,11 +204,11 @@ class VehicleGunTest {
 
     @Test
     void onlyTheMachineGunHullsAndAHeadlessWeaponOnTheOnagerTurnOnTheGunPlate() {
-        for (VehicleType hull : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL, VehicleType.DOZER_BREACHER)) {
+        for (VehicleType hull : List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.DOZER_BREACHER)) {
             float plate = VehicleGun.plateCells(hull, MechWeaponComponent.LIGHT_MACHINE_GUN);
             assertTrue(plate > 0f && plate < VehicleGun.mountCells(hull), "inside the ring's race: " + hull);
         }
-        assertEquals(0f, VehicleGun.plateCells(VehicleType.HEAVY_APC, null), "an empty card has no plate");
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.MILITIA_TECHNICAL, null), "an empty card has no plate");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.SRM_TECHNICAL, MechWeaponComponent.SRM_3_QS),
                 "not on the rocket pickup");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.AC_6),
@@ -217,5 +217,21 @@ class VehicleGunTest {
                 "a white hull's weapon stands in its own base");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20),
                 "a head needs no plate");
+    }
+
+    @Test
+    void aClosedFamilyHeadCoversTheRingAndTakesThePlatesPlace() {
+        VehicleType apc = VehicleType.HEAVY_APC;
+        assertEquals(TurretHead.HEGEMONY, apc.turretHead());
+        assertEquals(0f, VehicleGun.plateCells(apc, MechWeaponComponent.LIGHT_MACHINE_GUN), 0f,
+                "the weapon is under the head, not on a gunner's plate");
+        assertTrue(VehicleGun.headCells(apc) > VehicleGun.mountCells(apc), "the head's base covers the ring");
+        assertTrue(VehicleGun.lengthCells(apc, MechWeaponComponent.LIGHT_MACHINE_GUN) > 0f,
+                "the weapon is still drawn, under the head");
+        for (MechWeaponComponent part : List.of(MechWeaponComponent.LIGHT_MACHINE_GUN, MechWeaponComponent.BL_1)) {
+            float muzzle = (1f - VehicleGun.RING_FROM_REAR) * VehicleGun.lengthCells(apc, part);
+            assertTrue(muzzle > VehicleGun.headCells(apc) / 2f, part + "'s muzzle clears the head's mantlet");
+        }
+        assertEquals(0f, VehicleGun.headCells(VehicleType.MILITIA_TECHNICAL), 0f, "a hull with no head draws none");
     }
 }
