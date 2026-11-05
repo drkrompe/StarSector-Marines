@@ -69,6 +69,8 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.HEAVY_APC, EquipmentAccessTier.COMMON);
         VEHICLE_TIERS.put(VehicleType.MILITIA_TECHNICAL, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.BREAKTHROUGH_TANK, EquipmentAccessTier.PRESTIGE);
+        // The tank a Medium lift carries, a step below the Onager.
+        VEHICLE_TIERS.put(VehicleType.MEDIUM_TANK, EquipmentAccessTier.ADVANCED);
         // The ladder above each line's first hull: each variant is its own card.
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);

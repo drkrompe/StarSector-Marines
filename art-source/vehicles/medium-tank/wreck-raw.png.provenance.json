@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad65-77e0-7be0-991f-50670ec017ae",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad65-77e0-7be0-991f-50670ec017ae\\exec-e1831b20-437c-41d8-add9-9a30fb45f73a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\medium-tank\\wreck-raw.png",
+    "sha256": "661398ca1d3f09bcb105f334a897c4772c87bbedb5a3142fe040659c0f074995",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\medium-tank\\wreck.prompt.txt",
+  "promptSha256": "169ce40ca7970a46659973e8a728d792d6d890cbf6dd37a4c5c22e4cb8aa7b89",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: same position, size and outline\n\nUse case: precise-object-edit. Asset type: registered 2D game vehicle destruction sprite.\nImage 1 is the exact geometry guide and edit target: a top-down tracked Hegemony medium tank on a transparent canvas, nose at the TOP. Create the DESTROYED version of this SAME hull in precisely the same position, size, outline and proportions, so a live-to-wreck swap does not jump. Keep the nose at the top, the stepped armoured nose with its two orange hazard plates, the two track runs down both sides with their visible links, the armour skirts over the tracks, the round turret ring forward of centre, the rear engine deck with its twin grated louvres, the tow shackles at the rear, and the tan, sand and olive plate with orange hazard panels. Keep the overhead orthographic camera; no perspective, no visible vertical sidewalls.\nChange only damage and surface condition: burst the rear engine deck into a dark opaque burned recess with buckled louvres, throw one track's links loose and broken along part of its run, tear one armour skirt plate askew, chip, puncture and scorch the nose plates while keeping the nose readable, blacken the turret ring's edge but leave the ring itself round and opaque (a separate turret sits on it), soot streaks and blistered paint along the sides. Plate tears convey a medium tank, lighter than a heavy breakthrough tank. Keep enough tan paint and orange panels that the wreck stays recognisable.\nGenuine transparent background outside the hull, including all negative space. Paint opaque dark metal inside ruptures, never transparent holes. No flames, smoke, glow, explosion, ground shadow, floor, debris outside the hull's bounds, people, labels or extra parts. Restrained detailed painted game-sprite finish matching the original exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: same position, size and outline"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one destroyed variant, preserving the hull’s alignment, silhouette, and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 102221,
+    "cached_input_tokens": 89600,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 515,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 62.6
+}

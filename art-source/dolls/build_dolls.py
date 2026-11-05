@@ -541,6 +541,7 @@ def main():
     written = [
         tank("tank"),
         tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
+        tank("tank-medium", turret_w=20, turret_top=56),
         apc("apc"),
         apc("lrm-carrier", launcher=True),
         pickup("technical", gun="mg"),

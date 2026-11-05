@@ -84,6 +84,8 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 5610),
             vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 7030),
             vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 19530),
+            // The medium tank: the Onager's plate per credit on a lighter hull and gun.
+            vehicle(VehicleType.MEDIUM_TANK, "@gearFabricationMediumVehicleStandardFit", 13200),
             // Variants cost more than the hull they improve on.
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 8410),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 21270),

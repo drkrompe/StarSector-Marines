@@ -15,6 +15,8 @@ public enum VehicleGunCard {
     /** Small, unlocked: the APCs, the dozer, the technicals and the hover scout. */
     SMALL(null, 1),
     CANNON(HardpointType.BALLISTIC, 3),
+    /** The medium tank's: any two-row ballistic gun, the HC-10 and the autocannons, never the HC-20. */
+    MEDIUM_CANNON(HardpointType.BALLISTIC, 2),
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
     LRM(HardpointType.MISSILE, 2);
@@ -36,6 +38,7 @@ public enum VehicleGunCard {
         if (structureId == null) return SMALL;
         return switch (structureId) {
             case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
+            case TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID -> MEDIUM_CANNON;
             case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID,
                     TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
             case TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID -> LASER;

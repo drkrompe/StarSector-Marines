@@ -100,6 +100,7 @@
     {"item": "mech-pattern:vehicle:militia_technical", "station": "counterattack"},
     {"item": "mech-pattern:vehicle:srm_technical", "station": "junction"},
     {"item": "mech-pattern:vehicle:fire_support_apc", "station": "junction"},
+    {"item": "mech-pattern:vehicle:medium_tank", "station": "junction"},
     {"item": "mech-pattern:vehicle:breakthrough_tank", "station": "thunder-run"},
     {"item": "mech-pattern:vehicle:lrm_carrier", "station": "thunder-run"},
     {"item": "mech-pattern:vehicle:drone_skimmer", "station": "thunder-run"},

@@ -57,6 +57,24 @@ class VehicleGunTest {
     }
 
     @Test
+    void theMediumTankTakesTwoRowBallisticGunsButNeverTheHeavyCannon() {
+        VehicleGunCard card = VehicleGunCard.of(VehicleType.MEDIUM_TANK);
+        assertSame(VehicleGunCard.MEDIUM_CANNON, card);
+        assertTrue(card.accepts(VehicleType.MEDIUM_TANK.standardPart()), "its stock gun fits its own card");
+        assertTrue(card.accepts(MechWeaponComponent.AC_6));
+        assertFalse(card.accepts(MechWeaponComponent.HC_20), "three rows are the Onager's");
+        assertFalse(card.accepts(MechWeaponComponent.PL_2_AP));
+    }
+
+    @Test
+    void aHeadSitsOnTheRingItsHullPaints() {
+        VehicleType tank = VehicleType.MEDIUM_TANK;
+        assertEquals(tank.visualWidthCells * tank.turretRingShareOfWidth(), VehicleGun.mountCells(tank), 1e-6f);
+        assertTrue(VehicleGun.mountCells(tank) < tank.visualWidthCells * VehicleType.HEAVY_APC.turretRingShareOfWidth(),
+                "a hull whose ring is narrower than most draws a smaller head");
+    }
+
+    @Test
     void anUnarmedHullHasNoCard() {
         assertNull(VehicleGunCard.of(VehicleType.SUPPLY_TRUCK));
     }
