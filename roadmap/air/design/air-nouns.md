@@ -49,7 +49,8 @@ enabled mods. Each swap is logged once (`modded <id> fires as <stand-in>`).
 ## Core vocabulary
 
 **Remote ship command** selects a player-owned overhead hull without taking its helm.
-Move replaces its travel with a station on observed ground; Hold brakes onto its
+Move replaces its travel with a station on observed ground, and with nothing to fight
+the hull goes nose first and keeps that heading on arrival; Hold brakes onto its
 current point. Weapons and survival remain the hull's, and a bounded support visit
 continues spending time while following remote travel. Autonomous hands the original
 station or route back. A piloted, grounded, destroyed or withdrawing hull cannot
@@ -3027,8 +3028,9 @@ bounds a free tender is ground already covered by its side's turrets, not a coun
 `tender-ship.md` has the rules.
 
 A recovering mission hull may instead use a **low hover** with the same full-size
-body as its grounded appearance. It remains a live warship and tender, with a
-fixed attitude and swept terrain clearance rather than a second movement model.
+body as its grounded appearance. It remains a live warship and tender on the
+ordinary movement model, and turns at the hull's own rate like any hull (owner,
+2026-11-05); its footprint turns with it.
 Its builders work within reach of the moving hull and outside its footprint;
 completed or cancelled remote construction returns mission travel, while explicit
 Move or Hold retains helm authority. The whole body keeps its scale until ascent.

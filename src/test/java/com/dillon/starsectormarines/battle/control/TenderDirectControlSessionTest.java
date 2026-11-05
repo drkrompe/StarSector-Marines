@@ -68,6 +68,21 @@ class TenderDirectControlSessionTest {
     }
 
     @Test
+    void aRecoveryHostIsFlownAsAPlainWarshipWithNoBuildsInHand() throws Exception {
+        Tender morrow = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        warships.add(morrow.ship());
+        tenders.track(morrow);
+        assertTrue(session.enterWarship(morrow.ship()));
+        assertSame(morrow.ship(), session.controlledWarship());
+        assertNull(session.controlledTender());
+        assertNull(session.selectedBuildOption());
+        assertFalse(session.canUseAbility(DirectControlAbility.CANCEL_BUILDS));
+        session.submit(new ManualIntent(0f, 0f, 45.5f, 40.5f, true, false, false));
+        session.tick();
+        assertNull(morrow.current(), "the left button lays no site");
+    }
+
+    @Test
     void theLeftButtonLaysASiteAndTheRightButtonTogglesTheDronesOnThePress() {
         session.enterWarship(tender.ship());
         session.submit(new ManualIntent(1f, 0f, 45.5f, 40.5f, true, false, false));
