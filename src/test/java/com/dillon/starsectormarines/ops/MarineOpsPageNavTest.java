@@ -32,14 +32,13 @@ class MarineOpsPageNavTest {
         }
     }
 
-    @Test void theBoardsMarkShowsOnlyFromOtherPagesWhileThereIsWork() {
+    @Test void theBoardsMarkShowsWhileThereIsWork() {
         var before = MarineOpsPageNav.workHere;
         try {
             MarineOpsPageNav.workHere = () -> true;
-            assertTrue(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.BARRACKS, null, 0f));
-            assertFalse(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.MISSIONS, null, 0f));
+            assertTrue(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, null, 0f));
             MarineOpsPageNav.workHere = () -> false;
-            assertFalse(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, MarineOpsPageNav.Page.BARRACKS, null, 0f));
+            assertFalse(MarineOpsPageNav.attention(MarineOpsPageNav.Page.MISSIONS, null, 0f));
         } finally {
             MarineOpsPageNav.workHere = before;
         }

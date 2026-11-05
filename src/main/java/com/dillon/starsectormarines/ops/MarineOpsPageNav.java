@@ -229,7 +229,7 @@ final class MarineOpsPageNav {
             markup.requireElement(id)
                     .classed("page-nav-absent", available == Aboard.NO)
                     .classed("page-nav-waiting", available == Aboard.UNKNOWN)
-                    .classed("page-nav-attention", available != Aboard.NO && attention(page, current, roster, day))
+                    .classed("page-nav-attention", available != Aboard.NO && attention(page, roster, day))
                     .classed("page-nav-new", available != Aboard.NO
                             && notices.stream().anyMatch(notice -> notice.page == page))
                     .classed("selected", selected)
@@ -237,9 +237,9 @@ final class MarineOpsPageNav {
         }
     }
 
-    /** The mark on a route. The board's says there is work to see, which is nothing to say on the board itself. */
-    static boolean attention(Page page, Page current, MarineRoster roster, float day) {
-        if (page == Page.MISSIONS) return current != Page.MISSIONS && workHere.getAsBoolean();
+    /** The mark on a route, shown on every page alike. The board's says there is work here. */
+    static boolean attention(Page page, MarineRoster roster, float day) {
+        if (page == Page.MISSIONS) return workHere.getAsBoolean();
         return RoomAttention.needed(page, roster, day);
     }
 
