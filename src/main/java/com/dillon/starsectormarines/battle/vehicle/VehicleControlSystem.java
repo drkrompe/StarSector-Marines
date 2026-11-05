@@ -134,11 +134,12 @@ public final class VehicleControlSystem {
     }
 
     /**
-     * Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view or a
-     * ramming hull's breach view.
+     * Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view, or a
+     * ramming or crushing hull's breach view.
      */
     boolean isKeptView(NavigationGrid grid) {
-        return tracks != null && grid == tracks.currentView() || ram != null && ram.isView(grid);
+        return tracks != null && grid == tracks.currentView() || ram != null && ram.isView(grid)
+                || blade != null && blade.isKeptView(grid);
     }
 
     /** The route cost a hull's own move-order proof pays. */
@@ -146,6 +147,7 @@ public final class VehicleControlSystem {
         TerrainCostField cost = type.isHover() ? HoverSkirt.costField(navigation.getTopology())
                 : TerrainCostField.from(navigation.getTopology());
         if (tracks != null && type.crushesUndergrowth()) cost = HeavyTracks.costField(navigation.getGrid(), cost);
+        if (crushesWalls(type)) return blade.costField(type, cost);
         return rams(type) ? ram.costField(type, cost) : cost;
     }
 

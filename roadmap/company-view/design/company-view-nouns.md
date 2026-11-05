@@ -686,9 +686,9 @@ The same selection-and-catalog grammar may serve tanks and future scarce heavy a
 Each asset class still supplies its own projection and socket layout, so a shared
 room does not collapse vehicles into mech chassis semantics.
 
-Subsystem assignment is an atomic inventory transaction. Installed copies
-count against owned quantity and the target's current component returns before
-the candidate is checked. The active squad freezes into plain deployment values
+Subsystem assignment is an atomic inventory transaction. Stores hold spares
+only (`PartStores`, shared with the Shuttle Deck): a fit takes the incoming part
+off the shelf and stows the one it replaces. The active squad freezes into plain deployment values
 only when a sourced Mech Support power is resolved, preserving the same rule as
 personnel deployment: campaign objects do not enter battle.
 
@@ -1895,9 +1895,9 @@ again. It is off by default, so squads fight under their acting NCOs as before.
 - Fire teams are equipment/AI/lift units, not player command targets.
 - Weapon cards and tactic sheets are complete, developer-authored squad issues the
   player collects; a learned card is freely fitted by the Machine Shop.
-- Mech weapon assemblies and subsystems are finite physical stock; installed copies
-  remain counted, while their fabrication spends player cargo through one campaign
-  authority. The Mech Lab cannot create a second inventory or commodity-art catalog.
+- Mech weapon assemblies and subsystems are finite physical stock: spares on the
+  shelf (`PartStores`) and the copies fitted to machines, while their fabrication
+  spends player cargo through one campaign authority. The Mech Lab cannot create a second inventory or commodity-art catalog.
 - A failed squad equipment issue changes neither materialized kit nor either doctrine id.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.
