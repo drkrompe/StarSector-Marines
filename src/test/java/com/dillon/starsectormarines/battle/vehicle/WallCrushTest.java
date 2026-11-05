@@ -352,6 +352,88 @@ class WallCrushTest {
         }
     }
 
+    /**
+     * Reversing, the hull bears on the strip past its tail, not its nose: the wall row it backs into comes down and
+     * the wall ahead of its nose is untouched.
+     */
+    @Test void reversingItBearsOnTheStripPastItsTail() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        for (int x = 9; x <= 11; x++) wall(grid, topology, x, 5, 100);
+        wall(grid, topology, 10, 10, 100);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        VehicleControlComponent control = new VehicleControlComponent();
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, control, 1f / 30f, -1), "the tail bears on the row behind");
+            for (int tick = 1; tick < 45; tick++) crush.push(body, type, control, 1f / 30f, -1);
+            for (int x = 9; x <= 11; x++) assertTrue(grid.isWalkable(x, 5), "backed through " + x);
+            assertEquals(100, grid.getWallHp(10, 10), "the wall ahead of the nose is not borne on");
+        }
+    }
+
+    /** Backing at speed into a wall row, its way carries it through astern as it does ahead. */
+    @Test void reversingAtSpeedItsMassCarriesItThroughAstern() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        // The tail stands at y 6.5, touching row 6.
+        for (int x = 9; x <= 11; x++) wall(grid, topology, x, 6, 100);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        body.speed = -type.maxSpeed;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            assertTrue(crush.push(body, type, new VehicleControlComponent(), 1f / 30f, -1));
+            assertTrue(grid.isWalkable(10, 6), "down at the first touch");
+            assertTrue(body.speed < 0f && body.speed > -type.maxSpeed, "checked, still backing: " + body.speed);
+        }
+    }
+
+    /**
+     * Turning, its whole footprint crushes: a wall its flank overlaps comes down, and it still does where something
+     * it cannot push holds the hull as well, though that is no progress.
+     */
+    @Test void itsWholeFootprintCrushesWhereverItTurns() {
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        for (boolean alsoHeld : new boolean[]{false, true}) {
+            NavigationGrid grid = floor();
+            CellTopology topology = new CellTopology(SIZE, SIZE);
+            wall(grid, topology, 11, 8, 100);
+            if (alsoHeld) {
+                grid.setWalkable(9, 7, false);
+                grid.setTag(9, 7, NavigationGrid.CellTag.NATURAL_SOLID, true);
+            }
+            GroundBody body = noseAtRow10(type);
+            VehicleControlComponent control = new VehicleControlComponent();
+            try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+                WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+                assertEquals(!alsoHeld, crush.grind(body, type, control, 1f / 30f), "progress only when free");
+                for (int tick = 1; tick < 45; tick++) crush.grind(body, type, control, 1f / 30f);
+                assertTrue(grid.isWalkable(11, 8), "the flank's wall is down, held " + alsoHeld);
+                if (alsoHeld) assertFalse(grid.isWalkable(9, 7), "the rock stands");
+            }
+        }
+    }
+
+    /** A cell both its leading strip and its footprint cover takes one rate a tick, not two. */
+    @Test void aPushAndAGrindTheSameTickSpendOneRate() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 10, 10, 100);
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        GroundBody body = noseAtRow10(type);
+        VehicleControlComponent control = new VehicleControlComponent();
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            WallCrush crush = new WallCrush(navigation, new MapEditor(navigation), null);
+            for (int tick = 0; tick < 15; tick++) {
+                crush.push(body, type, control, 1f / 30f, 1);
+                crush.grind(body, type, control, 1f / 30f);
+            }
+            assertEquals(100 - (int) (WallCrush.ULTRA_HEAVY_PER_SECOND * .5f), grid.getWallHp(10, 10), 1);
+        }
+    }
+
     /** Row 10 from x 9 to 11: a city wall, a window bay looking south out of floor cell (10, 10), a city wall. */
     private static void windowBay(NavigationGrid grid, CellTopology topology) {
         wall(grid, topology, 9, 10, 100);

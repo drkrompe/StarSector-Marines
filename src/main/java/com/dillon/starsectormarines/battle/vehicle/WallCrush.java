@@ -29,8 +29,11 @@ import java.util.List;
  * turret's mount, a prop without damage art) are never pushed. Low crash debris under the hull and its bearing strip
  * is graded flat: the cell keeps its terrain and loses the slowing tag.
  *
- * <p><b>The bearing strip.</b> A hull bears on a strip just past its nose ({@link #bearingWidth}): the hull's own
- * width, since it has nothing wider than itself to push with, so the gap it cuts is its own width.
+ * <p><b>The crush area.</b> A hull crushes where its whole footprint goes, whichever way it moves. Moving, it bears
+ * on a strip just past the end it moves toward ({@link #push}): its nose driving forward, its tail reversing, the
+ * hull's own width ({@link #bearingWidth}), so the gap it cuts is its own width. Every tick it moves or turns, it also
+ * bears on every pushable cell and edge its footprint overlaps at the pose the move would reach ({@link #grind}): a
+ * flank swung into a house wall as it turns, a corner as it pivots on the spot.
  *
  * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #HEAVY_PER_SECOND} for a heavy hull,
  * {@link #ULTRA_HEAVY_PER_SECOND} for an ultra-heavy one) of structure per second on every pushable cell it bears on
@@ -47,10 +50,10 @@ import java.util.List;
  * its energy gives; where they do not, they share its momentum and the hull is brought up against them, to push them
  * down at its rate from a standstill.
  *
- * <p><b>The hull.</b> A crushing hull is held by pushable ground only while it pushes it down. Where its flank, not
- * its nose, is what bears on pushable cells, its tail or flank swung into a house wall as it turns, and nothing else
- * holds it, it {@link #grind grinds} them at its rate. Its route proof counts that ground open, so its turns may sweep
- * there; without this a hull stood against a wall its own plan had driven it into.
+ * <p><b>The hull.</b> A crushing hull is held by pushable ground only while it pushes it down. What its footprint
+ * overlaps it {@link #grind grinds} at its rate, beside what its leading strip bears on, never twice in one tick;
+ * that counts as progress only where nothing it cannot push holds it too. Its route proof counts that ground open, so
+ * its turns may sweep there; without this a hull stood against a wall its own plan had driven it into.
  *
  * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell and edge open. A crushing
  * hull's move-order proof and its rolling local planner read that view, laid over the grid it moves over (its
@@ -108,6 +111,15 @@ public final class WallCrush {
     private int overlappedCount;
     /** Whether something the hull cannot push holds it this tick ({@link #grind}). */
     private boolean heldElsewhere;
+    /** Footprint cells a grind bears on beyond what this tick's push bore on, as x/y pairs. */
+    private final int[] held = new int[128];
+    private int heldCount;
+    /** Footprint edges a grind bears on beyond this tick's push's, as x/y/direction-ordinal triples. */
+    private final int[] heldEdges = new int[96];
+    private int heldEdgeCount;
+    /** The hull this tick's push bore on, and what it spent: a grind the same tick spends that, not a second rate. */
+    private GroundBody pushed;
+    private int pushedSpend;
     /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
     private final List<View> views = new ArrayList<>(2);
 
@@ -259,20 +271,27 @@ public final class WallCrush {
         return false;
     }
 
+    /** {@link #push(GroundBody, VehicleType, VehicleControlComponent, float, int)} driving forward. */
+    public boolean push(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
+        return push(body, type, control, dt, 1);
+    }
+
     /**
-     * One tick of a crushing hull bearing ahead at {@code body}'s pose: grades the debris under the hull and the
-     * strip, and spends this tick's push on every pushable cell in the strip.
+     * One tick of a crushing hull bearing the way it moves at {@code body}'s pose: grades the debris under the hull
+     * and the strip, and spends this tick's push on every pushable cell and edge in the strip.
      *
+     * @param travel {@code 1} driving forward, the strip past its nose; {@code -1} reversing, past its tail
      * @return whether the hull bore on at least one pushable cell — work that counts as progress for the hull's
      *         stall and wall-contact recovery
      */
-    public boolean push(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
+    public boolean push(GroundBody body, VehicleType type, VehicleControlComponent control, float dt, int travel) {
         NavigationGrid grid = navigation.getGrid();
         CellTopology topology = navigation.getTopology();
         int most = ceiling(type);
-        float halfL = type.visualLengthCells * .5f;
+        int way = travel < 0 ? -1 : 1;
+        pushed = null;
         float stripLength = REACH_CELLS + OVERLAP_CELLS;
-        float stripOffset = halfL - OVERLAP_CELLS + stripLength * .5f;
+        float stripOffset = way * stripOffset(type, stripLength);
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
                 type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
                     if (grades(grid, x, y)) grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
@@ -297,46 +316,98 @@ public final class WallCrush {
         float pending = control.bladeCarry + rate(type) * dt;
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
-        strike(body, type, grid, topology, spend, dt);
+        strike(body, type, grid, topology, spend, dt, way);
         if (spend > 0) spendOnBearing(body, spend);
+        pushed = body;
+        pushedSpend = spend;
         return true;
     }
 
     /**
-     * One tick of a hull held where it means to move: at {@code body}'s pose, the pose its move would reach, its
-     * footprint overlaps blocking cells. Where every one is pushable it spends this tick's push on them, as its nose
-     * does.
+     * How far along the hull's axis, from its centre toward the end it moves to, the middle of a strip of
+     * {@code length} lies: reaching past that end, overlapping it by {@link #OVERLAP_CELLS} so a cell already touching
+     * the hull is still borne on.
+     */
+    static float stripOffset(VehicleType type, float length) {
+        return type.visualLengthCells * .5f - OVERLAP_CELLS + length * .5f;
+    }
+
+    /**
+     * One tick of a hull moving or turning: at {@code body}'s pose, the pose its move would reach, it spends this
+     * tick's push on every pushable cell and edge its whole footprint overlaps, whichever way it moved to get there.
+     * Called after a {@link #push} of the same hull the same tick, it spends what that push spent and skips what
+     * that push already bore on, so nothing takes two rates in one tick.
      *
-     * @return whether it bore on pushable cells and on nothing else — work that counts as progress, as
-     *         {@link #push}'s does; {@code false}, and nothing spent, where anything else holds it
+     * @return whether it bore on pushable ground beyond this tick's push and nothing it cannot push holds it — work
+     *         that counts as progress, as {@link #push}'s does. Where something else holds it, it still grinds what
+     *         it can, but that is no progress
      */
     public boolean grind(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
         NavigationGrid grid = navigation.getGrid();
         CellTopology topology = navigation.getTopology();
         int most = ceiling(type);
-        bearingCount = 0;
+        boolean afterPush = pushed == body;
+        pushed = null;
+        heldCount = 0;
         overlappedCount = 0;
         heldElsewhere = false;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
                 type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
                     overlap(x, y);
                     if (grid.isWalkable(x, y)) return;
-                    if (!canPush(grid, topology, doodads, x, y, most) || bearingCount * 2 >= bearing.length) {
+                    if (!canPush(grid, topology, doodads, x, y, most)) {
                         heldElsewhere = true;
                         return;
                     }
-                    bearing[bearingCount * 2] = x;
-                    bearing[bearingCount * 2 + 1] = y;
-                    bearingCount++;
+                    if (afterPush && inBearing(x, y) || heldCount * 2 >= held.length) return;
+                    held[heldCount * 2] = x;
+                    held[heldCount * 2 + 1] = y;
+                    heldCount++;
                 });
-        if (heldElsewhere) return false;
-        bearingEdgeCount = spannedEdges(grid, most, bearingEdges, true);
-        if (bearingEdgeCount < 0 || bearingCount == 0 && bearingEdgeCount == 0) return false;
-        float pending = control.bladeCarry + rate(type) * dt;
-        int spend = (int) pending;
-        control.bladeCarry = pending - spend;
-        if (spend > 0) spendOnBearing(body, spend);
-        return true;
+        int edges = spannedEdges(grid, most, heldEdges, true);
+        if (edges < 0) {
+            heldElsewhere = true;
+            edges = spannedEdges(grid, most, heldEdges, false);
+        }
+        heldEdgeCount = 0;
+        for (int i = 0; i < edges; i++) {
+            int x = heldEdges[i * 3], y = heldEdges[i * 3 + 1], d = heldEdges[i * 3 + 2];
+            if (afterPush && inBearingEdges(x, y, d)) continue;
+            heldEdges[heldEdgeCount * 3] = x;
+            heldEdges[heldEdgeCount * 3 + 1] = y;
+            heldEdges[heldEdgeCount * 3 + 2] = d;
+            heldEdgeCount++;
+        }
+        if (heldCount == 0 && heldEdgeCount == 0) return false;
+        int spend;
+        if (afterPush) {
+            spend = pushedSpend;
+        } else {
+            float pending = control.bladeCarry + rate(type) * dt;
+            spend = (int) pending;
+            control.bladeCarry = pending - spend;
+        }
+        if (spend > 0) {
+            for (int i = 0; i < heldCount; i++) damageCell(body, held[i * 2], held[i * 2 + 1], spend);
+            for (int i = 0; i < heldEdgeCount; i++) {
+                damageEdge(body, heldEdges[i * 3], heldEdges[i * 3 + 1], heldEdges[i * 3 + 2], spend);
+            }
+        }
+        return !heldElsewhere;
+    }
+
+    private boolean inBearing(int x, int y) {
+        for (int i = 0; i < bearingCount; i++) if (bearing[i * 2] == x && bearing[i * 2 + 1] == y) return true;
+        return false;
+    }
+
+    private boolean inBearingEdges(int x, int y, int direction) {
+        for (int i = 0; i < bearingEdgeCount; i++) {
+            if (bearingEdges[i * 3] == x && bearingEdges[i * 3 + 1] == y && bearingEdges[i * 3 + 2] == direction) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Notes a cell the current strip or footprint overlaps. */
@@ -406,22 +477,25 @@ public final class WallCrush {
     }
 
     /**
-     * The hull's momentum spent on what its nose reaches this tick: the pushable cells within the way it moves, not
+     * The hull's momentum spent on what its leading end ({@code way}: its nose, or its tail reversing) reaches this
+     * tick: the pushable cells within the way it moves, not
      * the whole strip it bears on, so a cell beside its path that it never hits does not stop it. Where its momentum
      * and {@code spend} cover all those cells have left they fall now and it drives on at the speed the rest gives;
      * where they do not, they share its momentum and it is brought up against them.
      */
     private void strike(GroundBody body, VehicleType type, NavigationGrid grid, CellTopology topology, int spend,
-                        float dt) {
+                        float dt, int way) {
         float tonnes = type.massTonnes();
-        float impact = HullMomentum.structure(tonnes, body.speed);
+        // Its way toward the end it leads with: a hull moving the other way strikes nothing.
+        float speed = way * body.speed;
+        float impact = HullMomentum.structure(tonnes, speed);
         if (impact <= 0f) return;
         int most = ceiling(type);
-        float reach = OVERLAP_CELLS + body.speed * dt + CONTACT_CELLS;
+        float reach = OVERLAP_CELLS + speed * dt + CONTACT_CELLS;
         struckCount = 0;
         overlappedCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, bearingWidth(type), grid,
+                way * stripOffset(type, reach), reach, bearingWidth(type), grid,
                 (x, y) -> {
                     overlap(x, y);
                     if (!canPush(grid, topology, doodads, x, y, most) || struckCount * 2 >= struck.length) return;
@@ -445,7 +519,7 @@ public final class WallCrush {
                 damageEdge(body, struckEdges[i * 3], struckEdges[i * 3 + 1], struckEdges[i * 3 + 2],
                         edgeLeft(grid, i, spend));
             }
-            body.speed = HullMomentum.speedAfter(tonnes, body.speed, standing);
+            body.speed = way * HullMomentum.speedAfter(tonnes, speed, standing);
             return;
         }
         // It is brought up: its whole way goes into what it hits, shared.
