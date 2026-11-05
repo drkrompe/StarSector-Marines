@@ -221,8 +221,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     // No part in the gun card: the ring stands bare, and the hull has no turret and no gun; a hull
                     // with a closed head shows it with nothing in its slot.
                     drawTurretHead(out, sprites, type, cam.cellToScreenX(body.x + mountWorldX),
-                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing,
-                            wrecked ? WRECK_SHADE : 1f, alphaMult);
+                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing, wrecked, alphaMult);
                 } else if (gun == null) {
                     if (raised) {
                         float lift = RAISE_SHADOW_CELLS * turret.elevation;
@@ -321,7 +320,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     // A family's closed head goes over the weapon, so only its barrel shows through the slot; it holds
                     // the ring's centre while the gun under it kicks.
                     drawTurretHead(out, sprites, type, cam.cellToScreenX(body.x + mountWorldX),
-                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing + wreckSkewDeg, shade,
+                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing + wreckSkewDeg, wrecked,
                             alphaMult);
                 }
                 if (locations != null && locations.turret() != null
@@ -346,11 +345,17 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
     /**
      * Draws {@code type}'s closed family head ({@link VehicleGun#headCells}) centred on the ring at the screen point,
-     * its slot toward {@code facingDeg}; nothing for a hull without one or when the art did not load.
+     * its slot toward {@code facingDeg}; nothing for a hull without one or when the art did not load. A wreck draws the
+     * head's own painted wreck, falling back to the live head charred.
      */
     private static void drawTurretHead(DrawList out, BattleSprites sprites, VehicleType type, float x, float y,
-                                       float cellPx, float facingDeg, float shade, float alpha) {
-        LayeredSpriteCache head = sprites.vehicleTurretHead(type.turretHead());
+                                       float cellPx, float facingDeg, boolean wrecked, float alpha) {
+        LayeredSpriteCache head = wrecked ? sprites.vehicleTurretHead(type.turretHead(), true) : null;
+        float shade = 1f;
+        if (head == null) {
+            head = sprites.vehicleTurretHead(type.turretHead(), false);
+            shade = wrecked ? WRECK_SHADE : 1f;
+        }
         if (head == null) return;
         float px = VehicleGun.headCells(type) * cellPx;
         out.addSprite(RenderLayer.CONVOY, head.sprite, x, y, px, px, facingDeg, shade, shade, shade, alpha);

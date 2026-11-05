@@ -129,6 +129,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredSpriteCache turretBaseLight;
     private final LayeredSpriteCache gunPlate;
     private final EnumMap<TurretHead, LayeredSpriteCache> turretHeads = new EnumMap<>(TurretHead.class);
+    private final EnumMap<TurretHead, LayeredSpriteCache> turretHeadWrecks = new EnumMap<>(TurretHead.class);
     private final LayeredSpriteCache kitActiveProtection;
     private final LayeredSpriteCache kitActiveProtectionTurret;
     private final EnumMap<MechWeaponComponent, LayeredSpriteCache> gunDrawings = new EnumMap<>(MechWeaponComponent.class);
@@ -204,6 +205,8 @@ final class HeadlessBattleSprites extends BattleSprites {
         for (TurretHead head : TurretHead.values()) {
             LayeredSpriteCache sprite = optionalLayer("graphics/battle/vehicles/" + head.texture);
             if (sprite != null) turretHeads.put(head, sprite);
+            LayeredSpriteCache wreck = optionalLayer("graphics/battle/vehicles/" + head.wreckTexture);
+            if (wreck != null) turretHeadWrecks.put(head, wreck);
         }
         kitActiveProtection = optionalLayer("graphics/battle/vehicles/kit-active-protection.png");
         kitActiveProtectionTurret = optionalLayer("graphics/battle/vehicles/kit-active-protection-turret.png");
@@ -375,8 +378,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
     @Override public LayeredSpriteCache vehicleGunPlate() { return gunPlate; }
-    @Override public LayeredSpriteCache vehicleTurretHead(TurretHead head) {
-        return head == null ? null : turretHeads.get(head);
+    @Override public LayeredSpriteCache vehicleTurretHead(TurretHead head, boolean wrecked) {
+        return head == null ? null : (wrecked ? turretHeadWrecks : turretHeads).get(head);
     }
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
     @Override public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return kitActiveProtectionTurret; }

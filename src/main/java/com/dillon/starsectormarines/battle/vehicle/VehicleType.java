@@ -557,8 +557,8 @@ public enum VehicleType {
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
     /**
      * The closed head this hull draws over its fitted weapon ({@link TurretHead}), or null for a hull whose weapon stands
-     * bare on its ring. The APC is first (hegemony-armor-line.md, slice 1); its mortar and LRM carriers follow with its
-     * Hegemony hull.
+     * bare on its ring. The APC wears the Hegemony head (hegemony-armor-line.md). Its mortar and LRM carriers share its
+     * Hegemony hull but keep their open turntables: their weapons stand up to fire, which a closed head would hide.
      */
     public TurretHead turretHead() {
         return this == HEAVY_APC ? TurretHead.HEGEMONY : null;

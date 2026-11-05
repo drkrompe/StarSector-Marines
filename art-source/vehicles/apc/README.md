@@ -1,5 +1,12 @@
 # APC hull and roof MG
 
+**The live and wreck hulls are now the Hegemony APC** (`hegemony/pack.py`, `hegemony-armor-line.md`): the owner's
+concept and an ImageGen wreck made on it, turned to point left, scaled to the old hull's 722 px length and registered
+with the concept's turret ring on the roof bearing (335.333, 288) below. Its fitted weapon is drawn under the
+Hegemony turret head (`art-source/vehicles/turret-head`). The six tyre bands `VehicleTreadRender` scrolls are
+re-measured there. What follows describes the original olive hull: its masters still supply the twin-MG turret
+frames (slots 1 and 3), and `pack.ps1`, which packed the whole old sheet, is retired.
+
 Created with built-in ImageGen using `shape.prompt.txt`, `guide.png` as geometry,
 and `material-reference.png` as the material reference. `guide.ps1` reproduces
 the silhouette: a left-facing six-wheel overhead hull with a tapered wedge
