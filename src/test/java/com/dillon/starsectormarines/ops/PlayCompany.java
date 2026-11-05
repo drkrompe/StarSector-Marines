@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -111,6 +112,21 @@ final class PlayCompany {
             default -> throw new IllegalArgumentException("unknown boats state: " + state);
         }
         deck.settleRecovery("play-" + state, damage, List.of(), 0f);
+    }
+
+    /** Adds to the purse. */
+    static void addCredits(int credits) {
+        HELD_CREDITS.add(credits);
+    }
+
+    /** Adds marines to the hold; stores that do not run out stay as they are. */
+    static void addMarines(int marines) {
+        stow(Commodities.MARINES, marines);
+    }
+
+    /** The purse and the hold's marines, as the world menu shows them. */
+    static String stockpile() {
+        return String.format(Locale.ROOT, "%,.0f credits / %,.0f marines", HELD_CREDITS.get(), held(Commodities.MARINES));
     }
 
     /** Puts a story mission behind the company, so the board offers what follows it. */

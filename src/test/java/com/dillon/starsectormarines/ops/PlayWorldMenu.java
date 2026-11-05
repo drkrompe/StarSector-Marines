@@ -19,20 +19,25 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
 
     private static final String ROOT = "world-menu";
     private static final List<String> COMPONENTS = List.of("play/world-menu.mlx");
+    /** What each stockpile button adds; the markup's labels say the same. */
+    private static final int GRANT = 20_000;
 
     private final Consumer<PlanetAPI> pick;
     private final Runnable quit;
     private final Consumer<String> load;
     private final Runnable save;
     private final Runnable startOver;
+    private final Consumer<Runnable> grant;
 
-    PlayWorldMenu(Consumer<PlanetAPI> pick, Runnable quit, Consumer<String> load, Runnable save, Runnable startOver) {
+    PlayWorldMenu(Consumer<PlanetAPI> pick, Runnable quit, Consumer<String> load, Runnable save, Runnable startOver,
+                  Consumer<Runnable> grant) {
         super(ROOT, COMPONENTS);
         this.pick = pick;
         this.quit = quit;
         this.load = load;
         this.save = save;
         this.startOver = startOver;
+        this.grant = grant;
     }
 
     @Override protected List<String> requiredElementIds() {
@@ -61,6 +66,9 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
         props.put("quitAction", quit);
         props.put("saveAction", save);
         props.put("newAction", startOver);
+        props.put("stockpile", PlayCompany.stockpile());
+        props.put("creditsAction", (Runnable) () -> grant.accept(() -> PlayCompany.addCredits(GRANT)));
+        props.put("marinesAction", (Runnable) () -> grant.accept(() -> PlayCompany.addMarines(GRANT)));
         List<Map<String, Object>> saves = new ArrayList<>();
         for (String name : PlaySaves.names()) {
             String id = "save-" + name;
