@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.fitting.ReadinessRow;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
@@ -210,7 +211,7 @@ class BoatDeckViewModelTest {
         assertTrue(viewModel.overviewClasses().get().contains("hidden"));
         assertFalse(viewModel.fittingClasses().get().contains("hidden"));
 
-        List<BoatDeckViewModel.ReadinessRow> readiness = viewModel.readinessRows().get();
+        List<ReadinessRow> readiness = viewModel.readinessRows().get();
         assertTrue(readiness.stream().noneMatch(row -> row.classes().contains("readiness-danger")),
                 "a boat at standard fit is missing nothing");
         assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive",
@@ -624,7 +625,7 @@ class BoatDeckViewModelTest {
         model.returnToStores(BoatDoll.slotKey(BoatFittingSlot.PLATING));
         model.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.CABIN));
 
-        List<BoatDeckViewModel.ReadinessRow> rows = model.readinessRows().get();
+        List<ReadinessRow> rows = model.readinessRows().get();
         assertTrue(rows.get(0).classes().contains("readiness-danger"), rows.get(0).classes());
         assertTrue(rows.get(1).id().endsWith(":bare-hull"), rows.get(1).id());
         rows.get(0).select().run();
@@ -658,7 +659,7 @@ class BoatDeckViewModelTest {
         assertEquals(laser, pod.podItemId());
         assertTrue(pod.selected(), "a position's key opens its hardpoint");
         assertEquals(laser, model.installedIn(bottom));
-        BoatDeckViewModel.ReadinessRow bare = model.readinessRows().get().stream()
+        ReadinessRow bare = model.readinessRows().get().stream()
                 .filter(row -> row.id().endsWith(":bare-mounts")).findFirst().orElseThrow();
         assertEquals(Strings.format("boatReadinessBareMounts", 1, 3), bare.title());
         assertEquals(Strings.format("boatReadinessBareMountsDetail", 3, 2), bare.detail(),

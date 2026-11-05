@@ -373,7 +373,8 @@ increasing an encounter's total armored threat.
   A shuttle is not this kind of machine: she flies, so her parts are her own (`BoatFitting`, `BoatGun`) and so is her
   board. What she shares is what every machine reads: the specifications' rows, words and hover preview
   (`MachineFigures`), the socket card with red for a part she cannot go without and yellow for one she is better for
-  (`MechSocketConsole.frame`). She differs by these rules:
+  (`MechSocketConsole.frame`), and the readiness list that says the same in words (`ReadinessRow`). She differs by
+  these rules:
   - **She cannot fly without her drive, her cabin and her capacitors** (`CampaignBoat.REQUIRED_SLOTS`): her shield and
     guns share one pool, armed or not. A plate, a lift, an emitter and guns are options.
   - **A hardpoint is two positions and any gun goes on it** (`BoatHardpoint`), rather than a point sized to one gun.
@@ -695,7 +696,11 @@ increasing an encounter's total armored threat.
   from the worn body. No section lands destroyed; a section the last battle took
   off comes back patched to a tenth of its structure. Only an incomplete frame
   stays off the armor-drop manifest. The Mech Lab shows a repairing mech's days
-  left, its section wear and the condition it would drop at.
+  left, its section wear and the condition it would drop at, on a card of its own.
+- Every machine's **readiness list** (`ReadinessRow`, owner 2026-11-05) sits under its specifications, in the Mech Lab
+  as on the Shuttle Deck: a red line for each part it cannot go without, then a yellow one for what it goes without (no
+  plate, no weapon; on a shuttle no shield, or bare mounts), or one green line when nothing is missing or bare. A line
+  about a socket opens that socket.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is

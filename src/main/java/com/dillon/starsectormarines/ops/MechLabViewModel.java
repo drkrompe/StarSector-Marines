@@ -42,6 +42,7 @@ import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.marine.MachineCapabilities;
 import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.ops.fitting.ReadinessRow;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
@@ -148,6 +149,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> overviewRailClasses;
     private final ComputedSignal<String> garageTitle;
     private final ComputedSignal<Repair> repair;
+    private final ComputedSignal<List<ReadinessRow>> readinessRows;
     private final ComputedSignal<String> garageStatus;
     private final ComputedSignal<String> dragNoteTitle;
     private final ComputedSignal<String> dragNoteCopy;
@@ -332,6 +334,7 @@ public final class MechLabViewModel {
                 ? activeGantryLabel.get() : String.format(Strings.locale(),
                         Strings.get("openingMechLabActiveLanceAllGantries"), padLetter(Math.max(0, physicalGantries - 1))));
         repair = reactor.computed(this::buildRepair);
+        readinessRows = reactor.computed(this::buildReadiness);
         garageStatus = reactor.computed(() -> {
             revision.get();
             if (!fittingFocused.get()) return Strings.get("openingMechLabStatusSelectAPad");
@@ -725,12 +728,15 @@ public final class MechLabViewModel {
         props.put("shipRefitText", shipRefitText);
     }
 
-    /** Battle-damage repair bindings, shared by the screen and its evidence. */
+    /** Battle-damage repair and readiness bindings, shared by the screen and its evidence. */
     public void putRepairProps(Map<String, Object> props) {
         props.put("repair", repair);
+        props.put("readinessRows", readinessRows);
     }
 
     public Signal<Repair> repair() { return repair; }
+
+    public Signal<List<ReadinessRow>> readinessRows() { return readinessRows; }
 
     /** The selected mech's current fit, or null without one. */
     public MechFrameBudget.Fit selectedFit() {
@@ -1935,37 +1941,67 @@ public final class MechLabViewModel {
         return new Repair("mech-repair-card surface-dark hidden", "", "", "", "", "mech-repair-detail hidden", "");
     }
 
-    /** A machine ready to go with no plate or no weapon: recommended, not required, so yellow; else no card. */
-    private Repair recommendedCard(boolean noPlate) {
-        boolean unarmed = selectedMachineUnarmed();
-        if (!noPlate && !unarmed) return hiddenRepairCard();
-        return new Repair("mech-repair-card surface-dark recommended", "height: 50px;",
-                Strings.get(noPlate && unarmed ? "mechLabReadinessNoPlateNoWeapons"
-                        : noPlate ? "mechLabReadinessNoPlate" : "mechLabReadinessNoWeapons"),
-                "label heading tone-recommended mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
-    }
-
     /** The selected mech's battle damage and its free repair clock, or a hidden card. */
     private Repair buildRepair() {
         revision.get();
         float now = day.get();
         CampaignMachine machine = selectedMachine();
-        if (machine == null) return hiddenRepairCard();
-        if (!machine.complete()) {
-            return new Repair("mech-repair-card surface-dark", "height: 50px;", incompleteText(machine),
-                    "label heading tone-danger mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
+        // Only a mech carries wear between battles: a hull comes back whole or does not come back. What a machine
+        // lacks is its readiness list's, so an incomplete mech's card reads its damage alone.
+        if (!(machine instanceof CampaignMech mech) || mech.damageOn(now) == null) {
+            return hiddenRepairCard();
         }
-        // Only a mech carries wear between battles: a hull comes back whole or does not come back.
-        if (!(machine instanceof CampaignMech mech) || mech.readiness(now) == CampaignMech.Readiness.READY) {
-            return recommendedCard(machine.internal(MechInternal.Role.PLATING) == null);
-        }
-        String status = readinessText(mech);
-        String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
+        String status = Strings.format("mechLabReadinessUnderRepair", tenths(mech.repairDaysRemaining(now)));
+        String statusClasses = "label heading mech-repair-status tone-accent";
         MechDamage damage = mech.damageOn(now);
         int condition = Math.round((1f - damage.wear(mech.variant().bodyPlan())) * 100f);
         return new Repair("mech-repair-card surface-dark", "height: 110px;", status, statusClasses,
                 sectionWear(damage), "mech-repair-detail",
                 Strings.format("mechLabRepairCondition", String.valueOf(condition)));
+    }
+
+    /**
+     * The selected machine's readiness, read as a shuttle's is: each part it cannot drop without, then what it drops
+     * without (no plate, no weapon). Every line opens the socket it is about; a machine with nothing missing or bare
+     * reads as one line saying so. Battle damage is the repair card's.
+     */
+    private List<ReadinessRow> buildReadiness() {
+        revision.get();
+        CampaignMachine machine = selectedMachine();
+        if (machine == null) return List.of();
+        List<SocketDef> sockets = machineSockets(machine);
+        List<ReadinessRow> rows = new ArrayList<>();
+        for (MechInternal.Role role : machine.missingInternals()) {
+            boolean engine = role == MechInternal.Role.ENGINE;
+            rows.add(readiness("missing:" + role.name(), ReadinessRow.Tone.DANGER,
+                    Strings.get(engine ? "mechLabReadinessEngineMissing" : "mechLabReadinessCapacitorsMissing"),
+                    Strings.get("mechLabReadinessMissingDetail"),
+                    engine ? SocketId.CORE : firstSocket(sockets, socket -> socket.id().compartment())));
+        }
+        if (machine.internal(MechInternal.Role.PLATING) == null) {
+            rows.add(readiness("no-plate", ReadinessRow.Tone.WARN, Strings.get("mechLabReadinessNoPlate"),
+                    Strings.format("mechLabReadinessNoPlateDetail", number(figures(machine, null, null).structure())),
+                    SocketId.PLATING));
+        }
+        if (selectedMachineUnarmed()) {
+            rows.add(readiness("unarmed", ReadinessRow.Tone.WARN, Strings.get("mechLabReadinessNoWeapons"),
+                    Strings.get("mechLabReadinessNoWeaponsDetail"),
+                    firstSocket(sockets, socket -> mountFor(socket.id()) != null)));
+        }
+        if (rows.isEmpty()) {
+            rows.add(readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("mechLabReadinessWhole"),
+                    Strings.get("mechLabReadinessWholeDetail"), null));
+        }
+        return List.copyOf(rows);
+    }
+
+    private static SocketId firstSocket(List<SocketDef> sockets, Predicate<SocketDef> test) {
+        for (SocketDef socket : sockets) if (!socket.factoryLocked() && test.test(socket)) return socket.id();
+        return null;
+    }
+
+    private ReadinessRow readiness(String key, ReadinessRow.Tone tone, String title, String detail, SocketId socket) {
+        return ReadinessRow.of("mech-readiness", key, tone, title, detail, socket == null ? null : () -> selectSlot(socket));
     }
 
     /** Compact per-section wear: each damaged section and how much of it is gone. */

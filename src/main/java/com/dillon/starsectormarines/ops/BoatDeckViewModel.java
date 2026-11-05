@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.ReadinessRow;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
@@ -965,18 +966,18 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         List<ReadinessRow> rows = new ArrayList<>();
         for (BoatFittingSlot slot : boat.missingParts()) {
-            rows.add(readiness("missing:" + slot.name(), "danger",
+            rows.add(readiness("missing:" + slot.name(), ReadinessRow.Tone.DANGER,
                     Strings.format("boatReadinessMissing", sentenceCase(slotLabel(slot))), Strings.get("boatReadinessMissingDetail"),
                     BoatDoll.slotKey(slot)));
         }
         FittedBoat fitted = boat.freezeForDeployment();
         if (boat.plating() == null) {
-            rows.add(readiness("bare-hull", "warn", Strings.get("boatReadinessBareHull"),
+            rows.add(readiness("bare-hull", ReadinessRow.Tone.WARN, Strings.get("boatReadinessBareHull"),
                     Strings.format("boatReadinessBareHullDetail", Math.round(fitted.maxHp())),
                     BoatDoll.slotKey(BoatFittingSlot.PLATING)));
         }
         if (boat.fittingIn(BoatFittingSlot.EMITTER) == null) {
-            rows.add(readiness("no-shield", "warn", Strings.get("boatReadinessNoShield"),
+            rows.add(readiness("no-shield", ReadinessRow.Tone.WARN, Strings.get("boatReadinessNoShield"),
                     Strings.get("boatReadinessNoShieldDetail"), BoatDoll.slotKey(BoatFittingSlot.EMITTER)));
         }
         // A mount is empty with no gun on it at all; one 2x1 gun with room beside it is armed.
@@ -992,14 +993,14 @@ public final class BoatDeckViewModel {
         }
         if (bare > 0) {
             int armed = pattern.hardpoints() - bare;
-            rows.add(readiness("bare-mounts", "warn",
+            rows.add(readiness("bare-mounts", ReadinessRow.Tone.WARN,
                     Strings.format("boatReadinessBareMounts", bare, pattern.hardpoints()),
                     bare == pattern.hardpoints() ? Strings.get("boatReadinessNoGunsDetail")
                             : Strings.format("boatReadinessBareMountsDetail", guns, armed),
                     BoatDoll.HARDPOINT_KEY + firstBare));
         }
         if (rows.isEmpty()) {
-            rows.add(readiness("whole", "good", Strings.get("boatReadinessWhole"),
+            rows.add(readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("boatReadinessWhole"),
                     Strings.get("boatReadinessWholeDetail"), null));
         }
         return List.copyOf(rows);
@@ -1010,11 +1011,8 @@ public final class BoatDeckViewModel {
         return lower.isEmpty() ? lower : lower.substring(0, 1).toUpperCase(Strings.locale()) + lower.substring(1);
     }
 
-    private ReadinessRow readiness(String key, String tone, String title, String detail, String socket) {
-        String id = "boat-readiness:" + key;
-        return new ReadinessRow(id, "readiness-row readiness-" + tone + (socket != null ? " readiness-link" : ""),
-                "readiness-bar readiness-bar-" + tone, title, detail,
-                socket == null ? () -> { } : () -> selectDollSlot(socket));
+    private ReadinessRow readiness(String key, ReadinessRow.Tone tone, String title, String detail, String socket) {
+        return ReadinessRow.of("boat-readiness", key, tone, title, detail, socket == null ? null : () -> selectDollSlot(socket));
     }
 
     /** The kinds of socket a pattern has, in the board's order: guns, plating, drive, cabin, then power, hold, emitter. */
@@ -1491,18 +1489,6 @@ public final class BoatDeckViewModel {
     }
 
     /** The selected socket's card: the kit's slot card, and which socket and piece it shows. */
-    /** One line of a boat's readiness: its tone, what it says, and the socket a click opens. */
-    public record ReadinessRow(String id, String classes, String barClasses, String title, String detail,
-                               Runnable select) implements MarkupPropertySource {
-        @Override public Object markupProperty(String name) { return switch (name) {
-            case "id" -> id; case "classes" -> classes; case "barClasses" -> barClasses;
-            case "title" -> title; case "detail" -> detail; case "select" -> select;
-            case "barId" -> id + ":bar"; case "textId" -> id + ":text";
-            case "titleId" -> id + ":title"; case "detailId" -> id + ":detail";
-            default -> throw unknown("boat-readiness", name);
-        }; }
-    }
-
     /** A part in the stores: the kit's card, and which piece it is, which a drag carries. */
     public record CatalogRow(FittingCard card, BoatDoll.Kind kind, String itemId) implements MarkupPropertySource {
         public String id() { return card.id(); }

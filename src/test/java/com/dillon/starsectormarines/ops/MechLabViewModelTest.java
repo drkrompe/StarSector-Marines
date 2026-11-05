@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.ReadinessRow;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
@@ -387,8 +388,14 @@ class MechLabViewModelTest {
         assertTrue(meters.get(3).value().startsWith("0 "), meters.get(3).value());
         assertTrue(meters.get(4).value().startsWith("0 "), meters.get(4).value());
         assertTrue(meters.get(5).value().startsWith("0 "), meters.get(5).value());
-        assertFalse(viewModel.repair().get().classes().contains("hidden"));
-        assertTrue(viewModel.repair().get().status().contains("engine"));
+        ReadinessRow engine = viewModel.readinessRows().get().get(0);
+        assertEquals("mech-readiness:missing:ENGINE", engine.id());
+        assertTrue(engine.classes().contains("readiness-danger"));
+        viewModel.selectSlot(SocketId.PLATING);
+        engine.select().run();
+        String opened = viewModel.selectedSlotTitle().get();
+        viewModel.selectSlot(SocketId.CORE);
+        assertEquals(viewModel.selectedSlotTitle().get(), opened, "the line opens the engine core");
     }
 
     @Test
@@ -1193,7 +1200,7 @@ class MechLabViewModelTest {
         }
         assertTrue(viewModel.selectedMachineUnarmed());
         assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
-        assertTrue(viewModel.repair().get().classes().contains("recommended"));
+        assertTrue(readinessIds(viewModel).contains("mech-readiness:unarmed"));
     }
 
     @Test
@@ -1220,7 +1227,7 @@ class MechLabViewModelTest {
         assertNull(mech.internal(MechInternal.Role.PLATING));
         assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f), "a plate is recommended, not required");
         assertEquals(0f, mech.freezeForDeployment().deployedFrame().armorCapacity(), 0f, "with none it drops with no armor");
-        assertTrue(viewModel.repair().get().classes().contains("recommended"));
+        assertTrue(readinessIds(viewModel).contains("mech-readiness:no-plate"));
         assertEquals(1, bay.availableInternal(MechInternal.FACTORY_PLATING.id), "the plate is a spare");
     }
 
@@ -1256,6 +1263,10 @@ class MechLabViewModelTest {
         assertTrue(viewModel.removeCompartmentPart(MechInternal.AUXILIARY_VENT_ARRAY));
         assertNull(mech.internal(MechInternal.Role.VENT_ARRAY));
         assertTrue(bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id) > 0);
+    }
+
+    private static List<String> readinessIds(MechLabViewModel viewModel) {
+        return viewModel.readinessRows().get().stream().map(ReadinessRow::id).toList();
     }
 
     private static FittingMeter meter(MechLabViewModel viewModel, String id) {

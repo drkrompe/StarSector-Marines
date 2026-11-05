@@ -1,4 +1,4 @@
-<template props="missionsAction,missionsClasses,settingsAction,settingsClasses,repair,lessonClasses,lessonTitle,lessonCopy,lessonActionLabel,lessonAction,lessonPause,lessonResumeClasses,lessonResume,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,garageTitle,garageStatus,dragNoteTitle,dragNoteCopy,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,buildPanelClasses,buildName,buildRole,buildLore,buildWeightIcon,buildWeightClasses,buildWeightStyle,buildMeters,catalogRuleClasses,buildCredit,buildCrest,buildCrestClasses,buildStats,buildMaterials,buildLabel,buildDisabled,buildAction,performanceMeters,budgetText,budgetClasses,shipRefitText,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,backToLance,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,materialStock,categoryFilterPills,categoryFilterClasses,allPartsClasses,showAllParts,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
+<template props="missionsAction,missionsClasses,settingsAction,settingsClasses,repair,readinessRows,lessonClasses,lessonTitle,lessonCopy,lessonActionLabel,lessonAction,lessonPause,lessonResumeClasses,lessonResume,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,garageTitle,garageStatus,dragNoteTitle,dragNoteCopy,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,buildPanelClasses,buildName,buildRole,buildLore,buildWeightIcon,buildWeightClasses,buildWeightStyle,buildMeters,catalogRuleClasses,buildCredit,buildCrest,buildCrestClasses,buildStats,buildMaterials,buildLabel,buildDisabled,buildAction,performanceMeters,budgetText,budgetClasses,shipRefitText,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,backToLance,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,materialStock,categoryFilterPills,categoryFilterClasses,allPartsClasses,showAllParts,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <div id="mech-lab-room-bar" class="panel room-bar console-header">
       <img id="mech-lab-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -161,6 +161,10 @@
                   <div id="mech-repair-sections" class="label tone-muted mech-repair-sections">{repair.sections}</div>
                   <div id="mech-repair-condition" class="label tone-edge mech-repair-condition">{repair.condition}</div>
                 </div>
+              </div>
+              <div id="mech-readiness-heading" class="section-title label heading tone-edge">{i18n.mechLabReadinessHeading}</div>
+              <div id="mech-readiness-list" class="readiness-list">
+                <fitting-readiness-row each="row in readinessRows" key="{row.id}" row="{row}" />
               </div>
               <div id="mech-slot-intro" class="slot-intro">
                 <div id="mech-slot-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabFittingLocations}</div>
@@ -325,9 +329,7 @@
 
   .mech-repair-card { flex-direction: column; width: 100%; padding: 5px 6px; gap: 4px; border-width: 1px; border-color: #8f3f44; overflow: hidden; }
   .mech-repair-status { height: 16px; }
-  .mech-repair-card.recommended { border-color: #a58a34; }
-  .tone-recommended { color: #f2cf3e; }
-  .mech-repair-status.incomplete { height: 38px; white-space: normal; }
+  .readiness-list { flex-direction: column; width: 100%; gap: 4px; }
   .mech-repair-detail { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 4px; }
   .mech-repair-title { height: 16px; }
   .mech-repair-sections { min-height: 32px; white-space: normal; }

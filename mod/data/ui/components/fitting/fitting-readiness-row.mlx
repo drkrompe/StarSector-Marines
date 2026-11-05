@@ -1,0 +1,26 @@
+<template props="row">
+  <button id="{row.id}" class="{row.classes}" onclick="{row.select}">
+    <div id="{row.barId}" class="{row.barClasses}" />
+    <div id="{row.textId}" class="readiness-text">
+      <div id="{row.titleId}" class="label heading readiness-title">{row.title}</div>
+      <div id="{row.detailId}" class="label tone-muted readiness-detail">{row.detail}</div>
+    </div>
+  </button>
+</template>
+<style>
+  .readiness-row { flex-direction: row; width: 100%; height: 50px; gap: 8px; padding: 6px 8px; background-color: #0d1215; border-width: 1px; border-color: #182731; }
+  .readiness-link:hover { background-color: #0a161c; border-color: #dfc588; }
+  .readiness-bar { width: 5px; height: 100%; }
+  .readiness-bar-danger { background-color: #e85a4a; }
+  .readiness-bar-warn { background-color: #edc273; }
+  .readiness-bar-good { background-color: #7ee09a; }
+  .readiness-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .readiness-title { height: 20px; color: #bbcbda; }
+  .readiness-danger .readiness-title { color: #e85a4a; }
+  .readiness-warn .readiness-title { color: #edc273; }
+  .readiness-good .readiness-title { color: #7ee09a; }
+  .readiness-detail { height: 17px; }
+  /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
+  .label { overflow: hidden; }
+  .heading { font-family: compact; }
+</style>

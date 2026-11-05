@@ -11,6 +11,7 @@ public final class FittingComponents {
             "data/ui/components/fitting/fitting-card.mlx",
             "data/ui/components/fitting/fitting-filter-pill.mlx",
             "data/ui/components/fitting/fitting-meter.mlx",
+            "data/ui/components/fitting/fitting-readiness-row.mlx",
             "data/ui/components/fitting/fitting-slot-card.mlx");
 
     private FittingComponents() { }

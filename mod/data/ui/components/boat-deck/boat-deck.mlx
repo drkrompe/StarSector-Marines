@@ -118,13 +118,7 @@
 
           <div id="boat-readiness-heading" class="section-title label heading tone-edge">{i18n.boatReadinessHeading}</div>
           <div id="boat-readiness-list" class="slot-list">
-            <button each="row in readinessRows" key="{row.id}" id="{row.id}" class="{row.classes}" onclick="{row.select}">
-              <div id="{row.barId}" class="{row.barClasses}" />
-              <div id="{row.textId}" class="readiness-text">
-                <div id="{row.titleId}" class="label heading readiness-title">{row.title}</div>
-                <div id="{row.detailId}" class="label tone-muted readiness-detail">{row.detail}</div>
-              </div>
-            </button>
+            <fitting-readiness-row each="row in readinessRows" key="{row.id}" row="{row}" />
           </div>
         </div>
       </div>
@@ -233,19 +227,6 @@
   .slot-panel { flex-direction: column; width: 340px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-copy { height: 20px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .readiness-row { flex-direction: row; height: 50px; gap: 8px; padding: 6px 8px; background-color: #0d1215; border-width: 1px; border-color: #182731; }
-  .readiness-link:hover { background-color: #0a161c; border-color: #dfc588; }
-  .readiness-bar { width: 5px; height: 100%; }
-  .readiness-bar-danger { background-color: #e85a4a; }
-  .readiness-bar-warn { background-color: #edc273; }
-  .readiness-bar-good { background-color: #7ee09a; }
-  .readiness-bar-muted { background-color: #20475b; }
-  .readiness-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
-  .readiness-title { height: 20px; color: #bbcbda; }
-  .readiness-danger .readiness-title { color: #e85a4a; }
-  .readiness-warn .readiness-title { color: #edc273; }
-  .readiness-good .readiness-title { color: #7ee09a; }
-  .readiness-detail { height: 17px; }
   .boat-drag-ghost { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #071014; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
