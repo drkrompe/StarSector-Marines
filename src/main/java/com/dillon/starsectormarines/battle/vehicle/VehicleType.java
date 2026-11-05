@@ -48,6 +48,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override
         public GroundBody createBody() { return Apc.body(this); }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
     },
     /**
      * The mortar carrier: the APC chassis with the troop bay given over to a 120 mm mortar on a roof turntable, a
@@ -68,6 +69,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
     },
     /**
      * The Onager, the Hegemony's heavy repulsor tank and the convoy's heavy spearhead (hegemony-armor-line.md): an
@@ -79,7 +81,7 @@ public enum VehicleType {
      * Its sheet is the owner's concept turned to point left (art-source/vehicles/heavy-repulsor).
      */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/heg-heavy-repulsor.png", 0, 4, -90f,
-            0, Onager.DRAWN_LENGTH, 3.6f * Onager.SCALE, 2.22f * Onager.SCALE, 2.9f, .8f, 2.4f, .8f, 3.0f,
+            0, Onager.DRAWN_LENGTH, Onager.VISUAL_LENGTH, Onager.VISUAL_WIDTH, 2.9f, .8f, 2.4f, .8f, 3.0f,
             1, 0f, Onager.TURRET_MOUNT_Y, 0f, 0f, Onager.DRAWN_LENGTH, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -137,8 +139,6 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public int turretFiringFrame() { return 4; }
-        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
-        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -234,6 +234,7 @@ public enum VehicleType {
             Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
+        @Override public float noseInsetCells() { return Apc.NOSE_INSET; }
         // The pod is 0.9 cells long and stays centred on the turntable however it is raised.
         @Override public float turretRaiseFold() { return .78f; }
     },
@@ -432,12 +433,23 @@ public enum VehicleType {
          * (roof bearing, tyre bands, running gear) grows with it; the width keeps a radius-1 route clearance.
          */
         static final float SCALE = 1.6f;
-        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2.25f * SCALE, VISUAL_WIDTH = .9f * SCALE;
+        /** How far the painted nose runs ahead of the hull's centre, cells (army-apc.png, 1.85 measured). */
+        static final float PAINTED_NOSE = 1.85f;
+        /**
+         * How far the footprint's front edge sits behind the painted nose, cells: the nose overhangs the ground it
+         * touches, as though lifted a little off it (owner, 2026-11-05). The footprint is centred on the hull, so its
+         * rear edge stands as far aft: the tail plate, with the tow hooks left out.
+         */
+        static final float NOSE_INSET = .25f;
+        static final float DRAWN_LENGTH = 2.4f * SCALE, VISUAL_LENGTH = 2f * (PAINTED_NOSE - NOSE_INSET),
+                VISUAL_WIDTH = .9f * SCALE;
         static final float MAX_SPEED = 2.8f, ACCEL = 1.8f, BRAKING = 3.5f;
         static final float DEBOARD_INTERVAL = .8f, LOOK_AHEAD = 2.2f;
         static final float TURRET_MOUNT_Y = .15208333f * SCALE;
         static final float STRUCTURE = 220f, ARMOR = 160f, ARMOR_RATING = 18f;
         static final float INCOMING_ACCURACY = 1.25f, HIT_HALF_HEIGHT = .75f;
+        /** The Hegemony deck's engine grilles behind the turret ring, shared by the carriers built on this hull. */
+        static final FluxVents VENTS = new FluxVents(178f, 70f);
 
         static GroundBody body(VehicleType type) {
             // The wheelbase keeps the olive hull's 1.6, so the larger hull turns where the old one did.
@@ -453,6 +465,8 @@ public enum VehicleType {
         static final float TURRET_MOUNT_Y = .188545f;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
         static final float RING_SHARE_OF_WIDTH = .62f;
+        /** The engine deck's twin grilles behind the turret ring. */
+        static final FluxVents VENTS = new FluxVents(179f, 70f);
     }
 
     /** The Onager's sheet registration (art-source/vehicles/heavy-repulsor/pack.py). */
@@ -463,10 +477,18 @@ public enum VehicleType {
          */
         static final float SCALE = 4.3f / 4f;
         static final float DRAWN_LENGTH = 4f * SCALE;
+        /**
+         * The footprint, fitted to the painted hull (heg-heavy-repulsor.png): long enough to take the wedge nose where
+         * it is half a cell across, leaving its point and the tail's chamfer outside; as wide as the hull's flanks,
+         * which run 2.37 cells across through the middle.
+         */
+        static final float VISUAL_LENGTH = 3.7f, VISUAL_WIDTH = 2.36f;
         /** The concept's turret ring, 21.3 px of the 768 px frame ahead of the hull's centre. */
         static final float TURRET_MOUNT_Y = .110841f * SCALE;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
         static final float RING_SHARE_OF_WIDTH = .5345f;
+        /** The pair of radiator grilles flanking the spine behind the turret ring. */
+        static final FluxVents VENTS = new FluxVents(164f, 110f);
     }
 
     /**
@@ -622,9 +644,8 @@ public enum VehicleType {
      * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
      * burst under way), or -1 for a turret drawn the same whether or not it fires.
      */
-    /** The laser hulls' radiator fins, aft of centre on the breakthrough master (art-source/vehicles/tank-laser). */
-    static final float LASER_VENT_AFT_CELLS = 1.8f;
-    static final float LASER_VENT_HALF_SPAN_CELLS = 0.55f;
+    /** The laser hull's radiator fins across its tail, on the breakthrough master (art-source/vehicles/tank-laser). */
+    private static final FluxVents LASER_VENTS = new FluxVents(321.5f, 98f);
 
     public int turretFiringFrame() { return -1; }
 
@@ -726,14 +747,50 @@ public enum VehicleType {
     }
 
     /**
-     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from
-     * ({@code TurretMountDef#flux}), or zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells}
-     * either side of the centre line.
+     * The vents this hull's gun's flux haze rises from ({@code TurretMountDef#flux}), as its art paints them, or null
+     * for a hull whose art authors none. Every hull gun builds flux; the haze shows only off painted vents, so a hull
+     * joins by registering its sheet's grilles here, in that sheet's frame.
      */
-    public float fluxVentAftCells() { return 0f; }
+    private FluxVents fluxVents() {
+        return switch (this) {
+            case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER -> Apc.VENTS;
+            case MEDIUM_TANK -> MediumTank.VENTS;
+            case BREAKTHROUGH_TANK -> Onager.VENTS;
+            case LASER_TANK -> LASER_VENTS;
+            default -> null;
+        };
+    }
+
+    /**
+     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from ({@link #fluxVents}), or
+     * zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells} either side of the centre line.
+     */
+    public float fluxVentAftCells() {
+        FluxVents vents = fluxVents();
+        return vents == null ? 0f : vents.aftPx() / FluxVents.FRAME_PX * drawnLengthCells;
+    }
 
     /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
-    public float fluxVentHalfSpanCells() { return 0f; }
+    public float fluxVentHalfSpanCells() {
+        FluxVents vents = fluxVents();
+        return vents == null ? 0f : vents.halfSpanPx() / FluxVents.FRAME_PX * drawnLengthCells;
+    }
+
+    /**
+     * A hull sheet's flux vents in its frame's pixels: the vents' centre aft of the frame's centre, and half their
+     * spread across the hull. The frame's long side is the hull's drawn length, so the vents grow with the hull.
+     */
+    private record FluxVents(float aftPx, float halfSpanPx) {
+        /** The long side of a hull sheet's frame, in pixels. */
+        static final float FRAME_PX = 768f;
+    }
+
+    /**
+     * How far the footprint's front edge ({@link #visualLengthCells}) sits behind the painted nose, cells, so the nose
+     * overhangs it as though lifted a little off the ground: the APC chassis's, a quarter cell. Zero for a hull whose
+     * footprint runs to its nose.
+     */
+    public float noseInsetCells() { return 0f; }
 
     /** Where this hull's tracks or wheels meet the ground, as its sprite paints them ({@link RunningGear}). */
     public RunningGear runningGear() { return RunningGear.of(this); }

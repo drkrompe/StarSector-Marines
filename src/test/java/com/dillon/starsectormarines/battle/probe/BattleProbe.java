@@ -44,12 +44,14 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -74,6 +76,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Asks a live battle questions: one simulation held in memory, stepped forward on command, and read between steps.
@@ -144,7 +147,7 @@ public final class BattleProbe {
     private static final Set<String> READS = Set.of("tick", "presence", "entity", "near", "near-cell", "sight", "find",
             "hits", "hits-by", "squads", "units", "why", "command", "members", "speed", "path", "beats", "route",
             "escort", "places", "bores", "lanes", "pads", "creep", "grid", "cell", "windows", "ground", "drive",
-            "cordon", "airbase", "corridor");
+            "cordon", "airbase", "corridor", "crush");
 
     private final BattleSimulation sim;
     private final Map<String, Command> commands = new LinkedHashMap<>();
@@ -227,6 +230,7 @@ public final class BattleProbe {
         commands.put("grid", this::grid);
         commands.put("cell", a -> cell(a.intAt(0), a.intAt(1)));
         commands.put("windows", this::windows);
+        commands.put("crush", a -> crush());
         commands.put("ground", this::ground);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
@@ -452,6 +456,52 @@ public final class BattleProbe {
             rows.put(row.toString());
         }
         return new JSONObject().put("x0", x0).put("rows", rows);
+    }
+
+    /**
+     * What a wall-crushing hull ({@link WallCrush}) can open on this map, at the ultra-heavy ceiling: every closed
+     * cell and every movement-blocking shared edge, by what holds it (the first thing a structural hit reaches, else
+     * the cell's own tags), counted as pushed or held, with one example cell each.
+     */
+    private JSONObject crush() throws Exception {
+        NavigationGrid g = sim.getGrid();
+        CellTopology t = sim.getTopology();
+        DoodadService doodads = sim.getDoodadService();
+        Map<String, int[]> counts = new TreeMap<>();
+        Map<String, String> examples = new HashMap<>();
+        for (int y = 0; y < g.getHeight(); y++) for (int x = 0; x < g.getWidth(); x++) {
+            if (g.isWalkable(x, y)) continue;
+            String what;
+            if (g.hasTag(x, y, CellTag.NATURAL_SOLID)) what = "natural-solid";
+            else if (g.hasTag(x, y, CellTag.WORKS)) what = "works";
+            else {
+                String prop = doodads.damageablePropIdAt(x, y, t);
+                if (prop != null) what = (doodads.barricadeAt(x, y, t) ? "barricade " : "prop ") + prop;
+                else {
+                    String on = doodads.definitionsAt(x, y);
+                    what = (t.isWall(x, y) ? "wall" : t.isWindow(x, y) ? "window-cell" : t.isVehicle(x, y) ? "vehicle"
+                            : t.isFixture(x, y) ? "fixture" : "other") + (t.isFixture(x, y) ? "+fixture" : "")
+                            + (g.getWallHp(x, y) > 0 ? "" : " (no hp)") + (on == null ? "" : " on " + on);
+                }
+            }
+            boolean pushed = WallCrush.canPush(g, t, doodads, x, y);
+            counts.computeIfAbsent(what, k -> new int[2])[pushed ? 0 : 1]++;
+            examples.putIfAbsent(what, x + "," + y);
+        }
+        for (SharedEdgeBarrier edge : g.getEdgeBarriers()) {
+            if (!edge.kind().blocksMovement()) continue;
+            String what = "edge " + edge.kind();
+            boolean pushed = WallCrush.canPushEdge(g, edge.cellX(), edge.cellY(), edge.direction(),
+                    WallCrush.ULTRA_HEAVY_CEILING);
+            counts.computeIfAbsent(what, k -> new int[2])[pushed ? 0 : 1]++;
+            examples.putIfAbsent(what, edge.cellX() + "," + edge.cellY() + " " + edge.direction());
+        }
+        JSONArray rows = new JSONArray();
+        for (Map.Entry<String, int[]> e : counts.entrySet()) {
+            rows.put(new JSONObject().put("what", e.getKey()).put("pushed", e.getValue()[0])
+                    .put("held", e.getValue()[1]).put("at", examples.get(e.getKey())));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
     }
 
     public BattleSimulation sim() {

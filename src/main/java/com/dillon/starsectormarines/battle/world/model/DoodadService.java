@@ -238,6 +238,21 @@ public final class DoodadService {
                 && destructibleCover.standingIdAt(x, y) != null;
     }
 
+    /**
+     * The structure a structural hit on this cell spends on a prop before anything else, when that prop is built,
+     * not grown: a registered cover prop's (a sandbag, fence or crate barricade, held as the cell's wall structure)
+     * or registered equipment's, furniture's or a drum cluster's (its footprint's shared pool). Zero where the first
+     * prop a hit reaches is a rock or a natural object, or where no destructible prop stands. Read-only; the same
+     * dispatch order as {@link #damageablePropIdAt}.
+     */
+    public int builtPropStructureAt(int x, int y, CellTopology topology) {
+        if (rocks.standingIdAt(x, y, topology, TileRegistry.installed()) != null
+                || naturalProps.standingIdAt(x, y) != null) return 0;
+        int equipment = destructibleProps.standingStructureAt(x, y);
+        if (equipment > 0) return equipment;
+        return destructibleCover.standingIdAt(x, y) != null && !grid.isWalkable(x, y) ? grid.getWallHp(x, y) : 0;
+    }
+
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
     public void refreshBlockingCover(int x, int y, CellTopology topology) {
         for (Doodad prop : doodads) {
