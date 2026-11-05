@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.security.MessageDigest;
 import java.util.HexFormat;
@@ -154,7 +155,6 @@ class WaylineNarrationTest {
             String id = "wayline_corvus_v1_2_" + attempt;
             assertEquals("story_corvus_cold_account", WaylineNarration.storyMissionId(
                     Mission.builder().id(id).source(MissionSource.STORY).build()));
-            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
         }
         var line = catalog().find("story_corvus_cold_account", "corvus.cold_account.stronghold_destroyed");
         assertTrue(line.terminal());
@@ -167,8 +167,32 @@ class WaylineNarrationTest {
             String id = "wayline_corvus_v1_0_" + attempt;
             assertEquals("story_corvus_dust_ledger", WaylineNarration.storyMissionId(
                     Mission.builder().id(id).source(MissionSource.STORY).build()));
-            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
         }
+    }
+
+    @Test void aBreachBattleHearsTheBreachCatalogEvenWhenAChapterLaunchedIt() {
+        assertEquals(WaylineNarration.COLONY_BREACH, WaylineNarration.narrationMissionId("story_wellhollow_colony_breach", true));
+        assertEquals(WaylineNarration.COLONY_BREACH, WaylineNarration.narrationMissionId((String) null, true));
+        assertEquals("story_wellhollow_the_burn", WaylineNarration.narrationMissionId("story_wellhollow_the_burn", false));
+    }
+
+    @Test void debugAndReplayFlightsOfAChapterHearItsRecordings() {
+        for (var chapter : Map.of(
+                "WATER_UNDER_SEAL", "story_agreus_water_under_seal",
+                "LIMITED_WARRANT", "story_agreus_limited_warrant",
+                "YARD_OWNERS", "story_agreus_yard_owners",
+                "TERMS_OF_PROTECTION", "story_agreus_terms_of_protection",
+                "SMALL_WAR", "story_agreus_small_war",
+                "DUST_LEDGER", "story_corvus_dust_ledger").entrySet()) {
+            assertEquals(chapter.getValue(), WaylineNarration.storyMissionId(Mission.builder()
+                    .id("debug:story:" + chapter.getKey()).source(MissionSource.DEBUG).build()));
+            assertEquals(chapter.getValue(), WaylineNarration.storyMissionId(Mission.builder()
+                    .id("replay_completed:" + chapter.getKey()).source(MissionSource.REPLAY).build()));
+        }
+        assertEquals("story_supply_route_relay_nine", WaylineNarration.storyMissionId(Mission.builder()
+                .id("debug:story:ROUTE_SECURITY").source(MissionSource.DEBUG).build()));
+        assertNull(WaylineNarration.storyMissionId(Mission.builder()
+                .id("debug:story:CORDON_LINE").source(MissionSource.DEBUG).build()));
     }
 
     @Test void blindWatchRetriesHearTheSoundingsCalls() throws Exception {
@@ -176,7 +200,6 @@ class WaylineNarrationTest {
             String id = "wayline_corvus_v1_1_" + attempt;
             assertEquals("story_corvus_blind_watch", WaylineNarration.storyMissionId(
                     Mission.builder().id(id).source(MissionSource.STORY).build()));
-            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
         }
         assertNotNull(catalog().find("story_corvus_blind_watch", "corvus.blind_watch.uplink_down"));
     }
@@ -211,18 +234,20 @@ class WaylineNarrationTest {
     }
 
     @Test
-    void chapterIdentityRequiresStorySource() {
+    void aRepeatableVersionHearsItsStoryChapter() {
         for (OpeningOperationKind kind : OpeningOperationKind.values()) {
             assertEquals(kind.missionId, WaylineNarration.storyMissionId(
                     Mission.builder().id(kind.missionId).source(MissionSource.STORY).build()));
-            assertNull(WaylineNarration.storyMissionId(
-                    Mission.builder().id(kind.missionId).source(MissionSource.RECURRING).build()));
+            assertEquals(kind.missionId, WaylineNarration.storyMissionId(
+                    Mission.builder().id(kind.recurringId).source(MissionSource.RECURRING).build()));
         }
+        assertEquals("story_supply_route_relay_nine", WaylineNarration.storyMissionId(
+                Mission.builder().id("supply_route_v1_3_4_2").source(MissionSource.RECURRING).build()));
         assertNull(WaylineNarration.storyMissionId(null));
     }
 
     @Test
-    void activeSupplyChaptersResolveAcrossRetriesWithoutVoicingShelvedOrRecurringJobs() throws Exception {
+    void supplyChaptersResolveAcrossRetriesAndUnknownIdsHaveNoChapter() throws Exception {
         WaylineNarration catalog = catalog();
         String[] chapters = {"junction", "thunder_run"};
         int[] operations = {1, 4};
@@ -233,13 +258,10 @@ class WaylineNarrationTest {
                 assertEquals(chapter, WaylineNarration.storyMissionId(
                         Mission.builder().id(id).source(MissionSource.STORY).build()));
                 assertNotNull(catalog.find(chapter, "briefing"));
-                assertNull(WaylineNarration.storyMissionId(
-                        Mission.builder().id(id).source(MissionSource.RECURRING).build()));
             }
         }
         for (String id : List.of("supply_route_choice_2", "supply_route_choice_3",
-                "supply_route_v1_2_0_1", "supply_route_v1_3_0_1",
-                "supply_route_v1_2_1_1", "supply_route_v1_3_4_2", "supply_route_v1_5_0_1",
+                "supply_route_v1_5_0_1",
                 "supply_route_v1_1_0_0", "supply_route_v1_1_0_1_extra", "unknown")) {
             assertNull(WaylineNarration.storyMissionId(
                     Mission.builder().id(id).source(MissionSource.STORY).build()), id);
