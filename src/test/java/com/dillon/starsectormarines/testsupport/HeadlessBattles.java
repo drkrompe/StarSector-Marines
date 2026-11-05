@@ -85,6 +85,9 @@ public final class HeadlessBattles {
             case "working-passage" -> basin(ShepherdBasin.Visit.WORKING_PASSAGE, options(rest));
             case "proving-ground" -> {
                 JSONObject options = options(rest);
+                // Morrow hovers beside the ranks, and its hull reads the vanilla hull specs.
+                InstalledHullSpecs.install();
+                InstalledVanillaData.install();
                 yield ProvingGroundSetup.create(SurfacePalette.valueOf(options.optString("surface", "VERDANT").toUpperCase(Locale.ROOT)),
                         options.optLong("seed", ProvingGroundSetup.SEED));
             }

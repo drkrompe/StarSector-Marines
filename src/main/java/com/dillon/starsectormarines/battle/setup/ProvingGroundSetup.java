@@ -10,10 +10,13 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -40,9 +43,9 @@ import java.util.Locale;
 
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
- * on a generated colony map, with no enemy and no end. Each is the player's, so it answers move orders and direct
- * control. The Diagnostics tab of the debug missions lists it, and {@code gradlew playBattle -Pbattle=proving-ground}
- * opens it straight away.
+ * on a generated colony map, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
+ * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
  * <p>The ranks stand on the clear window with the most buildings and wild ground around it, and on green worlds
  * {@link #GROVES} of the generator's own trees are planted ahead of them, so there is something to drive past, round
@@ -69,6 +72,8 @@ public final class ProvingGroundSetup {
     private static final float FACING_NORTH = 0f;
     /** Woods and lone trees north of the ranks, as x, y and radius in cells from the window's corner. */
     private static final int[][] GROVES = {{8, 33, 6}, {30, 41, 8}, {54, 33, 6}, {20, 28, 1}, {42, 29, 1}};
+    /** Clear cells kept between Morrow's hull and the ranks, and all round it. */
+    private static final int MORROW_GAP = 3;
 
     private ProvingGroundSetup() {
     }
@@ -105,12 +110,57 @@ public final class ProvingGroundSetup {
             long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
         }
+        spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.
         sim.setGroundMarineArrival(new GroundMarineArrival(site.x(WIDTH / 2), site.y(HEIGHT / 2),
                 SquadCommandClaim.mission("proving-ground", "Company watches the test drives")));
         sim.playerCommandsCompany();
         sim.addObjective(new TestDrive());
         return sim;
+    }
+
+    /**
+     * Morrow in its low hover, as Working Passage flies it, on the nearest clear ground beside the ranks, with its
+     * recovery builds on the power bar so they can be laid from it.
+     */
+    private static void spawnMorrow(BattleSimulation sim, MapResult map, Site site) {
+        Tender morrow;
+        try {
+            morrow = Tender.lowHover(Faction.MARINE, 0f, 0f, SpawnInOnslaught.PRESENCE);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to fit Morrow", e);
+        }
+        // Low hover points the bow east, so the hull's length runs along x and its beam along y.
+        int w = (int) Math.ceil(morrow.ship().lengthCells) + 2 * MORROW_GAP;
+        int h = (int) Math.ceil(morrow.ship().widthCells) + 2 * MORROW_GAP;
+        float cx = site.x0 + WIDTH / 2f;
+        float cy = site.y0 + HEIGHT / 2f;
+        int[] best = null;
+        float bestDistance = Float.MAX_VALUE;
+        for (int y0 = 0; y0 + h <= map.grid.getHeight(); y0 += SEARCH_STEP) {
+            for (int x0 = 0; x0 + w <= map.grid.getWidth(); x0 += SEARCH_STEP) {
+                if (overlaps(x0, y0, w, h, site) || !clear(map.grid, map.topology, x0, y0, w, h)) continue;
+                float d = (float) Math.hypot(x0 + w / 2f - cx, y0 + h / 2f - cy);
+                if (d < bestDistance) {
+                    bestDistance = d;
+                    best = new int[]{x0, y0};
+                }
+            }
+        }
+        if (best == null) throw new IllegalStateException("No clear " + w + "x" + h + " ground for Morrow");
+        try {
+            morrow = Tender.lowHover(Faction.MARINE, best[0] + w / 2f, best[1] + h / 2f, SpawnInOnslaught.PRESENCE);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to fit Morrow", e);
+        }
+        sim.tenders().add(sim, morrow);
+        for (YardConstruction yard : YardConstruction.forEachOption(morrow)) sim.getCommandPowerService().register(yard);
+    }
+
+    /** Whether the window comes within {@link #MORROW_GAP} of the ranks. */
+    private static boolean overlaps(int x0, int y0, int w, int h, Site site) {
+        return x0 < site.x0 + WIDTH + MORROW_GAP && x0 + w > site.x0 - MORROW_GAP
+                && y0 < site.y0 + HEIGHT + MORROW_GAP && y0 + h > site.y0 - MORROW_GAP;
     }
 
     private static int fileX(int file) {
@@ -210,8 +260,12 @@ public final class ProvingGroundSetup {
     }
 
     private static boolean clear(NavigationGrid grid, CellTopology topology, int x0, int y0) {
-        for (int y = y0; y < y0 + HEIGHT; y++) {
-            for (int x = x0; x < x0 + WIDTH; x++) {
+        return clear(grid, topology, x0, y0, WIDTH, HEIGHT);
+    }
+
+    private static boolean clear(NavigationGrid grid, CellTopology topology, int x0, int y0, int w, int h) {
+        for (int y = y0; y < y0 + h; y++) {
+            for (int x = x0; x < x0 + w; x++) {
                 if (blocked(grid, topology, x, y)) return false;
             }
         }
