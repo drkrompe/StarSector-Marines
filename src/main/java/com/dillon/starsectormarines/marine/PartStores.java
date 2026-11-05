@@ -1,11 +1,16 @@
 package com.dillon.starsectormarines.marine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
@@ -80,6 +85,50 @@ public final class PartStores implements Serializable {
     /** Drops every spare whose id {@code retired} names (a part no longer in the game). */
     public void dropIf(Predicate<String> retired) {
         counts.keySet().removeIf(retired);
+    }
+
+    /**
+     * One shelf a refit settles against, and how to count, on the machine being refitted, the parts that shelf keeps
+     * (part id to how many are fitted). A shuttle has one shelf; a mech or a vehicle keeps its weapons apart from its
+     * internals.
+     */
+    public record Shelf(PartStores stores, Supplier<Map<String, Integer>> fitted) { }
+
+    /**
+     * Runs one refit of a machine and settles each shelf by what it changed on the machine: every part that went on
+     * is taken off its shelf and every part that came off is stowed (mechs-nouns.md, stores). One rule for every fit,
+     * strip and move, on a mech, a vehicle and a shuttle. The caller checks first that the shelf holds what goes on.
+     *
+     * @param change the refit itself; false when it refused, which leaves the shelves untouched
+     * @return whether the refit happened
+     */
+    public static boolean refit(BooleanSupplier change, Shelf... shelves) {
+        List<Map<String, Integer>> before = new ArrayList<>(shelves.length);
+        for (Shelf shelf : shelves) before.add(Map.copyOf(shelf.fitted().get()));
+        if (!change.getAsBoolean()) return false;
+        for (int i = 0; i < shelves.length; i++) {
+            shelves[i].stores().settle(before.get(i), shelves[i].fitted().get());
+        }
+        return true;
+    }
+
+    /** Counts part ids, null entries left out: what a machine carries, for a {@link Shelf}. */
+    public static Map<String, Integer> tally(Iterable<String> ids) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (String id : ids) if (id != null) counts.merge(id, 1, Integer::sum);
+        return counts;
+    }
+
+    private void settle(Map<String, Integer> before, Map<String, Integer> after) {
+        Set<String> ids = new HashSet<>(before.keySet());
+        ids.addAll(after.keySet());
+        for (String id : ids) {
+            int change = after.getOrDefault(id, 0) - before.getOrDefault(id, 0);
+            if (change < 0) stow(id, -change);
+            for (int i = 0; i < change; i++) {
+                if (!take(id)) throw new IllegalStateException("a refit fitted a part stores did not hold: " + id);
+            }
+        }
     }
 
     private Object readResolve() {

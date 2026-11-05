@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +29,21 @@ class PartStoresTest {
         assertEquals(2, stores.count("a"));
         assertEquals(2, stores.clear());
         assertEquals(0, stores.count("a"));
+    }
+
+    @Test
+    void aRefitSettlesTheShelfByWhatChangedAndARefusalLeavesItAlone() {
+        PartStores stores = new PartStores();
+        stores.stow("new");
+        List<String> machine = new ArrayList<>(List.of("old", "kept"));
+        PartStores.Shelf shelf = new PartStores.Shelf(stores, () -> PartStores.tally(machine));
+
+        assertFalse(PartStores.refit(() -> false, shelf));
+        assertEquals(1, stores.count("new"), "a refused refit moves nothing");
+        assertTrue(PartStores.refit(() -> machine.set(0, "new") != null, shelf));
+        assertEquals(0, stores.count("new"), "what went on left the shelf");
+        assertEquals(1, stores.count("old"), "what came off is a spare");
+        assertEquals(0, stores.count("kept"), "what stayed on is not");
     }
 
     @Test

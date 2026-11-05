@@ -415,27 +415,6 @@ public final class MechBay implements Serializable {
         parts.internals().forEach(internalStores::stow);
     }
 
-    /**
-     * Settles stores after a refit, by what it changed on the machine: each part that went on was taken off the shelf,
-     * each that came off is stowed. One rule for every fit, strip and move, on a mech and a vehicle alike.
-     */
-    private void settle(Parts before, Parts after) {
-        settle(weaponStores, before.weapons(), after.weapons());
-        settle(internalStores, before.internals(), after.internals());
-    }
-
-    private static void settle(PartStores stores, Map<String, Integer> before, Map<String, Integer> after) {
-        Set<String> ids = new HashSet<>(before.keySet());
-        ids.addAll(after.keySet());
-        for (String id : ids) {
-            int change = after.getOrDefault(id, 0) - before.getOrDefault(id, 0);
-            if (change < 0) stores.stow(id, -change);
-            for (int i = 0; i < change; i++) {
-                if (!stores.take(id)) throw new IllegalStateException("a refit fitted a part stores did not hold: " + id);
-            }
-        }
-    }
-
     /** What one battle's writeback did to the bay. */
     public record Settlement(int chassisLost, int assembliesLost, int mechsDamaged) {
         public static final Settlement NONE = new Settlement(0, 0, 0);
@@ -740,10 +719,10 @@ public final class MechBay implements Serializable {
         if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) return true;
         if (availableInternal(internal.id) <= 0
                 || !withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) return false;
-        Parts before = fittedParts(mech);
-        mech.installInternal(internal.role, internal, at);
-        settle(before, fittedParts(mech));
-        return true;
+        return refit(mech, () -> {
+            mech.installInternal(internal.role, internal, at);
+            return true;
+        });
     }
 
     /**
@@ -813,9 +792,10 @@ public final class MechBay implements Serializable {
         if (component == mech.weaponAt(slot)) return true;
         if (availableWeapon(componentId) <= 0
                 || !withinBudget(mechId, mech.fit().withWeapon(slot, component))) return false;
-        Parts before = fittedParts(mech);
-        mech.installWeapon(slot, component);
-        settle(before, fittedParts(mech));
+        refit(mech, () -> {
+            mech.installWeapon(slot, component);
+            return true;
+        });
         observeLabFit();
         return true;
     }
@@ -916,20 +896,21 @@ public final class MechBay implements Serializable {
         }
     }
 
-    /** Runs one refit on a mech and settles stores by what it changed; false, and nothing settled, when it refused. */
+    /**
+     * Runs one refit on a mech and settles its two shelves by what it changed ({@link PartStores#refit}); false, and
+     * nothing settled, when it refused.
+     */
     private boolean refit(CampaignMech mech, BooleanSupplier change) {
-        Parts before = fittedParts(mech);
-        if (!change.getAsBoolean()) return false;
-        settle(before, fittedParts(mech));
-        return true;
+        return PartStores.refit(change,
+                new PartStores.Shelf(weaponStores, () -> fittedParts(mech).weapons()),
+                new PartStores.Shelf(internalStores, () -> fittedParts(mech).internals()));
     }
 
     /** As {@link #refit(CampaignMech, BooleanSupplier)}, on a vehicle. */
     private boolean refit(CampaignVehicle vehicle, BooleanSupplier change) {
-        Parts before = fittedParts(vehicle);
-        if (!change.getAsBoolean()) return false;
-        settle(before, fittedParts(vehicle));
-        return true;
+        return PartStores.refit(change,
+                new PartStores.Shelf(weaponStores, () -> fittedParts(vehicle).weapons()),
+                new PartStores.Shelf(internalStores, () -> fittedParts(vehicle).internals()));
     }
 
     /**

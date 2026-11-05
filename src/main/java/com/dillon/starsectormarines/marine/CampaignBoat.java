@@ -185,6 +185,20 @@ public final class CampaignBoat implements Equipped, Serializable {
         return new FittedBoat(pattern, fit, id, guns);
     }
 
+    /** Every part fitted to her, by id: a fitting in each filled slot and a gun on each armed hardpoint. */
+    Map<String, Integer> fittedParts() {
+        List<String> ids = new ArrayList<>();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitting = fittingIn(slot);
+            if (fitting != null) ids.add(fitting.id());
+        }
+        for (int index = 0; index < pattern.hardpoints(); index++) {
+            BoatGun gun = gunOn(index);
+            if (gun != null) ids.add(gun.id());
+        }
+        return PartStores.tally(ids);
+    }
+
     /** Whether the pattern has a hardpoint {@code index}, bare or armed. */
     public boolean hasHardpoint(int index) {
         return index >= 0 && index < pattern.hardpoints();
