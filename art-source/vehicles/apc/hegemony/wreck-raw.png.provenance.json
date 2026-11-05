@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad52-6bf6-70e1-8ae0-641199159828",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad52-6bf6-70e1-8ae0-641199159828\\exec-840c7b8a-47ba-469f-80fe-9d820e8836b7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\apc\\hegemony\\wreck-raw.png",
+    "sha256": "667a8a712d67366f5987d0fd2c7a93cf4d75f70577f16a3d64b5d3fc2a486167",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\apc\\hegemony\\wreck.prompt.txt",
+  "promptSha256": "66295d36268f725aa7dfab122447c101c802660f87563844b784d59db300afbf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: same position, size and outline\n\nUse case: precise-object-edit. Asset type: registered 2D game vehicle destruction sprite.\nImage 1 is the exact geometry guide and edit target: a top-down six-wheeled Hegemony armoured personnel carrier on a transparent canvas, nose at the TOP. Create the DESTROYED version of this SAME hull in precisely the same position, size, outline and proportions, so a live-to-wreck swap does not jump. Keep the nose at the top, the tapered armoured nose, the six separate wheels, the round turret ring amidships, the rear troop compartment with its twin grated roof hatches, the tow shackles at the rear, and the tan, sand and olive plate with orange hazard panels. Keep the overhead orthographic camera; no perspective, no visible vertical sidewalls.\nChange only damage and surface condition: buckle and split the rear troop roof into a dark opaque burned recess, crush one rear wheel and tear another tyre, chip, puncture and scorch the nose plates while keeping the nose readable, blacken the turret ring's edge but leave the ring itself round and opaque (a separate turret sits on it), soot streaks and blistered paint along the sides. Thin plate tears convey a medium carrier, not a heavy tank. Keep enough tan paint and orange panels that the wreck stays recognisable.\nGenuine transparent background outside the hull, including all negative space. Paint opaque dark metal inside ruptures, never transparent holes. No flames, smoke, glow, explosion, ground shadow, floor, debris outside the hull's bounds, people, labels or extra parts. Restrained detailed painted game-sprite finish matching the original exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-apc-concept.png",
+      "sha256": "6f3d8edfd7a08890c3e4a59aeb6abf6aa346afb5576c01bc62ff506b561958f4",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: same position, size and outline"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one destroyed version, preserving the hull’s alignment and silhouette with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 41495,
+    "cached_input_tokens": 33408,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 458,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.6
+}

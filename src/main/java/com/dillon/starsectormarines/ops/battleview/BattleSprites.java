@@ -163,6 +163,7 @@ public class BattleSprites {
     private LayeredSpriteCache vehicleTurretBaseLight;
     private LayeredSpriteCache vehicleGunPlate;
     private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeads = new EnumMap<>(TurretHead.class);
+    private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeadWrecks = new EnumMap<>(TurretHead.class);
     private LayeredSpriteCache vehicleKitActiveProtection;
     private LayeredSpriteCache vehicleKitActiveProtectionTurret;
     private final EnumMap<MechWeaponComponent, LayeredSpriteCache> vehicleGunDrawings =
@@ -307,8 +308,10 @@ public class BattleSprites {
      * ({@link com.dillon.starsectormarines.battle.vehicle.VehicleGun#plateCells}). Null when the art did not load.
      */
     public LayeredSpriteCache vehicleGunPlate() { return vehicleGunPlate; }
-    /** The closed head of this family drawn over a fitted weapon, gun slot to the top; null when the art did not load. */
-    public LayeredSpriteCache vehicleTurretHead(TurretHead head) { return head == null ? null : vehicleTurretHeads.get(head); }
+    /** The closed head of this family drawn over a fitted weapon, live or wrecked, gun slot to the top; null when the art did not load. */
+    public LayeredSpriteCache vehicleTurretHead(TurretHead head, boolean wrecked) {
+        return head == null ? null : (wrecked ? vehicleTurretHeadWrecks : vehicleTurretHeads).get(head);
+    }
     /**
      * The active-protection kit's launchers and sensor panels, drawn over a gun tank's live hull in its frame's
      * registration ({@link com.dillon.starsectormarines.marine.MechInternal#ACTIVE_PROTECTION}). Null when the
@@ -1399,6 +1402,8 @@ public class BattleSprites {
         for (TurretHead head : TurretHead.values()) {
             LayeredSpriteCache sprite = loadLayeredSprite("graphics/battle/vehicles/" + head.texture);
             if (sprite != null) vehicleTurretHeads.put(head, sprite);
+            LayeredSpriteCache wreck = loadLayeredSprite("graphics/battle/vehicles/" + head.wreckTexture);
+            if (wreck != null) vehicleTurretHeadWrecks.put(head, wreck);
         }
         vehicleKitActiveProtection = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection.png");
         vehicleKitActiveProtectionTurret = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection-turret.png");

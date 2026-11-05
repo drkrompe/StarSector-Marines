@@ -8,12 +8,15 @@ package com.dillon.starsectormarines.battle.vehicle;
  */
 public enum TurretHead {
     /** Tan and olive Hegemony plate with orange hazard panels, gun slot through the mantlet (art-source/vehicles/turret-head). */
-    HEGEMONY("turret-head-hegemony.png");
+    HEGEMONY("turret-head-hegemony.png", "turret-head-hegemony-wreck.png");
 
     /** The head's sprite under {@code graphics/battle/vehicles/}, gun slot to the top, centred on the ring's centre. */
     public final String texture;
+    /** The same head wrecked, cut to the live head's square so the swap does not move it. */
+    public final String wreckTexture;
 
-    TurretHead(String texture) {
+    TurretHead(String texture, String wreckTexture) {
         this.texture = texture;
+        this.wreckTexture = wreckTexture;
     }
 }

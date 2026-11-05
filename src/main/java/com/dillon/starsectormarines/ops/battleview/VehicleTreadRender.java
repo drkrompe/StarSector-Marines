@@ -15,13 +15,15 @@ final class VehicleTreadRender {
     // The dozer's 4.6-cell frame carries the same hull drawn smaller, about the frame center.
     private static final Band[] DOZER = scaled(TANK, VehicleType.BREAKTHROUGH_TANK.drawnLengthCells
             / VehicleType.DOZER_BREACHER.drawnLengthCells);
+    // The Hegemony APC's six tyres (art-source/vehicles/apc/hegemony): the straight middle of each tyre's outer half,
+    // repeating its block tread every 17 pixels.
     private static final Band[] APC = {
-            new Band(148, 246, 111, 30, 151, 42),
-            new Band(344, 444, 111, 30, 347, 42),
-            new Band(552, 652, 111, 30, 555, 42),
-            new Band(148, 246, 432, 28, 151, 42),
-            new Band(344, 444, 432, 28, 347, 42),
-            new Band(552, 652, 432, 28, 555, 42)
+            new Band(185, 275, 119, 28, 188, 17),
+            new Band(372, 465, 119, 28, 375, 17),
+            new Band(570, 668, 119, 28, 573, 17),
+            new Band(185, 275, 431, 28, 188, 17),
+            new Band(372, 465, 431, 28, 375, 17),
+            new Band(570, 668, 431, 28, 573, 17)
     };
 
     static void collect(VehicleType type, UnitSpriteCache cache, GroundBody body,

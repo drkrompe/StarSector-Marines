@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad52-6bf6-7921-9520-77fcace1a314",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad52-6bf6-7921-9520-77fcace1a314\\exec-92b187e8-9ccc-403a-8f30-f6fec628168f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-head\\wreck-raw.png",
+    "sha256": "9b5d303282864f072212bcf53276c51cd4db1e93e80a148388f239601ddda5ea",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\turret-head\\wreck.prompt.txt",
+  "promptSha256": "f9506ebad3dcd96d2933b85c9824225fd692f8b64f1ed35c2385d42ea7615154",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: same position, size and outline\n\nUse case: precise-object-edit. Asset type: registered 2D game turret destruction sprite.\nImage 1 is the exact geometry guide and edit target: a top-down armoured turret head on a transparent canvas, its gun slot at the TOP. Create the DESTROYED version of this SAME head in precisely the same position, size, outline and proportions, so a live-to-wreck swap does not jump. Keep the slot at the top and keep it an empty opening with nothing in it (a separate weapon layer is drawn under it). Keep the round base, the octagonal housing, the mantlet, the rear bustle, the cupola, and the tan, sand and olive plate with orange hazard panels.\nChange only damage and surface condition: blow the cupola hatch open into a dark opaque scorched hole, buckle and lift one mantlet corner, gouge and puncture the side plates, soot and blistered paint radiating from the hatch, a cracked vision block. Keep enough tan paint and orange that it stays recognisable.\nGenuine transparent background outside the head, including all negative space and the slot. Paint opaque dark metal inside ruptures, never transparent holes. No flames, smoke, glow, explosion, shadow slab, floor, debris outside the head's bounds, labels or extra parts. Restrained detailed painted game-sprite finish matching the original exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\turret-head\\master-v2.png",
+      "sha256": "26fdaa6bf0bbb9715c23e5d34bbc18f854deb8484685cc04ea60039edd633c22",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: same position, size and outline"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one destroyed variant using the reference’s exact layout and silhouette, with a transparent background and empty top slot.\n"
+  ],
+  "usage": {
+    "input_tokens": 41555,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 396,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.2
+}

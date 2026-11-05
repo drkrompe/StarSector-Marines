@@ -1,6 +1,6 @@
 # Story — The Hegemony armour line: a shared turret head, a new APC, a medium tank and a repulsor Onager
 
-Status: IN PROGRESS (slice 1 shipped: the Hegemony head over the APC's weapon; slices 2 to 6 remain)
+Status: IN PROGRESS (slices 1 and 2 shipped: the Hegemony head, then the APC and its carriers on the Hegemony hull; slices 3 to 6 remain)
 
 Written: 2026-11-05
 
@@ -29,8 +29,8 @@ its barrel or launcher face pokes out through the head's front: the draw order o
 The weapon keeps its own mech drawing, registration and muzzle (`MechHardpointGeometry`), so every mech part that fits
 a gun card fits every hull of every livery without new art; a new family is a head, not a set of guns. The head
 turns with the weapon and is sized from the ring, not from the weapon. A wreck shows it charred and knocked off its
-bearing, as a bare fitted weapon's wreck is; a painted wrecked head is slice 2's. An empty gun card shows the head with
-nothing in its slot.
+bearing, in its own painted wreck (`TurretHead.wreckTexture`). An empty gun card shows the head with nothing in its
+slot.
 
 This replaces the mount ring and the light-machine-gun gun plate (`gun-plate.png`) on hulls that wear a head. Hulls
 that do not join the line (the technicals, the hover scout, the laser tank) keep today's drawing until a head of
@@ -84,7 +84,9 @@ tuned in the playtest, not by evidence alone.
    ring, its wreck, a shut head for an empty card. Proven on the current hull first, so the head is judged before any
    hull changes. Evidence: `createSnapshots` stills of the light machine gun, the SRM-3 (QS) and a cannon under the
    head at the APC's and the Onager's scale, and a full traverse.
-2. **The APC hull** and its two carriers, with tire-top bands and a wreck.
+2. **Shipped.** **The APC hull** and its two carriers, with tire-top bands and a wreck (`art-source/vehicles/apc/hegemony`):
+   the concept turned and scaled to the old hull's length, its ring on the old roof bearing so no turret registration
+   moved. The carriers keep their open turntables, not the head: a mortar and an LRM pod stand up to fire.
 3. **Weight and hover split**: the ultra-heavy class, the hover/weight split, the blade recast as a weight crush;
    unit tests at the rules (`VehicleType`, the crush rule), no battle in `test`.
 4. **The repulsor Onager**: art, footprint, wreck, no treads, the dozer retired and its saves carried.
