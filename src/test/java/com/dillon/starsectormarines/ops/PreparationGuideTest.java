@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiKey;
+import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.style.UiTheme;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -64,6 +66,35 @@ class PreparationGuideTest {
         document.layout(1920, 1080); guide.update();
         click(document, find(document.root(), "preparation-continue")); guide.update();
         assertTrue(complete.get(), "The dialogue must accept input independently of its dim backdrop");
+    }
+
+    @Test void aStillPointerOverTheCalloutsActionStaysOverItAsFramesPass() {
+        var hoverSounds = new AtomicInteger();
+        var now = new AtomicLong();
+        UiSounds.install(new UiSounds(id -> {
+            if (UiSounds.HOVER.equals(id)) hoverSounds.incrementAndGet();
+        }, now::get));
+        try {
+            // The lesson's target holds the left of the screen, so the callout sits away from the corner it measures in.
+            var target = new UiElement("workspace").style("position: absolute; left: 0px; top: 0px; width: 900px; height: 1080px;");
+            var document = new UiDocument(new UiElement("root").child(target)).theme(MarineOpsThemes.standard());
+            var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                    List.of("data/ui/components/company/preparation-guide.mlx"));
+            var guide = new PreparationGuide(document, () -> new PreparationGuide.Lesson(3, "READY",
+                    "First job, Commander.", List.of("workspace"), "READY", () -> {}), () -> {}, loader);
+            document.layout(1920, 1080); guide.update();
+            var bounds = find(document.root(), "preparation-continue").box().borderBox();
+            assertTrue(bounds.x() > 528, "the callout must stand clear of where it measures");
+            document.pointerMoved(bounds.x() + 10, bounds.y() + 10);
+            assertEquals(1, hoverSounds.get());
+            for (int frame = 0; frame < 5; frame++) {
+                now.addAndGet(UiSounds.HOVER_GAP_NANOS);
+                guide.update();
+            }
+            assertEquals(1, hoverSounds.get());
+        } finally {
+            UiSounds.install(new UiSounds(UiSounds.SILENT, System::nanoTime));
+        }
     }
 
     @Test void campaignPopoverLeavesNavigationVisibleAndRestrictsUnrelatedControls() {

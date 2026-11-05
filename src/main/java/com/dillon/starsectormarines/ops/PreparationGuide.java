@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.fs.starfarer.api.Global;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -83,6 +84,8 @@ final class PreparationGuide {
     private String previousTarget;
     private Rect previousViewport;
     private String previousOutline = "";
+    private List<Object> fittedFor;
+    private float fitted;
 
     /** Keep the overlay at viewport origin, outside the room's padded content box. */
     static UiDocument document(UiElement content) {
@@ -234,6 +237,11 @@ final class PreparationGuide {
      * scrolls inside the limit instead.
      */
     private float fittedHeight(UiElement box, float width, float limit) {
+        // Only when the words or room change: this runs every frame, and measuring carries the callout out from under
+        // the pointer, which would hover its button afresh each time.
+        List<Object> asked = Arrays.asList(width, limit, current.title(), current.progressImage(), current.progressLabel(),
+                current.copy(), current.hint(), label(current.corner()), label(current.back()), label(current.action()));
+        if (asked.equals(fittedFor)) return fitted;
         UiElement copy = markup.requireElement("preparation-copy");
         copy.classed("preparation-copy-fill", false);
         box.style(String.format(Locale.ROOT, "left: 0px; top: 0px; width: %.1fpx; height: %.1fpx;",
@@ -244,7 +252,13 @@ final class PreparationGuide {
         UiElement last = actions.displayed() ? actions : hint.displayed() ? hint : copy;
         float needed = last.box().borderBox().bottom() - box.box().borderBox().y() + 14;
         copy.classed("preparation-copy-fill", true);
-        return Math.min(limit, needed);
+        fittedFor = asked;
+        fitted = Math.min(limit, needed);
+        return fitted;
+    }
+
+    private static String label(Button button) {
+        return button == null ? null : button.label();
     }
 
     private UiElement target() {
