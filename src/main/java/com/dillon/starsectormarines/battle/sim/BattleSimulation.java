@@ -4593,7 +4593,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     world, u, TICK_DT, grid, physicalRadius(u));
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
-            if (waitsAtFireEdge(u) || waitsAtHazeEdge(u)) return;
+            if (waitsAtFireEdge(u) || waitsAtHazeEdge(u)) {
+                // Held at an edge long enough, the route is dropped so its order re-plans against the hazard as it
+                // now lies: a route planned before the fire spread across it otherwise holds him there for good.
+                if (movement().stalledOnRoute(u)) navigation.clearPath(u);
+                return;
+            }
             movement().advanceAlongPath(world, u, TICK_DT);
             // A route the mover has been walking for seconds without getting anywhere is dropped,
             // so its order plans a fresh one from where it stands; see MovementService.stalledOnRoute.
@@ -4609,8 +4614,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         int[] path = world.path(u);
         int next = world.pathIdx(u);
         if (next >= Paths.cellCount(path)) return false;
-        return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u),
-                Paths.cellX(path, next), Paths.cellY(path, next));
+        return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u), path, next);
     }
 
     /**

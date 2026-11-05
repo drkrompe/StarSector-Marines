@@ -68,7 +68,33 @@ class FireEscapeTest {
     void aUnitOnBareGroundOutOfTheFireStays() {
         NavigationGrid grid = new NavigationGrid(W, H);
         FireField field = burningBand(grid);
-        assertEquals(-1, FireEscape.refuge(grid, field, 9, 4), "bare ground beside the fire is the route costing's, not this");
+        assertEquals(-1, FireEscape.refuge(grid, field, 11, 4), "bare ground two clear of the fire is not in its way");
         assertEquals(-1, FireEscape.refuge(grid, null, 5, 4));
+    }
+
+    @Test
+    void bareGroundBesideTheFireIsInItsWay() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        FireField field = burningBand(grid);
+        assertTrue(FireEscape.needsToMove(field, 9, 4), "beside the fire he is burnt, bare ground or not");
+        assertEquals(10, FireEscape.refuge(grid, field, 9, 4) % W);
+    }
+
+    @Test
+    void aRouteAwayFromTheFireIsWalkedAndOneIntoItIsNot() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        FireField field = burningBand(grid);
+        assertTrue(FireEscape.routeLeavesTheWay(field, new int[] {10, 4, 11, 4, 12, 4}, 0), "an order east leaves the fire");
+        assertFalse(FireEscape.routeLeavesTheWay(field, new int[] {8, 4, 7, 4}, 0), "an order west walks into it");
+    }
+
+    @Test
+    void aRouteIntoTheFireWaitsACellBackFromTheFlames() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        FireField field = burningBand(grid);
+        int[] west = {10, 4, 9, 4, 8, 4};
+        assertFalse(FireEscape.waitsAtEdge(field, 11, 4, west, 0), "two cells short of the flames he still steps on");
+        assertTrue(FireEscape.waitsAtEdge(field, 10, 4, west, 1), "the next step stands beside the flames, so he waits");
+        assertFalse(FireEscape.waitsAtEdge(field, 9, 4, west, 2), "beside the fire he is in its way, and steps out instead");
     }
 }
