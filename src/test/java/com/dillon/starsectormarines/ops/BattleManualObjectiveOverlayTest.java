@@ -73,4 +73,23 @@ class BattleManualObjectiveOverlayTest {
             assertEquals("0 / 0", markup.requireElement("manual-objective-score").text());
         }
     }
+
+    @Test void aShortListLeavesTheRestOfTheCornerToTheWorld() throws Exception {
+        var reactor = new Reactor();
+        var model = new BattleManualObjectiveModel(reactor);
+        var one = preview().objectives().get(0);
+        model.update(new MissionObjectiveSnapshot(List.of(one), List.of()));
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                List.of(BattleManualObjectiveOverlay.COMPONENT_PATH));
+        try (var markup = loader.reloadAndBuild(reactor, BattleManualObjectiveOverlay.COMPONENT, model.props())) {
+            var document = new UiDocument(markup.root());
+            for (var style : markup.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(BattleManualObjectiveOverlay.WIDTH, BattleManualObjectiveOverlay.HEIGHT);
+            var list = markup.requireElement("manual-objective-list");
+            float bottom = BattleManualObjectiveOverlay.contentBottom(list);
+            assertEquals(markup.requireElement("mission-capture").box().borderBox().bottom(), bottom, 0.01f);
+            assertTrue(bottom < list.box().borderBox().bottom() / 2f, "one card claims well under the full list");
+        }
+    }
 }
