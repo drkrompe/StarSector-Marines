@@ -102,7 +102,7 @@ tuned in the playtest, not by evidence alone.
    breaks. Every gun tank and the Scorpion crush walls; no hull is ultra-heavy yet.
 4. **Shipped.** **The repulsor Onager** (`convoy-nouns.md`, the Onager; weight crushes walls): the concept turned to
    point left with an ImageGen wreck registered on it (`art-source/vehicles/heavy-repulsor`), drawn 4.3 cells long as the
-   laser tank is (owner, grown from 4.0 so it reads above the Scorpion; `VehicleType.Onager.SCALE`), a 3.7 by 2.36 footprint fitted to the hull, the wedge's point and the tail's chamfer outside it,
+   laser tank is (owner, grown from 4.0 so it reads above the Scorpion; `VehicleType.Onager.SCALE`), a 3.38 by 2.21 footprint, its nose lifted a quarter cell as the APC's is and its flanks a little inside the paint,
    no treads, `ULTRA_HEAVY` on a heavy skirt, its cannon card under the Hegemony head sized to the painted ring. The
    dozer is retired: `DozerBlade` became `WallCrush`, `hasBlade` and the Onager's sheet heads went, and a save,
    pattern or card naming the dozer loads as the Onager (`VehicleType.fromSavedName`). Evidence: `createSnapshots
@@ -113,6 +113,12 @@ tuned in the playtest, not by evidence alone.
    fallback turret frames (`art-source/vehicles/medium-tank`), two tread runs a side, a two-row ballistic card, store,
    doll and Kit Ladder station. Evidence: `createSnapshots -Psnapshot=medium-tank`.
 6. **Balance pass** against a player giving orders, not the autopilot.
+7. **Shipped.** **Liveries** (owner: the line reads as old, low-tech Hegemony issue; an Independent variant in blue
+   and a pirate one worn and red): `VehiclePaint`. The Hegemony sheets and heads are the masters; a paint is the same
+   sheet recoloured pixel for pixel (`art-source/vehicles/liveries/paint.py`): Independent turns the hazard panels
+   blue and fades the plate grey, pirates turn them red and darken, soot, chip and rust the plate. A side drives in
+   the paint of the faction its mechs wear the livery of (employer for the marines, target for the defenders); every
+   faction but those two keeps the Hegemony's. Evidence: `createSnapshots -Psnapshot=vehicle-liveries`.
 
 ## Open
 

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
+import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -249,6 +250,15 @@ public class BattleSprites {
             };
     private final EnumSet<VehicleType> vehiclesAttempted = EnumSet.noneOf(VehicleType.class);
     private boolean convoySpritesLoadAttempted;
+    /** The paint each side's Hegemony-line vehicles drive in, bound with the mech liveries. */
+    private final EnumMap<Faction, VehiclePaint> vehiclePaintBySide = new EnumMap<>(Faction.class);
+    /** Vehicle sheets in a paint other than the Hegemony's, loaded as a side wearing it fields the line. */
+    private final EnumMap<VehiclePaint, EnumMap<VehicleType, UnitSpriteCache>> paintedConvoySprites =
+            new EnumMap<>(VehiclePaint.class);
+    /** Painted sheets and heads already asked for, by path, so a missing one is not asked for every frame. */
+    private final Set<String> paintedAttempted = new HashSet<>();
+    /** Turret heads in a paint other than the Hegemony's, by path. */
+    private final Map<String, LayeredSpriteCache> paintedHeads = new HashMap<>();
 
     // ---- engine FX sprites --------------------------------------------------
 
@@ -311,6 +321,17 @@ public class BattleSprites {
     public LayeredSpriteCache vehicleTurretHead(TurretHead head, boolean wrecked) {
         return head == null ? null : (wrecked ? vehicleTurretHeadWrecks : vehicleTurretHeads).get(head);
     }
+    /** {@link #vehicleTurretHead(TurretHead, boolean)} in {@code paint}, falling back to the Hegemony's head. */
+    public LayeredSpriteCache vehicleTurretHead(TurretHead head, boolean wrecked, VehiclePaint paint) {
+        if (head == null || paint == null || paint == VehiclePaint.HEGEMONY) return vehicleTurretHead(head, wrecked);
+        String path = paint.path("graphics/battle/vehicles/" + (wrecked ? head.wreckTexture : head.texture));
+        LayeredSpriteCache painted = paintedHeads.get(path);
+        if (painted == null && paintedAttempted.add(path)) {
+            painted = loadPaintedLayer(path);
+            if (painted != null) paintedHeads.put(path, painted);
+        }
+        return painted != null ? painted : vehicleTurretHead(head, wrecked);
+    }
     /**
      * The active-protection kit's launchers and sensor panels, drawn over a gun tank's live hull in its frame's
      * registration ({@link com.dillon.starsectormarines.marine.MechInternal#ACTIVE_PROTECTION}). Null when the
@@ -362,6 +383,68 @@ public class BattleSprites {
         mechLiveryBySide.put(Faction.MARINE, MechLivery.forFactionId(marineFactionId));
         mechLiveryBySide.put(Faction.DEFENDER, MechLivery.forFactionId(defenderFactionId));
         mechLiveryBySide.put(Faction.CIVILIAN, MechLivery.BASE);
+        for (Faction side : Faction.values()) {
+            vehiclePaintBySide.put(side, VehiclePaint.of(mechLiveryBySide.getOrDefault(side, MechLivery.BASE)));
+        }
+    }
+
+    /** The paint {@code side}'s Hegemony-line vehicles drive in ({@link VehiclePaint#of}); the Hegemony's unbound. */
+    public VehiclePaint vehiclePaint(Faction side) {
+        return side == null ? VehiclePaint.HEGEMONY : vehiclePaintBySide.getOrDefault(side, VehiclePaint.HEGEMONY);
+    }
+
+    /**
+     * The sheet {@code type} is drawn from on {@code side}: in the side's paint where the line comes in paints, loaded on
+     * first draw if the battle's set did not plan it; the line's own sheet otherwise, or when the painted one is missing.
+     */
+    public UnitSpriteCache convoySprite(VehicleType type, Faction side) {
+        VehiclePaint paint = vehiclePaint(side);
+        if (paint != VehiclePaint.HEGEMONY && VehiclePaint.paints(type)) {
+            EnumMap<VehicleType, UnitSpriteCache> sheets = paintedConvoySprites.get(paint);
+            UnitSpriteCache painted = sheets == null ? null : sheets.get(type);
+            if (painted == null && !paintedAttempted.contains(paint.path(type.spritePath))) {
+                if (convoySpritesLoadAttempted) unplanned("vehicle line " + type + " in " + paint);
+                painted = loadConvoySprite(type, paint);
+            }
+            if (painted != null) return painted;
+        }
+        return convoySprites().get(type);
+    }
+
+    /** {@code type}'s sheet in {@code paint}, once; null for the Hegemony's paint, a line with no paints or missing art. */
+    public UnitSpriteCache loadConvoySprite(VehicleType type, VehiclePaint paint) {
+        if (paint == VehiclePaint.HEGEMONY || !VehiclePaint.paints(type)) return null;
+        EnumMap<VehicleType, UnitSpriteCache> sheets =
+                paintedConvoySprites.computeIfAbsent(paint, p -> new EnumMap<>(VehicleType.class));
+        String path = paint.path(type.spritePath);
+        if (!paintedAttempted.add(path)) return sheets.get(type);
+        UnitSpriteCache cache = loadPaintedSheet(type, path);
+        if (cache != null) sheets.put(type, cache);
+        return cache;
+    }
+
+    /** Every vehicle sheet loaded, in every paint: what the convoy layer may draw from. */
+    public List<UnitSpriteCache> allConvoySheets() {
+        List<UnitSpriteCache> all = new ArrayList<>(convoySprites().values());
+        for (EnumMap<VehicleType, UnitSpriteCache> sheets : paintedConvoySprites.values()) all.addAll(sheets.values());
+        return all;
+    }
+
+    /** A painted vehicle sheet at {@code path}, framed as {@code type}'s; null when it did not load. */
+    protected UnitSpriteCache loadPaintedSheet(VehicleType type, String path) {
+        SpriteAPI sheet = loadIconOrNull(path);
+        if (sheet == null) {
+            LOG.warn("convoy: failed to load painted sprite for " + type + " (" + path + ")");
+            return null;
+        }
+        SpriteSheetFrames size = new SpriteSheetFrames(Math.round(sheet.getWidth()),
+                Math.round(sheet.getHeight()), new SpriteSheetFrames.Frame[0]);
+        return new UnitSpriteCache(sheet, type.registeredSpriteFrames(size));
+    }
+
+    /** A painted turret head at {@code path}; null when it did not load. */
+    protected LayeredSpriteCache loadPaintedLayer(String path) {
+        return loadLayeredSprite(path);
     }
     public Map<String, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
     public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
@@ -500,6 +583,16 @@ public class BattleSprites {
         steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureConvoySprites(Set.of())));
         for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
             steps.add(new TextureLoadQueue.Step(loadingSprites, () -> loadConvoySprite(type)));
+        }
+        // Either side may field a vehicle, so a Hegemony-line hull is loaded in both sides' paints.
+        EnumSet<VehiclePaint> paints = EnumSet.of(vehiclePaint(Faction.MARINE), vehiclePaint(Faction.DEFENDER));
+        for (VehiclePaint paint : paints) {
+            if (paint == VehiclePaint.HEGEMONY) continue;
+            for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
+                if (VehiclePaint.paints(type)) {
+                    steps.add(new TextureLoadQueue.Step(loadingSprites, () -> loadConvoySprite(type, paint)));
+                }
+            }
         }
         steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingEffects"), this::ensureObjectiveIcons));
         return steps;

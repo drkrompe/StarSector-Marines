@@ -232,8 +232,10 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
-        boolean pushing = throttle > 0f && (bladeWorks(body, type, convoy.control(id), dt)
-                || bladeGrinds(body, type, convoy.control(id), dt));
+        // A crushing hull crushes where its whole footprint goes, ahead or astern (WallCrush, the crush area).
+        int travel = throttle > 0f ? 1 : throttle < 0f ? -1 : 0;
+        boolean pushing = travel != 0 && bladeWorks(body, type, convoy.control(id), dt, travel);
+        if (travel != 0 && bladeGrinds(body, type, convoy.control(id), dt)) pushing = true;
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false) && !pushing;
         if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
@@ -588,12 +590,14 @@ public final class VehicleControlSystem {
             targetSpeed = -targetSpeed * 0.5f;
         }
 
-        // A hull bearing on a wall is working, not stuck: pushing it down is this tick's progress.
-        boolean pushing = targetSpeed > 0f && bladeWorks(body, type, s, dt);
+        // A hull bearing on a wall is working, not stuck: pushing it down is this tick's progress. It bears the way it
+        // moves, ahead or astern.
+        int travel = targetSpeed > 0f ? 1 : targetSpeed < 0f ? -1 : 0;
+        boolean pushing = travel != 0 && bladeWorks(body, type, s, dt, travel);
         if (pushing) s.timeSinceProgress = 0f;
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        // Nor is a hull its turn has swung into what it could push: it grinds it down.
-        if (!pushing && targetSpeed > 0f && bladeGrinds(body, type, s, dt)) {
+        // Nor is a hull its turn has swung into what it could push: it grinds its whole footprint down.
+        if (travel != 0 && bladeGrinds(body, type, s, dt)) {
             pushing = true;
             s.timeSinceProgress = 0f;
         }
@@ -1391,8 +1395,8 @@ public final class VehicleControlSystem {
         }
     }
 
-    private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
-        return crushesWalls(type) && crush.push(body, type, s, dt);
+    private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt, int travel) {
+        return crushesWalls(type) && crush.push(body, type, s, dt, travel);
     }
 
     /**
