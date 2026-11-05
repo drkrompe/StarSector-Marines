@@ -19,7 +19,7 @@ import java.util.List;
  * is one 2x2 bay on a Light hull, one 2x3 bay on a Medium and two 2x2 bays on a Heavy.
  *
  * <p>An armed hull's flux reservoir is its compartment's bank and vent arrays ({@link #frame}): one with no bank is
- * incomplete and stays off the drop manifest, as a mech is ({@link #complete}). Every armed hull is built with a
+ * incomplete and stays off the drop manifest, as a mech is ({@link MachineCapabilities#required}). Every armed hull is built with a
  * bank, and the laser tank with vent arrays too ({@link #stockFit}); an unarmed hull needs none and takes none.</p>
  */
 public final class VehicleRack {
@@ -129,11 +129,6 @@ public final class VehicleRack {
     /** The loader the compartment's parts give the hull at the drop ({@link MechCompartment#loader}). */
     public static MissileReplenisherComponent loader(List<MechInternal> internals) {
         return MechCompartment.loader(internals);
-    }
-
-    /** Whether the hull may drop: an unarmed hull always, an armed one only with a capacitor bank in its compartment. */
-    public static boolean complete(VehicleType type, List<MechInternal> internals) {
-        return type == null || !type.hasTurretWeapon() || bank(internals) != null;
     }
 
     /**

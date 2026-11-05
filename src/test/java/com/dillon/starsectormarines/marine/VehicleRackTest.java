@@ -80,11 +80,8 @@ class VehicleRackTest {
     }
 
     @Test
-    void anArmedHullNeedsABankAndAnUnarmedOneTakesNone() {
-        assertFalse(VehicleRack.complete(VehicleType.MILITIA_TECHNICAL, List.of()));
-        assertTrue(VehicleRack.complete(VehicleType.MILITIA_TECHNICAL, List.of(MechInternal.FACTORY_CAPACITOR_BANK)));
+    void anUnarmedHullIsBuiltWithNoBankAndTakesNone() {
         VehicleType truck = unarmed();
-        assertTrue(VehicleRack.complete(truck, List.of()));
         assertNull(VehicleRack.stockBank(truck));
         assertFalse(VehicleRack.takes(truck, MechInternal.FACTORY_CAPACITOR_BANK));
     }
@@ -94,12 +91,12 @@ class VehicleRackTest {
         MechBay bay = new MechBay();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
-        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), tank.rackInternals());
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), tank.compartment());
         assertEquals(0, bay.availableInternal(MechInternal.FACTORY_CAPACITOR_BANK.id));
 
         bay.addInternal(MechInternal.DOUBLE_CAPACITOR_BANK.id, 1);
         assertTrue(bay.fitRackPart(tank.id(), MechInternal.DOUBLE_CAPACITOR_BANK));
-        assertEquals(List.of(MechInternal.STANDARD_LOADER, MechInternal.DOUBLE_CAPACITOR_BANK), tank.rackInternals());
+        assertEquals(List.of(MechInternal.STANDARD_LOADER, MechInternal.DOUBLE_CAPACITOR_BANK), tank.compartment());
         assertEquals(1, bay.availableInternal(MechInternal.FACTORY_CAPACITOR_BANK.id));
     }
 
@@ -122,7 +119,7 @@ class VehicleRackTest {
         CampaignVehicle hull = new CampaignVehicle("v1", "Mule", VehicleType.HEAVY_APC);
         assertTrue(hull.canFitRack(MechInternal.ACCELERATED_LOADER), "a loader goes in place of the loader fitted");
         assertTrue(hull.fitRack(MechInternal.ACCELERATED_LOADER));
-        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER), hull.rackInternals());
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER), hull.compartment());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED, hull.freezeForDeployment().loader());
     }
 

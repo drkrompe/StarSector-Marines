@@ -144,7 +144,7 @@ public final class MechWorkshop {
     public Result fitRackPart(String vehicleId, MechInternal part) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null || part == null) return Result.of(Status.INVALID);
-        if (part.role == MechInternal.Role.CAPACITOR_BANK && vehicle.rackInternals().contains(part)) {
+        if (part.role == MechInternal.Role.CAPACITOR_BANK && vehicle.compartment().contains(part)) {
             return Result.of(Status.ALREADY_INSTALLED);
         }
         if (!vehicle.canFitRack(part)) return Result.of(Status.INCOMPATIBLE);
@@ -157,7 +157,7 @@ public final class MechWorkshop {
     public Result stripRackPart(String vehicleId, MechInternal part) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null || part == null) return Result.of(Status.INVALID);
-        if (!vehicle.rackInternals().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
+        if (!vehicle.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
         return bay.stripRackPart(vehicleId, part) ? new Result(Status.STRIPPED, null, vehicle)
                 : Result.of(Status.INVALID);
     }

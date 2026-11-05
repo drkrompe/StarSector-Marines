@@ -33,11 +33,11 @@ class RetiredKitMigrationTest {
     void aHullSavedWithItsSealedLoaderCarriesTheStandardLoaderAndKitsThatNoLongerPackComeOff() throws Exception {
         CampaignVehicle technical = saved(VehicleType.MILITIA_TECHNICAL, List.of("kit.ready-rack"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
-        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), technical.rackInternals());
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER), technical.compartment());
         assertTrue(((List<?>) get(technical, "kitIds")).isEmpty(), "the Light hull is full with bank and loader; the kit is a spare");
 
         CampaignVehicle truck = saved(VehicleType.SUPPLY_TRUCK, List.of(), List.of());
-        assertTrue(truck.rackInternals().isEmpty(), "an unarmed hull had no loader to keep");
+        assertTrue(truck.compartment().isEmpty(), "an unarmed hull had no loader to keep");
     }
 
     @Test
@@ -58,7 +58,7 @@ class RetiredKitMigrationTest {
                 List.of("kit.accelerated-loader", "kit.spall-liner", "kit.sensor-pair"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
         assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER,
-                MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR), tank.rackInternals(),
+                MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR), tank.compartment(),
                 "every kit is the internal it became");
         assertTrue(((List<?>) get(tank, "kitIds")).isEmpty(), "no kit is left to read");
     }
@@ -68,7 +68,7 @@ class RetiredKitMigrationTest {
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(tank.removeRack(MechInternal.STANDARD_LOADER));
         resolve(tank);
-        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK), tank.rackInternals());
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK), tank.compartment());
     }
 
     @Test

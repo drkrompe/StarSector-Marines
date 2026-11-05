@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Persistent identity and installed kit for one player-owned support mech. */
-public final class CampaignMech implements Serializable {
+public final class CampaignMech implements CampaignMachine, Serializable {
 
     public static final String EMPTY_COMPONENT_ID = "empty";
     public static final int CALLSIGN_MAX_LENGTH = 48;
@@ -154,7 +155,18 @@ public final class CampaignMech implements Serializable {
         return loader != null ? loader.replenisher() : MissileReplenisherComponent.NONE;
     }
 
+    @Override
+    public MachineCapabilities capabilities() {
+        return MachineCapabilities.of(this);
+    }
+
+    @Override
+    public List<SocketDef> compartmentGrids() {
+        return MechCompartment.of(variant);
+    }
+
     /** What the auxiliary compartment holds, in the order fitted. */
+    @Override
     public List<MechInternal> compartment() {
         List<MechInternal> parts = new ArrayList<>();
         for (String partId : compartmentIds()) {
@@ -231,6 +243,7 @@ public final class CampaignMech implements Serializable {
      * when it is empty (an engine stripped back to stores, or no such part in the compartment).
      * Vent arrays stack; this is the first.
      */
+    @Override
     public MechInternal internal(MechInternal.Role role) {
         if (role.compartment()) {
             for (MechInternal part : compartment()) if (part.role == role) return part;
@@ -333,22 +346,6 @@ public final class CampaignMech implements Serializable {
             default -> null;
         };
     }
-
-    /**
-     * The roles this frame must fill before it can drop and has left empty: an engine and a
-     * capacitor bank. A missing vent array or loader is an option, not a gap.
-     */
-    public List<MechInternal.Role> missingInternals() {
-        List<MechInternal.Role> missing = new ArrayList<>();
-        for (MechInternal.Role role : REQUIRED_INTERNALS) {
-            if (internal(role) == null) missing.add(role);
-        }
-        return missing;
-    }
-
-    /** The roles a frame cannot drop without. A plate is only recommended: with none it drops with no armor. */
-    public static final List<MechInternal.Role> REQUIRED_INTERNALS =
-            List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK);
 
     /**
      * Fits {@code internal} in {@code role}, or empties it on null. An empty engine is stored as

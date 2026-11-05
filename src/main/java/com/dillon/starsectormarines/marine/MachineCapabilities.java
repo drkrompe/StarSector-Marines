@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
+import java.util.List;
+
 /**
  * What a machine's chassis, as fitted, offers the parts that go in it (mechs-nouns.md, one machine, one part catalog).
  * A mech and a vehicle are the same kind of machine with one part catalog: whether a part goes on one is its own
@@ -24,6 +26,15 @@ public record MachineCapabilities(boolean armed, boolean fedWeapons, boolean dro
     /** A machine that is only armed or fed: no drone wing or point defence to host. */
     public MachineCapabilities(boolean armed, boolean fedWeapons) {
         this(armed, fedWeapons, false, false);
+    }
+
+    /**
+     * The roles a machine cannot drop without, on every machine: an engine, and a capacitor bank where it carries a
+     * gun, since a gun's flux has nowhere else to go. A plate is only recommended: with none it drops with no armor.
+     */
+    public List<MechInternal.Role> required() {
+        return armed ? List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK)
+                : List.of(MechInternal.Role.ENGINE);
     }
 
     /** A mech as fitted: every chassis has weapon mounts, and a fitted weapon may be fed; its chassis says what it hosts. */

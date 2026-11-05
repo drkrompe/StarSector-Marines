@@ -225,7 +225,7 @@ public final class MechBay implements Serializable {
                 || mechById(vehicle.id()) != null || !squad.add(vehicle)) return false;
         if (vehicle.engine() != null) addInternal(vehicle.engine().id, 1);
         if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
-        for (MechInternal part : vehicle.rackInternals()) addInternal(part.id, 1);
+        for (MechInternal part : vehicle.compartment()) addInternal(part.id, 1);
         return true;
     }
 
@@ -257,7 +257,7 @@ public final class MechBay implements Serializable {
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
-            for (MechInternal part : vehicle.rackInternals()) strike(ownedInternals, part.id);
+            for (MechInternal part : vehicle.compartment()) strike(ownedInternals, part.id);
             lost++;
         }
         return lost;
@@ -280,7 +280,7 @@ public final class MechBay implements Serializable {
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
-            for (MechInternal part : vehicle.rackInternals()) strike(ownedInternals, part.id);
+            for (MechInternal part : vehicle.compartment()) strike(ownedInternals, part.id);
         }
         return vehicle;
     }
@@ -521,7 +521,7 @@ public final class MechBay implements Serializable {
             }
             for (CampaignVehicle vehicle : squad.vehicles()) {
                 if (vehicle.plating() == internal || vehicle.engine() == internal) installed++;
-                for (MechInternal part : vehicle.rackInternals()) if (part == internal) installed++;
+                for (MechInternal part : vehicle.compartment()) if (part == internal) installed++;
             }
         }
         return installed;

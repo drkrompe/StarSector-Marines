@@ -1120,7 +1120,7 @@ class MechLabViewModelTest {
         assertTrue(names.contains(MechInternal.SENSOR_PAIR.displayName()), names.toString());
         assertTrue(names.contains(MechInternal.ACTIVE_PROTECTION.displayName()), "a gun tank's flanks take it");
         assertTrue(bay.fitRackPart(tank.id(), MechInternal.SENSOR_PAIR));
-        assertTrue(tank.rackInternals().contains(MechInternal.SENSOR_PAIR));
+        assertTrue(tank.compartment().contains(MechInternal.SENSOR_PAIR));
         assertEquals(0, bay.availableInternal(MechInternal.SENSOR_PAIR.id), "the part is on the hull, not spare");
     }
 

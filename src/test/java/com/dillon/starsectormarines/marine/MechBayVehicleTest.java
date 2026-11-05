@@ -56,7 +56,7 @@ class MechBayVehicleTest {
         assertNull(vehicle.gun());
         assertFalse(vehicle.hasOwnGun());
         assertNull(vehicle.engine());
-        assertTrue(vehicle.rackInternals().isEmpty());
+        assertTrue(vehicle.compartment().isEmpty());
         assertFalse(vehicle.complete());
     }
 

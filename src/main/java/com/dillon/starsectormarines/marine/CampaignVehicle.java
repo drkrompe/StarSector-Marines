@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
@@ -23,7 +24,7 @@ import java.util.List;
  * bank and vent arrays that are its flux reservoir, its loader, and any liner, ready rack, sensor drones or active
  * protection ({@link VehicleRack}). An armed hull is built with its stock bank.
  */
-public final class CampaignVehicle implements Serializable {
+public final class CampaignVehicle implements CampaignMachine, Serializable {
 
     private final String id;
     private String displayName;
@@ -194,8 +195,27 @@ public final class CampaignVehicle implements Serializable {
         return VehiclePlating.of(plating());
     }
 
+    @Override
+    public MachineCapabilities capabilities() {
+        return MachineCapabilities.of(this);
+    }
+
+    @Override
+    public List<SocketDef> compartmentGrids() {
+        return VehicleRack.grids(type);
+    }
+
+    @Override
+    public MechInternal internal(MechInternal.Role role) {
+        if (role == MechInternal.Role.PLATING) return plating();
+        if (role == MechInternal.Role.ENGINE) return engine();
+        for (MechInternal part : compartment()) if (part.role == role) return part;
+        return null;
+    }
+
     /** The internals in the auxiliary compartment, in fitted order. */
-    public List<MechInternal> rackInternals() {
+    @Override
+    public List<MechInternal> compartment() {
         List<MechInternal> parts = new ArrayList<>();
         if (rackInternalIds != null) {
             for (String id : rackInternalIds) {
@@ -230,23 +250,10 @@ public final class CampaignVehicle implements Serializable {
     }
 
     private List<MechInternal> withRackPart(MechInternal part) {
-        List<MechInternal> parts = new ArrayList<>(rackInternals());
+        List<MechInternal> parts = new ArrayList<>(compartment());
         if (MechCompartment.limit(part.role) == 1) parts.removeIf(p -> p.role == part.role);
         parts.add(part);
         return parts;
-    }
-
-    /** Whether the hull may drop: an engine in its core and, on an armed hull, a capacitor bank in its compartment. */
-    public boolean complete() {
-        return missingInternals().isEmpty();
-    }
-
-    /** What the hull lacks to drop, as on a mech: its engine, and on an armed hull its capacitor bank. */
-    public List<MechInternal.Role> missingInternals() {
-        List<MechInternal.Role> missing = new ArrayList<>();
-        if (engine() == null) missing.add(MechInternal.Role.ENGINE);
-        if (!VehicleRack.complete(type, rackInternals())) missing.add(MechInternal.Role.CAPACITOR_BANK);
-        return List.copyOf(missing);
     }
 
     /** Changes only the player-facing callsign; identity and hull stay intact. */
@@ -265,7 +272,7 @@ public final class CampaignVehicle implements Serializable {
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
         return new VehicleDeploymentSpec(id, displayName, type, platingTier(), engineTier(), gun(),
-                rackInternals(), !hasOwnGun());
+                compartment(), !hasOwnGun());
     }
 
     /**
@@ -304,7 +311,7 @@ public final class CampaignVehicle implements Serializable {
             MechInternal internal = MechInternal.RETIRED_KITS.get(kitId);
             if (internal == null) continue;
             kitIds.remove(kitId);
-            List<MechInternal> parts = rackInternals();
+            List<MechInternal> parts = compartment();
             if (parts.stream().noneMatch(p -> p.role == internal.role && MechCompartment.limit(p.role) == 1)) {
                 rackInternalIds.add(internal.id);
             }
@@ -320,9 +327,9 @@ public final class CampaignVehicle implements Serializable {
      */
     private void fitTheSealedLoader() {
         if (!type.hasTurretWeapon()) return;
-        if (rackInternals().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
+        if (compartment().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
         rackInternalIds.add(MechInternal.STANDARD_LOADER.id);
-        while (!VehicleRack.fits(type, rackInternals())) {
+        while (!VehicleRack.fits(type, compartment())) {
             int spare = -1;
             for (int i = rackInternalIds.size() - 1; i >= 0 && spare < 0; i--) {
                 MechInternal part = MechInternal.findById(rackInternalIds.get(i));

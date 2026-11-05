@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /** Space at an install point, and what a bought machine stands with, on every mech and vehicle. */
@@ -23,6 +24,13 @@ class MachineFittingRulesTest {
 
     private static SocketDef point(SocketType type, int columns, int rows) {
         return new SocketDef(SocketId.ARMS, type, columns, rows, 0f, 0f, 0f, 0f, 1f, 1f, false);
+    }
+
+    @Test
+    void everyMachineRequiresAnEngineAndAnArmedOneABank() {
+        MechInternal.Role engine = MechInternal.Role.ENGINE, bank = MechInternal.Role.CAPACITOR_BANK;
+        assertEquals(List.of(engine, bank), new MachineCapabilities(true, false).required());
+        assertEquals(List.of(engine), new MachineCapabilities(false, false).required());
     }
 
     @Test
@@ -77,7 +85,7 @@ class MachineFittingRulesTest {
             assertNull(hull.gun());
             assertNull(hull.engine());
             assertNull(hull.plating());
-            assertTrue(hull.rackInternals().isEmpty());
+            assertTrue(hull.compartment().isEmpty());
             assertFalse(hull.complete());
             assertTrue(hull.freezeForDeployment().noOwnGun());
         }

@@ -1306,7 +1306,7 @@ public final class MechLabViewModel {
 
     /** The hull as it stands. */
     private static Figures figures(CampaignVehicle vehicle) {
-        return vehicleFigures(vehicle.type(), vehicle.plating(), vehicle.engine(), vehicle.rackInternals(), standingGun(vehicle));
+        return vehicleFigures(vehicle.type(), vehicle.plating(), vehicle.engine(), vehicle.compartment(), standingGun(vehicle));
     }
 
     /** The gun at the card; on a hull from an older save, its own until a weapon replaces it. */
@@ -1319,7 +1319,7 @@ public final class MechLabViewModel {
         MechInternal part = hoveredInternal.get();
         MechWeaponComponent weapon = hoveredWeapon.get();
         if (part == null && weapon == null) return figures(vehicle);
-        List<MechInternal> rack = new ArrayList<>(vehicle.rackInternals());
+        List<MechInternal> rack = new ArrayList<>(vehicle.compartment());
         if (part != null && part.role.compartment()) {
             if (MechCompartment.limit(part.role) == 1) rack.removeIf(fitted -> fitted.role == part.role);
             rack.add(part);
@@ -1814,7 +1814,7 @@ public final class MechLabViewModel {
             boolean locked = !bay.canFabricate(part);
             if (locked && free == 0) continue;
             boolean bank = part.role == MechInternal.Role.CAPACITOR_BANK;
-            boolean installed = MechCompartment.limit(part.role) == 1 && vehicle.rackInternals().contains(part);
+            boolean installed = MechCompartment.limit(part.role) == 1 && vehicle.compartment().contains(part);
             boolean inCargo = free > 0;
             boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
             boolean offerFab = !locked && !inCargo;
@@ -1860,7 +1860,7 @@ public final class MechLabViewModel {
     /** Rows the vehicle's compartment parts take, each its footprint's rows. */
     private static int rackRows(CampaignVehicle vehicle) {
         int rows = 0;
-        for (MechInternal part : vehicle.rackInternals()) rows += part.footprintRows;
+        for (MechInternal part : vehicle.compartment()) rows += part.footprintRows;
         return rows;
     }
 
@@ -2035,7 +2035,7 @@ public final class MechLabViewModel {
     public List<VehicleRack.Placement> installedRack() {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle == null) return List.of();
-        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.rackInternals());
+        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.compartment());
         return placed != null ? placed : List.of();
     }
 

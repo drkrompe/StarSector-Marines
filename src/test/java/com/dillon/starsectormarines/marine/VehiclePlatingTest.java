@@ -91,7 +91,7 @@ class VehiclePlatingTest {
     void aSavedVehicleWithTheRetiredArmorKitsWearsThePlatingTheyBecame() throws Exception {
         CampaignVehicle both = vehicleWithKitIds(List.of("kit.applique-plate", "kit.sensor-pair", "kit.spaced-skirts"));
         assertEquals(MechInternal.HEAVY_PLATING, both.plating(), "the heavier of the two wins");
-        assertTrue(both.rackInternals().contains(MechInternal.SENSOR_PAIR), "the rest of the rack is kept, as internals");
+        assertTrue(both.compartment().contains(MechInternal.SENSOR_PAIR), "the rest of the rack is kept, as internals");
 
         assertEquals(MechInternal.COMPOSITE_PLATING, vehicleWithKitIds(List.of("kit.applique-plate")).plating());
     }
