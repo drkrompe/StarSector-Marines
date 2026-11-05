@@ -45,6 +45,9 @@ reach them.
   model shows behind something nearer is not drawn. The comms boards ripple when a report
   arrives, the quartermaster's indicator row shows the payroll runway's tone, and the
   cowl's buttons count the open actions. The rest is the watch at work.
+- **The cowl monitor shows the Cerberus.** `trace_ship.py` traces its plan from the vanilla
+  sprite and cuts the hull into compartments along the sprite's painted seams; one lights at
+  a time under the scan line.
 - **The screens are colour televisions.** Saturated graphics on black glass with coloured
   status bars, in rounded 4:3 tubes let into panels. Their quads come from the model's
   outlines, nudged by how far the painter moved each key. The readouts are scenery, not
