@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.ColdAccountStoryHooks;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.warship.StockVariantLoadout;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import java.util.ArrayList;
@@ -208,8 +210,12 @@ public final class ColdAccountIntervention implements Objective {
             }
         }
     }
+    /** Resolute flies at the Spawn-in-Onslaught body ({@link SpawnInOnslaught#PRESENCE}), not the full hull presence. */
     private static Warship fitShip(float x, float y) {
-        try { return Warship.fit("onslaught", "onslaught_Standard", Faction.ALLY, x, y, 90f); }
+        try {
+            return Warship.fit(new StockVariantLoadout("onslaught", "onslaught_Standard"), Faction.ALLY, x, y, 90f,
+                    SpawnInOnslaught.PRESENCE);
+        }
         catch (Exception e) { throw new IllegalStateException("Cannot fit the authored Hegemony Onslaught", e); }
     }
     static boolean hasPendingArrivals(BattleView sim) {
