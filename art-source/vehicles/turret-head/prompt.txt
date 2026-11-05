@@ -1,0 +1,7 @@
+A single armoured vehicle turret head for a top-down 2D tactical game, seen from straight above (orthographic, no perspective tilt), its gun port pointing to the top of the image.
+
+Reference 1 is the exact silhouette, layout and scale: fill it in, never move, resize or reshape it. Keep its parts where they are: the round base skirt, the chamfered octagonal housing, the raised mantlet block across the front, the short rear bustle, the round commander's hatch behind the centre (draw it as a small plain cupola with a few periscope blocks and a hinged lid; no arrows, no markings, no ring of hazard paint: it must not look like an empty turret socket), and the black slot through the middle of the mantlet, open to the front edge. The slot must stay an empty dark opening with nothing in it: no barrel, no gun, no weapon of any kind. A separate weapon layer is drawn underneath and shows through the slot.
+
+References 2 and 3 are material and style only, not layout: Hegemony military armour of the same family. Match their painted top-down rendering exactly: weathered tan and sand-coloured plates with olive-drab under-plates, bolted and riveted panel seams, small round vision blocks, pipes and cable runs in the recesses, chipped orange hazard panels on the mantlet corners and housing edges, worn dark-steel trim. Light from the upper left, soft, consistent with the references.
+
+True transparent background, including all negative space; no ground, no cast shadow slab, no border, no text, no hull, no other objects.

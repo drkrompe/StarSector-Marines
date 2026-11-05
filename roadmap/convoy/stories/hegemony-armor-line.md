@@ -1,6 +1,6 @@
 # Story — The Hegemony armour line: a shared turret head, a new APC, a medium tank and a repulsor Onager
 
-Status: PLANNED (owner direction 2026-11-05; no slice started)
+Status: IN PROGRESS (slice 1 shipped: the Hegemony head over the APC's weapon; slices 2 to 6 remain)
 
 Written: 2026-11-05
 
@@ -28,8 +28,9 @@ Hegemony head first, a Tri-Tachyon or Independent head later. The fitted weapon 
 its barrel or launcher face pokes out through the head's front: the draw order on the ring is ring, weapon, head.
 The weapon keeps its own mech drawing, registration and muzzle (`MechHardpointGeometry`), so every mech part that fits
 a gun card fits every hull of every livery without new art; a new family is a head, not a set of guns. The head
-turns with the weapon, has a wrecked state, and is sized from the ring, not from the weapon. An empty gun card shows
-the head shut (no weapon layer), replacing the bare ring.
+turns with the weapon and is sized from the ring, not from the weapon. A wreck shows it charred and knocked off its
+bearing, as a bare fitted weapon's wreck is; a painted wrecked head is slice 2's. An empty gun card shows the head with
+nothing in its slot.
 
 This replaces the mount ring and the light-machine-gun gun plate (`gun-plate.png`) on hulls that wear a head. Hulls
 that do not join the line (the technicals, the hover scout, the laser tank) keep today's drawing until a head of
@@ -79,7 +80,7 @@ tuned in the playtest, not by evidence alone.
 
 ## Slices
 
-1. **The turret head**, on today's APC: the draw order (ring, weapon, head), the Hegemony head art sized from the
+1. **Shipped.** **The turret head**, on today's APC: the draw order (ring, weapon, head), the Hegemony head art sized from the
    ring, its wreck, a shut head for an empty card. Proven on the current hull first, so the head is judged before any
    hull changes. Evidence: `createSnapshots` stills of the light machine gun, the SRM-3 (QS) and a cannon under the
    head at the APC's and the Onager's scale, and a full traverse.

@@ -123,6 +123,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             GunCard card = type.hasTurretWeapon() ? gunCard.get() : GunCard.OWN_TURRET;
             if (card.bare()) {
                 drawRing(context, turretX, turretY, cellPx, angle, alpha);
+                drawHead(context, turretX, turretY, cellPx, onPad, alpha);
                 return;
             }
             MechWeaponComponent weapon = card.weapon();
@@ -180,6 +181,15 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
         float ahead = (.5f - VehicleGun.RING_FROM_REAR) * lengthPx;
         context.sprite(art.path(), art.live(), onPad ? x : x - ahead, onPad ? y + ahead : y,
                 lengthPx * art.widthOverLength(), lengthPx, gunAngle, tint);
+        drawHead(context, x, y, cellPx, onPad, alpha);
+    }
+
+    /** The hull's closed family head over its ring, slot down the nose, as {@link ConvoyRenderSystem} draws it. */
+    private void drawHead(CanvasContext context, float x, float y, float cellPx, boolean onPad, float alpha) {
+        if (type.turretHead() == null) return;
+        float headPx = VehicleGun.headCells(type) * cellPx;
+        context.sprite(ART_ROOT + type.turretHead().texture, null, x, y, headPx, headPx,
+                (onPad ? ON_PAD_DEGREES : 0f) + GUN_TO_NOSE_DEGREES, new Color(1f, 1f, 1f, alpha));
     }
 
     /** The weapon's drawing on this hull, as {@link VehicleGunArt#sprite} picks it; null for one that wears a head on the sheet. */

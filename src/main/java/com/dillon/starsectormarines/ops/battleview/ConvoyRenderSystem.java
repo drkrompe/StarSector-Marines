@@ -218,7 +218,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     }
                 }
                 if (bareRing || modular && turret == null) {
-                    // No part in the gun card: the ring stands bare, and the hull has no turret and no gun.
+                    // No part in the gun card: the ring stands bare, and the hull has no turret and no gun; a hull
+                    // with a closed head shows it with nothing in its slot.
+                    drawTurretHead(out, sprites, type, cam.cellToScreenX(body.x + mountWorldX),
+                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing,
+                            wrecked ? WRECK_SHADE : 1f, alphaMult);
                 } else if (gun == null) {
                     if (raised) {
                         float lift = RAISE_SHADOW_CELLS * turret.elevation;
@@ -312,7 +316,13 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         widthScale = 1f + RAISE_WIDEN * (1f - pitchCos);
                     }
                     VehicleGunArt.draw(out, gun, cam.cellToScreenX(gunX), cam.cellToScreenY(gunY),
-                            length * cellPx, gunFacing, lengthScale, widthScale, shade, alphaMult);
+                            length * cellPx, gunFacing,
+                            lengthScale, widthScale, shade, alphaMult);
+                    // A family's closed head goes over the weapon, so only its barrel shows through the slot; it holds
+                    // the ring's centre while the gun under it kicks.
+                    drawTurretHead(out, sprites, type, cam.cellToScreenX(body.x + mountWorldX),
+                            cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing + wreckSkewDeg, shade,
+                            alphaMult);
                 }
                 if (locations != null && locations.turret() != null
                         && wornPlateOnTurretFrame(modular || bareRing, bareRing, gun != null)) {
@@ -332,6 +342,18 @@ public final class ConvoyRenderSystem implements RenderSystem {
         if (ctx.hostProfile.unitDecorationsVisible()) {
             sweepDurabilityBars(ids, convoy, fog, cam, cellPx, frameAlpha, out);
         }
+    }
+
+    /**
+     * Draws {@code type}'s closed family head ({@link VehicleGun#headCells}) centred on the ring at the screen point,
+     * its slot toward {@code facingDeg}; nothing for a hull without one or when the art did not load.
+     */
+    private static void drawTurretHead(DrawList out, BattleSprites sprites, VehicleType type, float x, float y,
+                                       float cellPx, float facingDeg, float shade, float alpha) {
+        LayeredSpriteCache head = sprites.vehicleTurretHead(type.turretHead());
+        if (head == null) return;
+        float px = VehicleGun.headCells(type) * cellPx;
+        out.addSprite(RenderLayer.CONVOY, head.sprite, x, y, px, px, facingDeg, shade, shade, shade, alpha);
     }
 
     /**
