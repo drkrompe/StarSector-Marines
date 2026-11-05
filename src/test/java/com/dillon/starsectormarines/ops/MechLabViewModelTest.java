@@ -349,6 +349,21 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void aBoughtHullsSpecificationsReadWhatIsFitted() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("hull", "Mule 01", VehicleType.HEAVY_APC)));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(1).select().run();
+
+        List<FittingMeter> meters = viewModel.performanceMeters().get();
+        assertTrue(meters.get(1).value().startsWith("0 "), meters.get(1).value());
+        assertEquals("0", meters.get(2).value(), "no plate has no rating");
+        assertTrue(meters.get(3).value().startsWith("0 "), meters.get(3).value());
+        assertFalse(viewModel.repair().get().classes().contains("hidden"));
+        assertTrue(viewModel.repair().get().status().contains("engine"));
+    }
+
+    @Test
     void vehicleGantryShowsReadOnlyHullWithoutFittingControls() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle vehicle = new CampaignVehicle(
@@ -377,14 +392,15 @@ class MechLabViewModelTest {
         assertFalse(viewModel.performanceClasses().get().contains("hidden"));
         List<String> meters = viewModel.performanceMeters().get().stream()
                 .map(FittingMeter::label).toList();
-        assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
+        assertEquals(List.of("STRUCTURE", "ARMOR", "RATING", "MOBILITY", "CARRIES"), meters);
         assertEquals(VehicleType.HEAVY_APC.capacity + " SEATS",
-                viewModel.performanceMeters().get().get(3).value());
+                viewModel.performanceMeters().get().get(4).value());
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());
         assertTrue(viewModel.slotRows().get().isEmpty());
-        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
+        assertFalse(viewModel.slotRackClasses().get().contains("hidden"), "a vehicle has the specifications column too");
+        assertTrue(viewModel.slotIntroClasses().get().contains("hidden"), "a vehicle has no mount list to introduce");
         assertTrue(onlyRackParts(viewModel.catalogRows().get()), "the auxiliary compartment lists only compartment parts");
         assertTrue(viewModel.categoryFilterPills().get().isEmpty());
         assertNull(viewModel.installedWeapon(SocketId.LEFT_ARM));
@@ -1248,6 +1264,7 @@ class MechLabViewModelTest {
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("slotIntroClasses", viewModel.slotIntroClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());

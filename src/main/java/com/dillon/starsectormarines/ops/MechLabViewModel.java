@@ -139,6 +139,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> performanceClasses;
     private final ComputedSignal<String> catalogClasses;
     private final ComputedSignal<String> slotRackClasses;
+    private final ComputedSignal<String> slotIntroClasses;
     private final ComputedSignal<String> overviewRailClasses;
     private final ComputedSignal<String> garageTitle;
     private final ComputedSignal<Repair> repair;
@@ -329,8 +330,9 @@ public final class MechLabViewModel {
                 ? "performance-grid" : "performance-grid hidden");
         catalogClasses = reactor.computed(() -> fittingFocused.get()
                 ? "panel catalog-panel" : "panel catalog-panel hidden");
-        slotRackClasses = reactor.computed(() -> fittingFocused.get() && selectedMech() != null
+        slotRackClasses = reactor.computed(() -> fittingFocused.get() && (selectedMech() != null || selectedVehicle() != null)
                 ? "panel slot-panel" : "panel slot-panel hidden");
+        slotIntroClasses = reactor.computed(() -> selectedVehicle() != null ? "slot-intro hidden" : "slot-intro");
         overviewRailClasses = reactor.computed(() -> fittingFocused.get()
                 ? "overview-rail hidden" : "overview-rail");
         garageTitle = reactor.computed(() -> fittingFocused.get()
@@ -473,6 +475,7 @@ public final class MechLabViewModel {
     public Signal<String> performanceClasses() { return performanceClasses; }
     public Signal<String> catalogClasses() { return catalogClasses; }
     public Signal<String> slotRackClasses() { return slotRackClasses; }
+    public Signal<String> slotIntroClasses() { return slotIntroClasses; }
     public Signal<String> overviewRailClasses() { return overviewRailClasses; }
     public Signal<String> garageTitle() { return garageTitle; }
     public Signal<String> garageStatus() { return garageStatus; }
@@ -1224,7 +1227,11 @@ public final class MechLabViewModel {
     private List<FittingMeter> buildFittingMeters() {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleMeters(vehicle.type(), "", effect(vehicle));
+        if (vehicle != null) {
+            // No engine moves the hull nowhere, as on a mech; a fitted one moves it along its band.
+            float speed = vehicle.engine() == null ? 0f : vehicle.type().maxSpeed * vehicle.engineTier().speedFactor();
+            return vehicleMeters(vehicle.type(), "", effect(vehicle), speed);
+        }
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechFrameBudget.Fit fit = mech.fit();
@@ -2198,6 +2205,11 @@ public final class MechLabViewModel {
     private Repair buildRepair() {
         revision.get();
         float now = day.get();
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null && !vehicle.complete()) {
+            return new Repair("mech-repair-card surface-dark", "height: 50px;", vehicleIncomplete(vehicle),
+                    "label heading tone-danger mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
+        }
         CampaignMech mech = selectedMech();
         CampaignMech.Readiness readiness = mech != null ? mech.readiness(now) : CampaignMech.Readiness.READY;
         if (readiness == CampaignMech.Readiness.READY) {
@@ -2896,22 +2908,25 @@ public final class MechLabViewModel {
     /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
     /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
     private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix) {
-        return vehicleMeters(type, prefix, HullFitEffect.NONE);
+        return vehicleMeters(type, prefix, HullFitEffect.NONE, type.maxSpeed);
     }
 
-    /** As above, with what its fit adds over the bare hull. */
-    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix, HullFitEffect fit) {
+    /** As above, with what its fit adds over the bare hull and the speed its engine gives it. */
+    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix, HullFitEffect fit, float speed) {
         float structure = Math.round(type.maxStructure * fit.structureFactor());
         float armor = Math.round(type.maxArmor * fit.armorFactor());
+        float rating = armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f;
         return List.of(
                 meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(structure),
                         structure, vehicleMaximum(t -> t.maxStructure), structure, type.maxStructure, FittingMeter.NEUTRAL_TONE),
                 meter(prefix + "armor", Strings.get("openingMechLabArmor"),
-                        Strings.format("openingMechLabVehicleArmor", number(armor),
-                                number(type.armorRating + fit.armorRatingBonus())),
+                        Strings.format("openingMechLabPlate", number(armor)),
                         armor, vehicleMaximum(t -> t.maxArmor), armor, type.maxArmor, FittingMeter.NEUTRAL_TONE),
-                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
-                        type.maxSpeed, vehicleMaximum(t -> t.maxSpeed), type.maxSpeed),
+                // No plate has no rating to read.
+                meter(prefix + "rating", Strings.get("openingMechLabArmorRating"), number(rating),
+                        rating, vehicleMaximum(t -> t.armorRating), rating, type.armorRating, FittingMeter.NEUTRAL_TONE),
+                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
+                        speed, vehicleMaximum(t -> t.maxSpeed), speed),
                 meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
                         type.capacity, vehicleMaximum(t -> t.capacity), type.capacity));
     }
