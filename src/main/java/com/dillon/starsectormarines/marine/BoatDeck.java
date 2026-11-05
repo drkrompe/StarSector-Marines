@@ -45,9 +45,12 @@ public final class BoatDeck implements Serializable {
      * Boat parts in stores, by {@link BoatFitting} or {@link BoatGun} id: built
      * by the workshop, or taken off a boat. The company's, not a boat's, so a
      * spare outlives the boat it came off and moves with the company between
-     * ships, the stock parts a boat is built with among them.
+     * ships, the stock parts a boat is built with among them. Kept as the Mech Lab keeps its own
+     * ({@link PartStores}).
      */
-    private Map<String, Integer> spares = new HashMap<>();
+    private PartStores stores = new PartStores();
+    /** Migration input only: the spare counts of a save from before {@link #stores}; emptied on load. */
+    private Map<String, Integer> spares;
 
     /**
      * {@link BoatParts} ids the company has learned beyond the yard's starter set. Permanent:
@@ -286,8 +289,7 @@ public final class BoatDeck implements Serializable {
 
     /** How many of one part are in stores. */
     public int spares(String partId) {
-        if (partId == null || spares == null) return 0;
-        return spares.getOrDefault(partId, 0);
+        return stores.count(partId);
     }
 
     /**
@@ -296,17 +298,12 @@ public final class BoatDeck implements Serializable {
      */
     void stow(String partId) {
         if (partId == null) return;
-        if (spares == null) spares = new HashMap<>();
-        spares.merge(partId, 1, Integer::sum);
+        stores.stow(partId);
     }
 
     /** Takes one part out of stores; false, and nothing taken, when there is none. */
     boolean take(String partId) {
-        int held = spares(partId);
-        if (held <= 0) return false;
-        if (held == 1) spares.remove(partId);
-        else spares.put(partId, held - 1);
-        return true;
+        return stores.take(partId);
     }
 
     /** Every berth in order; an entry is null for a berth with nothing in it. */
@@ -379,7 +376,7 @@ public final class BoatDeck implements Serializable {
     /** Every non-starter part in stores or on a boat: what a save from before learning already owns. */
     private Set<String> ownedParts() {
         Set<String> owned = new HashSet<>();
-        for (String id : spares.keySet()) {
+        for (String id : stores.ids()) {
             if (BoatParts.exists(id)) owned.add(id);
         }
         for (CampaignBoat boat : berths) {
@@ -399,10 +396,10 @@ public final class BoatDeck implements Serializable {
 
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
-        if (spares == null) spares = new HashMap<>();
-        Map<String, Integer> rekeyed = new HashMap<>();
-        spares.forEach((id, count) -> rekeyed.merge(BoatGun.currentId(id), count, Integer::sum));
-        spares = rekeyed;
+        if (stores == null) stores = new PartStores();
+        if (spares != null) spares.forEach((id, count) -> stores.stow(id, count == null ? 0 : count));
+        spares = null;
+        stores.rekey(BoatGun::currentId);
         // A save from before a hardpoint held one gun: each second gun goes to stores, or onto its bare hardpoint.
         for (CampaignBoat boat : berths) {
             if (boat != null) for (String gun : boat.releaseLegacyPods()) stow(gun);
