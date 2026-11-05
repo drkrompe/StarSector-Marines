@@ -57,7 +57,7 @@ public final class VehicleGun {
      * hull's fitted weapon stands on the ring, and an empty card has nothing.
      */
     public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
-        if (weapon == null || lengthCells(type, weapon) <= 0f || type.turretHead() != null) return 0f;
+        if (weapon == null || lengthCells(type, weapon) <= 0f || closedHead(type)) return 0f;
         boolean machineGunHull = type.ownGun() != null;
         boolean headlessOnArmyTurret = type.hasModularTurret() && type.mountStyle() != TurretMountStyle.WHITE;
         return machineGunHull || headlessOnArmyTurret ? mountCells(type) * PLATE_SHARE_OF_MOUNT : 0f;
@@ -70,11 +70,26 @@ public final class VehicleGun {
     private static final float HEAD_SHARE_OF_MOUNT = 1.1497f;
 
     /**
-     * The side of the closed head drawn over {@code type}'s fitted weapon, in cells: its base circle covers the mount
-     * ring exactly, whatever the weapon. Zero for a hull with no head ({@link VehicleType#turretHead}).
+     * The side of an open barbette's square sprite over the mount ring's diameter: its wall's flats span 1.45 rings, room
+     * for a turntable a little wider than the ring, and the sprite is 1010 / 940 of the flats, since it is centred on the
+     * well and runs to the front wall (art-source/vehicles/turret-barbette/build.py).
+     */
+    private static final float OPEN_HEAD_SHARE_OF_MOUNT = 1.45f * 1010f / 940f;
+
+    /**
+     * The side of the head {@code type}'s weapon turns in, in cells: a closed head's base circle covers the mount ring
+     * exactly, whatever the weapon, and an open barbette's well holds a turntable a little wider than it. Zero for a
+     * hull with no head ({@link VehicleType#turretHead}).
      */
     public static float headCells(VehicleType type) {
-        return type.turretHead() == null ? 0f : mountCells(type) * HEAD_SHARE_OF_MOUNT;
+        TurretHead head = type.turretHead();
+        if (head == null) return 0f;
+        return mountCells(type) * (head.closed ? HEAD_SHARE_OF_MOUNT : OPEN_HEAD_SHARE_OF_MOUNT);
+    }
+
+    /** Whether {@code type} draws a closed head over its weapon, which a barrel must clear and which replaces a plate. */
+    public static boolean closedHead(VehicleType type) {
+        return type.turretHead() != null && type.turretHead().closed;
     }
 
     /** The diameter of the mount ring a fitted weapon stands on, in cells: the share of its width the hull's ring spans. */
@@ -100,7 +115,7 @@ public final class VehicleGun {
             return (mountCells(type) / 2f + past) / (1f - RING_FROM_REAR);
         }
         float own = MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
-        if (type.turretHead() == null || own <= 0f) return own;
+        if (!closedHead(type) || own <= 0f) return own;
         // Under a closed head the barrel must clear the mantlet: a gun shorter than that is drawn long enough to.
         float past = weapon.footprintRows >= 2 ? HEAD_PROTRUSION_CELLS : LIGHT_HEAD_PROTRUSION_CELLS;
         return Math.max(own, (headCells(type) / 2f + past) / (1f - RING_FROM_REAR));

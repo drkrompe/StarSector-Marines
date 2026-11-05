@@ -86,7 +86,9 @@ tuned in the playtest, not by evidence alone.
    head at the APC's and the Onager's scale, and a full traverse.
 2. **Shipped.** **The APC hull** and its two carriers, with tire-top bands and a wreck (`art-source/vehicles/apc/hegemony`):
    the concept turned and scaled to the old hull's length, its ring on the old roof bearing so no turret registration
-   moved. The carriers keep their open turntables, not the head: a mortar and an LRM pod stand up to fire.
+   moved. The carriers do not wear the closed head, since a mortar and an LRM pod stand up to fire: they carry them in
+   the open Hegemony barbette (owner's pick; `TurretHead.HEGEMONY_BARBETTE`, art-source/vehicles/turret-barbette),
+   an armoured wall round an open well fixed to the hull and drawn under the weapon in place of the ring.
    The owner then grew the line to the medium tank's length (`VehicleType.Apc.SCALE` 1.6: 3.84 drawn, 3.6 x 1.44
    footprint), keeping the 1.6-cell wheelbase so it turns where the old hull did and a radius-1 route clearance so map
    generation is unchanged; the carriers' turret render numbers grow with it.

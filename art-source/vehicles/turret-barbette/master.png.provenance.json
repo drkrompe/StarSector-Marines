@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ad5d-93a6-7ca2-8bd6-6f6f5730f720",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ad5d-93a6-7ca2-8bd6-6f6f5730f720\\exec-65810236-3234-44bd-bdd1-8f7cfe3ef3ea.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-barbette\\master.png",
+    "sha256": "7f45087f64359ecdb0523a1b27e90310ce0ea3b56424287d0e22e8bc62b77dc1",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\turret-barbette\\prompt.txt",
+  "promptSha256": "7267ccac87d925ceaaac338a80967c45673bd062b2497b7ab0e60bc497c4035b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move\nImage 2: Material, finish and detail density authority; not layout\nImage 3: Material/style only; not layout\n\nA single open-topped armoured weapon barbette for a top-down 2D tactical game, seen from straight above (orthographic, no perspective tilt), its front toward the top of the image.\n\nReference 1 is the exact silhouette, layout and scale: fill it in, never move, resize or reshape it. Keep its parts where they are: the chamfered octagonal outer armour wall, thicker across the front where a raised shield block stands, the wide round open well in the middle, the circular bearing race in the well, and the two ammunition lockers on the rear wall. The well is EMPTY: a dark, opaque, oil-stained steel deck with a worn bearing race ring and a few bolts and drain holes, nothing standing in it. No gun, no mortar, no launcher, no turret, no hatch over the well. A separate weapon layer is drawn on top of it later.\n\nReferences 2 and 3 are material and style only, not layout: Hegemony military armour of the same family. Match their painted top-down rendering exactly: weathered tan and sand-coloured wall tops with olive-drab inner faces, bolted and riveted panel seams, chipped orange hazard panels on the front shield corners and wall chamfers, pipes and cable runs along the inner wall, worn dark-steel trim. Light from the upper left, soft, consistent with the references.\n\nTrue transparent background outside the outer wall, including all negative space; the well deck itself is opaque. No ground, no cast shadow slab, no border, no text, no hull, no other objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\turret-barbette\\guide.png",
+      "sha256": "3b426064aac234f57dfaacc5c2bec106bdc15755acff072d6e5012952e04892f",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact silhouette, part placement and scale; fill in, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\turret-head\\master-v2.png",
+      "sha256": "26fdaa6bf0bbb9715c23e5d34bbc18f854deb8484685cc04ea60039edd633c22",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material, finish and detail density authority; not layout"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-apc-concept.png",
+      "sha256": "6f3d8edfd7a08890c3e4a59aeb6abf6aa346afb5576c01bc62ff506b561958f4",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact geometry and the other references’ materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 48335,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 655,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.9
+}
