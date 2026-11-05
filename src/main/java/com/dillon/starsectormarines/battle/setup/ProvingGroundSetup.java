@@ -20,8 +20,11 @@ import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -43,7 +46,8 @@ import java.util.Locale;
 
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
- * on a generated colony map, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
+ * to compare, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -63,15 +67,24 @@ public final class ProvingGroundSetup {
     private static final int FILE_SPACING = 8;
     private static final int RANK_SPACING = 12;
     private static final int WIDTH = FILE_SPACING * HULLS_PER_RANK;
-    private static final int HEIGHT = RANK_SPACING * 2;
+    /** The machines' two ranks and the gun ladder's. */
+    private static final int RANKS = 3;
+    private static final int HEIGHT = RANK_SPACING * RANKS;
+    /**
+     * The guns a medium tank carries in the third rank, light calibre to medium (mechs-nouns.md, rotary gun): the
+     * chaingun, the AC-6 (QS) and the AC-6, each on the same hull, so the difference is only the gun.
+     */
+    private static final MechWeaponComponent[] GUN_LADDER = {
+            MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
+    private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
     /** How far around the ranks a building or wild ground counts as nearby. */
     private static final int SURROUND = 20;
     /** Cells of either kind that count, so that a town with nothing wild does not outscore a little of both. */
     private static final int ENOUGH_OF_EITHER = 400;
     private static final int SEARCH_STEP = 2;
     private static final float FACING_NORTH = 0f;
-    /** Woods and lone trees north of the ranks, as x, y and radius in cells from the window's corner. */
-    private static final int[][] GROVES = {{8, 33, 6}, {30, 41, 8}, {54, 33, 6}, {20, 28, 1}, {42, 29, 1}};
+    /** Woods and lone trees north of the ranks, as x, y and radius in cells, y counted from the ranks' far edge. */
+    private static final int[][] GROVES = {{8, 9, 6}, {30, 17, 8}, {54, 9, 6}, {20, 4, 1}, {42, 5, 1}};
     /** Clear cells kept between Morrow's hull and the ranks, and all round it. */
     private static final int MORROW_GAP = 3;
 
@@ -108,6 +121,14 @@ public final class ProvingGroundSetup {
                         "%s has no room at (%.1f, %.1f) on seed %d", type, x, y, seed));
             }
             long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
+            convoy.body(id).teleport(x, y, FACING_NORTH);
+        }
+        for (int i = 0; i < GUN_LADDER.length; i++) {
+            float x = site.x(fileX(i)) + 0.5f;
+            float y = site.y(rankY(2)) + 0.5f;
+            VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, GUN_LADDER_HULL, VehiclePlating.FACTORY,
+                    VehicleEngine.STOCK, GUN_LADDER[i]);
+            long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
         }
         spawnMorrow(sim, map, site);
@@ -204,7 +225,7 @@ public final class ProvingGroundSetup {
         boolean[] paint = new boolean[w * h];
         for (int[] grove : GROVES) {
             int cx = site.x(grove[0]);
-            int cy = site.y(grove[1]);
+            int cy = site.y(HEIGHT + grove[1]);
             int r = grove[2];
             for (int y = Math.max(0, cy - r); y <= Math.min(h - 1, cy + r); y++) {
                 for (int x = Math.max(0, cx - r); x <= Math.min(w - 1, cx + r); x++) {
