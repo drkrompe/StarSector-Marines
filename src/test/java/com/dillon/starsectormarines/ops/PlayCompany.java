@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.fs.starfarer.api.EveryFrameScript;
@@ -35,6 +36,7 @@ import com.fs.starfarer.api.fleet.MutableMarketStatsAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberStatusAPI;
 import com.fs.starfarer.api.fleet.RepairTrackerAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.util.DynamicStatsAPI;
 import com.fs.starfarer.api.util.MutableValue;
 
@@ -54,6 +56,9 @@ import java.util.Set;
  * with a purse and
  * stores that do not run out, answered through {@link CampaignBackend}. Enough for the company's rooms to open with the
  * cheats on; it is not a simulation of the campaign, and nothing here advances. {@link PlaySaves} writes it out.
+ *
+ * <p>{@link #startOver} instead begins as a new game does once the Second Wind's conversion is paid: Morgan Hale alone,
+ * the company's preparation lessons ahead, the opening's purse and hold, and the cheats off.
  *
  * <p>The game's types are answered with proxies, as the tests do. A question not listed answers empty: no, zero, an
  * empty list or null.
@@ -87,6 +92,8 @@ final class PlayCompany {
     private static MarineRoster roster;
     private static CampaignStateScript campaign;
     private static Map<String, Object> saved;
+    /** What the hold has, by commodity; null is stores that do not run out. */
+    private static Map<String, Float> stores;
 
     private PlayCompany() {
     }
@@ -114,7 +121,7 @@ final class PlayCompany {
     /** Installs the stand-in as the campaign backend, for the rest of the run. */
     static void install() {
         CampaignFleetAPI fleet = fleet();
-        restore(fresh());
+        restore(veteran());
         MarineRosterScript script = new MarineRosterScript() {
             @Override public MarineRoster roster() {
                 return roster;
@@ -152,19 +159,35 @@ final class PlayCompany {
         });
     }
 
-    /** Starts the campaign over, where a run with no save starts. No dialog may still be open over the old one. */
+    /**
+     * Starts the campaign over as a new game does, with nothing but its founding officer, as {@code ensureMarineRoster}
+     * founds it. The Marine Operations panel then moves the company aboard. No dialog may still be open over the old one.
+     */
     static void startOver() {
-        restore(fresh());
-        // Read from the save, and this save is new.
-        Cheats.setEnabled(true);
+        PlaySaves.State state = campaign(new MarineRoster());
+        MarineCaptain founder = new MarineCaptain("Morgan Hale", OfficerInduction.MORGAN_PORTRAIT, Rank.LIEUTENANT, 0f);
+        state.roster.add(founder);
+        state.roster.beginCompanyPreparation(founder);
+        state.credits = CerberusCompanyStart.STARTING_CREDITS;
+        state.stores = new HashMap<>();
+        state.stores.put(Commodities.CREW, (float) Math.ceil(MIN_CREW) + CerberusCompanyStart.SURPLUS_CREW);
+        state.stores.put(Commodities.SUPPLIES, (float) CerberusCompanyStart.TRAVEL_SUPPLIES);
+        state.stores.put(Commodities.FUEL, (float) CerberusCompanyStart.STARTING_FUEL);
+        restore(state);
     }
 
     /** The campaign a run with no save starts on. */
-    private static PlaySaves.State fresh() {
-        PlaySaves.State state = new PlaySaves.State();
-        state.roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
+    private static PlaySaves.State veteran() {
+        MarineRoster company = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
                 DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
-        state.roster.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
+        company.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
+        return campaign(company);
+    }
+
+    /** A campaign around this company, docked where a run starts. */
+    private static PlaySaves.State campaign(MarineRoster company) {
+        PlaySaves.State state = new PlaySaves.State();
+        state.roster = company;
         state.campaign = new CampaignStateScript();
         state.saved = new HashMap<>();
         state.saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
@@ -212,12 +235,31 @@ final class PlayCompany {
         Map<String, Object> cargo = new HashMap<>();
         cargo.put("getCredits", HELD_CREDITS);
         cargo.put("getMothballedShips", stub(FleetDataAPI.class, Map.of()));
-        for (String plenty : List.of("getCommodityQuantity", "getMarines", "getCrew", "getSupplies", "getFuel",
-                "getMaxCapacity", "getSpaceLeft", "getMaxFuel", "getFreeFuelSpace", "getMaxPersonnel",
-                "getFreeCrewSpace")) {
+        for (String plenty : List.of("getMaxCapacity", "getSpaceLeft", "getMaxFuel", "getFreeFuelSpace",
+                "getMaxPersonnel", "getFreeCrewSpace")) {
             cargo.put(plenty, PLENTY);
         }
+        cargo.put("getCommodityQuantity", (Answer) args -> held((String) args[0]));
+        cargo.put("addCommodity", (Answer) args -> stow((String) args[0], ((Number) args[1]).floatValue()));
+        cargo.put("removeCommodity", (Answer) args -> stow((String) args[0], -((Number) args[1]).floatValue()));
+        Map<String, String> named = Map.of("Marines", Commodities.MARINES, "Crew", Commodities.CREW,
+                "Supplies", Commodities.SUPPLIES, "Fuel", Commodities.FUEL);
+        named.forEach((name, commodity) -> {
+            cargo.put("get" + name, (Answer) args -> held(commodity));
+            cargo.put("add" + name, (Answer) args -> stow(commodity, ((Number) args[0]).floatValue()));
+            cargo.put("remove" + name, (Answer) args -> stow(commodity, -((Number) args[0]).floatValue()));
+        });
         return stub(CargoAPI.class, cargo);
+    }
+
+    private static float held(String commodity) {
+        return stores == null ? PLENTY : stores.getOrDefault(commodity, 0f);
+    }
+
+    /** Null, as the void calls that come through here answer. */
+    private static Object stow(String commodity, float change) {
+        if (stores != null) stores.put(commodity, Math.max(0f, held(commodity) + change));
+        return null;
     }
 
     /** The campaign as it stands, to write out. */
@@ -228,6 +270,7 @@ final class PlayCompany {
         state.saved = saved;
         state.docked = docked.getId();
         state.credits = HELD_CREDITS.get();
+        state.stores = stores;
         state.awarded = new ArrayList<>();
         for (FleetMemberAPI member : MEMBERS.subList(1, MEMBERS.size())) {
             PlaySaves.Ship ship = new PlaySaves.Ship();
@@ -246,6 +289,7 @@ final class PlayCompany {
         campaign = state.campaign;
         saved = state.saved;
         HELD_CREDITS.set(state.credits);
+        stores = state.stores;
         docked = WORLDS.stream().filter(world -> world.getId().equals(state.docked)).findFirst().orElse(WORLDS.get(0));
         MEMBERS.subList(1, MEMBERS.size()).clear();
         for (PlaySaves.Ship ship : state.awarded) {
@@ -421,7 +465,8 @@ final class PlayCompany {
                     case "toString" -> "stand-in " + type.getSimpleName();
                     default -> {
                         Object answer = answers.get(method.getName());
-                        if (answer instanceof Answer worked) yield worked.apply(args);
+                        if (answer instanceof Answer worked) answer = worked.apply(args);
+                        if (method.getReturnType() == int.class && answer instanceof Number number) yield number.intValue();
                         yield answer != null ? answer : empty(method.getReturnType());
                     }
                 }));

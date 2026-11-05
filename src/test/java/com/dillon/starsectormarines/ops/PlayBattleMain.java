@@ -91,7 +91,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
  * <x> <y>}, {@code <seconds> click <x> <y> [right]}, {@code <seconds> audit <label>} (controls a player could not fully reach), {@code <seconds> key <NAME>} (an LWJGL key name),
  * {@code <seconds> press <id>} (a control by its markup id, holding the script until it is there and enabled and
  * shifting later steps by the wait), {@code <seconds> ids} (prints what can be pressed), {@code <seconds> shot <name>}
- * (a PNG in {@code build/play-battle}), {@code <seconds> boats <one-repairing|all-repairing|none>} (the company's shuttles as a battle would leave them), {@code <seconds> story <mission id>} (that story mission is behind the company), {@code <seconds> new} (the campaign starts over), {@code <seconds> quit}, and {@code <seconds> battle}, which holds the script
+ * (a PNG in {@code build/play-battle}), {@code <seconds> boats <one-repairing|all-repairing|none>} (the company's shuttles as a battle would leave them), {@code <seconds> story <mission id>} (that story mission is behind the company), {@code <seconds> new} (the campaign starts over, as a new game does), {@code <seconds> quit}, and {@code <seconds> battle}, which holds the script
  * until a battle is playing. A control or battle that never comes ends the run with an error. Seconds count from the window opening, or from the last
  * battle starting to play; a named battle waits for that before its first step.
  *
@@ -337,8 +337,9 @@ public final class PlayBattleMain {
         PlayCompany.install();
         System.out.println("[playBattle] saves: " + PlaySaves.profile() + " profile");
         String load = System.getProperty("play.load", "").strip();
-        if (!load.isEmpty()) PlayCompany.restore(PlaySaves.read(load));
-        Cheats.setEnabled(true);
+        // A save keeps its own: a new campaign's stay off.
+        if (load.isEmpty()) Cheats.setEnabled(true);
+        else PlayCompany.restore(PlaySaves.read(load));
         SpecSheetLayer.registerSceneSource(SpecSheets.SCENE_WEAPON, WeaponPreviewScenes::new);
 
         BattleSimulation sim = null;

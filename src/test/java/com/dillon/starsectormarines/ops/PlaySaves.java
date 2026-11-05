@@ -50,6 +50,8 @@ final class PlaySaves {
         Map<String, Object> saved;
         String docked;
         float credits;
+        /** What the hold has, by commodity; null, as in any older save, is stores that do not run out. */
+        Map<String, Float> stores;
         List<Ship> awarded;
     }
 
