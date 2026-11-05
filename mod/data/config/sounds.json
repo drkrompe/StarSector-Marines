@@ -318,6 +318,9 @@
 
 	# Volume defaults are tuned so playUISound(id, pitch, 1.0) sounds balanced; scale at the call site as needed.
 
+	# ----- ui: a part landing on a doll point (mech lab, boat deck) -----
+	"marines_ui_part_fitted":[{"file":"sounds/ui/marines_ui_part_fitted.ogg","pitch":1,"volume":1.0}],
+
 	# ----- voice: marine death-lines (pool of 19; random pick per call) -----
 	"marines_voice_dead":[
 		{"file":"sounds/battle/voice-dead/marines_voice_dead_01.ogg","pitch":1,"volume":1.0},

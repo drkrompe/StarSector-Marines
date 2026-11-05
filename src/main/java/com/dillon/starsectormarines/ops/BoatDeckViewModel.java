@@ -448,11 +448,11 @@ public final class BoatDeckViewModel {
     }
 
     /** Moves a gun lifted off one hardpoint position onto another; see {@link BoatWorkshop#moveGun}. */
-    public void moveBetweenSockets(String from, String to) {
+    public boolean moveBetweenSockets(String from, String to) {
         CampaignBoat boat = selectedBoat();
         if (!canMoveBetweenSockets(from, to)) {
             selectDollSlot(to);
-            return;
+            return false;
         }
         int source = BoatDoll.hardpointOf(from);
         int target = BoatDoll.hardpointOf(to);
@@ -463,6 +463,7 @@ public final class BoatDeckViewModel {
         report(result, result.succeeded()
                 ? Strings.format("boatDeckGunMoved", gun.displayName(), hardpointLabel(source), hardpointLabel(target))
                 : Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged"));
+        return result.succeeded();
     }
 
     /**
@@ -578,12 +579,13 @@ public final class BoatDeckViewModel {
      * way a click on it would. A socket the part does not go in opens and says so; one the
      * hold cannot pay for refuses the way the yard does, naming the line that is short.
      */
-    public void dropOnSocket(BoatDoll.Kind kind, String itemId, String key) {
+    public boolean dropOnSocket(BoatDoll.Kind kind, String itemId, String key) {
         boolean takes = socketTakes(kind, itemId, key);
         selectDollSlot(key);
-        if (!takes) return;
-        if (kind == BoatDoll.Kind.HARDPOINT) fitGun(BoatDoll.hardpointOf(key), BoatDoll.positionOf(key), itemId);
-        else fit(itemId);
+        if (!takes) return false;
+        return kind == BoatDoll.Kind.HARDPOINT
+                ? fitGun(BoatDoll.hardpointOf(key), BoatDoll.positionOf(key), itemId)
+                : fit(itemId);
     }
 
     /** Selects whichever slot a doll card names; see {@link BoatDoll.Slot#key}. */
@@ -1115,10 +1117,10 @@ public final class BoatDeckViewModel {
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
     }
 
-    private void fitGun(int hardpoint, int position, String gunId) {
+    private boolean fitGun(int hardpoint, int position, String gunId) {
         CampaignBoat boat = selectedBoat();
         BoatGun gun = BoatGun.findById(gunId);
-        if (boat == null || gun == null) return;
+        if (boat == null || gun == null) return false;
         BoatWorkshop.Result result = workshop.fitGun(boat.id(), hardpoint, position, gunId);
         feedbackText.set(switch (result.status()) {
             case FITTED -> Strings.format("boatDeckGunFitted", gun.displayName(), hardpointLabel(hardpoint), boat.displayName());
@@ -1132,6 +1134,7 @@ public final class BoatDeckViewModel {
                 : "boat-deck-feedback tone-danger surface-dark");
         revision.update(value -> value + 1);
         if (result.succeeded()) deckChanged.run();
+        return result.succeeded();
     }
 
     /**
@@ -1217,10 +1220,10 @@ public final class BoatDeckViewModel {
         deckChanged.run();
     }
 
-    private void fit(String fittingId) {
+    private boolean fit(String fittingId) {
         CampaignBoat boat = selectedBoat();
         BoatFitting fitting = BoatFitting.findById(fittingId);
-        if (boat == null || fitting == null) return;
+        if (boat == null || fitting == null) return false;
         BoatWorkshop.Result result = workshop.fit(boat.id(), fittingId);
         feedbackText.set(switch (result.status()) {
             case FITTED -> Strings.format("openingBoatDeckFittedToOutOfFleetStores", fitting.displayName(), boat.displayName());
@@ -1234,6 +1237,7 @@ public final class BoatDeckViewModel {
                 : "boat-deck-feedback tone-danger surface-dark");
         revision.update(value -> value + 1);
         if (result.succeeded()) deckChanged.run();
+        return result.succeeded();
     }
 
     /**

@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
+import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -308,11 +309,13 @@ public final class BoatDeckScreen implements Screen {
         if (!moved) {
             if (carried.source() != null) viewModel.selectDollSlot(carried.source());
         } else if (carried.source() == null) {
-            if (socket != null) viewModel.dropOnSocket(carried.kind(), carried.itemId(), socket);
+            if (socket != null && viewModel.dropOnSocket(carried.kind(), carried.itemId(), socket)) {
+                UiSounds.installed().partFitted();
+            }
         } else if (overStores(event)) {
             viewModel.returnToStores(carried.source());
         } else if (socket != null && !socket.equals(carried.source())) {
-            viewModel.moveBetweenSockets(carried.source(), socket);
+            if (viewModel.moveBetweenSockets(carried.source(), socket)) UiSounds.installed().partFitted();
         }
         invalidateBay();
         event.preventDefault();

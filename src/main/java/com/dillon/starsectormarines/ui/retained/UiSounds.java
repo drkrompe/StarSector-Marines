@@ -9,15 +9,16 @@ import java.util.function.LongSupplier;
  * silent, which is what headless tests and snapshots get; the game installs its sound player
  * at application load.
  *
- * <p>The ids are the base game's own (Starsector's {@code sounds.json}), so the mod ships no
- * audio for them. A button may name its own press sound with the markup attribute
- * {@code sound}.
+ * <p>The control ids are the base game's own (Starsector's {@code sounds.json}), so the mod ships
+ * no audio for them. A button may name its own press sound with the markup attribute
+ * {@code sound}. {@link #PART_FITTED} is the mod's own.
  */
 public final class UiSounds {
 
     public static final String PRESSED = "ui_button_pressed";
     public static final String DISABLED_PRESSED = "ui_button_disabled_pressed";
     public static final String HOVER = "ui_button_mouseover";
+    public static final String PART_FITTED = "marines_ui_part_fitted";
 
     /**
      * Shortest gap between two hover sounds. Sweeping the pointer down a list crosses a row
@@ -59,6 +60,11 @@ public final class UiSounds {
     void pressed(UiElement control) {
         String own = control == null ? null : control.sound();
         sink.play(own != null && !own.isEmpty() ? own : PRESSED);
+    }
+
+    /** A dragged part landed on a doll point. A refused drop plays nothing. */
+    public void partFitted() {
+        sink.play(PART_FITTED);
     }
 
     void disabledPressed() {

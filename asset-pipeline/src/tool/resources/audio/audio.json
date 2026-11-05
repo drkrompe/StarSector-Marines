@@ -171,6 +171,7 @@
     {"id": "basin_debrief_passage_company_losses", "source": "wayline/basin_debrief_passage_company_losses.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue", "mix": "story_voice"},
     {"id": "basin_debrief_passage_militia_losses", "source": "wayline/basin_debrief_passage_militia_losses.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue", "mix": "story_voice"},
     {"id": "marines_tender_launch", "source": "tender/marines_tender_launch.wav", "kind": "positional", "out": "battle/tender"},
+    {"id": "marines_ui_part_fitted", "source": "ui/marines_ui_part_fitted.wav", "kind": "ui", "out": "ui"},
     {"id": "marines_tender_dock", "source": "tender/marines_tender_dock.wav", "kind": "positional", "out": "battle/tender"},
     {"id": "marines_tender_weld_1", "source": "tender/marines_tender_weld_1.wav", "kind": "positional", "out": "battle/tender"},
     {"id": "marines_tender_weld_2", "source": "tender/marines_tender_weld_2.wav", "kind": "positional", "out": "battle/tender"},

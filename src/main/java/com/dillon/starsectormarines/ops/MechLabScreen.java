@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.ui.retained.PointerButton;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
+import com.dillon.starsectormarines.ui.retained.UiSounds;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -502,12 +503,15 @@ public final class MechLabScreen implements Screen {
             else if (target == drag.source()) viewModel.selectSocket(target);
             else viewModel.cancelWeaponDrag();
         } else if (target != null && target != drag.source()) {
+            boolean landed;
             if (drag.source() == null) {
-                if (drag.component() != null) viewModel.dropCatalogWeapon(drag.component(), target);
-                else viewModel.dropCatalogInternal(drag.internal(), target);
+                landed = drag.component() != null
+                        ? viewModel.dropCatalogWeapon(drag.component(), target)
+                        : viewModel.dropCatalogInternal(drag.internal(), target);
             } else {
-                viewModel.moveInstalledWeapon(drag.source(), target);
+                landed = viewModel.moveInstalledWeapon(drag.source(), target);
             }
+            if (landed) UiSounds.installed().partFitted();
         } else if (drag.source() != null && overInventory(event)) {
             viewModel.removeInstalledWeapon(drag.source());
         } else if (drag.source() != null && target == drag.source()) {

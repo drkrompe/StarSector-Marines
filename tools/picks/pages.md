@@ -28,4 +28,5 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Ain Tafrant objectives (Cordon Road: objectives, air base, town, convoys) | https://claude.ai/artifact/AcSpPLfeceyjp9313iMgEE |
 | Laser tank turbine engine (turbine engine loop takes) | https://claude.ai/artifact/9G9Xkx4pj6ozcutQ1DiBh3 |
 | Tutorial wording (Castle's callouts on their rooms; edits in the page db) | https://claude.ai/artifact/7yVMbqWK3DLdZuAPsVRMhY |
+| Mechlab drop sound (sliders and takes for the doll-point drop sound; takes in the page db) | https://claude.ai/artifact/A2Dq7xyu3oGYnZSCYYsUD8 |
 | HQ command deck reskin (bridge room, colour, plate versions) | https://claude.ai/artifact/6HMasKcthSGxBwC2fbUZNK |
