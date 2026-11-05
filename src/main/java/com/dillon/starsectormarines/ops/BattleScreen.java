@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicDirector;
 import com.dillon.starsectormarines.battle.audio.BattleMusicFacts;
-import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
@@ -352,7 +351,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final MachineAudio machineAudio = new MachineAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
-    private final OperationRadio operationRadio = new OperationRadio();
 
     private final ArmoryRangeTrial rangeTrial;
     private final MarineOpsContext rangeContext;
@@ -389,15 +387,11 @@ public class BattleScreen implements Screen, BattleUiContext {
             attachedSimulation = nextSimulation;
             if (storyNarration != null) storyNarration.stop();
             storySubtitles.detach();
-            operationRadio.reset();
             mechFootsteps.reset();
             machineAudio.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
-                            nextSimulation), line -> {
-                        operationRadio.stop();
-                        operationRadio.holdFor(line.durationSeconds());
-                    });
+                            nextSimulation));
         }
         boolean freshBattle = loadedSimulation != nextSimulation;
         loadedSimulation = nextSimulation;
@@ -847,7 +841,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
-        operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
         storySubtitles.detach();
         exitDirectControl();
@@ -1633,19 +1626,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** Mission dialogue owns the channel ahead of order exchanges; presentation uses real time. */
+    /** Mission dialogue is the battle's only radio; presentation uses real time. */
     private void advanceVoices(BattleSimulation sim, float dt) {
-        operationRadio.observe(sim);
         if (storyNarration != null) {
             storyNarration.advance(dt, sim.getPlayerStoryBeatsAfter(storyNarration.cursor()),
                     speedMultiplier <= 0f, sim.isComplete());
         }
-        boolean channelBusy = storyNarration != null && storyNarration.busy();
-        boolean running = speedMultiplier > 0f && !sim.isComplete();
-        operationRadio.advance(dt, running, sim.isComplete(), channelBusy);
-        if (running && !channelBusy) operationRadio.beginExchange();
-        storySubtitles.update(storyNarration != null ? storyNarration.current() : null,
-                operationRadio.current(), dt);
+        storySubtitles.update(storyNarration != null ? storyNarration.current() : null, dt);
     }
 
     private void retreatFromBattle() {

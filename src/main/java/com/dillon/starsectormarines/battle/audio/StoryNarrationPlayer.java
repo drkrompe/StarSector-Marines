@@ -12,6 +12,10 @@ public final class StoryNarrationPlayer {
     private final NarrationPlayer player;
     private final Consumer<Line> beforeStart;
 
+    public StoryNarrationPlayer(WaylineNarration catalog, String missionId) {
+        this(catalog, missionId, new NarrationPlayer(), line -> { });
+    }
+
     public StoryNarrationPlayer(WaylineNarration catalog, String missionId, Consumer<Line> beforeStart) {
         this(catalog, missionId, new NarrationPlayer(), beforeStart);
     }

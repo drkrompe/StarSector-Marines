@@ -1,10 +1,8 @@
 # Operation radio
 
-`live/` contains the Marine Operations runtime bank: assignment handshakes with
-exchange-local casting. `mod/data/marines/operation_radio.json`
-owns the runtime transcripts, voice IDs, durations and selection mappings. The
-manifest applies the same offline comms recipe to every turn. Clean sources and
-receipts stay here; only processed Ogg files ship.
+Nothing here ships. The battle's unscripted radio was removed (owner), so this
+folder is authoring material only: auditions and the casting record, kept for the
+voices the story casts and marine barks reuse.
 
 The older five-scene catalog and `ensemble/` retain authoring auditions. Their
 bespoke destinations, covering maneuvers and transport reports are not enabled

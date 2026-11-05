@@ -61,7 +61,6 @@ public class NoUnseededRandomTest {
      */
     private static final String[] PRESENTATION_ONLY = {
             "audio/MechFootstepAudio.java",
-            "audio/OperationRadio.java",
             "combat/fx/ImpactFx.java",
     };
 

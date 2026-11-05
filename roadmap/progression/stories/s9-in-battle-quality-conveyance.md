@@ -65,8 +65,8 @@ a readable moment, while the actual stat change still settles
 post-mission. Presentation of a threshold crossed, not a live stat mutation.
 
 The `battle-radio-nouns.md` pipeline is the
-obvious delivery vehicle and already has a global exchange gap and a
-presentation-only boundary that keeps audio out of sim determinism.
+obvious delivery vehicle: its presentation-only boundary keeps audio out of sim
+determinism.
 
 ## Out of scope
 

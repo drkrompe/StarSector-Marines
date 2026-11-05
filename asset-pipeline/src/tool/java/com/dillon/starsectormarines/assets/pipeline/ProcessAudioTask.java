@@ -136,8 +136,6 @@ public final class ProcessAudioTask {
 
     /** Story dialogue, every speaker and treatment, played at full volume. */
     static final double STORY_VOICE_LUFS = -19;
-    /** Operation net and officer, played at 0.8 in sounds.json, so heard at about -21: under the story. */
-    static final double MISSION_VOICE_LUFS = -19;
     /** Music, played at 0.525 in sounds.json, so heard at about -23.6: a bed under every voice. */
     static final double MUSIC_LUFS = -18;
     /** Ceiling after the leveling gain, about -1 dBFS. */
@@ -151,7 +149,6 @@ public final class ProcessAudioTask {
     static Double loudnessTarget(AudioManifest.AudioClip clip) {
         if (clip.mix() != null) return switch (clip.mix()) {
             case STORY_VOICE -> STORY_VOICE_LUFS;
-            case MISSION_VOICE -> MISSION_VOICE_LUFS;
         };
         return clip.kind() == AudioManifest.Kind.MUSIC ? MUSIC_LUFS : null;
     }

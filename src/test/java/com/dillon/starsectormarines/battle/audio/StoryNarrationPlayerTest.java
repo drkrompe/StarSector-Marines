@@ -121,12 +121,12 @@ class StoryNarrationPlayerTest {
     }
 
     @Test
-    void missionSpeechStopsTheRadioBeforeItPlays() {
+    void theStartHookRunsBeforePlayback() {
         FakeSound squad = new FakeSound();
         Line start = line("start");
         StoryNarrationPlayer player = new StoryNarrationPlayer(
                 new WaylineNarration(List.of(start)), "chapter", new NarrationPlayer(line -> {
-                    assertFalse(squad.playing, "The radio must stop before mission playback starts");
+                    assertFalse(squad.playing, "The hook runs before playback starts");
                     return new FakeSound();
                 }), next -> squad.stop());
         player.advance(0, List.of(event(1, "start")), false, false);

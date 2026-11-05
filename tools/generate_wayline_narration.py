@@ -51,8 +51,7 @@ def generation_plan(catalog, cast, selected_ids=None):
         if line.get("retained"):
             result.append((line, None, None))
             continue
-        voice_id = (catalog["voices"][line["speaker"]]["voiceId"]
-                    if cast == "operation-radio" else line.get("voiceId", catalog["voiceId"]))
+        voice_id = line.get("voiceId", catalog["voiceId"])
         # A draft character must be cast deliberately, never inherit the catalog host.
         if not line.get("voiced", True) and "voiceId" not in line:
             voice_id = None
@@ -72,14 +71,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
-    parser.add_argument("--cast", choices=["wayline", "operation-radio", "company-management", "jangala-arrival"], default="wayline")
+    parser.add_argument("--cast", choices=["wayline", "company-management", "jangala-arrival"], default="wayline")
     parser.add_argument("--line", action="append", help="Generate only this sound ID (repeatable)")
     args = parser.parse_args()
     catalog_path = CATALOG
     sources = SOURCES
-    if args.cast == "operation-radio":
-        catalog_path = ROOT / "mod/data/marines/operation_radio.json"
-        sources = SOURCES.parent / "operation-radio/live"
     if args.cast == "company-management":
         catalog_path = ROOT / "mod/data/marines/company_management_guide.json"
         sources = SOURCES.parent / "company-management"

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
-import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -23,7 +22,7 @@ final class StorySubtitleOverlay {
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markup;
-    private Object current;
+    private WaylineNarration.Line current;
 
     void attach(PositionAPI position) {
         viewport = viewport(MarineOpsUiViewport.from(position));
@@ -54,27 +53,15 @@ final class StorySubtitleOverlay {
                 "portrait", OpeningBroker.PORTRAIT, "subtitle", subtitle);
     }
 
-    static Map<String, Object> props(OperationRadio.Transmission radio) {
-        return Map.of("speaker", radio.line().speaker().equals("command")
-                        ? "CASTLE / COMPANY COMMAND" : radio.speaker(),
-                "portrait", radio.portrait(), "subtitle", radio.line().text());
-    }
-
     void update(WaylineNarration.Line line, float dt) {
-        update(line, null, dt);
-    }
-
-    void update(WaylineNarration.Line line, OperationRadio.Transmission radio, float dt) {
-        Object next = line != null ? line : radio;
-        if (next != current) {
+        if (line != current) {
             if (markup != null) markup.close();
             markup = null;
             document = null;
-            current = next;
-            if (next != null) {
-                Map<String, Object> props = line != null
-                        ? Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text())
-                        : props(radio);
+            current = line;
+            if (line != null) {
+                Map<String, Object> props = Map.of(
+                        "speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text());
                 markup = loader.reloadAndBuild(reactor,
                         ((String) props.get("portrait")).isBlank() ? "company-subtitle" : COMPONENT, props);
                 document = new UiDocument(markup.root());
