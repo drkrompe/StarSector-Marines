@@ -18,6 +18,25 @@ class UiDocumentTest {
     private static final float EPSILON = 0.001f;
 
     @Test
+    void aLettersLabelPressesItsControlUnlessItIsDisabled() {
+        int[] presses = {0};
+        var root = new UiElement("root");
+        var button = new UiElement("button").tag(UiTag.BUTTON).onClick(() -> presses[0]++);
+        var label = new UiElement("label").text("Store").accessKey('o');
+        button.child(label);
+        root.child(button);
+        var document = new UiDocument(root);
+        document.layout(800, 600);
+
+        assertTrue(document.accessKeyPressed('O'));
+        assertEquals(1, presses[0]);
+        assertFalse(document.accessKeyPressed('x'), "Other letters are left for the game");
+        button.disabled(true);
+        assertFalse(document.accessKeyPressed('o'));
+        assertEquals(1, presses[0]);
+    }
+
+    @Test
     void theRootIsMarkedWhileItsPageHasLessRoomThanThePresentationWasSetOutFor() {
         var root = new UiElement("root");
         var document = new UiDocument(root);

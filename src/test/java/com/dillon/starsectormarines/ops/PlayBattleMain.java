@@ -444,7 +444,7 @@ public final class PlayBattleMain {
                     }
                     case "key" -> {
                         int key = Keyboard.getKeyIndex(words[1].toUpperCase(Locale.ROOT));
-                        events.add(input.key(key, true, '\0', false));
+                        events.add(input.key(key, true, words[1].length() == 1 ? words[1].charAt(0) : '\0', false));
                         events.add(input.key(key, false, '\0', false));
                     }
                     case "shot" -> shot = words[1];

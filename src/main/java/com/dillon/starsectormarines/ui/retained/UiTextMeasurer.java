@@ -19,7 +19,7 @@ final class UiTextMeasurer {
     }
 
     Measurement measure(UiElement element, float availableWidth) {
-        String value = element.text();
+        String value = element.displayedText();
         BitmapFont font = styles.fontFor(element);
         if (font == null) return Measurement.EMPTY;
         if (value == null) return new Measurement(font, 0f, 0f, List.of());

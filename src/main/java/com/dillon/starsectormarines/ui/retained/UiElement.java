@@ -67,6 +67,7 @@ public final class UiElement {
     private Color focusOutlineColor;
     private BitmapFont font;
     private String text;
+    private char accessKey;
     private Color textColor;
     private Runnable onClick;
     private Runnable onDoubleClick;
@@ -637,6 +638,25 @@ public final class UiElement {
         touchStyle();
         touchLayout();
         return this;
+    }
+
+    /**
+     * The letter key that presses this element's control, shown in its label; 0 for none. The key is the same in
+     * every language, so a word without the letter shows it after the word ({@link ShortcutLabel}).
+     */
+    public UiElement accessKey(char accessKey) {
+        this.accessKey = Character.toLowerCase(accessKey);
+        touchLayout();
+        return this;
+    }
+
+    public char accessKey() {
+        return accessKey;
+    }
+
+    /** The text as it is drawn and measured, with any shortcut hint. */
+    String displayedText() {
+        return accessKey == 0 || text == null ? text : ShortcutLabel.of(text, accessKey).text();
     }
 
     public UiElement text(String text) {

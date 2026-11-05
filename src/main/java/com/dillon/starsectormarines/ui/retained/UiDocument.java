@@ -431,6 +431,27 @@ public final class UiDocument {
         return false;
     }
 
+    /** Presses the control whose label shows this letter as its shortcut, if there is one to press now. */
+    public boolean accessKeyPressed(char value) {
+        validateInteractionReferences();
+        if (value == 0 || focused != null && focused.tag() == UiTag.INPUT) return false;
+        UiElement label = accessKeyLabel(inputRoot(), Character.toLowerCase(value));
+        UiElement control = label == null ? null : nearestClickable(label);
+        if (control == null || !acceptsInput(control)) return false;
+        activate(control);
+        return true;
+    }
+
+    private static UiElement accessKeyLabel(UiElement element, char key) {
+        if (!element.displayed()) return null;
+        if (element.accessKey() == key) return element;
+        for (UiElement child : element.children()) {
+            UiElement found = accessKeyLabel(child, key);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
     /** Appends one host-translated printable character to the focused text input. */
     public boolean characterTyped(char value) {
         validateInteractionReferences();

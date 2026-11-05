@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.style.GridLines;
 import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
 
@@ -104,8 +105,7 @@ final class UiPainter {
                                 box.y() + offset[1], box.width(), box.height()), shadow, elementAlpha);
                     }
                 }
-                target.text(measured.font(), line.value(), line.box(),
-                        element.textColor(), elementAlpha);
+                paintLine(target, element, measured.font(), line, elementAlpha);
             }
         }
         paintCanvas(element, elementAlpha, childClip, canvases, target);
@@ -128,6 +128,29 @@ final class UiPainter {
             }
         }
     }
+
+    /** A line of text; a shortcut's letter in it is yellow and underlined, as on the base game's bottom bar. */
+    private static void paintLine(UiPaintTarget target, UiElement element, BitmapFont font,
+                                  UiTextMeasurer.TextLine line, float alpha) {
+        ShortcutLabel label = element.accessKey() == 0 ? null : ShortcutLabel.of(element.text(), element.accessKey());
+        if (label == null || !label.text().equals(line.value())) {
+            target.text(font, line.value(), line.box(), element.textColor(), alpha);
+            return;
+        }
+        Rect box = line.box();
+        String before = label.text().substring(0, label.index());
+        String through = label.text().substring(0, label.index() + 1);
+        float keyX = box.x() + font.measureWidth(before);
+        float afterX = box.x() + font.measureWidth(through);
+        target.text(font, before, box, element.textColor(), alpha);
+        target.text(font, label.text().substring(label.index(), label.index() + 1),
+                new Rect(keyX, box.y(), afterX - keyX, box.height()), SHORTCUT_YELLOW, alpha);
+        target.text(font, label.text().substring(label.index() + 1),
+                new Rect(afterX, box.y(), box.x() + box.width() - afterX, box.height()), element.textColor(), alpha);
+        target.fill(new Rect(keyX, box.y() + box.height() - 1f, afterX - keyX, 1f), SHORTCUT_YELLOW, alpha);
+    }
+
+    private static final Color SHORTCUT_YELLOW = new Color(255, 210, 0);
 
     private static void fillCut(UiPaintTarget target, UiElement element, Rect rect, Rect inheritedClip,
                                 Color color, float alpha) {
