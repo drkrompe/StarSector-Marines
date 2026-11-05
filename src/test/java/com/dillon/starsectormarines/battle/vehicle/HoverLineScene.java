@@ -44,6 +44,9 @@ import java.util.Set;
  *       reading, not a verdict.</li>
  *   <li>{@code skimmer-loss}: the same hull with nobody to fight, destroyed once its drones are out: every drone
  *       still flying comes down with it, and none launches afterwards.</li>
+ *   <li>{@code skimmer-rebuild}: the same hull, a halo and then an escort shot down once its drones are out. The bay
+ *       rebuilds them one at a time in the order they fell, each launching in its own role, and the wing flies at full
+ *       strength again.</li>
  *   <li>{@code sensors}: a hover scout parked behind a wall with a defender beyond it. Its sensor pair holds station
  *       ahead of the hull, over the wall, and the side's picture records the defender the hull cannot see.</li>
  *   <li>{@code halo}: a drone skimmer under a stream of rockets with no shooter to answer. Its halo drones orbit
@@ -57,6 +60,7 @@ public final class HoverLineScene implements BehaviorScene {
     public static final String CROWD_WHEELS = "crowd-wheels";
     public static final String SKIMMER = "skimmer";
     public static final String SKIMMER_LOSS = "skimmer-loss";
+    public static final String SKIMMER_REBUILD = "skimmer-rebuild";
     public static final String SENSORS = "sensors";
     public static final String HALO = "halo";
 
@@ -111,6 +115,7 @@ public final class HoverLineScene implements BehaviorScene {
         reports.add(crowd(CROWD_WHEELS, VehicleType.SCOUT_CAR, frames));
         reports.add(skimmer(SKIMMER, true, -1, frames));
         reports.add(skimmer(SKIMMER_LOSS, false, SKIMMER_LOSS_TICK, frames));
+        reports.add(skimmerRebuild(frames));
         reports.add(sensors(frames));
         reports.add(halo(frames));
         return reports;
@@ -363,11 +368,11 @@ public final class HoverLineScene implements BehaviorScene {
                     "the strike drone left the bay at tick " + strikeLaunchTick + " with the picket in reach"));
             verdicts.add(Verdict.of("strike-detonated", detonations > 0,
                     detonations + " strike drones detonated on their target, the first at tick " + strikeSpentTick));
-            float expected = DroneWing.STRIKE_REBUILD_SECONDS / BattleSimulation.TICK_DT;
+            float expected = DroneWing.REBUILD_SECONDS / BattleSimulation.TICK_DT;
             verdicts.add(Verdict.of("strike-rebuilt", strikeSpentTick >= 0 && rebuiltTick >= 0
                             && Math.abs(rebuiltTick - strikeSpentTick - expected) <= 3f,
                     "spent at tick " + strikeSpentTick + ", a new strike drone ready or away at tick " + rebuiltTick
-                            + " (rebuild " + DroneWing.STRIKE_REBUILD_SECONDS + " s)"));
+                            + " (rebuild " + DroneWing.REBUILD_SECONDS + " s)"));
             metrics.put("strikeLaunchTick", strikeLaunchTick);
             metrics.put("strikesDetonated", detonations);
             verdicts.add(Verdict.of("drones-tethered", maxStray <= DroneWing.LEASH_CELLS + 4f,
@@ -388,6 +393,89 @@ public final class HoverLineScene implements BehaviorScene {
         }
         sim.close();
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
+    }
+
+    private SceneReport skimmerRebuild(FrameSink frames) {
+        SceneWorld world = holdout(SceneBuilder.openGround(WIDTH, HEIGHT)).build();
+        dirt(world.sim().getTopology());
+        BattleSimulation sim = world.sim();
+        long hull = spawn(sim, VehicleType.DRONE_SKIMMER, SKIMMER_X, SKIMMER_Y);
+        sim.convoy().body(hull).teleport(SKIMMER_X, SKIMMER_Y, -90f);
+        GroundBody body = sim.convoy().body(hull);
+        int rebuildTicks = Math.round(DroneWing.REBUILD_SECONDS / BattleSimulation.TICK_DT);
+        int ticks = SKIMMER_LOSS_TICK + 2 * rebuildTicks + 150;
+
+        int flyingBefore = 0, flyingAfterLoss = -1, flyingAtEnd = 0, rebuildingAtEnd = -1;
+        int firstBackTick = -1, secondBackTick = -1;
+        DroneRole firstBack = null, secondBack = null;
+        float maxReturnedStray = 0f;
+        Set<Long> seen = new HashSet<>();
+        Set<Long> returned = new HashSet<>();
+        for (int tick = 0; tick < ticks; tick++) {
+            DroneWing wing = sim.droneBays().wing(hull);
+            if (tick == SKIMMER_LOSS_TICK && wing != null) {
+                flyingBefore = wing.drones().size();
+                sim.applyDamage(firstInRole(wing, DroneRole.HALO), 1.0e6f, 1.0e6f);
+            }
+            if (tick == SKIMMER_LOSS_TICK + 30 && wing != null) {
+                sim.applyDamage(firstInRole(wing, DroneRole.ESCORT), 1.0e6f, 1.0e6f);
+            }
+            sim.advance(BattleSimulation.TICK_DT);
+            frames.advanced(SKIMMER_REBUILD, sim, tick);
+            wing = sim.droneBays().wing(hull);
+            if (wing == null) continue;
+            if (tick == SKIMMER_LOSS_TICK + 32) flyingAfterLoss = wing.drones().size();
+            for (long id : wing.drones()) {
+                if (seen.add(id) && tick > SKIMMER_LOSS_TICK) {
+                    returned.add(id);
+                    if (firstBack == null) {
+                        firstBack = wing.role(id);
+                        firstBackTick = tick;
+                    } else if (secondBack == null) {
+                        secondBack = wing.role(id);
+                        secondBackTick = tick;
+                    }
+                }
+                if (returned.contains(id) && tick >= secondBackTick + 90 && secondBackTick >= 0) {
+                    maxReturnedStray = Math.max(maxReturnedStray,
+                            (float) Math.hypot(sim.world().x(id) - body.x, sim.world().y(id) - body.y));
+                }
+            }
+            flyingAtEnd = wing.drones().size();
+            rebuildingAtEnd = wing.rebuilding();
+            if (tick % frameEvery == 0) {
+                frames.frame(SKIMMER_REBUILD, sim, tick, String.format(Locale.ROOT,
+                        "%s / tick %d / flying %d / rebuilding %d", SKIMMER_REBUILD, tick, flyingAtEnd,
+                        rebuildingAtEnd));
+            }
+        }
+
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("shot-down", flyingBefore > 2 && flyingAfterLoss == flyingBefore - 2,
+                flyingBefore + " drones flying, " + flyingAfterLoss + " once a halo and an escort were shot down"));
+        verdicts.add(Verdict.of("first-back", firstBack == DroneRole.HALO
+                        && Math.abs(firstBackTick - SKIMMER_LOSS_TICK - rebuildTicks) <= 3,
+                "first lost, first back: " + firstBack + " at tick " + firstBackTick + ", lost at tick "
+                        + SKIMMER_LOSS_TICK + " (rebuild " + DroneWing.REBUILD_SECONDS + " s)"));
+        verdicts.add(Verdict.of("second-back", secondBack == DroneRole.ESCORT
+                        && Math.abs(secondBackTick - firstBackTick - rebuildTicks) <= 3,
+                "one at a time: " + secondBack + " at tick " + secondBackTick));
+        verdicts.add(Verdict.of("full-strength", flyingAtEnd == flyingBefore && rebuildingAtEnd == 0,
+                flyingAtEnd + " flying and " + rebuildingAtEnd + " still building at the end"));
+        verdicts.add(Verdict.of("rebuilt-tethered", !returned.isEmpty() && maxReturnedStray <= DroneWing.LEASH_CELLS + 4f,
+                "the rebuilt drones flew within " + String.format(Locale.ROOT, "%.1f", maxReturnedStray)
+                        + " cells of the hull (leash " + DroneWing.LEASH_CELLS + ")"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("firstBackTick", firstBackTick);
+        metrics.put("secondBackTick", secondBackTick);
+        metrics.put("maxReturnedStrayCells", maxReturnedStray);
+        sim.close();
+        return new SceneReport(id(), SKIMMER_REBUILD, ticks, verdicts, metrics);
+    }
+
+    private static long firstInRole(DroneWing wing, DroneRole role) {
+        for (long id : wing.drones()) if (wing.role(id) == role) return id;
+        throw new IllegalStateException("no " + role + " flying");
     }
 
     private SceneReport sensors(FrameSink frames) {

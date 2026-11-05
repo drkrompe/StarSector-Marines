@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A hull's drone bay: one launch at a time in role order, losses kept, the strike drone rebuilt, stations by role. */
+/** A hull's drone bay: one launch at a time in role order, losses rebuilt one at a time, stations by role. */
 class DroneWingTest {
 
     @Test void launchesOneAtATimeInBayOrderUntilTheComplementIsSpent() {
@@ -31,13 +31,35 @@ class DroneWingTest {
         assertEquals(List.of(101L, 102L), wing.drones());
     }
 
-    @Test void aLostDroneStaysLost() {
-        DroneWing wing = new DroneWing(7L, List.of(ESCORT, ESCORT), 3.2f);
+    @Test void aLostDroneIsRebuiltAndLaunchesAgain() {
+        DroneWing wing = new DroneWing(7L, List.of(HALO), 3.2f);
         wing.readyToLaunch(0f, false);
-        wing.launched(101L, ESCORT);
+        wing.launched(101L, HALO);
         wing.lost(101L);
         assertEquals(List.of(), wing.drones());
-        assertEquals(1, wing.inBay(), "a loss does not refill the bay");
+        assertEquals(1, wing.rebuilding());
+        assertEquals(0, wing.inBay(), "a loss does not refill the bay at once");
+        assertNull(wing.readyToLaunch(DroneWing.REBUILD_SECONDS - 1f, false), "still building");
+        assertEquals(HALO, wing.readyToLaunch(1.01f, false), "rebuilt in its own role and away");
+        assertEquals(0, wing.rebuilding());
+        wing.launched(102L, HALO);
+        assertEquals(List.of(102L), wing.drones());
+        assertEquals(0, wing.inBay());
+    }
+
+    @Test void theBayRebuildsOneAtATimeInTheOrderTheyFell() {
+        DroneWing wing = new DroneWing(7L, List.of(ESCORT, HALO), 3.2f);
+        wing.launched(101L, ESCORT);
+        wing.launched(102L, HALO);
+        wing.lost(102L);
+        wing.lost(101L);
+        assertEquals(2, wing.rebuilding());
+        assertEquals(HALO, wing.readyToLaunch(DroneWing.REBUILD_SECONDS + .01f, false), "first lost, first back");
+        assertEquals(1, wing.rebuilding());
+        assertEquals(DroneWing.REBUILD_SECONDS, wing.rebuildRemaining(), 1e-4f, "the next starts when it is done");
+        wing.launched(103L, HALO);
+        assertNull(wing.readyToLaunch(DroneWing.LAUNCH_INTERVAL, false), "the second is still building");
+        assertEquals(ESCORT, wing.readyToLaunch(DroneWing.REBUILD_SECONDS, false));
     }
 
     @Test void theStrikeDroneWaitsForATargetAndIsRebuiltWhenSpent() {
@@ -50,8 +72,8 @@ class DroneWingTest {
         assertEquals(102L, wing.strikeDrone());
         assertEquals(0, wing.strikesReady());
         wing.lost(102L);
-        assertEquals(DroneWing.STRIKE_REBUILD_SECONDS, wing.rebuildRemaining(), 1e-4f);
-        assertNull(wing.readyToLaunch(DroneWing.STRIKE_REBUILD_SECONDS - 1f, true), "still building");
+        assertEquals(DroneWing.REBUILD_SECONDS, wing.rebuildRemaining(), 1e-4f);
+        assertNull(wing.readyToLaunch(DroneWing.REBUILD_SECONDS - 1f, true), "still building");
         assertEquals(STRIKE, wing.readyToLaunch(1.01f, true), "rebuilt and away");
         assertEquals(1, wing.strikesReady());
     }
