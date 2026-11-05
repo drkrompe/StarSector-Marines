@@ -20,9 +20,11 @@
               <div class="loadout-member-stats" id="{billet.statsId}">
                 <div each="stat in billet.stats" key="{stat.id}" id="{stat.id}" class="loadout-member-stat">
                   <div id="{stat.labelId}" class="loadout-stat-label label tone-muted">{stat.label}</div>
-                  <div id="{stat.beforeId}" class="loadout-stat-before label tone-edge">{stat.before}</div>
-                  <img id="{stat.arrowId}" class="{stat.arrowClasses}" src="{stat.arrow}" />
-                  <div id="{stat.afterId}" class="{stat.afterClasses}">{stat.after}</div>
+                  <div id="{stat.valuesId}" class="loadout-stat-values">
+                    <div id="{stat.beforeId}" class="loadout-stat-before label tone-edge">{stat.before}</div>
+                    <img id="{stat.arrowId}" class="{stat.arrowClasses}" src="{stat.arrow}" />
+                    <div id="{stat.afterId}" class="{stat.afterClasses}">{stat.after}</div>
+                  </div>
                 </div>
               </div>
               <canvas id="{billet.portraitId}" class="loadout-member-portrait" width="76" height="76" />
@@ -72,8 +74,9 @@
   .loadout-part-brick-change { flex-direction: row; align-items: center; width: 86px; height: 42px; gap: 6px; pointer-events: none; }
   .loadout-part-arrow { width: 10px; height: 10px; pointer-events: none; }
   .loadout-member-stats { flex-direction: column; width: 0px; flex-grow: 1; height: 75px; }
-  .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; font-family: small; }
-  .loadout-stat-label { width: 40px; }
+  /* The stat's name at the left edge and its value at the right, whatever the width. */
+  .loadout-member-stat { flex-direction: row; justify-content: space-between; height: 15px; align-items: center; font-family: small; }
+  .loadout-stat-values { flex-direction: row; align-items: center; height: 15px; }
   /* Short of height a billet keeps every stat and draws its kit small, without slot names or a portrait; its bricks and hovers still say what each is. */
   .doc-short .loadout-member-portrait { display: none; }
   .doc-short .loadout-member-parts { gap: 2px; }
@@ -81,13 +84,7 @@
   .doc-short .loadout-part-bricks { height: 22px; }
   .doc-short .loadout-part-brick { width: 34px; height: 22px; }
   .doc-short .loadout-part-brick-change { width: 50px; height: 22px; }
-  .loadout-stat-before { width: 0px; flex-grow: 1; text-align: right; }
   .loadout-stat-arrow { width: 10px; height: 10px; pointer-events: none; }
-  .loadout-stat-arrow.loadout-stat-arrow-absent { opacity: 0; }
-  .loadout-stat-after { width: 30px; text-align: right; }
-  .doc-narrow .loadout-member-stat { gap: 0px; }
-  .doc-narrow .loadout-stat-label { width: 26px; overflow: hidden; }
-  .doc-narrow .loadout-stat-arrow { width: 8px; }
-  .doc-narrow .loadout-stat-after { width: 26px; }
+  .loadout-stat-arrow.loadout-stat-arrow-absent { display: none; }
   .loadout-hidden { display: none; }
 </style>

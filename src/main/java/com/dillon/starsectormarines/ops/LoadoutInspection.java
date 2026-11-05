@@ -233,6 +233,7 @@ final class LoadoutInspection {
             boolean changes = after != null && fresh != null && (old == null || !old.value().equals(fresh.value()));
             Map<String, Object> line = row(id + ":stat:" + stat, "label", "before", "arrow", "after");
             line.put("label", statLabel(stat));
+            line.put("valuesId", id + ":stat:" + stat + ":values");
             line.put("before", old == null ? "—" : old.value());
             line.put("after", changes ? fresh.value() : "");
             // Every number compared here reads better the higher it is.
