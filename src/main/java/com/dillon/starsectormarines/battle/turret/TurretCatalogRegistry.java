@@ -60,6 +60,8 @@ public final class TurretCatalogRegistry {
     public static final String BOAT_LRM_STRUCTURE_ID = "structure.boat-lrm";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
+    /** The medium tank's carriage: a lighter, quicker-turning cannon turret than the Onager's, a two-row gun card. */
+    public static final String TANK_MEDIUM_CANNON_STRUCTURE_ID = "structure.tank-medium-cannon";
     /** The laser tank's PL-3 pulse laser: a starship's burst laser turned on the ground. */
     public static final String TANK_PL_3_STRUCTURE_ID = "structure.tank-pl-3";
     /** The hover scout's Twin PE-1, two pulse emitters of the Wisp drone family throwing energy bolts. */

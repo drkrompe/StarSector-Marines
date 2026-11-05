@@ -26,16 +26,31 @@ final class VehicleTreadRender {
             new Band(570, 668, 431, 28, 573, 17)
     };
 
+    // The medium tank's tracks (art-source/vehicles/medium-tank/pack.py): each side's links show past its armour
+    // skirts in a forward and an aft straight run, repeating every 21 pixels.
+    private static final Band[] MEDIUM = {
+            new Band(161, 359, 116, 9, 163, 21),
+            new Band(534, 662, 116, 27, 536, 21),
+            new Band(161, 359, 451, 10, 163, 21),
+            new Band(534, 662, 434, 26, 536, 21)
+    };
+
     static void collect(VehicleType type, UnitSpriteCache cache, GroundBody body,
                         BattleCamera cam, float alpha, DrawList out) {
         // Image top becomes the vehicle's right side when the left-facing sprite points north.
         float cellsPerPixel = type.drawnLengthCells / 768f;
         float centerY = cache.frames.frames[0].h * .5f;
-        for (Band band : type.isApc() ? APC : type == VehicleType.DOZER_BREACHER ? DOZER : TANK) {
+        for (Band band : bands(type)) {
             double lateral = (centerY - band.y - band.height * .5f) * cellsPerPixel;
             double travel = body.visualTravelCells + body.visualYawRadians * lateral;
             band(type, cache, body, cam, alpha, out, band, cellsPerPixel, centerY, travel);
         }
+    }
+
+    private static Band[] bands(VehicleType type) {
+        if (type.isApc()) return APC;
+        if (type == VehicleType.DOZER_BREACHER) return DOZER;
+        return type == VehicleType.MEDIUM_TANK ? MEDIUM : TANK;
     }
 
     private static Band[] scaled(Band[] bands, float scale) {

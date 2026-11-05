@@ -1567,6 +1567,26 @@ small lift budget that can still hurt a tank that drives past. Acceptance is the
 same scene: a technical behind cover holds still as a tank drives down the road
 and fires once it is inside its reach.
 
+### The medium tank
+
+The **Scorpion** (`MEDIUM_TANK`, Advanced, Medium lift, Junction on the Kit Ladder) is the Hegemony's medium
+tank, a hull of its own below the Onager (owner, `hegemony-armor-line.md`): faster (3.6 cells a second, 3.1 for the
+Onager), thinner (520 structure, 360 armor at rating 15), shorter (a 3.35 by 1.75 cell footprint) and cheaper (13,200
+credits for the standard fit). It sits at the bottom of the heavy weight class, so it crushes undergrowth, rams
+barricades and takes the tank line's arcs, turret section and slow reverse; but a Medium lift carries it, so it is
+the tank a company can field before it has a heavy cradle. Its compartment is the heavy hulls' two bays.
+
+Its gun card is **a two-row ballistic card** (`VehicleGunCard.MEDIUM_CANNON`, carriage
+`structure.tank-medium-cannon`: quicker to traverse and load than the Onager's): the HC-10, the autocannons, the
+demolition cannons and the chainguns, never the HC-20. A spawn that names no part fits the HC-10. It is not a
+modular turret; the fitted weapon is drawn as its own mech drawing under the shared Hegemony head
+(`TurretHead.HEGEMONY`), as on the APC, the head sized to the ring its art paints
+(`VehicleType.turretRingShareOfWidth`, 0.62 of its width). It runs on tracks the way the Onager does today: the
+bounded-curvature drive, the tracked pivot rate, `HeavyTracks`, and tread tops that scroll with travel, two straight
+runs a side where its links show past the armour skirts. Its sheet is the owner's concept turned to point left, with
+an ImageGen wreck registered to it and the head as its fallback turret frames (`art-source/vehicles/medium-tank/`).
+Evidence: `createSnapshots -Psnapshot=medium-tank`.
+
 ### The laser tanks
 
 The **pulse-laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the breakthrough hull with
