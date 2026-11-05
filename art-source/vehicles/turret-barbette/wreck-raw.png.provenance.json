@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1adf5-14a7-7553-9b3b-abc426c9efad",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1adf5-14a7-7553-9b3b-abc426c9efad\\exec-35684821-deae-4a05-bf3f-2ca3d7cc4edf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-barbette\\wreck-raw.png",
+    "sha256": "1b9ee695fc2df17cad88512f08b1a1b232fe2ff7c3526fecfa7bd3c156785059",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\turret-barbette\\wreck.prompt.txt",
+  "promptSha256": "5b4ee69410f274dbbdb02a7dd03444b1baf298f5c6dcc0be842c1486fceb3057",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: keep every outline, position and size; change only damage and surface condition\n\nUse case: precise-object-edit. Asset type: registered 2D game barbette destruction sprite.\nImage 1 is the exact geometry guide and edit target: a top-down open-topped armoured weapon barbette on a transparent canvas, its front toward the TOP. Create the DESTROYED version of this SAME barbette in precisely the same position, size, outline and proportions, so a live-to-wreck swap does not jump. Keep the chamfered octagonal outer wall, the thick front shield block, the round open well with its bearing race, the two rear ammunition lockers, the pipes along the inner walls, and the tan, sand and olive plate with orange hazard panels.\nChange only damage and surface condition: scorch the well deck black with soot radiating out from its centre, blow one rear ammunition locker open into a dark opaque burst hole with its lid peeled back, buckle and gouge the wall tops, sever and bend a pipe run, crack the bearing race, blistered and burnt paint across the inner faces. Keep enough tan paint and orange that it stays recognisable. The well stays empty: nothing standing in it (a separate weapon layer is drawn over it).\nGenuine transparent background outside the outer wall, including all negative space. Paint opaque dark metal inside ruptures, never transparent holes. No flames, smoke, glow, explosion, shadow slab, floor, debris outside the barbette's bounds, labels or extra parts. Restrained detailed painted game-sprite finish matching the original exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\turret-barbette\\master.png",
+      "sha256": "7f45087f64359ecdb0523a1b27e90310ce0ea3b56424287d0e22e8bc62b77dc1",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: keep every outline, position and size; change only damage and surface condition"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one destroyed variant, preserving the barbette’s geometry, placement, and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 41644,
+    "cached_input_tokens": 36096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 410,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.6
+}

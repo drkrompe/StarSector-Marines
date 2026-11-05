@@ -14,6 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class HybridAStarPlannerStartTest {
     private static final VehicleType TYPE = VehicleType.HEAVY_APC;
     private static final int SIZE = 24;
+    /** The hull's half-width: these starts stand a fixed gap from a wall or the map's edge, whatever the APC's size. */
+    private static final float HALF_WIDTH = TYPE.visualWidthCells / 2f;
+    /** Just clear of the wall at x = 7 with the chassis, inside it with the tracking pad. */
+    private static final float BESIDE_WALL_X = 7f - HALF_WIDTH - .0875f;
     private TickInnerProfile previous;
     private TickInnerProfile profile;
 
@@ -28,7 +32,7 @@ class HybridAStarPlannerStartTest {
     @Test void legalChassisWithInvalidTrackingPadSkipsAllHeuristicStorage() {
         NavigationGrid grid = openGrid();
         grid.setWalkable(7, 8, false);
-        Pose start = new Pose(6.35f, 8.5f, 0f);
+        Pose start = new Pose(BESIDE_WALL_X, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -39,7 +43,7 @@ class HybridAStarPlannerStartTest {
 
     @Test void paddedMapEdgeFailureIsNotTerrainOrAnInvalidPhysicalChassis() {
         NavigationGrid grid = openGrid();
-        Pose start = new Pose(.6f, 8.5f, 0f);
+        Pose start = new Pose(HALF_WIDTH + .0375f, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -64,7 +68,7 @@ class HybridAStarPlannerStartTest {
         NavigationGrid grid = openGrid();
         // Only the far cell refuses this edge; the near cell remains open.
         grid.setEdgePassable(7, 8, Direction.W, false);
-        Pose start = new Pose(6.35f, 8.5f, 0f);
+        Pose start = new Pose(BESIDE_WALL_X, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -120,7 +124,7 @@ class HybridAStarPlannerStartTest {
     @Test void controlPaysTheOldWorkForTheSameNullAnswerAndReportsTheSameCause() {
         NavigationGrid grid = openGrid();
         grid.setWalkable(7, 8, false);
-        Pose start = new Pose(6.35f, 8.5f, 0f);
+        Pose start = new Pose(BESIDE_WALL_X, 8.5f, 0f);
 
         assertNull(plan(start, grid, false));
 
@@ -137,7 +141,7 @@ class HybridAStarPlannerStartTest {
         ReferenceCorridor corridor = new ReferenceCorridor(
                 new float[]{6.35f, 6.35f}, new float[]{8.5f, 22f}, 1);
 
-        assertNull(LocalTrajectoryPlanner.plan(new Pose(6.35f, 8.5f, 0f), corridor, TYPE, grid));
+        assertNull(LocalTrajectoryPlanner.plan(new Pose(BESIDE_WALL_X, 8.5f, 0f), corridor, TYPE, grid));
 
         assertEquals(1, profile.countOf(Bucket.VEHICLE_LOCAL_PLAN));
         assertEquals(1, profile.countOf(Bucket.VEHICLE_LOCAL_NO_TRAJECTORY));

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -195,5 +196,17 @@ class VehicleGunTest {
             assertTrue(muzzle > VehicleGun.headCells(apc) / 2f, part + "'s muzzle clears the head's mantlet");
         }
         assertEquals(0f, VehicleGun.headCells(VehicleType.MILITIA_TECHNICAL), 0f, "a hull with no head draws none");
+    }
+
+    @Test
+    void anOpenBarbetteHoldsMoreThanTheRingAndForcesNoBarrelPastIt() {
+        VehicleType mortar = VehicleType.FIRE_SUPPORT_APC;
+        assertFalse(VehicleGun.closedHead(mortar), "the carriers' weapons stand up in an open barbette");
+        assertTrue(VehicleGun.headCells(mortar) > VehicleGun.headCells(VehicleType.HEAVY_APC),
+                "the barbette's well gives the weapon more room than the closed head");
+        float own = MechHardpointGeometry.barrelHullWidths(MechWeaponComponent.LIGHT_MACHINE_GUN)
+                * VehicleGun.cellsPerMechWidth(mortar);
+        assertEquals(own, VehicleGun.lengthCells(mortar, MechWeaponComponent.LIGHT_MACHINE_GUN), 1e-4f,
+                "nothing to clear over an open well, so the weapon keeps its own length");
     }
 }

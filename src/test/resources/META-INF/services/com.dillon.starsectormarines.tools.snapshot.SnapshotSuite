@@ -307,6 +307,7 @@ com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
 com.dillon.starsectormarines.ops.MarineRightButtonSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.TankHeadsSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleSizesSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechActiveProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleDamageSmokeSnapshotSuite

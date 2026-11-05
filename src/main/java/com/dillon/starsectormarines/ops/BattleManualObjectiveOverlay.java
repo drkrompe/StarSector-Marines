@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -83,9 +84,24 @@ final class BattleManualObjectiveOverlay {
         for (var event : pointer) if (!event.isMouseMoveEvent()) event.consume();
     }
 
+    /**
+     * Only the drawn readout claims the pointer: the viewport is sized for a full list, but a short one leaves
+     * most of it empty, and that empty corner must stay open to aiming and firing.
+     */
     boolean blocksWorldPointer(float x, float y) {
-        return visible && viewport != null && x >= viewport.screenX() && x < viewport.screenX() + viewport.width()
-                && y >= viewport.screenY() && y < viewport.screenY() + viewport.height();
+        if (!visible || viewport == null || markup == null) return false;
+        float docX = viewport.documentX(x);
+        float docY = viewport.documentY(y);
+        return docX >= 0f && docX < viewport.documentWidth() && docY >= 0f
+                && docY < contentBottom(markup.requireElement("manual-objective-list"));
+    }
+
+    /** The bottom of the last card, in document pixels, held to the list's own bottom once it scrolls. */
+    static float contentBottom(UiElement list) {
+        var listBox = list.box().borderBox();
+        float bottom = listBox.y();
+        for (var card : list.children()) bottom = Math.max(bottom, card.box().borderBox().bottom());
+        return Math.min(bottom, listBox.bottom());
     }
 
     void render(float alpha) {

@@ -1,0 +1,7 @@
+A single open-topped armoured weapon barbette for a top-down 2D tactical game, seen from straight above (orthographic, no perspective tilt), its front toward the top of the image.
+
+Reference 1 is the exact silhouette, layout and scale: fill it in, never move, resize or reshape it. Keep its parts where they are: the chamfered octagonal outer armour wall, thicker across the front where a raised shield block stands, the wide round open well in the middle, the circular bearing race in the well, and the two ammunition lockers on the rear wall. The well is EMPTY: a dark, opaque, oil-stained steel deck with a worn bearing race ring and a few bolts and drain holes, nothing standing in it. No gun, no mortar, no launcher, no turret, no hatch over the well. A separate weapon layer is drawn on top of it later.
+
+References 2 and 3 are material and style only, not layout: Hegemony military armour of the same family. Match their painted top-down rendering exactly: weathered tan and sand-coloured wall tops with olive-drab inner faces, bolted and riveted panel seams, chipped orange hazard panels on the front shield corners and wall chamfers, pipes and cable runs along the inner wall, worn dark-steel trim. Light from the upper left, soft, consistent with the references.
+
+True transparent background outside the outer wall, including all negative space; the well deck itself is opaque. No ground, no cast shadow slab, no border, no text, no hull, no other objects.
