@@ -257,7 +257,11 @@ a burning cell: the walk waits a cell back from the flames, where it is not
 burnt, wherever the route came from, since the route costing already sent it
 round where there was a way round and a fire passes. A route held there for
 the route-stall time is dropped, so its order re-plans against the fire as it
-now lies rather than waiting on one planned before the fire crossed it. A squad holding ground the fire
+now lies rather than waiting on one planned before the fire crossed it. A
+squad the player told to run is the exception to all of this: the run is the
+player's last word on the move, so its marines neither step out nor wait at
+the edge, and go through the fire if their route does, burning as they cross.
+A squad holding ground the fire
 takes therefore stands off at the edge and returns when it has burnt out.
 `-Dbattle.fire.stepOut=false` is the control.
 

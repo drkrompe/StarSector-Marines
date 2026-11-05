@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * A marine in the fire's way gets out of it before doing anything else
@@ -18,6 +19,10 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
  * of it, his movement waits at the fire's edge rather than step back in
  * ({@link FireEscape#waitsAtEdge}, applied where every route is walked).
  *
+ * <p>A marine whose squad the player told to run ({@link BattleControl#squadRuns}) does neither: the
+ * run is the player's last word on the move, so he goes where it sends him, through the fire if
+ * that is the way, and burns for it.
+ *
  * <p>{@code -Dbattle.fire.stepOut=false} is the control ({@link FireEscape#PROPERTY}).
  */
 final class FireStepOut {
@@ -28,6 +33,8 @@ final class FireStepOut {
         if (!FireEscape.enabled()) return false;
         FireField field = sim.fireFieldIfPresent();
         if (field == null || field.burningCount() == 0 || !sim.world().hasMovement(unit)) return false;
+        Squad squad = sim.squadOf(unit);
+        if (squad != null && sim.squadRuns(squad.id)) return false;
         int x = sim.world().cellX(unit), y = sim.world().cellY(unit);
         if (!FireEscape.needsToMove(field, x, y)) return false;
         int[] path = sim.world().path(unit);

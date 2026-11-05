@@ -119,6 +119,12 @@ public interface BattleView {
     FireField fireFieldIfPresent();
 
     /**
+     * Whether the player told this squad's standing order to run: the last word on a move, so its
+     * marines go through fire rather than step out of it or wait at its edge ({@code FireStepOut}).
+     */
+    default boolean squadRuns(int squadId) { return false; }
+
+    /**
      * Why Orbital Barrage cannot be committed right now, or {@code null} when it can: a hostile fortress battery
      * standing intact holds the fleet at standoff.
      */
