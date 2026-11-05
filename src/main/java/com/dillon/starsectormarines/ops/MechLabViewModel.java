@@ -1718,7 +1718,7 @@ public final class MechLabViewModel {
                     Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
-                    vehicleGun(type),
+                    patternArmament(type),
                     Strings.get("openingMechLabFab"), buildHint(recipe),
                     !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
@@ -2952,15 +2952,9 @@ public final class MechLabViewModel {
         };
     }
 
-    /**
-     * A catalog row's short armament: the turret's name in capitals, without "Emplacement" (a
-     * hull's gun is not an emplacement), or that it carries none.
-     */
-    private static String vehicleGun(VehicleType type) {
-        String turret = turretName(type);
-        if (turret == null) return Strings.get("openingMechLabVehicleUnarmed");
-        String gun = turret.replaceFirst("(?i)\\s+emplacement$", "");
-        return Strings.upper(gun);
+    /** A pattern card's armament line: a hull is bought with no gun, so it only says when one could never take a gun. */
+    private static String patternArmament(VehicleType type) {
+        return type.hasTurretWeapon() ? "" : Strings.get("openingMechLabVehicleUnarmed");
     }
 
     private static String vehicleArmament(VehicleType type) {
