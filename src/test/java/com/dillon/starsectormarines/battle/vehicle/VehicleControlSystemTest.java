@@ -527,13 +527,15 @@ class VehicleControlSystemTest {
     void aHullBacksOffAHullNoFurtherThanItsClearanceAllows() {
         NavigationGrid grid = new NavigationGrid(40, 40);
         carve(grid, 0, 0, 39, 39);
-        float tail = 14f - VehicleType.BREAKTHROUGH_TANK.visualLengthCells / 2f;
-        for (int x = 0; x < 40; x++) grid.setWalkable(x, (int) tail - 2, false);
+        // A wall 1.2 cells behind its tail and a hull 0.6 cells ahead of its nose, whatever the tank's length.
+        float length = VehicleType.BREAKTHROUGH_TANK.visualLengthCells;
+        float tail = 12.2f;
+        for (int x = 0; x < 40; x++) grid.setWalkable(x, 10, false);
         NavigationService navigation = new NavigationService(grid, new CellTopology(40, 40));
         ConvoyService convoy = new UnitRosterService(new UnitSpatialIndex(40, 40), null).convoy();
         float[] xs = {20.5f, 20.5f}, ys = {4f, 36f};
-        long id = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 14f, 0f);
-        hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, 18.2f, 0f);
+        long id = hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, tail + length / 2f, 0f);
+        hull(convoy, VehicleType.BREAKTHROUGH_TANK, 20.5f, tail + length * 1.5f + .6f, 0f);
         VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
         convoy.control(id).hullHold = VehicleController.HULL_BACK_OFF_SECONDS;
         GroundBody body = convoy.body(id);

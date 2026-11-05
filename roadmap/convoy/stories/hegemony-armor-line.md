@@ -87,8 +87,9 @@ tuned in the playtest, not by evidence alone.
 2. **Shipped.** **The APC hull** and its two carriers, with tire-top bands and a wreck (`art-source/vehicles/apc/hegemony`):
    the concept turned and scaled to the old hull's length, its ring on the old roof bearing so no turret registration
    moved. The carriers keep their open turntables, not the head: a mortar and an LRM pod stand up to fire.
-   The owner then grew the line a quarter (`VehicleType.Apc.SCALE`: 3.0 drawn, 2.81 x 1.13 footprint), keeping the
-   1.6-cell wheelbase so it turns where the old hull did and a radius-1 route clearance so map generation is unchanged.
+   The owner then grew the line to the medium tank's length (`VehicleType.Apc.SCALE` 1.6: 3.84 drawn, 3.6 x 1.44
+   footprint), keeping the 1.6-cell wheelbase so it turns where the old hull did and a radius-1 route clearance so map
+   generation is unchanged; the carriers' turret render numbers grow with it.
 3. **Shipped.** **Weight and hover split** (`convoy-nouns.md`, mass decides the shove; weight crushes walls):
    `VehicleType.Weight` gains `ULTRA_HEAVY` (80 t); the shove, the crush, the ram and the mass are rules of the
    weight, hover only of the ground (a light skirt alone shoves nothing); a heavy skirt's view is the hover view over
@@ -97,7 +98,8 @@ tuned in the playtest, not by evidence alone.
    as before. A crushing hull's breach view is kept and caught up cell by cell, and its route pays 8 for what it
    breaks. Every gun tank and the Scorpion crush walls; no hull is ultra-heavy yet.
 4. **Shipped.** **The repulsor Onager** (`convoy-nouns.md`, the Onager; weight crushes walls): the concept turned to
-   point left with an ImageGen wreck registered on it (`art-source/vehicles/heavy-repulsor`), a 3.6 by 2.22 footprint,
+   point left with an ImageGen wreck registered on it (`art-source/vehicles/heavy-repulsor`), drawn 4.3 cells long as the
+   laser tank is (owner, grown from 4.0 so it reads above the Scorpion; `VehicleType.Onager.SCALE`), a 3.87 by 2.39 footprint,
    no treads, `ULTRA_HEAVY` on a heavy skirt, its cannon card under the Hegemony head sized to the painted ring. The
    dozer is retired: `DozerBlade` became `WallCrush`, `hasBlade` and the Onager's sheet heads went, and a save,
    pattern or card naming the dozer loads as the Onager (`VehicleType.fromSavedName`). Evidence: `createSnapshots
