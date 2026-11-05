@@ -34,6 +34,7 @@ final class MechSocketConsole {
     private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
+    private static final Color PLATE_SOLID = new Color(0x08, 0x0b, 0x09);
     private static final Color MISSING_PLATE = new Color(0x1c, 0x08, 0x08, 214);
     /** A part in hand snapped into a socket: a little translucent, as it is not fitted yet. */
     private static final int PREVIEW_ALPHA = 195;
@@ -111,6 +112,18 @@ final class MechSocketConsole {
                      LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time, boolean warnMissing) {
+        draw(c, t, socket, installed, preview, internal, internalPreview, parts, previewPart, assets,
+                selected, hovered, compatible, rejected, draggingHere, time, warnMissing, false);
+    }
+
+    /** As above; {@code unarmed} is a machine with no weapon anywhere, whose empty weapon points warn in yellow. */
+    static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
+                     SocketDef socket, MechWeaponComponent installed,
+                     MechWeaponComponent preview, MechInternal internal, boolean internalPreview,
+                     List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
+                     LayeredMechAssets assets,
+                     boolean selected, boolean hovered, boolean compatible,
+                     boolean rejected, boolean draggingHere, double time, boolean warnMissing, boolean unarmed) {
         boolean fixed = socket.factoryLocked();
         Color accent = rejected ? RED : compatible ? FITS : selected ? AMBER : MUTED;
         Color socketTone = HardpointBricks.tone(socket.type());
@@ -119,10 +132,12 @@ final class MechSocketConsole {
         boolean empty = installed == null && preview == null && internal == null
                 && (here == null || here.isEmpty());
         // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the drop manifest: red.
-        // An empty armor point does not, but the mech goes in with no armor: yellow.
+        // An empty armor point does not, but the mech goes in with no armor: yellow. So does a machine with no
+        // weapon on it at all, on each of its empty weapon points.
         boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE ? empty
                 : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
-        boolean recommended = warnMissing && !fixed && socket.id() == SocketId.PLATING && empty;
+        boolean recommended = warnMissing && !fixed && empty
+                && (socket.id() == SocketId.PLATING || unarmed && socket.type().weaponPoint());
         boolean warns = missing || recommended;
         Color warning = recommended ? HardpointBricks.RECOMMENDED : RED;
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
@@ -136,6 +151,7 @@ final class MechSocketConsole {
         c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         if (warns) drawWarningBadge(c, x + w - 26f, y + 5f, warning);
+        if (fixed) drawLock(c, x + w - 22f, y + 5f);
 
         if (fixed) {
             c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 16, y + HEADER,
@@ -217,6 +233,8 @@ final class MechSocketConsole {
                             Color tone, String art, List<VehicleRack.Placement> parts, boolean missing,
                             boolean selected, boolean hovered, double time) {
         boolean rack = socket.id().compartment();
+        // Truly built in: an older save's own gun looks sealed but a weapon can replace it.
+        boolean builtIn = !rack && socket.id() != SocketId.ARMS;
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
@@ -224,10 +242,11 @@ final class MechSocketConsole {
                 (int) (150 + pulse * 105)) : rack && parts.isEmpty() ? tone
                 : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), missing ? 2f : 1.2f);
         c.fillRect(x + 8, y + 7, 3, 9, missing ? RED : rack ? tone : MUTED);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - (missing ? LABEL_RESERVE : 24)), x + 16,
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - (missing || builtIn ? LABEL_RESERVE : 24)), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         if (missing) drawWarningBadge(c, x + w - 26f, y + 5f, RED);
-        // A sealed card says so by its muted rim and its one factory piece; how full the rack is
+        if (builtIn) drawLock(c, x + w - 22f, y + 5f);
+        // A sealed card says so by its lock, its muted rim and its one factory piece; how full the rack is
         // its bricks show.
         HardpointBricks.Layout bricks = placed(t, socket);
         HardpointBricks.drawEmpty(c, bricks, tone);
@@ -260,6 +279,16 @@ final class MechSocketConsole {
         float top = bricks.brickY(part.row());
         return new float[] {left, top, left + bricks.span(part.columns(), bricks.brickWidth()),
                 top + bricks.span(part.rows(), bricks.brickHeight())};
+    }
+
+    /** A padlock, 14 px wide and 16 tall from its top-left corner: built in, and no part can go here or come off. */
+    private static void drawLock(CanvasContext c, float left, float top) {
+        // The shackle, then the body with its keyhole.
+        c.fillRect(left + 3f, top, 8f, 2f, SILVER);
+        c.fillRect(left + 3f, top, 2f, 8f, SILVER);
+        c.fillRect(left + 9f, top, 2f, 8f, SILVER);
+        c.fillRect(left, top + 7f, 14f, 9f, SILVER);
+        c.fillRect(left + 6f, top + 10f, 2f, 3f, PLATE_SOLID);
     }
 
     /** A warning triangle with an exclamation mark, 18 px square at its top-left corner: red required, yellow recommended. */

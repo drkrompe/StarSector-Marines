@@ -348,6 +348,32 @@ class MechLabViewModelTest {
         assertEquals(plain.selectedDissipationPerSecond() * 1.10f, refitted.selectedDissipationPerSecond(), 1e-4f);
     }
 
+    /** One path: the rows a vehicle shows are a mech's rows, and it only adds what it carries. */
+    @Test
+    void aMechAndAVehicleShowTheSameSpecifications() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, new CampaignVehicle("a", "Mule 01", VehicleType.HEAVY_APC)));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(0).select().run();
+        List<String> mech = viewModel.performanceMeters().get().stream().map(FittingMeter::label).toList();
+        viewModel.gantryRows().get().get(1).select().run();
+        List<FittingMeter> hull = viewModel.performanceMeters().get();
+
+        assertEquals(mech, hull.stream().map(FittingMeter::label).filter(label -> !label.equals("CARRIES")).toList());
+    }
+
+    /** A vehicle previews a hovered part as a mech does. */
+    @Test
+    void aHoveredPartPreviewsOnAVehicle() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("a", "Mule 01", VehicleType.HEAVY_APC)));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(1).select().run();
+        String resting = viewModel.performanceMeters().get().get(3).ghostStyle();
+        viewModel.hoverInternal(MechInternal.INDUSTRIAL_ENGINE);
+        assertNotEquals(resting, viewModel.performanceMeters().get().get(3).ghostStyle());
+    }
+
     @Test
     void aBoughtHullsSpecificationsReadWhatIsFitted() {
         MechBay bay = MechBay.legacyStarterFixture();
@@ -356,9 +382,11 @@ class MechLabViewModelTest {
         viewModel.gantryRows().get().get(1).select().run();
 
         List<FittingMeter> meters = viewModel.performanceMeters().get();
-        assertTrue(meters.get(1).value().startsWith("0 "), meters.get(1).value());
-        assertEquals("0", meters.get(2).value(), "no plate has no rating");
+        assertTrue(meters.get(0).value().startsWith("0 "), meters.get(0).value());
+        assertEquals("0", meters.get(1).value(), "no plate has no rating");
         assertTrue(meters.get(3).value().startsWith("0 "), meters.get(3).value());
+        assertTrue(meters.get(4).value().startsWith("0 "), meters.get(4).value());
+        assertTrue(meters.get(5).value().startsWith("0 "), meters.get(5).value());
         assertFalse(viewModel.repair().get().classes().contains("hidden"));
         assertTrue(viewModel.repair().get().status().contains("engine"));
     }
@@ -392,9 +420,9 @@ class MechLabViewModelTest {
         assertFalse(viewModel.performanceClasses().get().contains("hidden"));
         List<String> meters = viewModel.performanceMeters().get().stream()
                 .map(FittingMeter::label).toList();
-        assertEquals(List.of("STRUCTURE", "ARMOR", "RATING", "MOBILITY", "CARRIES"), meters);
+        assertEquals(List.of("ARMOR", "RATING", "STRUCTURE", "MOBILITY", "CAPACITORS", "DISSIPATION", "MAX RANGE", "MISSILES", "CARRIES"), meters);
         assertEquals(VehicleType.HEAVY_APC.capacity + " SEATS",
-                viewModel.performanceMeters().get().get(4).value());
+                viewModel.performanceMeters().get().get(8).value());
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());
@@ -1120,6 +1148,33 @@ class MechLabViewModelTest {
         assertNull(tank.plating());
         assertFalse(viewModel.rackIncomplete(), "no plate is no fault of the compartment");
         assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "the plate is a spare");
+    }
+
+    @Test
+    void aMachineWithNoWeaponAnywhereIsUnarmedButCanStillGo() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(0).select().run();
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        assertFalse(viewModel.selectedMachineUnarmed());
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            if (mech.weaponAt(slot) != null) viewModel.removeInstalledWeapon(SocketId.valueOf(slot.name()));
+        }
+        assertTrue(viewModel.selectedMachineUnarmed());
+        assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
+        assertTrue(viewModel.repair().get().classes().contains("recommended"));
+    }
+
+    @Test
+    void aHullBuiltWithNoGunCardIsNotUnarmed() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("t", "Truck 01", VehicleType.SUPPLY_TRUCK)));
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("a", "Mule 01", VehicleType.HEAVY_APC)));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(1).select().run();
+        assertFalse(viewModel.selectedMachineUnarmed(), "a truck has no gun card to fill");
+        viewModel.gantryRows().get().get(2).select().run();
+        assertTrue(viewModel.selectedMachineUnarmed());
     }
 
     @Test

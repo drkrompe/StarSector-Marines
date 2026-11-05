@@ -251,10 +251,10 @@
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; padding: 4px; overflow: scroll; background-color: #0d1214; border-width: 1px; border-color: #050809; }
   .drag-drop-note { flex-direction: column; width: 100%; height: 42px; padding: 4px; gap: 1px; }
   .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
-  .performance-card { flex-direction: column; width: 100%; height: 232px; padding: 5px 6px; gap: 3px; border-width: 1px; }
+  .performance-card { flex-direction: column; width: 100%; height: 310px; padding: 5px 6px; gap: 3px; border-width: 1px; }
   .specs-header { flex-direction: row; align-items: center; width: 100%; height: 20px; }
   .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; font-family: compact; }
-  .performance-grid { flex-direction: column; width: 100%; height: 156px; gap: 1px; }
+  .performance-grid { flex-direction: column; width: 100%; height: 234px; gap: 1px; }
   .slot-panel { flex-direction: column; width: 340px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-intro { flex-direction: column; width: 100%; gap: 4px; }
   .slot-copy { height: 20px; }

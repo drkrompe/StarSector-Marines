@@ -1049,6 +1049,8 @@ public final class BoatDeckViewModel {
                             tierLabel(fitting), selected, false));
         }
         List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
+        boolean unarmed = true;
+        for (int index = 0; index < pattern.hardpoints(); index++) unarmed &= boat.gunsOn(index).isEmpty();
         for (int index = 0; index < pattern.hardpoints(); index++) {
             BoatGun[] pair = boat.gunsAt(index);
             BoatGun gun = pair[BoatHardpoint.TOP], pod = pair[BoatHardpoint.BOTTOM];
@@ -1059,7 +1061,7 @@ public final class BoatDeckViewModel {
                     : named.displayName();
             slots.add(BoatDoll.Slot.hardpoint(index, gun == null ? null : gun.id(), pod == null ? null : pod.id(),
                     hardpointLabel(index), fitted, named == null ? "" : gunTier(boat, index, named),
-                    index == hardpoint, mount));
+                    index == hardpoint, mount, unarmed));
         }
         return new BoatDoll(pattern, boat.displayName(), pattern.displayName(), List.copyOf(slots));
     }

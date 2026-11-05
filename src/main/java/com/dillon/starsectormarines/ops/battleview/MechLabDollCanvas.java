@@ -110,6 +110,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Supplier<VehicleType> selectedVehicle = () -> null;
     private Supplier<List<VehicleRack.Placement>> installedRack = List::of;
     private BooleanSupplier rackIncomplete = () -> false;
+    private BooleanSupplier machineUnarmed = () -> false;
     private BooleanSupplier vehicleOwnGun = () -> false;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
@@ -165,6 +166,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /** Whether the selected vehicle's empty gun card still fires the gun the hull was built with. */
+    /** Whether the machine on the doll has no weapon anywhere, so its empty weapon points warn in yellow. */
+    public void machineUnarmed(BooleanSupplier source) {
+        machineUnarmed = source != null ? source : () -> false;
+    }
+
     public void vehicleOwnGun(BooleanSupplier source) {
         vehicleOwnGun = source != null ? source : () -> false;
     }
@@ -344,7 +350,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
                     null, false,
                     socket.id().compartment() ? List.of() : null, null, assets,
-                    false, false, false, false, false, seconds, warnMissing);
+                    false, false, false, false, false, seconds, warnMissing, warnMissing);
         }
     }
 
@@ -365,7 +371,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE || socket.id() == SocketId.ARMS) {
                 MechSocketConsole.draw(c, target, socket, null, null, null,
                         false, null, null, null,
-                        false, false, false, false, false, seconds, warnMissing && socket.id() != SocketId.ARMS);
+                        false, false, false, false, false, seconds, warnMissing, warnMissing);
                 continue;
             }
             boolean bankless = warnMissing && socket.id().compartment() && type.hasTurretWeapon();
@@ -696,7 +702,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     internalPreview,
                     compartment ? compartmentParts : null, previewPart, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
-                    elapsedSeconds.getAsDouble());
+                    elapsedSeconds.getAsDouble(), true, machineUnarmed.getAsBoolean());
         }
         lastSocketTargets = List.copyOf(targets);
         // A part comes off by being dragged off; each compartment part is lifted by its own box.
@@ -836,7 +842,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         boolean compatible = draggingHere ? snapped : carried != null && card.accepts(carried);
         MechSocketConsole.draw(c, target, socket, fitted, draggingHere && snapped ? carried : null, null, false,
                 null, null, assets.get(), selected, hoveredSocket == SocketId.ARMS, compatible,
-                draggingHere && !snapped, draggingHere, elapsedSeconds.getAsDouble());
+                draggingHere && !snapped, draggingHere, elapsedSeconds.getAsDouble(), true, machineUnarmed.getAsBoolean());
     }
 
     private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {

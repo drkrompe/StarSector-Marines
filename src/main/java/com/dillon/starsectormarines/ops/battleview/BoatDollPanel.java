@@ -249,8 +249,8 @@ final class BoatDollPanel {
      * One socket: the plate, its name, and its bricks with the fitted piece over
      * them. Selected or under the pointer, it wears the lab's amber brackets. A
      * required socket left empty warns as the lab's empty engine well does: a dark
-     * red plate, a pulsing red rim and a warning triangle by its name. An empty armor point, which she can fly
-     * without, warns the same way in yellow.
+     * red plate, a pulsing red rim and a warning triangle by its name. An empty armor point, or a hardpoint on a
+     * boat with no gun anywhere, which she can fly without, warns the same way in yellow.
      */
     private static void console(CanvasContext c, CardTarget t, BoatDoll.Slot slot, boolean hot, double seconds) {
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
@@ -279,6 +279,7 @@ final class BoatDollPanel {
                     || BoatHardware.piece(slot.kind(), slot.itemId()).rows() < bricks.rows()) {
                 seam(c, bricks, tone);
             }
+            if (recommended) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f, warning);
         }
         else if (slot.itemId() != null) {
             BoatHardware.Piece piece = BoatHardware.piece(slot.kind(), slot.itemId());

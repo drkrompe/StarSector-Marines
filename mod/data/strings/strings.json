@@ -3398,6 +3398,8 @@
     "mechLabSlotRequiredTelemetry": "Empty: the mech cannot drop.",
     "mechLabReadinessIncomplete": "Incomplete: no {0} fitted, cannot drop",
     "mechLabReadinessNoPlate": "No plating: can drop, but with no armor",
+    "mechLabReadinessNoWeapons": "No weapons: can drop, but cannot fire",
+    "mechLabReadinessNoPlateNoWeapons": "No plating or weapons: can drop, but cannot fire",
     "mechLabMissingEngine": "engine",
     "mechLabMissingCapacitors": "capacitor bank",
     "openingMechLabCapacitorBank": "CAPACITORS",

@@ -17,8 +17,11 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
+import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
@@ -624,37 +627,19 @@ public final class MechLabViewModel {
     public Runnable buildAction() { return this::buildPreviewed; }
 
     /**
-     * The pattern card's bars: a chassis's bare frame read on the specifications' own scales,
-     * each against the standard fit's mark so the gap to fill reads as a shortfall, or a
-     * vehicle's hull figures.
+     * The pattern card's bars: the machine as it is bought, with nothing fitted, each against the standard fit's mark so
+     * the gap to fill reads as a shortfall. The same rows as the specifications, on the same scales.
      */
     private List<FittingMeter> patternMeters(MechFabricationCatalog.Recipe recipe) {
         if (recipe == null) return List.of();
-        if (recipe.vehicle() != null) return vehicleMeters(recipe.vehicle(), "build-");
-        // A bought chassis is a bare frame: no engine moves it and no bank holds flux, as on a
-        // fitted mech with those sockets empty, and only factory-locked guns give it reach.
-        MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(recipe.variant());
-        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(recipe.variant());
-        MechRefit refit = refit();
-        float armor = frame.armorCapacity() * refit.armorMult();
-        float dissipation = 0f;
-        float range = weaponRange(frame);
-        int missiles = finiteAmmo(frame.leftShoulder()) + finiteAmmo(frame.rightShoulder());
-        return List.of(
-                meter("build-armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
-                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(), armor, armor, FittingMeter.PLATE_TONE),
-                meter("build-mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(0f)),
-                        0f, maximum(MechFrameBudget::refitMoveSpeed), 0f, stock.moveSpeed(), FittingMeter.ENGINE_TONE),
-                meter("build-flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(0f)),
-                        0f, maximumFluxCapacity(), 0f, stock.fluxCapacity(), FittingMeter.FLUX_TONE),
-                meter("build-dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
-                        dissipation, maximumDissipation() * refit.dissipationMult(), dissipation,
-                        stock.dissipationPerSecond() * refit.dissipationMult(), FittingMeter.FLUX_TONE),
-                meter("build-range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(range)),
-                        range, maximumWeaponRange(), range, weaponRange(stock), FittingMeter.WEAPON_TONE),
-                meter("build-endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", missiles),
-                        missiles, maximumMissileTriggers(), missiles,
-                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), FittingMeter.MISSILE_TONE));
+        if (recipe.vehicle() != null) {
+            VehicleType type = recipe.vehicle();
+            Figures bare = vehicleFigures(type, null, null, List.of(), null);
+            return specMeters("build-", bare, bare, stockFigures(type), type.capacity);
+        }
+        MechVariant variant = recipe.variant();
+        Figures bare = mechFigures(variant, MechFrameBudget.Fit.frame(variant), new Gaps(true, true, true));
+        return specMeters("build-", bare, bare, stockFigures(variant), 0);
     }
 
     private void buildPreviewed() {
@@ -1228,59 +1213,131 @@ public final class MechLabViewModel {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) {
-            // No engine moves the hull nowhere, as on a mech; a fitted one moves it along its band.
-            float speed = vehicle.engine() == null ? 0f : vehicle.type().maxSpeed * vehicle.engineTier().speedFactor();
-            return vehicleMeters(vehicle.type(), "", effect(vehicle), speed);
+            return specMeters("", figures(vehicle), hoveredFigures(vehicle), stockFigures(vehicle.type()),
+                    vehicle.type().capacity);
         }
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechFrameBudget.Fit fit = mech.fit();
-        float currentRange = maxWeaponRange(mech);
-        int currentMissiles = missileTriggers(mech);
-
-        MechWeaponComponent candidate = hoveredWeapon.get();
-        MechMountSlot mount = mountFor(selectedSlot.get());
-        float ghostRange = currentRange;
-        int ghostMissiles = currentMissiles;
-        if (candidate != null && mount != null) {
-            ghostRange = prospectiveWeaponRange(mech, mount, candidate);
-            ghostMissiles = prospectiveMissileTriggers(mech, mount, candidate);
-        }
         MechFrameBudget.Fit ghost = candidateFit(mech);
-        if (ghost == null) ghost = fit;
-        // An empty engine or capacitor socket stands in as the stock part for the budget check
-        // only; the panel reads its figures as zero. A hovered part of that role fills the ghost.
-        Gaps now = Gaps.of(mech, null);
-        Gaps then = Gaps.of(mech, hoveredInternal.get());
-        // What the mech deploys on: the armor shop's plate and the coolant plant over the fit.
-        MechRefit refit = refit();
-        float armor = now.armor(fit) * refit.armorMult();
-        float speed = now.speed(fit);
-        float flux = now.flux(fit);
-        float dissipation = now.dissipation(fit) * refit.dissipationMult();
-        // The stock frame: the chassis's roll-out weapons on its stock internals. A bar shows that
-        // much in its part's shade and what the fit adds past it (or falls short of it) beyond.
-        MechVariant variant = mech.variant();
-        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
+        return specMeters("", mechFigures(mech.variant(), fit, Gaps.of(mech, null)),
+                mechFigures(mech.variant(), ghost != null ? ghost : fit, Gaps.of(mech, hoveredInternal.get())),
+                stockFigures(mech.variant()), 0);
+    }
 
-        return List.of(
-                meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
-                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
-                        then.armor(ghost) * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), FittingMeter.PLATE_TONE),
-                meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
-                        speed, maximum(MechFrameBudget::refitMoveSpeed), then.speed(ghost),
-                        stock.moveSpeed(), FittingMeter.ENGINE_TONE),
-                meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(flux)),
-                        flux, maximumFluxCapacity(), then.flux(ghost), stock.fluxCapacity(), FittingMeter.FLUX_TONE),
-                meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
-                        dissipation, maximumDissipation() * refit.dissipationMult(),
-                        then.dissipation(ghost) * refit.dissipationMult(),
-                        stock.dissipationPerSecond() * refit.dissipationMult(), FittingMeter.FLUX_TONE),
-                meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
-                        currentRange, maximumWeaponRange(), ghostRange, weaponRange(stock), FittingMeter.WEAPON_TONE),
-                meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
-                        currentMissiles, maximumMissileTriggers(), ghostMissiles,
-                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), FittingMeter.MISSILE_TONE));
+    /**
+     * One reading of a machine, mech or vehicle: what it would land with. The specifications and the pattern card draw
+     * every machine from these, so a figure one machine shows, every machine shows.
+     */
+    private record Figures(float armor, float rating, float structure, float speed, float flux, float dissipation,
+                           float range, int missiles) {
+    }
+
+    /**
+     * The bars of one machine: where it stands, where a hovered part would take it, and the stock fit's mark, all on one
+     * scale for every machine so a mech and a vehicle read against each other.
+     *
+     * @param prefix keeps the pattern card's bars apart from the specifications' own ids
+     * @param seats  the passengers it carries; a machine with none has no row for it
+     */
+    private List<FittingMeter> specMeters(String prefix, Figures now, Figures ghost, Figures stock, int seats) {
+        MechRefit refit = refit();
+        List<FittingMeter> meters = new ArrayList<>(List.of(
+                meter(prefix + "armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(now.armor())),
+                        now.armor(), Math.max(maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
+                                vehicleMaximum(t -> t.maxArmor) * VehicleType.REFIT_ARMOR_FACTOR),
+                        ghost.armor(), stock.armor(), FittingMeter.PLATE_TONE),
+                meter(prefix + "rating", Strings.get("openingMechLabArmorRating"), number(now.rating()),
+                        now.rating(), Math.max(maximum(v -> v.armorRating),
+                                vehicleMaximum(t -> t.armorRating + VehiclePlating.HEAVY.armorRatingBonus(t))),
+                        ghost.rating(), stock.rating(), FittingMeter.PLATE_TONE),
+                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(now.structure()),
+                        now.structure(), Math.max(maximum(v -> v.maxStructure), vehicleMaximum(t -> t.maxStructure)),
+                        ghost.structure(), stock.structure(), FittingMeter.NEUTRAL_TONE),
+                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(now.speed())),
+                        now.speed(), Math.max(maximum(MechFrameBudget::refitMoveSpeed),
+                                vehicleMaximum(t -> t.maxSpeed) * VehicleType.REFIT_SPEED_FACTOR),
+                        ghost.speed(), stock.speed(), FittingMeter.ENGINE_TONE),
+                meter(prefix + "flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(now.flux())),
+                        now.flux(), maximumFluxCapacity(), ghost.flux(), stock.flux(), FittingMeter.FLUX_TONE),
+                meter(prefix + "dissipation", Strings.get("openingMechLabDissipation"),
+                        Strings.format("openingMechLabDissipationValue", number(now.dissipation())),
+                        now.dissipation(), maximumDissipation() * refit.dissipationMult(),
+                        ghost.dissipation(), stock.dissipation(), FittingMeter.FLUX_TONE),
+                meter(prefix + "range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(now.range())),
+                        now.range(), maximumWeaponRange(), ghost.range(), stock.range(), FittingMeter.WEAPON_TONE),
+                meter(prefix + "endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", now.missiles()),
+                        now.missiles(), maximumMissileTriggers(), ghost.missiles(), stock.missiles(), FittingMeter.MISSILE_TONE)));
+        if (seats > 0) {
+            meters.add(meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", seats),
+                    seats, vehicleMaximum(t -> t.capacity), seats));
+        }
+        return List.copyOf(meters);
+    }
+
+    /** A mech's figures: the fit, less what {@code gaps} says is really not there, under the ship's refit. */
+    private Figures mechFigures(MechVariant variant, MechFrameBudget.Fit fit, Gaps gaps) {
+        MechRefit refit = refit();
+        float armor = gaps.armor(fit) * refit.armorMult();
+        return new Figures(armor, armor > 0f ? variant.armorRating : 0f,
+                variant.maxStructure * fit.frame().systems().structureFactor(), gaps.speed(fit), gaps.flux(fit),
+                gaps.dissipation(fit) * refit.dissipationMult(), weaponRange(fit),
+                finiteAmmo(fit.leftShoulder()) + finiteAmmo(fit.rightShoulder()));
+    }
+
+    /** The stock frame: the chassis's roll-out weapons on its stock internals. */
+    private Figures stockFigures(MechVariant variant) {
+        return mechFigures(variant, MechFrameBudget.Fit.stock(variant), new Gaps(false, false, false));
+    }
+
+    /**
+     * A hull's figures, by the mech's rules: no plate stops nothing and has no rating, no engine moves it nowhere and
+     * powers no vents, and no bank holds no flux.
+     */
+    private static Figures vehicleFigures(VehicleType type, MechInternal plating, MechInternal engine,
+                                          List<MechInternal> rack, MechWeaponComponent gun) {
+        HullFitEffect fit = HullFitEffect.of(VehiclePlating.of(plating), type).with(MechCompartment.systems(rack));
+        float armor = Math.round(type.maxArmor * fit.armorFactor());
+        HullReservoir.Frame reservoir = VehicleRack.frame(rack);
+        VehicleEngine drive = VehicleEngine.of(engine);
+        return new Figures(armor, armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f,
+                Math.round(type.maxStructure * fit.structureFactor()),
+                engine == null ? 0f : type.maxSpeed * drive.speedFactor(),
+                reservoir != null ? reservoir.capacity() : 0f,
+                reservoir == null || engine == null ? 0f : Math.max(0f, reservoir.dissipationPerSecond() + drive.dissipation()),
+                gun != null ? gun.weaponDef().range : 0f, finiteAmmo(gun));
+    }
+
+    /** The hull as it stands. */
+    private static Figures figures(CampaignVehicle vehicle) {
+        return vehicleFigures(vehicle.type(), vehicle.plating(), vehicle.engine(), vehicle.rackInternals(), standingGun(vehicle));
+    }
+
+    /** The gun at the card; on a hull from an older save, its own until a weapon replaces it. */
+    private static MechWeaponComponent standingGun(CampaignVehicle vehicle) {
+        return vehicle.gun() != null ? vehicle.gun() : vehicle.hasOwnGun() ? vehicle.type().ownGun() : null;
+    }
+
+    /** The hull as the part under the pointer would leave it, as {@link #candidateFit} is for a mech. */
+    private Figures hoveredFigures(CampaignVehicle vehicle) {
+        MechInternal part = hoveredInternal.get();
+        MechWeaponComponent weapon = hoveredWeapon.get();
+        if (part == null && weapon == null) return figures(vehicle);
+        List<MechInternal> rack = new ArrayList<>(vehicle.rackInternals());
+        if (part != null && part.role.compartment()) {
+            if (MechCompartment.limit(part.role) == 1) rack.removeIf(fitted -> fitted.role == part.role);
+            rack.add(part);
+        }
+        return vehicleFigures(vehicle.type(),
+                part != null && part.role == MechInternal.Role.PLATING ? part : vehicle.plating(),
+                part != null && part.role == MechInternal.Role.ENGINE ? part : vehicle.engine(),
+                rack, weapon != null ? weapon : standingGun(vehicle));
+    }
+
+    /** A hull's stock fit: the mark its bars read against. */
+    private static Figures stockFigures(VehicleType type) {
+        return vehicleFigures(type, MechInternal.FACTORY_PLATING, MechInternal.INDUSTRIAL_ENGINE,
+                VehicleRack.stockFit(type), type.ownGun());
     }
 
     /**
@@ -1986,6 +2043,21 @@ public final class MechLabViewModel {
         return placed != null ? placed : List.of();
     }
 
+    /**
+     * Whether the selected machine can carry a weapon and has none anywhere: it can still go, so this warns in yellow. A
+     * hull with no gun card is not unarmed, it is built that way.
+     */
+    public boolean selectedMachineUnarmed() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return vehicle.type().hasTurretWeapon() && vehicle.gun() == null && !vehicle.hasOwnGun();
+        CampaignMech mech = selectedMech();
+        if (mech == null) return false;
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            if (mech.weaponAt(slot) != null) return false;
+        }
+        return true;
+    }
+
     /** Whether the selected vehicle is armed with no capacitor bank on its rack, so stays off the drop. */
     public boolean rackIncomplete() {
         CampaignVehicle vehicle = selectedVehicle();
@@ -2198,17 +2270,21 @@ public final class MechLabViewModel {
 
     public Signal<List<Row>> materialStock() { return materialStock; }
 
-    /** The selected mech's battle damage and its free repair clock, or a hidden card. */
     private static Repair hiddenRepairCard() {
         return new Repair("mech-repair-card surface-dark hidden", "", "", "", "", "mech-repair-detail hidden", "");
     }
 
-    /** A machine ready to go with no plate: recommended, not required, so yellow. */
-    private static Repair noPlateCard() {
-        return new Repair("mech-repair-card surface-dark recommended", "height: 50px;", Strings.get("mechLabReadinessNoPlate"),
+    /** A machine ready to go with no plate or no weapon: recommended, not required, so yellow; else no card. */
+    private Repair recommendedCard(boolean noPlate) {
+        boolean unarmed = selectedMachineUnarmed();
+        if (!noPlate && !unarmed) return hiddenRepairCard();
+        return new Repair("mech-repair-card surface-dark recommended", "height: 50px;",
+                Strings.get(noPlate && unarmed ? "mechLabReadinessNoPlateNoWeapons"
+                        : noPlate ? "mechLabReadinessNoPlate" : "mechLabReadinessNoWeapons"),
                 "label heading tone-recommended mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
     }
 
+    /** The selected mech's battle damage and its free repair clock, or a hidden card. */
     private Repair buildRepair() {
         revision.get();
         float now = day.get();
@@ -2217,11 +2293,11 @@ public final class MechLabViewModel {
             return new Repair("mech-repair-card surface-dark", "height: 50px;", vehicleIncomplete(vehicle),
                     "label heading tone-danger mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
         }
-        if (vehicle != null) return vehicle.plating() == null ? noPlateCard() : hiddenRepairCard();
+        if (vehicle != null) return recommendedCard(vehicle.plating() == null);
         CampaignMech mech = selectedMech();
         CampaignMech.Readiness readiness = mech != null ? mech.readiness(now) : CampaignMech.Readiness.READY;
         if (readiness == CampaignMech.Readiness.READY) {
-            return mech != null && mech.internal(MechInternal.Role.PLATING) == null ? noPlateCard() : hiddenRepairCard();
+            return mech != null ? recommendedCard(mech.internal(MechInternal.Role.PLATING) == null) : hiddenRepairCard();
         }
         String status = readinessText(mech);
         String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
@@ -2912,32 +2988,6 @@ public final class MechLabViewModel {
                 number(type.maxSpeed), type.capacity);
     }
 
-    /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
-    /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
-    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix) {
-        return vehicleMeters(type, prefix, HullFitEffect.NONE, type.maxSpeed);
-    }
-
-    /** As above, with what its fit adds over the bare hull and the speed its engine gives it. */
-    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix, HullFitEffect fit, float speed) {
-        float structure = Math.round(type.maxStructure * fit.structureFactor());
-        float armor = Math.round(type.maxArmor * fit.armorFactor());
-        float rating = armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f;
-        return List.of(
-                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(structure),
-                        structure, vehicleMaximum(t -> t.maxStructure), structure, type.maxStructure, FittingMeter.NEUTRAL_TONE),
-                meter(prefix + "armor", Strings.get("openingMechLabArmor"),
-                        Strings.format("openingMechLabPlate", number(armor)),
-                        armor, vehicleMaximum(t -> t.maxArmor), armor, type.maxArmor, FittingMeter.NEUTRAL_TONE),
-                // No plate has no rating to read.
-                meter(prefix + "rating", Strings.get("openingMechLabArmorRating"), number(rating),
-                        rating, vehicleMaximum(t -> t.armorRating), rating, type.armorRating, FittingMeter.NEUTRAL_TONE),
-                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
-                        speed, vehicleMaximum(t -> t.maxSpeed), speed),
-                meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
-                        type.capacity, vehicleMaximum(t -> t.capacity), type.capacity));
-    }
-
     private static float vehicleMaximum(VehicleMetric metric) {
         float max = 0f;
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
@@ -2994,10 +3044,6 @@ public final class MechLabViewModel {
         return component != null ? component.displayName() : Strings.get("openingMechLabEmptyHardpoint");
     }
 
-    private static int missileTriggers(CampaignMech mech) {
-        return finiteAmmo(mech.leftShoulder()) + finiteAmmo(mech.rightShoulder());
-    }
-
     /** The missiles a shoulder weapon holds ready, its rack's buffer; zero for one with no limit. */
     private static int finiteAmmo(MechWeaponComponent component) {
         return component != null && component.ammoCapacity > 0 ? component.readyRounds() : 0;
@@ -3007,15 +3053,6 @@ public final class MechLabViewModel {
         float max = 0f;
         for (MechMountSlot slot : MechMountSlot.values()) {
             MechWeaponComponent component = fit.weaponAt(slot);
-            if (component != null) max = Math.max(max, component.weaponDef().range);
-        }
-        return max;
-    }
-
-    private static float maxWeaponRange(CampaignMech mech) {
-        float max = 0f;
-        for (MechMountSlot slot : MechMountSlot.values()) {
-            MechWeaponComponent component = mech.weaponAt(slot);
             if (component != null) max = Math.max(max, component.weaponDef().range);
         }
         return max;
@@ -3055,21 +3092,6 @@ public final class MechLabViewModel {
     private static MechWeaponComponent slotWeapon(CampaignMech mech, SocketId slot) {
         MechMountSlot mount = mountFor(slot);
         return mech != null && mount != null ? mech.weaponAt(mount) : null;
-    }
-
-    private float prospectiveWeaponRange(CampaignMech mech, MechMountSlot mount, MechWeaponComponent candidate) {
-        float max = 0f;
-        for (MechMountSlot s : MechMountSlot.values()) {
-            MechWeaponComponent w = s == mount ? candidate : mech.weaponAt(s);
-            if (w != null) max = Math.max(max, w.weaponDef().range);
-        }
-        return max;
-    }
-
-    private int prospectiveMissileTriggers(CampaignMech mech, MechMountSlot mount, MechWeaponComponent candidate) {
-        MechWeaponComponent left = mount == MechMountSlot.LEFT_SHOULDER ? candidate : mech.leftShoulder();
-        MechWeaponComponent right = mount == MechMountSlot.RIGHT_SHOULDER ? candidate : mech.rightShoulder();
-        return finiteAmmo(left) + finiteAmmo(right);
     }
 
     private static String doctrineAdvice(MechRole role) {

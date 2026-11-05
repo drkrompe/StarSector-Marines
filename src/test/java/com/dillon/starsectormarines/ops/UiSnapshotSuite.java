@@ -2669,6 +2669,14 @@ private static BufferedImage renderBarracks(
                         false, false, false, false, null, "machine-vehicle.HEAVY_APC")),
                 new SnapshotArtifact("vehicle-plate-off.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-plate-off")),
+                new SnapshotArtifact("vehicle-plough-tank.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-vehicle.DOZER_BREACHER")),
+                new SnapshotArtifact("vehicle-drone-tank.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-vehicle.DRONE_SKIMMER")),
+                new SnapshotArtifact("pattern-card-vehicle.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, true, false, null, "preview-recipe.vehicle.breakthrough_tank")),
+                new SnapshotArtifact("pattern-card-mech.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, true, false, null, "preview-recipe.chassis.bulwark")),
                 new SnapshotArtifact("shuttle-plate-and-drive-off.png", renderBoatDeck(context, renderer, 1920, 1080,
                         true, false, STRIPPED)));
     }
@@ -3260,6 +3268,7 @@ private static BufferedImage renderBarracks(
             fittingCanvas.installedInternals(viewModel::installedInternal);
             fittingCanvas.installedWeapons(viewModel::installedWeapon);
             fittingCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
+            fittingCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
             fittingCanvas.installedRack(viewModel::installedRack);
