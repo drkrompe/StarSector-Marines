@@ -137,8 +137,6 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public int turretFiringFrame() { return 4; }
-        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
-        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -438,6 +436,8 @@ public enum VehicleType {
         static final float TURRET_MOUNT_Y = .15208333f * SCALE;
         static final float STRUCTURE = 220f, ARMOR = 160f, ARMOR_RATING = 18f;
         static final float INCOMING_ACCURACY = 1.25f, HIT_HALF_HEIGHT = .75f;
+        /** The Hegemony deck's engine grilles behind the turret ring, shared by the carriers built on this hull. */
+        static final FluxVents VENTS = new FluxVents(178f, 70f);
 
         static GroundBody body(VehicleType type) {
             // The wheelbase keeps the olive hull's 1.6, so the larger hull turns where the old one did.
@@ -453,6 +453,8 @@ public enum VehicleType {
         static final float TURRET_MOUNT_Y = .188545f;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
         static final float RING_SHARE_OF_WIDTH = .62f;
+        /** The engine deck's twin grilles behind the turret ring. */
+        static final FluxVents VENTS = new FluxVents(179f, 70f);
     }
 
     /** The Onager's sheet registration (art-source/vehicles/heavy-repulsor/pack.py). */
@@ -467,6 +469,8 @@ public enum VehicleType {
         static final float TURRET_MOUNT_Y = .110841f * SCALE;
         /** The ring's collar spans this share of the hull's width, measured off the concept. */
         static final float RING_SHARE_OF_WIDTH = .5345f;
+        /** The pair of radiator grilles flanking the spine behind the turret ring. */
+        static final FluxVents VENTS = new FluxVents(164f, 110f);
     }
 
     /**
@@ -622,9 +626,8 @@ public enum VehicleType {
      * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
      * burst under way), or -1 for a turret drawn the same whether or not it fires.
      */
-    /** The laser hulls' radiator fins, aft of centre on the breakthrough master (art-source/vehicles/tank-laser). */
-    static final float LASER_VENT_AFT_CELLS = 1.8f;
-    static final float LASER_VENT_HALF_SPAN_CELLS = 0.55f;
+    /** The laser hull's radiator fins across its tail, on the breakthrough master (art-source/vehicles/tank-laser). */
+    private static final FluxVents LASER_VENTS = new FluxVents(321.5f, 98f);
 
     public int turretFiringFrame() { return -1; }
 
@@ -726,14 +729,43 @@ public enum VehicleType {
     }
 
     /**
-     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from
-     * ({@code TurretMountDef#flux}), or zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells}
-     * either side of the centre line.
+     * The vents this hull's gun's flux haze rises from ({@code TurretMountDef#flux}), as its art paints them, or null
+     * for a hull whose art authors none. Every hull gun builds flux; the haze shows only off painted vents, so a hull
+     * joins by registering its sheet's grilles here, in that sheet's frame.
      */
-    public float fluxVentAftCells() { return 0f; }
+    private FluxVents fluxVents() {
+        return switch (this) {
+            case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER -> Apc.VENTS;
+            case MEDIUM_TANK -> MediumTank.VENTS;
+            case BREAKTHROUGH_TANK -> Onager.VENTS;
+            case LASER_TANK -> LASER_VENTS;
+            default -> null;
+        };
+    }
+
+    /**
+     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from ({@link #fluxVents}), or
+     * zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells} either side of the centre line.
+     */
+    public float fluxVentAftCells() {
+        FluxVents vents = fluxVents();
+        return vents == null ? 0f : vents.aftPx() / FluxVents.FRAME_PX * drawnLengthCells;
+    }
 
     /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
-    public float fluxVentHalfSpanCells() { return 0f; }
+    public float fluxVentHalfSpanCells() {
+        FluxVents vents = fluxVents();
+        return vents == null ? 0f : vents.halfSpanPx() / FluxVents.FRAME_PX * drawnLengthCells;
+    }
+
+    /**
+     * A hull sheet's flux vents in its frame's pixels: the vents' centre aft of the frame's centre, and half their
+     * spread across the hull. The frame's long side is the hull's drawn length, so the vents grow with the hull.
+     */
+    private record FluxVents(float aftPx, float halfSpanPx) {
+        /** The long side of a hull sheet's frame, in pixels. */
+        static final float FRAME_PX = 768f;
+    }
 
     /** Where this hull's tracks or wheels meet the ground, as its sprite paints them ({@link RunningGear}). */
     public RunningGear runningGear() { return RunningGear.of(this); }
