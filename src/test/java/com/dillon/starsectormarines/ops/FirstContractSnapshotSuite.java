@@ -122,9 +122,6 @@ public final class FirstContractSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = ResultsScreen.previewProps(victory, false);
         props.put("missionName", outcome.missionName);
         props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
-        props.put("squadRows", List.of(new ResultsScreen.PersonnelRow("result-squad-fixture", "1st Squad",
-                (12 - lost) + "R 0W 0M " + lost + "K", "label heading results-squad-summary " + (lost > 0 ? "tone-danger" : "tone-good"),
-                "Hale R · Chen R · Ilyin R · Okafor R · " + (lost > 0 ? "Bell K · Ruiz K" : "Bell R · Ruiz R"))));
         ResultsScreen.putStoryDebrief(props, outcome);
         return renderDocument(context, renderer, ResultsScreen.COMPONENT_PATHS, ResultsScreen.ROOT_COMPONENT, props);
     }

@@ -221,7 +221,7 @@ public final class WorkingPassageSnapshotSuite implements SnapshotSuite {
     }
     private void addDebrief(SnapshotContext c,List<SnapshotArtifact> frames,String prefix,Mission mission,WorkingPassageProgress.Report report,int lost)throws Exception {
         var outcome=MissionOutcome.builder().mission(mission).victory(true).payoutEarned(0).marinesEngaged(24).marinesLost(lost).alliesEngaged(8).alliesLost(report.militiaLost()).workingPassage(report).build();
-        var props=ResultsScreen.previewProps(true,false);props.put("missionName",mission.name);props.put("resultRows",ResultsScreen.resultRows(outcome,LootManifest.EMPTY,ModStrings.fromDisk(c.modRoot())));props.put("squadRows",List.of());ResultsScreen.putStoryDebrief(props,outcome);
+        var props=ResultsScreen.previewProps(true,false);props.put("missionName",mission.name);props.put("resultRows",ResultsScreen.resultRows(outcome,LootManifest.EMPTY,ModStrings.fromDisk(c.modRoot())));ResultsScreen.putStoryDebrief(props,outcome);
         frames.add(document(c,prefix+"-handover.png",ResultsScreen.COMPONENT_PATHS,ResultsScreen.ROOT_COMPONENT,props));
     }
     private SnapshotArtifact document(SnapshotContext c,String name,List<String> paths,String root,Map<String,Object> props)throws Exception {

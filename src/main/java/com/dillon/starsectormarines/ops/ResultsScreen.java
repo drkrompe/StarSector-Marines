@@ -129,14 +129,12 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("salvageReplay", (Runnable) () -> debriefNarration.start(
                 MissionDebriefConversation.recordings(outcome, WaylineNarration.builtins())));
         props.put("salvageStop", (Runnable) debriefNarration::stop);
-        props.put("personnelHeader", personnelHeader(outcome));
         MarineRoster roster = reportedRoster(outcome);
-        Personnel personnel = personnel(outcome, roster);
-        props.put("squadRows", personnel.rows());
-        props.put("personnelEmpty", personnel.rows().isEmpty() ? noPersonnelMessage(outcome) : "");
+        List<BriefingViewModel.SquadPicture> squads = squadTiles(outcome, roster);
+        putPersonnelEmpty(props, squads.isEmpty() ? noPersonnelMessage(outcome) : "");
         List<DebriefForce.Machine> machines = DebriefForce.machines(outcome, liveBay(outcome, roster),
                 Global.getSector() != null ? CampaignClock.dayFloat() : 0f);
-        fieldTiles = DebriefForce.put(props, personnel.squads(), machines);
+        fieldTiles = DebriefForce.put(props, squads, machines);
         props.put("secondaryClasses", "hidden");
         props.put("secondaryLabel", "");
         props.put("secondaryAction", (Runnable) () -> { });
@@ -166,15 +164,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 row("result-casualties", "Marines lost", "1 of 12", "tone-danger"),
                 row("result-captain", "Captain", "Morgan Hale — returned safely", "tone-good"),
                 row("result-xp", "Experience", "+240 XP", "tone-edge")));
-        props.put("personnelHeader", "PERSONNEL — RTD / WIA / MIA / KIA");
-        props.put("squadRows", List.of(
-                new PersonnelRow("result-squad-preview-0", "1st Squad",
-                        "10R 1W 0M 1K", "label heading results-squad-summary tone-accent",
-                        "Hale R · Chen R · Ilyin W · Okafor R · Bell K · Ruiz R"),
-                new PersonnelRow("result-squad-preview-1", "2nd Squad",
-                        "12R 0W 0M 0K", "label heading results-squad-summary tone-good",
-                        "Vale R · Sato R · Moss R · Holt R · Venn R · Ward R")));
-        props.put("personnelEmpty", "");
+        putPersonnelEmpty(props, "");
         props.put("secondaryClasses", "hidden");
         props.put("secondaryLabel", "");
         props.put("secondaryAction", none);
@@ -499,12 +489,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return outcome == null || outcome.missionSource.isDebug() || roster == null ? null : roster.mechBay();
     }
 
-    private record Personnel(List<PersonnelRow> rows, List<BriefingViewModel.SquadPicture> squads) {
-        static final Personnel NONE = new Personnel(List.of(), List.of());
+    private static void putPersonnelEmpty(Map<String, Object> props, String message) {
+        props.put("personnelEmpty", message);
+        props.put("personnelEmptyClasses", message.isEmpty() ? "hidden" : "label tone-muted personnel-empty");
     }
 
-    private Personnel personnel(MissionOutcome outcome, MarineRoster roster) {
-        if (outcome == null) return Personnel.NONE;
+    private List<BriefingViewModel.SquadPicture> squadTiles(MissionOutcome outcome, MarineRoster roster) {
+        if (outcome == null) return List.of();
         // A debug battle settles nobody, so its fates are rolled here for the report alone.
         Map<String, MarineSoldierStatus> unsettled = outcome.missionSource.isDebug()
                 ? MissionResolver.resolvePersonnelOutcomes(outcome) : null;
@@ -522,20 +513,17 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 }
             }
         }
-        if (roster == null || dispositions.isEmpty()) return Personnel.NONE;
+        if (roster == null || dispositions.isEmpty()) return List.of();
         Set<String> gone = new HashSet<>();
         for (Map.Entry<String, MarineSoldierStatus> entry : dispositions.entrySet()) {
             if (entry.getValue() == MarineSoldierStatus.KIA || entry.getValue() == MarineSoldierStatus.MIA) gone.add(entry.getKey());
         }
-        List<PersonnelRow> rows = new ArrayList<>();
         List<BriefingViewModel.SquadPicture> squads = new ArrayList<>();
         for (MarineSquad squad : deployed) {
-            PersonnelRow row = personnelRow(roster, squad, dispositions, rows.size());
             SquadMuster muster = SquadMuster.from(roster, squad.id());
-            if (muster != null) squads.add(DebriefForce.squad(squads.size(), muster.without(gone), row));
-            rows.add(row);
+            if (muster != null) squads.add(squadTile(roster, squad, muster.without(gone), dispositions, squads.size()));
         }
-        return new Personnel(List.copyOf(rows), List.copyOf(squads));
+        return List.copyOf(squads);
     }
 
     /** A rolled marine still on duty went down and came home, which the debrief calls wounded. */
@@ -566,9 +554,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return deployed;
     }
 
-    private static PersonnelRow personnelRow(MarineRoster roster, MarineSquad squad,
-                                               Map<String, MarineSoldierStatus> dispositions,
-                                               int index) {
+    private static BriefingViewModel.SquadPicture squadTile(MarineRoster roster, MarineSquad squad, SquadMuster muster,
+                                                            Map<String, MarineSoldierStatus> dispositions, int index) {
         int rtd = 0, wia = 0, mia = 0, kia = 0;
         List<String> members = new ArrayList<>();
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
@@ -583,20 +570,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             members.add(Strings.format("resultsScreenMember", shortName(soldier.name()),
                     Strings.named("resultsScreenMemberCode", status.name())));
         }
-        String tone = kia > 0 || mia > 0 ? "tone-danger" : wia > 0 ? "tone-accent" : "tone-good";
-        return new PersonnelRow("result-squad-" + index, squad.name(),
+        return DebriefForce.squad(index, muster, squad.name(),
                 Strings.format("resultsScreenSquadTally", rtd, wia, mia, kia),
-                "label heading results-squad-summary " + tone,
                 Strings.join("separatorDot", members.toArray(new String[0])));
-    }
-
-    static String personnelHeader(MissionOutcome outcome) {
-        if (outcome != null && outcome.missionSource == MissionSource.STATIONING) {
-            return outcome.deployedFireteamIds.isEmpty()
-                    ? Strings.get("resultsScreenPersonnelStationingAggregate")
-                    : Strings.get("resultsScreenPersonnelStationed");
-        }
-        return Strings.get("resultsScreenPersonnel");
     }
 
     static String noPersonnelMessage(MissionOutcome outcome) {
@@ -747,7 +723,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return List.of("mission-results-root", "mission-results-header",
                 "mission-results-body", "mission-results-summary",
                 "mission-results-outcome", "mission-results-rows",
-                "mission-results-personnel", "mission-results-squads",
+                "mission-results-personnel",
                 "mission-results-actions", "mission-results-primary",
                 "mission-results-secondary");
     }
@@ -759,19 +735,6 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 case "id" -> id; case "labelId" -> id + "-label";
                 case "valueId" -> id + "-value"; case "label" -> label; case "value" -> value;
                 case "tone" -> tone; default -> null;
-            };
-        }
-    }
-
-    record PersonnelRow(String id, String name, String summary, String tone,
-                        String members) implements MarkupPropertySource {
-        @Override public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id; case "topId" -> id + "-top";
-                case "nameId" -> id + "-name"; case "summaryId" -> id + "-summary";
-                case "membersId" -> id + "-members"; case "name" -> name;
-                case "summary" -> summary; case "tone" -> tone;
-                case "members" -> members; default -> null;
             };
         }
     }
