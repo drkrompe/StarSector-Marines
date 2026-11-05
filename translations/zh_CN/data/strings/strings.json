@@ -3227,9 +3227,6 @@
 		"resultsScreenSalvageStop": "停止",
 
 		# --- Results: personnel ---
-		"resultsScreenPersonnel": "人员 — 归队 / 负伤 / 失踪 / 阵亡",
-		"resultsScreenPersonnelStationed": "驻地分遣队 — 归队 / 负伤 / 失踪 / 阵亡",
-		"resultsScreenPersonnelStationingAggregate": "驻扎人员 — 汇总报告",
 		"resultsScreenPersonnelSubtitle": "归队 / 负伤已归队 / 失踪 / 阵亡",
 		"resultsScreenNoPersonnel": "未分配常驻人员。",
 		"resultsScreenNoPersonnelLegacy": "旧版匿名分遣队 — 仅有汇总伤亡。",
@@ -4579,7 +4576,6 @@
 		# --- Battle: vehicle and shuttle dolls ---
 		"vehicleDollTurret": "炮塔",
 		"vehicleDollSecondary": "副炮",
-		"vehicleDollHullPlate": "车体装甲",
 		"vehicleDollBlade": "推土铲",
 		"vehicleDollSightMast": "观瞄桅杆",
 		"vehicleDollSystems": "系统",
