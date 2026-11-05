@@ -1086,7 +1086,7 @@ public final class FleetArmoryViewModel {
         if (lowest == highest) return sheet;
         return new SpecSheet(sheet.title(),
                 Strings.format("openingFleetArmoryIssuedHere", sheet.subtitle(), lowest.displayName(), highest.displayName()),
-                sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes());
+                sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes()).withScene(sheet.scene());
     }
 
     private static EquipmentGrade quotedGrade(Map<EquipmentGrade, Integer> grades) {
