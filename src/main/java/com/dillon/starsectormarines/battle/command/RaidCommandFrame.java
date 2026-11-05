@@ -20,5 +20,10 @@ public final class RaidCommandFrame extends CommandFrame {
                 topology, assignments), RaidCommandFacts.freeze(sim));
     }
 
+    /** A frame over already-frozen common state and facts. */
+    static RaidCommandFrame of(CommandFrame common, RaidCommandFacts facts) {
+        return new RaidCommandFrame(common, facts);
+    }
+
     public RaidCommandFacts facts() { return facts; }
 }
