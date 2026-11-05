@@ -1184,25 +1184,28 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * The warning lamps beside Deploy and the Replenish key over the field force. A debug or stationing
-     * briefing has no live company to warn about, so it shows neither.
+     * The warning lamps beside Deploy and the Replenish key over the field force. A stationing briefing
+     * launches nothing and shows neither; a debug briefing reads the lamps off its own sandbox force, and
+     * has no Replenish since its squads cost the company nothing.
      */
     private void putDeployLamps(Map<String, Object> props, Mission mission, PersonnelReadiness readiness,
                                 BriefingLift.Readout liftReadout) {
         MarineRoster roster = liveRoster();
-        if (mission.source.isDebug() || mission.source == MissionSource.STATIONING || roster == null
-                || readiness == null) return;
+        boolean debug = mission.source.isDebug();
+        if (mission.source == MissionSource.STATIONING || roster == null || !debug && readiness == null) return;
         float day = CampaignClock.dayFloat();
-        Set<String> selected = ctx.getSelectedMarineSquadIds();
+        Set<String> selected = debug ? Set.of() : ctx.getSelectedMarineSquadIds();
         int replenishable = roster.readyReserveCount() + MarinePersonnelLogistics.availableCargoMarines();
         CampaignMechSquad lance = roster.mechBay().activeSquad();
         props.put("deployLamps", List.of(
-                DeployWarnings.undermanned(readiness.selectedReady(), MissionForceEnvelope.recommendedPersonnel(mission)),
+                DeployWarnings.undermanned(debug ? ctx.getDebugSquadCount() * MarineSquad.CAPACITY : readiness.selectedReady(),
+                        MissionForceEnvelope.recommendedPersonnel(mission)),
                 DeployWarnings.casualties(roster, selected, replenishable),
-                DeployWarnings.damage(lance == null ? List.of() : lance.mechs(), day),
+                DeployWarnings.damage(debug || lance == null ? List.of() : lance.mechs(), day),
                 DeployWarnings.lift(liftReadout,
-                        mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? List.of() : ShipsBoatsAboard.boats(), day,
+                        debug || mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND ? List.of() : ShipsBoatsAboard.boats(), day,
                         isTransportSufficient(mission, lift()) ? null : ShipsBoatsAboard.noLiftReason())));
+        if (debug) return;
         int vacant = 0;
         for (String id : selected) {
             MarineSquad squad = roster.squadById(id);
