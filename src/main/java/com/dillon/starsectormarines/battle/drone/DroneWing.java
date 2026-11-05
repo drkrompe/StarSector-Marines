@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.air.AirHandling;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,10 +16,10 @@ import java.util.Map;
  * drone. What a drone does is decided here, by role: an escort flies the loose formation round the hull and engages
  * what comes into its reach; every other role is sent to a station on a {@linkplain #sortieGoal sortie}. A sensor
  * holds a point ahead of the hull, a halo drone orbits tight round it, and a strike drone flies into its target. The
- * complement is fixed when the hull lands, and a drone lost is lost for the battle, except the strike drone, which
- * the bay rebuilds. When the hull stops being alive, the anchor is dead and {@link DroneBaySystem} brings every drone
- * still out down with it. The drones are remote-controlled from the hull rather than free hunters, which is the line
- * the Sector's AI law draws.
+ * complement is fixed when the hull lands, and the bay rebuilds a drone lost, one at a time in the order they fell
+ * ({@link #REBUILD_SECONDS}), so a wing worn down slowly recovers and a fast run of losses leaves the hull short. When
+ * the hull stops being alive, the anchor is dead and {@link DroneBaySystem} brings every drone still out down with it.
+ * The drones are remote-controlled from the hull rather than free hunters, which is the line the Sector's AI law draws.
  *
  * <p>Pose, roster, stations and focus are published in the serial part of the tick and read from the parallel unit
  * dispatch, so every field the swarm action reads is volatile and replaced rather than mutated.
@@ -39,8 +40,8 @@ public final class DroneWing implements DroneAnchor {
     public static final float HALO_STANDOFF_CELLS = 1.2f;
     /** How fast the halo turns round the hull, degrees per second. */
     public static final float HALO_DEG_PER_SEC = 45f;
-    /** Seconds the bay takes to build a new strike drone after one is spent or shot down. */
-    public static final float STRIKE_REBUILD_SECONDS = 30f;
+    /** Seconds the bay takes to build each drone on its line, after one is shot down or a strike drone is spent. */
+    public static final float REBUILD_SECONDS = 30f;
 
     /** Sensors and halo drones have to keep up with a hover hull, so they fly faster than an escort. */
     static final AirHandling FAST_HANDLING = new AirHandling() {
@@ -66,10 +67,11 @@ public final class DroneWing implements DroneAnchor {
     private final List<DroneRole> bay;
     private final float halfLength;
     private final Map<Long, DroneRole> roles = new LinkedHashMap<>();
-    /** Index into {@link #bay} of the next role to launch; strike slots are skipped, they launch on a target. */
-    private int nextSlot;
+    /** Drones in the bay to launch as soon as they may, in order; strike drones wait apart, they launch on a target. */
+    private final ArrayDeque<DroneRole> toLaunch = new ArrayDeque<>();
     private int strikesInBay;
-    private int strikesBuilding;
+    /** Drones lost and not yet rebuilt, in the order they fell. */
+    private final ArrayDeque<DroneRole> rebuilds = new ArrayDeque<>();
     private float rebuildClock;
     private float launchClock = LAUNCH_INTERVAL;
     private long strikeTarget;
@@ -88,8 +90,7 @@ public final class DroneWing implements DroneAnchor {
         this.hullId = hullId;
         this.bay = List.copyOf(bay);
         this.halfLength = hullLengthCells * .5f;
-        for (DroneRole role : this.bay) if (role == DroneRole.STRIKE) strikesInBay++;
-        skipStrikeSlots();
+        for (DroneRole role : this.bay) toBay(role);
     }
 
     public long hullId() { return hullId; }
@@ -97,12 +98,11 @@ public final class DroneWing implements DroneAnchor {
     /** Drones this hull carried into battle. */
     public int complement() { return bay.size(); }
 
-    /** Drones in the bay: never launched, or a strike drone rebuilt. */
-    public int inBay() {
-        int waiting = strikesInBay;
-        for (int i = nextSlot; i < bay.size(); i++) if (bay.get(i) != DroneRole.STRIKE) waiting++;
-        return waiting;
-    }
+    /** Drones in the bay: never launched, or rebuilt. */
+    public int inBay() { return strikesInBay + toLaunch.size(); }
+
+    /** Lost drones not yet rebuilt. */
+    public int rebuilding() { return rebuilds.size(); }
 
     /** Strike drones ready in the bay. */
     public int strikesReady() { return strikesInBay; }
@@ -122,22 +122,21 @@ public final class DroneWing implements DroneAnchor {
 
     /**
      * Advances the bay's clocks and answers which role may leave it this tick, or null. Escorts, sensors and halo
-     * drones go one at a time, {@link #LAUNCH_INTERVAL} apart, in bay order; a strike drone goes only once they are
-     * out and only at a target ({@code target}). Nothing launches after the hull is lost.
+     * drones go one at a time, {@link #LAUNCH_INTERVAL} apart, in bay order, each rebuilt one behind the rest; a strike
+     * drone goes only once they are out and only at a target ({@code target}). Nothing launches after the hull is lost.
      */
     public DroneRole readyToLaunch(float dt, boolean target) {
         if (!alive) return null;
-        if (strikesBuilding > 0) {
+        if (!rebuilds.isEmpty()) {
             rebuildClock -= dt;
             if (rebuildClock <= 0f) {
-                strikesBuilding--;
-                strikesInBay++;
-                rebuildClock = strikesBuilding > 0 ? STRIKE_REBUILD_SECONDS : 0f;
+                toBay(rebuilds.poll());
+                rebuildClock = rebuilds.isEmpty() ? 0f : REBUILD_SECONDS;
             }
         }
         launchClock += dt;
         if (launchClock < LAUNCH_INTERVAL) return null;
-        if (nextSlot < bay.size()) return bay.get(nextSlot);
+        if (!toLaunch.isEmpty()) return toLaunch.peek();
         return strikesInBay > 0 && target ? DroneRole.STRIKE : null;
     }
 
@@ -148,25 +147,23 @@ public final class DroneWing implements DroneAnchor {
         if (role == DroneRole.STRIKE) {
             strikesInBay--;
         } else {
-            nextSlot++;
-            skipStrikeSlots();
+            toLaunch.poll();
         }
         roleView = Map.copyOf(roles);
     }
 
-    /** Forgets a drone that is no longer flying. It does not go back in the bay, but a strike drone is rebuilt. */
+    /** Forgets a drone that is no longer flying, and puts it on the bay's rebuild line. */
     public void lost(long droneId) {
         DroneRole role = roles.remove(droneId);
         if (role == null) return;
-        if (role == DroneRole.STRIKE) {
-            if (strikesBuilding++ == 0) rebuildClock = STRIKE_REBUILD_SECONDS;
-            if (droneId == strikeDrone()) strikeTarget = 0L;
-        }
+        if (rebuilds.isEmpty()) rebuildClock = REBUILD_SECONDS;
+        rebuilds.add(role);
+        if (role == DroneRole.STRIKE && strikeDrone() == 0L) strikeTarget = 0L;
         roleView = Map.copyOf(roles);
     }
 
-    /** Seconds until the next strike drone is built, or zero when none is building. */
-    public float rebuildRemaining() { return strikesBuilding > 0 ? Math.max(0f, rebuildClock) : 0f; }
+    /** Seconds until the next drone is built, or zero when none is building. */
+    public float rebuildRemaining() { return rebuilds.isEmpty() ? 0f : Math.max(0f, rebuildClock); }
 
     /** The hull is wrecked or gone: the anchor dies, and nothing more launches. */
     public void hullLost() { alive = false; }
@@ -259,8 +256,9 @@ public final class DroneWing implements DroneAnchor {
         return new float[]{ax + r * (float) -Math.sin(b), ay + r * (float) Math.cos(b)};
     }
 
-    private void skipStrikeSlots() {
-        while (nextSlot < bay.size() && bay.get(nextSlot) == DroneRole.STRIKE) nextSlot++;
+    private void toBay(DroneRole role) {
+        if (role == DroneRole.STRIKE) strikesInBay++;
+        else toLaunch.add(role);
     }
 
     @Override public float anchorX() { return x; }

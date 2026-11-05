@@ -93,6 +93,9 @@ public final class StarsectorUiInputAdapter {
                 && !modifiers.contains(KeyModifier.ALT)) {
             handled = document.characterTyped(event.getEventChar());
         }
+        if (!handled && event.isKeyDownEvent() && !repeat && modifiers.isEmpty()) {
+            handled = document.accessKeyPressed(event.getEventChar());
+        }
         if (handled) event.consume();
     }
 

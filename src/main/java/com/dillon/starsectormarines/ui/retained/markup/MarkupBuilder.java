@@ -88,6 +88,7 @@ final class MarkupBuilder {
                 case "class" -> bindClasses(target, attribute, frame);
                 case "style" -> bindStyle(target, attribute, frame);
                 case "tabindex" -> target.tabIndex(parseInteger(valueOnce(attribute, frame), attribute, frame));
+                case "accesskey" -> target.accessKey(valueOnce(attribute, frame).charAt(0));
                 case "disabled" -> {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
                     if (attribute.isExpression()) {

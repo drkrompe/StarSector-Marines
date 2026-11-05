@@ -42,7 +42,8 @@ import java.util.Map;
  * ({@code PointDefenseService}), so it engages incoming rounds and the mount ends when the drone falls. A sensor
  * drone is a sight source for its side ({@link #forEachSensor}, read by {@link HullSightings}). A strike drone is a
  * munition: the bay launches it at the hostile threatening the hull, it flies into it, and on arrival it detonates
- * as an ordinary blast credited to itself and is spent; the bay then rebuilds it.
+ * as an ordinary blast credited to itself and is spent. The bay rebuilds any drone lost, the spent strike drone among
+ * them ({@link DroneWing#REBUILD_SECONDS}), and launches it again.
  *
  * <p>When the hull is wrecked or leaves the field, the wing's anchor dies and every drone still out is destroyed where
  * it flies, so it falls through the ordinary drone crash ({@link DroneCrashSystem}).

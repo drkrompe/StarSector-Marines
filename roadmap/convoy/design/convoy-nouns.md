@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1687,8 +1687,7 @@ ground scale:
   (`PointDefenseService`), so it takes rockets and shells out of the air near the hull.
   The mount ends when the drone falls.
 - A **strike** drone waits in the bay for a hostile to threaten the hull. It then flies
-  fast into it and detonates as an ordinary blast credited to itself. It is the only
-  role the bay rebuilds, slowly, as a Terminator's mini-fac does.
+  fast into it and detonates as an ordinary blast credited to itself.
 
   The strike is a heavy shell delivered by hand, and it is held to that family rather than
   to anything special. Its blast kills a rifleman in any standard pattern it reaches and
@@ -1701,7 +1700,14 @@ ground scale:
   been worn down by the escorts first. `StrikeBlastTest` pins the law, and the
   `drone-strike-spacing` scene measures it in a played fight.
 
-Any other drone lost stays lost. When the hull is wrecked or leaves, the anchor dies, and
+**The bay rebuilds what it loses** (owner), as a Terminator's mini-fac does: a drone shot
+down or a strike drone spent joins one rebuild line, and they come back one at a time, each
+`DroneWing.REBUILD_SECONDS` (30 s) after the one before, in the order they fell and each in
+its own role, as a tender's bay does (`tender-ship.md`). A wing worn down slowly recovers; a
+fast run of losses leaves the hull short for minutes, so the way to stop the wing is the
+hull. The rule belongs to the wing, so a sensor pair is rebuilt too, on any host.
+
+When the hull is wrecked or leaves, the anchor dies, and
 every drone still out is destroyed where it flies and falls through the ordinary drone
 crash. Bay drones carry a sturdier airframe than a hub's disposable screen, because they
 are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Tachyon
