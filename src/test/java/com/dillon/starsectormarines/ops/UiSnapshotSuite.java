@@ -2682,7 +2682,11 @@ private static BufferedImage renderBarracks(
                 new SnapshotArtifact("vehicle-fire-support.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-bought-vehicle.FIRE_SUPPORT_APC")),
                 new SnapshotArtifact("vehicle-heavy-apc-fitted.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-vehicle.HEAVY_APC")));
+                        false, false, false, false, null, "machine-vehicle.HEAVY_APC")),
+                new SnapshotArtifact("vehicle-plate-off.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-plate-off")),
+                new SnapshotArtifact("shuttle-plate-and-drive-off.png", renderBoatDeck(context, renderer, 1920, 1080,
+                        true, false, STRIPPED)));
     }
 
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
@@ -3010,6 +3014,11 @@ private static BufferedImage renderBarracks(
             machineName = CampaignVehicle.className(type) + " 01";
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, new CampaignVehicle("doll_vehicle", machineName, type));
         }
+        if ("machine-plate-off".equals(materialHint)) {
+            bay = new MechBay();
+            machineName = CampaignVehicle.className(VehicleType.HEAVY_APC) + " 01";
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, new CampaignVehicle("doll_vehicle", machineName, VehicleType.HEAVY_APC));
+        }
         // One machine as the workshop sells it, nothing fitted.
         if (materialHint != null && materialHint.startsWith("machine-bought-mech.")) {
             MechVariant variant = MechVariant.valueOf(materialHint.substring("machine-bought-mech.".length()));
@@ -3061,6 +3070,10 @@ private static BufferedImage renderBarracks(
             viewModel.gantryRows().get().stream().filter(row -> name.equals(row.name()))
                     .findFirst().orElseThrow(() -> new IllegalStateException("No pad holds " + name))
                     .select().run();
+        }
+        if ("machine-plate-off".equals(materialHint)) {
+            viewModel.selectSlot(SocketId.PLATING);
+            viewModel.removeInstalledInternal(SocketId.PLATING);
         }
         if (selectHound) {
             viewModel.mechRows().get().stream()

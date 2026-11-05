@@ -249,17 +249,21 @@ final class BoatDollPanel {
      * One socket: the plate, its name, and its bricks with the fitted piece over
      * them. Selected or under the pointer, it wears the lab's amber brackets. A
      * required socket left empty warns as the lab's empty engine well does: a dark
-     * red plate, a pulsing red rim and a warning triangle by its name.
+     * red plate, a pulsing red rim and a warning triangle by its name. An empty armor point, which she can fly
+     * without, warns the same way in yellow.
      */
     private static void console(CanvasContext c, CardTarget t, BoatDoll.Slot slot, boolean hot, double seconds) {
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         Color tone = BoatHardware.tone(slot.kind());
         boolean missing = slot.missing();
+        boolean recommended = slot.recommended();
+        boolean warns = missing || recommended;
+        Color warning = recommended ? HardpointBricks.RECOMMENDED : REFUSES;
         float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
-        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
-        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? withAlpha(REFUSES, (int) (150 + pulse * 105))
-                : withAlpha(tone, 70), missing ? 2f : 1.2f);
-        c.fillRect(x + 8f, y + 7f, 3f, 9f, missing ? REFUSES : tone);
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : recommended ? HardpointBricks.RECOMMENDED_PLATE : PLATE);
+        HardpointBricks.rim(c, x, y, w, h, CUT, warns ? withAlpha(warning, (int) (150 + pulse * 105))
+                : withAlpha(tone, 70), warns ? 2f : 1.2f);
+        c.fillRect(x + 8f, y + 7f, 3f, 9f, warns ? warning : tone);
         c.text(Fonts.ORBITRON_12_BOLD, clip(slot.title(), w - 24f, Fonts.ORBITRON_12_BOLD), x + 16f,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         HardpointBricks.Layout bricks = cardBricks(t, slot.kind());
@@ -281,7 +285,7 @@ final class BoatDollPanel {
             BoatHardware.drawClosed(c, bricks, piece);
             BoatHardware.draw(c, bricks, piece, 255);
         }
-        else if (missing) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f);
+        else if (warns) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f, warning);
         if (slot.selected() || hot) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
                     withAlpha(AMBER, (int) (180 + pulse * 65)), slot.selected() ? 2.4f : 1.4f, 17f, 5f);
@@ -354,10 +358,10 @@ final class BoatDollPanel {
         c.fillQuad(x + w - CUT, y, x + w, y + CUT, x + w, y + h - CUT, x + w - CUT, y + h, fill);
     }
 
-    /** The lab's warning mark: a red triangle with an exclamation mark, {@code size} px square at its top-left corner. */
-    private static void warning(CanvasContext c, float left, float top, float size) {
+    /** The lab's warning mark: a triangle with an exclamation mark, {@code size} px square at its top-left corner. */
+    private static void warning(CanvasContext c, float left, float top, float size, Color tone) {
         float stroke = Math.max(2f, size / 9f);
-        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, REFUSES);
+        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, tone);
         c.fillRect(left + (size - stroke) * .5f, top + size * .33f, stroke, size * .33f, MISSING_PLATE);
         c.fillRect(left + (size - stroke) * .5f, top + size * .78f, stroke, stroke, MISSING_PLATE);
     }

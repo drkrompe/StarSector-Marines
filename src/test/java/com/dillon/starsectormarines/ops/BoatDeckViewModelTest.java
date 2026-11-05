@@ -103,6 +103,28 @@ class BoatDeckViewModelTest {
         assertTrue(hardpoint.selected());
     }
 
+    /** A shuttle's plate comes off as a mech's and a vehicle's does. */
+    @Test
+    void aPlateLiftedOffGoesBackToStores() {
+        BoatDeck deck = deck();
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
+        model.selectBoatAction(0).run();
+        String plating = BoatDoll.slotKey(BoatFittingSlot.PLATING);
+        BoatFitting fitted = deck.boats().get(0).plating();
+        int spares = deck.spares(fitted.id());
+
+        assertTrue(model.canLiftOff(plating));
+        model.returnToStores(plating);
+
+        assertNull(deck.boats().get(0).plating(), "the armor point stands empty");
+        BoatDoll.Slot socket = model.doll().get().slots().stream()
+                .filter(slot -> slot.key().equals(plating)).findFirst().orElseThrow();
+        assertFalse(socket.missing(), "she can fly without a plate, so it is not the red warning");
+        assertTrue(socket.recommended(), "it is the yellow one");
+        assertEquals(spares + 1, deck.spares(fitted.id()));
+    }
+
     /** A part dropped on the stores comes off the boat as a spare that can be picked up again. */
     @Test
     void aFittedPartLiftedOffGoesBackToStores() {

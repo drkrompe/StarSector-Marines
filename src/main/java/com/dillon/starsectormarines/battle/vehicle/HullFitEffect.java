@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MachineSystems;
 public record HullFitEffect(float armorFactor, float structureFactor, float ammoFactor, float armorRatingBonus) {
     public static final HullFitEffect NONE = new HullFitEffect(1f, 1f, 1f, 0f);
 
-    /** The effect of {@code plating} on a hull of {@code type}; factory plating, or none, changes nothing. */
+    /** The effect of {@code plating} on a hull of {@code type}; factory plating, or no record of one, changes nothing. */
     public static HullFitEffect of(VehiclePlating plating, VehicleType type) {
         if (plating == null) return NONE;
         return new HullFitEffect(plating.armorFactor(), 1f, 1f, plating.armorRatingBonus(type));

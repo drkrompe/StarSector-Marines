@@ -647,7 +647,7 @@ public final class MechBay implements Serializable {
         return vehicle.fitPlating(plating);
     }
 
-    /** Plating is only ever replaced, as on a mech: it never comes off a vehicle's armor point. */
+    /** Takes the plate off a vehicle's armor point back to stores; the hull then stays off the drop until one is fitted. */
     public boolean stripPlating(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
         return vehicle != null && vehicle.stripPlating();
@@ -701,13 +701,13 @@ public final class MechBay implements Serializable {
 
     /**
      * Takes one internal of {@code role} back to stores: the engine, or the first compartment part
-     * of that role. An engine or capacitor bank may be left out too; the mech is then
+     * of that role, or the plate. Any of them may be left out; the mech is then
      * {@link CampaignMech.Readiness#INCOMPLETE} and stays off the drop manifest until one is
-     * fitted. Plating covers the frame and is only ever replaced.
+     * fitted.
      */
     public boolean stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = mechById(mechId);
-        if (mech == null || role == null || role.replaceOnly() || mech.internal(role) == null) return false;
+        if (mech == null || role == null || mech.internal(role) == null) return false;
         if (role.compartment()) return mech.removePart(mech.internal(role));
         mech.installInternal(role, null);
         return true;

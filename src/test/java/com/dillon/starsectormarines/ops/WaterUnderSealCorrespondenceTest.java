@@ -52,6 +52,5 @@ class WaterUnderSealCorrespondenceTest {
         }
         assertNull(catalog.find(story, "water_under_seal.road_element_0"));
         assertNull(catalog.find(story, "water_under_seal.road_element_1"));
-        assertNull(WaylineNarration.storyMissionId(Mission.builder(mission).source(MissionSource.RECURRING).build()));
     }
 }

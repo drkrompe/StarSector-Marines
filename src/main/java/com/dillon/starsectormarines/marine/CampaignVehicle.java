@@ -34,8 +34,8 @@ public final class CampaignVehicle implements Serializable {
      */
     private List<String> kitIds = new ArrayList<>();
     /**
-     * The plating part at its armor point; null is an empty one, as the lab sells a hull: the hull is incomplete and
-     * stays off the drop. Once fitted it is only ever replaced, as a mech's is. A save from before it was a part
+     * The plating part at its armor point; null is an empty one, as the lab sells a hull: the hull drops with no armor
+     * until a plate goes on. A save from before it was a part
      * reads as factory plating ({@link #fitTheHullsOwnEngineAndPlate}).
      */
     private String platingId;
@@ -182,9 +182,11 @@ public final class CampaignVehicle implements Serializable {
         return true;
     }
 
-    /** Plating covers the hull and is only ever replaced, as a mech's is: it never comes off. */
+    /** Takes the plate off the armor point, leaving it empty; false when there is none. */
     boolean stripPlating() {
-        return false;
+        if (plating() == null) return false;
+        platingId = null;
+        return true;
     }
 
     /** What the plating at the armor point makes of the hull at the drop. */
@@ -243,7 +245,6 @@ public final class CampaignVehicle implements Serializable {
     public List<MechInternal.Role> missingInternals() {
         List<MechInternal.Role> missing = new ArrayList<>();
         if (engine() == null) missing.add(MechInternal.Role.ENGINE);
-        if (plating() == null) missing.add(MechInternal.Role.PLATING);
         if (!VehicleRack.complete(type, rackInternals())) missing.add(MechInternal.Role.CAPACITOR_BANK);
         return List.copyOf(missing);
     }

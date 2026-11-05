@@ -239,7 +239,7 @@ public final class MechWorkshop {
      */
     public Result stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = bay.mechById(mechId);
-        if (mech == null || role == null || role.replaceOnly()) return Result.of(Status.INVALID);
+        if (mech == null || role == null) return Result.of(Status.INVALID);
         if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
         return bay.stripInternal(mechId, role) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }

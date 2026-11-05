@@ -118,21 +118,24 @@ final class MechSocketConsole {
         List<MechCompartment.Placement> here = compartment ? MechCompartment.in(parts, socket.id()) : null;
         boolean empty = installed == null && preview == null && internal == null
                 && (here == null || here.isEmpty());
-        // An empty engine well or armor point, or a compartment with no capacitor bank, keeps the mech off the
-        // drop manifest; it warns.
-        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE || socket.id() == SocketId.PLATING ? empty
+        // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the drop manifest: red.
+        // An empty armor point does not, but the mech goes in with no armor: yellow.
+        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE ? empty
                 : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
+        boolean recommended = warnMissing && !fixed && socket.id() == SocketId.PLATING && empty;
+        boolean warns = missing || recommended;
+        Color warning = recommended ? HardpointBricks.RECOMMENDED : RED;
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
-        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : recommended ? HardpointBricks.RECOMMENDED_PLATE : PLATE);
         // An empty socket wears its hardpoint colour on the rim, so what it takes reads at a glance.
-        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? new Color(RED.getRed(), RED.getGreen(), RED.getBlue(),
+        HardpointBricks.rim(c, x, y, w, h, CUT, warns ? new Color(warning.getRed(), warning.getGreen(), warning.getBlue(),
                 (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
-                : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), missing ? 2f : 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : missing ? RED : socketTone);
+                : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), warns ? 2f : 1.2f);
+        c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : warns ? warning : socketTone);
         c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f);
+        if (warns) drawWarningBadge(c, x + w - 26f, y + 5f, warning);
 
         if (fixed) {
             c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 16, y + HEADER,
@@ -223,7 +226,7 @@ final class MechSocketConsole {
         c.fillRect(x + 8, y + 7, 3, 9, missing ? RED : rack ? tone : MUTED);
         c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - (missing ? LABEL_RESERVE : 24)), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f);
+        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f, RED);
         // A sealed card says so by its muted rim and its one factory piece; how full the rack is
         // its bricks show.
         HardpointBricks.Layout bricks = placed(t, socket);
@@ -259,10 +262,10 @@ final class MechSocketConsole {
                 top + bricks.span(part.rows(), bricks.brickHeight())};
     }
 
-    /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */
-    private static void drawWarningBadge(CanvasContext c, float left, float top) {
+    /** A warning triangle with an exclamation mark, 18 px square at its top-left corner: red required, yellow recommended. */
+    private static void drawWarningBadge(CanvasContext c, float left, float top, Color tone) {
         float size = 18f;
-        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, RED);
+        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, tone);
         c.fillRect(left + size * .5f - 1f, top + 6f, 2f, 6f, MISSING_PLATE);
         c.fillRect(left + size * .5f - 1f, top + 14f, 2f, 2f, MISSING_PLATE);
     }

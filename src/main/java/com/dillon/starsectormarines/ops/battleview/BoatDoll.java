@@ -99,6 +99,11 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
                        boolean selected, float localX, float localY, float facingDeg, float arcDeg, boolean placed,
                        boolean missing) {
 
+        /** Whether this is an empty armor point: she can fly without a plate, with no armor, so it warns in yellow. */
+        public boolean recommended() {
+            return kind == Kind.PLATING && itemId == null;
+        }
+
         /** The item filling one position: a hardpoint's top or bottom, or for any other socket its one part. */
         public String itemAt(int position) {
             return position == BoatHardpoint.BOTTOM ? podItemId : itemId;

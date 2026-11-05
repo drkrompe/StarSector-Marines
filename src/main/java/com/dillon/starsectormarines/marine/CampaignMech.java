@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -249,7 +250,13 @@ public final class CampaignMech implements Serializable {
     public MechDeploymentSpec freezeForDeployment() {
         return new MechDeploymentSpec(variant, role(), missileReplenisher(),
                 arms(), leftArm(), rightArm(), leftShoulder(), rightShoulder(),
-                displayName, fit().frame(), id);
+                displayName, deployedFrame(), id);
+    }
+
+    /** What the fit lands with: the budget's stand-in for an empty armor point is no armor on the field. */
+    private MechFrame deployedFrame() {
+        MechFrame frame = fit().frame();
+        return internal(MechInternal.Role.PLATING) != null ? frame : frame.withNoArmor();
     }
 
     /** The deployment on {@code day}, carrying whatever wear its repair has not yet taken off. */
@@ -339,9 +346,9 @@ public final class CampaignMech implements Serializable {
         return missing;
     }
 
-    /** The roles a frame cannot drop without. Plating, once on, is only ever replaced. */
+    /** The roles a frame cannot drop without. A plate is only recommended: with none it drops with no armor. */
     public static final List<MechInternal.Role> REQUIRED_INTERNALS =
-            List.of(MechInternal.Role.ENGINE, MechInternal.Role.PLATING, MechInternal.Role.CAPACITOR_BANK);
+            List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK);
 
     /**
      * Fits {@code internal} in {@code role}, or empties it on null. An empty engine is stored as

@@ -112,9 +112,6 @@ public enum MechInternal {
 
         public SocketId socket() { return socket; }
 
-        /** Whether a part of this role is only ever replaced: plating covers the frame and is never left out. */
-        public boolean replaceOnly() { return this == PLATING; }
-
         /** Whether this role's parts share the auxiliary compartment. */
         public boolean compartment() { return socket == SocketId.AUXILIARY; }
 

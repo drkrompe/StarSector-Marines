@@ -23,6 +23,11 @@ final class HardpointBricks {
     static final Color BALLISTIC = new Color(0xe2, 0xc2, 0x48);
     static final Color OMNI = new Color(0xa4, 0xa8, 0xa0);
     /** The frame's own mounts, kept clear of the weapon colours: engine, flux, utility. */
+    /** A part that is highly recommended and left out: the machine can still go, unlike the red of a required part. */
+    static final Color RECOMMENDED = new Color(0xf2, 0xcf, 0x3e);
+    /** The dark plate under a card warning {@link #RECOMMENDED}. */
+    static final Color RECOMMENDED_PLATE = new Color(0x1c, 0x16, 0x05, 214);
+
     static final Color ENGINE = new Color(0x5e, 0x96, 0xd2);
     static final Color FLUX = new Color(0xa0, 0x7e, 0xdc);
     static final Color UTILITY = new Color(0x4c, 0xb4, 0xa6);

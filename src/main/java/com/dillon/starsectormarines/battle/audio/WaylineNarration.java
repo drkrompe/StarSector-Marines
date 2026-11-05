@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.ops.CompletedReplays;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.Mission;
@@ -35,8 +36,8 @@ public final class WaylineNarration {
             "data/marines/wellhollow_narration.json", "data/marines/cordon_road_narration.json");
     /** The Colony Breach catalog's mission id: the breach is a campaign event, not a story chapter, so it is keyed by the battle. */
     public static final String COLONY_BREACH = "story_colony_breach";
-    private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
-            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([14])_0_[1-9][0-9]*");
+    private static final Pattern SUPPLY_ROUTE_ID = Pattern.compile(
+            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1-4])_(?:0|[1-9][0-9]*)_[1-9][0-9]*");
     private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
             BrokenSupplyRouteProgress.JUNCTION, "story_supply_route_junction",
             BrokenSupplyRouteProgress.LIFT, "story_supply_route_last_lift",
@@ -141,52 +142,62 @@ public final class WaylineNarration {
     }
 
     /**
-     * The catalog a battle's beats are looked up in: its story chapter's, or Colony Breach's when the
-     * battle carries the breach sequence, whichever mission launched it.
+     * The catalog a battle's beats are looked up in: Colony Breach's when the battle carries the breach
+     * sequence, whichever mission launched it, else its story chapter's. A chapter flown as a breach keeps its
+     * own id for the pre-mission briefing only, since {@link #storyMissionId} is what the briefing reads.
      */
     public static String narrationMissionId(Mission mission, BattleSimulation sim) {
-        String story = storyMissionId(mission);
-        if (story == null && sim != null && sim.getColonyBreach() != null) return COLONY_BREACH;
-        return story;
+        return narrationMissionId(storyMissionId(mission), sim != null && sim.getColonyBreach() != null);
     }
 
-    /** Scenario hooks are shared with recurring jobs, but Zoey's chapter recordings are not. */
+    static String narrationMissionId(String story, boolean colonyBreach) {
+        return colonyBreach ? COLONY_BREACH : story;
+    }
+
+    /**
+     * The chapter a mission flies, whatever its source: a retry, repeat, replay or debug run hears the story's
+     * lines wherever a story version exists. Source decides what a mission settles, never what it says.
+     */
     public static String storyMissionId(Mission mission) {
-        if (mission == null) return null;
-        if (mission.source == MissionSource.DEBUG) return debugStoryMissionId(DebugMissionCatalog.scenario(mission));
-        if (mission.source != MissionSource.STORY) return null;
+        if (mission == null || mission.id == null) return null;
+        DebugMissionCatalog.Scenario scenario = DebugMissionCatalog.scenario(mission);
+        if (scenario == null) scenario = CompletedReplays.scenario(mission);
+        if (scenario != null) return scenarioMissionId(scenario);
         for (OpeningOperationKind kind : OpeningOperationKind.values())
-            if (kind.missionId.equals(mission.id)) return mission.id;
-        if (mission.id == null) return null;
-        if (WellhollowBloomCampaign.isBattle(mission))
+            if (kind.missionId.equals(mission.id) || kind.recurringId.equals(mission.id)) return kind.missionId;
+        if (WellhollowBloomCampaign.owns(mission.id))
             return WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.chapterOf(mission.id));
-        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return "story_agreus_small_war";
-        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.termsOfProtection(mission.id) ? "story_agreus_terms_of_protection" : AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
-        if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
+        if (AgreusArcCampaign.owns(mission.id)) return agreusMissionId(mission.id);
+        if (ShepherdRecoveryCampaign.owns(mission.id)) return ShepherdRecoveryProgress.workingPassage(mission.id)
+                ? "story_shepherd_working_passage" : ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
-        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.DUST_LEDGER)
-            return "story_corvus_dust_ledger";
-        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
-            return "story_corvus_cold_account";
-        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.BLIND_WATCH)
-            return "story_corvus_blind_watch";
-        // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
-        // even if a caller accidentally labels it STORY. Only active campaign battle identities receive chapter briefings.
-        Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);
-        if (attempt.matches()) return SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1)));
-        return null;
+        CorvusChapter corvus = CorvusWaylineProgress.forMission(mission.id);
+        if (corvus != null) return switch (corvus) {
+            case DUST_LEDGER -> "story_corvus_dust_ledger";
+            case BLIND_WATCH -> "story_corvus_blind_watch";
+            case COLD_ACCOUNT -> "story_corvus_cold_account";
+        };
+        Matcher attempt = SUPPLY_ROUTE_ID.matcher(mission.id);
+        return attempt.matches() ? SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1))) : null;
     }
 
-    /** A debug scenario replays a story chapter, so it hears that chapter's recordings; repeatable and event scenarios have none. */
-    private static String debugStoryMissionId(DebugMissionCatalog.Scenario scenario) {
-        if (scenario == null) return null;
+    private static String agreusMissionId(String id) {
+        return AgreusArcProgress.smallWar(id) ? "story_agreus_small_war"
+                : AgreusArcProgress.termsOfProtection(id) ? "story_agreus_terms_of_protection"
+                : AgreusArcProgress.yardOwners(id) ? "story_agreus_yard_owners"
+                : AgreusArcProgress.limitedWarrant(id) ? "story_agreus_limited_warrant"
+                : "story_agreus_water_under_seal";
+    }
+
+    /** The chapter a debug or replay scenario flies, or null for one with no story version. */
+    private static String scenarioMissionId(DebugMissionCatalog.Scenario scenario) {
         if (scenario.wellhollow() != null) return WellhollowBloomCampaign.narrationMissionId(scenario.wellhollow());
         return switch (scenario) {
-            case RELIEF -> OpeningOperationKind.RELIEF.missionId;
-            case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
+            case RELIEF, MILITIA_RELIEF -> OpeningOperationKind.RELIEF.missionId;
+            case COUNTERATTACK, DEPOT_CLEARANCE -> OpeningOperationKind.COUNTERATTACK.missionId;
             case JUNCTION -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.JUNCTION);
-            case LAST_LIFT -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
-            case RELAY_NINE -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
+            case LAST_LIFT, CREW_RECOVERY -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
+            case RELAY_NINE, ROUTE_SECURITY -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
             case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
             case DUST_LEDGER -> "story_corvus_dust_ledger";
             case BLIND_WATCH -> "story_corvus_blind_watch";
@@ -194,6 +205,14 @@ public final class WaylineNarration {
             case SALVAGE_RIGHTS -> "story_shepherd_salvage";
             case COLD_START -> "story_shepherd_cold_start";
             case WORKING_PASSAGE -> "story_shepherd_working_passage";
+            case WATER_UNDER_SEAL -> "story_agreus_water_under_seal";
+            case LIMITED_WARRANT -> "story_agreus_limited_warrant";
+            case YARD_OWNERS -> "story_agreus_yard_owners";
+            case TERMS_OF_PROTECTION -> "story_agreus_terms_of_protection";
+            case SMALL_WAR -> "story_agreus_small_war";
+            case CORDON_ROAD -> WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.Chapter.CORDON_ROAD);
+            case THE_BURN -> WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.Chapter.THE_BURN);
+            case BROAD_FRONT -> WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.Chapter.BROAD_FRONT);
             default -> null;
         };
     }

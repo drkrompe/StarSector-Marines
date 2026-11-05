@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
@@ -67,8 +69,13 @@ class VehiclePlatingTest {
         assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
         assertEquals(1, bay.availableInternal(MechInternal.COMPOSITE_PLATING.id), "the outgoing plate is a spare");
 
-        assertFalse(bay.stripPlating("v1"), "plating is only ever replaced, as on a mech");
-        assertEquals(MechInternal.HEAVY_PLATING, tank.plating());
+        assertTrue(bay.stripPlating("v1"), "a plate lifts off, as on a mech");
+        assertNull(tank.plating());
+        assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "the plate is a spare");
+        assertTrue(tank.complete(), "a plate is recommended, not required");
+        assertEquals(VehiclePlating.NONE, tank.freezeForDeployment().plating());
+        assertEquals(0f, VehiclePlating.NONE.armorFactor(), 0f, "with none it goes in with no armor");
+        assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
 
         assertTrue(bay.scrapVehicle("v1"));
         assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "a scrap spares the plate");
@@ -131,5 +138,13 @@ class VehiclePlatingTest {
         resolve.setAccessible(true);
         resolve.invoke(vehicle);
         return vehicle;
+    }
+
+    @Test
+    void aHullWithNoPlateHasNoArmorAnywhere() {
+        for (VehicleType type : VehicleType.values()) {
+            HullFitEffect none = HullFitEffect.of(VehiclePlating.NONE, type);
+            assertEquals(0f, HullLocations.of(type, HullTurretSection.forHull(type, none), none).maxTotalArmor(), 1e-3f);
+        }
     }
 }
