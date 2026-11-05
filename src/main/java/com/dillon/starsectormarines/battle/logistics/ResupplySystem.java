@@ -79,7 +79,8 @@ public final class ResupplySystem {
 
     private boolean needsSupply(long unit) {
         World world = roster.world();
-        if (world.hasSecondaryWeapon(unit)
+        // An item that regenerates refills itself, so it never calls the truck.
+        if (world.hasSecondaryWeapon(unit) && !world.specialEquipment(unit).regenerates()
                 && world.secondaryAmmo(unit) < world.specialEquipment(unit).startingAmmo()) return true;
         if (world.hasBelt(unit) && world.beltAmmo(unit) < world.beltEquipment(unit).startingAmmo()) return true;
         MechLoadoutComponent mech = world.mechLoadout(unit);
@@ -88,7 +89,7 @@ public final class ResupplySystem {
 
     private boolean transferOne(long unit) {
         World world = roster.world();
-        if (world.hasSecondaryWeapon(unit)) {
+        if (world.hasSecondaryWeapon(unit) && !world.specialEquipment(unit).regenerates()) {
             int current = world.secondaryAmmo(unit);
             int maximum = world.specialEquipment(unit).startingAmmo();
             if (current < maximum) {

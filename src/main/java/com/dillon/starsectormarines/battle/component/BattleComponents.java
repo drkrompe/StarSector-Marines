@@ -366,6 +366,8 @@ public final class BattleComponents {
     public static final int SECONDARY_WEAPON_SMOKE_COMMIT = 6;
     /** A shoulder pod's committed launch, retained only for the short launch pulse; null otherwise (OBJECT). */
     public static final int SECONDARY_WEAPON_POD_LAUNCH = 7;
+    /** Sim-seconds toward the next regenerated use of an item that regenerates (FLOAT). */
+    public static final int SECONDARY_WEAPON_REGEN_TIMER = 8;
 
     /** {@link #BELT} field 0: the stowed {@link com.dillon.starsectormarines.marine.SpecialEquipmentDef} (OBJECT). */
     public static final int BELT_SPEC = 0;
@@ -1251,7 +1253,7 @@ public final class BattleComponents {
                 FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.LONG, FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.LONG, FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.FLOAT);
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,

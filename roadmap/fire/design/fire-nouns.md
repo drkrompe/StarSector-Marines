@@ -325,7 +325,8 @@ does not set Conquest alight.
   (`PendingDetonation.incendiary`). Two specials carry it, issued by mission kit
   until the economy decides their price: the **incendiary grenade** (a thrown
   thermite charge with little blast) and the **pack flamer** (a short, flat,
-  seven-cell lob of burning gel).
+  seven-cell lob of burning gel, whose tank refills itself a charge at a time
+  in the field, `regenSeconds` on the item, rather than from the truck).
 - **Incendiary rounds.** A fire mission may be incendiary
   (`FireMission.incendiary`): the tubes serving it load incendiary rounds for
   the bodies on its ground. A bomber may be called with firebombs

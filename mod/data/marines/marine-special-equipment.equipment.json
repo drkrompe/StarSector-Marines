@@ -707,7 +707,8 @@
       },
       "resource": {
         "mode": "ammunition",
-        "startingAmmo": 8
+        "startingAmmo": 8,
+        "regenSeconds": 5.0
       },
       "ai": {
         "policy": "soft-cluster-indirect"

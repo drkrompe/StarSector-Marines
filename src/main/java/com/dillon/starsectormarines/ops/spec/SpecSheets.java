@@ -272,6 +272,9 @@ public final class SpecSheets {
         }
         if (def.usesAmmunition()) {
             stats.add(stat("AMMO", uses(def.startingAmmo())));
+            if (def.regenerates()) {
+                stats.add(stat("Refill", Strings.format("gearSeconds", oneDecimal(def.regenSeconds()))));
+            }
         }
         return new SpecSheet(
                 def.displayName(),

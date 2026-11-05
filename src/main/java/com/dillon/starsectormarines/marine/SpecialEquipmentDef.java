@@ -27,7 +27,21 @@ public record SpecialEquipmentDef(
         SatchelChargeSpec satchelChargeSpec,
         DeployableEmplacementSpec deployableEmplacementSpec,
         CommsKitSpec commsKitSpec,
-        MissilePodSpec missilePodSpec) implements Serializable {
+        MissilePodSpec missilePodSpec,
+        float regenSeconds) implements Serializable {
+
+    /** An item whose uses never come back on their own: every item except one declaring {@code regenSeconds}. */
+    public SpecialEquipmentDef(String id, String displayName, String catalogSubtitle, String catalogDescription,
+                               String catalogFactionLogo, SpecialActivation activation, String weaponId,
+                               SpecialResourceMode resourceMode, int startingAmmo, SpecialAiPolicy aiPolicy,
+                               SpecialEquipmentPresentationDef presentation, SmokeGrenadeSpec smokeGrenadeSpec,
+                               SatchelChargeSpec satchelChargeSpec,
+                               DeployableEmplacementSpec deployableEmplacementSpec, CommsKitSpec commsKitSpec,
+                               MissilePodSpec missilePodSpec) {
+        this(id, displayName, catalogSubtitle, catalogDescription, catalogFactionLogo, activation, weaponId,
+                resourceMode, startingAmmo, aiPolicy, presentation, smokeGrenadeSpec, satchelChargeSpec,
+                deployableEmplacementSpec, commsKitSpec, missilePodSpec, 0f);
+    }
 
     /** An item with no shoulder pod: every activation except {@link SpecialActivation#SHOULDER_POD}. */
     public SpecialEquipmentDef(String id, String displayName, String catalogSubtitle, String catalogDescription,
@@ -89,6 +103,13 @@ public record SpecialEquipmentDef(
         if (resourceMode == SpecialResourceMode.COOLDOWN && startingAmmo != 0) {
             throw new JSONException("Cooldown-gated special equipment '" + id
                     + "' cannot declare startingAmmo");
+        }
+        float regenSeconds = (float) resource.optDouble("regenSeconds", 0.0);
+        if (regenSeconds < 0f) {
+            throw new JSONException("Special equipment '" + id + "' regenSeconds cannot be negative");
+        }
+        if (regenSeconds > 0f && resourceMode != SpecialResourceMode.AMMUNITION) {
+            throw new JSONException("Special equipment '" + id + "' regenerates only counted ammunition");
         }
 
         String weaponId = optionalText(activationJson, "weaponId");
@@ -208,7 +229,8 @@ public record SpecialEquipmentDef(
                 satchel,
                 deployable,
                 commsKit,
-                missilePod);
+                missilePod,
+                regenSeconds);
     }
 
     public String armoryIconPath() {
@@ -225,6 +247,11 @@ public record SpecialEquipmentDef(
 
     public boolean usesAmmunition() {
         return resourceMode == SpecialResourceMode.AMMUNITION;
+    }
+
+    /** True when a spent use comes back on its own, one each {@link #regenSeconds}, so it needs no resupply. */
+    public boolean regenerates() {
+        return regenSeconds > 0f;
     }
 
     public boolean hasAvailableUse(int ammo) {

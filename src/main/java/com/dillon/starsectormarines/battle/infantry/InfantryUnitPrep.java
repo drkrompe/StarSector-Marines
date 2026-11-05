@@ -86,7 +86,8 @@ public final class InfantryUnitPrep {
 
     /**
      * Decrements primary, secondary and belt cooldown timers by one sim tick, and
-     * advances the primary magazine's reload and recoil recovery with them. A
+     * advances the primary magazine's reload, recoil recovery and a regenerating
+     * special's refill with them. A
      * belt throw that has finished hands the hand's own item back here
      * ({@link CarriedSpecials#stowBack}).
      * Idempotent at zero — already-expired timers stay at zero. Runs every
@@ -102,6 +103,7 @@ public final class InfantryUnitPrep {
         if (world.hasSecondaryWeapon(id)) {
             float scd = world.secondaryCooldownTimer(id);
             if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
+            regenerate(id, world);
         }
         if (world.hasBelt(id)) {
             float bcd = world.beltCooldownTimer(id);
@@ -112,6 +114,27 @@ public final class InfantryUnitPrep {
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
         float sidestep = world.sidestepTimer(id);
         if (sidestep > 0f) world.setSidestepTimer(id, sidestep - BattleSimulation.TICK_DT);
+    }
+
+    /**
+     * Brings back one use of the hand's item each {@link SpecialEquipmentDef#regenSeconds}. A full item holds its
+     * clock at zero, so a lull banks nothing past the item's capacity. Only the hand refills: an item stowed on
+     * the belt for the moment of a throw keeps its clock until it returns.
+     */
+    private static void regenerate(long id, World world) {
+        SpecialEquipmentDef item = world.specialEquipment(id);
+        if (!item.regenerates()) return;
+        int uses = world.secondaryAmmo(id);
+        if (uses >= item.startingAmmo()) {
+            world.setSecondaryRegenTimer(id, 0f);
+            return;
+        }
+        float clock = world.secondaryRegenTimer(id) + BattleSimulation.TICK_DT;
+        if (clock >= item.regenSeconds()) {
+            clock -= item.regenSeconds();
+            world.setSecondaryAmmo(id, uses + 1);
+        }
+        world.setSecondaryRegenTimer(id, clock);
     }
 
     /** A marine who has not tried to fire for this long tops up a part-spent magazine. */
