@@ -1,4 +1,4 @@
-<template props="slotIntroClasses,missionsAction,missionsClasses,settingsAction,settingsClasses,repair,lessonClasses,lessonTitle,lessonCopy,lessonActionLabel,lessonAction,lessonPause,lessonResumeClasses,lessonResume,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,garageTitle,garageStatus,dragNoteTitle,dragNoteCopy,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,buildPanelClasses,buildName,buildKind,buildLore,buildWeightIcon,buildWeightClasses,buildWeightStyle,buildMeters,catalogRuleClasses,buildCredit,buildCrest,buildCrestClasses,buildStats,buildMaterials,buildLabel,buildDisabled,buildAction,performanceMeters,budgetText,budgetClasses,shipRefitText,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,backToLance,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,materialStock,categoryFilterPills,categoryFilterClasses,allPartsClasses,showAllParts,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
+<template props="slotIntroClasses,missionsAction,missionsClasses,settingsAction,settingsClasses,repair,lessonClasses,lessonTitle,lessonCopy,lessonActionLabel,lessonAction,lessonPause,lessonResumeClasses,lessonResume,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,garageTitle,garageStatus,dragNoteTitle,dragNoteCopy,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,buildPanelClasses,buildName,buildKind,buildRole,buildLore,buildWeightIcon,buildWeightClasses,buildWeightStyle,buildMeters,catalogRuleClasses,buildCredit,buildCrest,buildCrestClasses,buildStats,buildMaterials,buildLabel,buildDisabled,buildAction,performanceMeters,budgetText,budgetClasses,shipRefitText,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,backToLance,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,materialStock,categoryFilterPills,categoryFilterClasses,allPartsClasses,showAllParts,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopAction,shopClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <div id="mech-lab-room-bar" class="panel room-bar console-header">
       <img id="mech-lab-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -127,6 +127,7 @@
                     </div>
                   </div>
                   <div id="mech-build-kind" class="label heading tone-edge build-kind">{buildKind}</div>
+                  <div id="mech-build-role" class="label tone-muted build-role">{buildRole}</div>
                 </div>
                 <!-- The standard fit's figures on the specifications' scales; its doll is in the view. -->
                 <div id="mech-build-meters" class="build-meters">
@@ -271,7 +272,8 @@
   .material-chip-icon { width: 16px; height: 16px; }
   .material-chip-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; }
   .material-chip.short .material-chip-value { color: #eea296; }
-  .catalog-detail-row .build-kind { width: 0px; flex-grow: 1; }
+  .catalog-detail-row .build-kind { width: 96px; }
+  .build-role { width: 0px; flex-grow: 1; height: 16px; font-family: compact; text-align: right; }
   .material-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 20px; padding: 1px 4px; gap: 5px; background-color: #071014; border-width: 1px; }
   .material-stock-strip { flex-direction: row; align-items: center; width: 380px; height: 24px; gap: 6px; }
   .material-stock { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
