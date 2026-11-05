@@ -584,13 +584,7 @@ public final class MechLabViewModel {
         props.put("buildStats", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             if (recipe == null) return "";
-            if (recipe.variant() != null) {
-                return Strings.format("openingMechLabFrameStats", Math.round(recipe.variant().armorCapacity),
-                        Math.round(recipe.variant().maxStructure));
-            }
-            VehicleType type = recipe.vehicle();
-            return Strings.format("openingMechLabVehicleStats", number(type.maxStructure), number(type.maxArmor),
-                    number(type.maxSpeed), type.capacity);
+            return patternStats(recipe);
         }));
         props.put("buildMaterials", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
@@ -1643,21 +1637,28 @@ public final class MechLabViewModel {
     private List<CatalogRow> chassisCatalog() {
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : shownPatterns()) {
-            if (recipe.variant() == null) continue;
             MechVariant variant = recipe.variant();
+            VehicleType type = recipe.vehicle();
             String base = "mech-catalog:" + recipe.id();
-            rows.add(catalogRow(base, "catalog-preview", variant, null, null, null, patternClasses(recipe),
+            rows.add(catalogRow(base, "catalog-preview", variant, null, null, type, patternClasses(recipe),
                     recipe.displayName(), "", "catalog-badge hidden",
                     Strings.upper(credit(recipe)),
-                    Strings.format("openingMechLabFrameStats", Math.round(variant.armorCapacity), Math.round(variant.maxStructure)),
-                    "", "catalog-delta hidden",
-                    roleLabel(variant.defaultRole),
+                    patternStats(recipe), "", "catalog-delta hidden",
+                    variant != null ? roleLabel(variant.defaultRole) : patternArmament(type),
                     Strings.get("openingMechLabFab"), buildHint(recipe),
                     !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
         }
-        rows.addAll(vehicleCatalog());
         return List.copyOf(rows);
+    }
+
+    /** A pattern's armor and structure, on any machine. */
+    private static String patternStats(MechFabricationCatalog.Recipe recipe) {
+        MechVariant variant = recipe.variant();
+        VehicleType type = recipe.vehicle();
+        return Strings.format("openingMechLabFrameStats",
+                Math.round(variant != null ? variant.armorCapacity : type.maxArmor),
+                Math.round(variant != null ? variant.maxStructure : type.maxStructure));
     }
 
     private String buildHint(MechFabricationCatalog.Recipe recipe) {
@@ -1665,26 +1666,6 @@ public final class MechLabViewModel {
         return resources.canBuy(resources.quote(recipe.cost()))
                 ? Strings.get("openingMechLabPatternBuyHint")
                 : shortHint();
-    }
-
-    /** Vehicle patterns share the vacant gantry with chassis, gated by pattern the same way. */
-    private List<CatalogRow> vehicleCatalog() {
-        List<CatalogRow> rows = new ArrayList<>();
-        for (MechFabricationCatalog.Recipe recipe : shownPatterns()) {
-            VehicleType type = recipe.vehicle();
-            if (type == null) continue;
-            String base = "mech-catalog:" + recipe.id();
-            rows.add(catalogRow(base, "catalog-preview", null, null, null, type, patternClasses(recipe),
-                    recipe.displayName(), "", "catalog-badge hidden",
-                    Strings.upper(credit(recipe)),
-                    Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
-                    "", "catalog-delta hidden",
-                    patternArmament(type),
-                    Strings.get("openingMechLabFab"), buildHint(recipe),
-                    !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
-                    () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
-        }
-        return rows;
     }
 
     /**
