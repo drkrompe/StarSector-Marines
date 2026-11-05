@@ -1,6 +1,6 @@
 # Story — The Hegemony armour line: a shared turret head, a new APC, a medium tank and a repulsor Onager
 
-Status: IN PROGRESS (slices 1 to 3 shipped: the Hegemony head, the APC and its carriers on the Hegemony hull, then weight split from hover; slices 4 to 6 remain)
+Status: IN PROGRESS (slices 1, 2, 3 and 5 shipped: the Hegemony head, the APC and its carriers on the Hegemony hull, weight split from hover, and the medium tank; slices 4 and 6 remain)
 
 Written: 2026-11-05
 
@@ -47,8 +47,9 @@ and the small omni gun card are unchanged.
 
 `heg-medium-tank.png` is a **new, lighter tracked tank** below the Onager (owner): faster, thinner plate, cheaper,
 heavy weight class's lower end. It takes the tracked drive, tread animation and `HeavyTracks` undergrowth crush the
-Onager has today. Its gun card, price, unlock station and numbers are this story's to propose and the owner's to
-pick.
+Onager has today. Shipped as the Scorpion (`MEDIUM_TANK`; `convoy-nouns.md`, The medium tank): a two-row ballistic
+card with the HC-10 stock under the Hegemony head, a Medium lift at Junction. Those numbers are the proposal, awaiting
+the owner's pick.
 
 ### The Onager becomes the heavy repulsor
 
@@ -96,12 +97,14 @@ tuned in the playtest, not by evidence alone.
    `ULTRA_HEAVY`; `DozerBlade` and `hasBlade` go with the dozer (the class renamed for the weight rule). A heavy,
    not ultra-heavy, hover hull would ram barricades it meets but plan round them, since the rammer's view is not
    laid over the skirt's; none is planned.
-5. **The medium tank**: a new `VehicleType`, its art, wreck, treads, card, store and ladder placement (`kit-ladder.md`).
+5. **Shipped.** **The medium tank**: `MEDIUM_TANK`, the concept packed with an ImageGen wreck and the head as its
+   fallback turret frames (`art-source/vehicles/medium-tank`), two tread runs a side, a two-row ballistic card, store,
+   doll and Kit Ladder station. Evidence: `createSnapshots -Psnapshot=medium-tank`.
 6. **Balance pass** against a player giving orders, not the autopilot.
 
 ## Open
 
-- The medium tank's numbers, gun card, price and station.
+- The owner's pick on the medium tank's role: Medium lift at Junction (built) or Heavy lift at Thunder Run.
 - Proposed in slice 3, the owner's to confirm: `HEAVY` hulls keep ramming barricades (`BarricadeRam`) and crush no
   walls; the ultra-heavy ceiling is 100, the blade's, so fortified walls (150 and up) hold until fire wears them
   under and a fort is still opened by fire and charges. Its mass shows in how far through a wall row it carries.

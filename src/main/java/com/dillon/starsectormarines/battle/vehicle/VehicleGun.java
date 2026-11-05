@@ -25,9 +25,6 @@ public final class VehicleGun {
 
     private VehicleGun() { }
 
-    /** The share of the hull's width its turret mount ring spans: the base every fitted weapon stands on. */
-    private static final float MOUNT_SHARE_OF_HULL_WIDTH = .7f;
-
     /** How far a laser's muzzle shows past the edge of the turret ring on a modular turret, in cells: two rows, one row. */
     private static final float PROTRUSION_CELLS = .16f;
     private static final float LIGHT_PROTRUSION_CELLS = .08f;
@@ -80,9 +77,9 @@ public final class VehicleGun {
         return type.turretHead() == null ? 0f : mountCells(type) * HEAD_SHARE_OF_MOUNT;
     }
 
-    /** The diameter of the mount ring a fitted weapon stands on, in cells. */
+    /** The diameter of the mount ring a fitted weapon stands on, in cells: the share of its width the hull's ring spans. */
     public static float mountCells(VehicleType type) {
-        return type.visualWidthCells * MOUNT_SHARE_OF_HULL_WIDTH;
+        return type.visualWidthCells * type.turretRingShareOfWidth();
     }
 
     /** The cells one hull width of the mech's drawing spans on {@code type}. */

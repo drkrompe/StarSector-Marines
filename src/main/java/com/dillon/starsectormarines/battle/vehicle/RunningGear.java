@@ -36,6 +36,8 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
             // Tracks the length of the hull, rows centred 180 px either side.
             case BREAKTHROUGH_TANK -> ofFrame(type, 768f, 180f, 316f, 300f);
             case LASER_TANK -> ofFrame(type, 768f, 182f, 316f, 300f);
+            // The medium tank's tracks, rows centred 158 px either side, from the drive sprocket aft to the nose's idlers.
+            case MEDIUM_TANK -> ofFrame(type, 768f, 158f, 326f, 282f);
             // The tank's tracks drawn smaller on the dozer's longer frame, ending behind the blade.
             case DOZER_BREACHER -> ofFrame(type, 768f, 168f, 296f, 300f);
             // Wheels under the fenders: the front under the bonnet, the rear under the bed's flare.

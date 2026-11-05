@@ -87,6 +87,26 @@ public enum VehicleType {
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
+     * The Scorpion, the Hegemony's medium tank (hegemony-armor-line.md): a lighter tracked hull below the Onager,
+     * faster, thinner in the plate and cheaper, at the bottom of the heavy weight class but carried by a Medium lift.
+     * Its gun card is a two-row ballistic one, so it takes the HC-10, the autocannons, the demolition cannons and
+     * the chaingun but never the Onager's HC-20; the weapon is drawn under the shared Hegemony head
+     * ({@link TurretHead}). Its sheet is the owner's concept turned to point left (art-source/vehicles/medium-tank).
+     */
+    MEDIUM_TANK("graphics/battle/vehicles/heg-medium-tank.png", 0, 4, -90f,
+            0, MediumTank.DRAWN_LENGTH, 3.35f, 1.75f, 3.6f, 1.4f, 3.2f, .8f, 2.8f,
+            1, 0f, MediumTank.TURRET_MOUNT_Y, 0f, 0f, MediumTank.DRAWN_LENGTH, -90f,
+            TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID, 520f, 360f, 15f, 1.35f, 1.0f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.3f, 34f, 105f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
+        }
+        @Override public float turretRecoilCells() { return .12f; }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
+        @Override public float turretRingShareOfWidth() { return MediumTank.RING_SHARE_OF_WIDTH; }
+    },
+    /**
      * Breakthrough hull with a ship's burst laser where the twin cannons were. A ship mounts this emitter as
      * point defence because it barely marks proper plate; at ground scale almost nothing is proper plate. It
      * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
@@ -433,6 +453,21 @@ public enum VehicleType {
         }
     }
 
+    /** The medium tank's sheet registration (art-source/vehicles/medium-tank/pack.py). */
+    private static final class MediumTank {
+        static final float DRAWN_LENGTH = 3.84f;
+        /** The concept's turret ring, 37.7 px of the 768 px frame ahead of the hull's centre. */
+        static final float TURRET_MOUNT_Y = .188545f;
+        /** The ring's collar spans this share of the hull's width, measured off the concept. */
+        static final float RING_SHARE_OF_WIDTH = .62f;
+    }
+
+    /**
+     * The share of the hull's width its turret ring spans ({@link VehicleGun#mountCells}), so a closed head sits on the
+     * ring its art paints. Most hulls' rings span seven tenths of it.
+     */
+    public float turretRingShareOfWidth() { return .7f; }
+
     /**
      * The technical's pickup and the light roles built on it. Every pickup is a <em>field rig</em> — jerry-rigged
      * from a civilian chassis, never a military faction's issue — which is how pattern channels weight it.
@@ -459,9 +494,9 @@ public enum VehicleType {
     /** A hover hull of light weight: a skirt that barely touches the ground, with no purchase and almost no mass. */
     private boolean lightSkirt() { return isHover() && weight() == Weight.LIGHT; }
 
-    /** The breakthrough hull and the variants built on it. */
+    /** The tracked gun tanks: the breakthrough hull, the variants built on it, and the medium tank. */
     public boolean isTank() {
-        return this == BREAKTHROUGH_TANK || this == LASER_TANK || this == DOZER_BREACHER;
+        return this == BREAKTHROUGH_TANK || this == LASER_TANK || this == DOZER_BREACHER || this == MEDIUM_TANK;
     }
 
     /**
@@ -533,7 +568,7 @@ public enum VehicleType {
      * carriers and the dozer medium, the gun tanks heavy. No hull is ultra-heavy yet.
      */
     public Weight weight() {
-        if (this == BREAKTHROUGH_TANK || this == LASER_TANK) {
+        if (this == BREAKTHROUGH_TANK || this == LASER_TANK || this == MEDIUM_TANK) {
             return Weight.HEAVY;
         }
         if (isApc() || this == SRM_TECHNICAL || this == DOZER_BREACHER) return Weight.MEDIUM;
@@ -602,9 +637,10 @@ public enum VehicleType {
      * The closed head this hull draws over its fitted weapon ({@link TurretHead}), or null for a hull whose weapon stands
      * bare on its ring. The APC wears the Hegemony head (hegemony-armor-line.md). Its mortar and LRM carriers share its
      * Hegemony hull but keep their open turntables: their weapons stand up to fire, which a closed head would hide.
+     * The medium tank wears it too.
      */
     public TurretHead turretHead() {
-        return this == HEAVY_APC ? TurretHead.HEGEMONY : null;
+        return this == HEAVY_APC || this == MEDIUM_TANK ? TurretHead.HEGEMONY : null;
     }
 
     public TurretMountStyle mountStyle() {
@@ -624,6 +660,7 @@ public enum VehicleType {
         return switch (this) {
             case LASER_TANK -> MechWeaponComponent.PL_3;
             case BREAKTHROUGH_TANK -> MechWeaponComponent.HC_20;
+            case MEDIUM_TANK -> MechWeaponComponent.HC_10;
             default -> ownGun();
         };
     }
@@ -890,7 +927,7 @@ public enum VehicleType {
     public LiftClass liftClass() {
         return switch (this) {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
-            case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER -> LiftClass.MEDIUM;
+            case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER, MEDIUM_TANK -> LiftClass.MEDIUM;
             case BREAKTHROUGH_TANK, LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };

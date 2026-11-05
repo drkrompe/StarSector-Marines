@@ -88,6 +88,7 @@ public final class VehicleDoll {
     private static String gunArt(VehicleGunCard card) {
         return switch (card) {
             case CANNON -> "hc-20";
+            case MEDIUM_CANNON -> "hc-10";
             case SMALL -> "light-machine-gun";
             case MORTAR -> "vehicle-turret-mortar";
             case LASER -> "ll-3";
