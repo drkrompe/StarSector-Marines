@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -51,6 +52,6 @@ public enum VehicleGunCard {
     /** Whether {@code weapon} goes in this card: the lock's hardpoint type if any, no wider or taller than the card. */
     public boolean accepts(MechWeaponComponent weapon) {
         return weapon != null && (hardpoint == null || weapon.hardpointType == hardpoint)
-                && weapon.footprintColumns <= COLUMNS && weapon.footprintRows <= rows;
+                && MechFittingLayout.hasRoom(COLUMNS, rows, weapon.footprintColumns, weapon.footprintRows);
     }
 }

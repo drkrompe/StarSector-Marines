@@ -146,7 +146,7 @@ class MechWorkshopTest {
         assertEquals(MechVariant.HOUND, hound.mech().variant());
         // Bought as a bare frame: no nose gun, no engine, held in its gantry until fitted.
         assertNull(hound.mech().arms());
-        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK),
+        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.PLATING, MechInternal.Role.CAPACITOR_BANK),
                 hound.mech().missingInternals());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
                 MechVariant.HOUND).succeeded());

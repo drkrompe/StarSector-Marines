@@ -110,6 +110,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Supplier<VehicleType> selectedVehicle = () -> null;
     private Supplier<List<VehicleRack.Placement>> installedRack = List::of;
     private BooleanSupplier rackIncomplete = () -> false;
+    private BooleanSupplier vehicleOwnGun = () -> false;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
@@ -163,7 +164,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         installedInternals = source != null ? source : socket -> null;
     }
 
-    /** The weapon in the selected vehicle's gun card; null for the hull's own gun, and for a mech. */
+    /** Whether the selected vehicle's empty gun card still fires the gun the hull was built with. */
+    public void vehicleOwnGun(BooleanSupplier source) {
+        vehicleOwnGun = source != null ? source : () -> false;
+    }
+
+    /** The weapon in the selected vehicle's gun card; null for an empty card, and for a mech. */
     public void installedWeapons(Function<SocketId, MechWeaponComponent> source) {
         installedWeapons = source != null ? source : socket -> null;
     }
@@ -336,7 +342,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null, false,
+                    null, false,
                     socket.id().compartment() ? List.of() : null, null, assets,
                     false, false, false, false, false, seconds, warnMissing);
         }
@@ -345,8 +351,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /**
      * A vehicle hull's doll as the hull is bought
      * ({@link com.dillon.starsectormarines.marine.CampaignVehicle#hull}), laid out as the lab lays out a
-     * selected vehicle's ({@link VehicleDoll}): the engine core and auxiliary compartment empty, the armor point
-     * showing the hull's own plate. {@code warnMissing} marks what keeps the hull off the manifest, as on a chassis.
+     * selected vehicle's ({@link VehicleDoll}): the engine core, armor point, gun card and auxiliary compartment all
+     * empty. {@code warnMissing} marks what keeps the hull off the manifest, as on a chassis.
      */
     static void drawBareVehicle(CanvasContext c, VehicleType type, float panelWidth, float height, double seconds,
                                 boolean warnMissing) {
@@ -356,11 +362,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
-            if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
-                MechSocketConsole.draw(c, target, socket, null, null,
-                        socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null,
+            if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE || socket.id() == SocketId.ARMS) {
+                MechSocketConsole.draw(c, target, socket, null, null, null,
                         false, null, null, null,
-                        false, false, false, false, false, seconds, warnMissing);
+                        false, false, false, false, false, seconds, warnMissing && socket.id() != SocketId.ARMS);
                 continue;
             }
             boolean bankless = warnMissing && socket.id().compartment() && type.hasTurretWeapon();
@@ -774,7 +779,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
             String title = VehicleDoll.caption(type, socket.id(), rackRows, installedInternals.apply(SocketId.PLATING),
-                    installedInternals.apply(SocketId.CORE), installedWeapons.apply(SocketId.ARMS));
+                    installedInternals.apply(SocketId.CORE), installedWeapons.apply(SocketId.ARMS),
+                    vehicleOwnGun.getAsBoolean());
             if (socket.id().compartment()) {
                 // On the rack, the part under the pointer, or the rack's fill between them.
                 for (VehicleRack.Placement part : rack) {
@@ -811,15 +817,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /**
-     * A vehicle's gun card: the hull's own gun as the sealed cards draw it until a weapon is fitted or carried to it,
-     * then as a mech's weapon socket is drawn, lit as a fit or a refusal by {@link VehicleGunCard#accepts}.
+     * A vehicle's gun card, drawn as a mech's weapon socket is, empty or fitted, lit as a fit or a refusal by
+     * {@link VehicleGunCard#accepts}; only a hull from an older save draws its own gun as the sealed cards do.
      */
     private void drawVehicleGun(CanvasContext c, SocketDropTarget target, SocketDef socket, VehicleType type) {
         VehicleGunCard card = VehicleGunCard.of(type);
         MechWeaponComponent fitted = installedWeapons.apply(SocketId.ARMS);
         MechWeaponComponent carried = dragPreview != null ? dragPreview.component() : null;
         boolean selected = selects(SocketId.ARMS, selectedSocket.get());
-        if (fitted == null && carried == null) {
+        if (fitted == null && carried == null && vehicleOwnGun.getAsBoolean()) {
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, SocketId.ARMS),
                     VehicleDoll.art(type, SocketId.ARMS), List.of(), false, selected, hoveredSocket == SocketId.ARMS,
                     elapsedSeconds.getAsDouble());
@@ -827,7 +833,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
         boolean draggingHere = dragPreview != null && dragPreview.target() == SocketId.ARMS;
         boolean snapped = carriedSnapped();
-        boolean compatible = draggingHere ? snapped : card.accepts(carried);
+        boolean compatible = draggingHere ? snapped : carried != null && card.accepts(carried);
         MechSocketConsole.draw(c, target, socket, fitted, draggingHere && snapped ? carried : null, null, false,
                 null, null, assets.get(), selected, hoveredSocket == SocketId.ARMS, compatible,
                 draggingHere && !snapped, draggingHere, elapsedSeconds.getAsDouble());

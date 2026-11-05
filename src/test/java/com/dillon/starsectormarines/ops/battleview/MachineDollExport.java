@@ -25,7 +25,7 @@ public final class MachineDollExport {
     /** {@link VehicleDoll#caption}. */
     public static String vehicleCaption(VehicleType type, SocketId card, int rackRows, MechInternal plating,
                                         MechInternal engine, MechWeaponComponent gun) {
-        return VehicleDoll.caption(type, card, rackRows, plating, engine, gun);
+        return VehicleDoll.caption(type, card, rackRows, plating, engine, gun, false);
     }
 
     /** {@link MechLabDollCanvas#mountFor}: the weapon mount a mech socket holds, null for an internal one. */

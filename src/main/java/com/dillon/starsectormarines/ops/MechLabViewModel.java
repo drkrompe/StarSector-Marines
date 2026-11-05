@@ -1247,7 +1247,7 @@ public final class MechLabViewModel {
         Gaps then = Gaps.of(mech, hoveredInternal.get());
         // What the mech deploys on: the armor shop's plate and the coolant plant over the fit.
         MechRefit refit = refit();
-        float armor = fit.armorCapacity() * refit.armorMult();
+        float armor = now.armor(fit) * refit.armorMult();
         float speed = now.speed(fit);
         float flux = now.flux(fit);
         float dissipation = now.dissipation(fit) * refit.dissipationMult();
@@ -1259,7 +1259,7 @@ public final class MechLabViewModel {
         return List.of(
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
                         armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
-                        ghost.armorCapacity() * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), FittingMeter.PLATE_TONE),
+                        then.armor(ghost) * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), FittingMeter.PLATE_TONE),
                 meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
                         speed, maximum(MechFrameBudget::refitMoveSpeed), then.speed(ghost),
                         stock.moveSpeed(), FittingMeter.ENGINE_TONE),
@@ -1280,17 +1280,21 @@ public final class MechLabViewModel {
      * Which required internals a fit is really missing. {@link MechFrameBudget.Fit} fills an
      * empty socket with the stock part, which is right for the budget check and wrong for what
      * the panel reports. The panel leans into the gap: no engine moves the mech nowhere and
-     * powers no vents, and no bank holds no flux and so has none to vent.
+     * powers no vents, no plate stops nothing, and no bank holds no flux and so has none to vent.
      */
-    private record Gaps(boolean engine, boolean bank) {
+    private record Gaps(boolean engine, boolean plating, boolean bank) {
         /** The mech's gaps, less the one a hovered part of that role would fill. */
         static Gaps of(CampaignMech mech, MechInternal hovered) {
             boolean engine = mech.internal(MechInternal.Role.ENGINE) == null
                     && (hovered == null || hovered.role != MechInternal.Role.ENGINE);
             boolean bank = mech.internal(MechInternal.Role.CAPACITOR_BANK) == null
                     && (hovered == null || hovered.role != MechInternal.Role.CAPACITOR_BANK);
-            return new Gaps(engine, bank);
+            boolean plating = mech.internal(MechInternal.Role.PLATING) == null
+                    && (hovered == null || hovered.role != MechInternal.Role.PLATING);
+            return new Gaps(engine, plating, bank);
         }
+
+        float armor(MechFrameBudget.Fit fit) { return plating ? 0f : fit.armorCapacity(); }
 
         float speed(MechFrameBudget.Fit fit) { return engine ? 0f : fit.moveSpeed(); }
 
@@ -1524,6 +1528,7 @@ public final class MechLabViewModel {
         MechWeaponComponent current = mount != null ? slotWeapon(mech, selectedSlot.get()) : null;
         SocketDef socket = mount != null ? selectedSocketDefinition() : null;
         return weaponRows(current, component -> mount == null || socket != null && component.accepts(mount)
+                && socket.accommodates(component.footprintColumns, component.footprintRows)
                 && (socket.type() == MechFittingLayout.SocketType.OMNI
                 || socket.type().name().equals(component.hardpointType.name())));
     }
@@ -1802,6 +1807,8 @@ public final class MechLabViewModel {
 
     /** What a vehicle's plating makes of it at the drop. */
     private static HullFitEffect effect(CampaignVehicle vehicle) {
+        // An empty armor point stops nothing; the hull's figures read that until a plate goes on.
+        if (vehicle.plating() == null) return new HullFitEffect(0f, 1f, 1f, 0f);
         return HullFitEffect.of(vehicle.platingTier(), vehicle.type());
     }
 
@@ -1919,7 +1926,7 @@ public final class MechLabViewModel {
         return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
     }
 
-    /** Takes the weapon out of the selected vehicle's gun card; the hull fires its own gun again. */
+    /** Takes the weapon out of the selected vehicle's gun card, leaving it empty. */
     public boolean stripVehicleGun() {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle == null) return false;
@@ -2002,6 +2009,12 @@ public final class MechLabViewModel {
                 : Strings.get("openingMechLabRackPartBlocked"));
         finishWeaponCommand(result);
         return result.status() == MechWorkshop.Status.STRIPPED;
+    }
+
+    /** Whether the selected vehicle's empty gun card still fires the gun its hull was built with (an older save). */
+    public boolean selectedVehicleHasOwnGun() {
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null && vehicle.hasOwnGun();
     }
 
     /** The selected vehicle's hull, for the sealed doll; null when a mech or nothing is selected. */
@@ -2193,7 +2206,7 @@ public final class MechLabViewModel {
         String status = readinessText(mech);
         String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
         if (readiness == CampaignMech.Readiness.INCOMPLETE) {
-            return new Repair("mech-repair-card surface-dark", "height: 30px;", status, statusClasses,
+            return new Repair("mech-repair-card surface-dark", "height: 50px;", status, statusClasses + " incomplete",
                     "", "mech-repair-detail hidden", "");
         }
         MechDamage damage = mech.damageOn(now);
@@ -2245,7 +2258,8 @@ public final class MechLabViewModel {
     private static String missingNames(List<MechInternal.Role> missing) {
         List<String> names = new ArrayList<>();
         for (MechInternal.Role role : missing) {
-            names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine" : "mechLabMissingCapacitors"));
+            names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine"
+                    : role == MechInternal.Role.PLATING ? "mechLabMissingPlating" : "mechLabMissingCapacitors"));
         }
         return String.join(Strings.get("separatorDot"), names);
     }
