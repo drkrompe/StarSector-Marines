@@ -12,7 +12,7 @@
         <div id="page-nav-missions-lamp" class="console-toggle-lamp" />
         <img id="page-nav-missions-status" class="page-nav-status" src="graphics/ui/console/nav-attention-work.svg" />
         <div id="page-nav-missions-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
-        <div id="page-nav-missions-legend" class="console-key-legend" accesskey="i">{i18n.openingUiMarineOpsPageNavMissions}</div>
+        <div id="page-nav-missions-legend" class="console-key-legend" accesskey="n">{i18n.openingUiMarineOpsPageNavMissions}</div>
       </button>
       <button id="page-nav-hq" class="{hqClasses}" onclick="{hqAction}">
         <div id="page-nav-hq-lamp" class="console-toggle-lamp" />
@@ -45,12 +45,12 @@
       <button id="page-nav-shop" class="{shopClasses}" onclick="{shopAction}">
         <div id="page-nav-shop-lamp" class="console-toggle-lamp" />
         <div id="page-nav-shop-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
-        <div id="page-nav-shop-legend" class="console-key-legend" accesskey="o">{i18n.openingUiMarineOpsPageNavStore}</div>
+        <div id="page-nav-shop-legend" class="console-key-legend" accesskey="t">{i18n.openingUiMarineOpsPageNavStore}</div>
       </button>
       <button id="page-nav-settings" class="{settingsClasses}" onclick="{settingsAction}">
         <div id="page-nav-settings-lamp" class="console-toggle-lamp" />
         <div id="page-nav-settings-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
-        <div id="page-nav-settings-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavSettings}</div>
+        <div id="page-nav-settings-legend" class="console-key-legend" accesskey="g">{i18n.openingUiMarineOpsPageNavSettings}</div>
       </button>
     </div>
     </div>
