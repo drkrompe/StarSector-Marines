@@ -422,7 +422,7 @@ public final class SpecSheets {
     }
 
     /**
-     * A vehicle hull, stock: what it takes, how fast it goes and what it carries, each meter against
+     * A vehicle hull, as it is bought with no gun: what it takes, how fast it goes and what it carries, each meter against
      * the largest hull the bay can fabricate, and what the hull is for.
      */
     public static SpecSheet vehicle(VehicleType type) {
@@ -434,8 +434,7 @@ public final class SpecSheets {
                 StatMeter.fraction(type.maxArmor, CatalogCeilings.vehicleArmor())));
         stats.add(stat("SPEED", Strings.format("openingMechLabCellsS", oneDecimal(type.maxSpeed)),
                 StatMeter.fraction(type.maxSpeed, CatalogCeilings.vehicleSpeed())));
-        String gun = vehicleGunName(type);
-        stats.add(stat("GUN", gun != null ? gun : Strings.get("gearVehicleUnarmed")));
+        if (!type.hasTurretWeapon()) stats.add(stat("GUN", Strings.get("gearVehicleUnarmed")));
         if (type.capacity > 0) stats.add(stat("SEATS", Integer.toString(type.capacity),
                 StatMeter.fraction(type.capacity, CatalogCeilings.vehicleSeats())));
         if (type.supplyStock() > 0) stats.add(stat("RESUPPLY", Strings.format("gearRounds", type.supplyStock())));

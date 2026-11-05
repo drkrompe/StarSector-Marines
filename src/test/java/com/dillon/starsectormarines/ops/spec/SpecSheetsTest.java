@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -299,5 +300,15 @@ class SpecSheetsTest {
                 List.of(new OrbitalBarrage(), new SpawnInOnslaught()));
         assertEquals("HSS Siege", onslaught.title());
         assertEquals(2, onslaught.notes().size());
+    }
+
+    @Test
+    void aVehicleSheetNamesNoGunForAHullBoughtWithoutOne() {
+        assertFalse(hasGunRow(SpecSheets.vehicle(VehicleType.BREAKTHROUGH_TANK)), "it takes a gun, but comes with none");
+        assertTrue(hasGunRow(SpecSheets.vehicle(VehicleType.SUPPLY_TRUCK)), "it can never take one, and says so");
+    }
+
+    private static boolean hasGunRow(SpecSheet sheet) {
+        return sheet.stats().stream().anyMatch(stat -> "GUN".equals(stat.label()));
     }
 }
