@@ -42,6 +42,8 @@ public final class CampaignMech implements CampaignMachine, Serializable {
      * saves from before the compartment, which {@link #compartmentIds} migrates on first read.
      */
     private List<String> auxiliaryIds;
+    /** The compartment's parts and where each sits; null in saves from before places, built from {@link #auxiliaryIds}. */
+    private CompartmentFit compartmentFit;
     // Absent in saves from before section damage: null damage and a zero clock read as a whole,
     // ready mech, so an existing save needs no rewrite.
     /**
@@ -97,7 +99,7 @@ public final class CampaignMech implements CampaignMachine, Serializable {
         }
         installInternal(MechInternal.Role.ENGINE, null);
         installInternal(MechInternal.Role.PLATING, null);
-        compartmentIds().clear();
+        compartmentFit().clear();
     }
 
     /** Acquisition preserves the recovered fit, including deliberately empty mounts. */
@@ -169,11 +171,23 @@ public final class CampaignMech implements CampaignMachine, Serializable {
     @Override
     public List<MechInternal> compartment() {
         List<MechInternal> parts = new ArrayList<>();
-        for (String partId : compartmentIds()) {
-            MechInternal part = MechInternal.findById(partId);
-            if (part != null && part.role.compartment()) parts.add(part);
-        }
+        parts.addAll(compartmentFit().parts());
         return List.copyOf(parts);
+    }
+
+    @Override
+    public List<MechCompartment.Placement> compartmentPlacements() {
+        List<MechCompartment.Placement> placed = compartmentFit().placements(compartmentGrids());
+        return placed != null ? placed : List.of();
+    }
+
+    /** The compartment's record, built on first read from the ids a save kept before places, its arrangement kept. */
+    private CompartmentFit compartmentFit() {
+        if (compartmentFit == null) {
+            compartmentFit = CompartmentFit.of(compartmentIds());
+            compartmentFit.settle(compartmentGrids());
+        }
+        return compartmentFit;
     }
 
     /**
@@ -352,18 +366,17 @@ public final class CampaignMech implements CampaignMachine, Serializable {
      * {@link #EMPTY_COMPONENT_ID}, because a missing id still reads as the stock part for frames
      * from before internals existed. In the compartment a capacitor bank or loader replaces the
      * one there, a vent array goes in beside the others, and null takes out every part of the
-     * role. The caller has checked that the result packs ({@link MechCompartment}).
+     * role; every other part stays where it sits. The caller has checked that the result packs ({@link MechCompartment}).
      */
     void installInternal(MechInternal.Role role, MechInternal internal) {
+        installInternal(role, internal, null);
+    }
+
+    /** As above, a compartment part going in at {@code at} (a bay, or a cell; null for anywhere) where it will. */
+    void installInternal(MechInternal.Role role, MechInternal internal, MechCompartment.Spot at) {
         if (role.compartment()) {
-            List<String> ids = compartmentIds();
-            if (internal == null || MechCompartment.limit(role) == 1) {
-                ids.removeIf(partId -> {
-                    MechInternal part = MechInternal.findById(partId);
-                    return part == null || part.role == role;
-                });
-            }
-            if (internal != null) ids.add(internal.id);
+            if (internal == null) compartmentFit().removeRole(compartmentGrids(), role);
+            else compartmentFit().add(compartmentGrids(), internal, at);
             return;
         }
         String internalId = internal != null ? internal.id
@@ -377,7 +390,12 @@ public final class CampaignMech implements CampaignMachine, Serializable {
 
     /** Takes one {@code part} out of the compartment; false when none is there. */
     boolean removePart(MechInternal part) {
-        return part != null && compartmentIds().remove(part.id);
+        return removePart(part, null);
+    }
+
+    /** Takes out the {@code part} at {@code from} (where it was lifted), else the first fitted; nothing else moves. */
+    boolean removePart(MechInternal part, MechCompartment.Spot from) {
+        return part != null && compartmentFit().remove(compartmentGrids(), part, from);
     }
 
     void installWeapon(MechMountSlot slot, MechWeaponComponent component) {

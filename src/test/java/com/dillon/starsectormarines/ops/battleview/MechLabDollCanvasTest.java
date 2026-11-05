@@ -126,11 +126,14 @@ class MechLabDollCanvasTest {
 
     @Test
     void aStoresPartSnappedIntoTheCompartmentIsPackedLastBesideWhatIsFitted() {
-        List<MechInternal> fitted = List.of(MechInternal.FACTORY_CAPACITOR_BANK);
+        List<SocketDef> grids = MechCompartment.of(MechVariant.BULWARK);
+        List<MechCompartment.Placement> fitted = MechCompartment.pack(grids, List.of(MechInternal.FACTORY_CAPACITOR_BANK));
         List<MechCompartment.Placement> packed = MechLabDollCanvas.packedWith(
-                MechCompartment.of(MechVariant.BULWARK), fitted, MechInternal.ACCELERATED_LOADER);
+                grids, fitted, MechInternal.ACCELERATED_LOADER, SocketId.AUXILIARY_2);
         assertEquals(2, packed.size());
+        assertEquals(fitted.get(0), packed.get(0), "what is fitted stays where it sits");
         assertEquals(MechInternal.ACCELERATED_LOADER, packed.get(1).part());
+        assertEquals(SocketId.AUXILIARY_2, packed.get(1).grid(), "and the part goes in the bay it is dropped on");
     }
 
     private static MechLabDollCanvas.SocketDropTarget find(List<MechLabDollCanvas.SocketDropTarget> targets,

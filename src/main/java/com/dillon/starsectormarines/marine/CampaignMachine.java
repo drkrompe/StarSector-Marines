@@ -31,6 +31,9 @@ public interface CampaignMachine {
     /** The compartment's bays, in packing order. */
     List<SocketDef> compartmentGrids();
 
+    /** Where each compartment part sits, in fitted order: the place it was given, kept ({@link CompartmentFit}). */
+    List<MechCompartment.Placement> compartmentPlacements();
+
     /** What the machine lacks to drop: the roles it {@linkplain MachineCapabilities#required requires} left empty. */
     default List<MechInternal.Role> missingInternals() {
         List<MechInternal.Role> missing = new ArrayList<>();

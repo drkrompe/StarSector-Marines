@@ -87,10 +87,15 @@ public final class MechWorkshop {
      * is spent; the outgoing part returns to stores.
      */
     public Result fitInternal(String mechId, MechInternal internal) {
+        return fitInternal(mechId, internal, null);
+    }
+
+    /** As above, a compartment part going in at {@code at} (a bay, or a cell) where it will; the rest stay put. */
+    public Result fitInternal(String mechId, MechInternal internal, MechCompartment.Spot at) {
         if (bay.vehicleById(mechId) != null && internal != null) return switch (internal.role) {
             case ENGINE -> fitEngine(mechId, internal);
             case PLATING -> fitPlating(mechId, internal);
-            default -> fitRackPart(mechId, internal);
+            default -> fitRackPart(mechId, internal, at);
         };
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || internal == null) return Result.of(Status.INVALID);
@@ -102,7 +107,7 @@ public final class MechWorkshop {
             return Result.of(Status.OVER_BUDGET);
         }
         if (bay.availableInternal(internal.id) > 0) {
-            return bay.installInternal(mechId, internal)
+            return bay.installInternal(mechId, internal, at)
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
         if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
@@ -112,7 +117,7 @@ public final class MechWorkshop {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
         }
         bay.addInternal(internal.id, 1);
-        if (!bay.installInternal(mechId, internal)) {
+        if (!bay.installInternal(mechId, internal, at)) {
             throw new IllegalStateException("validated fabricated internal could not be installed");
         }
         return Result.of(Status.FABRICATED_AND_INSTALLED);
@@ -150,6 +155,11 @@ public final class MechWorkshop {
      * place of the one fitted, which goes back to stores.
      */
     public Result fitRackPart(String vehicleId, MechInternal part) {
+        return fitRackPart(vehicleId, part, null);
+    }
+
+    /** As above, at {@code at} (a bay, or a cell) where it will go. */
+    public Result fitRackPart(String vehicleId, MechInternal part, MechCompartment.Spot at) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null || part == null) return Result.of(Status.INVALID);
         if (part.role == MechInternal.Role.CAPACITOR_BANK && vehicle.compartment().contains(part)) {
@@ -157,16 +167,21 @@ public final class MechWorkshop {
         }
         if (!vehicle.canFitRack(part)) return Result.of(Status.INCOMPATIBLE);
         if (bay.availableInternal(part.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
-        return bay.fitRackPart(vehicleId, part) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+        return bay.fitRackPart(vehicleId, part, at) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
                 : Result.of(Status.INVALID);
     }
 
     /** Takes one bank or vent array off a vehicle's rack back to stores; without a bank it cannot drop. */
     public Result stripRackPart(String vehicleId, MechInternal part) {
+        return stripRackPart(vehicleId, part, null);
+    }
+
+    /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
+    public Result stripRackPart(String vehicleId, MechInternal part, MechCompartment.Spot from) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null || part == null) return Result.of(Status.INVALID);
         if (!vehicle.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripRackPart(vehicleId, part) ? new Result(Status.STRIPPED, null, vehicle)
+        return bay.stripRackPart(vehicleId, part, from) ? new Result(Status.STRIPPED, null, vehicle)
                 : Result.of(Status.INVALID);
     }
 
@@ -261,11 +276,16 @@ public final class MechWorkshop {
 
     /** Takes one part out of the compartment back to stores. */
     public Result stripPart(String mechId, MechInternal part) {
-        if (bay.vehicleById(mechId) != null) return stripRackPart(mechId, part);
+        return stripPart(mechId, part, null);
+    }
+
+    /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
+    public Result stripPart(String mechId, MechInternal part, MechCompartment.Spot from) {
+        if (bay.vehicleById(mechId) != null) return stripRackPart(mechId, part, from);
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || part == null || !part.role.compartment()) return Result.of(Status.INVALID);
         if (!mech.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripPart(mechId, part) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
+        return bay.stripPart(mechId, part, from) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {

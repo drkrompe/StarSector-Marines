@@ -52,8 +52,10 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
      * hull with nothing, and once a weapon has gone in the card. False in a save from before, whose hull keeps firing it.
      */
     private boolean ownGunGone;
-    /** The internals in the auxiliary compartment (bank, vent arrays, loader), as ids in fitted order. */
-    private List<String> rackInternalIds = new ArrayList<>();
+    /** Migration input only: a save from before places kept the compartment's ids alone ({@link #rack}). */
+    private List<String> rackInternalIds;
+    /** The internals in the auxiliary compartment (bank, vent arrays, loader) and where each sits, as on a mech. */
+    private CompartmentFit rack;
     /**
      * Which fitting rules the saved compartment was written under: 0 in a save from before its loader was a part, when
      * every armed hull had a sealed stock loader; {@link #FIT_VERSION} for a hull built since.
@@ -81,7 +83,9 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         this.fitVersion = FIT_VERSION;
         this.engineId = MechInternal.INDUSTRIAL_ENGINE.id;
         this.platingId = MechInternal.FACTORY_PLATING.id;
-        for (MechInternal part : VehicleRack.stockFit(type)) rackInternalIds.add(part.id);
+        rack = new CompartmentFit();
+        for (MechInternal part : VehicleRack.stockFit(type)) rack.addUnplaced(part.id);
+        rack.settle(compartmentGrids());
     }
 
     /**
@@ -93,7 +97,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         vehicle.engineId = null;
         vehicle.platingId = null;
         vehicle.ownGunGone = true;
-        vehicle.rackInternalIds.clear();
+        vehicle.rack.clear();
         return vehicle;
     }
 
@@ -216,14 +220,13 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     /** The internals in the auxiliary compartment, in fitted order. */
     @Override
     public List<MechInternal> compartment() {
-        List<MechInternal> parts = new ArrayList<>();
-        if (rackInternalIds != null) {
-            for (String id : rackInternalIds) {
-                MechInternal part = MechInternal.findById(id);
-                if (part != null) parts.add(part);
-            }
-        }
-        return List.copyOf(parts);
+        return rack.parts();
+    }
+
+    @Override
+    public List<MechCompartment.Placement> compartmentPlacements() {
+        List<MechCompartment.Placement> placed = rack.placements(compartmentGrids());
+        return placed != null ? placed : List.of();
     }
 
     /**
@@ -237,16 +240,24 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
 
     /** Puts {@code part} in the compartment, a bank replacing the bank fitted; false when it would not go. */
     boolean fitRack(MechInternal part) {
+        return fitRack(part, null);
+    }
+
+    /** As above, at {@code at} (a bay, or a cell; null for anywhere) where it will go; every other part stays put. */
+    boolean fitRack(MechInternal part, MechCompartment.Spot at) {
         if (!canFitRack(part)) return false;
-        List<String> ids = new ArrayList<>();
-        for (MechInternal internal : withRackPart(part)) ids.add(internal.id);
-        rackInternalIds = ids;
+        rack.add(compartmentGrids(), part, at);
         return true;
     }
 
     /** Takes one {@code part} out of the compartment; false when it was not there. Without a bank the hull is incomplete. */
     boolean removeRack(MechInternal part) {
-        return part != null && rackInternalIds != null && rackInternalIds.remove(part.id);
+        return removeRack(part, null);
+    }
+
+    /** Takes out the {@code part} at {@code from} (where it was lifted), else the first fitted; nothing else moves. */
+    boolean removeRack(MechInternal part, MechCompartment.Spot from) {
+        return part != null && rack.remove(compartmentGrids(), part, from);
     }
 
     private List<MechInternal> withRackPart(MechInternal part) {
@@ -281,7 +292,10 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
      */
     private Object readResolve() {
         if (kitIds == null) kitIds = new ArrayList<>();
-        if (rackInternalIds == null) rackInternalIds = new ArrayList<>();
+        if (rack == null) {
+            rack = CompartmentFit.of(rackInternalIds);
+            rackInternalIds = null;
+        }
         boolean applique = kitIds.remove(RETIRED_APPLIQUE_PLATE);
         boolean skirts = kitIds.remove(RETIRED_SPACED_SKIRTS);
         if (plating() == null || plating().stock()) {
@@ -293,6 +307,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         if (fitVersion < 2) fitTheHullsOwnEngineAndPlate();
         kitIds.clear();
         fitVersion = FIT_VERSION;
+        rack.settle(compartmentGrids());
         return this;
     }
 
@@ -313,7 +328,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
             kitIds.remove(kitId);
             List<MechInternal> parts = compartment();
             if (parts.stream().noneMatch(p -> p.role == internal.role && MechCompartment.limit(p.role) == 1)) {
-                rackInternalIds.add(internal.id);
+                rack.addUnplaced(internal.id);
             }
         }
     }
@@ -328,17 +343,18 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     private void fitTheSealedLoader() {
         if (!type.hasTurretWeapon()) return;
         if (compartment().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
-        rackInternalIds.add(MechInternal.STANDARD_LOADER.id);
+        rack.addUnplaced(MechInternal.STANDARD_LOADER.id);
         while (!VehicleRack.fits(type, compartment())) {
             int spare = -1;
-            for (int i = rackInternalIds.size() - 1; i >= 0 && spare < 0; i--) {
-                MechInternal part = MechInternal.findById(rackInternalIds.get(i));
+            List<String> ids = rack.ids();
+            for (int i = ids.size() - 1; i >= 0 && spare < 0; i--) {
+                MechInternal part = MechInternal.findById(ids.get(i));
                 if (part == null || part.role != MechInternal.Role.LOADER && part.role != MechInternal.Role.CAPACITOR_BANK) {
                     spare = i;
                 }
             }
             if (spare < 0) break;
-            rackInternalIds.remove(spare);
+            rack.removeAt(spare);
         }
     }
 

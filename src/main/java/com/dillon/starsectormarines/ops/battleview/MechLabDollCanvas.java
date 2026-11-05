@@ -97,7 +97,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private List<GantryTarget> gantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
     /** Each compartment part's box from the last frame, {left, top, right, bottom}, for lifting it off. */
-    private Map<MechInternal, float[]> lastPartBoxes = Map.of();
+    private Map<MechCompartment.Placement, float[]> lastPartBoxes = Map.of();
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
     /** The fitted part under the pointer in the last frame, or null. */
@@ -106,7 +106,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private BoardHover hover = new BoardHover();
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
     private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
-    private Supplier<List<MechInternal>> installedCompartment = List::of;
+    private Supplier<List<MechCompartment.Placement>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
     private BooleanSupplier machineArmed = () -> true;
     private BooleanSupplier machineUnarmed = () -> false;
@@ -145,14 +145,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /**
-     * The compartment as it would pack with {@code part} added, its placement last; null when it
-     * would not fit.
+     * The compartment as it would stand with {@code part} dropped on {@code bay}, its placement last: every fitted part
+     * where it sits, the new one where the drop puts it. Null when it would not fit.
      */
-    static List<MechCompartment.Placement> packedWith(List<SocketDef> grids, List<MechInternal> installed,
-                                                      MechInternal part) {
-        List<MechInternal> parts = new ArrayList<>(installed);
+    static List<MechCompartment.Placement> packedWith(List<SocketDef> grids, List<MechCompartment.Placement> installed,
+                                                      MechInternal part, SocketId bay) {
+        List<MechInternal> parts = new ArrayList<>();
+        List<MechCompartment.Spot> wanted = new ArrayList<>();
+        for (MechCompartment.Placement placed : installed) {
+            parts.add(placed.part());
+            wanted.add(placed.spot());
+        }
         parts.add(part);
-        return MechCompartment.pack(grids, parts);
+        wanted.add(MechCompartment.Spot.in(bay));
+        return MechCompartment.arrange(grids, parts, wanted);
     }
 
     /**
@@ -179,8 +185,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         installedWeapons = source != null ? source : socket -> null;
     }
 
-    /** What the selected machine's auxiliary compartment holds, in fitted order. */
-    public void installedCompartment(Supplier<List<MechInternal>> source) {
+    /** What the selected machine's auxiliary compartment holds, each part where it sits, in fitted order. */
+    public void installedCompartment(Supplier<List<MechCompartment.Placement>> source) {
         installedCompartment = source != null ? source : List::of;
     }
 
@@ -459,7 +465,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** The compartment part drawn at this canvas-local point, or null. */
     public MechInternal partAt(float canvasX, float canvasY) {
-        for (Map.Entry<MechInternal, float[]> part : lastPartBoxes.entrySet()) {
+        MechCompartment.Placement placed = placementAt(canvasX, canvasY);
+        return placed != null ? placed.part() : null;
+    }
+
+    /** The compartment part drawn at this canvas-local point, where it sits, or null: two of a part are two places. */
+    public MechCompartment.Placement placementAt(float canvasX, float canvasY) {
+        for (Map.Entry<MechCompartment.Placement, float[]> part : lastPartBoxes.entrySet()) {
             float[] box = part.getValue();
             if (canvasX >= box[0] && canvasX <= box[2] && canvasY >= box[1] && canvasY <= box[3]) return part.getKey();
         }
@@ -658,11 +670,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketId snapTarget = snapped ? dragPreview.target() : null;
         // Lifted off the doll, an internal is still drawn where it sits; only a stores part is added.
         MechInternal snapInternal = snapped && dragPreview.source() == null ? dragPreview.internal() : null;
-        List<MechCompartment.Placement> packed = packed(grids);
+        List<MechCompartment.Placement> packed = packed();
         List<MechCompartment.Placement> compartmentParts = packed;
         MechCompartment.Placement previewPart = null;
         if (snapInternal != null && snapTarget.compartment()) {
-            List<MechCompartment.Placement> with = packedWith(grids, installedCompartment.get(), snapInternal);
+            List<MechCompartment.Placement> with = packedWith(grids, installedCompartment.get(), snapInternal, snapTarget);
             if (with != null) {
                 compartmentParts = with;
                 previewPart = with.get(with.size() - 1);
@@ -721,12 +733,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
         lastSocketTargets = List.copyOf(live);
         // A part comes off by being dragged off; each compartment part is lifted by its own box.
-        Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
+        Map<MechCompartment.Placement, float[]> partBoxes = new LinkedHashMap<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             if (socket.factoryLocked() || dragPreview != null || !socket.id().compartment()) continue;
             for (MechCompartment.Placement part : MechCompartment.in(packed, socket.id())) {
-                partBoxes.putIfAbsent(part.part(), MechSocketConsole.partBox(target, socket, part));
+                partBoxes.put(part, MechSocketConsole.partBox(target, socket, part));
             }
         }
         lastPartBoxes = partBoxes;
@@ -776,9 +788,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         throw new IllegalArgumentException("no card " + id);
     }
 
-    /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
-    private List<MechCompartment.Placement> packed(List<SocketDef> grids) {
-        List<MechCompartment.Placement> placed = MechCompartment.pack(grids, installedCompartment.get());
+    /** The selected machine's compartment parts where each sits, every bay. */
+    private List<MechCompartment.Placement> packed() {
+        List<MechCompartment.Placement> placed = installedCompartment.get();
         return placed != null ? placed : List.of();
     }
 

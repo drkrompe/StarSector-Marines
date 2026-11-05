@@ -781,12 +781,10 @@ public final class MechLabViewModel {
         return machine != null ? machine.compartment() : List.of();
     }
 
-    /** The selected machine's compartment at its packed places, across every bay; empty if it somehow does not pack. */
+    /** The selected machine's compartment parts where each sits, across every bay; empty if it somehow does not fit. */
     public List<MechCompartment.Placement> compartmentPlacements() {
         CampaignMachine machine = selectedMachine();
-        if (machine == null) return List.of();
-        List<MechCompartment.Placement> placed = MechCompartment.pack(machine.compartmentGrids(), machine.compartment());
-        return placed != null ? placed : List.of();
+        return machine != null ? machine.compartmentPlacements() : List.of();
     }
 
     /** The selected machine's compartment parts that pack into one bay, at their places there. */
@@ -901,7 +899,7 @@ public final class MechLabViewModel {
     public boolean dropCatalogInternal(MechInternal internal, SocketId target) {
         if (!canDropCatalogInternal(internal, target)) return false;
         selectedSlot.set(target);
-        return fitInternal(internal);
+        return fitInternal(internal, target.compartment() ? MechCompartment.Spot.in(target) : null);
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -977,10 +975,19 @@ public final class MechLabViewModel {
      * Taking out the capacitor bank of a machine with a gun leaves it incomplete.
      */
     public boolean removeCompartmentPart(MechInternal part) {
+        return removeCompartmentPart(part, null);
+    }
+
+    /** As above, the one lifted off at {@code from}: every other part stays where it sits. */
+    public boolean removeCompartmentPart(MechCompartment.Placement lifted) {
+        return lifted != null && removeCompartmentPart(lifted.part(), lifted.spot());
+    }
+
+    private boolean removeCompartmentPart(MechInternal part, MechCompartment.Spot from) {
         CampaignMachine machine = selectedMachine();
         if (machine == null || part == null) return false;
-        selectedSlot.set(SocketId.AUXILIARY);
-        return finishPartStrip(machine, part, workshop.stripPart(machine.id(), part));
+        selectedSlot.set(from != null ? from.grid() : SocketId.AUXILIARY);
+        return finishPartStrip(machine, part, workshop.stripPart(machine.id(), part, from));
     }
 
     /** Says what taking {@code part} off did: only a part the machine cannot go without leaves it unable to drop. */
@@ -2375,11 +2382,16 @@ public final class MechLabViewModel {
      * feedback path weapons use; the catalog row is only a request.
      */
     public boolean fitInternal(MechInternal internal) {
+        return fitInternal(internal, null);
+    }
+
+    /** As above, a compartment part going in at {@code at} (the bay it was dropped on) where it will. */
+    private boolean fitInternal(MechInternal internal, MechCompartment.Spot at) {
         CampaignMachine machine = selectedMachine();
         if (machine == null || internal == null) return false;
         MechFrameBudget.Fit proposed = machine instanceof CampaignMech mech
                 ? mech.fit().withInternal(internal.role, internal) : null;
-        MechWorkshop.Result result = workshop.fitInternal(machine.id(), internal);
+        MechWorkshop.Result result = workshop.fitInternal(machine.id(), internal, at);
         clearHoverInternal();
         return applyFitResult(result, internal.displayName(), proposed);
     }
@@ -2666,8 +2678,7 @@ public final class MechLabViewModel {
     /** The parts packed into one compartment bay by name, or that it is empty. */
     private static String compartmentNames(CampaignMachine machine, SocketId bay) {
         List<String> names = new ArrayList<>();
-        List<MechCompartment.Placement> placed = MechCompartment.pack(machine.compartmentGrids(), machine.compartment());
-        for (MechCompartment.Placement part : MechCompartment.in(placed, bay)) names.add(part.part().displayName());
+        for (MechCompartment.Placement part : MechCompartment.in(machine.compartmentPlacements(), bay)) names.add(part.part().displayName());
         return names.isEmpty() ? Strings.get("openingMechLabEmptySocket")
                 : String.join(Strings.get("separatorDot"), names);
     }

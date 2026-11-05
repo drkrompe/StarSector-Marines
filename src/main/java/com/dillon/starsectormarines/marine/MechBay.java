@@ -573,13 +573,23 @@ public final class MechBay implements Serializable {
 
     /** Puts a spare bank or vent array on a vehicle's rack; a bank it replaces returns to stores. */
     public boolean fitRackPart(String vehicleId, MechInternal part) {
-        return canFitRackPart(vehicleId, part) && vehicleById(vehicleId).fitRack(part);
+        return fitRackPart(vehicleId, part, null);
+    }
+
+    /** As above, at {@code at} (a bay, or a cell) where it will go. */
+    public boolean fitRackPart(String vehicleId, MechInternal part, MechCompartment.Spot at) {
+        return canFitRackPart(vehicleId, part) && vehicleById(vehicleId).fitRack(part, at);
     }
 
     /** Takes one bank or vent array off a vehicle's rack back to stores; without a bank it stays off the drop. */
     public boolean stripRackPart(String vehicleId, MechInternal part) {
+        return stripRackPart(vehicleId, part, null);
+    }
+
+    /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
+    public boolean stripRackPart(String vehicleId, MechInternal part, MechCompartment.Spot from) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.removeRack(part);
+        return vehicle != null && vehicle.removeRack(part, from);
     }
 
     /** Whether {@code gun} would go in the vehicle's gun card: an armed hull, and a weapon of the card's type and size. */
@@ -690,12 +700,17 @@ public final class MechBay implements Serializable {
 
     /** Atomic one-part refit; the outgoing assembly returns to finite stores. */
     public boolean installInternal(String mechId, MechInternal internal) {
+        return installInternal(mechId, internal, null);
+    }
+
+    /** As above, a compartment part going in at {@code at} (a bay, or a cell) where it will. */
+    public boolean installInternal(String mechId, MechInternal internal, MechCompartment.Spot at) {
         CampaignMech mech = mechById(mechId);
         if (!canInstallInternal(mechId, internal)) return false;
         if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) return true;
         if (availableInternal(internal.id) <= 0
                 || !withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) return false;
-        mech.installInternal(internal.role, internal);
+        mech.installInternal(internal.role, internal, at);
         return true;
     }
 
@@ -715,8 +730,13 @@ public final class MechBay implements Serializable {
 
     /** Takes one {@code part} out of the mech's compartment back to stores. */
     public boolean stripPart(String mechId, MechInternal part) {
+        return stripPart(mechId, part, null);
+    }
+
+    /** As above, the one at {@code from} (where it was lifted); nothing else moves. */
+    public boolean stripPart(String mechId, MechInternal part, MechCompartment.Spot from) {
         CampaignMech mech = mechById(mechId);
-        return mech != null && part != null && part.role.compartment() && mech.removePart(part);
+        return mech != null && part != null && part.role.compartment() && mech.removePart(part, from);
     }
 
     /**

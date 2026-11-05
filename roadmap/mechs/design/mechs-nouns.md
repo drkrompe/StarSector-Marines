@@ -510,9 +510,13 @@ increasing an encounter's total armored threat.
   core) that pool into one compartment: the role limits count across both, and a
   part lands whole in one bay or the other. A fit is legal only when every part in
   the compartment **packs**: each footprint placed whole in a bay with no overlap
-  (`MechCompartment`). The arrangement is computed, not stored: the doll draws the
-  packing the rule finds, largest pieces first, so a refit never leaves a hole the
-  player has to shuffle around. Exactly one capacitor bank goes in (it is the
+  (`MechCompartment`). **Every part keeps its place** (owner 2026-11-05), stored
+  bay, column and row in one record shared by mech and vehicle (`CompartmentFit`):
+  a part dropped on a bay goes in its first free cell there (elsewhere only when
+  that bay is full), and taking one out moves nothing else, so a part never jumps
+  from one bay into another. Only where stored places no longer hold (a save from
+  before them) is the compartment packed afresh, largest pieces first, and kept
+  from then on. Exactly one capacitor bank goes in (it is the
   reservoir) and at most one loader; vent arrays stack, each adding its
   dissipation and its mass. So a stock Hound's compartment is full, bank and
   loader, and a Hound that wants the military bank or a vent array gives up its

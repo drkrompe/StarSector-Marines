@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.ops.fitting.PointerDrag;
 import com.dillon.starsectormarines.ops.fitting.FittingBricks;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.ops.fitting.FittingDragGhost;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -179,7 +180,7 @@ public final class MechLabScreen implements Screen {
                     .withHover(boardHover);
             dollCanvas.installedInternals(viewModel::installedInternal);
             dollCanvas.installedWeapons(viewModel::installedWeapon);
-            dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.installedCompartment(viewModel::compartmentPlacements);
             dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
             dollCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
             dollCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
@@ -396,10 +397,12 @@ public final class MechLabScreen implements Screen {
             return;
         }
         // A compartment part is lifted by itself; the engine is the core's only part.
-        MechInternal internal = socket != null && socket.compartment() ? dollCanvas.partAt(point.x(), point.y())
-                : socket != null ? viewModel.installedInternal(socket) : null;
+        MechCompartment.Placement lifted = socket != null && socket.compartment()
+                ? dollCanvas.placementAt(point.x(), point.y()) : null;
+        MechInternal internal = lifted != null ? lifted.part()
+                : socket != null && !socket.compartment() ? viewModel.installedInternal(socket) : null;
         if (viewModel.liftable(internal)) {
-            weaponDrag.begin(event, new WeaponDrag(null, internal, socket));
+            weaponDrag.begin(event, new WeaponDrag(null, internal, socket, lifted));
             return;
         }
         if (socket != null) {
@@ -447,12 +450,12 @@ public final class MechLabScreen implements Screen {
         MechInternal internal = row.internalPreview();
         boolean spare = weapon != null ? viewModel.inStores(weapon) : viewModel.inStores(internal);
         if (!spare) return;
-        weaponDrag.begin(event, new WeaponDrag(weapon, internal, null));
+        weaponDrag.begin(event, new WeaponDrag(weapon, internal, null, null));
     }
 
     private void beginWeaponDrag(UiPointerEvent event, MechWeaponComponent component,
                                  SocketId source) {
-        weaponDrag.begin(event, new WeaponDrag(component, null, source));
+        weaponDrag.begin(event, new WeaponDrag(component, null, source, null));
     }
 
     private void moveWeaponDrag(UiPointerEvent event) {
@@ -497,7 +500,7 @@ public final class MechLabScreen implements Screen {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
         } else if (drag.source() != null && drag.component() == null) {
             if (overInventory(event)) {
-                if (drag.source().compartment()) viewModel.removeCompartmentPart(drag.internal());
+                if (drag.source().compartment()) viewModel.removeCompartmentPart(drag.lifted());
                 else viewModel.removeInstalledInternal(drag.source());
             }
             else if (target == drag.source()) viewModel.selectSocket(target);
@@ -756,5 +759,7 @@ public final class MechLabScreen implements Screen {
      * {@code source}; out of stores it has none.
      */
     /** What is in hand: a weapon or an internal, and the socket it came off, or null from stores. */
-    private record WeaponDrag(MechWeaponComponent component, MechInternal internal, SocketId source) { }
+    /** What is in hand: a weapon or a part, the socket it came off (null from stores), and for a compartment part where it sat. */
+    private record WeaponDrag(MechWeaponComponent component, MechInternal internal, SocketId source,
+                              MechCompartment.Placement lifted) { }
 }

@@ -3292,7 +3292,7 @@ private static BufferedImage renderBarracks(
             fittingCanvas.installedWeapons(viewModel::installedWeapon);
             fittingCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
             fittingCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
-            fittingCanvas.installedCompartment(viewModel::installedCompartment);
+            fittingCanvas.installedCompartment(viewModel::compartmentPlacements);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
             fittingCanvas.machineArmed(viewModel::selectedMachineArmed);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
