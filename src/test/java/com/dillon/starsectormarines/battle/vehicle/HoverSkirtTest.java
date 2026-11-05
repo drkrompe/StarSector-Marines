@@ -49,6 +49,23 @@ class HoverSkirtTest {
         assertEquals(.5f, grid.groundSpeedMultiplier(5.5f, 5.5f), "debris still slows a wheel");
     }
 
+    @Test void aHeavySkirtsViewOverTheCrushViewOpensWaterAndUndergrowthAlike() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        water(grid, topology, 2, 2);
+        grid.setWalkable(4, 4, false);
+        grid.setTag(4, 4, NavigationGrid.CellTag.NATURAL_SOLID, true);
+        grid.setTag(4, 4, NavigationGrid.CellTag.CRUSHABLE, true);
+
+        NavigationGrid light = HoverSkirt.hoverView(grid, topology);
+        NavigationGrid heavy = HoverSkirt.hoverView(HeavyTracks.crushView(grid), grid, topology);
+
+        assertTrue(heavy.isWalkable(2, 2), "a heavy skirt floats over water");
+        assertTrue(heavy.isWalkable(4, 4), "and drives into undergrowth");
+        assertFalse(light.isWalkable(4, 4), "a light skirt is stopped by it");
+        assertFalse(grid.isWalkable(4, 4), "the live grid is untouched");
+    }
+
     @Test void aClosedShoreEdgeStaysClosed() {
         NavigationGrid grid = floor();
         CellTopology topology = new CellTopology(SIZE, SIZE);

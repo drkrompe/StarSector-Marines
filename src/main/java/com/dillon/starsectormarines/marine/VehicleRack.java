@@ -39,7 +39,7 @@ public final class VehicleRack {
         return switch (type.weight()) {
             case LIGHT -> List.of(bay(SocketId.AUXILIARY, 2));
             case MEDIUM -> List.of(bay(SocketId.AUXILIARY, 3));
-            case HEAVY -> List.of(bay(SocketId.AUXILIARY, 2), bay(SocketId.AUXILIARY_2, 2));
+            case HEAVY, ULTRA_HEAVY -> List.of(bay(SocketId.AUXILIARY, 2), bay(SocketId.AUXILIARY_2, 2));
         };
     }
 

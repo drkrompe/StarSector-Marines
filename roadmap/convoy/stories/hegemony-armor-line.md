@@ -1,6 +1,6 @@
 # Story — The Hegemony armour line: a shared turret head, a new APC, a medium tank and a repulsor Onager
 
-Status: IN PROGRESS (slices 1 and 2 shipped: the Hegemony head, then the APC and its carriers on the Hegemony hull; slices 3 to 6 remain)
+Status: IN PROGRESS (slices 1 to 3 shipped: the Hegemony head, the APC and its carriers on the Hegemony hull, then weight split from hover; slices 4 to 6 remain)
 
 Written: 2026-11-05
 
@@ -87,14 +87,23 @@ tuned in the playtest, not by evidence alone.
 2. **Shipped.** **The APC hull** and its two carriers, with tire-top bands and a wreck (`art-source/vehicles/apc/hegemony`):
    the concept turned and scaled to the old hull's length, its ring on the old roof bearing so no turret registration
    moved. The carriers keep their open turntables, not the head: a mortar and an LRM pod stand up to fire.
-3. **Weight and hover split**: the ultra-heavy class, the hover/weight split, the blade recast as a weight crush;
-   unit tests at the rules (`VehicleType`, the crush rule), no battle in `test`.
-4. **The repulsor Onager**: art, footprint, wreck, no treads, the dozer retired and its saves carried.
+3. **Shipped.** **Weight and hover split** (`convoy-nouns.md`, mass decides the shove; weight crushes walls):
+   `VehicleType.Weight` gains `ULTRA_HEAVY` (80 t); the shove, the crush, the ram and the mass are rules of the
+   weight, hover only of the ground (a light skirt alone shoves nothing); a heavy skirt's view is the hover view over
+   the crush view. `DozerBlade` reads its ceiling, rate and bearing width from the hull: an ultra-heavy hull crushes
+   at 100 and 80 a second across its own width, the dozer by its blade as before. No hull is ultra-heavy yet.
+4. **The repulsor Onager**: art, footprint, wreck, no treads, the dozer retired and its saves carried. It moves into
+   `ULTRA_HEAVY`; `DozerBlade` and `hasBlade` go with the dozer (the class renamed for the weight rule). A heavy,
+   not ultra-heavy, hover hull would ram barricades it meets but plan round them, since the rammer's view is not
+   laid over the skirt's; none is planned.
 5. **The medium tank**: a new `VehicleType`, its art, wreck, treads, card, store and ladder placement (`kit-ladder.md`).
 6. **Balance pass** against a player giving orders, not the autopilot.
 
 ## Open
 
 - The medium tank's numbers, gun card, price and station.
-- Whether `HEAVY` hulls crush barricades or only ram them; the ultra-heavy structure ceiling.
+- Proposed in slice 3, the owner's to confirm: `HEAVY` hulls keep ramming barricades (`BarricadeRam`) and crush no
+  walls; the ultra-heavy ceiling is 100, the blade's, so fortified walls (150 and up) hold until fire wears them
+  under and a fort is still opened by fire and charges. Its mass shows in how far through a wall row it carries.
+- The repulsor Onager's grip and drift; a heavy skirt's first figure (1.5 along, 4 across) is the playtest's to tune.
 - The laser tank stays on today's hull until a Tri-Tachyon head and hull are drawn.

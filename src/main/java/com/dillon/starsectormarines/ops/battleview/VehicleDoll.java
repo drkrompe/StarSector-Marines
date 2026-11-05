@@ -145,7 +145,7 @@ public final class VehicleDoll {
             case CORE -> switch (type.weight()) {
                 case LIGHT -> "engine-industrial";
                 case MEDIUM -> "engine-uprated";
-                case HEAVY -> "engine-military";
+                case HEAVY, ULTRA_HEAVY -> "engine-military";
             };
             case ARMS -> gunArt(type);
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"

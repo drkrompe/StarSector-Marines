@@ -168,7 +168,7 @@ final class BruteChargeRules {
         return switch (weight) {
             case LIGHT -> Kind.LIGHT_VEHICLE;
             case MEDIUM -> Kind.MEDIUM_VEHICLE;
-            case HEAVY -> Kind.HEAVY_VEHICLE;
+            case HEAVY, ULTRA_HEAVY -> Kind.HEAVY_VEHICLE;
         };
     }
 
