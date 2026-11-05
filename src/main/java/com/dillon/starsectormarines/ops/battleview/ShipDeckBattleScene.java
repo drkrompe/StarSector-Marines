@@ -615,9 +615,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /**
      * Reprojects campaign-authoritative fitting into the live home-deck scene.
      * A berth still holding its chassis keeps its entity; a newly fabricated
-     * chassis is stood in the vacant berth. A machine scrapped or stored leaves
-     * the deck and the lance closes up behind it, so a berth whose chassis has
-     * changed gives up the old body for the new one.
+     * chassis is stood in the vacant berth. The list runs pad by pad, null where
+     * no mech stands: a machine scrapped or stored leaves its berth empty, and a
+     * berth whose chassis has changed gives up the old body for the new one.
      */
     public void syncGantries(List<MechDeploymentSpec> deployments) {
         if (deployments == null) return;
@@ -653,17 +653,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
-     * Parks the company's vehicles in the machine berths after the lance's {@code mechs}, the order
-     * the Mech Lab numbers its pads in: one hull per vehicle, set down with its kits and facing down
-     * its berth as a mech does. A hull already parked for the same vehicle stays where it stands; a
-     * berth whose vehicle has gone, or that a mech now takes, gives its hull up.
+     * Parks the company's vehicles in the machine berths, pad by pad with null where none stands:
+     * one hull per vehicle, set down with its kits and facing down its berth as a mech does. A hull
+     * already parked for the same vehicle stays where it stands; a berth whose vehicle has gone
+     * gives its hull up.
      */
-    public void parkVehicles(int mechs, List<VehicleDeploymentSpec> vehicles) {
+    public void parkVehicles(List<VehicleDeploymentSpec> vehicles) {
         for (int seat = 0; seat < machineBerths.length; seat++) {
             int index = machineBerths[seat];
-            int slot = seat - mechs;
-            VehicleDeploymentSpec vehicle = vehicles != null && slot >= 0 && slot < vehicles.size()
-                    ? vehicles.get(slot) : null;
+            VehicleDeploymentSpec vehicle = vehicles != null && seat < vehicles.size()
+                    ? vehicles.get(seat) : null;
             if (vehicle != null && berthedVehicles[index] != 0L
                     && Objects.equals(vehicle.campaignId(), berthedVehicleIds[index])) continue;
             if (berthedVehicles[index] != 0L) {

@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -172,27 +173,28 @@ final class ShipDeckBattleSceneTest {
         }
     }
 
-    /** A machine scrapped or stored leaves the deck; what stands on behind it is the machine that is left. */
+    /** A machine scrapped or stored leaves its berth empty; the one beside it stands where it stood. */
     @Test
-    void aMachineGoneFromTheLanceLeavesTheDeckAndTheLanceClosesUp() {
+    void aMachineGoneFromTheLanceLeavesItsBerthAndTheOthersStay() {
         Deck deck = bay();
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck.map(), deck.graph(), SEED, null)) {
             long[] machines = scene.occupyGantries(List.of(MechVariant.BULWARK, MechVariant.HOUND));
 
-            scene.syncGantries(List.of(MechDeploymentSpec.standard(MechVariant.HOUND)));
+            scene.syncGantries(Arrays.asList(null, MechDeploymentSpec.standard(MechVariant.HOUND)));
 
             assertEquals(1, scene.simulation().liveUnitCount());
+            assertFalse(scene.simulation().getEntityWorld().isAlive(machines[0]));
+            assertEquals(machines[1], scene.simulation().liveUnitAt(0));
+
+            // A berth whose chassis changes gives up the old body, its torso starting down the berth.
+            scene.syncGantries(List.of(MechDeploymentSpec.standard(MechVariant.BULWARK)));
+
+            assertEquals(1, scene.simulation().liveUnitCount());
+            assertFalse(scene.simulation().getEntityWorld().isAlive(machines[1]));
             long standing = scene.simulation().liveUnitAt(0);
-            assertEquals(MechVariant.HOUND, scene.simulation().identity().mechVariant(standing));
+            assertEquals(MechVariant.BULWARK, scene.simulation().identity().mechVariant(standing));
             assertEquals(Gantry.Facing.NORTH.degrees(),
                     scene.simulation().world().mechLoadout(standing).torsoFacingDegrees, 0.001f);
-            assertFalse(scene.simulation().getEntityWorld().isAlive(machines[0]));
-            assertFalse(scene.simulation().getEntityWorld().isAlive(machines[1]));
-
-            scene.syncGantries(List.of());
-
-            assertEquals(0, scene.simulation().liveUnitCount());
-            assertFalse(scene.simulation().getEntityWorld().isAlive(standing));
         }
     }
 

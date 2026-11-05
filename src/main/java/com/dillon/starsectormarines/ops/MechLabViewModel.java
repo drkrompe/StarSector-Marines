@@ -56,6 +56,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -151,6 +152,7 @@ public final class MechLabViewModel {
 
     public void physicalGantries(int count) {
         physicalGantries = Math.max(0, Math.min(CampaignMechSquad.CAPACITY, count));
+        if (physicalGantries > 0) bay.squads().forEach(squad -> squad.fitPadsTo(physicalGantries));
         revision.update(value -> value + 1);
     }
 
@@ -1021,13 +1023,24 @@ public final class MechLabViewModel {
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
-    /** Current lance in authored gantry order for the embedded garage scene. */
+    /** Current lance pad by pad for the embedded garage scene; null where no mech stands. */
     public List<MechVariant> gantryVariants() {
         revision.get();
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
         if (physicalGantries == 1 && selectedMech() != null) return List.of(selectedMech().variant());
-        return squad.mechs().stream().limit(physicalGantries).map(CampaignMech::variant).toList();
+        return byPad(pad -> {
+            CampaignMech mech = squad.mechOnPad(pad);
+            return mech != null ? mech.variant() : null;
+        });
+    }
+
+    /** One entry a working pad, null where the pad holds nothing of this kind, without the empty tail. */
+    private <T> List<T> byPad(IntFunction<T> onPad) {
+        List<T> pads = new ArrayList<>();
+        for (int pad = 0; pad < physicalGantries; pad++) pads.add(onPad.apply(pad));
+        while (!pads.isEmpty() && pads.get(pads.size() - 1) == null) pads.remove(pads.size() - 1);
+        return pads;
     }
 
     /** Frozen fitting values used to keep the physical gantries visually honest. */
@@ -1037,18 +1050,24 @@ public final class MechLabViewModel {
         if (squad == null) return List.of();
         if (physicalGantries == 1 && selectedMech() != null)
             return List.of(selectedMech().freezeForDeployment());
-        return squad.mechs().stream().limit(physicalGantries).map(CampaignMech::freezeForDeployment).toList();
+        return byPad(pad -> {
+            CampaignMech mech = squad.mechOnPad(pad);
+            return mech != null ? mech.freezeForDeployment() : null;
+        });
     }
 
     /**
-     * The vehicles on the pads after the lance's mechs, in pad order, as fitted; none while one
-     * pad stands for the selected mech alone.
+     * The vehicles pad by pad, as fitted, null where no vehicle stands; none while one pad stands
+     * for the selected mech alone.
      */
     public List<VehicleDeploymentSpec> gantryVehicles() {
         revision.get();
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || physicalGantries == 1) return List.of();
-        return squad.vehicles().stream().map(CampaignVehicle::freezeForDeployment).toList();
+        return byPad(pad -> {
+            CampaignVehicle vehicle = squad.vehicleOnPad(pad);
+            return vehicle != null ? vehicle.freezeForDeployment() : null;
+        });
     }
 
     /** Selected vehicle's stable camera target within the current lance. */
@@ -1058,11 +1077,10 @@ public final class MechLabViewModel {
                 selectedGantry.get()));
     }
 
-    /** Gantries in the selected lance holding a mech or a vehicle; the rest are vacant pads. */
-    public int occupiedGantries() {
+    /** Whether this pad of the selected lance holds a mech or a vehicle. */
+    public boolean padOccupied(int pad) {
         revision.get();
-        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
-        return squad != null ? squad.occupied() : 0;
+        return gantryOccupied(bay.squadById(selectedSquadId.get()), pad);
     }
 
     /** Reprojects mutable campaign authority whenever the room is re-entered. */
@@ -1134,28 +1152,32 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
         List<MechRow> rows = new ArrayList<>();
-        int pad = 0;
-        for (CampaignMech mech : squad.mechs()) {
-            String base = "mech:" + mech.id();
-            rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), mech, null,
-                    mech.id().equals(selected) ? "mech-row selected" : "mech-row",
-                    mech.displayName(), Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role())),
-                    mech.missileReplenisher().displayName(), readinessText(mech),
-                    readinessClasses(mech, "label heading mech-card-action"),
-                    () -> selectMech(mech.id())));
-        }
         String selectedVehicle = selectedVehicleId.get();
-        for (CampaignVehicle vehicle : squad.vehicles()) {
-            String base = "vehicle:" + vehicle.id();
-            rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), null, vehicle.type(),
-                    vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
-                    vehicle.displayName(), vehicleIdentity(vehicle.type()),
-                    vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
-                    "label heading mech-card-action", () -> selectVehicle(vehicle.id())));
-        }
-        for (int index = pad; index < physicalGantries; index++) {
+        for (int index = 0; index < CampaignMechSquad.CAPACITY; index++) {
+            CampaignMech mech = squad.mechOnPad(index);
+            CampaignVehicle vehicle = squad.vehicleOnPad(index);
+            if (mech != null) {
+                String base = "mech:" + mech.id();
+                rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                        base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), mech, null,
+                        mech.id().equals(selected) ? "mech-row selected" : "mech-row",
+                        mech.displayName(), Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role())),
+                        mech.missileReplenisher().displayName(), readinessText(mech),
+                        readinessClasses(mech, "label heading mech-card-action"),
+                        () -> selectMech(mech.id())));
+                continue;
+            }
+            if (vehicle != null) {
+                String base = "vehicle:" + vehicle.id();
+                rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                        base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), null, vehicle.type(),
+                        vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
+                        vehicle.displayName(), vehicleIdentity(vehicle.type()),
+                        vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
+                        "label heading mech-card-action", () -> selectVehicle(vehicle.id())));
+                continue;
+            }
+            if (index >= physicalGantries) continue;
             String base = "vacant-pad:" + squad.id() + ":" + index;
             int gantry = index;
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
@@ -2271,12 +2293,7 @@ public final class MechLabViewModel {
     private void selectMech(String mechId) {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || squad.mechById(mechId) == null) return;
-        for (int index = 0; index < squad.mechs().size(); index++) {
-            if (squad.mechs().get(index).id().equals(mechId)) {
-                selectedGantry.set(index);
-                break;
-            }
-        }
+        selectedGantry.set(squad.padOf(mechId));
         selectedMechId.set(mechId);
         selectedVehicleId.set(null);
         callSignDraft.set(squad.mechById(mechId).displayName());
@@ -2288,12 +2305,11 @@ public final class MechLabViewModel {
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
-    /** Vehicles stand on the gantries after the mechs, in bay order. */
     private void selectVehicle(String vehicleId) {
         CampaignMechSquad squad = selectedSquad();
         CampaignVehicle vehicle = squad != null ? squad.vehicleById(vehicleId) : null;
         if (vehicle == null) return;
-        selectedGantry.set(squad.mechs().size() + squad.vehicles().indexOf(vehicle));
+        selectedGantry.set(squad.padOf(vehicleId));
         selectedMechId.set(null);
         selectedVehicleId.set(vehicleId);
         callSignDraft.set(vehicle.displayName());
@@ -2651,13 +2667,16 @@ public final class MechLabViewModel {
     private void fabricateChassis(MechVariant variant) {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || squad.occupied() >= physicalGantries) return;
+        int pad = selectedGantryIndex();
         MechWorkshop.Result result = workshop.fabricateChassis(squad.id(), variant);
         CampaignMech fabricated = result.mech();
         if (fabricated != null) {
+            // Built on the pad pressed, whichever vacant pad the bay would have reached first.
+            squad.standOn(fabricated.id(), pad);
             selectedMechId.set(fabricated.id());
             selectedVehicleId.set(null);
             callSignDraft.set(fabricated.displayName());
-            selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
+            selectedGantry.set(squad.padOf(fabricated.id()));
             selectedSlot.set(fabricated.variant().twoArmed() ? SocketId.LEFT_ARM : SocketId.ARMS);
             fittingFocused.set(true);
         }
@@ -2677,19 +2696,21 @@ public final class MechLabViewModel {
     }
 
     /**
-     * Builds a vehicle onto the selected lance's next vacant gantry through the workshop,
+     * Builds a vehicle onto the selected vacant gantry through the workshop,
      * which owns the pattern, berth and material refusals.
      */
     boolean fabricateVehicle(VehicleType type) {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || type == null) return false;
+        int pad = selectedGantryIndex();
         MechWorkshop.Result result = workshop.fabricateVehicle(squad.id(), type);
         CampaignVehicle fabricated = result.vehicle();
         if (fabricated != null) {
+            squad.standOn(fabricated.id(), pad);
             selectedMechId.set(null);
             selectedVehicleId.set(fabricated.id());
             callSignDraft.set(fabricated.displayName());
-            selectedGantry.set(Math.max(0, squad.occupied() - 1));
+            selectedGantry.set(squad.padOf(fabricated.id()));
             fittingFocused.set(true);
         }
         feedbackText.set(switch (result.status()) {
@@ -2786,15 +2807,11 @@ public final class MechLabViewModel {
     }
 
     private static boolean gantryOccupied(CampaignMechSquad squad, int index) {
-        return squad != null && index >= 0 && index < squad.occupied();
+        return squad != null && squad.padHeld(index);
     }
 
-    /** Gantries hold the mechs first, then the vehicles. */
     private static CampaignVehicle vehicleAt(CampaignMechSquad squad, int index) {
-        if (squad == null) return null;
-        int vehicleIndex = index - squad.mechs().size();
-        return vehicleIndex >= 0 && vehicleIndex < squad.vehicles().size()
-                ? squad.vehicles().get(vehicleIndex) : null;
+        return squad != null ? squad.vehicleOnPad(index) : null;
     }
 
     private static String vehicleIdentity(VehicleType type) {
@@ -2894,8 +2911,7 @@ public final class MechLabViewModel {
     }
 
     private static CampaignMech mechAt(CampaignMechSquad squad, int index) {
-        return squad != null && index >= 0 && index < squad.mechs().size()
-                ? squad.mechs().get(index) : null;
+        return squad != null ? squad.mechOnPad(index) : null;
     }
 
     private static String slotComponent(CampaignMech mech, SocketId slot) {
