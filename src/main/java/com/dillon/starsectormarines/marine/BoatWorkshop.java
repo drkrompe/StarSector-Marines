@@ -181,89 +181,53 @@ public final class BoatWorkshop {
         return new Result(Status.STRIPPED, boat);
     }
 
-    /** Puts one gun in the top position of a hardpoint; see {@link #fitGun(String, int, int, String)}. */
-    public Result fitGun(String boatId, int hardpoint, String gunId) {
-        return fitGun(boatId, hardpoint, BoatHardpoint.TOP, gunId);
-    }
-
     /**
-     * Puts one gun in one position of a boat's hardpoint from a spare. A 2x2 gun takes the
-     * whole hardpoint; a 2x1 gun takes its position, beside any 2x1 gun in the other
-     * ({@link BoatHardpoint#placed}). Whatever comes off goes into stores.
+     * Puts one gun on a boat's hardpoint from a spare; the gun it replaces, if any, goes into stores. A hardpoint
+     * holds one gun, 2x2 or 2x1, as a mech's weapon point holds one weapon (owner, 2026-11-05).
      */
-    public Result fitGun(String boatId, int hardpoint, int position, String gunId) {
+    public Result fitGun(String boatId, int hardpoint, String gunId) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         BoatGun gun = BoatGun.findById(gunId);
         if (gun == null) return Result.of(Status.UNKNOWN_FITTING);
-        if (!boat.hasHardpoint(hardpoint) || !BoatHardpoint.valid(position)) {
-            return new Result(Status.UNKNOWN_HARDPOINT, boat);
-        }
-        BoatGun[] before = boat.gunsAt(hardpoint);
-        if (BoatHardpoint.occupant(before, position) == gun) return new Result(Status.ALREADY_FITTED, boat);
+        if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
+        BoatGun outgoing = boat.gunOn(hardpoint);
+        if (outgoing == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        BoatGun[] after = BoatHardpoint.placed(before, position, gun);
         if (!deck.take(gun.id())) return new Result(Status.NO_SPARE, boat);
-        boat.installGuns(hardpoint, after);
-        for (BoatGun off : BoatHardpoint.displaced(before, after)) deck.stow(off.id());
+        boat.installGun(hardpoint, gun);
+        if (outgoing != null) deck.stow(outgoing.id());
         return new Result(Status.FITTED, boat);
     }
 
-    /** Takes every gun on a hardpoint off into stores and leaves it bare. */
+    /** Takes the gun on a hardpoint off into stores and leaves it bare. */
     public Result stripGun(String boatId, int hardpoint) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
-        List<BoatGun> guns = boat.gunsOn(hardpoint);
-        if (guns.isEmpty()) return new Result(Status.NOTHING_TO_STRIP, boat);
-        boat.installGuns(hardpoint, new BoatGun[BoatHardpoint.POSITIONS]);
-        for (BoatGun gun : guns) deck.stow(gun.id());
+        BoatGun gun = boat.gunOn(hardpoint);
+        if (gun == null) return new Result(Status.NOTHING_TO_STRIP, boat);
+        boat.installGun(hardpoint, null);
+        deck.stow(gun.id());
         return new Result(Status.STRIPPED, boat);
-    }
-
-    /** Takes the gun filling one position of a hardpoint off into stores; the other position keeps its gun. */
-    public Result stripGun(String boatId, int hardpoint, int position) {
-        CampaignBoat boat = deck.boatById(boatId);
-        if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
-        if (!boat.hasHardpoint(hardpoint) || !BoatHardpoint.valid(position)) {
-            return new Result(Status.UNKNOWN_HARDPOINT, boat);
-        }
-        BoatGun[] before = boat.gunsAt(hardpoint);
-        if (BoatHardpoint.occupant(before, position) == null) return new Result(Status.NOTHING_TO_STRIP, boat);
-        BoatGun[] after = BoatHardpoint.placed(before, position, null);
-        boat.installGuns(hardpoint, after);
-        for (BoatGun off : BoatHardpoint.displaced(before, after)) deck.stow(off.id());
-        return new Result(Status.STRIPPED, boat);
-    }
-
-    /** Moves the top gun of one hardpoint to the top of another; see {@link #moveGun(String, int, int, int, int)}. */
-    public Result moveGun(String boatId, int from, int to) {
-        return moveGun(boatId, from, BoatHardpoint.TOP, to, BoatHardpoint.TOP);
     }
 
     /**
-     * Moves the gun filling one hardpoint position to another position on the same boat, the
-     * same hardpoint's other one included, with no trip through stores: the source position is
-     * left empty, and whatever the gun displaces at the target goes into stores
-     * ({@link BoatHardpoint#placed}).
+     * Moves the gun on one hardpoint to another on the same boat, with no trip through stores: the source is left
+     * bare, and whatever stood on the target goes into stores.
      */
-    public Result moveGun(String boatId, int from, int fromPosition, int to, int toPosition) {
+    public Result moveGun(String boatId, int from, int to) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
-        if (!boat.hasHardpoint(from) || !boat.hasHardpoint(to)
-                || !BoatHardpoint.valid(fromPosition) || !BoatHardpoint.valid(toPosition)) {
-            return new Result(Status.UNKNOWN_HARDPOINT, boat);
-        }
-        BoatGun gun = BoatHardpoint.occupant(boat.gunsAt(from), fromPosition);
+        if (!boat.hasHardpoint(from) || !boat.hasHardpoint(to)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
+        BoatGun gun = boat.gunOn(from);
         if (gun == null) return new Result(Status.NOTHING_TO_STRIP, boat);
-        if (from == to && (fromPosition == toPosition || !gun.half())) return new Result(Status.ALREADY_FITTED, boat);
-        BoatGun[] source = BoatHardpoint.placed(boat.gunsAt(from), fromPosition, null);
-        BoatGun[] target = from == to ? source : boat.gunsAt(to);
-        if (BoatHardpoint.occupant(target, toPosition) == gun) return new Result(Status.ALREADY_FITTED, boat);
-        BoatGun[] landed = BoatHardpoint.placed(target, toPosition, gun);
-        if (from != to) boat.installGuns(from, source);
-        boat.installGuns(to, landed);
-        for (BoatGun off : BoatHardpoint.displaced(target, landed)) deck.stow(off.id());
+        if (from == to) return new Result(Status.ALREADY_FITTED, boat);
+        BoatGun displaced = boat.gunOn(to);
+        if (displaced == gun) return new Result(Status.ALREADY_FITTED, boat);
+        boat.installGun(from, null);
+        boat.installGun(to, gun);
+        if (displaced != null) deck.stow(displaced.id());
         return new Result(Status.FITTED, boat);
     }
 

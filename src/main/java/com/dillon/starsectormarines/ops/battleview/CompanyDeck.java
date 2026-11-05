@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -141,6 +142,43 @@ public final class CompanyDeck {
     public CompanyDeck vehicles(Supplier<List<VehicleDeploymentSpec>> parked) {
         vehicles = parked == null ? List::of : parked;
         return this;
+    }
+
+    /**
+     * The company's mechs as fitted, pad by pad with null where none stands; read on this thread.
+     * Null until set, when the bare {@code lance} parks each chassis in its stock fit.
+     */
+    private Supplier<List<MechDeploymentSpec>> fittedLance;
+
+    /**
+     * Parks the company's mechs as she has fitted them rather than in their stock fit, both when
+     * she is mustered and on each {@link #syncMachines()}. Overrides the constructor's lance.
+     */
+    public CompanyDeck fittedLance(Supplier<List<MechDeploymentSpec>> fitted) {
+        if (gettingReady != null) throw new IllegalStateException("deck preparation already started");
+        fittedLance = fitted;
+        return this;
+    }
+
+    /**
+     * Stands the company's machines in her berths as the roster has them now: what was bought,
+     * fitted, scrapped or stored since she was mustered. Every screen that shows her machine
+     * berths calls this as it opens, so the deck never waits on a particular screen to be told
+     * (the Mech Lab once was the only one that did, and the whole-ship view showed the lance as
+     * it was at muster, in stock fits). Nothing to do before she is ready: mustering reads them.
+     */
+    public void syncMachines() {
+        if (scene == null) return;
+        if (fittedLance != null) scene.syncGantries(fittedLance.get());
+        List<VehicleDeploymentSpec> parked = vehicles.get();
+        scene.parkVehicles(parked);
+        // A hull built since she mustered is a line her sprites have not loaded yet. A leased deck
+        // holding no lease has nothing loaded: her next preload surveys the scene as it stands.
+        if (sprites != null) {
+            for (VehicleDeploymentSpec vehicle : parked) {
+                if (vehicle != null) sprites.loadConvoySprite(vehicle.type());
+            }
+        }
     }
 
     /**
@@ -567,19 +605,26 @@ public final class CompanyDeck {
      */
     private CompletableFuture<ShipDeckBattleScene> getReady() {
         if (gettingReady != null) return gettingReady;
-        List<MechVariant> berthed = lance.get();
+        List<MechDeploymentSpec> fitted = fittedLance == null ? null : fittedLance.get();
+        List<MechVariant> berthed = fitted == null ? lance.get() : variantsOf(fitted);
         List<VehicleDeploymentSpec> parked = vehicles.get();
         List<MarineSoldier> roll = company.get();
         boolean[] held = boatsHeld.get();
         boolean[] wrecks = boatWrecks.get();
         boolean[] grounded = groundedBoats.get();
-        gettingReady = LaidDecks.off(() -> muster(berthed, parked, roll, held, wrecks, grounded));
+        gettingReady = LaidDecks.off(() -> muster(berthed, fitted, parked, roll, held, wrecks, grounded));
         return gettingReady;
     }
 
+    private static List<MechVariant> variantsOf(List<MechDeploymentSpec> fitted) {
+        List<MechVariant> variants = new ArrayList<>(fitted.size());
+        for (MechDeploymentSpec mech : fitted) variants.add(mech == null ? null : mech.variant());
+        return variants;
+    }
+
     /** @see #getReady() */
-    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<VehicleDeploymentSpec> parked,
-                                       List<MarineSoldier> roll,
+    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MechDeploymentSpec> fitted,
+                                       List<VehicleDeploymentSpec> parked, List<MarineSoldier> roll,
                                        boolean[] held, boolean[] wrecks, boolean[] grounded) {
         work = Work.LAYING_OUT;
         generate();
@@ -587,6 +632,8 @@ public final class CompanyDeck {
         ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks, grounded);
         manned.dress(dressing == null ? CoreDressing.of(ship) : dressing);
         manned.occupyGantries(berthed);
+        // Each chassis stands in its stock fit until its own fitting is put on it.
+        if (fitted != null) manned.syncGantries(fitted);
         manned.parkVehicles(parked);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with

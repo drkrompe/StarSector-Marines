@@ -25,11 +25,23 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 public final class HoverSkirt {
 
     private final NavigationService navigation;
+    /** The crush view a heavy skirt's view is laid over, or {@code null} for a light skirt, which crushes nothing. */
+    private final HeavyTracks tracks;
     private NavigationGrid view;
     private long viewRevision = Long.MIN_VALUE;
 
+    /** A light skirt's view, over the live grid. */
     public HoverSkirt(NavigationService navigation) {
+        this(navigation, null);
+    }
+
+    /**
+     * A skirt's view laid over {@code tracks}' crush view: a hover hull heavy enough to crush undergrowth
+     * ({@link VehicleType#crushesUndergrowth()}) floats over water and drives into undergrowth alike.
+     */
+    public HoverSkirt(NavigationService navigation, HeavyTracks tracks) {
         this.navigation = navigation;
+        this.tracks = tracks;
     }
 
     /**
@@ -37,7 +49,12 @@ public final class HoverSkirt {
      * tag cleared. The live grid is not touched.
      */
     public static NavigationGrid hoverView(NavigationGrid grid, CellTopology topology) {
-        NavigationGrid copy = grid.copyRoutingTopology();
+        return hoverView(grid, grid, topology);
+    }
+
+    /** {@link #hoverView(NavigationGrid, CellTopology)} laid over {@code base}, a view of {@code grid}. */
+    static NavigationGrid hoverView(NavigationGrid base, NavigationGrid grid, CellTopology topology) {
+        NavigationGrid copy = base.copyRoutingTopology();
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 copy.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
@@ -61,7 +78,7 @@ public final class HoverSkirt {
         NavigationGrid grid = navigation.getGrid();
         long revision = grid.topologyRevision();
         if (view == null || revision != viewRevision) {
-            view = hoverView(grid, navigation.getTopology());
+            view = hoverView(tracks != null ? tracks.motionGrid() : grid, grid, navigation.getTopology());
             viewRevision = revision;
         }
         return view;

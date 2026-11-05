@@ -477,16 +477,22 @@ public enum VehicleType {
     }
 
     /**
-     * Tri-Tachyon's hover hulls. A skirt floats over water and rubble a wheel or a track cannot cross, and it has
-     * no purchase to shove a body with ({@link HoverSkirt}).
+     * Whether this hull rides a hover skirt. Hover decides only the ground a hull crosses: a skirt floats over water
+     * and rubble a wheel or a track cannot cross ({@link HoverSkirt}). What it shoves, rams and crushes, and what it
+     * weighs, go by its {@link #weight()}, so a heavy repulsor shoves and crushes as a tracked hull of its weight
+     * does; today's hover hulls, Tri-Tachyon's light skirts, are light.
      */
     public boolean isHover() { return this == HOVER_SCOUT || this == DRONE_SKIMMER; }
 
     /**
-     * Whether this hull shoves bodies out of its way, by contact and by bow wave. A hover skirt has nothing to shove
-     * with, so a hover hull cannot clear a road by driving into people; every wheeled and tracked hull does.
+     * Whether this hull shoves bodies out of its way, by contact and by bow wave: by its weight
+     * ({@link Weight#shoves}), so a light hover skirt cannot clear a road by driving into people and every other hull,
+     * a heavy repulsor among them, does.
      */
-    public boolean repelsBodies() { return !isHover(); }
+    public boolean repelsBodies() { return weight().shoves(isHover()); }
+
+    /** A hover hull of light weight: a skirt that barely touches the ground, with no purchase and almost no mass. */
+    private boolean lightSkirt() { return isHover() && weight() == Weight.LIGHT; }
 
     /** The tracked gun tanks: the breakthrough hull, the variants built on it, and the medium tank. */
     public boolean isTank() {
@@ -494,31 +500,72 @@ public enum VehicleType {
     }
 
     /**
-     * Whether this hull carries a dozer blade that opens ground ahead of it ({@link DozerBlade}). Only the dozer
-     * breacher does; its route proof and its rolling planner read the blade's breach view instead of the live grid.
+     * Whether this hull carries a dozer blade, a part wider than its hull. Only the dozer breacher does, until it is
+     * retired; what the blade opens is {@link #crushesWalls()}, which every ultra-heavy hull shares by its weight.
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
     /**
-     * Whether this hull flattens undergrowth and lone boulders it drives into ({@link HeavyTracks}): every hull of
-     * medium weight or more that runs on the ground, which is the APC lines, the rocket technical, the dozer and the
-     * gun tanks. A pickup, a scout car or a hauler is stopped, as is a hover hull. Its planning and its motion read
-     * the crush view.
+     * Whether this hull opens ordinary walls and barricades in its path ({@link DozerBlade}): every ultra-heavy hull,
+     * by its own weight on its nose ({@link Weight#crushesWalls}), and the dozer by its blade. Its route proof and
+     * rolling planner read the breach view instead of the grid it moves over.
      */
-    public boolean crushesUndergrowth() { return weight() != Weight.LIGHT && !isHover(); }
+    public boolean crushesWalls() { return weight().crushesWalls() || hasBlade(); }
+
+    /**
+     * Whether this hull flattens undergrowth and lone boulders it drives into ({@link HeavyTracks}), by its weight
+     * ({@link Weight#crushesUndergrowth}), on tracks, wheels or a skirt: the APC lines, the rocket technical, the
+     * dozer and the gun tanks. A pickup, a scout car, a hauler or a light hover hull is stopped. Its planning and its
+     * motion read the crush view.
+     */
+    public boolean crushesUndergrowth() { return weight().crushesUndergrowth(); }
 
     /**
      * Whether this hull drives through the light barricades its way covers ({@link BarricadeRam}): every hull that
-     * crushes undergrowth but the dozer, whose blade pushes them down.
+     * crushes undergrowth but those that crush walls, which open barricades as they open walls.
      */
-    public boolean ramsBarricades() { return crushesUndergrowth() && !hasBlade(); }
+    public boolean ramsBarricades() { return crushesUndergrowth() && !crushesWalls(); }
 
-    /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
-    public enum Weight { LIGHT, MEDIUM, HEAVY }
+    /**
+     * How heavy a hull is, and so what it does to what it meets: a Brute's charge reads it
+     * ({@code colony-breach-nouns.md}, Brute), and it alone decides the shove, the crush, the ram and the mass. Hover
+     * decides only the ground a hull crosses, except that a light skirt has no purchase to shove with.
+     */
+    public enum Weight {
+        LIGHT, MEDIUM, HEAVY, ULTRA_HEAVY;
+
+        /** Whether this class is {@code other} or heavier. */
+        public boolean atLeast(Weight other) { return ordinal() >= other.ordinal(); }
+
+        /** Whether a hull of this weight shoves bodies: every one but a light skirt ({@code hover}), which has no purchase. */
+        public boolean shoves(boolean hover) { return !hover || this != LIGHT; }
+
+        /** Whether a hull of this weight flattens undergrowth: medium and heavier, whatever it runs on. */
+        public boolean crushesUndergrowth() { return this != LIGHT; }
+
+        /**
+         * Whether a hull of this weight crushes ordinary walls and barricades with its own nose: ultra-heavy only. A
+         * heavy hull rams barricades ({@link BarricadeRam}) and stops at walls.
+         */
+        public boolean crushesWalls() { return this == ULTRA_HEAVY; }
+
+        /**
+         * Mass in tonnes: a pickup about a Brute's weight and a light skirt ({@code hover}) less, an APC several
+         * times it, a gun tank many, an ultra-heavy hull nearly twice a gun tank.
+         */
+        public float massTonnes(boolean hover) {
+            return switch (this) {
+                case LIGHT -> hover ? 1.5f : 2.5f;
+                case MEDIUM -> 12f;
+                case HEAVY -> 45f;
+                case ULTRA_HEAVY -> 80f;
+            };
+        }
+    }
 
     /**
      * The hull's weight class: the pickups, hover hulls and haulers are light, the APC lines, the missile
-     * carriers and the dozer medium, the gun tanks heavy. Read by a Brute's charge and by what a hull crushes.
+     * carriers and the dozer medium, the gun tanks heavy. No hull is ultra-heavy yet.
      */
     public Weight weight() {
         if (this == BREAKTHROUGH_TANK || this == LASER_TANK || this == MEDIUM_TANK) {
@@ -529,30 +576,26 @@ public enum VehicleType {
     }
 
     /**
-     * Mass in tonnes, for a body running into the hull ({@link HullImpact}): a pickup or a hover hull is
-     * about a Brute's weight, an APC several times it, a gun tank many.
+     * Mass in tonnes by weight class ({@link Weight#massTonnes}), for a body running into the hull
+     * ({@link HullImpact}), the shove and the momentum a hull spends on what it breaks.
      */
-    public float massTonnes() {
-        if (isHover()) return 1.5f;
-        return switch (weight()) {
-            case LIGHT -> 2.5f;
-            case MEDIUM -> 12f;
-            case HEAVY -> 45f;
-        };
-    }
+    public float massTonnes() { return weight().massTonnes(isHover()); }
 
     /**
      * How hard the ground holds the hull against a slide, as decelerations in cells a second squared: along
-     * the hull, where a wheel rolls and a track does not, and across it, where both scrub. A hover hull
-     * barely touches the ground either way.
+     * the hull, where a wheel rolls and a track does not, and across it, where both scrub. A light hover skirt
+     * barely touches the ground either way; a heavier skirt is pressed down by its weight and holds across as a
+     * wheel nearly does, a first figure for the playtest to tune.
      */
     public float gripAlong() {
-        if (isHover()) return .8f;
+        if (lightSkirt()) return .8f;
+        if (isHover()) return 1.5f;
         return hasAnimatedTreads() ? 5f : 1.5f;
     }
 
     public float gripAcross() {
-        if (isHover()) return .8f;
+        if (lightSkirt()) return .8f;
+        if (isHover()) return 4f;
         return hasAnimatedTreads() ? 7f : 6f;
     }
 

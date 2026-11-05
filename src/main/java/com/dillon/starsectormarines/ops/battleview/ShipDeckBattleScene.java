@@ -794,7 +794,6 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             AirfieldService.Berth berth = boatBerths.get(boat);
             if (berth == null || guns[boat] == null) continue;
             berth.doorGuns = guns[boat].kitFor(TurretRole.A2G);
-            berth.doorGunPods = guns[boat].podKitFor(TurretRole.A2G);
         }
     }
 

@@ -7,37 +7,49 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * The dozer breacher's blade: what it can push through, how fast, and the view of the map its route proof reads.
+ * What a wall-crushing hull ({@link VehicleType#crushesWalls()}) pushes through, how fast, and the view of the map its
+ * route proof reads. An ultra-heavy hull crushes by its own weight on its nose; the dozer breacher, until it is
+ * retired, by its blade. The class keeps the blade's name until the dozer goes.
  *
  * <p><b>The rule.</b> A blocking cell is <em>pushable</em> when its structure is spent through the ordinary wall
  * channel — a wall cell, or a sandbag, fence or crate barricade — and that structure is above zero and no more than
- * {@link #MAX_PUSH_STRUCTURE}. Ordinary city walls (100) and gated-housing walls (80) fall to it; fortified and
- * fortress walls (150 and up) do not, until fire has worn them under the threshold. Natural obstructions (rock,
- * trees, summit terrain), registered equipment and entity-owned fixtures (a turret's mount) are never pushed. Low
- * crash debris under the blade is graded flat: the cell keeps its terrain and loses the slowing tag.
+ * the hull's ceiling ({@link #ceiling}: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE} by the
+ * blade). Ordinary city walls (100) and gated-housing walls (80) fall to either; fortified and fortress walls (150 and
+ * up) do not, until fire has worn them under the ceiling. Natural obstructions (rock, trees, summit terrain),
+ * registered equipment and entity-owned fixtures (a turret's mount) are never pushed. Low crash debris under the hull
+ * and its bearing strip is graded flat: the cell keeps its terrain and loses the slowing tag.
  *
- * <p><b>The rate.</b> The blade spends {@link #PUSH_PER_SECOND} structure per second on every pushable cell it bears
- * on at once, through {@link MapEditor#damageWall} — the same destruction path a breaching charge uses. A pushed wall
- * becomes rubble and a pushed barricade its destroyed art, and the cell is ordinary walkable ground for every vehicle
- * and unit from then on. Opening is the only direction it edits: like every destruction op, it can only make the map
- * more permissive, so nothing derived from it is invalidated beyond the ordinary opened-cell flush.
+ * <p><b>The bearing strip.</b> A hull bears on a strip just past its nose ({@link #bearingWidth}): the hull's own
+ * width for an ultra-heavy hull, which has nothing wider than itself to push with, so the gap it cuts is its own
+ * width; the painted blade's ({@link #BLADE_WIDTH_CELLS}) for the dozer.
+ *
+ * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #ULTRA_HEAVY_PER_SECOND} by weight, the blade's
+ * {@link #PUSH_PER_SECOND}) of structure per second on every pushable cell it bears on at once, through
+ * {@link MapEditor#damageWall} — the same destruction path a breaching charge uses. A pushed wall becomes rubble and a
+ * pushed barricade its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit from then
+ * on. Opening is the only direction it edits: like every destruction op, it can only make the map more permissive, so
+ * nothing derived from it is invalidated beyond the ordinary opened-cell flush.
  *
  * <p><b>Momentum.</b> A hull driving onto what it pushes spends its way on the cells its nose reaches that tick
- * ({@link HullMomentum}). Where the structure its speed carries and this tick's push cover all those cells have left,
- * they fall at once and the hull drives on at the speed the rest of its energy gives; where they do not, they share
- * its momentum and the hull is brought up against them, for the blade to push down at its rate from a standstill.
+ * ({@link HullMomentum}), by its mass ({@link VehicleType#massTonnes()}). Where the structure its speed carries and
+ * this tick's push cover all those cells have left, they fall at once and the hull drives on at the speed the rest of
+ * its energy gives; where they do not, they share its momentum and the hull is brought up against them, to push them
+ * down at its rate from a standstill.
  *
- * <p><b>The hull.</b> A dozer is held by pushable ground only while it pushes it down. Where its hull, not its blade,
- * is what bears on pushable cells, its tail or flank swung into a house wall as it turns, and nothing else holds it,
- * it {@link #grind grinds} them at the blade's rate. Its route proof counts that ground open, so its turns may sweep
+ * <p><b>The hull.</b> A crushing hull is held by pushable ground only while it pushes it down. Where its flank, not
+ * its nose, is what bears on pushable cells, its tail or flank swung into a house wall as it turns, and nothing else
+ * holds it, it {@link #grind grinds} them at its rate. Its route proof counts that ground open, so its turns may sweep
  * there; without this a hull stood against a wall its own plan had driven it into.
  *
- * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A bladed
- * hull's move-order proof and its rolling local planner read that view, so ground the dozer can open counts as
- * reachable for the dozer and for nobody else; its physical sweep still reads the live grid, which is what holds the
- * hull against a wall until the blade has pushed it down. The dozer is a heavy-lift hull, so where it has tracks the
- * view is laid over their crush view ({@link HeavyTracks}), and its sweep reads that.
+ * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A crushing
+ * hull's move-order proof and its rolling local planner read that view, laid over the grid it moves over (its
+ * tracks' crush view, or a heavy skirt's), so ground it can open counts as reachable for it and for nobody else; its
+ * physical sweep still reads the grid it moves over, which is what holds the hull against a wall until it has pushed
+ * it down.
  */
 public final class DozerBlade {
 
@@ -46,11 +58,19 @@ public final class DozerBlade {
     /** Structure spent per second on each cell the blade bears on. A full ordinary wall goes in 1.25 s. */
     public static final float PUSH_PER_SECOND = 80f;
     /**
+     * The heaviest structure an ultra-heavy hull crushes: ordinary city and gated-housing walls and every barricade,
+     * as the blade does, while a fortified wall (150 and up) holds until fire has worn it under, so a fort is still
+     * opened by fire and charges first. Its greater mass shows in the momentum it carries through, not in the ceiling.
+     */
+    public static final int ULTRA_HEAVY_CEILING = 100;
+    /** Structure an ultra-heavy hull's weight spends per second on each cell it bears on: the blade's rate. */
+    public static final float ULTRA_HEAVY_PER_SECOND = 80f;
+    /**
      * How wide the blade bears, cells: the painted blade, wider than the hull behind it, so the gap it cuts is one the
      * hull drives through.
      */
     static final float BLADE_WIDTH_CELLS = 2.5f;
-    /** How far past the hull's nose the blade bears, cells. */
+    /** How far past the hull's nose the bearing strip reaches, cells. */
     static final float REACH_CELLS = .6f;
     /** How far back from the nose the bearing strip starts, so a cell already touching the hull is still pushed. */
     static final float OVERLAP_CELLS = .2f;
@@ -60,17 +80,17 @@ public final class DozerBlade {
     private final NavigationService navigation;
     private final MapEditor editor;
     private final DoodadService doodads;
-    /** Cells the blade bears on this tick, as x/y pairs. Host-thread scratch: vehicles are driven serially. */
+    /** Cells the hull bears on this tick, as x/y pairs. Host-thread scratch: vehicles are driven serially. */
     private final int[] bearing = new int[64];
     private int bearingCount;
     /** Cells the hull's nose hits this tick, as x/y pairs. */
     private final int[] struck = new int[64];
     private int struckCount;
-    /** Whether something the blade cannot push holds the hull this tick ({@link #grind}). */
+    /** Whether something the hull cannot push holds it this tick ({@link #grind}). */
     private boolean heldElsewhere;
+    /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
+    private final List<View> views = new ArrayList<>(2);
     private HeavyTracks tracks;
-    private NavigationGrid view;
-    private long viewRevision = Long.MIN_VALUE;
 
     public DozerBlade(NavigationService navigation, MapEditor editor, DoodadService doodads) {
         this.navigation = navigation;
@@ -78,42 +98,74 @@ public final class DozerBlade {
         this.doodads = doodads;
     }
 
-    /** Lays the breach view over the tracks' crush view, the ground the dozer's own tracks open. */
-    public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
+    /**
+     * The heaviest structure {@code type} pushes: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE}
+     * by a blade, none for a hull that crushes no walls.
+     */
+    public static int ceiling(VehicleType type) { return ceiling(type.weight(), type.hasBlade()); }
+
+    /** The ceiling of a hull of {@code weight}, with or without a {@code blade}: weight first, then the blade. */
+    static int ceiling(VehicleType.Weight weight, boolean blade) {
+        if (weight.crushesWalls()) return ULTRA_HEAVY_CEILING;
+        return blade ? MAX_PUSH_STRUCTURE : 0;
+    }
+
+    /** Structure a second {@code type} spends on each cell it bears on; none for a hull that crushes no walls. */
+    public static float rate(VehicleType type) { return rate(type.weight(), type.hasBlade()); }
+
+    /** The rate of a hull of {@code weight}, with or without a {@code blade}. */
+    static float rate(VehicleType.Weight weight, boolean blade) {
+        if (weight.crushesWalls()) return ULTRA_HEAVY_PER_SECOND;
+        return blade ? PUSH_PER_SECOND : 0f;
+    }
+
+    /** How wide {@code type} bears, cells: its blade where it has one, else its own hull. */
+    public static float bearingWidth(VehicleType type) {
+        return type.hasBlade() ? BLADE_WIDTH_CELLS : type.visualWidthCells;
+    }
 
     /** Whether the blade can push cell {@code (x, y)} down right now. See the class rule. */
     public static boolean canPush(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
+        return canPush(grid, topology, doodads, x, y, MAX_PUSH_STRUCTURE);
+    }
+
+    /** Whether a hull whose ceiling is {@code most} can push cell {@code (x, y)} down right now. */
+    public static boolean canPush(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y,
+                                  int most) {
         if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
                 || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) return false;
         int structure = grid.getWallHp(x, y);
-        if (structure <= 0 || structure > MAX_PUSH_STRUCTURE) return false;
+        if (structure <= 0 || structure > most) return false;
         if (doodads != null && doodads.damageablePropIdAt(x, y, topology) != null) {
             return doodads.barricadeAt(x, y, topology);
         }
         return topology.isWall(x, y) && !topology.isFixture(x, y);
     }
 
-    /** Whether the blade grades cell {@code (x, y)}: low crash debris on open ground. */
+    /** Whether the hull grades cell {@code (x, y)}: low crash debris on open ground. */
     public static boolean grades(NavigationGrid grid, int x, int y) {
         return grid.inBounds(x, y) && grid.isWalkable(x, y)
                 && grid.hasTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS);
     }
 
     /**
-     * A routing copy of {@code grid} with every pushable cell open on all sides, as the blade would leave it. The
-     * live grid is not touched. Cells only: a closed shared edge stays closed.
+     * A routing copy of {@code grid} with every cell the blade could push open on all sides, as the blade would leave
+     * it. The live grid is not touched. Cells only: a closed shared edge stays closed.
      */
     public static NavigationGrid breachView(NavigationGrid grid, CellTopology topology, DoodadService doodads) {
-        return breachView(grid, grid, topology, doodads);
+        return breachView(grid, grid, topology, doodads, MAX_PUSH_STRUCTURE);
     }
 
-    /** {@link #breachView(NavigationGrid, CellTopology, DoodadService)} laid over {@code base}, a view of {@code grid}. */
+    /**
+     * {@link #breachView(NavigationGrid, CellTopology, DoodadService)} for a ceiling of {@code most}, laid over
+     * {@code base}, a view of {@code grid}.
+     */
     static NavigationGrid breachView(NavigationGrid base, NavigationGrid grid, CellTopology topology,
-                                     DoodadService doodads) {
+                                     DoodadService doodads, int most) {
         NavigationGrid copy = base.copyRoutingTopology();
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!canPush(grid, topology, doodads, x, y)) continue;
+                if (!canPush(grid, topology, doodads, x, y, most)) continue;
                 copy.setWalkable(x, y, true);
                 copy.openAllEdges(x, y);
             }
@@ -121,28 +173,48 @@ public final class DozerBlade {
         return copy;
     }
 
-    /** The breach view of the live map, rebuilt when the map's topology has moved since it was last asked for. */
+    /** The crush view the dozer's breach view is laid over, for {@link #planningGrid()}. */
+    public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
+
+    /** The dozer's breach view, laid over its tracks' crush view, for scripted beats that drive the dozer. */
     public NavigationGrid planningGrid() {
-        NavigationGrid grid = navigation.getGrid();
-        long revision = grid.topologyRevision();
-        if (view == null || revision != viewRevision) {
-            NavigationGrid base = tracks != null ? tracks.motionGrid() : grid;
-            view = breachView(base, grid, navigation.getTopology(), doodads);
-            viewRevision = revision;
-        }
-        return view;
+        return planningGrid(VehicleType.DOZER_BREACHER, tracks != null ? tracks.motionGrid() : navigation.getGrid());
     }
 
     /**
-     * One tick of the blade bearing ahead of a hull at {@code body}'s pose: grades the debris under the hull and the
+     * The breach view {@code type} plans over, laid over {@code base}, the grid it moves over (the live grid, its
+     * crush view, or a skirt's view): rebuilt when the map's topology has moved since it was last asked for.
+     */
+    public NavigationGrid planningGrid(VehicleType type, NavigationGrid base) {
+        NavigationGrid grid = navigation.getGrid();
+        long revision = grid.topologyRevision();
+        int most = ceiling(type);
+        for (View view : views) {
+            if (view.most != most || view.base != base) continue;
+            if (view.revision != revision) {
+                view.grid = breachView(base, grid, navigation.getTopology(), doodads, most);
+                view.revision = revision;
+            }
+            return view.grid;
+        }
+        // A base that is gone (a skirt's view rebuilt) leaves its view behind: one view per ceiling.
+        views.removeIf(view -> view.most == most);
+        View view = new View(most, base, revision, breachView(base, grid, navigation.getTopology(), doodads, most));
+        views.add(view);
+        return view.grid;
+    }
+
+    /**
+     * One tick of a crushing hull bearing ahead at {@code body}'s pose: grades the debris under the hull and the
      * strip, and spends this tick's push on every pushable cell in the strip.
      *
-     * @return whether the blade bore on at least one pushable cell — work that counts as progress for the hull's
+     * @return whether the hull bore on at least one pushable cell — work that counts as progress for the hull's
      *         stall and wall-contact recovery
      */
     public boolean push(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
         NavigationGrid grid = navigation.getGrid();
         CellTopology topology = navigation.getTopology();
+        int most = ceiling(type);
         float halfL = type.visualLengthCells * .5f;
         float stripLength = REACH_CELLS + OVERLAP_CELLS;
         float stripOffset = halfL - OVERLAP_CELLS + stripLength * .5f;
@@ -152,9 +224,9 @@ public final class DozerBlade {
                 });
         bearingCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, stripOffset,
-                stripLength, BLADE_WIDTH_CELLS, grid, (x, y) -> {
+                stripLength, bearingWidth(type), grid, (x, y) -> {
                     if (grades(grid, x, y)) grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
-                    if (!canPush(grid, topology, doodads, x, y)) return;
+                    if (!canPush(grid, topology, doodads, x, y, most)) return;
                     if (bearingCount * 2 >= bearing.length) return;
                     bearing[bearingCount * 2] = x;
                     bearing[bearingCount * 2 + 1] = y;
@@ -164,7 +236,7 @@ public final class DozerBlade {
             control.bladeCarry = 0f;
             return false;
         }
-        float pending = control.bladeCarry + PUSH_PER_SECOND * dt;
+        float pending = control.bladeCarry + rate(type) * dt;
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
         strike(body, type, grid, topology, spend, dt);
@@ -176,7 +248,7 @@ public final class DozerBlade {
 
     /**
      * One tick of a hull held where it means to move: at {@code body}'s pose, the pose its move would reach, its
-     * footprint overlaps blocking cells. Where every one is pushable it spends this tick's push on them, as the blade
+     * footprint overlaps blocking cells. Where every one is pushable it spends this tick's push on them, as its nose
      * does.
      *
      * @return whether it bore on pushable cells and on nothing else — work that counts as progress, as
@@ -185,12 +257,13 @@ public final class DozerBlade {
     public boolean grind(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
         NavigationGrid grid = navigation.getGrid();
         CellTopology topology = navigation.getTopology();
+        int most = ceiling(type);
         bearingCount = 0;
         heldElsewhere = false;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
                 type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
                     if (grid.isWalkable(x, y)) return;
-                    if (!canPush(grid, topology, doodads, x, y) || bearingCount * 2 >= bearing.length) {
+                    if (!canPush(grid, topology, doodads, x, y, most) || bearingCount * 2 >= bearing.length) {
                         heldElsewhere = true;
                         return;
                     }
@@ -199,7 +272,7 @@ public final class DozerBlade {
                     bearingCount++;
                 });
         if (heldElsewhere || bearingCount == 0) return false;
-        float pending = control.bladeCarry + PUSH_PER_SECOND * dt;
+        float pending = control.bladeCarry + rate(type) * dt;
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
         if (spend > 0) {
@@ -210,21 +283,22 @@ public final class DozerBlade {
 
     /**
      * The hull's momentum spent on what its nose reaches this tick: the pushable cells within the way it moves, not
-     * the whole strip the blade bears on, so a cell beside its path that it never hits does not stop it. Where its
-     * momentum and {@code spend} cover all those cells have left they fall now and it drives on at the speed the rest
-     * gives; where they do not, they share its momentum and it is brought up against them.
+     * the whole strip it bears on, so a cell beside its path that it never hits does not stop it. Where its momentum
+     * and {@code spend} cover all those cells have left they fall now and it drives on at the speed the rest gives;
+     * where they do not, they share its momentum and it is brought up against them.
      */
     private void strike(GroundBody body, VehicleType type, NavigationGrid grid, CellTopology topology, int spend,
                         float dt) {
         float tonnes = type.massTonnes();
         float impact = HullMomentum.structure(tonnes, body.speed);
         if (impact <= 0f) return;
+        int most = ceiling(type);
         float reach = OVERLAP_CELLS + body.speed * dt + CONTACT_CELLS;
         struckCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, BLADE_WIDTH_CELLS, grid,
+                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, bearingWidth(type), grid,
                 (x, y) -> {
-                    if (!canPush(grid, topology, doodads, x, y) || struckCount * 2 >= struck.length) return;
+                    if (!canPush(grid, topology, doodads, x, y, most) || struckCount * 2 >= struck.length) return;
                     struck[struckCount * 2] = x;
                     struck[struckCount * 2 + 1] = y;
                     struckCount++;
@@ -245,5 +319,19 @@ public final class DozerBlade {
         int share = (int) (impact / struckCount);
         for (int i = 0; i < struckCount; i++) editor.damageWall(struck[i * 2], struck[i * 2 + 1], share);
         body.speed = 0f;
+    }
+
+    private static final class View {
+        final int most;
+        final NavigationGrid base;
+        long revision;
+        NavigationGrid grid;
+
+        View(int most, NavigationGrid base, long revision, NavigationGrid grid) {
+            this.most = most;
+            this.base = base;
+            this.revision = revision;
+            this.grid = grid;
+        }
     }
 }

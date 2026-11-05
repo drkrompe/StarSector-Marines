@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatGun;
-import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -633,47 +632,39 @@ class BoatDeckViewModelTest {
     }
 
     /**
-     * A hardpoint takes two 2x1 guns by position: the board reads them as a pod, each comes off or
-     * moves on its own, and the readiness counts empty mounts and the guns on the rest.
+     * A hardpoint holds one gun: a 2x1 gun dropped on an armed hardpoint replaces what is there, a gun moves between
+     * hardpoints whole, and the readiness counts the mounts with a gun.
      */
     @Test
-    void twoHalfGunsDroppedOnOneHardpointReadAsAPod() {
+    void aGunDroppedOnAnArmedHardpointReplacesIt() {
         BoatDeck boats = TaughtBoatDecks.taught(new BoatDeck());
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, new TestPurse(60_000), "Second Wind");
         model.selectBoatAction(0).run();
-        model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 1);
+        model.selectDollSlot(BoatDoll.hardpointKey(1));
         String laser = BoatGun.TWIN_PE_1.id();
-        String top = BoatDoll.positionKey(1, BoatHardpoint.TOP);
-        String bottom = BoatDoll.positionKey(1, BoatHardpoint.BOTTOM);
+        String srm = BoatGun.SRM_15.id();
+        String first = BoatDoll.hardpointKey(1);
 
         row(model.catalogRows().get(), laser).card().action().run();
-        model.dropOnSocket(BoatDoll.Kind.HARDPOINT, laser, top);
-        row(model.catalogRows().get(), laser).card().action().run();
-        assertTrue(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, laser, bottom), "the bottom is open for a second");
-        model.dropOnSocket(BoatDoll.Kind.HARDPOINT, laser, bottom);
-
-        BoatDoll.Slot pod = dollSlot(model, BoatDoll.HARDPOINT_KEY + 1);
-        assertEquals(laser, pod.itemId());
-        assertEquals(laser, pod.podItemId());
-        assertTrue(pod.selected(), "a position's key opens its hardpoint");
-        assertEquals(laser, model.installedIn(bottom));
+        model.dropOnSocket(BoatDoll.Kind.HARDPOINT, laser, first);
+        row(model.catalogRows().get(), srm).card().action().run();
+        assertTrue(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, srm, first), "a gun replaces the one on");
+        model.dropOnSocket(BoatDoll.Kind.HARDPOINT, srm, first);
+        assertEquals(srm, dollSlot(model, first).itemId());
+        assertEquals(1, boats.spares(laser), "the laser it replaced is in stores");
         ReadinessRow bare = model.readinessRows().get().stream()
                 .filter(row -> row.id().endsWith(":bare-mounts")).findFirst().orElseThrow();
         assertEquals(Strings.format("boatReadinessBareMounts", 1, 3), bare.title());
-        assertEquals(Strings.format("boatReadinessBareMountsDetail", 3, 2), bare.detail(),
-                "a pod is two guns on one mount");
+        assertEquals(Strings.format("boatReadinessBareMountsDetail", 2, 3), bare.detail());
 
-        String spare = BoatDoll.positionKey(2, BoatHardpoint.TOP);
-        assertTrue(model.canMoveBetweenSockets(bottom, spare));
-        assertFalse(model.canMoveBetweenSockets(top, bottom), "a laser does not move onto the one beside it");
-        model.moveBetweenSockets(bottom, spare);
-        assertNull(dollSlot(model, BoatDoll.HARDPOINT_KEY + 1).podItemId());
-        assertEquals(laser, dollSlot(model, BoatDoll.HARDPOINT_KEY + 2).itemId());
+        String spare = BoatDoll.hardpointKey(2);
         model.returnToStores(spare);
-        assertEquals(1, boats.spares(laser));
-        assertEquals(laser, dollSlot(model, BoatDoll.HARDPOINT_KEY + 1).itemId(), "the other laser stays on");
+        assertTrue(model.canMoveBetweenSockets(first, spare));
+        model.moveBetweenSockets(first, spare);
+        assertNull(dollSlot(model, first).itemId());
+        assertEquals(srm, dollSlot(model, spare).itemId());
     }
 
     private static BoatDoll.Slot dollSlot(BoatDeckViewModel model, String key) {

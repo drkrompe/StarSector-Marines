@@ -453,7 +453,7 @@ public class AirSystem {
      *
      * <p>Armed as any armed craft is, with the hull's own turret at the hull's own slot, and given
      * no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down. A
-     * company boat flies her yard's guns, pods and all, on their hardpoints' arcs.
+     * company boat flies her yard's guns, one to a hardpoint, on their hardpoints' arcs.
      */
     public long spawnGunship(Airframe frame, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
@@ -1669,12 +1669,6 @@ public class AirSystem {
         return true;
     }
 
-    /** Whether {@code target} stands within a mount's reach from its origin: past its minimum, inside its range. */
-    private boolean reaches(MountedTurret mt, long target, float originX, float originY) {
-        float dist = TacticalScoring.cellDistance(originX, originY, world.x(target), world.y(target));
-        return dist <= mt.mount.weaponDef().range && dist >= mt.mount.weaponDef().minRange;
-    }
-
     private void tickShuttleTurrets(float dt) {
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
@@ -1734,16 +1728,6 @@ public class AirSystem {
                 float worldX = mt.worldX(body, c, si, 1f);
                 float worldY = mt.worldY(body, c, si, 1f);
 
-                // A pod turns as one: its second gun comes round to where the lead is laid, and takes
-                // the lead's target when it can reach it, so both barrels fire down one line. With the
-                // lead idle, the second gun leads the pod (below).
-                MountedTurret lead = mt.podLead;
-                boolean leadLaid = lead != null && roster.isAliveById(lead.targetId);
-                if (leadLaid && mt.burstRemaining == 0) {
-                    mt.facingDegrees = lead.facingDegrees;
-                    if (reaches(mt, lead.targetId, worldX, worldY)) mt.targetId = lead.targetId;
-                }
-
                 TurretAim.State aim = new TurretAim.State();
                 aim.originCellX = (int) Math.floor(worldX);
                 aim.originCellY = (int) Math.floor(worldY);
@@ -1771,7 +1755,6 @@ public class AirSystem {
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
                 mt.setTarget(aim.target);
-                if (lead != null && !leadLaid) lead.facingDegrees = mt.facingDegrees;
 
                 // Shot origin Y carries the shuttle's visual altitude so the
                 // rendered round leaves the turret at its drawn position
@@ -1779,9 +1762,8 @@ public class AirSystem {
                 // Sim LOS / aim still use the ground-projection worldY above —
                 // that's the right cell for "what wall is this shuttle hovering
                 // over" decisions. This offset is purely a render-origin nudge.
-                float[] barrel = mt.barrelOffset(1f);
-                float shotOriginX = worldX + barrel[0];
-                float shotOriginY = worldY + barrel[1] + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
+                float shotOriginX = worldX;
+                float shotOriginY = worldY + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
 
                 // Burst continuation runs ahead of fresh trigger pulls. The
                 // mount commits to its salvo target — closer enemies walking

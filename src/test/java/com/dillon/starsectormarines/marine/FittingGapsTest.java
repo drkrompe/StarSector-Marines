@@ -37,7 +37,7 @@ class FittingGapsTest {
         boat.clear(BoatFittingSlot.PLATING);
         boat.clear(BoatFittingSlot.EMITTER);
         for (int index = 0; index < ShuttleType.HERMES.hardpoints(); index++) {
-            boat.installGuns(index, new BoatGun[BoatHardpoint.POSITIONS]);
+            boat.installGun(index, null);
         }
         List<FittingGap> gaps = boat.gaps();
         assertEquals(FittingGap.missing(BoatFittingSlot.DRIVE), gaps.get(0));
