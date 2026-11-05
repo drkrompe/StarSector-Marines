@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
@@ -33,20 +34,23 @@ public final class CampaignVehicle implements Serializable {
      */
     private List<String> kitIds = new ArrayList<>();
     /**
-     * The plating part at its armor point: every hull is built with factory plating, which is only ever replaced, as a
-     * mech's is. Null only in a save from before it was a part (the hull's own plate, read as factory plating).
+     * The plating part at its armor point; null is an empty one, as the lab sells a hull: the hull is incomplete and
+     * stays off the drop. Once fitted it is only ever replaced, as a mech's is. A save from before it was a part
+     * reads as factory plating ({@link #fitTheHullsOwnEngineAndPlate}).
      */
     private String platingId;
     /**
-     * The engine part at its engine core: every hull is built with the industrial engine. Null is an empty engine core,
+     * The engine part at its engine core. Null is an empty engine core, as the lab sells a hull,
      * which means no engine, as on a mech: the hull is incomplete and stays off the drop.
      */
     private String engineId;
-    /**
-     * The weapon component in its gun card; null is the hull's own gun, which is no inventory part and is what a
-     * stripped gun card reads as. Null in a save from before gun fitting.
-     */
+    /** The weapon component in its gun card; null is an empty card, which fires nothing unless {@link #hasOwnGun}. */
     private String gunId;
+    /**
+     * Whether the gun this hull was built with, which is no inventory part, is gone: true from the lab, which sells a
+     * hull with nothing, and once a weapon has gone in the card. False in a save from before, whose hull keeps firing it.
+     */
+    private boolean ownGunGone;
     /** The internals in the auxiliary compartment (bank, vent arrays, loader), as ids in fitted order. */
     private List<String> rackInternalIds = new ArrayList<>();
     /**
@@ -60,6 +64,9 @@ public final class CampaignVehicle implements Serializable {
      * their points (2); an empty socket means nothing.
      */
     static final int FIT_VERSION = 2;
+
+    /** The room at a vehicle's engine core and armor point, the same as a mech's. */
+    private static final int CORE_COLUMNS = 2, CORE_ROWS = 2, ARMOR_COLUMNS = 2, ARMOR_ROWS = 1;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -77,12 +84,14 @@ public final class CampaignVehicle implements Serializable {
     }
 
     /**
-     * A hull as the lab sells it, as a chassis is a bare frame ({@link CampaignMech#frame}): its own gun and factory
-     * plating, an empty engine core and an empty compartment, so it stands incomplete until fitted.
+     * A hull as the lab sells it, as a chassis is a bare frame ({@link CampaignMech#frame}): nothing at any point, no
+     * gun, no plate, no engine and an empty compartment, so it stands incomplete until fitted.
      */
     public static CampaignVehicle hull(String id, String displayName, VehicleType type) {
         CampaignVehicle vehicle = new CampaignVehicle(id, displayName, type);
         vehicle.engineId = null;
+        vehicle.platingId = null;
+        vehicle.ownGunGone = true;
         vehicle.rackInternalIds.clear();
         return vehicle;
     }
@@ -91,7 +100,7 @@ public final class CampaignVehicle implements Serializable {
     public String displayName() { return displayName; }
     public VehicleType type() { return type; }
 
-    /** The plating part fitted at the armor point. */
+    /** The plating part fitted at the armor point; null for an empty one, which leaves the hull incomplete. */
     public MechInternal plating() {
         MechInternal plating = MechInternal.findById(platingId);
         return plating != null && plating.role == MechInternal.Role.PLATING ? plating : null;
@@ -103,9 +112,10 @@ public final class CampaignVehicle implements Serializable {
         return engine != null && engine.role == MechInternal.Role.ENGINE ? engine : null;
     }
 
-    /** Whether {@code engine} goes at the engine core: any engine a mech runs. */
+    /** Whether {@code engine} goes at the engine core: any engine a mech runs, with the room for it there. */
     public static boolean takesEngine(MechInternal engine) {
-        return engine != null && engine.role == MechInternal.Role.ENGINE;
+        return engine != null && engine.role == MechInternal.Role.ENGINE
+                && MechFittingLayout.hasRoom(CORE_COLUMNS, CORE_ROWS, engine.footprintColumns, engine.footprintRows);
     }
 
     /** Fits {@code engine} at the engine core, replacing what was there; false for a part that does not go. */
@@ -122,7 +132,12 @@ public final class CampaignVehicle implements Serializable {
         return fitted;
     }
 
-    /** The weapon fitted in the gun card; null when the hull fires its own gun. */
+    /** Whether an empty gun card still fires the gun the hull was built with: only a hull from an older save. */
+    public boolean hasOwnGun() {
+        return !ownGunGone;
+    }
+
+    /** The weapon fitted in the gun card; null for an empty card. */
     public MechWeaponComponent gun() {
         MechWeaponComponent gun = MechWeaponComponent.findById(gunId);
         return gun != null && takesGun(type, gun) ? gun : null;
@@ -138,10 +153,11 @@ public final class CampaignVehicle implements Serializable {
     boolean fitGun(MechWeaponComponent gun) {
         if (!takesGun(type, gun)) return false;
         gunId = gun.id;
+        ownGunGone = true;
         return true;
     }
 
-    /** Takes the weapon out of the gun card, back to the hull's own gun; false when none was fitted. */
+    /** Takes the weapon out of the gun card, leaving it empty; false when none was fitted. */
     boolean stripGun() {
         boolean fitted = gun() != null;
         gunId = null;
@@ -153,9 +169,10 @@ public final class CampaignVehicle implements Serializable {
         return VehicleEngine.of(engine());
     }
 
-    /** Whether {@code plating} goes at the armor point: any plating a mech wears. */
+    /** Whether {@code plating} goes at the armor point: any plating a mech wears, with the room for it there. */
     public static boolean takesPlating(MechInternal plating) {
-        return plating != null && plating.role == MechInternal.Role.PLATING;
+        return plating != null && plating.role == MechInternal.Role.PLATING
+                && MechFittingLayout.hasRoom(ARMOR_COLUMNS, ARMOR_ROWS, plating.footprintColumns, plating.footprintRows);
     }
 
     /** Fits {@code plating} at the armor point, replacing what was there; false for a part that does not go. */
@@ -226,6 +243,7 @@ public final class CampaignVehicle implements Serializable {
     public List<MechInternal.Role> missingInternals() {
         List<MechInternal.Role> missing = new ArrayList<>();
         if (engine() == null) missing.add(MechInternal.Role.ENGINE);
+        if (plating() == null) missing.add(MechInternal.Role.PLATING);
         if (!VehicleRack.complete(type, rackInternals())) missing.add(MechInternal.Role.CAPACITOR_BANK);
         return List.copyOf(missing);
     }
@@ -246,7 +264,7 @@ public final class CampaignVehicle implements Serializable {
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
         return new VehicleDeploymentSpec(id, displayName, type, platingTier(), engineTier(), gun(),
-                rackInternals());
+                rackInternals(), !hasOwnGun());
     }
 
     /**

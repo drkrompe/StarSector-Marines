@@ -88,12 +88,13 @@ public final class CampaignMech implements Serializable {
         return mech;
     }
 
-    /** Takes off every weapon that is not factory-locked, the engine and the whole compartment. */
+    /** Takes off every weapon that is not factory-locked, the engine, the plating and the whole compartment. */
     void stripToFrame() {
         for (MechMountSlot slot : MechMountSlot.values()) {
             if (weaponAt(slot) != null && !MechFrameBudget.integral(variant, slot)) installWeapon(slot, null);
         }
         installInternal(MechInternal.Role.ENGINE, null);
+        installInternal(MechInternal.Role.PLATING, null);
         compartmentIds().clear();
     }
 
@@ -338,9 +339,9 @@ public final class CampaignMech implements Serializable {
         return missing;
     }
 
-    /** The roles a frame cannot drop without. Plating is frame-wide and never stripped. */
+    /** The roles a frame cannot drop without. Plating, once on, is only ever replaced. */
     public static final List<MechInternal.Role> REQUIRED_INTERNALS =
-            List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK);
+            List.of(MechInternal.Role.ENGINE, MechInternal.Role.PLATING, MechInternal.Role.CAPACITOR_BANK);
 
     /**
      * Fits {@code internal} in {@code role}, or empties it on null. An empty engine is stored as
@@ -362,7 +363,7 @@ public final class CampaignMech implements Serializable {
             return;
         }
         String internalId = internal != null ? internal.id
-                : role == MechInternal.Role.ENGINE ? EMPTY_COMPONENT_ID : null;
+                : role == MechInternal.Role.ENGINE || role == MechInternal.Role.PLATING ? EMPTY_COMPONENT_ID : null;
         switch (role) {
             case ENGINE -> engineId = internalId;
             case PLATING -> platingId = internalId;

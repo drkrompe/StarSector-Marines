@@ -35,7 +35,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
-import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
@@ -69,7 +68,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -162,8 +160,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final long[] berthedMachines;
     /** The vehicle hull parked in each berth, by index into {@link #gantries}; 0 where none is. */
     private final long[] berthedVehicles;
-    /** Which campaign vehicle each parked hull is, so a re-sync leaves one where it stands. */
-    private final String[] berthedVehicleIds;
+    /** The vehicle and fit each parked hull is, so a re-sync leaves one unchanged where it stands. */
+    private final VehicleDeploymentSpec[] berthedVehicleFits;
     /**
      * Which of the deck's berths hold machines, by index into {@link #gantries}.
      *
@@ -298,7 +296,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         occupiedBerths = new boolean[gantries.size()];
         berthedMachines = new long[gantries.size()];
         berthedVehicles = new long[gantries.size()];
-        berthedVehicleIds = new String[gantries.size()];
+        berthedVehicleFits = new VehicleDeploymentSpec[gantries.size()];
         machineBerths = machineBerthsIn(gantries);
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
@@ -664,21 +662,20 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             VehicleDeploymentSpec vehicle = vehicles != null && seat < vehicles.size()
                     ? vehicles.get(seat) : null;
             if (vehicle != null && berthedVehicles[index] != 0L
-                    && Objects.equals(vehicle.campaignId(), berthedVehicleIds[index])) continue;
+                    && vehicle.equals(berthedVehicleFits[index])) continue;
             if (berthedVehicles[index] != 0L) {
                 simulation.convoy().despawn(berthedVehicles[index]);
                 berthedVehicles[index] = 0L;
-                berthedVehicleIds[index] = null;
+                berthedVehicleFits[index] = null;
                 occupiedBerths[index] = berthedMachines[index] != 0L;
             }
             if (vehicle == null) continue;
             Gantry gantry = gantries.get(index);
             float x = gantry.worldCenterX(), y = gantry.worldCenterY();
-            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.plating(), VehicleEngine.STOCK,
-                    vehicle.type().standardPart(), Faction.MARINE, VehicleMission.deployed(x, y));
+            long hull = simulation.convoy().spawn(vehicle, Faction.MARINE, VehicleMission.deployed(x, y));
             simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
             berthedVehicles[index] = hull;
-            berthedVehicleIds[index] = vehicle.campaignId();
+            berthedVehicleFits[index] = vehicle;
             occupiedBerths[index] = true;
         }
     }

@@ -34,9 +34,11 @@ public record MachineCapabilities(boolean armed, boolean fedWeapons, boolean dro
         return new MachineCapabilities(true, fed, variant.hostsDrones(), variant.hostsPointDefence());
     }
 
-    /** A vehicle as fitted: its gun card's weapon, or the hull's own gun. */
+    /** A vehicle as fitted: its gun card's weapon, or the hull's own gun where it has one; an empty card feeds nothing. */
     public static MachineCapabilities of(CampaignVehicle vehicle) {
-        return of(vehicle.type(), vehicle.gun());
+        MachineCapabilities hull = of(vehicle.type(), vehicle.gun());
+        boolean empty = vehicle.gun() == null && !vehicle.hasOwnGun();
+        return empty ? new MachineCapabilities(hull.armed(), false, hull.droneHost(), hull.pointDefenceHost()) : hull;
     }
 
     /** A hull of {@code type} carrying {@code gun} in its gun card, or its own gun for none. */
