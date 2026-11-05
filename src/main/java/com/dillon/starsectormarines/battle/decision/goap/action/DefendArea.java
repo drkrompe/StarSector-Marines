@@ -185,16 +185,16 @@ public final class DefendArea implements Action {
                 return ActionStatus.RUNNING;
             }
         }
-        int[] firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, centerX, centerY, radius), line);
+        int[] firingPosition = onLine(sim.getTacticalScoring().findSquadFiringPositionWithin(
+                member, target, squad, sim.getSimTickIndex(), centerX, centerY, radius), line);
         if (firingPosition == null) {
             long alternative = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, centerX, centerY, radius);
             if (alternative != 0L && alternative != target) {
                 sim.world().setTargetId(member, alternative);
                 target = alternative;
-                firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, centerX, centerY, radius), line);
+                firingPosition = onLine(sim.getTacticalScoring().findSquadFiringPositionWithin(
+                        member, target, squad, sim.getSimTickIndex(), centerX, centerY, radius), line);
             }
         }
         if (firingPosition == null) {
@@ -465,6 +465,7 @@ public final class DefendArea implements Action {
             int[] found = GridPathfinder.findPath(sim.getGrid(), fromX, fromY,
                     x, y, sim.getOccupancyMap());
             if (!ApproachBound.worthWalkingTo(fromX, fromY, x, y, found, boundDetour)) {
+                if (boundDetour) sim.getTacticalScoring().forgetFiringPosition(member);
                 PatrolMotion.hold(member, sim);
                 return;
             }

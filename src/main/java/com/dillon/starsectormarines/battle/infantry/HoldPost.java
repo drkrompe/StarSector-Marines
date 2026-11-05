@@ -83,7 +83,7 @@ public final class HoldPost implements Action {
         }
 
         if (target != 0L) {
-            return executeWithTarget(member, target, sim, homeX, homeY);
+            return executeWithTarget(member, target, squad, sim, homeX, homeY);
         }
 
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
@@ -94,7 +94,7 @@ public final class HoldPost implements Action {
         return returnToHome(member, sim, homeX, homeY);
     }
 
-    private static ActionStatus executeWithTarget(long member, long target, BattleControl sim, int homeX, int homeY) {
+    private static ActionStatus executeWithTarget(long member, long target, Squad squad, BattleControl sim, int homeX, int homeY) {
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
@@ -106,8 +106,8 @@ public final class HoldPost implements Action {
             return ActionStatus.RUNNING;
         }
 
-        int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, homeX, homeY, HOLD_RADIUS);
+        int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                member, target, squad, sim.getSimTickIndex(), homeX, homeY, HOLD_RADIUS);
         if (firingPos == null) {
             // Current target unreachable from any cell within the hold ring.
             // Switch to any engageable enemy that fits and re-pick.
@@ -116,8 +116,8 @@ public final class HoldPost implements Action {
             if (alt != 0L) {
                 sim.world().setTargetId(member, alt);
                 target = alt;
-                firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, homeX, homeY, HOLD_RADIUS);
+                firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                        member, target, squad, sim.getSimTickIndex(), homeX, homeY, HOLD_RADIUS);
             }
         }
         if (firingPos == null || sim.movement().atCell(member, firingPos[0], firingPos[1])) {
