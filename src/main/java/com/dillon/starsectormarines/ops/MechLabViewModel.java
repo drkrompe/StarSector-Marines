@@ -236,16 +236,14 @@ public final class MechLabViewModel {
         gantryRows = reactor.computed(this::buildGantryRows);
         activeGantryLabel = reactor.computed(() -> {
             int index = selectedGantryIndex();
-            boolean occupied = selectedMech() != null || selectedVehicle() != null
+            boolean occupied = selectedMachine() != null
                     || gantryOccupied(selectedSquad(), index);
             return String.format(Strings.locale(), Strings.get("openingMechLabGantryDDS"), padLetter(index),
                     occupied ? "" : Strings.get("openingMechLabVacant"));
         });
         selectedMechName = reactor.computed(() -> {
-            CampaignMech mech = selectedMech();
-            CampaignVehicle vehicle = selectedVehicle();
-            if (vehicle != null) return vehicle.displayName();
-            return mech != null ? mech.displayName() : fabricatingChassis()
+            CampaignMachine machine = selectedMachine();
+            return machine != null ? machine.displayName() : fabricatingChassis()
                     ? String.format(Strings.locale(), Strings.get("openingMechLabVacantGantryD"), padLetter(selectedGantryIndex()))
                     : Strings.get("openingMechLabNoAssetSelected");
         });
@@ -322,11 +320,11 @@ public final class MechLabViewModel {
         fittingHeaderClasses = reactor.computed(() -> fittingFocused.get()
                 ? "garage-back console-action" : "hidden");
         performanceClasses = reactor.computed(() -> fittingFocused.get()
-                && (selectedMech() != null || selectedVehicle() != null)
+                && selectedMachine() != null
                 ? "performance-grid" : "performance-grid hidden");
         catalogClasses = reactor.computed(() -> fittingFocused.get()
                 ? "panel catalog-panel" : "panel catalog-panel hidden");
-        slotRackClasses = reactor.computed(() -> fittingFocused.get() && (selectedMech() != null || selectedVehicle() != null)
+        slotRackClasses = reactor.computed(() -> fittingFocused.get() && selectedMachine() != null
                 ? "panel slot-panel" : "panel slot-panel hidden");
         overviewRailClasses = reactor.computed(() -> fittingFocused.get()
                 ? "overview-rail hidden" : "overview-rail");
@@ -717,8 +715,8 @@ public final class MechLabViewModel {
     public Signal<String> budgetClasses() { return budgetClasses; }
     /** The ship's Mech Lab refits as the selected mech will deploy with them; empty when neutral. */
     public Signal<String> shipRefitText() { return shipRefitText; }
-    /** Whether the mech's armor point is the selected socket, so the catalog lists plating. */
-    public boolean platingSelected() { return selectedMech() != null && selectedSlot.get() == SocketId.PLATING; }
+    /** Whether the machine's armor point is the selected socket, so the catalog lists plating. */
+    public boolean platingSelected() { return selectedMachine() != null && selectedSlot.get() == SocketId.PLATING; }
 
     /** Fitting-budget and plating bindings, shared by the screen and its evidence. */
     public void putInternalProps(Map<String, Object> props) {
@@ -740,14 +738,18 @@ public final class MechLabViewModel {
         return mech != null ? mech.fit() : null;
     }
 
-    /** Flux reservoir a weapon sheet reads against: the selected mech's, or the stock one. */
+    /** Flux reservoir a weapon sheet reads against: the selected machine's, or the stock one. */
     public float selectedFluxCapacity() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return figures(vehicle, null, null).flux();
         MechFrameBudget.Fit fit = selectedFit();
         return fit != null ? fit.fluxCapacity() : MechInternal.FACTORY_CAPACITOR_BANK.fluxCapacity;
     }
 
-    /** Dissipation a weapon sheet reads against: the selected mech's, or the stock frame's. */
+    /** Dissipation a weapon sheet reads against: the selected machine's, or the stock frame's. */
     public float selectedDissipationPerSecond() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return figures(vehicle, null, null).dissipation();
         MechFrameBudget.Fit fit = selectedFit();
         float base = fit != null ? fit.dissipationPerSecond() : MechInternal.FACTORY_CAPACITOR_BANK.dissipation;
         return base * refit().dissipationMult();
@@ -2171,10 +2173,8 @@ public final class MechLabViewModel {
     }
 
     private String selectedMachineId() {
-        CampaignMech mech = selectedMech();
-        if (mech != null) return mech.id();
-        CampaignVehicle vehicle = selectedVehicle();
-        return vehicle != null ? vehicle.id() : null;
+        CampaignMachine machine = selectedMachine();
+        return machine != null ? machine.id() : null;
     }
 
     /**
@@ -2245,8 +2245,7 @@ public final class MechLabViewModel {
     private void storeSelected() {
         String machineId = selectedMachineId();
         if (machineId == null || reserve == null) return;
-        CampaignMech mech = selectedMech();
-        String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
+        String name = selectedMachine().displayName();
         scrapArmedId.set(null);
         if (!machineId.equals(storeArmedId.get())) {
             storeArmedId.set(machineId);
@@ -2491,32 +2490,15 @@ public final class MechLabViewModel {
     }
 
     private void renameSelectedMech() {
-        CampaignMech mech = selectedMech();
-        CampaignVehicle vehicle = selectedVehicle();
-        if (mech == null && vehicle != null) {
-            renameSelectedVehicle(vehicle);
-            return;
-        }
-        if (mech == null) return;
-        if (!mech.rename(callSignDraft.get())) {
+        CampaignMachine machine = selectedMachine();
+        if (machine == null) return;
+        if (!machine.rename(callSignDraft.get())) {
             feedbackText.set(Strings.format("openingMechLabCallSignMustContainCharacters", CampaignMech.CALLSIGN_MAX_LENGTH));
             feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
             return;
         }
-        callSignDraft.set(mech.displayName());
-        feedbackText.set(Strings.format("openingMechLabRenamedChassisIdentityFitAndStoresWere", mech.displayName()));
-        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
-        revision.update(value -> value + 1);
-    }
-
-    private void renameSelectedVehicle(CampaignVehicle vehicle) {
-        if (!vehicle.rename(callSignDraft.get())) {
-            feedbackText.set(Strings.format("openingMechLabCallSignMustContainCharacters", CampaignMech.CALLSIGN_MAX_LENGTH));
-            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
-            return;
-        }
-        callSignDraft.set(vehicle.displayName());
-        feedbackText.set(Strings.format("openingMechLabRenamedVehicle", vehicle.displayName()));
+        callSignDraft.set(machine.displayName());
+        feedbackText.set(Strings.format("openingMechLabRenamedChassisIdentityFitAndStoresWere", machine.displayName()));
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
     }
@@ -2548,10 +2530,8 @@ public final class MechLabViewModel {
 
     /** Callsign of the selected mech or vehicle, or null when neither is selected. */
     private String selectedAssetName() {
-        CampaignMech mech = selectedMech();
-        if (mech != null) return mech.displayName();
-        CampaignVehicle vehicle = selectedVehicle();
-        return vehicle != null ? vehicle.displayName() : null;
+        CampaignMachine machine = selectedMachine();
+        return machine != null ? machine.displayName() : null;
     }
 
     /** True on a vacant gantry, where chassis and vehicle patterns are offered. */

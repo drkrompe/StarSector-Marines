@@ -17,12 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A vehicle's doll in the Mech Lab (mechs-nouns.md, one machine, one part catalog): the mech schematic's shape with
- * the engine in the middle, as on every machine, the turret ahead, the bay and the systems either
- * side and the auxiliary compartment behind. Every card but the compartment, the engine core, the armor point and the gun card is sealed; it is derived
- * from the hull's type, never authored, so a new vehicle gets a doll by having a turret, seats or systems. The engine
- * core, the armor point and the gun card are live, as on a mech: they take the same engine, plating and weapon parts,
- * the gun card by the type and size of the gun the hull was built around ({@link VehicleGunCard}).
+ * A vehicle's sockets in the Mech Lab (mechs-nouns.md, why a machine differs): the mech schematic's shape with the engine
+ * in the middle, as on every machine, the turret ahead, the bay and the systems either side and the auxiliary compartment
+ * behind. It is derived from the hull's type, never authored, so a new vehicle gets a doll by having a turret, seats or
+ * systems. The bay and systems are locked: they are what the hull is. The rest take the same parts a mech does, the gun
+ * card by the type and size of the gun the hull was built around ({@link VehicleGunCard}).
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
  * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the compartment.</p>

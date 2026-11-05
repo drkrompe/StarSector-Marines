@@ -16,6 +16,9 @@ public interface CampaignMachine {
 
     String displayName();
 
+    /** Changes only the player-facing callsign; false for one that is empty or too long. */
+    boolean rename(String value);
+
     /** What the machine, as fitted, offers the parts that go in it. */
     MachineCapabilities capabilities();
 
