@@ -69,7 +69,8 @@ its own replays and is not listed. A replay builds the chapter's
 battle off the arc's state, is flown by the company as it stands now, and on
 victory pays the chapter's credits (Working Passage, which paid none, pays Cold
 Start's). Like a repeat or a debug run of a chapter, it hears the story's recorded
-briefing and battle radio: source decides what a mission settles, not what it says. Personnel,
+briefing and battle radio: source decides what a mission settles, not what it says.
+Depot Clearance and Route Security alone keep their own terms and no story speech. Personnel,
 losses and loot settle as for any operation; the arc's
 progress, story completion, awards, campaign marks and debriefs are untouched,
 and a replay does not retry.

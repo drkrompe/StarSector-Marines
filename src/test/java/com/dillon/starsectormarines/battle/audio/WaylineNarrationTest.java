@@ -189,8 +189,12 @@ class WaylineNarrationTest {
             assertEquals(chapter.getValue(), WaylineNarration.storyMissionId(Mission.builder()
                     .id("replay_completed:" + chapter.getKey()).source(MissionSource.REPLAY).build()));
         }
-        assertEquals("story_supply_route_relay_nine", WaylineNarration.storyMissionId(Mission.builder()
+        assertEquals(OpeningOperationKind.RELIEF.missionId, WaylineNarration.storyMissionId(Mission.builder()
+                .id("debug:story:MILITIA_RELIEF").source(MissionSource.DEBUG).build()));
+        assertNull(WaylineNarration.storyMissionId(Mission.builder()
                 .id("debug:story:ROUTE_SECURITY").source(MissionSource.DEBUG).build()));
+        assertNull(WaylineNarration.storyMissionId(Mission.builder()
+                .id("debug:story:DEPOT_CLEARANCE").source(MissionSource.DEBUG).build()));
         assertNull(WaylineNarration.storyMissionId(Mission.builder()
                 .id("debug:story:CORDON_LINE").source(MissionSource.DEBUG).build()));
     }
@@ -234,14 +238,15 @@ class WaylineNarrationTest {
     }
 
     @Test
-    void aRepeatableVersionHearsItsStoryChapter() {
-        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+    void aRepeatableVersionHearsItsStoryChapterExceptDepotClearanceAndRouteSecurity() {
+        for (OpeningOperationKind kind : OpeningOperationKind.values())
             assertEquals(kind.missionId, WaylineNarration.storyMissionId(
                     Mission.builder().id(kind.missionId).source(MissionSource.STORY).build()));
-            assertEquals(kind.missionId, WaylineNarration.storyMissionId(
-                    Mission.builder().id(kind.recurringId).source(MissionSource.RECURRING).build()));
-        }
-        assertEquals("story_supply_route_relay_nine", WaylineNarration.storyMissionId(
+        assertEquals(OpeningOperationKind.RELIEF.missionId, WaylineNarration.storyMissionId(Mission.builder()
+                .id(OpeningOperationKind.RELIEF.recurringId).source(MissionSource.RECURRING).build()));
+        assertNull(WaylineNarration.storyMissionId(Mission.builder()
+                .id(OpeningOperationKind.COUNTERATTACK.recurringId).source(MissionSource.RECURRING).build()));
+        assertNull(WaylineNarration.storyMissionId(
                 Mission.builder().id("supply_route_v1_3_4_2").source(MissionSource.RECURRING).build()));
         assertNull(WaylineNarration.storyMissionId(null));
     }

@@ -505,7 +505,10 @@ repeatable postings at eligible Independent brokers, including Venn. Their
 names, identities, source, and local-employer briefings distinguish them from
 Wayline's closed chapters. They reuse the finite opening battle setups and
 payments. Their victories never write story-completion facts or replay Zoey's
-story debrief. They remain available after success or failure. This authored
+story debrief. Militia Relief hears Relief's recorded briefing and radio; Depot
+Clearance keeps its own written terms and no story speech, and meets the story's
+whole force, both road attacks and the gun truck, without the Hound. They remain
+available after success or failure. This authored
 exception does not fabricate ordinary patron contract rows.
 
 Progress derives from existing opening victory facts. Older Relief victories

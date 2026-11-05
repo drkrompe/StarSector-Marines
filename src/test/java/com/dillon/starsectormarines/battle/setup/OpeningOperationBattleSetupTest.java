@@ -141,6 +141,20 @@ class OpeningOperationBattleSetupTest {
     }
 
     @Test
+    void theRepeatableDepotFacesTheStorysAttacksWithoutItsHound() {
+        try (BattleSimulation repeat = BattleSetup.createOpeningOperation(8_102L, MANIFEST, 1,
+                OpeningOperationKind.COUNTERATTACK, TargetProfile.NEUTRAL, false);
+             BattleSimulation story = BattleSetup.createOpeningOperation(8_102L, MANIFEST, 1,
+                OpeningOperationKind.COUNTERATTACK, TargetProfile.NEUTRAL, true)) {
+            assertNull(repeat.getWaylineHound());
+            assertNotNull(story.getWaylineHound());
+            assertEquals(story.getDepotHold().forceSizes(), repeat.getDepotHold().forceSizes());
+            assertNotNull(repeat.getDepotHold().technicalRoute());
+            assertEquals(count(story, Faction.DEFENDER, UnitType.MILITIA), count(repeat, Faction.DEFENDER, UnitType.MILITIA));
+        }
+    }
+
+    @Test
     void counterattackHasNoPredeployedLocalLine() {
         BattleSimulation sim = BattleSetup.createOpeningOperation(
                 8_102L, MANIFEST, 1, OpeningOperationKind.COUNTERATTACK,
