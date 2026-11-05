@@ -108,7 +108,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
     private Supplier<List<MechInternal>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
-    private Supplier<List<VehicleRack.Placement>> installedRack = List::of;
     private BooleanSupplier rackIncomplete = () -> false;
     private BooleanSupplier machineUnarmed = () -> false;
     private BooleanSupplier vehicleOwnGun = () -> false;
@@ -188,11 +187,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** The selected vehicle's hull, for its sealed doll; null while a mech or nothing is selected. */
     public void selectedVehicle(Supplier<VehicleType> source) {
         selectedVehicle = source != null ? source : () -> null;
-    }
-
-    /** What the selected vehicle's auxiliary compartment holds, its parts at their packed places. */
-    public void installedRack(Supplier<List<VehicleRack.Placement>> source) {
-        installedRack = source != null ? source : List::of;
     }
 
     /** Whether the selected vehicle is armed and has no capacitor bank on its rack, so cannot drop. */
@@ -309,7 +303,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), candidateWeapon.get(), width, height);
         } else if (vehicle != null && fittingOverlaysVisible.getAsBoolean()) {
-            drawVehicleSchematic(context, vehicle, installedRack.get(), width, height);
+            drawVehicleSchematic(context, vehicle, width, height);
         } else {
             lastSocketTargets = List.of();
             Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
@@ -740,8 +734,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * A vehicle's doll where a mech's stands ({@link VehicleDoll}): the same schematic, every card sealed
      * but the auxiliary compartment's bays, whose parts each come off by being dragged.
      */
-    private void drawVehicleSchematic(CanvasContext c, VehicleType type, List<VehicleRack.Placement> rack,
-                                      float canvasWidth, float canvasHeight) {
+    private void drawVehicleSchematic(CanvasContext c, VehicleType type, float canvasWidth, float canvasHeight) {
+        List<MechCompartment.Placement> packed = MechCompartment.pack(VehicleRack.grids(type), installedCompartment.get());
+        List<MechCompartment.Placement> rack = packed != null ? packed : List.of();
         List<SocketDef> sockets = VehicleDoll.sockets(type);
         float panelWidth = panelWidth(sockets, canvasWidth);
         drawSchematicPanel(c, panelWidth, canvasHeight);
@@ -749,7 +744,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
         int rackRows = 0;
-        for (VehicleRack.Placement part : rack) rackRows += part.rows();
+        for (MechCompartment.Placement part : rack) rackRows += part.rows();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
@@ -761,15 +756,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 continue;
             }
             boolean bay = socket.id().compartment();
-            List<VehicleRack.Placement> here = new ArrayList<>();
-            if (bay) for (VehicleRack.Placement part : rack) if (part.grid() == socket.id()) here.add(part);
+            List<MechCompartment.Placement> here = new ArrayList<>();
+            if (bay) for (MechCompartment.Placement part : rack) if (part.grid() == socket.id()) here.add(part);
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
                     VehicleDoll.art(type, socket.id()), here, bay && rackIncomplete.getAsBoolean(),
                     bay && selects(socket.id(), selectedSocket.get()), hoveredSocket == socket.id(),
                     elapsedSeconds.getAsDouble());
-            for (VehicleRack.Placement part : here) {
-                float[] box = MechSocketConsole.rackBox(target, socket, part);
-                partBoxes.putIfAbsent(part.internal(), box);
+            for (MechCompartment.Placement part : here) {
+                float[] box = MechSocketConsole.partBox(target, socket, part);
+                partBoxes.putIfAbsent(part.part(), box);
             }
         }
         // Only the rack, the armor point, the engine core and the gun card answer the pointer: sealed cards take no
@@ -789,11 +784,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     vehicleOwnGun.getAsBoolean());
             if (socket.id().compartment()) {
                 // On the rack, the part under the pointer, or the rack's fill between them.
-                for (VehicleRack.Placement part : rack) {
+                for (MechCompartment.Placement part : rack) {
                     if (part.grid() != socket.id()) continue;
-                    float[] box = MechSocketConsole.rackBox(target, socket, part);
+                    float[] box = MechSocketConsole.partBox(target, socket, part);
                     if (hover.x() >= box[0] && hover.x() <= box[2] && hover.y() >= box[1] && hover.y() <= box[3]) {
-                        title = part.internal().displayName();
+                        title = part.part().displayName();
                     }
                 }
             }

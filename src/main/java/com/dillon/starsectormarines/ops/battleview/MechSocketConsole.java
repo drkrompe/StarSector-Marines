@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
-import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
@@ -223,14 +222,14 @@ final class MechSocketConsole {
 
     /**
      * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
-     * mark and a SEALED tag; or an auxiliary compartment bay, its parts at their packed places
-     * ({@link VehicleRack}), each lifted off by being dragged. A compartment bay of an armed hull with no bank warns, as a
+     * mark and a SEALED tag; or an auxiliary compartment bay, its parts at their packed places,
+     * each lifted off by being dragged. A compartment bay of an armed hull with no bank warns, as a
      * mech's compartment does: the hull cannot drop.
      *
      * @param parts the parts packed into this bay; empty for a sealed card
      */
     static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                            Color tone, String art, List<VehicleRack.Placement> parts, boolean missing,
+                            Color tone, String art, List<MechCompartment.Placement> parts, boolean missing,
                             boolean selected, boolean hovered, double time) {
         boolean rack = socket.id().compartment();
         // Truly built in: an older save's own gun looks sealed but a weapon can replace it.
@@ -251,8 +250,8 @@ final class MechSocketConsole {
         HardpointBricks.Layout bricks = placed(t, socket);
         HardpointBricks.drawEmpty(c, bricks, tone);
         if (rack) {
-            for (VehicleRack.Placement part : parts) {
-                MechInternal internal = part.internal();
+            for (MechCompartment.Placement part : parts) {
+                MechInternal internal = part.part();
                 HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
                         HardpointBricks.tone(internal.role));
                 float left = bricks.brickX(part.column()), top = bricks.brickY(part.row());
@@ -270,15 +269,6 @@ final class MechSocketConsole {
                     new Color(AMBER.getRed(), AMBER.getGreen(), AMBER.getBlue(), (int) (180 + pulse * 65)),
                     selected ? 2.4f : 1.4f, 17, 5);
         }
-    }
-
-    /** One rack part's box on the bay card {@code t}, as {left, top, right, bottom}: the box the doll lifts it off by. */
-    static float[] rackBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, VehicleRack.Placement part) {
-        HardpointBricks.Layout bricks = placed(t, socket);
-        float left = bricks.brickX(part.column());
-        float top = bricks.brickY(part.row());
-        return new float[] {left, top, left + bricks.span(part.columns(), bricks.brickWidth()),
-                top + bricks.span(part.rows(), bricks.brickHeight())};
     }
 
     /** A padlock, 14 px wide and 16 tall from its top-left corner: built in, and no part can go here or come off. */

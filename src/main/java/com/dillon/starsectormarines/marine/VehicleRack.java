@@ -26,9 +26,6 @@ public final class VehicleRack {
 
     private VehicleRack() { }
 
-    /** One part at its packed place: which bay, its top-left cell and its footprint. */
-    public record Placement(MechInternal internal, SocketId grid, int column, int row, int columns, int rows) { }
-
     /** Rows across a hull's bays, a row two columns: two on a Light hull, three on a Medium, four on a Heavy. */
     public static int slots(VehicleType type) {
         int rows = 0;
@@ -75,29 +72,12 @@ public final class VehicleRack {
     /** As above, on a hull carrying {@code gun} in its gun card. */
     public static boolean fits(VehicleType type, MechWeaponComponent gun, List<MechInternal> internals) {
         for (MechInternal internal : internals) if (!takes(type, gun, internal)) return false;
-        for (MechInternal.Role role : MechInternal.Role.values()) {
-            int count = 0;
-            for (MechInternal internal : internals) if (internal.role == role) count++;
-            if (count > MechCompartment.limit(role)) return false;
-        }
-        return pack(type, internals) != null;
+        return MechCompartment.fits(grids(type), internals);
     }
 
-    /** Where each part sits, in order, or null when they do not all fit. */
-    public static List<Placement> pack(VehicleType type, List<MechInternal> internals) {
-        List<SocketDef> grids = grids(type);
-        int[] columns = new int[internals.size()], rows = new int[internals.size()];
-        for (int i = 0; i < internals.size(); i++) {
-            columns[i] = internals.get(i).footprintColumns;
-            rows[i] = internals.get(i).footprintRows;
-        }
-        int[][] at = MechCompartment.packFootprints(grids, columns, rows);
-        if (at == null) return null;
-        List<Placement> placed = new ArrayList<>();
-        for (int i = 0; i < internals.size(); i++) {
-            placed.add(new Placement(internals.get(i), grids.get(at[i][0]).id(), at[i][1], at[i][2], columns[i], rows[i]));
-        }
-        return List.copyOf(placed);
+    /** Where each part sits, in order, or null when they do not all fit: the mech compartment's packing, in the hull's bays. */
+    public static List<MechCompartment.Placement> pack(VehicleType type, List<MechInternal> internals) {
+        return MechCompartment.pack(grids(type), internals);
     }
 
     /** The bank an armed hull is built with ({@link HullReservoir#stockBank}): the laser tank's own, the factory bank on the rest. */

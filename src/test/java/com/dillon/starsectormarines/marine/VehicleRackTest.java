@@ -25,7 +25,7 @@ class VehicleRackTest {
     @Test
     void aHeavyRackIsTwoBaysAndAFullOneSpillsIntoTheSecond() {
         VehicleType heavy = VehicleType.BREAKTHROUGH_TANK;
-        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+        List<MechCompartment.Placement> placed = VehicleRack.pack(heavy, List.of(MechInternal.FACTORY_CAPACITOR_BANK,
                 MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR, MechInternal.ACTIVE_PROTECTION));
         assertNotNull(placed);
         assertEquals(SocketId.AUXILIARY, placed.get(0).grid());
@@ -38,9 +38,9 @@ class VehicleRackTest {
     @Test
     void theMilitaryBankFillsOneHeavyBayWhole() {
         VehicleType laser = VehicleType.LASER_TANK;
-        List<VehicleRack.Placement> placed = VehicleRack.pack(laser, List.of(MechInternal.MILITARY_CAPACITOR_BANK));
+        List<MechCompartment.Placement> placed = VehicleRack.pack(laser, List.of(MechInternal.MILITARY_CAPACITOR_BANK));
         assertNotNull(placed);
-        VehicleRack.Placement bank = placed.get(0);
+        MechCompartment.Placement bank = placed.get(0);
         assertEquals(SocketId.AUXILIARY, bank.grid());
         assertEquals(2, bank.columns());
         assertEquals(2, bank.rows());

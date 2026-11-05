@@ -155,9 +155,9 @@ public final class MachineDollSnapshotSuite implements SnapshotSuite {
     }
 
     private static JSONObject vehicleSocket(MechLabViewModel viewModel, VehicleType type, SocketDef socket) throws Exception {
-        List<VehicleRack.Placement> rack = viewModel.installedRack();
+        List<MechCompartment.Placement> rack = viewModel.compartmentPlacements();
         int rackRows = 0;
-        for (VehicleRack.Placement part : rack) rackRows += part.rows();
+        for (MechCompartment.Placement part : rack) rackRows += part.rows();
         JSONObject row = socketRow(socket);
         row.put("caption", MachineDollExport.vehicleCaption(type, socket.id(), rackRows,
                 viewModel.installedInternal(SocketId.PLATING), viewModel.installedInternal(SocketId.CORE),
@@ -165,9 +165,9 @@ public final class MachineDollSnapshotSuite implements SnapshotSuite {
         if (socket.id().compartment()) {
             row.put("compartmentSlots", VehicleRack.slots(type));
             JSONArray holds = new JSONArray();
-            for (VehicleRack.Placement part : rack) {
+            for (MechCompartment.Placement part : rack) {
                 if (part.grid() != socket.id()) continue;
-                MechInternal internal = part.internal();
+                MechInternal internal = part.part();
                 holds.put(part(internal.id, internal.displayName(), part.columns(), part.rows()));
             }
             row.put("holds", holds);

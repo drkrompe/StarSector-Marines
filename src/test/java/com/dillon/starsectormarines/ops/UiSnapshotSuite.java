@@ -3294,7 +3294,6 @@ private static BufferedImage renderBarracks(
             fittingCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
-            fittingCanvas.installedRack(viewModel::installedRack);
             fittingCanvas.rackIncomplete(viewModel::rackIncomplete);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {

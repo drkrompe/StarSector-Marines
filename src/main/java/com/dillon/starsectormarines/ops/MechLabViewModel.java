@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
 import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignMachine;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
@@ -789,17 +790,24 @@ public final class MechLabViewModel {
         return mech != null && role != null ? mech.internal(role) : null;
     }
 
-    /** What the selected mech's auxiliary compartment holds, in fitted order. */
+    /** What the selected machine's auxiliary compartment holds, in fitted order. */
     public List<MechInternal> installedCompartment() {
-        CampaignMech mech = selectedMech();
-        return mech != null ? mech.compartment() : List.of();
+        CampaignMachine machine = selectedMachine();
+        return machine != null ? machine.compartment() : List.of();
     }
 
-    /** The selected mech's compartment parts that pack into one bay, at their places there. */
+    /** The selected machine's compartment at its packed places, across every bay; empty if it somehow does not pack. */
+    public List<MechCompartment.Placement> compartmentPlacements() {
+        CampaignMachine machine = selectedMachine();
+        if (machine == null) return List.of();
+        List<MechCompartment.Placement> placed = MechCompartment.pack(machine.compartmentGrids(), machine.compartment());
+        return placed != null ? placed : List.of();
+    }
+
+    /** The selected machine's compartment parts that pack into one bay, at their places there. */
     public List<MechCompartment.Placement> compartmentPlacements(SocketId bay) {
-        CampaignMech mech = selectedMech();
-        if (mech == null || bay == null || !bay.compartment()) return List.of();
-        return MechCompartment.in(MechCompartment.pack(MechCompartment.of(mech.variant()), mech.compartment()), bay);
+        if (bay == null || !bay.compartment()) return List.of();
+        return MechCompartment.in(compartmentPlacements(), bay);
     }
     public Runnable selectSlotAction(SocketId slot) { return () -> selectSlot(slot); }
     public Runnable stripWeaponAction(SocketId slot) { return () -> stripWeapon(slot); }
@@ -2031,14 +2039,6 @@ public final class MechLabViewModel {
         return internal != null;
     }
 
-    /** The selected vehicle's rack at its packed places; empty for a mech or nothing. */
-    public List<VehicleRack.Placement> installedRack() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null) return List.of();
-        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.compartment());
-        return placed != null ? placed : List.of();
-    }
-
     /**
      * Whether the selected machine can carry a weapon and has none anywhere: it can still go, so this warns in yellow. A
      * hull with no gun card is not unarmed, it is built that way.
@@ -2887,6 +2887,12 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         String mechId = selectedMechId.get();
         return squad != null && mechId != null ? squad.mechById(mechId) : null;
+    }
+
+    /** The machine being fitted, whichever kind it is; null when neither is selected. */
+    private CampaignMachine selectedMachine() {
+        CampaignMech mech = selectedMech();
+        return mech != null ? mech : selectedVehicle();
     }
 
     private CampaignVehicle selectedVehicle() {
