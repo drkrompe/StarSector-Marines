@@ -1,4 +1,4 @@
-<template props="worlds,quitAction,saves,saveAction">
+<template props="worlds,quitAction,saves,saveAction,newAction">
   <div id="world-menu-root" class="world-root">
     <div id="world-menu-header" class="world-header console-header">
       <img id="world-menu-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -29,6 +29,7 @@
     <div id="world-menu-saves" class="world-saves panel">
       <div id="world-menu-saves-title" class="label heading tone-edge">SAVES</div>
       <button id="world-menu-save" class="world-save-now" onclick="{saveAction}">Save here</button>
+      <button id="world-menu-new" class="world-save-now" onclick="{newAction}">New campaign</button>
       <div id="world-menu-save-list" class="world-save-list">
         <button each="save in saves" key="{save.id}" id="{save.id}" class="world-save-row" onclick="{save.action}">
           <div id="{save.nameId}" class="label">{save.name}</div>

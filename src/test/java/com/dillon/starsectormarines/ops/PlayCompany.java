@@ -113,23 +113,16 @@ final class PlayCompany {
 
     /** Installs the stand-in as the campaign backend, for the rest of the run. */
     static void install() {
-        roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
-                DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
-        roster.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
-        commissionFieldCommander(roster);
+        CampaignFleetAPI fleet = fleet();
+        restore(fresh());
         MarineRosterScript script = new MarineRosterScript() {
             @Override public MarineRoster roster() {
                 return roster;
             }
         };
-        campaign = new CampaignStateScript();
-        CampaignFleetAPI fleet = fleet();
-        saved = new HashMap<>();
-        saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
         CampaignBackend.useSavedData(() -> saved);
         CampaignBackend.useCompanyFleet(() -> fleet);
         CampaignBackend.useSectorScripts(() -> List.of(script, campaign));
-        saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
         CampaignBackend.useDockedPort(() -> docked.getMarket());
         CampaignBackend.useYardPort(() -> docked.getMarket());
         CampaignBackend.useStarSystems(SYSTEMS::get);
@@ -157,6 +150,29 @@ final class PlayCompany {
                 return factions.computeIfAbsent(id, known -> faction(known, known));
             }
         });
+    }
+
+    /** Starts the campaign over, where a run with no save starts. No dialog may still be open over the old one. */
+    static void startOver() {
+        restore(fresh());
+        // Read from the save, and this save is new.
+        Cheats.setEnabled(true);
+    }
+
+    /** The campaign a run with no save starts on. */
+    private static PlaySaves.State fresh() {
+        PlaySaves.State state = new PlaySaves.State();
+        state.roster = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
+                DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
+        state.roster.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
+        state.campaign = new CampaignStateScript();
+        state.saved = new HashMap<>();
+        state.saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
+        state.saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
+        state.docked = WORLDS.get(0).getId();
+        state.credits = CREDITS;
+        state.awarded = List.of();
+        return state;
     }
 
     /**

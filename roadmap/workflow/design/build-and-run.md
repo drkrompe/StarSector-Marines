@@ -80,7 +80,9 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `~/.starsector-marines/play-saves` (`PlaySaves`). `-PplayLoad=auto` picks up where
   you stopped; `-PplayLoad=the-dust-ledger` opens the board just before that mission,
   so a tweak can be played again in seconds. The world menu lists them and has Save
-  here; scripts have `save <name>` and `load <name>`. They are XML through XStream, as
+  here and New campaign, which starts over as a run with no save does, on the board at
+  Jangala; like any arrival at the board it checkpoints over `auto`. Scripts have
+  `save <name>`, `load <name>` and `new`. They are XML through XStream, as
   the game's saves are: an element a class no longer has is skipped and a new field
   stays unset, so a save outlives a tweak, as long as the code copes with that field
   being unset as it must on a real load.
