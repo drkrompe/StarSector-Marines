@@ -781,13 +781,9 @@ public final class MechLabViewModel {
      * empty core, and the auxiliary compartment, which shows {@link #installedCompartment}.
      */
     public MechInternal installedInternal(SocketId id) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) {
-            return id == SocketId.PLATING ? vehicle.plating() : id == SocketId.CORE ? vehicle.engine() : null;
-        }
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechInternal.Role role = id != null ? roleFor(id) : null;
-        return mech != null && role != null ? mech.internal(role) : null;
+        return machine != null && role != null ? machine.internal(role) : null;
     }
 
     /** What the selected machine's auxiliary compartment holds, in fitted order. */
@@ -855,18 +851,21 @@ public final class MechLabViewModel {
      * can be dragged: fabrication is its own step, from the row's FAB button.
      */
     public boolean canDropCatalogWeapon(MechWeaponComponent component, SocketId target) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) {
-            return target == SocketId.ARMS && component != null && bay.availableWeapon(component.id) > 0
-                    && vehicle.gun() != component && bay.canFitGun(vehicle.id(), component);
-        }
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechMountSlot mount = mountFor(target);
-        if (mech == null || component == null || mount == null
+        if (machine == null || component == null || mount == null
                 || bay.availableWeapon(component.id) <= 0
-                || mech.weaponAt(mount) == component
-                || !bay.canInstallWeapon(mech.id(), mount, component.id)) return false;
-        return bay.withinBudget(mech.id(), mech.fit().withWeapon(mount, component));
+                || installedWeapon(target) == component) return false;
+        return weaponGoes(machine, mount, component);
+    }
+
+    /** Whether a weapon goes at a mount: by a mech's mount, size and engine budget, or by a hull's one gun card. */
+    private boolean weaponGoes(CampaignMachine machine, MechMountSlot mount, MechWeaponComponent component) {
+        if (machine instanceof CampaignMech mech) {
+            return bay.canInstallWeapon(mech.id(), mount, component.id)
+                    && bay.withinBudget(mech.id(), mech.fit().withWeapon(mount, component));
+        }
+        return mount == MechMountSlot.ARMS && bay.canFitGun(machine.id(), component);
     }
 
     /** True when the bay holds a spare of this part, so its row can be picked up. */
@@ -883,27 +882,31 @@ public final class MechLabViewModel {
      * the compartment), from a spare, where it packs, within the engine budget.
      */
     public boolean canDropCatalogInternal(MechInternal internal, SocketId target) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) {
-            if (internal == null || !inStores(internal)) return false;
-            if (target == SocketId.PLATING) return vehicle.plating() != internal && bay.canFitPlating(vehicle.id(), internal);
-            if (target != null && target.compartment()) return bay.canFitRackPart(vehicle.id(), internal);
-            return target == SocketId.CORE && vehicle.engine() != internal && bay.canFitEngine(vehicle.id(), internal);
-        }
-        CampaignMech mech = selectedMech();
-        if (mech == null || internal == null || target == null
+        CampaignMachine machine = selectedMachine();
+        if (machine == null || internal == null || target == null
                 || (internal.role.compartment() ? !target.compartment() : internal.role.socket() != target)
-                || MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal
-                || !inStores(internal) || !bay.canInstallInternal(mech.id(), internal)) return false;
-        return bay.withinBudget(mech.id(), mech.fit().withInternal(internal.role, internal));
+                || MechCompartment.limit(internal.role) == 1 && machine.internal(internal.role) == internal
+                || !inStores(internal)) return false;
+        return partGoes(machine, internal);
+    }
+
+    /** Whether a spare would go on the machine, room and requirements met; on a mech, within its engine budget too. */
+    private boolean partGoes(CampaignMachine machine, MechInternal internal) {
+        if (machine instanceof CampaignMech mech) {
+            return bay.canInstallInternal(mech.id(), internal)
+                    && bay.withinBudget(mech.id(), mech.fit().withInternal(internal.role, internal));
+        }
+        return switch (internal.role) {
+            case ENGINE -> bay.canFitEngine(machine.id(), internal);
+            case PLATING -> bay.canFitPlating(machine.id(), internal);
+            default -> bay.canFitRackPart(machine.id(), internal);
+        };
     }
 
     public boolean dropCatalogInternal(MechInternal internal, SocketId target) {
         if (!canDropCatalogInternal(internal, target)) return false;
         selectedSlot.set(target);
-        if (selectedVehicle() == null) return fitInternal(internal);
-        if (target.compartment()) return fitVehicleRackPart(internal);
-        return target == SocketId.CORE ? fitVehicleEngine(internal) : fitVehiclePlating(internal);
+        return fitInternal(internal);
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -919,18 +922,14 @@ public final class MechLabViewModel {
     }
 
     public boolean dropCatalogWeapon(MechWeaponComponent component, SocketId target) {
-        if (selectedVehicle() != null) {
-            if (!canDropCatalogWeapon(component, target)) return false;
-            selectedSlot.set(target);
-            return fitVehicleGun(component);
-        }
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechMountSlot mount = mountFor(target);
-        if (mech == null || component == null || mount == null
+        if (machine == null || component == null || mount == null
                 || bay.availableWeapon(component.id) <= 0) return false;
+        if (machine instanceof CampaignVehicle && mount != MechMountSlot.ARMS) return false;
         selectedSlot.set(target);
-        MechFrameBudget.Fit proposed = mech.fit().withWeapon(mount, component);
-        return applyWeaponResult(workshop.fitWeapon(mech.id(), mount, component), component, proposed);
+        MechFrameBudget.Fit proposed = machine instanceof CampaignMech mech ? mech.fit().withWeapon(mount, component) : null;
+        return applyWeaponResult(workshop.fitWeapon(machine.id(), mount, component), component, proposed);
     }
 
     public boolean moveInstalledWeapon(SocketId source, SocketId target) {
@@ -952,12 +951,11 @@ public final class MechLabViewModel {
     }
 
     public boolean removeInstalledWeapon(SocketId source) {
-        if (selectedVehicle() != null) return source == SocketId.ARMS && stripVehicleGun();
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechMountSlot mount = mountFor(source);
-        if (mech == null || mount == null || mech.weaponAt(mount) == null) return false;
-        MechWeaponComponent component = mech.weaponAt(mount);
-        MechWorkshop.Result result = workshop.stripWeapon(mech.id(), mount);
+        MechWeaponComponent component = installedWeapon(source);
+        if (machine == null || mount == null || component == null) return false;
+        MechWorkshop.Result result = workshop.stripWeapon(machine.id(), mount);
         feedbackText.set(result.succeeded()
                 ? Strings.format("openingMechLabReturnedToBayStoresIsEmpty", component.displayName(), source.label())
                 : Strings.get("openingMechLabRemovalCancelledCampaignHardwareWasNotChanged"));
@@ -967,41 +965,34 @@ public final class MechLabViewModel {
     }
 
     /**
-     * Drags the engine off the doll back to stores, leaving the core empty. That is allowed: the
-     * mech reads {@link CampaignMech.Readiness#INCOMPLETE} and stays off the drop manifest until
-     * one is fitted.
+     * Drags the engine or plate off the doll back to stores, leaving the socket empty. That is allowed: with no engine
+     * the machine reads incomplete and stays off the drop manifest until one is fitted.
      */
     public boolean removeInstalledInternal(SocketId source) {
-        if (selectedVehicle() != null) {
-            return source == SocketId.PLATING ? stripVehiclePlating() : source == SocketId.CORE && stripVehicleEngine();
-        }
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechInternal.Role role = source != null ? roleFor(source) : null;
-        if (mech == null || role == null) return false;
+        if (machine == null || role == null) return false;
         selectedSlot.set(source);
-        MechInternal previous = mech.internal(role);
-        MechWorkshop.Result result = workshop.stripInternal(mech.id(), role);
-        feedbackText.set(switch (result.status()) {
-            case STRIPPED -> Strings.format("openingMechLabInternalStripped", previous.displayName());
-            case ALREADY_STRIPPED -> Strings.get("openingMechLabSocketAlreadyEmpty");
-            default -> Strings.get("openingMechLabUnequipBlockedCampaignHardwareWasNotChanged");
-        });
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
+        MechInternal previous = machine.internal(role);
+        return finishPartStrip(machine, previous, workshop.stripInternal(machine.id(), role));
     }
 
     /**
      * Takes one part out of the compartment back to stores, from its X or a drag off the doll.
-     * Taking out the capacitor bank leaves the mech {@link CampaignMech.Readiness#INCOMPLETE}.
+     * Taking out the capacitor bank of a machine with a gun leaves it incomplete.
      */
     public boolean removeCompartmentPart(MechInternal part) {
-        if (selectedVehicle() != null) return stripVehicleRackPart(part);
-        CampaignMech mech = selectedMech();
-        if (mech == null || part == null) return false;
+        CampaignMachine machine = selectedMachine();
+        if (machine == null || part == null) return false;
         selectedSlot.set(SocketId.AUXILIARY);
-        MechWorkshop.Result result = workshop.stripPart(mech.id(), part);
+        return finishPartStrip(machine, part, workshop.stripPart(machine.id(), part));
+    }
+
+    /** Says what taking {@code part} off did: only a part the machine cannot go without leaves it unable to drop. */
+    private boolean finishPartStrip(CampaignMachine machine, MechInternal part, MechWorkshop.Result result) {
         feedbackText.set(switch (result.status()) {
-            case STRIPPED -> Strings.format("openingMechLabInternalStripped", part.displayName());
+            case STRIPPED -> Strings.format(machine.missingInternals().contains(part.role)
+                    ? "openingMechLabInternalStripped" : "openingMechLabPartReturned", part.displayName());
             case ALREADY_STRIPPED -> Strings.get("openingMechLabSocketAlreadyEmpty");
             default -> Strings.get("openingMechLabUnequipBlockedCampaignHardwareWasNotChanged");
         });
@@ -1952,85 +1943,11 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
-    /** Puts a spare engine at the selected vehicle's engine core; the engine it replaces returns to stores. */
-    public boolean fitVehicleEngine(MechInternal engine) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || engine == null) return false;
-        MechWorkshop.Result result = workshop.fitEngine(vehicle.id(), engine);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabEngineFitted", engine.displayName())
-                : Strings.get("openingMechLabEngineBlocked"));
-        clearHoverInternal();
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
-    }
-
-    /** Takes the engine off the selected vehicle's engine core; the hull is incomplete until another is fitted. */
-    public boolean stripVehicleEngine() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null) return false;
-        MechInternal previous = vehicle.engine();
-        MechWorkshop.Result result = workshop.stripEngine(vehicle.id());
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabEngineStripped", previous.displayName())
-                : Strings.get("openingMechLabEngineBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
-    }
-
-    /** Puts a spare weapon in the selected vehicle's gun card; the weapon it replaces returns to stores. */
-    public boolean fitVehicleGun(MechWeaponComponent gun) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || gun == null) return false;
-        MechWorkshop.Result result = workshop.fitGun(vehicle.id(), gun);
-        feedbackText.set(switch (result.status()) {
-            case INSTALLED_FROM_STORES -> Strings.format("openingMechLabGunFitted", gun.displayName());
-            case INCOMPATIBLE -> Strings.get("openingMechLabGunWrongCard");
-            default -> Strings.get("openingMechLabGunBlocked");
-        });
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
-    }
-
-    /** Takes the weapon out of the selected vehicle's gun card, leaving it empty. */
-    public boolean stripVehicleGun() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null) return false;
-        MechWeaponComponent previous = vehicle.gun();
-        MechWorkshop.Result result = workshop.stripGun(vehicle.id());
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabGunStripped", previous.displayName())
-                : Strings.get("openingMechLabGunBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
-    }
-
     /** The gun card's rule line: its type and size, as a mech's socket grid line reads. */
     private static String gunRule(VehicleType type) {
         VehicleGunCard card = VehicleGunCard.of(type);
         return card == null ? "" : Strings.format("openingMechLabSocketGrid", card.hardpoint != null ? card.hardpoint.name() : "OMNI",
                 VehicleGunCard.COLUMNS, card.rows, Strings.get("openingMechLabOpen"));
-    }
-
-    /** Puts a spare plate at the selected vehicle's armor point; the plate it replaces returns to stores. */
-    public boolean fitVehiclePlating(MechInternal plating) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || plating == null) return false;
-        MechWorkshop.Result result = workshop.fitPlating(vehicle.id(), plating);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabPlatingFitted", plating.displayName())
-                : Strings.get("openingMechLabPlatingBlocked"));
-        clearHoverInternal();
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
-    }
-
-    /** Takes the plate off the selected vehicle back to stores; the hull is then incomplete, as a mech is. */
-    public boolean stripVehiclePlating() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null) return false;
-        MechInternal previous = vehicle.plating();
-        MechWorkshop.Result result = workshop.stripPlating(vehicle.id());
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabPlatingStripped", previous.displayName())
-                : Strings.get("openingMechLabPlatingBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
     /** Whether a part on the doll can be lifted off it: any part that is there, on a mech or a vehicle. */
@@ -2057,29 +1974,6 @@ public final class MechLabViewModel {
     public boolean selectedMachineArmed() {
         CampaignMachine machine = selectedMachine();
         return machine != null && machine.capabilities().armed();
-    }
-
-    /** Puts a spare capacitor bank or vent array on the selected vehicle's rack; a bank replaced returns to stores. */
-    public boolean fitVehicleRackPart(MechInternal part) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || part == null) return false;
-        MechWorkshop.Result result = workshop.fitRackPart(vehicle.id(), part);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabRackPartFitted", part.displayName())
-                : Strings.get("openingMechLabRackPartBlocked"));
-        clearHoverInternal();
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
-    }
-
-    /** Takes a bank or vent array off the selected vehicle's rack back to stores. */
-    public boolean stripVehicleRackPart(MechInternal part) {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle == null || part == null) return false;
-        MechWorkshop.Result result = workshop.stripRackPart(vehicle.id(), part);
-        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabRackPartStripped", part.displayName())
-                : Strings.get("openingMechLabRackPartBlocked"));
-        finishWeaponCommand(result);
-        return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
     /** Whether the selected vehicle's empty gun card still fires the gun its hull was built with (an older save). */
@@ -2696,10 +2590,11 @@ public final class MechLabViewModel {
      * feedback path weapons use; the catalog row is only a request.
      */
     public boolean fitInternal(MechInternal internal) {
-        CampaignMech mech = selectedMech();
-        if (mech == null || internal == null) return false;
-        MechFrameBudget.Fit proposed = mech.fit().withInternal(internal.role, internal);
-        MechWorkshop.Result result = workshop.fitInternal(mech.id(), internal);
+        CampaignMachine machine = selectedMachine();
+        if (machine == null || internal == null) return false;
+        MechFrameBudget.Fit proposed = machine instanceof CampaignMech mech
+                ? mech.fit().withInternal(internal.role, internal) : null;
+        MechWorkshop.Result result = workshop.fitInternal(machine.id(), internal);
         clearHoverInternal();
         return applyFitResult(result, internal.displayName(), proposed);
     }
@@ -2750,11 +2645,11 @@ public final class MechLabViewModel {
             removeInstalledInternal(slot);
             return;
         }
-        CampaignMech mech = selectedMech();
+        CampaignMachine machine = selectedMachine();
         MechMountSlot mount = mountFor(slot);
-        if (mech == null || mount == null) return;
-        MechWeaponComponent previous = mech.weaponAt(mount);
-        MechWorkshop.Result result = workshop.stripWeapon(mech.id(), mount);
+        if (machine == null || mount == null) return;
+        MechWeaponComponent previous = installedWeapon(slot);
+        MechWorkshop.Result result = workshop.stripWeapon(machine.id(), mount);
         feedbackText.set(switch (result.status()) {
             case STRIPPED -> Strings.format("openingMechLabStrippedAndReturnedToCargoStores", (previous != null ? previous.displayName() : Strings.get("openingMechLabHardware")));
             case ALREADY_STRIPPED -> Strings.get("openingMechLabHardpointIsAlreadyEmpty");

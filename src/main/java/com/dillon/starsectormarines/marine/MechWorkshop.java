@@ -52,6 +52,9 @@ public final class MechWorkshop {
 
     public Result fitWeapon(String mechId, MechMountSlot slot,
                             MechWeaponComponent component) {
+        if (bay.vehicleById(mechId) != null) {
+            return slot == MechMountSlot.ARMS ? fitGun(mechId, component) : Result.of(Status.INCOMPATIBLE);
+        }
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || slot == null || component == null) return Result.of(Status.INVALID);
         if (mech.weaponAt(slot) == component) return Result.of(Status.ALREADY_INSTALLED);
@@ -84,6 +87,11 @@ public final class MechWorkshop {
      * is spent; the outgoing part returns to stores.
      */
     public Result fitInternal(String mechId, MechInternal internal) {
+        if (bay.vehicleById(mechId) != null && internal != null) return switch (internal.role) {
+            case ENGINE -> fitEngine(mechId, internal);
+            case PLATING -> fitPlating(mechId, internal);
+            default -> fitRackPart(mechId, internal);
+        };
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || internal == null) return Result.of(Status.INVALID);
         if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) {
@@ -235,9 +243,16 @@ public final class MechWorkshop {
 
     /**
      * Empties one socketed internal back to stores. Stripping an engine or capacitor bank is
-     * allowed and leaves the mech unable to drop until one is fitted ({@link MechBay#stripInternal}).
+     * allowed and leaves the machine unable to drop until one is fitted ({@link MechBay#stripInternal}).
      */
     public Result stripInternal(String mechId, MechInternal.Role role) {
+        CampaignVehicle vehicle = bay.vehicleById(mechId);
+        if (vehicle != null && role != null) {
+            MechInternal fitted = vehicle.internal(role);
+            return role == MechInternal.Role.ENGINE ? stripEngine(mechId)
+                    : role == MechInternal.Role.PLATING ? stripPlating(mechId)
+                    : fitted != null ? stripRackPart(mechId, fitted) : Result.of(Status.ALREADY_STRIPPED);
+        }
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || role == null) return Result.of(Status.INVALID);
         if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
@@ -246,6 +261,7 @@ public final class MechWorkshop {
 
     /** Takes one part out of the compartment back to stores. */
     public Result stripPart(String mechId, MechInternal part) {
+        if (bay.vehicleById(mechId) != null) return stripRackPart(mechId, part);
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || part == null || !part.role.compartment()) return Result.of(Status.INVALID);
         if (!mech.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
@@ -253,6 +269,9 @@ public final class MechWorkshop {
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {
+        if (bay.vehicleById(mechId) != null) {
+            return slot == MechMountSlot.ARMS ? stripGun(mechId) : Result.of(Status.INCOMPATIBLE);
+        }
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || slot == null) return Result.of(Status.INVALID);
         if (mech.weaponAt(slot) == null) return Result.of(Status.ALREADY_STRIPPED);
