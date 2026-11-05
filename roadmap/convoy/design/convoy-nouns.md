@@ -1659,8 +1659,10 @@ its authored tail (`mechs-nouns.md`, beam weapon). The BL-2 holds the tactical l
 `laser_loop` with no intro, since a lance every second and a quarter would repeat the wind-up; the
 PL-3 opens each burst with `burst_pd_fire` under the same loop.
 
-Acceptance is the `tank-versus-infantry` scene (each laser fires at men, and none of
-its rounds carries blast or wall damage) and the `tank-versus-air` scene (each laser
+Acceptance is the `tank-versus-infantry` scene (each laser fires at men), the
+`vehicle-laser` scene (the large lasers, held on grass by a driver, light it, and
+held on a wall wear it down: each pulse bursts where it stops, `mechs-nouns.md`) and
+the `tank-versus-air` scene (each laser
 fires into the air at a hostile gunship, the cannon tank never does, and with men in
 reach as well the PL-3 still fires at the ground).
 

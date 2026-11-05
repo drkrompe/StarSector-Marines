@@ -392,8 +392,8 @@ public class HeavyWeapons {
      * <p>Alignment is the torso's, judged from the chassis centre: the torso turned onto the point is
      * what aims every mount on it. Each barrel then fires from its own muzzle at the point, so paired
      * and shoulder barrels converge on it instead of each needing the point inside its own few degrees,
-     * which a laterally offset muzzle loses at close range. A {@code manual} rocket bursts where it is
-     * thrown ({@link BallisticResolver#resolveGroundBurst}); gun rounds, and every round a pilot did not
+     * which a laterally offset muzzle loses at close range. A {@code manual} rocket, or a beam with a splash, bursts
+     * where it is thrown ({@link BallisticResolver#resolveGroundBurst}); gun rounds, and every round a pilot did not
      * aim, keep the bearing-only point contract.
      */
     private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim, boolean manual) {
@@ -417,7 +417,7 @@ public class HeavyWeapons {
         float accuracy = weapon.accuracy * sensorAccuracy(loadout);
         BallisticResolver.Resolution resolution = manual && bursts(weapon)
                 ? resolver.resolveGroundBurst(source, target.x(), target.y(), accuracy, spread,
-                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng)
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng)
                 : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
                         weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng);
         roster.telemetry().recordRoundFired(shooter);
@@ -482,7 +482,7 @@ public class HeavyWeapons {
                             rocketContactId, rocketContactDamage,
                             rocketContactId != 0L ? contactPenetration : 0f,
                             /*authoredAftermath*/ false,
-                            areaExclusions).withBlast(weapon.blast())
+                            areaExclusions).withBlast(weapon.blast()).incendiary(weapon.incendiaryHeat())
                     : null;
             // Rocket-class rounds own a Projectile so future point defense can
             // intercept the payload. Gun-launched HE remains a ballistic
@@ -551,7 +551,8 @@ public class HeavyWeapons {
                 contactTarget, contactTarget != 0L ? weapon.contactDamage : 0f,
                 contactTarget != 0L ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ false,
-                contactTarget != 0L ? new long[] {contactTarget} : new long[0]).withBlast(weapon.blast());
+                contactTarget != 0L ? new long[] {contactTarget} : new long[0]).withBlast(weapon.blast())
+                .incendiary(weapon.incendiaryHeat());
         shots.queueProjectile(new Projectile(
                 fromX, fromY, ep.x(), ep.y(),
                 weapon.boostRamp, weapon.arcHeight,

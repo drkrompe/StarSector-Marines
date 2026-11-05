@@ -344,8 +344,11 @@ public final class TurretFireSystem implements TurretFireSink {
             launchThrownRocket(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
             return true;
         }
-        BallisticResolver.Resolution res = resolver.resolvePoint(source, aim.x(), aim.y(),
-                accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
+        BallisticResolver.Resolution res = ManualPointFire.bursts(weapon)
+                ? resolver.resolveGroundBurst(source, aim.x(), aim.y(), accuracy, weapon.hitSpread,
+                        weapon.directRoundVelocity(), weapon.range, 0, wander, rng)
+                : resolver.resolvePoint(source, aim.x(), aim.y(),
+                        accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
         telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
         return true;
@@ -488,11 +491,21 @@ public final class TurretFireSystem implements TurretFireSink {
                                        StructureDef structure,
                                        BallisticResolver.Resolution res) {
         WeaponDef weapon = structure.mount.weapon;
+        detonationSink.queue(groundDetonation(shooterId, shooterFaction, weapon, res, heatOf(shooterId, weapon)));
+    }
+
+    /**
+     * The burst a resolved area round sets off where it stopped, a beam's pulse among them: its splash, the structure
+     * damage it does round that point, the heat it puts into the ground ({@code heat}), and its contact payload on the
+     * body it struck, which then takes no share of the splash.
+     */
+    static PendingDetonation groundDetonation(long shooterId, Faction shooterFaction, WeaponDef weapon,
+                                              BallisticResolver.Resolution res, int heat) {
         boolean hasDirectPayload = res.victimId() != 0L && weapon.contactDamage > 0f;
         float directDamage = hasDirectPayload && res.friendlyHit()
                 ? weapon.contactDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
                 : hasDirectPayload ? weapon.contactDamage : 0f;
-        detonationSink.queue(new PendingDetonation(
+        return new PendingDetonation(
                 shooterId,
                 res.endX(), res.endY(), res.flightTime(),
                 weapon.aoeRadius, weapon.damage, weapon.penetration,
@@ -501,7 +514,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
                 directDamage, hasDirectPayload ? weapon.contactPenetration : 0f,
-                /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)).withBlast(weapon.blast()));
+                /*authoredAftermath*/ true).incendiary(heat).withBlast(weapon.blast());
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,

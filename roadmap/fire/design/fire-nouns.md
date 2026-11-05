@@ -327,6 +327,13 @@ does not set Conquest alight.
   thermite charge with little blast) and the **pack flamer** (a short, flat,
   seven-cell lob of burning gel, whose tank refills itself a charge at a time
   in the field, `regenSeconds` on the item, rather than from the truck).
+- **Lasers.** The large pulse lasers, the PL-3 and the PL-3 (Sweep), carry a
+  little heat in every pulse, too little for one pulse to catch grass. Held on
+  one patch, pulse after pulse comes faster than the ground cools (it keeps
+  seven eighths of its heat a fire step), and the patch catches: a PL-3 lights
+  grass on its second burst or so, a PL-3 (Sweep) by the end of a held stream.
+  A player pointing one at ground burns that ground
+  (`ManualPointFire.bursts`) rather than running on to its full reach.
 - **Incendiary rounds.** A fire mission may be incendiary
   (`FireMission.incendiary`): the tubes serving it load incendiary rounds for
   the bodies on its ground. A bomber may be called with firebombs

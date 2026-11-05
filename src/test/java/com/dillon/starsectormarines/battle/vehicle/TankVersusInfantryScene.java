@@ -26,8 +26,9 @@ import java.util.Map;
  * tank's twin cannon and once with the laser tank's burst laser, against a line section and against power suits.
  * The cannon tank is the control every laser row is read against.
  *
- * <p>Verdicts are mechanics only: the laser fires at men, and none of its rounds carries wall damage or blast, so it
- * cannot open the ground it sweeps. Who wins, how fast the section breaks and how many rounds it took are readings.
+ * <p>The verdict is mechanics only: the turret fires at men. Who wins, how fast the section breaks, how many rounds it
+ * took and how many of them burst with splash or wall damage (the laser's do, {@code VehicleLaserScene}) are
+ * readings.
  */
 public final class TankVersusInfantryScene implements BehaviorScene {
 
@@ -177,10 +178,6 @@ public final class TankVersusInfantryScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("turret-fires-at-men", rounds > 0,
                 rounds + " rounds fired over " + traces.size() + " plays"));
-        if (type == VehicleType.LASER_TANK) {
-            verdicts.add(Verdict.of("laser-carries-no-blast", roundsThatBreak == 0,
-                    roundsThatBreak + " laser rounds carried blast or wall damage"));
-        }
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("plays", traces.size());
         m.put("ticks", ticks);
@@ -190,6 +187,7 @@ public final class TankVersusInfantryScene implements BehaviorScene {
         m.put("meanSecondsToBreakFromFirstShot", sectionsBroken > 0 ? breakSeconds / sectionsBroken : -1f);
         m.put("tankDeaths", tankDeaths);
         m.put("rounds", rounds);
+        m.put("roundsThatBurst", roundsThatBreak);
         return new SceneReport(id(), loopId, ticks, verdicts, m);
     }
 }
