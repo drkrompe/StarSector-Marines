@@ -316,8 +316,7 @@ public final class BoatDeck implements Serializable {
 
     /**
      * Each berth's boat as she would fly, or null for a berth with nothing in it: what a ship's
-     * parked boats are drawn wearing, mount by mount ({@link FittedBoat#kitFor}) and pod by pod
-     * ({@link FittedBoat#podKitFor}).
+     * parked boats are drawn wearing, mount by mount ({@link FittedBoat#kitFor}).
      */
     public FittedBoat[] doorGuns() {
         FittedBoat[] guns = new FittedBoat[berths.size()];
@@ -390,7 +389,8 @@ public final class BoatDeck implements Serializable {
                 if (fitting != null) owned.add(fitting.id());
             }
             for (int hardpoint = 0; hardpoint < boat.pattern().hardpoints(); hardpoint++) {
-                for (BoatGun gun : boat.gunsOn(hardpoint)) owned.add(gun.id());
+                BoatGun gun = boat.gunOn(hardpoint);
+                if (gun != null) owned.add(gun.id());
             }
         }
         owned.removeAll(BoatParts.starterIds());
@@ -403,6 +403,10 @@ public final class BoatDeck implements Serializable {
         Map<String, Integer> rekeyed = new HashMap<>();
         spares.forEach((id, count) -> rekeyed.merge(BoatGun.currentId(id), count, Integer::sum));
         spares = rekeyed;
+        // A save from before a hardpoint held one gun: each second gun goes to stores, or onto its bare hardpoint.
+        for (CampaignBoat boat : berths) {
+            if (boat != null) for (String gun : boat.releaseLegacyPods()) stow(gun);
+        }
         if (learnedParts == null) learnedParts = ownedParts();
         else {
             Set<String> learned = new HashSet<>();

@@ -1508,6 +1508,10 @@ public class MarineRoster implements Serializable {
         if (mechBay == null) mechBay = MechBay.legacyStarterBay();
         if (boatDeck == null) boatDeck = new BoatDeck();
         if (reserveHangar == null) reserveHangar = new ReserveHangar();
+        // A stored boat's second guns go to the deck's stores, as a berthed boat's do (BoatDeck.readResolve).
+        for (CampaignBoat boat : reserveHangar.boats()) {
+            for (String gun : boat.releaseLegacyPods()) boatDeck.stow(gun);
+        }
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;

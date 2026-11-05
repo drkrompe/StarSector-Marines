@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -430,51 +431,41 @@ class BoatWorkshopTest {
         return deck;
     }
     /**
-     * A hardpoint takes two 2x1 guns as one pod: each is fitted, stripped and moved by its own
-     * position, and both fly. A 2x2 gun dropped on either position takes the whole mount.
+     * A hardpoint holds one gun, as a mech's weapon point does (owner, 2026-11-05): a 2x1 gun fitted over another
+     * replaces it, and the one it replaced goes to stores.
      */
     @Test
-    void twoHalfGunsShareOneHardpointAsAPod() {
+    void aHardpointHoldsOneGun() {
         BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
-        assertNull(boat.gunsAt(0)[BoatHardpoint.BOTTOM], "a boat from before pods has an open bottom position");
-        for (BoatGun gun : List.of(BoatGun.TWIN_PE_1, BoatGun.TWIN_PE_1, BoatGun.HEAVY_MG, BoatGun.ARBALEST)) {
-            workshop.fabricatePart(gun.id());
-        }
+        workshop.fabricatePart(BoatGun.TWIN_PE_1.id());
+        workshop.fabricatePart(BoatGun.SRM_15.id());
 
-        assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 1, BoatHardpoint.TOP, BoatGun.TWIN_PE_1.id()).status());
-        assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 1, BoatHardpoint.BOTTOM, BoatGun.TWIN_PE_1.id()).status());
-        assertEquals(List.of(BoatGun.TWIN_PE_1, BoatGun.TWIN_PE_1), boat.gunsOn(1));
-        assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.HEAVY_MG.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.TWIN_PE_1.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_15.id()).status());
+        assertSame(BoatGun.SRM_15, boat.gunOn(1));
+        assertEquals(1, deck.spares(BoatGun.TWIN_PE_1.id()), "the laser it replaced is in stores");
+        assertEquals(BoatGun.SRM_15.structureId(), boat.freezeForDeployment().guns().get(1));
+    }
 
-        FittedBoat flown = boat.freezeForDeployment();
-        assertEquals(BoatGun.TWIN_PE_1.structureId(), flown.guns().get(1));
-        assertEquals(BoatGun.TWIN_PE_1.structureId(), flown.pods().get(1), "both lasers fly, from one pod");
-        assertEquals(BoatGun.HEAVY_MG.structureId(), flown.pods().get(0));
-        assertNull(flown.pods().get(2));
+    /**
+     * A save from before a hardpoint held one gun: a second gun on a bare hardpoint takes it, any other goes to
+     * stores, and nothing is left to settle twice.
+     */
+    @Test
+    void aSavedPodsSecondGunSettlesOnceIntoStoresOrItsBareHardpoint() throws Exception {
+        CampaignBoat boat = new CampaignBoat("b", "Gig", ShuttleType.HERMES, null, null);
+        boat.installGun(1, BoatGun.TWIN_PE_1);
+        boat.installGun(2, null);
+        Field pods = CampaignBoat.class.getDeclaredField("podGunIds");
+        pods.setAccessible(true);
+        pods.set(boat, new String[]{null, BoatGun.TWIN_PE_1.id(), BoatGun.SRM_15.id()});
 
-        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1, BoatHardpoint.TOP).status());
-        assertNull(boat.gunsAt(1)[BoatHardpoint.TOP]);
-        assertSame(BoatGun.TWIN_PE_1, boat.gunsAt(1)[BoatHardpoint.BOTTOM], "the other position keeps its gun");
-        assertEquals(1, deck.spares(BoatGun.TWIN_PE_1.id()));
-        assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.moveGun(boat.id(), 1, BoatHardpoint.BOTTOM, 1, BoatHardpoint.TOP).status());
-        assertSame(BoatGun.TWIN_PE_1, boat.gunOn(1), "a gun moves between its own hardpoint's positions");
-        assertNull(boat.gunsAt(1)[BoatHardpoint.BOTTOM]);
-
-        assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.ARBALEST.id()).status());
-        assertEquals(List.of(BoatGun.ARBALEST), boat.gunsOn(0), "a 2x2 gun takes the whole hardpoint");
-        assertEquals(2, deck.spares(BoatGun.HEAVY_MG.id()), "both machine guns it displaced are in stores");
-        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
-        assertEquals(List.of(), boat.gunsOn(1));
+        assertEquals(List.of(BoatGun.TWIN_PE_1.id()), boat.releaseLegacyPods(), "hardpoint 2's pod partner comes off");
+        assertSame(BoatGun.SRM_15, boat.gunOn(2), "a pod gun alone on its mount stays on it");
+        assertSame(BoatGun.TWIN_PE_1, boat.gunOn(1));
+        assertEquals(List.of(), boat.releaseLegacyPods());
     }
 }
-
-
-

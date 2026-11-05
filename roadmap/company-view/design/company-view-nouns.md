@@ -4,6 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
+Updated: 2026-11-05 — a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05); a hardpoint card has one drop target and a 2x1 gun leaves the rest of its bricks closed.
+
 Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) special, a missile-green secondary brick, not a suit system.
 
 Updated: 2026-10-22 — a squad's kit is its two cards; Barracks cards lead with them, and filling vacancies is a wrench on the card or beside the select toggle.
@@ -720,11 +722,10 @@ footprint. A card with no spare is greyed with its price and a BUY that buys one
 into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
 and red where it does not. Any fitted part, stock ones and the yard's gun included,
 is lifted off the doll the same way: dropped on the stores it goes back as a spare
-and the socket stands empty, and a gun dropped on another hardpoint position moves there. A hardpoint
-socket is two 2x1 rows that answer by position: a 2x1 gun goes on, comes off or moves by the row it is
-let go over, its open neighbour stays open for a second gun, and a 2x2 gun lights and fills the whole
-socket. The ring on the berthed boat marks a pod as one mount (`HP n POD`) on its one arc, and the
-readiness line counts mounts with no gun at all ("N of M mounts empty") and the guns on the rest. What a fit displaces goes
+and the socket stands empty, and a gun dropped on another hardpoint moves there, what stood there going
+to stores. A hardpoint socket holds one gun and lights as one: a gun dropped on an armed one replaces it,
+and a 2x1 gun leaves the bricks it does not fill closed, as any card does. The readiness line counts
+mounts with no gun ("N of M mounts empty"). What a fit displaces goes
 into stores. A card with a spare, while the machine shop runs, carries a RECYCLE
 beside its recovery in green; the first press arms it and says what comes back, and
 a second press on the same card commits (Company resource bills, Recycling). The stores cards, filter pills, meters and selected-mount card are the
@@ -829,15 +830,12 @@ stock strip of the company's credits and whether the fleet is at a civilized por
 separate from the selected part's or boat's price row; the Mech Lab's strip is the
 same.
 
-**A hardpoint carries guns, fitted per hardpoint and position.** A boat has as
-many hardpoints as its pattern, fitted by index, not as a slot. A hardpoint is
-2x2 bricks with two positions, top and bottom (`BoatHardpoint`): it holds one 2x2
-gun, or up to two 2x1 guns (`BoatGun.half`), or none (owner pick, 2026-10-27).
-Two guns on one hardpoint are a **pod**: one turret on the hardpoint's one slot
-and arc with a left and a right barrel, each gun firing on its own cadence and
-charging the boat's flux pool; families mix, and two missile guns ride one
-launcher box. A 2x2 gun let go over either position takes the whole hardpoint and
-whatever was on it goes to stores; a 2x1 gun put beside a 2x2 one displaces it.
+**A hardpoint carries one gun, fitted per hardpoint.** A boat has as many
+hardpoints as its pattern, fitted by index, not as a slot. A hardpoint is 2x2
+bricks and holds one gun, 2x2 or 2x1 (`BoatGun.half`), or none, as a mech's or a
+hull's weapon point holds one weapon (owner, 2026-11-05; the two-gun pod of
+2026-10-27 is gone). A gun fitted to an armed hardpoint replaces what was there,
+which goes to stores.
 Guns come in three
 **families**: ballistic door guns, energy guns that fire on flux and carry no
 magazine, and missile pods with a few salvos a sortie. **Any family goes on any
@@ -854,7 +852,7 @@ covers the stern. The fitted guns replace the kit only for an air-to-ground sort
 other roles still arm by role.
 
 **The Hermes is the company's boat, and every refit is built around her.** She
-takes every slot's upgrades, and a gun or a pod of two on each of her three turrets, from stores.
+takes every slot's upgrades, and a gun on each of her three turrets, from stores.
 
 A failed fit or purchase changes nothing but the room's feedback line — neither the
 boat nor the purse — because the workshop rechecks the port and the credits at the

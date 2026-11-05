@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-31 — every based pool flies from laid airbases, the Cordon's air base among them (A based pool, Airbase). Earlier the same day, a falling hull goes up and comes down as a blast field spread evenly over its own shape; its crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, one airfield service holds several fields, each with its own owner, strip and crew; a field may rebuild its losses as crew work; a pool may be based on fields of its own on the map, its stock what stands ready there, one way for every field (A based pool; a laid airbase's bays rebuilt by its crew, Airbase); a based wing keeps a standing patrol; cover fighters hunt fliers. Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-11-05 — a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05): the two-gun pod is gone. Earlier 2026-10-31 — every based pool flies from laid airbases, the Cordon's air base among them (A based pool, Airbase). Earlier the same day, a falling hull goes up and comes down as a blast field spread evenly over its own shape; its crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, one airfield service holds several fields, each with its own owner, strip and crew; a field may rebuild its losses as crew work; a pool may be based on fields of its own on the map, its stock what stands ready there, one way for every field (A based pool; a laid airbase's bays rebuilt by its crew, Airbase); a based wing keeps a standing patrol; cover fighters hunt fliers. Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -400,18 +400,12 @@ untouched. A better boat is faster, tougher or better armed, not a different
 aircraft. A gun is mounted on the hull's turret slots before its fixed rails, so
 the one gun a Kite-hulled boat carries sits on her turret.
 
-**A pod is two guns on one hardpoint.** A company boat's hardpoint takes two 2x1
-guns (owner pick, 2026-10-27; `FittedBoat.podKitFor` beside `kitFor`). They are
-mounted as two `MountedTurret`s on the one slot with its one arc, the top gun the
-pod's lead and the second its partner (`podLead`, `podPartner`). The pod turns as
-one: the second gun comes round to where the lead is laid and takes the lead's
-target when it can reach it, and with the lead idle the second gun leads. Each gun
-keeps its own cooldown, burst and magazine, and every round charges the boat's flux
-pool by its family. The barrels sit either side of the slot across the pod's
-facing (`MountedTurret.barrelOffset`), which is where a round leaves and where each
-gun is drawn, a little smaller than alone, over one housing: a saddle between two
-barrels, or a launcher box round two missile guns (`ShuttleRenderSystem.emitTurret`).
-Evidence: the `boat-pod` scene.
+**A hardpoint holds one gun** (owner, 2026-11-05: as a mech's or a hull's weapon
+point holds one weapon). A company boat's hardpoint is one `MountedTurret` on its
+slot and arc (`FittedBoat.kitFor`), 2x2 or 2x1 alike; its rounds leave from the
+slot and charge the boat's flux pool by its family. A save from before carried a
+second 2x1 gun on some hardpoints as a pod: it settles onto that hardpoint if it
+was bare and otherwise goes to stores (`CampaignBoat.releaseLegacyPods`).
 
 **Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
 Heavy, its weight class seen from the air (Hound and the heavy APC Light;

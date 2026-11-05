@@ -16,9 +16,9 @@ import java.util.Map;
  *
  * <p>The fourth kind of boat fitting, and the one that is not a slot: a boat
  * has as many hardpoints as its pattern says, so a gun is fitted to a hardpoint
- * by index rather than to a {@link BoatFittingSlot}. A hardpoint is 2x2 bricks: it
- * takes one 2x2 gun, or up to two {@linkplain #half 2x1} guns, top and bottom,
- * which fly as one turret with two barrels (a pod) on the hardpoint's arc.
+ * by index rather than to a {@link BoatFittingSlot}. A hardpoint is 2x2 bricks and
+ * holds one gun, 2x2 or {@linkplain #half 2x1}, as a mech's or a hull's weapon point
+ * holds one weapon (owner, 2026-11-05).
  * Like the rest of a boat's parts it is built into stores as a spare, and one
  * taken off goes back there ({@link BoatWorkshop}).
  *
@@ -37,8 +37,8 @@ import java.util.Map;
  *     catalog the airframe's kit already names
  * @param bill what the yard charges, in credits, to build one spare
  * @param effect one line on what the gun does in play, for its catalog row
- * @param half a 2x1 gun, which takes one of a hardpoint's two positions, so two of them share
- *     the mount as a pod; a 2x2 gun takes the whole hardpoint
+ * @param half a 2x1 gun, drawn one row tall on its hardpoint; it takes the hardpoint alone, as a
+ *     2x2 gun does
  */
 public record BoatGun(
         String id,
