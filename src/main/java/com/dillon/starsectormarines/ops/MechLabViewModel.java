@@ -568,7 +568,13 @@ public final class MechLabViewModel {
         props.put("buildKind", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             if (recipe == null) return "";
-            return recipe.variant() != null ? chassisKind(recipe.variant()) : vehicleKind(recipe.vehicle());
+            return Strings.get(recipe.variant() != null ? "openingMechLabChassis" : "openingMechLabVehicle");
+        }));
+        // A chassis's default role; a hull has none, and comes with no gun to name in its place.
+        props.put("buildRole", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            return recipe != null && recipe.variant() != null
+                    ? Strings.upper(roleLabel(recipe.variant().defaultRole)) : "";
         }));
         props.put("buildLore", reactor.computed(() -> lore(previewRecipe())));
         props.put("buildWeightIcon", reactor.computed(() -> {
@@ -661,11 +667,6 @@ public final class MechLabViewModel {
         MechPatternCredits.Credit credit = creditOf(recipe);
         if (credit != null) return Strings.get(credit.provenanceKey());
         return recipe != null ? recipe.provenance() : "";
-    }
-
-    /** Kind and role; the weight class is the weight block drawn beside it, not a word. */
-    private static String chassisKind(MechVariant variant) {
-        return Strings.join("separatorDot", Strings.get("openingMechLabChassis"), roleLabel(variant.defaultRole));
     }
 
     /** Chassis lore is the gear catalogue's; vehicle lore is the lab's own. */
@@ -2928,10 +2929,6 @@ public final class MechLabViewModel {
     }
 
     /** Weight and armament, for places that already show the vehicle's name above it. */
-    private static String vehicleKind(VehicleType type) {
-        return Strings.join("separatorDot", Strings.get("openingMechLabVehicle"), vehicleArmament(type));
-    }
-
     /** The weight class's symbol: a weight block sized by class, as in the filter strip. */
     static String weightIcon(MechPattern.WeightClass weight) {
         return "graphics/ui/mech-hardware/weight-" + weight.name().toLowerCase(Locale.ROOT) + ".svg";
