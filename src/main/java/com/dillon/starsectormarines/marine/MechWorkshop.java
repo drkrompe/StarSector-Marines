@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -68,13 +67,9 @@ public final class MechWorkshop {
             return bay.installWeapon(mechId, slot, component.id)
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
-        if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        FabricationCost bill = weaponQuote(component);
-        if (bill == null || !resources.spend(bill)) {
-            return Result.of(Status.INSUFFICIENT_MATERIALS);
-        }
-        bay.addWeapon(component.id, 1);
+        Status built = status(PartShop.build(resources, bay.weaponStores(), component.id, weaponQuote(component),
+                bay.canFabricate(component)));
+        if (built != Status.FABRICATED) return Result.of(built);
         if (!bay.installWeapon(mechId, slot, component.id)) {
             throw new IllegalStateException("validated fabricated component could not be installed");
         }
@@ -110,13 +105,9 @@ public final class MechWorkshop {
             return bay.installInternal(mechId, internal, at)
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
-        if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
-        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
-            return Result.of(Status.INSUFFICIENT_MATERIALS);
-        }
-        bay.addInternal(internal.id, 1);
+        Status built = status(PartShop.build(resources, bay.internalStores(), internal.id, internalQuote(internal),
+                bay.canFabricate(internal)));
+        if (built != Status.FABRICATED) return Result.of(built);
         if (!bay.installInternal(mechId, internal, at)) {
             throw new IllegalStateException("validated fabricated internal could not be installed");
         }
@@ -129,25 +120,39 @@ public final class MechWorkshop {
      */
     public Result fabricateWeapon(MechWeaponComponent component) {
         if (component == null) return Result.of(Status.INVALID);
-        if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        FabricationCost bill = weaponQuote(component);
-        if (bill == null || !resources.spend(bill)) return Result.of(Status.INSUFFICIENT_MATERIALS);
-        bay.addWeapon(component.id, 1);
-        return Result.of(Status.FABRICATED);
+        return Result.of(status(PartShop.build(resources, bay.weaponStores(), component.id, weaponQuote(component),
+                bay.canFabricate(component))));
     }
 
     /** Builds one internal into the bay's stores against its known pattern. */
     public Result fabricateInternal(MechInternal internal) {
         if (internal == null) return Result.of(Status.INVALID);
-        if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
-        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
-            return Result.of(Status.INSUFFICIENT_MATERIALS);
-        }
-        bay.addInternal(internal.id, 1);
-        return Result.of(Status.FABRICATED);
+        return Result.of(status(PartShop.build(resources, bay.internalStores(), internal.id, internalQuote(internal),
+                bay.canFabricate(internal))));
+    }
+
+    /** What building one {@code internal} costs now; null for one with no recipe. */
+    private FabricationCost internalQuote(MechInternal internal) {
+        MechFabricationCatalog.Recipe recipe = internal == null ? null : MechFabricationCatalog.internal(internal);
+        return recipe == null ? null : resources.quote(recipe.cost());
+    }
+
+    /**
+     * The shop's answer in the Mech Lab's words. A part with no price reads as a short purse, as it always has: the
+     * lab sells nothing it cannot build.
+     */
+    private static Status status(PartShop.Outcome outcome) {
+        return switch (outcome) {
+            case BUILT -> Status.FABRICATED;
+            case RECYCLED -> Status.RECYCLED;
+            case NOT_LEARNED -> Status.PATTERN_LOCKED;
+            case NO_MARKET -> Status.NO_MARKET;
+            case NOT_FABRICABLE, CANNOT_AFFORD -> Status.INSUFFICIENT_MATERIALS;
+            case NO_SPARE -> Status.NO_SPARE;
+            case WORKSHOP_IDLE -> Status.WORKSHOP_IDLE;
+            case NOTHING_TO_RECOVER -> Status.NOTHING_TO_RECOVER;
+            case NO_HOLD -> Status.INVALID;
+        };
     }
 
     /**
@@ -348,12 +353,11 @@ public final class MechWorkshop {
 
     /** What recycling one spare {@code component} would put back now; null for none. */
     public FabricationCost weaponRecovery(MechWeaponComponent component) {
-        return component == null ? null : resources.reclamation().recover(weaponQuote(component));
+        return component == null ? null : PartShop.recycleQuote(resources, weaponQuote(component));
     }
 
     public FabricationCost internalRecovery(MechInternal internal) {
-        MechFabricationCatalog.Recipe recipe = internal == null ? null : MechFabricationCatalog.internal(internal);
-        return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
+        return PartShop.recycleQuote(resources, internalQuote(internal));
     }
 
     /**
@@ -362,22 +366,13 @@ public final class MechWorkshop {
      */
     public Result recycleWeapon(MechWeaponComponent component) {
         if (component == null) return Result.of(Status.INVALID);
-        return recycle(bay.availableWeapon(component.id), weaponRecovery(component), () -> bay.takeWeapon(component.id));
+        return Result.of(status(PartShop.recycle(resources, bay.weaponStores(), component.id, weaponQuote(component))));
     }
 
+    /** The purse is paid before the spare leaves stores, so a fleet with no purse keeps it ({@link PartShop}). */
     public Result recycleInternal(MechInternal internal) {
         if (internal == null) return Result.of(Status.INVALID);
-        return recycle(bay.availableInternal(internal.id), internalRecovery(internal), () -> bay.takeInternal(internal.id));
-    }
-
-    /** The purse is paid before the spare leaves stores, so a fleet with no purse keeps it. */
-    private Result recycle(int spares, FabricationCost back, BooleanSupplier take) {
-        if (spares <= 0) return Result.of(Status.NO_SPARE);
-        if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
-        if (back == null) return Result.of(Status.NOTHING_TO_RECOVER);
-        if (!resources.credit(back)) return Result.of(Status.INVALID);
-        if (!take.getAsBoolean()) throw new IllegalStateException("counted spare could not leave stores");
-        return Result.of(Status.RECYCLED);
+        return Result.of(status(PartShop.recycle(resources, bay.internalStores(), internal.id, internalQuote(internal))));
     }
 
     /**
