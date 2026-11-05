@@ -501,13 +501,14 @@ public enum VehicleType {
 
     /**
      * Whether this hull carries a dozer blade, a part wider than its hull. Only the dozer breacher does, until it is
-     * retired; what the blade opens is {@link #crushesWalls()}, which every ultra-heavy hull shares by its weight.
+     * retired; what the blade opens is {@link #crushesWalls()}, which every heavy and ultra-heavy hull shares by its
+     * weight.
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
     /**
-     * Whether this hull opens ordinary walls and barricades in its path ({@link DozerBlade}): every ultra-heavy hull,
-     * by its own weight on its nose ({@link Weight#crushesWalls}), and the dozer by its blade. Its route proof and
+     * Whether this hull opens ordinary walls and barricades in its path ({@link DozerBlade}): every heavy and
+     * ultra-heavy hull, by its own weight on its nose ({@link Weight#crushesWalls}), and the dozer by its blade. Its route proof and
      * rolling planner read the breach view instead of the grid it moves over.
      */
     public boolean crushesWalls() { return weight().crushesWalls() || hasBlade(); }
@@ -522,7 +523,7 @@ public enum VehicleType {
 
     /**
      * Whether this hull drives through the light barricades its way covers ({@link BarricadeRam}): every hull that
-     * crushes undergrowth but those that crush walls, which open barricades as they open walls.
+     * crushes undergrowth but those that crush walls, which open barricades as they open walls; so the medium hulls.
      */
     public boolean ramsBarricades() { return crushesUndergrowth() && !crushesWalls(); }
 
@@ -544,10 +545,11 @@ public enum VehicleType {
         public boolean crushesUndergrowth() { return this != LIGHT; }
 
         /**
-         * Whether a hull of this weight crushes ordinary walls and barricades with its own nose: ultra-heavy only. A
-         * heavy hull rams barricades ({@link BarricadeRam}) and stops at walls.
+         * Whether a hull of this weight crushes ordinary walls and barricades with its own nose: heavy and ultra-heavy
+         * (owner: heavy vehicles break ordinary walls, not fortified ones). A medium hull rams barricades
+         * ({@link BarricadeRam}) and stops at walls.
          */
-        public boolean crushesWalls() { return this == ULTRA_HEAVY; }
+        public boolean crushesWalls() { return atLeast(HEAVY); }
 
         /**
          * Mass in tonnes: a pickup about a Brute's weight and a light skirt ({@code hover}) less, an APC several

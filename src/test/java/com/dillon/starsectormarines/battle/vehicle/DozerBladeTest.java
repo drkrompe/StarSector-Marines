@@ -16,6 +16,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The blade's clearing rule, its breach view and one hull's push, each on a hand-laid grid. */
@@ -57,14 +58,58 @@ class DozerBladeTest {
     @Test void ceilingAndRateGoByWeightThenByBlade() {
         assertEquals(DozerBlade.ULTRA_HEAVY_CEILING, DozerBlade.ceiling(VehicleType.Weight.ULTRA_HEAVY, false));
         assertEquals(DozerBlade.ULTRA_HEAVY_PER_SECOND, DozerBlade.rate(VehicleType.Weight.ULTRA_HEAVY, false));
+        assertEquals(DozerBlade.HEAVY_CEILING, DozerBlade.ceiling(VehicleType.Weight.HEAVY, false));
+        assertEquals(DozerBlade.HEAVY_PER_SECOND, DozerBlade.rate(VehicleType.Weight.HEAVY, false));
+        assertTrue(DozerBlade.HEAVY_PER_SECOND < DozerBlade.ULTRA_HEAVY_PER_SECOND, "a heavy hull grinds slower");
         assertEquals(DozerBlade.MAX_PUSH_STRUCTURE, DozerBlade.ceiling(VehicleType.DOZER_BREACHER));
         assertEquals(DozerBlade.PUSH_PER_SECOND, DozerBlade.rate(VehicleType.DOZER_BREACHER));
-        for (VehicleType.Weight weight : new VehicleType.Weight[]{
-                VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM, VehicleType.Weight.HEAVY}) {
+        for (VehicleType.Weight weight : new VehicleType.Weight[]{VehicleType.Weight.LIGHT, VehicleType.Weight.MEDIUM}) {
             assertEquals(0, DozerBlade.ceiling(weight, false), "no wall falls to a bladeless " + weight + " hull");
             assertEquals(0f, DozerBlade.rate(weight, false), weight.name());
         }
-        assertTrue(DozerBlade.ULTRA_HEAVY_CEILING < 150, "a fortified wall holds against weight alone");
+        for (int ceiling : new int[]{DozerBlade.HEAVY_CEILING, DozerBlade.ULTRA_HEAVY_CEILING}) {
+            assertTrue(ceiling >= 100, "an ordinary city wall falls to weight");
+            assertTrue(ceiling < 150, "a fortified wall holds against weight alone");
+        }
+    }
+
+    @Test void aFortsWorksAreNeverPushed() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 1, 1, 80);
+        grid.markWorks(1, 1);
+        assertFalse(DozerBlade.canPush(grid, topology, null, 1, 1, 100));
+    }
+
+    /** A gun tank's breach view keeps its identity as the map moves, and catches up with what changed. */
+    @Test void aHeavyHullsBreachViewIsKeptAndCaughtUp() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 4, 4, 100);
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
+            NavigationGrid view = blade.planningGrid(tank, grid);
+            assertTrue(view.isWalkable(4, 4), "an ordinary wall is open to a heavy hull's plan");
+            assertTrue(blade.isKeptView(view));
+            wall(grid, topology, 6, 6, 80);
+            wall(grid, topology, 7, 6, 150);
+            assertSame(view, blade.planningGrid(tank, grid), "kept, not rebuilt");
+            assertTrue(view.isWalkable(6, 6), "a new housing wall is caught up open");
+            assertFalse(view.isWalkable(7, 6), "a new fortified wall is caught up closed");
+        }
+    }
+
+    @Test void aCrushingHullsRoutePaysForWhatItBreaks() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        topology.setGroundKind(4, 4, CellTopology.GroundKind.STREET);
+        wall(grid, topology, 4, 4, 100);
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
+            TerrainCostField cost = blade.costField(VehicleType.BREAKTHROUGH_TANK, TerrainCostField.from(topology));
+            assertEquals(DozerBlade.ROUTE_COST, cost.costAt(4, 4), 1e-6f);
+        }
     }
 
     @Test void aHullBearsOnItsOwnWidthAndTheDozerOnItsBlade() {

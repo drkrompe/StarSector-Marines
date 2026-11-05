@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1338,22 +1338,26 @@ variant was removed (owner, 2026-10-22) because its single long barrel read as
 goofy at game scale; the tank line's anti-armor answer is the breakthrough cannon.
 
 **Weight crushes walls** (`DozerBlade`, named for the blade until the dozer is
-retired; `VehicleType.crushesWalls`). An ultra-heavy hull opens ordinary walls and
-barricades with its own nose, because of its mass, not a part; the dozer does the
-same with its blade until it goes. A blocking cell is
+retired; `VehicleType.crushesWalls`). A heavy or ultra-heavy hull (the gun tanks,
+the Scorpion, and the repulsor Onager to come) opens ordinary walls and barricades
+with its own nose, because of its mass, not a part (owner: heavy vehicles break
+ordinary walls, not fortified ones); the dozer does the same with its blade until
+it goes. A blocking cell is
 *pushable* when its structure is spent through the ordinary wall channel — a
 wall cell or a sandbag, fence or crate barricade — and is above zero and at most
-the hull's **ceiling**: 100 for an ultra-heavy hull, as for the blade. Ordinary
+the hull's **ceiling**: 100 for a heavy or ultra-heavy hull, as for the blade. Ordinary
 city and gated-housing walls fall to it; fortified and fortress walls (150 and up)
 stand until fire has worn them under the ceiling, so a fort is still opened by
-fire and charges first, and an ultra-heavy hull's greater mass shows in the
-momentum it carries through a wall, not in what it can open. A heavy hull crushes
-no wall: it rams barricades and stops at walls (below). Natural obstructions,
+fire and charges first. A fort's or an objective's works are pushed by nothing, as
+they are rammed by nothing. Natural obstructions,
 registered equipment and entity-owned fixtures are never pushed. Low crash debris
 under the hull is graded flat. The hull bears on a strip just past its nose, its
-own width for an ultra-heavy hull and the painted blade's, wider than the hull, for
-the dozer, and spends its **rate**, 80 structure a second for either, on every
-pushable cell in it at once, through the same
+own width for a hull crushing by weight and the painted blade's, wider than the hull, for
+the dozer, and spends its **rate** on every pushable cell in it at once: 80
+structure a second for an ultra-heavy hull or the blade, 50 for a heavy hull, which
+grinds a city wall down in two seconds rather than one and a quarter. Weight
+separates the two classes again in momentum: an ultra-heavy hull carries nearly
+twice a gun tank's mass through a row of walls. Pushing is done through the same
 destruction path a breaching charge uses: a pushed wall becomes rubble, a
 pushed barricade its destroyed art, and the cell is ordinary walkable ground for
 every vehicle and unit afterwards. A dozer driving onto what it pushes also
@@ -1376,9 +1380,13 @@ the grid it moves over (its crush view, or a heavy skirt's view) with every cell
 under its ceiling open. Its move-order proof and rolling local planner both use
 it, so ground the hull can open is reachable for it and for nobody else, while its
 physical sweep still reads the grid it moves over — which is what holds the hull
-against a wall until it has pushed it down. No hull is ultra-heavy yet; the
-repulsor Onager joins the class when the dozer is retired
-(`hegemony-armor-line.md`). A troop
+against a wall until it has pushed it down. Gun tanks are common and the map moves
+all battle, so the view is **kept**, as the crush view is: it catches up with the
+live grid's change log cell by cell, one view per ceiling, and a move order over it
+still snaps to the nearest reachable cell; one over a skirt's view, which is copied
+afresh when the map moves, is copied with it. Pushable cells cost the route what a
+rammed barricade does. No hull is ultra-heavy yet; the repulsor Onager joins the
+class when the dozer is retired (`hegemony-armor-line.md`). A troop
 carrier ordered across an intact wall goes no farther than its near side;
 ordered again after the dozer is through, its ordinary proof finds the gap. Wall cells cost a route dearly, so
 the dozer breaches only where going round is dearer. The convoy's dispatched
@@ -1421,16 +1429,16 @@ across young or creep-killed wood drives through it, felling what it touches
 living mature wood holds every hull, and a scout car is held by the young wood
 that a troop APC crushes through.
 
-A medium or heavy hull **rams** light barricades (`BarricadeRam`; owner's pick,
+A medium hull **rams** light barricades (`BarricadeRam`; owner's pick,
 2026-10-27). A cell is *rammable* while it is closed and holds a sandbag, fence or
 crate piece of structure 100 or less that is not a fort's or an objective's works:
 works are rammed by nothing, as a Brute's charge rams them rather than bowling them
 over. Every hull that crushes undergrowth but those that crush walls (the dozer and
-any ultra-heavy hull), which push barricades down with the walls, drives into rammable cells spending its **momentum** on them, as
-the blade does: where its way covers all the pieces its footprint reaches they fall
+every heavy or ultra-heavy hull), which push barricades down with the walls, so
+every medium hull, drives into rammable cells spending its **momentum** on them, as
+a crushing hull does: where its way covers all the pieces its footprint reaches they fall
 at once to their destroyed art and it drives on at the speed the rest gives, so an
-APC at full speed keeps about nine tenths of its way through one piece and a gun
-tank barely notices a row; where it does not, they share its way and it is brought
+APC at full speed keeps about nine tenths of its way through one piece; where it does not, they share its way and it is brought
 up. A hull held by rammable cells and nothing else shoves at them at 40 structure a
 second until they give, and that counts as progress for its recovery, so a hull that
 came at a barricade slowly still gets through, slowly. Each hull plans over its own
@@ -1439,9 +1447,9 @@ top speed carries, kept and caught up with the live grid cell by cell as the cru
 view is; its sweep still reads the crush view, where the piece stands until it is
 rammed. Rammable ground costs a route more than rubble, so a hull goes round a
 barricade where going round is short. `-Dbattle.vehicle.ramBarricades=false` is the
-control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC and a gun
-tank cross a sandbag and fence line with no way round, slowed and not stopped, where
-the control APC is held at it.
+control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC rams and a gun
+tank crushes its way across a sandbag and fence line with no way round, slowed and not
+stopped, where the control APC is held at it.
 
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the

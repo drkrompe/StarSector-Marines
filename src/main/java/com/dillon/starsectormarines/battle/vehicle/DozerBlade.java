@@ -12,23 +12,24 @@ import java.util.List;
 
 /**
  * What a wall-crushing hull ({@link VehicleType#crushesWalls()}) pushes through, how fast, and the view of the map its
- * route proof reads. An ultra-heavy hull crushes by its own weight on its nose; the dozer breacher, until it is
- * retired, by its blade. The class keeps the blade's name until the dozer goes.
+ * route proof reads. A heavy or ultra-heavy hull crushes by its own weight on its nose; the dozer breacher, until it
+ * is retired, by its blade. The class keeps the blade's name until the dozer goes.
  *
  * <p><b>The rule.</b> A blocking cell is <em>pushable</em> when its structure is spent through the ordinary wall
  * channel — a wall cell, or a sandbag, fence or crate barricade — and that structure is above zero and no more than
- * the hull's ceiling ({@link #ceiling}: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE} by the
- * blade). Ordinary city walls (100) and gated-housing walls (80) fall to either; fortified and fortress walls (150 and
- * up) do not, until fire has worn them under the ceiling. Natural obstructions (rock, trees, summit terrain),
- * registered equipment and entity-owned fixtures (a turret's mount) are never pushed. Low crash debris under the hull
+ * the hull's ceiling ({@link #ceiling}: {@link #HEAVY_CEILING} and {@link #ULTRA_HEAVY_CEILING} by weight,
+ * {@link #MAX_PUSH_STRUCTURE} by the blade). Ordinary city walls (100) and gated-housing walls (80) fall to each;
+ * fortified and fortress walls (150 and up) do not, until fire has worn them under the ceiling. Natural obstructions
+ * (rock, trees, summit terrain), a fort's or an objective's works ({@link NavigationGrid.CellTag#WORKS}), registered
+ * equipment and entity-owned fixtures (a turret's mount) are never pushed. Low crash debris under the hull
  * and its bearing strip is graded flat: the cell keeps its terrain and loses the slowing tag.
  *
  * <p><b>The bearing strip.</b> A hull bears on a strip just past its nose ({@link #bearingWidth}): the hull's own
- * width for an ultra-heavy hull, which has nothing wider than itself to push with, so the gap it cuts is its own
+ * width for a hull crushing by weight, which has nothing wider than itself to push with, so the gap it cuts is its own
  * width; the painted blade's ({@link #BLADE_WIDTH_CELLS}) for the dozer.
  *
- * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #ULTRA_HEAVY_PER_SECOND} by weight, the blade's
- * {@link #PUSH_PER_SECOND}) of structure per second on every pushable cell it bears on at once, through
+ * <p><b>The rate.</b> The hull spends its rate ({@link #rate}: {@link #HEAVY_PER_SECOND} for a heavy hull,
+ * {@link #ULTRA_HEAVY_PER_SECOND} for an ultra-heavy one, the blade's {@link #PUSH_PER_SECOND}) of structure per second on every pushable cell it bears on at once, through
  * {@link MapEditor#damageWall} — the same destruction path a breaching charge uses. A pushed wall becomes rubble and a
  * pushed barricade its destroyed art, and the cell is ordinary walkable ground for every vehicle and unit from then
  * on. Opening is the only direction it edits: like every destruction op, it can only make the map more permissive, so
@@ -49,7 +50,7 @@ import java.util.List;
  * hull's move-order proof and its rolling local planner read that view, laid over the grid it moves over (its
  * tracks' crush view, or a heavy skirt's), so ground it can open counts as reachable for it and for nobody else; its
  * physical sweep still reads the grid it moves over, which is what holds the hull against a wall until it has pushed
- * it down.
+ * it down. Pushable cells cost its route {@link #ROUTE_COST}, so it breaches only where going round is dearer.
  */
 public final class DozerBlade {
 
@@ -66,6 +67,17 @@ public final class DozerBlade {
     /** Structure an ultra-heavy hull's weight spends per second on each cell it bears on: the blade's rate. */
     public static final float ULTRA_HEAVY_PER_SECOND = 80f;
     /**
+     * The heaviest structure a heavy hull crushes (owner: heavy vehicles break ordinary walls, not fortified ones):
+     * the same walls and barricades as an ultra-heavy hull.
+     */
+    public static final int HEAVY_CEILING = 100;
+    /**
+     * Structure a heavy hull spends per second on each cell it bears on, slower than an ultra-heavy's: held against a
+     * city wall it grinds through in two seconds, not one and a quarter. Its lesser mass carries it less far through
+     * a row at speed, too.
+     */
+    public static final float HEAVY_PER_SECOND = 50f;
+    /**
      * How wide the blade bears, cells: the painted blade, wider than the hull behind it, so the gap it cuts is one the
      * hull drives through.
      */
@@ -76,6 +88,8 @@ public final class DozerBlade {
     static final float OVERLAP_CELLS = .2f;
     /** Cells past where its nose gets to this tick that a hull counts as hitting: the sweep's contact skin. */
     static final float CONTACT_CELLS = .05f;
+    /** What a pushable cell costs a crushing hull's route: a ramming hull's barricade price. */
+    static final float ROUTE_COST = BarricadeRam.ROUTE_COST;
 
     private final NavigationService navigation;
     private final MapEditor editor;
@@ -99,14 +113,15 @@ public final class DozerBlade {
     }
 
     /**
-     * The heaviest structure {@code type} pushes: {@link #ULTRA_HEAVY_CEILING} by weight, {@link #MAX_PUSH_STRUCTURE}
-     * by a blade, none for a hull that crushes no walls.
+     * The heaviest structure {@code type} pushes: {@link #ULTRA_HEAVY_CEILING} or {@link #HEAVY_CEILING} by weight,
+     * {@link #MAX_PUSH_STRUCTURE} by a blade, none for a hull that crushes no walls.
      */
     public static int ceiling(VehicleType type) { return ceiling(type.weight(), type.hasBlade()); }
 
     /** The ceiling of a hull of {@code weight}, with or without a {@code blade}: weight first, then the blade. */
     static int ceiling(VehicleType.Weight weight, boolean blade) {
-        if (weight.crushesWalls()) return ULTRA_HEAVY_CEILING;
+        if (weight == VehicleType.Weight.ULTRA_HEAVY) return ULTRA_HEAVY_CEILING;
+        if (weight.crushesWalls()) return HEAVY_CEILING;
         return blade ? MAX_PUSH_STRUCTURE : 0;
     }
 
@@ -115,7 +130,8 @@ public final class DozerBlade {
 
     /** The rate of a hull of {@code weight}, with or without a {@code blade}. */
     static float rate(VehicleType.Weight weight, boolean blade) {
-        if (weight.crushesWalls()) return ULTRA_HEAVY_PER_SECOND;
+        if (weight == VehicleType.Weight.ULTRA_HEAVY) return ULTRA_HEAVY_PER_SECOND;
+        if (weight.crushesWalls()) return HEAVY_PER_SECOND;
         return blade ? PUSH_PER_SECOND : 0f;
     }
 
@@ -133,7 +149,8 @@ public final class DozerBlade {
     public static boolean canPush(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y,
                                   int most) {
         if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
-                || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) return false;
+                || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
+                || grid.hasTag(x, y, NavigationGrid.CellTag.WORKS)) return false;
         int structure = grid.getWallHp(x, y);
         if (structure <= 0 || structure > most) return false;
         if (doodads != null && doodads.damageablePropIdAt(x, y, topology) != null) {
@@ -183,25 +200,37 @@ public final class DozerBlade {
 
     /**
      * The breach view {@code type} plans over, laid over {@code base}, the grid it moves over (the live grid, its
-     * crush view, or a skirt's view): rebuilt when the map's topology has moved since it was last asked for.
+     * crush view, or a skirt's view). Gun tanks are common and the map moves all battle, so the view is kept, not
+     * rebuilt: it catches up with the live grid's change log cell by cell, as the crush view does, and keeps its
+     * identity while its base does. A skirt's view is copied afresh when the map moves, so a breach view over one is
+     * too. One view is kept per ceiling and kind of base.
      */
     public NavigationGrid planningGrid(VehicleType type, NavigationGrid base) {
-        NavigationGrid grid = navigation.getGrid();
-        long revision = grid.topologyRevision();
         int most = ceiling(type);
+        boolean hover = type.isHover();
         for (View view : views) {
-            if (view.most != most || view.base != base) continue;
-            if (view.revision != revision) {
-                view.grid = breachView(base, grid, navigation.getTopology(), doodads, most);
-                view.revision = revision;
-            }
-            return view.grid;
+            if (view.most == most && view.hover == hover) return view.caughtUp(base);
         }
-        // A base that is gone (a skirt's view rebuilt) leaves its view behind: one view per ceiling.
-        views.removeIf(view -> view.most == most);
-        View view = new View(most, base, revision, breachView(base, grid, navigation.getTopology(), doodads, most));
+        View view = new View(most, hover);
         views.add(view);
-        return view.grid;
+        return view.caughtUp(base);
+    }
+
+    /**
+     * The route cost a crushing hull pays: every cell under its ceiling at least {@link #ROUTE_COST}, what a ramming
+     * hull pays for a barricade, so it goes round a wall or a barricade on a street where going round is short.
+     */
+    TerrainCostField costField(VehicleType type, TerrainCostField base) {
+        NavigationGrid grid = navigation.getGrid();
+        CellTopology topology = navigation.getTopology();
+        int most = ceiling(type);
+        return base.withFloor((x, y) -> canPush(grid, topology, doodads, x, y, most), ROUTE_COST);
+    }
+
+    /** Whether {@code grid} is a breach view kept and caught up with the live grid: one not over a skirt's view. */
+    boolean isKeptView(NavigationGrid grid) {
+        for (View view : views) if (!view.hover && view.grid == grid) return true;
+        return false;
     }
 
     /**
@@ -321,17 +350,40 @@ public final class DozerBlade {
         body.speed = 0f;
     }
 
-    private static final class View {
+    /** One ceiling's breach view over one kind of base, caught up cell by cell while its base keeps its identity. */
+    private final class View {
         final int most;
-        final NavigationGrid base;
-        long revision;
+        final boolean hover;
         NavigationGrid grid;
+        NavigationGrid base;
+        NavigationGrid of;
+        long caughtUp;
 
-        View(int most, NavigationGrid base, long revision, NavigationGrid grid) {
+        View(int most, boolean hover) {
             this.most = most;
-            this.base = base;
-            this.revision = revision;
-            this.grid = grid;
+            this.hover = hover;
+        }
+
+        NavigationGrid caughtUp(NavigationGrid over) {
+            NavigationGrid live = navigation.getGrid();
+            CellTopology topology = navigation.getTopology();
+            long now = live.changeCount();
+            if (grid == null || base != over || of != live || !live.hasCaughtUpFrom(caughtUp)) {
+                grid = breachView(over, live, topology, doodads, most);
+                base = over;
+                of = live;
+            } else {
+                for (long sequence = caughtUp; sequence < now; sequence++) {
+                    int cell = live.changedCellAt(sequence);
+                    int x = cell % live.getWidth(), y = cell / live.getWidth();
+                    grid.syncRoutingCell(over, cell, 0L);
+                    if (!canPush(live, topology, doodads, x, y, most)) continue;
+                    grid.setWalkable(x, y, true);
+                    grid.openAllEdges(x, y);
+                }
+            }
+            caughtUp = now;
+            return grid;
         }
     }
 }

@@ -66,9 +66,8 @@ its mass, not because of a part. So:
 - `VehicleType.Weight` gains a class above `HEAVY` (ultra-heavy); the repulsor Onager is in it. `massTonnes` follows.
 - `DozerBlade`'s rule (pushable cells, structure ceiling, momentum spent through `HullMomentum`, the route-proof breach
   view) is recast around the hull's mass and weight class instead of `hasBlade`: which structure a hull can crush and
-  how fast is read from its weight, and the bearing strip is the hull's own nose, not a blade wider than it. Whether a
-  plain `HEAVY` hull also crushes barricades (it rams them today, `BarricadeRam`) or only ultra-heavy crushes walls is
-  the slice's to propose.
+  how fast is read from its weight, and the bearing strip is the hull's own nose, not a blade wider than it. A plain
+  `HEAVY` hull breaks ordinary walls too, not fortified ones (owner, 2026-11-05).
 - A save or stock that names the dozer is carried to the Onager; its stock fit, store card and doll go.
 
 ### A heavy hull can hover
@@ -91,12 +90,14 @@ tuned in the playtest, not by evidence alone.
 3. **Shipped.** **Weight and hover split** (`convoy-nouns.md`, mass decides the shove; weight crushes walls):
    `VehicleType.Weight` gains `ULTRA_HEAVY` (80 t); the shove, the crush, the ram and the mass are rules of the
    weight, hover only of the ground (a light skirt alone shoves nothing); a heavy skirt's view is the hover view over
-   the crush view. `DozerBlade` reads its ceiling, rate and bearing width from the hull: an ultra-heavy hull crushes
-   at 100 and 80 a second across its own width, the dozer by its blade as before. No hull is ultra-heavy yet.
+   the crush view. `DozerBlade` reads its ceiling, rate and bearing width from the hull: heavy and ultra-heavy hulls
+   crush at a ceiling of 100 across their own width, 50 and 80 a second, never a fort's works; the dozer by its blade
+   as before. A crushing hull's breach view is kept and caught up cell by cell, and its route pays 8 for what it
+   breaks. Every gun tank and the Scorpion crush walls; no hull is ultra-heavy yet.
 4. **The repulsor Onager**: art, footprint, wreck, no treads, the dozer retired and its saves carried. It moves into
-   `ULTRA_HEAVY`; `DozerBlade` and `hasBlade` go with the dozer (the class renamed for the weight rule). A heavy,
-   not ultra-heavy, hover hull would ram barricades it meets but plan round them, since the rammer's view is not
-   laid over the skirt's; none is planned.
+   `ULTRA_HEAVY`; `DozerBlade` and `hasBlade` go with the dozer (the class renamed for the weight rule). A medium
+   hover hull would ram barricades it meets but plan round them, since the rammer's view is not laid over the
+   skirt's; none is planned.
 5. **Shipped.** **The medium tank**: `MEDIUM_TANK`, the concept packed with an ImageGen wreck and the head as its
    fallback turret frames (`art-source/vehicles/medium-tank`), two tread runs a side, a two-row ballistic card, store,
    doll and Kit Ladder station. Evidence: `createSnapshots -Psnapshot=medium-tank`.
@@ -105,8 +106,10 @@ tuned in the playtest, not by evidence alone.
 ## Open
 
 - The owner's pick on the medium tank's role: Medium lift at Junction (built) or Heavy lift at Thunder Run.
-- Proposed in slice 3, the owner's to confirm: `HEAVY` hulls keep ramming barricades (`BarricadeRam`) and crush no
-  walls; the ultra-heavy ceiling is 100, the blade's, so fortified walls (150 and up) hold until fire wears them
-  under and a fort is still opened by fire and charges. Its mass shows in how far through a wall row it carries.
+- Settled in slice 3 (owner: heavy vehicles break ordinary walls, not fortified ones): heavy and ultra-heavy hulls
+  share the ceiling of 100, so city (100) and housing (80) walls and barricades fall and fortified walls (150 and up)
+  hold; heavy grinds more slowly (50 a second, against 80) and carries less mass through a row. Whether gun tanks
+  now breach houses too eagerly for a player's taste is the balance pass's (slice 6): momentum at a gun tank's speed
+  takes a row of city wall barely checked.
 - The repulsor Onager's grip and drift; a heavy skirt's first figure (1.5 along, 4 across) is the playtest's to tune.
 - The laser tank stays on today's hull until a Tri-Tachyon head and hull are drawn.
