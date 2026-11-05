@@ -152,6 +152,11 @@ public final class CompanyDeck {
         if (scene != null) scene.fitDoorGuns(doorGuns.get());
     }
 
+    /** Keeps the boat in this berth home while the yard works on her; negative releases them all. */
+    public void keepBoatHome(int boat) {
+        if (scene != null) scene.keepBoatHome(boat);
+    }
+
     /**
      * Owns her textures the way a battle does ({@code battle-textures.md}): a lease from
      * {@code textures}, loading only what her scene shows, preloaded while she is off screen and

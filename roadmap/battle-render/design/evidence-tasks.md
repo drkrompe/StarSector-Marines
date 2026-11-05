@@ -101,7 +101,10 @@ structure). Sources: `thunder-run[:seed=N,...]` and `fixture:<path>`; without
 `-Pscript` it reads stdin. The battle is deterministic, so stepping to the tick
 that matters and switching the hit log on there answers any number of
 questions for one replay. The hit log (`HitLog`) draws no random number and is
-off unless asked for. A mission with its own construction adds a source in
+off unless asked for. `jitter N` steps N ticks and counts what reads as soldiers
+flickering: velocity reversals (by no route, new destination or steady route),
+walk-pose flips and facing swings as drawn, and bursts of three reversals in a second, with
+the worst bodies' traces. It is a measure of feel with no pass mark. A mission with its own construction adds a source in
 `HeadlessBattles.build`, which the snapshot suites share, so a probe reading
 reproduces in a clip. `playBattle -PplayServer` asks the same reads of a battle
 being played (`build-and-run.md`).

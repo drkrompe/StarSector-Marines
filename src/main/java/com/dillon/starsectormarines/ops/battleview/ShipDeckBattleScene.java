@@ -787,6 +787,20 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
+     * Keeps one of her boats on its berth, in berth order, and lets every other go about its
+     * errands; a negative or vacant one keeps none. A boat that is out comes straight home, since
+     * the yard is working on her where she stands.
+     */
+    public void keepBoatHome(int boat) {
+        for (int index = 0; index < boatBerths.size(); index++) {
+            AirfieldService.Berth berth = boatBerths.get(index);
+            if (berth == null) continue;
+            berth.keptHome = index == boat;
+            if (berth.keptHome) simulation.callHome(berth);
+        }
+    }
+
+    /**
      * How far off the hull a boat runs before it turns round.
      *
      * <p>Clear of the ship by more than her own bulk, so a departure reads as

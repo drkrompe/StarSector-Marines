@@ -696,7 +696,7 @@ Castle for the whole landing. She never reports a single squad's contact the way
 a callsign does, and she never speaks for the ship.
 
 She takes part in the same exchanges under the same rules: sampled from
-accepted assignments, sharing the voice budget, rotating with the callsign cast.
+accepted assignments, sharing the exchange gap, rotating with the callsign cast.
 Her exchanges are **alternatives, not replacements**. Castle keeps talking to
 squads directly, exactly as today; an exchange about more than one squad, or
 about the company as a whole, may be voiced either way, Castle to a callsign or

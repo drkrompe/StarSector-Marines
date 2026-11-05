@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 /**
  * Sends a ship's boats out of her bays and brings them home again.
@@ -98,8 +99,7 @@ public final class BoatSortieSystem {
      * Older hosts that publish only an offship point retain their vertical
      * hardstand procedure.
      */
-    private static void send(BattleSimulation sim, AirfieldService field,
-                             AirfieldService.Berth boat) {
+    static void send(BattleSimulation sim, AirfieldService field, AirfieldService.Berth boat) {
         float padX = boat.shipRoute == null ? boat.centerX + 0.5f : boat.shipRoute.home().x();
         float padY = boat.shipRoute == null ? boat.centerY + 0.5f : boat.shipRoute.home().y();
         float[] out = boat.offship;
@@ -117,6 +117,9 @@ public final class BoatSortieSystem {
         mission.padPhaseElapsed = 0f;
         mission.shipTransit = boat.shipRoute == null ? null : new ShipBayTransit(boat.shipRoute, false);
         mission.state = mission.shipTransit == null ? ShuttleState.PAD_ASCENT : ShuttleState.SHIP_DEPARTURE;
+        // She flies with the guns she stands in the berth with.
+        mission.assignedRole = TurretRole.A2G;
+        sim.attachAirTurrets(craft, AirArmament.mounts(boat, boat.facingDegrees));
     }
 
     /**

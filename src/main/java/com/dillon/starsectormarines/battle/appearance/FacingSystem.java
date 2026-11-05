@@ -96,6 +96,13 @@ public final class FacingSystem {
     /** Combatant torso rotation is visual only; firing never waits for alignment. */
     public static final float COMBATANT_TURN_RATE_DEGREES_PER_SECOND = 360f;
     private static final float MIN_TRAVEL_SPEED_SQ = MIN_TRAVEL_SPEED * MIN_TRAVEL_SPEED;
+    /**
+     * Share of the gap to the applied velocity an infantry body's drawn travel closes each tick, about a tenth of a
+     * second's lag. A shove lasting a tick or two no longer turns the body or restarts its stride, and a change of
+     * mind still reads within a few frames. It eases only what is drawn: the mover, aim and fire never wait on it, and
+     * a body under direct control takes no easing at all.
+     */
+    static final float TRAVEL_EASE = 0.25f;
     private static final float CIVILIAN_TURN_STEP =
             CIVILIAN_TURN_RATE_DEGREES_PER_SECOND * BattleSimulation.TICK_DT;
     private static final float COMBATANT_TURN_STEP =
@@ -171,6 +178,10 @@ public final class FacingSystem {
                     ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array() : null;
             float[] velY = hasMovement
                     ? t.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array() : null;
+            float[] travelX = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_TRAVEL_X).array() : null;
+            float[] travelY = hasLayeredAnimation
+                    ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_TRAVEL_Y).array() : null;
 
             float[] actionTimer = hasSecondary
                     ? t.floats(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER).array() : null;
@@ -277,11 +288,18 @@ public final class FacingSystem {
                 int travelDx = 0;
                 int travelDy = 0;
                 boolean haveTravelDelta = false;
-                if (hasMovement
-                        && velX[r] * velX[r] + velY[r] * velY[r] >= MIN_TRAVEL_SPEED_SQ) {
-                    travelDx = octantComponent(velX[r], velY[r]);
-                    travelDy = octantComponent(velY[r], velX[r]);
-                    haveTravelDelta = travelDx != 0 || travelDy != 0;
+                if (hasMovement) {
+                    float seenX = velX[r], seenY = velY[r];
+                    if (hasLayeredAnimation) {
+                        float ease = t.entityAt(r) == controlledUnitId ? 1f : TRAVEL_EASE;
+                        seenX = travelX[r] += (seenX - travelX[r]) * ease;
+                        seenY = travelY[r] += (seenY - travelY[r]) * ease;
+                    }
+                    if (seenX * seenX + seenY * seenY >= MIN_TRAVEL_SPEED_SQ) {
+                        travelDx = octantComponent(seenX, seenY);
+                        travelDy = octantComponent(seenY, seenX);
+                        haveTravelDelta = travelDx != 0 || travelDy != 0;
+                    }
                 }
 
                 if (hasLayeredAnimation) {

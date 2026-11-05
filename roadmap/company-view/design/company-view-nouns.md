@@ -704,7 +704,9 @@ bricks. Where a gun sits is shown on the boat herself: each hardpoint is ringed 
 the berthed boat where her hull's weapon slot puts it, with its traverse as a
 wedge, and the gun fitted there stands on it as its turret, the same sprite at the
 same size it lifts with. A socket, the selected-mount card and the spot it names on
-the boat are one selection.
+the boat are one selection. The boat being worked on stays home: if she is out on an errand when she is chosen
+she is back on her berth at once, as if just landed and owing her turnaround, and she flies no sortie until the
+room lets go of her. Every boat flies its berth's guns, the same mounts it stands with, on the ship's errands as on a mission.
 
 **Fitting is drag-only, and parts are kept as the Mech Lab keeps them.** The stores
 list every part the boat can take that she wears, the company has learned or holds a

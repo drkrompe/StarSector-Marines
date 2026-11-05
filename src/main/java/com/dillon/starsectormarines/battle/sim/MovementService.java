@@ -187,6 +187,16 @@ public final class MovementService {
         return (cx + 1 << 16) | (cy + 1);
     }
 
+    /**
+     * The mover has arrived at this cell, so it stays arrived for as long as it stays within
+     * {@link #STALL_ARRIVE_CELLS}. Arrival needs {@link #ARRIVE_RADIUS}, but a body standing there gets shoved past that
+     * by whoever shares the ground, and a single radius has it clear its route inside and ask for a new one outside on
+     * alternate ticks, for as long as the shove lasts. Walking off clears it, as {@link #stalledOnRoute} does a stall's.
+     */
+    public void noteArrived(long id, int cx, int cy) {
+        entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_NEAR_CELL, nearCell(cx, cy));
+    }
+
     /** Called as a stall drops its route: notes the route's last cell if the mover was walking into it and is beside it. */
     private void noteStallNearRouteEnd(long id, float x, float y) {
         int[] route = path(id);
@@ -579,8 +589,10 @@ public final class MovementService {
         setPathIdx(id, arrived ? count : carrot.nextIdx);
         float appliedX = world.x(id) - px, appliedY = world.y(id) - py;
         float appliedDistance = (float) Math.hypot(appliedX, appliedY);
-        if (arrived) setTrafficReturnGuard(id, false);
-        else if (shifted && appliedDistance > 0f) setTrafficReturnGuard(id, true);
+        if (arrived) {
+            setTrafficReturnGuard(id, false);
+            noteArrived(id, Paths.destX(path), Paths.destY(path));
+        } else if (shifted && appliedDistance > 0f) setTrafficReturnGuard(id, true);
         setVelocity(id, appliedX / dt, appliedY / dt);
         setGaitPhase(id, arrived ? 0f : (gaitPhase(id) + appliedDistance) % 1f);
         setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);
@@ -783,6 +795,7 @@ public final class MovementService {
             // exactly the destination cell, and exhaust the cursor (settled).
             world.setPos(id, carrot.x, carrot.y);
             setPathIdx(id, count);
+            noteArrived(id, Paths.destX(path), Paths.destY(path));
             setGaitPhase(id, 0f);
             setVelocity(id, dx / dt, dy / dt);
             setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);

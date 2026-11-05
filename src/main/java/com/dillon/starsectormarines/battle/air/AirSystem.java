@@ -659,6 +659,21 @@ public class AirSystem {
         else airfield.destroyed(berth);
     }
 
+    /**
+     * Ends the flight of whatever is out from {@code berth} as if it had just landed there: home with
+     * the hull it has, into its turnaround, without flying the way back. A craft going down is lost
+     * rather than recalled.
+     */
+    public void callHome(AirfieldService.Berth berth) {
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            if (mission == null || mission.homeBerth != berth || mission.state == ShuttleState.CRASHING) continue;
+            handBackToField(mission, /*recovered*/ true, world.hp(id));
+            mission.state = ShuttleState.GONE;
+            return;
+        }
+    }
+
     private void reapGoneCraft() {
         for (Iterator<Long> it = air.iterator(); it.hasNext(); ) {
             long id = it.next();

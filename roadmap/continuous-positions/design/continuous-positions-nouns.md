@@ -104,7 +104,10 @@ requests, while live responsiveness and control feel remain separate acceptance
 questions in `direct-control-live-acceptance.md`.
 
 Applied velocity records the displacement actually achieved. Appearance derives
-travel from that velocity. Post-movement separation makes a bounded adjustment;
+travel from that velocity, eased over about a tenth of a second on an infantry
+body so that a shove of a tick or two neither turns it nor restarts its stride.
+The easing is drawn state only: movement, aim and fire never read it, and a body
+under direct control takes none. Post-movement separation makes a bounded adjustment;
 for Mechs that adjustment uses the same circular terrain sweep as locomotion,
 so crowd pressure cannot push a chassis through a wall or closed edge. Later
 combat, presentation, and proximity consumers see that final position.
@@ -144,7 +147,7 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    when its measured cost is no more than 25% above an admissible lower bound;
    stale, failed, overly broad, or overly indirect corridors fall back to
    unrestricted cell A*.
-5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its own final point. Clearing movement may retain its arrival witness, but neither an exhausted blocked route nor a nearby point across an impassable barrier satisfies the requested goal.
+5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its own final point. Clearing movement may retain its arrival witness, but neither an exhausted blocked route nor a nearby point across an impassable barrier satisfies the requested goal. A mover that has arrived stays arrived within a cell of that centre until it walks off, so a body shoved about on a shared post stands where the crowd leaves it instead of clearing and reasking for its route on alternate ticks.
 6. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
 7. Radius is the shared interaction footprint and the Mech terrain envelope.
    Direct-fire aim may name an entity or a world point; ballistic resolution

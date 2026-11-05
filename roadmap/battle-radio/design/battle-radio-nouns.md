@@ -1,70 +1,49 @@
 # Battle Radio
 
-Status: ACTIVE — one presentation-only cue policy drives the battle host; battle music follows the battle through four music states; mix, a sourced alert bed, and release-audio provenance remain unsettled.
+Status: ACTIVE — order exchanges are the net's only unscripted traffic; battle music follows the battle through four music states; mix, a sourced alert bed, and release-audio provenance remain unsettled.
 
 Written: 2026-08-23
 
-Updated: 2026-11-04 — company command no longer replies to squad reports.
+Updated: 2026-11-04 — the passive combat reports and company command's replies are gone (owner).
 
 Read `stories.md` for the open-work board.
 
 ## Purpose
 
-Battle radio is the quiet presentation layer that makes the
-deployed marine infantry net feel responsive to the battle already being
-simulated. It reinforces confirmed tactical moments; it neither creates
-gameplay state nor serves as a continuous voice track.
+Battle radio is the quiet presentation layer that makes the deployed company's
+net feel like people coordinating a battle. It voices orders squads have
+actually accepted; it neither creates gameplay state nor serves as a continuous
+voice track.
 
 ## Vocabulary and ownership
 
-- A **cue** is one eligible radio call: contact, fallback, check fire, mech
-  spotted, enemy down, acknowledgement, or sustained-combat chatter.
-- A **speaker** is the eligible marine infantry squad providing evidence for a cue. A
-  squad must be alive, belong to the Marine faction, and be neither a mech nor
-  a drone. Defenders and ineligible or wiped squads never speak on this net.
-- A **presentation event** is a fact the completed simulation exposes for the
-  current frame. It is evidence for a cue, not a command back into the
-  simulation.
+- A **speaker** is one voice in an exchange: company command, field command or an
+  infantry callsign. Defenders, mechs and drones never speak on this net.
 - **Company command** is the off-field company officer, distinct from squad
   speakers and employer mission contacts. In Marine Operations she occasionally
   addresses sampled assignment exchanges over a non-positional comms channel.
 - **Field command** is the company's own officer on the ground, Morgan Hale.
   She sits between company command and the squad callsigns: she speaks for the
   landing as a whole, never for one squad's situation, and never for the ship.
-- The **voice budget** is the single global throttle for every squad cue. It keeps
-  the radio subordinate to combat sound and music.
-- A **host** is a presentation environment: the battle screen. It owns
-  conversion from a speaker's simulation cell to its audio world.
+- The **exchange gap** is the single global throttle on exchanges. It keeps the
+  radio subordinate to combat sound and music.
+- A **host** is a presentation environment: the battle screen.
 
-`BattleRadioChatter` owns cue selection and per-battle presentation state; the
-hosts own sound playback. The simulation owns tactical state and reports only
-the facts the presentation layer may observe.
+`OperationRadio` owns exchange selection and presentation state; the host decides
+when it may speak. The simulation owns tactical state and reports only the facts
+the presentation layer may observe.
 
-## Cue semantics
+## No passive reports
 
-Contact is announced when an eligible squad is first observed engaged or
-transitions into engagement. Fallback is announced when such a squad's morale
-breaks. Check fire follows an actual damaging friendly ballistic hit on the
-hit marine squad, rather than a predicted shot or a miss.
+Nobody on this net speaks in reaction to a combat fact (owner). Contact, a broken
+squad, friendly fire, a spotted mech or an enemy down get no portrait, subtitle
+or radio line, from the callsigns or from Castle. The fight is heard through the
+marines' own barks (`colony-breach-nouns.md`), which are positional and carry no
+portrait.
 
-Mech spotted is a one-per-battle recognition call. It requires a live defender
-mech that is currently visible plus an engaged eligible squad with current
-range and line of sight; that observing squad speaks. Enemy down follows a
-confirmed defender-combatant death and speaks from the nearest engaged
-eligible squad, falling back to the nearest eligible squad when none is
-engaged. Sustained engagement may occasionally produce an acknowledgement or
-combat remark.
-
-The controller retains a pending event while the voice budget is closed and
-emits at most one cue when it opens. A higher-priority event replaces a
-lower-priority pending cue: check fire, fallback, mech spotted, contact, enemy
-down, then routine acknowledgement or combat. A pending cue is discarded if
-its speaker is no longer eligible.
-
-Every battle begins with a short opening silence. Thereafter all cue kinds
-share one voice gap, and the routine sustained-engagement calls use a longer
-random interval. The controller never preempts an emitted line and schedules
-later cues only when the global voice gap opens.
+Every battle begins with a short opening silence. Thereafter exchange starts are
+at least the exchange gap apart, and other speech closes the net for its own
+length plus a quiet gap. An emitted line is never preempted by another exchange.
 
 ## Determinism and presentation boundary
 
@@ -73,9 +52,8 @@ mutates battle state, and its timing and clip selection use presentation-owned
 randomness rather than the simulation's seeded stream. Consequently, radio
 may vary between presentations without changing a replay or outcome.
 
-Marine Operations presents the cue policy's reports in generated voices over
-the shipboard radio net and adds sampled assignment exchanges under the same
-voice budget.
+Marine Operations presents sampled assignment exchanges in generated voices over
+the shipboard radio net.
 
 ## Battle music
 
@@ -131,9 +109,9 @@ mix its tracks into the soundtrack under `-Dsnapshot.lookSound=true`.
 
 ## Content and extension law
 
-Each cue maps to recorded lines of the generated ensemble, produced by the
-pipeline and registered for the mod runtime. There is no second bank: when the
-ensemble's catalog cannot load, reports go unspoken. The proprietary
+Each exchange turn maps to recorded lines of the generated ensemble, produced by
+the pipeline and registered for the mod runtime. There is no second bank: when
+the ensemble's catalog cannot load, the net stays silent. The proprietary
 standard-pilot library that once served as a fallback was dropped before the
 first public release (`v0.1-public-build.md`), and no proprietary radio audio
 may return.
@@ -147,32 +125,30 @@ in the user home). A cold or cleared cache needs one full encode. Only the
 resulting Ogg files go into `mod/sounds`; cache files never ship with the mod.
 
 New radio vocabulary needs a stable, confirmed simulation fact and a clear
-eligible speaker. Combat reports enter the shared cue policy; assignment
-exchanges observe accepted own-force directives. Both compete under the same
-voice budget and preserve the
-presentation-only boundary. New identity treatments (faction, patron, alien,
+speaker. Assignment exchanges observe accepted own-force directives and preserve
+the presentation-only boundary. New identity treatments (faction, patron, alien,
 or named-captain nets) may vary content or treatment but must not weaken those
 laws.
 
 Authored opening operations also expose a retained story-beat history, as defined
 in `early-operation-nouns.md`. It is a dialogue input, separate from transient combat cues. Player presentation consumes only the public
 projection; observer-only wave and defender-order events cannot become radio
-intelligence. Story dialogue bypasses the squad voice budget and chooses content by the enclosing
+intelligence. Story dialogue bypasses the exchange gap and chooses content by the enclosing
 chapter identity. Stable event
 keys do not by themselves grant a speaker, a sound asset, or playback priority.
 
 The campaign battle host consumes both story arcs' public beats once
-per attempt. Authored character clips own the voice channel ahead of marine
-chatter. A mission line starts without waiting for the squad cooldown and stops
-any playing squad call; squad chatter stays quiet during story speech and observes
-the normal gap afterwards. Ordinary mission lines finish their sentences, including
+per attempt. Authored character clips own the voice channel ahead of order
+exchanges. A mission line starts without waiting for the exchange gap and stops
+any playing turn; exchanges stay quiet during story speech and observe the quiet
+gap afterwards. Ordinary mission lines finish their sentences, including
 when a newer event supersedes the instruction being spoken. An explicitly authored
 emergency call with higher priority can interrupt routine speech. Emergency calls
 wait for each other unless a newer one explicitly supersedes the current fact:
 a shootdown report can replace a pilot's now-obsolete survival call. Interrupted
 instructions return only while still relevant, within their original expiry window;
-neither interruption nor replay extends that window. Squad transitions
-continue to be sampled while speech owns the channel. Queued story lines expire in real time; later
+neither interruption nor replay extends that window. Accepted assignments
+continue to be observed while speech owns the channel. Queued story lines expire in real time; later
 facts supersede obsolete instructions (for example, a lost militia line cancels
 its earlier request for support if that request has not started playing).
 
@@ -214,11 +190,8 @@ lines; she does not react to squad reports (owner).
 
 The player normally oversees deployment from the command ship. Ground radio is
 traffic between deployed units and shipboard command, not commentary addressed
-to the player. The officer coordinates and supports ground teams; individual
-squad voices report their own situation and address other units. Friendly-fire
-warnings concern a confirmed incident among those units, without implying the
-player chose to cause it. Direct control can place the player behind a unit's
-actions, but does not change who a generic net-wide warning addresses.
+to the player. The officer coordinates ground teams; individual squad voices
+acknowledge and read back.
 
 Write each line with a clear speaker and recipient. Prefer an addressed callsign
 within a conversation over collective addresses such as "all" or "ground teams".
@@ -227,23 +200,13 @@ squad identity. Specific destinations, support relationships and successful
 actions still require facts supplied by their trigger. A recorded order is
 radio presentation, not evidence that an AI action has been issued or obeyed.
 
-The generated ensemble supplies tactical reports admitted by the existing cue
-policy. Nothing replies behind a report. Assignment handshakes provide the
-officer's addressed coordination.
-
-Each ensemble actor may supply several recordings for one combat cue. Selection
-uses every recording in that cue's pool before repeating, avoids the preceding
-line when a pool refills, and prefers a different actor when unused alternatives
-remain. Each cue keeps its own history across intervening events and mission
-speech; a new battle resets that history. More recordings expand variety without
-increasing the voice budget or inventing tactical facts. A one-line pool remains
-valid and necessarily repeats.
+Assignment handshakes provide the officer's addressed coordination.
 
 Command subtitles identify CASTLE / COMPANY COMMAND and use her original
 painted portrait; field command identifies MORGAN HALE / FIELD COMMAND with
 hers; infantry subtitles identify the current exchange's callsign
 and show that radio actor's helmet-interior portrait. The same face follows the
-actor through acknowledgements, readbacks and combat reports. These are radio
+actor through acknowledgements and readbacks. These are radio
 cast identities, not portraits assigned to individual roster marines or squads.
 They remain visible for the recorded lifetime even
 when audio is muted or unavailable. Selection and timing are presentation state and leave
@@ -277,9 +240,8 @@ instruction a squad would hear, Morgan hands it to the exchange's callsign, and
 that callsign reads back. A withdrawal uses her last-out handoff. A single
 squad's new task always stays between Castle and that squad, and when she is
 not leading the deployment (wounded, aboard, or another officer selected) the
-net is exactly the callsign net. She has no combat-report pool: single-squad
-contact stays with the callsigns. She shares the exchange cooldown, voice budget
-and cancellation rules, and her callsign handoff is still exchange-local casting.
+net is exactly the callsign net. She shares the exchange gap and cancellation
+rules, and her callsign handoff is still exchange-local casting.
 
 Further ground-commander reports (company landed and counted, compound taken,
 company too thin to push, squads back together) are direction. Each needs its
@@ -307,10 +269,9 @@ self-contained exchanges; a callsign and actor remain consistent throughout one
 exchange, without binding that voice to a deployed squad's roster name. The
 company officer and Kestrel's strained delivery anchor the cast, with Hammer's
 worn, protective authority and Viper's forceful impatience giving infantry
-reports different personalities. Jackal adds dry Irish understatement, Ox a warm
+voices different personalities. Jackal adds dry Irish understatement, Ox a warm
 New Zealand bass and patient reassurance, and Rivet smoky Lancashire bluntness.
-Each infantry actor participates in both assignment exchanges and combat reports
-under the same event and voice-budget rules. Rook's cockpit delivery remains authoring
+Each infantry actor takes part in assignment exchanges under the same rules. Rook's cockpit delivery remains authoring
 content until an eligible physical aircraft and delivery evidence support it.
 
 Changed accepted assignments are sampled into one pending exchange, never a
@@ -318,8 +279,7 @@ queue per squad. Unselected and throttled changes are consumed. The global
 assignment cooldown does not shrink with army size; a hundred squads supply
 more candidates, not a hundred conversations. Recreated assignment snapshots,
 capture-zone renumbering at the same compound and a moving escort rally do not
-constitute fresh orders. Confirmed combat reports get first use of an open
-channel before a new assignment exchange. Admitted turns retain their order
+constitute fresh orders. Admitted turns retain their order
 and wait for actual playback completion plus a short quiet gap.
 
 Calls and replies must share a valid context. Cancel unspoken turns when a unit

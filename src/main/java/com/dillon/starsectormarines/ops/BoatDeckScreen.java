@@ -529,6 +529,10 @@ public final class BoatDeckScreen implements Screen {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (Float.isFinite(dt)) elapsedSeconds = (elapsedSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) viewModel.refreshTime();
+        // Asked every frame rather than on selection: a laid-out-again ship has to hear it too.
+        if (deck != null && viewModel != null) {
+            deck.keepBoatHome(viewModel.fittingFocused() ? viewModel.selectedBerthIndex() : -1);
+        }
         if (deck != null && deck.ready()) {
             int selected = viewModel.selectedBerthIndex();
             int offset = 0;
@@ -572,6 +576,8 @@ public final class BoatDeckScreen implements Screen {
         // screen closing has no business touching.
         if (document != null) document.deactivateInput();
         input = null;
+        // The ship runs on behind other rooms, and her boats go back to their errands.
+        if (deck != null) deck.keepBoatHome(-1);
     }
 
     private void closeDocument() {

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.audio;
 
-import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Actor;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.AssignmentKey;
 import com.dillon.starsectormarines.battle.audio.OperationRadio.Catalog;
@@ -15,14 +14,14 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static com.dillon.starsectormarines.battle.audio.OperationRadio.HERO_BARK_GAP_SECONDS;
+import static com.dillon.starsectormarines.battle.audio.OperationRadio.EXCHANGE_GAP_SECONDS;
+import static com.dillon.starsectormarines.battle.audio.OperationRadio.OPENING_SILENCE_SECONDS;
+import static com.dillon.starsectormarines.battle.audio.OperationRadio.QUIET_AFTER_SPEECH_SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 
 class OperationRadioTest {
@@ -33,10 +32,6 @@ class OperationRadioTest {
     });
 
     private static Catalog catalog() {
-        return catalog(1);
-    }
-
-    private static Catalog catalog(int variants) {
         Map<String, Line> lines = new HashMap<>();
         List<Actor> actors = new ArrayList<>();
         lines.put("order", new Line("order", "command", "Move to your assigned position.", 1));
@@ -45,18 +40,8 @@ class OperationRadioTest {
                 String id = name + "_" + turn;
                 lines.put(id, new Line(id, turn.equals("call") ? "command" : name, id, 1));
             }
-            Map<Cue, List<String>> reports = new EnumMap<>(Cue.class);
-            for (Cue cue : Cue.values()) {
-                List<String> ids = new ArrayList<>();
-                for (int i = 0; i < variants; i++) {
-                    String id = name + "_" + i + "_" + cue.name();
-                    lines.put(id, new Line(id, name, id, 1));
-                    ids.add(id);
-                }
-                reports.put(cue, ids);
-            }
             actors.add(new Actor(name, name, name + "_call", name + "_ack", name + "_readback",
-                    reports, "graphics/portraits/radio-" + name + ".png"));
+                    "graphics/portraits/radio-" + name + ".png"));
         }
         return new Catalog(actors, Map.of(AssignmentKind.ATTACK_MOVE, "order"), lines);
     }
@@ -298,6 +283,7 @@ class OperationRadioTest {
         assertNull(radio.beginExchange());
         radio.reset();
         radio.observe(List.of(order(1, 21)));
+        radio.advance(OPENING_SILENCE_SECONDS, true, false, false);
         assertNotNull(radio.beginExchange(), "A new battle resets consumed observations");
         radio.advance(26, false, false, false);
         finish();
@@ -305,119 +291,17 @@ class OperationRadioTest {
     }
 
     @Test
-    void reportsRotateActorsAndMutedSpeechHasAReadableLifetime() {
-        OperationRadio muted = new OperationRadio(catalog(), new Random(1), turn -> null);
-        String previous = null;
-        for (Cue cue : Cue.values()) {
-            var report = muted.report(cue);
-            assertNotNull(report);
-            assertNotEquals(previous, report.speaker());
-            assertTrue(report.line().id().endsWith(cue.name()));
-            assertEquals("graphics/portraits/radio-" + report.line().speaker() + ".png", report.portrait());
-            previous = report.speaker();
-            assertNull(muted.report(Cue.CONTACT), "No simultaneous transmissions");
-            muted.advance(1, false, false, false);
-            assertEquals(report, muted.current());
-            muted.advance(0.3f, false, false, false);
-            assertNull(muted.current());
-            muted.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-        }
-    }
-
-    @Test
-    void reportsAndExchangesShareOneHeroBarkGap() {
-        OperationRadio muted = new OperationRadio(catalog(), new Random(1), turn -> null);
-        assertNotNull(muted.report(Cue.ENEMY_DOWN));
-        muted.stop();
-        assertNull(muted.report(Cue.CHECK_FIRE), "A second report inside the gap is dropped");
-        muted.observe(List.of(order(1, 20)));
-        assertNull(muted.beginExchange(), "An order exchange waits on the same gap");
-        muted.advance(HERO_BARK_GAP_SECONDS - 0.5f, false, false, false);
-        assertNull(muted.report(Cue.ENEMY_DOWN));
-        muted.advance(0.5f, false, false, false);
-        muted.observe(List.of(order(1, 21)));
-        assertNotNull(muted.beginExchange());
-        muted.stop();
-        assertNull(muted.report(Cue.ENEMY_DOWN), "An exchange closes the gap for reports too");
-    }
-
-    @Test
-    void eachCueUsesEveryRecordingBeforeRepeatingEvenAcrossPreemption() {
-        OperationRadio varied = new OperationRadio(catalog(3), new Random(9), turn -> null);
-        Map<Cue, String> previous = new EnumMap<>(Cue.class);
-        for (int cycle = 0; cycle < 4; cycle++) {
-            Map<Cue, HashSet<String>> heard = new EnumMap<>(Cue.class);
-            for (int i = 0; i < 9; i++) {
-                for (Cue cue : Cue.values()) {
-                    var report = varied.report(cue);
-                    assertNotNull(report);
-                    assertTrue(heard.computeIfAbsent(cue, ignored -> new HashSet<>()).add(report.line().id()),
-                            "A cue must exhaust its pool before replaying a line");
-                    assertNotEquals(previous.put(cue, report.line().id()), report.line().id(),
-                            "Refilling a pool must not repeat its previous line");
-                    assertEquals(report.line().speaker(), report.speaker());
-                    assertNull(varied.report(cue), "A busy channel must not consume another variant");
-                    varied.stop(); // Story preemption preserves per-battle variety history.
-                    varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-                }
-            }
-        }
-    }
-
-    @Test
-    void singleActorPoolsWorkAndResetStartsAFreshBattle() {
-        Catalog full = catalog(3);
-        Actor actor = full.actors().get(0);
-        Catalog single = new Catalog(List.of(actor), full.instructions(), full.lines());
-        Random fixed = new Random(0) {
-            @Override public int nextInt(int bound) { return 0; }
-        };
-        OperationRadio varied = new OperationRadio(single, fixed, turn -> null);
-        String first = varied.report(Cue.CONTACT).line().id();
-        varied.stop();
-        varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-        assertNotEquals(first, varied.report(Cue.CONTACT).line().id());
-        varied.reset();
-        assertEquals(first, varied.report(Cue.CONTACT).line().id());
-        varied.stop();
-        varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-        String previous = first;
-        for (int i = 0; i < 10; i++) {
-            String next = varied.report(Cue.CONTACT).line().id();
-            assertNotEquals(previous, next);
-            previous = next;
-            varied.stop();
-            varied.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-        }
-    }
-
-    @Test
-    void reportPoolsRejectEmptyDuplicateMissingAndWrongSpeakerLines() {
-        Catalog full = catalog(3);
-        Actor actor = full.actors().get(0);
-        for (List<String> invalid : List.of(List.<String>of(), List.of("missing"),
-                List.of(actor.call()), List.of(actor.reports().get(Cue.CONTACT).get(0),
-                        actor.reports().get(Cue.CONTACT).get(0)))) {
-            Map<Cue, List<String>> reports = new EnumMap<>(actor.reports());
-            reports.put(Cue.CONTACT, invalid);
-            Actor broken = new Actor(actor.id(), actor.label(), actor.call(), actor.ack(), actor.readback(), reports);
-            assertThrows(IllegalArgumentException.class,
-                    () -> new Catalog(List.of(broken), full.instructions(), full.lines()));
-        }
-    }
-
-    @Test
-    void aSingleRecordingRemainsPlayableAfterItsPoolIsExhausted() {
-        Catalog full = catalog();
-        OperationRadio single = new OperationRadio(
-                new Catalog(List.of(full.actors().get(0)), full.instructions(), full.lines()),
-                new Random(2), turn -> null);
-        String first = single.report(Cue.CONTACT).line().id();
-        for (int i = 0; i < 3; i++) {
-            single.stop();
-            single.advance(HERO_BARK_GAP_SECONDS, false, false, false);
-            assertEquals(first, single.report(Cue.CONTACT).line().id());
-        }
+    void openingSilenceAndOtherSpeechHoldAnExchangeBackWithoutConsumingIt() {
+        radio.reset();
+        radio.observe(List.of(order(1, 20)));
+        assertNull(radio.beginExchange(), "A battle opens quiet");
+        radio.advance(1, false, false, false);
+        assertNull(radio.beginExchange(), "A paused battle keeps its silence");
+        radio.advance(OPENING_SILENCE_SECONDS, true, false, false);
+        radio.holdFor(1);
+        assertNull(radio.beginExchange(), "The net stays quiet after other speech");
+        radio.advance(1 + QUIET_AFTER_SPEECH_SECONDS, true, false, false);
+        assertNotNull(radio.beginExchange());
     }
 
     @Test

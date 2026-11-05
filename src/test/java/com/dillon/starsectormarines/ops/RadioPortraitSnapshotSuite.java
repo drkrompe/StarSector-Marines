@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
-import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -30,14 +29,14 @@ public final class RadioPortraitSnapshotSuite implements SnapshotSuite {
                 Files.readString(context.modRoot().resolve(OperationRadio.PATH))));
         var turns = new ArrayList<OperationRadio.Transmission>();
         for (var actor : catalog.actors()) {
-            var line = actor.reports().values().stream().flatMap(List::stream)
+            var line = List.of(actor.ack(), actor.readback()).stream()
                     .map(catalog.lines()::get).max(Comparator.comparingInt(l -> l.text().length())).orElseThrow();
             turns.add(new OperationRadio.Transmission(line, actor.label(), actor.portrait()));
         }
         var command = catalog.lines().get(catalog.actors().get(0).call());
         turns.add(new OperationRadio.Transmission(command, "COMPANY COMMAND", "graphics/portraits/castle.png"));
         var actor = catalog.actors().get(0);
-        turns.add(new OperationRadio.Transmission(catalog.lines().get(actor.reports().get(Cue.CONTACT).get(0)),
+        turns.add(new OperationRadio.Transmission(catalog.lines().get(actor.ack()),
                 actor.label(), ""));
         SettingsAPI previous = Global.getSettings();
         Global.setSettings((SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(),
