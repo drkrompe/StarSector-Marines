@@ -166,7 +166,7 @@ final class FirstRefitModel {
             String id = "refit-option:" + p.name();
             // The card's style names its content height; its padding and border add 24px.
             int card = Integer.parseInt(String.valueOf(pathCards.get(i).markupProperty("cardStyle")).replaceAll("\\D", "")) + 24;
-            options.add(Map.of("id", id, "tabId", id + ":tab", "captionId", id + ":caption", "letterId", id + ":letter",
+            options.add(Map.of("id", id, "tabId", id + ":tab", "letterId", id + ":letter",
                     "letter", optionLetter(p),
                     "tabClasses", "refit-option-tab spec-tab spec-choice" + (p == path ? " selected" : ""),
                     "rowStyle", "height: " + card + "px;",
