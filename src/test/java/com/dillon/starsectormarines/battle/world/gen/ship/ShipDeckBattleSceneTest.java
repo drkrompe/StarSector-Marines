@@ -1,6 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
+import com.dillon.starsectormarines.marine.VehicleRack;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.ambient.Shift;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -147,6 +155,34 @@ final class ShipDeckBattleSceneTest {
             assertTrue(headings.size() > 1,
                     "every berth faced the same way, so the inboard test proves too little");
         }
+    }
+
+    /** A refit re-parks a hull with a new turret, and that turret lies along its hull in every berth, not north. */
+    @Test
+    void aRefittedHullsTurretLiesAlongItsBerth() {
+        Deck deck = bay();
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck.map(), deck.graph(), SEED, null)) {
+            int berths = machineBerths(scene.gantries()).size();
+            scene.parkVehicles(Collections.nCopies(berths, onager(null)));
+            scene.parkVehicles(Collections.nCopies(berths, onager(MechWeaponComponent.LIGHT_MACHINE_GUN)));
+
+            ConvoyService convoy = scene.simulation().convoy();
+            Set<Float> headings = new HashSet<>();
+            for (long hull : convoy.entityIds()) {
+                GroundTurret turret = convoy.turret(hull);
+                assertTrue(turret != null, "the refitted hull carries no turret");
+                float facing = convoy.body(hull).facingDegrees;
+                assertEquals(0f, LayeredAppearance.wrapDegrees(turret.facingDeg - facing), 0.01f,
+                        "a parked turret does not lie along its hull");
+                headings.add(LayeredAppearance.wrapDegrees(facing));
+            }
+            assertTrue(headings.size() > 1, "every berth faced the same way, so the test proves too little");
+        }
+    }
+
+    private static VehicleDeploymentSpec onager(MechWeaponComponent gun) {
+        return new VehicleDeploymentSpec(null, null, VehicleType.BREAKTHROUGH_TANK, VehiclePlating.FACTORY,
+                VehicleEngine.STOCK, gun, VehicleRack.stockFit(VehicleType.BREAKTHROUGH_TANK));
     }
 
     @Test
