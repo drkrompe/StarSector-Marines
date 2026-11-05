@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.TurretHead;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
@@ -382,6 +384,31 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
     @Override public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return gunDrawings.get(weapon); }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
+    /** The side's paint as a review suite bound it ({@link ReviewFactions}), else as the base set binds it. */
+    @Override public VehiclePaint vehiclePaint(Faction side) {
+        VehiclePaint bound = ReviewFactions.vehiclePaint(side);
+        return bound != null ? bound : super.vehiclePaint(side);
+    }
+    /** A painted vehicle sheet off the resource roots, framed as the game frames it; null when it is not shipped. */
+    @Override protected UnitSpriteCache loadPaintedSheet(VehicleType type, String path) {
+        try {
+            if (!Files.exists(modRoot.resolve(path))) return null;
+            SpriteAPI sheet = sprite(path);
+            Asset size = assets.get(sheet);
+            return new UnitSpriteCache(sheet, type.registeredSpriteFrames(new SpriteSheetFrames(
+                    size.width(), size.height(), new SpriteSheetFrames.Frame[0])));
+        } catch (IOException failure) {
+            return null;
+        }
+    }
+    /** A painted turret head off the resource roots; null when it is not shipped. */
+    @Override protected LayeredSpriteCache loadPaintedLayer(String path) {
+        try {
+            return optionalLayer(path);
+        } catch (IOException failure) {
+            return null;
+        }
+    }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
     /** Off the resource roots: the base class reads through {@code Global.getSettings().openStream}, a stub here. */
     @Override public BufferedImage readPixels(String path) throws IOException { return read(path); }

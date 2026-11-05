@@ -522,7 +522,7 @@ public class BattleRenderer {
         // Sprite-sheet batches for the CONVOY layer (ConvoyRenderSystem). Its
         // sheets are loaded by ensureConvoySprites() before this runs
         // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
-        registerSpriteSheetBatches(sprites.convoySprites().values());
+        registerSpriteSheetBatches(sprites.allConvoySheets());
         // Worn plate over live hulls and mechs (ConvoyRenderSystem, MechScuffSink) addresses cells of the scuff
         // sheet, so it needs a batch or the drain drops its quads.
         ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
@@ -639,8 +639,9 @@ public class BattleRenderer {
      * on first draw), and the scuff sheet worn plate draws from, so those quads draw rather than drop in the drain.
      */
     private void registerLateConvoyBatches() {
-        if (!convoyGate.changed(sprites.convoySprites().size())) return;
-        registerSpriteSheetBatches(sprites.convoySprites().values());
+        List<UnitSpriteCache> sheets = sprites.allConvoySheets();
+        if (!convoyGate.changed(sheets.size())) return;
+        registerSpriteSheetBatches(sheets);
         ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
         if (scuffs != null) registerHullBatches(List.of(scuffs));
         ShuttleSpriteCache ravWear = sprites.spriteByPath(RavWear.SHEET);

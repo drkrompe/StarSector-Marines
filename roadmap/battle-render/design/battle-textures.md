@@ -163,7 +163,8 @@ declares it can bring later. It names:
 - **mech sides**: a side with a mech on the field, a mech drop allowance, or a mech command
   power; the loader takes the liveries those sides wear;
 - **vehicle lines**: convoy vehicles on the field, the heavy APC when a convoy can bring
-  reinforcements, and the vehicles command powers deliver.
+  reinforcements, and the vehicles command powers deliver. A Hegemony-line hull is also loaded in
+  each side's paint other than the Hegemony's (`VehiclePaint`), since either side may field it.
 
 Beside it, **the battle's terrain sheets** (`BattleTerrainSheets`) are the catalog sheets its
 generated map draws and the ones its fighting can bring on, read from the map before the first

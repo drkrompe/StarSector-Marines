@@ -113,6 +113,12 @@ tuned in the playtest, not by evidence alone.
    fallback turret frames (`art-source/vehicles/medium-tank`), two tread runs a side, a two-row ballistic card, store,
    doll and Kit Ladder station. Evidence: `createSnapshots -Psnapshot=medium-tank`.
 6. **Balance pass** against a player giving orders, not the autopilot.
+7. **Shipped.** **Liveries** (owner: the line reads as old, low-tech Hegemony issue; an Independent variant in blue
+   and a pirate one worn and red): `VehiclePaint`. The Hegemony sheets and heads are the masters; a paint is the same
+   sheet recoloured pixel for pixel (`art-source/vehicles/liveries/paint.py`): Independent turns the hazard panels
+   blue and fades the plate grey, pirates turn them red and darken, soot, chip and rust the plate. A side drives in
+   the paint of the faction its mechs wear the livery of (employer for the marines, target for the defenders); every
+   faction but those two keeps the Hegemony's. Evidence: `createSnapshots -Psnapshot=vehicle-liveries`.
 
 ## Open
 
