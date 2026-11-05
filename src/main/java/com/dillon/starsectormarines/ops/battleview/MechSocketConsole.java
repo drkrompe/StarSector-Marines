@@ -58,12 +58,12 @@ final class MechSocketConsole {
         return bricks(socket, t.left() + (t.width() - width) * .5f, t.top() + HEADER);
     }
 
-    /** The bricks a single-part socket's part covers, as {column, row, columns, rows}. */
+    /** The bricks a single-part socket's part covers, as {column, row, columns, rows}: a weapon centred across the top. */
     private static int[] block(SocketDef socket, HardpointBricks.Layout bricks,
                                MechWeaponComponent weapon, MechInternal internal) {
         if (weapon != null) {
             int[] footprint = oriented(socket, weapon.footprintColumns, weapon.footprintRows);
-            return new int[] {(bricks.columns() - footprint[0]) / 2, (bricks.rows() - footprint[1]) / 2,
+            return new int[] {(bricks.columns() - footprint[0]) / 2, 0,
                     footprint[0], footprint[1]};
         }
         int[] footprint = oriented(socket, internal.footprintColumns, internal.footprintRows);

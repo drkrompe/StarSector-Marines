@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
@@ -673,7 +674,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             Gantry gantry = gantries.get(index);
             float x = gantry.worldCenterX(), y = gantry.worldCenterY();
             long hull = simulation.convoy().spawn(vehicle, Faction.MARINE, VehicleMission.deployed(x, y));
-            simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
+            float facing = parkedFacing(gantry);
+            simulation.convoy().body(hull).teleport(x, y, facing);
+            // A turret is made facing north; parked, it lies along its hull, as an idle one in a battle returns to.
+            GroundTurret turret = simulation.convoy().turret(hull);
+            if (turret != null) turret.facingDeg = facing;
             berthedVehicles[index] = hull;
             berthedVehicleFits[index] = vehicle;
             occupiedBerths[index] = true;
