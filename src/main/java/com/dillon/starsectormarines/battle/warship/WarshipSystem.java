@@ -1250,8 +1250,7 @@ public final class WarshipSystem {
     /** A wanted heading moving more than this in one tick is a fresh choice, not a drift a helm leads. */
     static final float MAX_LED_DRIFT_DEGREES_PER_TICK = 1f;
 
-    private static void turnHull(float dt, Warship ship) {
-        if (ship.lowHovering()) return;
+    static void turnHull(float dt, Warship ship) {
         if (ship.piloted()) {
             WarshipHelm.steer(ship);
         } else {
@@ -1325,6 +1324,10 @@ public final class WarshipSystem {
         } else if (ship.isPassingThrough() && !bring
                 && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Flying a route with no instruction to bring guns to bear, it points along its travel.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+        } else if (ship.remoteOrder() == Warship.RemoteOrder.MOVE && !bring
+                && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Sent somewhere by the player with nothing to fight, it goes nose first and keeps that heading on arrival.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
         } else if (!bring && WarshipEscort.liveLead(ship) != null) {
             // A screen with nothing to fight keeps its charge's course, in line beside it.

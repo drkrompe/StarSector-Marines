@@ -810,6 +810,10 @@ fifth input mode. It is selected by clicking its hull, entered with Tab through 
 recognises the hull as a tender and routes the buttons to the tender instead of to batteries
 it does not have. The shield (C) is the warship's.
 
+A recovery host (Morrow, grounded or in low hover) is not flown with a tender's hands
+(owner, 2026-11-05): direct control takes her as a plain Warship carrier, with no option keys,
+no site laying and no cancel key. Her builds are ordered from the remote ship command only.
+
 Strategic ship selection can also issue remote movement and construction commands
 without entering this session (`ui-nouns.md`, Remote ship commands). Takeover
 suspends a previously accepted remote task, and handback resumes it with its

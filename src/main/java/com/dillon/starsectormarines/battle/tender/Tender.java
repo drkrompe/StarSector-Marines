@@ -150,7 +150,12 @@ public final class Tender implements DroneAnchor {
 
     /** What this tender builds: a recovery host's own guns, or every option a flying tender offers. */
     public List<BuildOption> options() {
-        return grounded || lowHover ? BuildOption.RECOVERY : BuildOption.ALL;
+        return recoveryHost() ? BuildOption.RECOVERY : BuildOption.ALL;
+    }
+
+    /** A recovering hull (the Morrow), grounded or in a low hover: its builds are ordered from the ship panel only. */
+    public boolean recoveryHost() {
+        return grounded || lowHover;
     }
 
     /**
@@ -158,8 +163,7 @@ public final class Tender implements DroneAnchor {
      * out to the work. Open ground and what the player has seen are the callers' rules; a flying tender takes any site.
      */
     public boolean buildableSite(float x, float y) {
-        if (lowHover) return !ship.departing() && !(Math.abs(x - ship.x) < ship.lowHoverWidth() / 2f
-                && Math.abs(y - ship.y) < ship.lowHoverHeight() / 2f);
+        if (lowHover) return !ship.departing() && ship.distanceTo(x, y) > 0f;
         if (grounded && groundDisplay != null) return !(Math.abs(x - groundDisplay.centerX()) < groundDisplay.width() / 2f
                 && Math.abs(y - groundDisplay.centerY()) < groundDisplay.height() / 2f);
         return true;
@@ -168,8 +172,7 @@ public final class Tender implements DroneAnchor {
     /** Whether the bay has a straight, clear sortie corridor to the site within builder reach: a mission's handover test. */
     public boolean groundSiteReachable(float x, float y, NavigationGrid grid) {
         if (lowHover) return !ship.departing() && Math.hypot(x - ship.x, y - ship.y) <= TenderSystem.PILOT_REACH_CELLS
-                && !(Math.abs(x - ship.x) < ship.lowHoverWidth() / 2f
-                && Math.abs(y - ship.y) < ship.lowHoverHeight() / 2f);
+                && ship.distanceTo(x, y) > 0f;
         if (!grounded) return true;
         float dx = x - bayX();
         float dy = y - bayY();
