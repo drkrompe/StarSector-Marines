@@ -779,16 +779,20 @@ satisfy the defender's elimination objective.
 The capital bombards the installation's standing structures through ordinary
 weapon damage and friendly fire. It carries finite ordnance and station time;
 arrival or a timer alone never wins. Company success requires authenticated
-records and the physical return of its surviving personnel, including any
-outstanding deployments. At least one survivor must return; boarding alone is
-insufficient, and a lost loaded boat cannot count as recovered. Empty returning
-boats do not delay the last survivor's extraction.
+records and the company back at the landing zone (`LandingZoneRecovery`): every
+surviving soldier, mech and Marine vehicle on the ground inside the zone's
+circle, with no committed deployment still inbound. A body outside the circle
+stops holding the company once it has gone thirty seconds without getting a cell
+closer, so a machine its own pathing cannot bring out of the compound does not
+hold the mission open. Survivors aboard a pickup count as back, a lost loaded
+boat's do not, and at least one survivor must be back.
 Resolute ceases fire and resumes patrol as soon as demolition
 and its last impacts finish, independently of company recovery. It continues
 nose-first on its existing bearing, passing over the ruins through ordinary
 propulsion; the neutralization report begins at this departure. Pickup continues
 concurrently, with its marker and instructions retained until the company is
-recovered. The last occupied pickup's return ends the mission immediately.
+recovered, but boarding does not decide recovery: the company back at the
+landing zone ends the mission immediately.
 Capital demolition, map exit and an aftermath timer do not delay that settlement;
 the company can leave the Navy to finish its work. Remaining pirates need not be
 hunted down. Losing the ship or exhausting its intervention before demolition

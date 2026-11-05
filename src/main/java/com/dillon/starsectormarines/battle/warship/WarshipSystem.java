@@ -593,7 +593,8 @@ public final class WarshipSystem {
      * Counts a bounded ship's station time down and, when it is spent, sends it
      * away: it hovers off the map along the line from the map's centre through
      * where it stands (its nose direction if it is at the centre) at its own speed,
-     * and is removed once it has cleared the edge or, failing that, after
+     * climbing as it goes, and is removed once it is into the cloud deck
+     * ({@link Warship#intoTheDeck}), once it has cleared the edge, or failing both after
      * {@link Warship#DEPARTURE_LIMIT_SECONDS}. A ship whose side has an approved edge ({@code edge}) flies out across
      * that instead, and is never timed off the map short of {@link Warship#EDGE_EXIT_LIMIT_SECONDS}.
      */
@@ -619,7 +620,7 @@ public final class WarshipSystem {
         }
         if (!ship.departing()) return;
         ship.addDepartingSeconds(dt);
-        if (ship.throughDeck() && ship.departingSeconds() >= WarshipAtmosphere.CLIMB_SECONDS) {
+        if (ship.intoTheDeck()) {
             // Into the cloud deck: gone from the battle without crossing an edge.
             ship.markPhysicallyDeparted();
             return;

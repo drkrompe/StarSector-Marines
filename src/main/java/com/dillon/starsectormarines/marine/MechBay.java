@@ -516,6 +516,16 @@ public final class MechBay implements Serializable {
         return installed;
     }
 
+    /** The weapon shelf, for the shared part shop ({@link PartShop}). */
+    PartStores weaponStores() {
+        return weaponStores;
+    }
+
+    /** The internal shelf, for the shared part shop ({@link PartShop}). */
+    PartStores internalStores() {
+        return internalStores;
+    }
+
     /** The spares in stores. */
     public int availableWeapon(String componentId) {
         return weaponStores.count(componentId);

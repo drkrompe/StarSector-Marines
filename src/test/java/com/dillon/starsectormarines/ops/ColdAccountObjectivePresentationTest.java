@@ -14,9 +14,9 @@ class ColdAccountObjectivePresentationTest {
         assertEquals("DISPATCH OFFICE / RECOVER RECORDS", value(model, "objectiveTally"));
         model.updateIntervention(Phase.WITHDRAW, "Clear the bombardment zone", 100, 100, false);
         assertEquals("HEGEMONY / WITHDRAW", value(model, "objectiveTitle"));
-        assertEquals("CLEAR FIRING AREA > SHUTTLE PICKUP", value(model, "objectiveTally"));
+        assertEquals("CLEAR FIRING AREA > LANDING ZONE", value(model, "objectiveTally"));
         model.updateIntervention(Phase.PATROL, "Resolute resuming patrol", 20, 100, false);
-        assertEquals("STRONGHOLD SILENCED / SHUTTLE PICKUP", value(model, "objectiveTally"));
+        assertEquals("STRONGHOLD SILENCED / LANDING ZONE", value(model, "objectiveTally"));
         model.updateIntervention(Phase.AFTERMATH, "Stronghold silenced", 20, 100, true);
         assertEquals("COMPANY RECOVERED / STRONGHOLD SILENCED", value(model, "objectiveTally"));
     }

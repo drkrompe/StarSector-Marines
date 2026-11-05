@@ -5,12 +5,15 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.ColdAccountStoryHooks;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.warship.StockVariantLoadout;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
@@ -42,9 +45,14 @@ public final class ColdAccountIntervention implements Objective {
     private float firingHeading = Float.NaN;
     private int preparedTick = -1, groundClearTick = -1;
     private static final int OPENING_SALVO_TICKS = 60;
+    /** How long a body outside the landing zone may go without getting closer before it stops holding the company. */
+    static final int LANDING_ZONE_STALL_TICKS = Math.round(30f / BattleSimulation.TICK_DT);
+    private final LandingZoneRecovery landingZone;
 
     public ColdAccountIntervention(BattleSimulation sim, ColdAccountLayout layout, StoryBeatLog beats) {
         this.layout = layout; this.beats = beats;
+        landingZone = new LandingZoneRecovery(layout.withdrawalX() + .5f, layout.withdrawalY() + .5f,
+                ColdAccountLayout.WITHDRAWAL_RADIUS, LANDING_ZONE_STALL_TICKS);
         approach = new ColdAccountStoryHooks(beats);
         evidence = new RaidObjective("COLD-RECORDS", "dispatch office records", layout.evidenceX(),
                 layout.evidenceY(), sim.getZoneGraph().zoneIdAt(layout.evidenceX(), layout.evidenceY()),
@@ -79,6 +87,8 @@ public final class ColdAccountIntervention implements Objective {
     public int outsideWithdrawal() { return outsideWithdrawal; }
     public boolean pendingArrivals() { return pendingArrivals; }
     public boolean companyRecovered() { return companyRecovered; }
+    /** Company bodies outside the landing zone still making their way to it. */
+    public int landingZoneComing() { return landingZone.coming(); }
     public float firingHeading() { return firingHeading; }
     public int demolitionSector() { return demolition.sectorNumber(); }
     public int preparedTick() { return preparedTick; }
@@ -107,10 +117,12 @@ public final class ColdAccountIntervention implements Objective {
         int tick = sim.getSimTickIndex();
         approach.observe(tick, false, false, true);
         pendingArrivals = hasPendingArrivals(sim);
-        companyRecovered = !pendingArrivals && sim.survivorPickup().complete(sim);
-        // The company's operation ends with its last occupied return flight.
+        // The company's operation ends when it is back at the landing zone: soldiers, mechs and vehicles alike,
+        // less any that have stopped getting closer. The pickups still fly, but boarding does not decide it.
         // Resolute's demolition and patrol continue on their own timetable.
-        if (companyRecovered && sim.survivorPickup().recoveredCount() > 0) {
+        companyRecovered = landingZone.observe(tick, groundBodies(sim), sim.survivorPickup().survivingCount(Faction.MARINE))
+                && !pendingArrivals;
+        if (companyRecovered) {
             phase = Phase.COMPLETE;
             beat(sim, "company_extracted");
             return;
@@ -217,6 +229,23 @@ public final class ColdAccountIntervention implements Objective {
                     SpawnInOnslaught.PRESENCE);
         }
         catch (Exception e) { throw new IllegalStateException("Cannot fit the authored Hegemony Onslaught", e); }
+    }
+    /** The company's surviving bodies on the ground: every live Marine but a fixed emplacement, and its deployed vehicles. */
+    private static List<LandingZoneRecovery.Body> groundBodies(BattleSimulation sim) {
+        List<LandingZoneRecovery.Body> out = new ArrayList<>();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE || sim.identity().type(unit).isStatic()) continue;
+            out.add(new LandingZoneRecovery.Body(unit, sim.world().x(unit), sim.world().y(unit)));
+        }
+        ConvoyService convoy = sim.convoy();
+        for (long vehicle : sim.getConvoyVehicleIds()) {
+            VehicleMission mission = convoy.mission(vehicle);
+            if (mission == null || mission.state != VehicleState.DEPLOYED || convoy.faction(vehicle) != Faction.MARINE
+                    || sim.world().hp(vehicle) <= 0f) continue;
+            out.add(new LandingZoneRecovery.Body(vehicle, convoy.body(vehicle).x, convoy.body(vehicle).y));
+        }
+        return out;
     }
     static boolean hasPendingArrivals(BattleView sim) {
         if (sim.pendingGroundArrivals(Faction.MARINE) > 0) return true;
