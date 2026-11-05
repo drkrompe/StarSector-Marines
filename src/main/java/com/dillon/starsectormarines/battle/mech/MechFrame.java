@@ -11,6 +11,11 @@ package com.dillon.starsectormarines.battle.mech;
 public record MechFrame(float armorCapacity, float moveSpeed,
                         float fluxCapacity, float dissipationPerSecond, MachineSystems systems) {
 
+    /** This frame with no plate on it. */
+    public MechFrame withNoArmor() {
+        return new MechFrame(0f, moveSpeed, fluxCapacity, dissipationPerSecond, systems);
+    }
+
     /** A frame whose compartment changes nothing beyond these values. */
     public MechFrame(float armorCapacity, float moveSpeed, float fluxCapacity, float dissipationPerSecond) {
         this(armorCapacity, moveSpeed, fluxCapacity, dissipationPerSecond, MachineSystems.NONE);

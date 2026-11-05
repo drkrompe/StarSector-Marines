@@ -2668,7 +2668,9 @@ private static BufferedImage renderBarracks(
                 new SnapshotArtifact("vehicle-heavy-apc-fitted.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-vehicle.HEAVY_APC")),
                 new SnapshotArtifact("vehicle-plate-off.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-plate-off")));
+                        false, false, false, false, null, "machine-plate-off")),
+                new SnapshotArtifact("shuttle-plate-and-drive-off.png", renderBoatDeck(context, renderer, 1920, 1080,
+                        true, false, STRIPPED)));
     }
 
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {

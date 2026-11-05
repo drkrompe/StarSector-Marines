@@ -326,6 +326,8 @@
 
   .mech-repair-card { flex-direction: column; width: 100%; padding: 5px 6px; gap: 4px; border-width: 1px; border-color: #8f3f44; overflow: hidden; }
   .mech-repair-status { height: 16px; }
+  .mech-repair-card.recommended { border-color: #a58a34; }
+  .tone-recommended { color: #f2cf3e; }
   .mech-repair-status.incomplete { height: 38px; white-space: normal; }
   .mech-repair-detail { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 4px; }
   .mech-repair-title { height: 16px; }

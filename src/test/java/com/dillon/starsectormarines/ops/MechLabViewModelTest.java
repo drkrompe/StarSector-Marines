@@ -1123,7 +1123,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void aMechsPlateLiftsOffToStoresAndLeavesItOffTheDrop() {
+    void aMechsPlateLiftsOffToStoresAndItCanStillDrop() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(0).select().run();
@@ -1132,7 +1132,9 @@ class MechLabViewModelTest {
         assertTrue(viewModel.removeInstalledInternal(SocketId.PLATING), viewModel.feedbackText().get());
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         assertNull(mech.internal(MechInternal.Role.PLATING));
-        assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
+        assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f), "a plate is recommended, not required");
+        assertEquals(0f, mech.freezeForDeployment().deployedFrame().armorCapacity(), 0f, "with none it drops with no armor");
+        assertTrue(viewModel.repair().get().classes().contains("recommended"));
         assertEquals(1, bay.availableInternal(MechInternal.FACTORY_PLATING.id), "the plate is a spare");
     }
 

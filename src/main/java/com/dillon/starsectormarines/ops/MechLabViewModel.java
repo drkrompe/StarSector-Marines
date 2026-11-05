@@ -1813,8 +1813,6 @@ public final class MechLabViewModel {
 
     /** What a vehicle's plating makes of it at the drop. */
     private static HullFitEffect effect(CampaignVehicle vehicle) {
-        // An empty armor point stops nothing; the hull's figures read that until a plate goes on.
-        if (vehicle.plating() == null) return new HullFitEffect(0f, 1f, 1f, 0f);
         return HullFitEffect.of(vehicle.platingTier(), vehicle.type());
     }
 
@@ -2201,6 +2199,16 @@ public final class MechLabViewModel {
     public Signal<List<Row>> materialStock() { return materialStock; }
 
     /** The selected mech's battle damage and its free repair clock, or a hidden card. */
+    private static Repair hiddenRepairCard() {
+        return new Repair("mech-repair-card surface-dark hidden", "", "", "", "", "mech-repair-detail hidden", "");
+    }
+
+    /** A machine ready to go with no plate: recommended, not required, so yellow. */
+    private static Repair noPlateCard() {
+        return new Repair("mech-repair-card surface-dark recommended", "height: 50px;", Strings.get("mechLabReadinessNoPlate"),
+                "label heading tone-recommended mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
+    }
+
     private Repair buildRepair() {
         revision.get();
         float now = day.get();
@@ -2209,10 +2217,11 @@ public final class MechLabViewModel {
             return new Repair("mech-repair-card surface-dark", "height: 50px;", vehicleIncomplete(vehicle),
                     "label heading tone-danger mech-repair-status incomplete", "", "mech-repair-detail hidden", "");
         }
+        if (vehicle != null) return vehicle.plating() == null ? noPlateCard() : hiddenRepairCard();
         CampaignMech mech = selectedMech();
         CampaignMech.Readiness readiness = mech != null ? mech.readiness(now) : CampaignMech.Readiness.READY;
         if (readiness == CampaignMech.Readiness.READY) {
-            return new Repair("mech-repair-card surface-dark hidden", "", "", "", "", "mech-repair-detail hidden", "");
+            return mech != null && mech.internal(MechInternal.Role.PLATING) == null ? noPlateCard() : hiddenRepairCard();
         }
         String status = readinessText(mech);
         String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
@@ -2269,8 +2278,7 @@ public final class MechLabViewModel {
     private static String missingNames(List<MechInternal.Role> missing) {
         List<String> names = new ArrayList<>();
         for (MechInternal.Role role : missing) {
-            names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine"
-                    : role == MechInternal.Role.PLATING ? "mechLabMissingPlating" : "mechLabMissingCapacitors"));
+            names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine" : "mechLabMissingCapacitors"));
         }
         return String.join(Strings.get("separatorDot"), names);
     }

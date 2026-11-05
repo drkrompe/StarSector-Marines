@@ -118,6 +118,10 @@ class BoatDeckViewModelTest {
         model.returnToStores(plating);
 
         assertNull(deck.boats().get(0).plating(), "the armor point stands empty");
+        BoatDoll.Slot socket = model.doll().get().slots().stream()
+                .filter(slot -> slot.key().equals(plating)).findFirst().orElseThrow();
+        assertFalse(socket.missing(), "she can fly without a plate, so it is not the red warning");
+        assertTrue(socket.recommended(), "it is the yellow one");
         assertEquals(spares + 1, deck.spares(fitted.id()));
     }
 

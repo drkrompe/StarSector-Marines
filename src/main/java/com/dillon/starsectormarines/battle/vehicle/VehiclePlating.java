@@ -10,7 +10,9 @@ import com.dillon.starsectormarines.marine.MechInternal;
  * also skirts a tracked hull.
  */
 public enum VehiclePlating {
-    /** The factory plating every hull is built with: its own plate. */
+    /** An empty armor point: the hull goes in with no armor at all. */
+    NONE(null, 0f),
+    /** Factory plating, a hull's stock fit: its own plate. */
     FACTORY(MechInternal.FACTORY_PLATING, 0f),
     /** Composite plating: half the band, a fifth more armor capacity on every plate and the turret. */
     COMPOSITE(MechInternal.COMPOSITE_PLATING, 0f),
@@ -25,12 +27,12 @@ public enum VehiclePlating {
         this.trackedRatingBonus = trackedRatingBonus;
     }
 
-    /** The plating part this is. */
+    /** The plating part this is; null for {@link #NONE}. */
     public MechInternal part() { return part; }
 
     /** What this plating multiplies every plate's capacity by: its place on the hull's armor band. */
     public float armorFactor() {
-        return MechFrameBudget.band(1f, VehicleType.REFIT_ARMOR_FACTOR, part.armorFraction);
+        return part == null ? 0f : MechFrameBudget.band(1f, VehicleType.REFIT_ARMOR_FACTOR, part.armorFraction);
     }
 
     /** The armor rating this plating adds to {@code type}: the skirts only a tracked hull can carry. */
@@ -38,7 +40,7 @@ public enum VehiclePlating {
         return type != null && type.isTank() ? trackedRatingBonus : 0f;
     }
 
-    /** The plating {@code plating} is, or {@link #FACTORY} for none or a part that is no plating. */
+    /** The plating {@code plating} is, {@link #NONE} for none, or {@link #FACTORY} for a part that is no plating. */
     public static VehiclePlating of(MechInternal plating) {
         for (VehiclePlating tier : values()) if (tier.part == plating) return tier;
         return FACTORY;
