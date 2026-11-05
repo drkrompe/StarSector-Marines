@@ -45,13 +45,8 @@ public final class BoatWorkshop {
         BoatFitting fitting = BoatFitting.findById(partId);
         BoatGun gun = fitting == null ? BoatGun.findById(partId) : null;
         if (fitting == null && gun == null) return Result.of(Status.UNKNOWN_FITTING);
-        FabricationCost bill = fitting != null ? fitting.bill() : gun.bill();
-        if (bill == null) return Result.of(Status.NOT_FABRICABLE);
-        if (!deck.knowsPart(partId)) return Result.of(Status.NOT_LEARNED);
-        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
-        if (!resources.spend(resources.quote(bill))) return Result.of(Status.CANNOT_AFFORD);
-        deck.stow(partId);
-        return Result.of(Status.PART_FABRICATED);
+        return Result.of(status(PartShop.build(resources, deck.stores(), partId, priceOf(partId),
+                deck.knowsPart(partId))));
     }
 
     /**
@@ -60,8 +55,7 @@ public final class BoatWorkshop {
      * cannot recycle. It does not ask whether a spare is in stores; {@link #recycle} does.
      */
     public FabricationCost recycleQuote(String partId) {
-        FabricationCost bill = billOf(partId);
-        return bill == null ? null : resources.reclamation().recover(resources.quote(bill));
+        return PartShop.recycleQuote(resources, priceOf(partId));
     }
 
     /**
@@ -74,13 +68,7 @@ public final class BoatWorkshop {
             return Result.of(Status.UNKNOWN_FITTING);
         }
         if (billOf(partId) == null) return Result.of(Status.NOT_FABRICABLE);
-        if (deck.spares(partId) <= 0) return Result.of(Status.NO_SPARE);
-        if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
-        FabricationCost back = recycleQuote(partId);
-        if (back == null) return Result.of(Status.NOTHING_TO_RECOVER);
-        if (!resources.credit(back)) return Result.of(Status.NO_HOLD);
-        deck.take(partId);
-        return Result.of(Status.RECYCLED);
+        return Result.of(status(PartShop.recycle(resources, deck.stores(), partId, priceOf(partId))));
     }
 
     /**
@@ -136,6 +124,28 @@ public final class BoatWorkshop {
      */
     public static boolean scrappable(ShuttleType pattern) {
         return pattern != null && pattern != ShuttleType.HERMES;
+    }
+
+    /** What building one {@code partId} costs now, or null for a part with no bill. */
+    private FabricationCost priceOf(String partId) {
+        FabricationCost bill = billOf(partId);
+        return bill == null ? null : resources.quote(bill);
+    }
+
+    /** The shop's answer in the Boat Deck's words. */
+    private static Status status(PartShop.Outcome outcome) {
+        return switch (outcome) {
+            case BUILT -> Status.PART_FABRICATED;
+            case RECYCLED -> Status.RECYCLED;
+            case NOT_FABRICABLE -> Status.NOT_FABRICABLE;
+            case NOT_LEARNED -> Status.NOT_LEARNED;
+            case NO_MARKET -> Status.NO_MARKET;
+            case CANNOT_AFFORD -> Status.CANNOT_AFFORD;
+            case NO_SPARE -> Status.NO_SPARE;
+            case WORKSHOP_IDLE -> Status.WORKSHOP_IDLE;
+            case NOTHING_TO_RECOVER -> Status.NOTHING_TO_RECOVER;
+            case NO_HOLD -> Status.NO_HOLD;
+        };
     }
 
     private static FabricationCost billOf(String partId) {

@@ -1696,6 +1696,17 @@ public final class Warship {
         return WarshipAtmosphere.CLIMB_SECONDS * flown;
     }
 
+    /**
+     * Whether a departing hull has climbed into the cloud deck and so is gone from the battle: its climb clock
+     * ({@link #climbSeconds}) has run the whole {@link WarshipAtmosphere#CLIMB_SECONDS}, by which time it is drawn
+     * hidden in the deck. A hull that went on flying under the deck toward a map edge left its cloud and wake drawn
+     * over nothing for as long as a slow capital took to get there. A hull flying out across an edge never climbs,
+     * so never goes this way.
+     */
+    public boolean intoTheDeck() {
+        return departing && !departed && exitEdge == null && climbSeconds() >= WarshipAtmosphere.CLIMB_SECONDS;
+    }
+
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
     void beginDeparture() {
         releaseHelm();

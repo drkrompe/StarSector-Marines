@@ -111,11 +111,13 @@ class TurnAwareCorridorTest {
         carve(grid, 0, 0, 29, 39);
         // A wall just behind the hull's tail: the exact footprint clears it, the sampling margin does not.
         for (int x = 8; x <= 12; x++) grid.setWalkable(x, 8, false);
-        float[][] route = {new float[]{10.5f, 10.5f}, new float[]{10.4f, 30.5f}};
+        float tail = 9.275f; // the tail a little over a quarter cell clear of the wall; the route starts at the hull
+        float y = tail + VehicleType.HEAVY_APC.visualLengthCells / 2f;
+        float[][] route = {new float[]{10.5f, 10.5f}, new float[]{y, 30.5f}};
 
         assertNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid).points());
         assertNotNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid,
-                new Pose(10.5f, 10.4f, 0f)).points());
+                new Pose(10.5f, y, 0f)).points());
     }
 
     @Test
