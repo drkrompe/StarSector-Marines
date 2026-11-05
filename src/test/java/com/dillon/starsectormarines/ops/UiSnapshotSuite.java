@@ -3281,7 +3281,7 @@ private static BufferedImage renderBarracks(
                                     MechLabDollCanvas::headlessAssets));
                 } else if (row.vehiclePreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
-                            new VehiclePreviewCanvas(row.vehiclePreview()));
+                            VehiclePreviewCanvas.asBought(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.internalPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             MechEquipmentGridCanvas.catalog(row.weaponPreview(), row.internalPreview(),

@@ -312,7 +312,7 @@ public final class MechLabScreen implements Screen {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
                             CampaignMech.frame(row.id(), row.chassisPreview()), this::previewMechs));
                 } else if (row.vehiclePreview() != null) {
-                    target.canvases().set(canvas, new VehiclePreviewCanvas(row.vehiclePreview()));
+                    target.canvases().set(canvas, VehiclePreviewCanvas.asBought(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
                             row.weaponPreview(), row.internalPreview(), this::previewMechs));
