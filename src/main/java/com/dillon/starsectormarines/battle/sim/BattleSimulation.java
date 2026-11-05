@@ -366,8 +366,6 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1464,8 +1462,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
     private final LongList deathsThisFrame = new LongArrayList();
-    /** Marine squad ids whose members were actually hit by friendly rounds during the last {@link #advance(float)} call. */
-    private final IntList friendlyFireSquadsThisFrame = new IntArrayList();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
@@ -2647,7 +2643,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public LongList getSystemActivationsThisFrame() { return systemFxSystem.activationsThisFrame(); }
     /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
-    public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return completion.isComplete(); }
     public Faction getWinner()             { return completion.winner(); }
     /** Whether the Debug key's Win ended the battle; every story record then reports an outright win. */
@@ -3687,7 +3682,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
         shots.beginFrame();
         deathsThisFrame.clear();
-        friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         warships.beginFrame();
         shieldDomes.beginFrame();
@@ -4399,12 +4393,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Shared arrival seam for ordinary rounds and direct-contact explosive payloads. */
     private void applyPendingImpact(ShotService.PendingImpact impact) {
         if (!rosterService.isAliveById(impact.victimId)) return;
-        int friendlyFireSquad = Squad.NO_SQUAD;
-        if (impact.friendly
-                && rosterService.identity().faction(impact.victimId) == Faction.MARINE
-                && rosterService.squad().hasSquad(impact.victimId)) {
-            friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
-        }
         rosterService.telemetry().recordRoundHit(impact.shooterId);
         UnitType victimType = rosterService.identity().type(impact.victimId);
         boolean shows = SwarmHitFeedback.shows(victimType);
@@ -4413,9 +4401,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
                 impact.penetration, impact.moraleImpact, impact.part);
         if (shows) showSwarmHit(impact, victimType, plated, armorBefore);
-        if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
-            friendlyFireSquadsThisFrame.add(friendlyFireSquad);
-        }
         if (rosterService.isLive(impact.victimId)) {
             hitResponse.rollFallbackOnHit(impact.victimId);
             hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);

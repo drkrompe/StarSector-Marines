@@ -1,17 +1,10 @@
 # Operation radio
 
-`live/` contains the Marine Operations runtime bank: assignment handshakes and
-combat reports with exchange-local casting. `mod/data/marines/operation_radio.json`
+`live/` contains the Marine Operations runtime bank: assignment handshakes with
+exchange-local casting. `mod/data/marines/operation_radio.json`
 owns the runtime transcripts, voice IDs, durations and selection mappings. The
 manifest applies the same offline comms recipe to every turn. Clean sources and
 receipts stay here; only processed Ogg files ship.
-
-Combat report mappings are pools of line IDs: three takes per actor for each of
-the seven existing cues, giving eighteen recordings per event across six actors. Existing single-ID
-mappings remain readable. Runtime exhausts each event's pool before repeating;
-mission preemption preserves that history and a new battle resets it. New takes
-keep the shared comms treatment. Their wording does not assert
-unobserved directions, remaining enemy counts, successful maneuvers or support.
 
 The older five-scene catalog and `ensemble/` retain authoring auditions. Their
 bespoke destinations, covering maneuvers and transport reports are not enabled
@@ -117,7 +110,7 @@ traffic observes an accepted own-force directive. Squad IDs validate that
 context internally; they do not bind a voice or callsign to a roster entry. An arbiter refresh is not a new assignment; reaching an objective
 is not capturing it. A radio acknowledgement does not delay the real AI order.
 Two squads covering a crossing need evidence of that actual support relationship;
-today's generic combat cues do not supply it. A completed transport request does
+nothing on the net today supplies it. A completed transport request does
 not prove passengers physically landed. These requirements are repeated beside
 each audition exchange so a future integrator cannot mistake sample prose for
 an existing trigger.
@@ -135,5 +128,5 @@ secondary net may overlap; duck it for names, instructions and warnings. Zoey's
 mission dialogue retains priority and must finish. Cancel obsolete queued turns
 when assignments change, a unit is lost, or a newer fact invalidates the report.
 Runtime uses a single foreground exchange, samples assignment changes into one
-pending slot, and admits combat reports through the shared cue policy. No
+pending slot and speaks only in exchanges. No
 secondary-net overlap or aircraft speakers are enabled yet.

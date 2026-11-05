@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.audio;
 
-import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -18,10 +17,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,10 +31,14 @@ import java.util.function.Function;
  */
 public final class OperationRadio {
     /**
-     * Minimum time between the starts of two portrait transmissions: an order exchange or a combat report,
-     * whichever comes first. Story narration and the turns of an exchange already begun are not gated.
+     * Minimum time between the starts of two order exchanges. Story narration and the turns of an exchange
+     * already begun are not gated.
      */
-    static final float HERO_BARK_GAP_SECONDS = 30;
+    static final float EXCHANGE_GAP_SECONDS = 30;
+    /** A battle opens quiet: no exchange starts for this long. */
+    static final float OPENING_SILENCE_SECONDS = 2.5f;
+    /** The net stays quiet this long after other speech ends before an exchange may start. */
+    static final float QUIET_AFTER_SPEECH_SECONDS = 7;
     public static final String PATH = "data/marines/operation_radio.json";
     private static Catalog builtins = new Catalog(List.of(), Map.of(), Map.of());
     private final Catalog catalog;
@@ -49,12 +50,9 @@ public final class OperationRadio {
     private Pending context;
     private Transmission current;
     private SoundAPI sound;
-    private float remaining, gap, cooldown, sequenceAge;
+    private float remaining, gap, cooldown, quiet, sequenceAge;
     private int lastActor = -1;
     private boolean fieldCommanderDeployed;
-    private final Map<Cue, List<Report>> remainingReports = new EnumMap<>(Cue.class);
-    private final Map<Cue, String> lastReports = new EnumMap<>(Cue.class);
-    private record Report(int actorIndex, String lineId) { }
 
     public record Line(String id, String speaker, String text, float durationSeconds) {
         public Line {
@@ -64,18 +62,9 @@ public final class OperationRadio {
         }
     }
 
-    public record Actor(String id, String label, String call, String ack, String readback,
-                        Map<Cue, List<String>> reports, String portrait) {
-        public Actor(String id, String label, String call, String ack, String readback,
-                     Map<Cue, List<String>> reports) {
-            this(id, label, call, ack, readback, reports, "");
-        }
-
+    public record Actor(String id, String label, String call, String ack, String readback, String portrait) {
         public Actor {
             portrait = portrait == null ? "" : portrait;
-            Map<Cue, List<String>> copy = new EnumMap<>(Cue.class);
-            reports.forEach((cue, ids) -> copy.put(cue, List.copyOf(ids)));
-            reports = Map.copyOf(copy);
         }
     }
 
@@ -120,18 +109,6 @@ public final class OperationRadio {
             for (Actor actor : actors) {
                 for (String id : List.of(actor.call(), actor.ack(), actor.readback())) {
                     if (!lines.containsKey(id)) throw new IllegalArgumentException("Missing radio turn " + id);
-                }
-                for (Cue cue : Cue.values()) {
-                    List<String> reports = actor.reports().get(cue);
-                    if (reports == null || reports.isEmpty())
-                        throw new IllegalArgumentException("Missing report " + actor.id() + "/" + cue);
-                    if (new HashSet<>(reports).size() != reports.size())
-                        throw new IllegalArgumentException("Duplicate report " + actor.id() + "/" + cue);
-                    for (String id : reports) {
-                        Line line = lines.get(id);
-                        if (line == null || !line.speaker().equals(actor.id()))
-                            throw new IllegalArgumentException("Invalid report " + actor.id() + "/" + id);
-                    }
                 }
             }
             for (String id : instructions.values())
@@ -222,17 +199,8 @@ public final class OperationRadio {
         JSONArray cast = root.getJSONArray("actors");
         for (int i = 0; i < cast.length(); i++) {
             JSONObject actor = cast.getJSONObject(i);
-            Map<Cue, List<String>> reports = new EnumMap<>(Cue.class);
-            for (Cue cue : Cue.values()) {
-                JSONObject pools = actor.getJSONObject("reports");
-                JSONArray variants = pools.optJSONArray(cue.name());
-                List<String> ids = new ArrayList<>();
-                if (variants == null) ids.add(pools.getString(cue.name()));
-                else for (int j = 0; j < variants.length(); j++) ids.add(variants.getString(j));
-                reports.put(cue, ids);
-            }
             actors.add(new Actor(actor.getString("id"), actor.getString("label"), actor.getString("call"),
-                    actor.getString("ack"), actor.getString("readback"), reports, actor.optString("portrait", "")));
+                    actor.getString("ack"), actor.getString("readback"), actor.optString("portrait", "")));
         }
         Map<AssignmentKind, String> instructions = new EnumMap<>(AssignmentKind.class);
         JSONObject orders = root.getJSONObject("instructions");
@@ -304,12 +272,13 @@ public final class OperationRadio {
         return item.assignment.equals(observed.get(item.squadId));
     }
 
-    /** Real-time playback of admitted turns. New exchanges compete separately with combat reports. */
+    /** Real-time playback of admitted turns. */
     public Transmission advance(float dt, boolean running, boolean complete,
                                 boolean channelBusy) {
         dt = Math.max(0, dt);
         cooldown = Math.max(0, cooldown - dt);
         gap = Math.max(0, gap - dt);
+        if (running) quiet = Math.max(0, quiet - dt);
         if (pending != null && (pending.age += dt) > 12) pending = null;
         if (context != null && (sequenceAge += dt) > 25) discardUnspoken();
         if (complete) { pending = null; discardUnspoken(); }
@@ -330,7 +299,7 @@ public final class OperationRadio {
 
     /** Called only when the host is running and the shared channel and voice budget are open. */
     public Transmission beginExchange() {
-        if (!available() || busy() || gap > 0 || pending == null || cooldown > 0 || !valid(pending)) return null;
+        if (!available() || busy() || gap > 0 || quiet > 0 || pending == null || cooldown > 0 || !valid(pending)) return null;
         Actor actor = actor();
         AssignmentKind kind = pending.assignment.kind();
         String order = catalog.instructions().get(kind);
@@ -340,7 +309,7 @@ public final class OperationRadio {
         context = pending;
         pending = null;
         sequenceAge = 0;
-        cooldown = HERO_BARK_GAP_SECONDS;
+        cooldown = EXCHANGE_GAP_SECONDS;
         List<String> turns = relay
                 ? List.of(field.call(), field.ack(), order, field.handoff(actor.id(), kind), actor.readback())
                 : List.of(actor.call(), actor.ack(), order, actor.readback());
@@ -348,33 +317,9 @@ public final class OperationRadio {
         return start(sequence.removeFirst());
     }
 
-    /**
-     * The shared combat policy has already admitted and prioritized this confirmed report; it is dropped,
-     * not held, while the hero bark gap is closed.
-     */
-    public Transmission report(Cue cue) {
-        if (!available() || busy() || cooldown > 0) return null;
-        List<Report> pool = remainingReports.computeIfAbsent(cue, ignored -> new ArrayList<>());
-        if (pool.isEmpty()) {
-            for (int i = 0; i < catalog.actors().size(); i++) {
-                for (String id : catalog.actors().get(i).reports().get(cue)) pool.add(new Report(i, id));
-            }
-            Collections.shuffle(pool, random);
-        }
-        // Exhaust the cue's recordings before refilling. Prefer a different actor,
-        // but never strand that actor's unused lines at the end of a cycle.
-        int selected = -1;
-        for (int i = 0; i < pool.size(); i++) {
-            Report candidate = pool.get(i);
-            if (candidate.lineId().equals(lastReports.get(cue))) continue;
-            if (selected < 0) selected = i;
-            if (candidate.actorIndex() != lastActor) { selected = i; break; }
-        }
-        Report report = pool.remove(selected < 0 ? 0 : selected);
-        lastActor = report.actorIndex();
-        lastReports.put(cue, report.lineId());
-        cooldown = HERO_BARK_GAP_SECONDS;
-        return start(transmission(report.lineId(), catalog.actors().get(lastActor)));
+    /** Other speech owns the net for this long: no exchange starts until it and the quiet after it have passed. */
+    public void holdFor(float speechSeconds) {
+        quiet = Math.max(quiet, speechSeconds + QUIET_AFTER_SPEECH_SECONDS);
     }
 
     private Actor actor() {
@@ -425,9 +370,8 @@ public final class OperationRadio {
         stop();
         observed.clear();
         cooldown = 0;
+        quiet = OPENING_SILENCE_SECONDS;
         lastActor = -1;
         fieldCommanderDeployed = false;
-        remainingReports.clear();
-        lastReports.clear();
     }
 }

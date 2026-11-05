@@ -121,21 +121,17 @@ class StoryNarrationPlayerTest {
     }
 
     @Test
-    void missionSpeechTakesOverChatterEvenWhileItsCooldownIsClosed() {
-        BattleRadioChatter chatter = new BattleRadioChatter();
-        chatter.reserveVoice(60);
+    void missionSpeechStopsTheRadioBeforeItPlays() {
         FakeSound squad = new FakeSound();
         Line start = line("start");
         StoryNarrationPlayer player = new StoryNarrationPlayer(
                 new WaylineNarration(List.of(start)), "chapter", new NarrationPlayer(line -> {
-                    assertFalse(squad.playing, "Chatter must stop before mission playback starts");
+                    assertFalse(squad.playing, "The radio must stop before mission playback starts");
                     return new FakeSound();
                 }), next -> squad.stop());
-        assertFalse(chatter.voiceAvailable());
         player.advance(0, List.of(event(1, "start")), false, false);
         assertEquals(start, player.current());
         assertEquals(1, squad.stops);
-        assertFalse(chatter.voiceAvailable());
     }
 
     @Test
