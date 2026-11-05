@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
-import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
@@ -227,9 +227,10 @@ public class MarineOpsContext {
         CompanyShip ship = CompanyShipResolver.read(aboard);
         companyDeck = ship == null ? null : CompanyDeck.home(ship,
                 CompanyShipDesignation.deckSeedFor(hull),
-                null, MarineOpsContext::companyLance,
+                null, null,
                 MarineOpsContext::companyMarines,
                 MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
+                .fittedLance(MarineOpsContext::companyLance)
                 .groundedBoats(MarineOpsContext::companyBoatsGrounded)
                 .doorGuns(MarineOpsContext::companyDoorGuns)
                 .vehicles(MarineOpsContext::companyVehicles)
@@ -325,9 +326,12 @@ public class MarineOpsContext {
         return signature.toString();
     }
 
-    /** The machines parked in the company ship's berths, pad by pad: whatever the player owns. */
-    private static List<MechVariant> companyLance() {
-        List<MechVariant> lance = new ArrayList<>();
+    /**
+     * The machines parked in the company ship's berths, pad by pad, as the player has fitted them:
+     * whatever the player owns, null where no mech stands.
+     */
+    private static List<MechDeploymentSpec> companyLance() {
+        List<MechDeploymentSpec> lance = new ArrayList<>();
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script == null ? null : script.roster();
         // The player's own bay, not a fresh one: MechBay seeds a starter squad
@@ -337,7 +341,7 @@ public class MarineOpsContext {
         if (squad != null) {
             for (int pad = 0; pad < CampaignMechSquad.CAPACITY; pad++) {
                 CampaignMech mech = squad.mechOnPad(pad);
-                lance.add(mech != null ? mech.variant() : null);
+                lance.add(mech != null ? mech.freezeForDeployment() : null);
             }
         }
         return lance;
