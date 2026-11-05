@@ -51,6 +51,21 @@ public class MovementServiceTest {
         assertFalse(movement.atCell(carrier, 0, 0), "a disjoint carrier has no grid-mover arrival");
     }
 
+    @Test void anArrivedMoverShovedOffTheCentreStaysArrivedUntilItLeaves() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 3.5f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 4.3f);
+        assertFalse(movement.atCell(id, 3, 3), "never there, so outside the arrival radius is outside");
+        movement.noteArrived(id, 3, 3);
+        assertTrue(movement.atCell(id, 3, 3));
+        assertFalse(movement.atCell(id, 3, 4), "only the cell it arrived at");
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 4.7f);
+        assertFalse(movement.atCell(id, 3, 3), "shoved clean off it");
+    }
+
     @Test void aMoverSteppingWithoutProgressIsReportedStalledOnceAfterThreeSeconds() {
         EntityWorld world = new EntityWorld();
         BattleComponents components = new BattleComponents(world);

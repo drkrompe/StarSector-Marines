@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.probe;
 
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
 import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -61,6 +64,7 @@ import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -189,6 +193,7 @@ public final class BattleProbe {
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
         commands.put("dither", this::dither);
+        commands.put("jitter", this::jitter);
         commands.put("vtrace", this::vtrace);
         commands.put("stalls", this::stalls);
         commands.put("topology", this::topology);
@@ -1222,6 +1227,122 @@ public final class BattleProbe {
         if (next >= Paths.cellCount(path)) return JSONObject.NULL;
         PurePursuit.Carrot c = PurePursuit.pick(sim.world().x(id), sim.world().y(id), path, next, MovementService.LOOKAHEAD);
         return new JSONObject().put("x", round(c.x)).put("y", round(c.y)).put("next", c.nextIdx).put("atEnd", c.atEnd);
+    }
+
+    /**
+     * Steps {@code N} ticks reading every walking body's applied velocity each tick, and counts what reads as jitter:
+     * reversals (a turn past 90 degrees between ticks at walking speed), split by whether the body had no route (only
+     * pushes moved it), had just been given a new destination, or was on one steady route; flips of the walking pose in the velocity and as drawn;
+     * swings of the drawn facing (a turn undone within half a second); and bursts, seconds with three or more reversals. {@code limit} worst bodies come back with their last burst.
+     */
+    private JSONObject jitter(Args a) throws Exception {
+        int ticks = a.intAt(0);
+        int limit = a.intOr("limit", 5);
+        final class Track {
+            float vx, vy, facing = Float.NaN, lastTurn;
+            int lastTurnTick = -1000, poseFlips, facingSwings;
+            boolean posed;
+            int lastMoving = -1000, lastDestChange = -1000, reversals, moveFlips, moving, alive, bursts;
+            String dest = "";
+            boolean wasMoving;
+            final ArrayDeque<Integer> recent = new ArrayDeque<>();
+            final ArrayDeque<String> trace = new ArrayDeque<>();
+            List<String> burstTrace = List.of();
+        }
+        Map<Long, Track> tracks = new LinkedHashMap<>();
+        int settled = 0, newRoute = 0, steady = 0, sharpTurns = 0;
+        World world = sim.world();
+        EntityWorld entities = sim.getRoster().entityWorld();
+        BattleComponents parts = sim.getRoster().components();
+        int end = sim.getSimTickIndex() + ticks;
+        while (sim.getSimTickIndex() < end && !sim.isComplete()) {
+            sim.advance(BattleSimulation.TICK_DT);
+            int now = sim.getSimTickIndex();
+            for (long id : bodies()) {
+                if (sim.convoy().isVehicle(id) || !world.isAlive(id) || world.hasMechLoadout(id)
+                        || !sim.getRoster().entityWorld().has(id, sim.getRoster().components().MOVEMENT)
+                        || !sim.identity().type(id).combatant) continue;
+                Track t = tracks.computeIfAbsent(id, k -> new Track());
+                t.alive++;
+                float vx = sim.movement().velX(id), vy = sim.movement().velY(id);
+                boolean moving = vx * vx + vy * vy >= 0.25f;
+                if (moving != t.wasMoving) t.moveFlips++;
+                if (entities.has(id, parts.LAYERED_ANIMATION)) {
+                    boolean posed = (entities.getInt(id, parts.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS)
+                            & LayeredAppearance.FLAG_MOVING) != 0;
+                    if (posed != t.posed) t.poseFlips++;
+                    t.posed = posed;
+                    float facing = entities.getFloat(id, parts.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES);
+                    if (!Float.isNaN(t.facing)) {
+                        float turn = ((facing - t.facing + 540f) % 360f + 360f) % 360f - 180f;
+                        if (Math.abs(turn) >= 1f) {
+                            if (now - t.lastTurnTick <= 15 && turn * t.lastTurn < 0f) t.facingSwings++;
+                            t.lastTurn = turn;
+                            t.lastTurnTick = now;
+                        }
+                    }
+                    t.facing = facing;
+                }
+                t.wasMoving = moving;
+                int[] path = sim.movement().path(id);
+                boolean route = sim.movement().nextWaypointIndex(id) < sim.movement().waypointCount(id);
+                String dest = route && !Paths.isEmpty(path) ? Paths.destX(path) + "," + Paths.destY(path) : "-";
+                if (!dest.equals(t.dest)) {
+                    t.dest = dest;
+                    t.lastDestChange = now;
+                }
+                t.trace.addLast(now + " p=" + round(world.x(id)) + "," + round(world.y(id)) + " v=" + round(vx) + "," + round(vy)
+                        + " d=" + dest);
+                if (t.trace.size() > 45) t.trace.removeFirst();
+                if (!moving) continue;
+                t.moving++;
+                if (now - t.lastMoving <= 3) {
+                    float dot = t.vx * vx + t.vy * vy;
+                    float mag = (float) (Math.hypot(t.vx, t.vy) * Math.hypot(vx, vy));
+                    if (dot < 0.7f * mag) sharpTurns++;
+                    if (dot < 0f) {
+                        t.reversals++;
+                        if (!route) settled++;
+                        else if (now - t.lastDestChange <= 15) newRoute++;
+                        else steady++;
+                        t.recent.addLast(now);
+                        while (now - t.recent.peekFirst() > 30) t.recent.removeFirst();
+                        if (t.recent.size() >= 3) {
+                            t.bursts++;
+                            t.recent.clear();
+                            t.burstTrace = new ArrayList<>(t.trace);
+                        }
+                    }
+                }
+                t.vx = vx;
+                t.vy = vy;
+                t.lastMoving = now;
+            }
+        }
+        long movingTicks = 0, moveFlips = 0, bursts = 0, reversals = 0, flippers = 0, poseFlips = 0, facingSwings = 0;
+        for (Track t : tracks.values()) {
+            movingTicks += t.moving;
+            moveFlips += t.moveFlips;
+            poseFlips += t.poseFlips;
+            facingSwings += t.facingSwings;
+            bursts += t.bursts;
+            reversals += t.reversals;
+            if (t.bursts > 0) flippers++;
+        }
+        List<Map.Entry<Long, Track>> worst = new ArrayList<>(tracks.entrySet());
+        worst.sort(Comparator.comparingInt((Map.Entry<Long, Track> e) -> -e.getValue().bursts));
+        JSONArray rows = new JSONArray();
+        for (Map.Entry<Long, Track> e : worst.subList(0, Math.min(limit, worst.size()))) {
+            Track t = e.getValue();
+            rows.put(new JSONObject().put("id", e.getKey()).put("label", label(e.getKey())).put("bursts", t.bursts)
+                    .put("reversals", t.reversals).put("moveFlips", t.moveFlips).put("moving", t.moving)
+                    .put("trace", new JSONArray(t.burstTrace)));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("bodies", tracks.size())
+                .put("movingSeconds", round(movingTicks * BattleSimulation.TICK_DT))
+                .put("reversals", reversals).put("settled", settled).put("newRoute", newRoute).put("steady", steady)
+                .put("sharpTurns", sharpTurns).put("moveFlips", moveFlips).put("poseFlips", poseFlips).put("facingSwings", facingSwings).put("bursts", bursts)
+                .put("bodiesBursting", flippers).put("worst", rows);
     }
 
     /** Steps {@code N} ticks; for each route stall counted, the unit, where it stood, its next waypoint and what is beside it. */

@@ -1202,6 +1202,11 @@ public final class NavigationService implements AutoCloseable {
         int[] oldPath = world.path(id);
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);
+        // A route dropped on arrival is usually dropped inside the arrival band, before the mover pins the cell centre.
+        if (newPath.length == 0 && !Paths.isEmpty(oldPath) && route == null
+                && roster.movement().atCell(id, oldDestX, oldDestY)) {
+            roster.movement().noteArrived(id, oldDestX, oldDestY);
+        }
         world.setPathRef(id, newPath);
         roster.movement().setContinuousRouteRef(id, route);
         // Multi-cell paths start the carrot cursor at waypoint 1 (waypoint 0 is

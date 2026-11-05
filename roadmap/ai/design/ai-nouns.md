@@ -1901,7 +1901,10 @@ wall.
 A shared **squad firing arrangement** (one bounded candidate pool per squad and
 target, with exclusive member reservations) was tried and dropped unadopted: it
 never showed a work saving that justified its staleness and refresh-deferral
-cases over each member's own retained firing position.
+cases over each member's own retained firing position. Every member walking to
+a firing cell walks to its retained one, kept only while it still has the shot
+on the same target under the same order. A fresh pick each tick let members of
+one squad, each scoring the others' stale destinations, swap cells every tick.
 
 In a coordinated flank, the fixing element does not remain passively parked
 once direct contact establishes the enemy line. It moves to reachable firing

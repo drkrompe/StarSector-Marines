@@ -121,6 +121,9 @@ public final class BattleComponents {
     public static final int LAYERED_BODY_FAMILY = 6;
     /** Field 7: independently swappable helmet-family ordinal (INT). */
     public static final int LAYERED_HEAD_FAMILY = 7;
+    /** The applied velocity eased for the eye: what the walk pose and travel facing read. Nothing in the simulation does. */
+    public static final int LAYERED_TRAVEL_X = 8;
+    public static final int LAYERED_TRAVEL_Y = 9;
 
     /** {@link #CORPSE} field 0: the layered torso facing the unit died with, sprite degrees (FLOAT). */
     public static final int CORPSE_FACING_DEGREES = 0;
@@ -1282,7 +1285,8 @@ public final class BattleComponents {
         VEHICLE_CONTROL = world.register(30, "VehicleControl", FieldKind.OBJECT);
         LAYERED_ANIMATION = world.register(31, "LayeredAnimation",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.INT, FieldKind.INT, FieldKind.INT, FieldKind.INT);
+                FieldKind.INT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
+                FieldKind.FLOAT, FieldKind.FLOAT);
         MECH_LAYERED_ANIMATION = world.register(32, "MechLayeredAnimation",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
