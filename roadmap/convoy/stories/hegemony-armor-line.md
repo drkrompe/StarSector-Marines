@@ -88,6 +88,8 @@ tuned in the playtest, not by evidence alone.
 2. **Shipped.** **The APC hull** and its two carriers, with tire-top bands and a wreck (`art-source/vehicles/apc/hegemony`):
    the concept turned and scaled to the old hull's length, its ring on the old roof bearing so no turret registration
    moved. The carriers keep their open turntables, not the head: a mortar and an LRM pod stand up to fire.
+   The owner then grew the line a quarter (`VehicleType.Apc.SCALE`: 3.0 drawn, 2.81 x 1.13 footprint), keeping the
+   1.6-cell wheelbase so it turns where the old hull did and a radius-1 route clearance so map generation is unchanged.
 3. **Shipped.** **Weight and hover split** (`convoy-nouns.md`, mass decides the shove; weight crushes walls):
    `VehicleType.Weight` gains `ULTRA_HEAVY` (80 t); the shove, the crush, the ram and the mass are rules of the
    weight, hover only of the ground (a light skirt alone shoves nothing); a heavy skirt's view is the hover view over

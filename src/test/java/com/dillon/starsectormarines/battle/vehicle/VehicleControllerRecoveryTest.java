@@ -16,12 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * uses to skip a maneuver that can't gain room).
  *
  * <p>Truck faces north (0°) throughout, so the reverse axis is due south (−Y):
- * the south wall of the carved block is what bounds the backup. HEAVY_APC is
- * 2.4 long × 1.4 wide, so its footprint half-length is 1.2 cells.
+ * the south wall of the carved block is what bounds the backup. Each truck stands a fixed distance from its wall
+ * measured from its tail ({@link #HALF}, the APC's footprint half-length), so the cases hold whatever the APC's size.
  */
 public class VehicleControllerRecoveryTest {
 
     private static final float EPS = 1e-3f;
+    /** The APC's footprint half-length: where its tail is behind its centre. */
+    private static final float HALF = VehicleType.HEAVY_APC.visualLengthCells / 2f;
 
     /** Grid with a rectangular walkable block [x0..x1] × [y0..y1]; everything else wall. */
     private static NavigationGrid block(int w, int h, int x0, int y0, int x1, int y1) {
@@ -46,20 +48,20 @@ public class VehicleControllerRecoveryTest {
 
     @Test
     public void wallPartwayBehindBoundsTheDistance() {
-        // Floor only at y>=6; truck at y=8.5 → rear sample at 7.3. Backing keeps
-        // the rear ≥ row 6 until 7.3−d < 6 (d > 1.3), step-quantized to 1.25.
+        // Floor only at y>=6; the truck's tail sample 1.3 cells short of row 6. Backing keeps
+        // the rear ≥ row 6 until it has gone more than 1.3, step-quantized to 1.25.
         NavigationGrid g = block(12, 16, 0, 6, 11, 15);
-        float d = reverse(g, 5.5f, 8.5f);
+        float d = reverse(g, 5.5f, 7.375f + HALF);
         assertEquals(1.25f, d, EPS, "wall ~1.3 cells behind bounds the backup to 1.25");
         assertTrue(d < VehicleController.REVERSE_RECOVERY_CELLS, "and short of the full budget");
     }
 
     @Test
     public void wallImmediatelyBehindIsBelowTheUsefulThreshold() {
-        // Floor only at y>=8; truck at y=9.2 is feasible (rear sample at 8.0),
+        // Floor only at y>=8; the truck with its tail sample just inside row 8 is feasible,
         // but the first 0.25 back-step pushes the rear sample to floor 7 (< 8 wall).
         NavigationGrid g = block(12, 16, 0, 8, 11, 15);
-        float d = reverse(g, 5.5f, 9.2f);
+        float d = reverse(g, 5.5f, 8.075f + HALF);
         assertEquals(0f, d, EPS, "boxed in behind → zero achievable backup");
         assertTrue(d < VehicleController.MIN_USEFUL_REVERSE_CELLS,
                 "→ below the useful threshold, so the controller skips the maneuver");
