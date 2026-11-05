@@ -2664,7 +2664,9 @@ private static BufferedImage renderBarracks(
                 new SnapshotArtifact("vehicle-heavy-apc.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-bought-vehicle.HEAVY_APC")),
                 new SnapshotArtifact("vehicle-fire-support.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-bought-vehicle.FIRE_SUPPORT_APC")));
+                        false, false, false, false, null, "machine-bought-vehicle.FIRE_SUPPORT_APC")),
+                new SnapshotArtifact("vehicle-heavy-apc-fitted.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-vehicle.HEAVY_APC")));
     }
 
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
@@ -4052,6 +4054,7 @@ private static BufferedImage renderBarracks(
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("slotIntroClasses", viewModel.slotIntroClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
