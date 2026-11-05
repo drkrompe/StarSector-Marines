@@ -28,8 +28,10 @@ import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.CampaignBoat;
+import com.dillon.starsectormarines.marine.Equipped;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.FittingGap;
 import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -963,47 +965,45 @@ public final class BoatDeckViewModel {
         revision.get();
         CampaignBoat boat = selectedBoat();
         if (boat == null) return List.of();
+        return ReadinessRow.list(boat.gaps(), (gap, tone) -> readiness(boat, gap, tone),
+                () -> readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("boatReadinessWhole"),
+                        Strings.get("boatReadinessWholeDetail"), null));
+    }
+
+    /** One gap in a shuttle's words, opening the socket it is about. */
+    private ReadinessRow readiness(CampaignBoat boat, FittingGap gap, ReadinessRow.Tone tone) {
         ShuttleType pattern = boat.pattern();
-        List<ReadinessRow> rows = new ArrayList<>();
-        for (BoatFittingSlot slot : boat.missingParts()) {
-            rows.add(readiness("missing:" + slot.name(), ReadinessRow.Tone.DANGER,
-                    Strings.format("boatReadinessMissing", sentenceCase(slotLabel(slot))), Strings.get("boatReadinessMissingDetail"),
-                    BoatDoll.slotKey(slot)));
-        }
-        FittedBoat fitted = boat.freezeForDeployment();
-        if (boat.plating() == null) {
-            rows.add(readiness("bare-hull", ReadinessRow.Tone.WARN, Strings.get("boatReadinessBareHull"),
-                    Strings.format("boatReadinessBareHullDetail", Math.round(fitted.maxHp())),
-                    BoatDoll.slotKey(BoatFittingSlot.PLATING)));
-        }
-        if (boat.fittingIn(BoatFittingSlot.EMITTER) == null) {
-            rows.add(readiness("no-shield", ReadinessRow.Tone.WARN, Strings.get("boatReadinessNoShield"),
-                    Strings.get("boatReadinessNoShieldDetail"), BoatDoll.slotKey(BoatFittingSlot.EMITTER)));
-        }
-        // A mount is empty with no gun on it at all; one 2x1 gun with room beside it is armed.
-        int bare = 0;
-        int guns = 0;
-        int firstBare = -1;
-        for (int index = 0; index < pattern.hardpoints(); index++) {
-            int on = boat.gunsOn(index).size();
-            guns += on;
-            if (on > 0) continue;
-            bare++;
-            if (firstBare < 0) firstBare = index;
-        }
-        if (bare > 0) {
-            int armed = pattern.hardpoints() - bare;
-            rows.add(readiness("bare-mounts", ReadinessRow.Tone.WARN,
-                    Strings.format("boatReadinessBareMounts", bare, pattern.hardpoints()),
-                    bare == pattern.hardpoints() ? Strings.get("boatReadinessNoGunsDetail")
-                            : Strings.format("boatReadinessBareMountsDetail", guns, armed),
-                    BoatDoll.HARDPOINT_KEY + firstBare));
-        }
-        if (rows.isEmpty()) {
-            rows.add(readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("boatReadinessWhole"),
-                    Strings.get("boatReadinessWholeDetail"), null));
-        }
-        return List.copyOf(rows);
+        return switch (gap.lack()) {
+            case PART -> {
+                BoatFittingSlot slot = (BoatFittingSlot) gap.part();
+                yield readiness("missing:" + slot.name(), tone,
+                        Strings.format("boatReadinessMissing", sentenceCase(slotLabel(slot))),
+                        Strings.get("boatReadinessMissingDetail"), BoatDoll.slotKey(slot));
+            }
+            case ARMOR -> readiness("bare-hull", tone, Strings.get("boatReadinessBareHull"),
+                    Strings.format("boatReadinessBareHullDetail", Math.round(boat.freezeForDeployment().maxHp())),
+                    BoatDoll.slotKey(BoatFittingSlot.PLATING));
+            case SHIELD -> readiness("no-shield", tone, Strings.get("boatReadinessNoShield"),
+                    Strings.get("boatReadinessNoShieldDetail"), BoatDoll.slotKey(BoatFittingSlot.EMITTER));
+            case WEAPON, MOUNTS -> {
+                // A mount is empty with no gun on it at all; one 2x1 gun with room beside it is armed.
+                int bare = 0;
+                int guns = 0;
+                int firstBare = -1;
+                for (int index = 0; index < pattern.hardpoints(); index++) {
+                    int on = boat.gunsOn(index).size();
+                    guns += on;
+                    if (on > 0) continue;
+                    bare++;
+                    if (firstBare < 0) firstBare = index;
+                }
+                yield readiness("bare-mounts", tone,
+                        Strings.format("boatReadinessBareMounts", bare, pattern.hardpoints()),
+                        gap.lack() == FittingGap.Lack.WEAPON ? Strings.get("boatReadinessNoGunsDetail")
+                                : Strings.format("boatReadinessBareMountsDetail", guns, pattern.hardpoints() - bare),
+                        BoatDoll.HARDPOINT_KEY + firstBare);
+            }
+        };
     }
 
     private static String sentenceCase(String label) {
@@ -1096,21 +1096,24 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         int hardpoint = selectedHardpoint.get();
         List<BoatDoll.Slot> slots = new ArrayList<>();
-        List<BoatFittingSlot> missing = boat.missingParts();
+        // Red and yellow are her gaps, the rule her readiness list says in words.
+        List<FittingGap> gaps = boat.gaps();
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             if (slot == BoatFittingSlot.LIFT && !liftable(pattern)) continue;
             BoatFitting fitting = boat.fittingIn(slot);
             boolean selected = hardpoint == NO_HARDPOINT && slot == selectedSlot.get();
+            boolean missing = Equipped.missing(gaps, slot);
+            boolean recommended = slot == BoatFittingSlot.PLATING && Equipped.lacks(gaps, FittingGap.Lack.ARMOR)
+                    || slot == BoatFittingSlot.EMITTER && Equipped.lacks(gaps, FittingGap.Lack.SHIELD);
             slots.add(fitting == null
-                    ? BoatDoll.Slot.fitting(slot, null, slotLabel(slot), Strings.get(missing.contains(slot)
+                    ? BoatDoll.Slot.fitting(slot, null, slotLabel(slot), Strings.get(missing
                             ? "boatDeckSocketMissing" : slot == BoatFittingSlot.PLATING ? "boatDeckBareHull"
-                            : "boatDeckSocketEmpty"), "", selected, missing.contains(slot))
+                            : "boatDeckSocketEmpty"), "", selected, missing, recommended)
                     : BoatDoll.Slot.fitting(slot, fitting.id(), slotLabel(slot), fitting.displayName(),
-                            tierLabel(fitting), selected, false));
+                            tierLabel(fitting), selected, false, false));
         }
         List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
-        boolean unarmed = true;
-        for (int index = 0; index < pattern.hardpoints(); index++) unarmed &= boat.gunsOn(index).isEmpty();
+        boolean unarmed = Equipped.lacks(gaps, FittingGap.Lack.WEAPON);
         for (int index = 0; index < pattern.hardpoints(); index++) {
             BoatGun[] pair = boat.gunsAt(index);
             BoatGun gun = pair[BoatHardpoint.TOP], pod = pair[BoatHardpoint.BOTTOM];

@@ -30,7 +30,7 @@ import java.util.Map;
  * empty plating flies her as a weak bare hull, an empty lift is the bare hold,
  * an empty emitter flies her unshielded, and a bare hardpoint carries no gun.
  */
-public final class CampaignBoat implements Serializable {
+public final class CampaignBoat implements Equipped, Serializable {
 
     private final String id;
     private String displayName;
@@ -82,8 +82,29 @@ public final class CampaignBoat implements Serializable {
         return missing;
     }
 
+    /**
+     * What she is fitted without, by the rule every machine is read by (mechs-nouns.md, readiness): each required
+     * part missing, then a bare hull, no shield, and either no gun anywhere or some mounts bare.
+     */
+    @Override
+    public List<FittingGap> gaps() {
+        List<FittingGap> gaps = new ArrayList<>();
+        for (BoatFittingSlot slot : missingParts()) gaps.add(FittingGap.missing(slot));
+        if (plating() == null) gaps.add(FittingGap.without(FittingGap.Lack.ARMOR));
+        if (fittingIn(BoatFittingSlot.EMITTER) == null) gaps.add(FittingGap.without(FittingGap.Lack.SHIELD));
+        int bare = 0;
+        for (int index = 0; index < pattern.hardpoints(); index++) if (gunsOn(index).isEmpty()) bare++;
+        if (bare > 0) {
+            gaps.add(FittingGap.without(bare == pattern.hardpoints() ? FittingGap.Lack.WEAPON : FittingGap.Lack.MOUNTS));
+        }
+        return List.copyOf(gaps);
+    }
+
+    @Override
+    public boolean complete() { return missingParts().isEmpty(); }
+
     /** Whether she can go on the lift on {@code day}: every required part fitted, and repaired. */
-    public boolean flightReady(float day) { return missingParts().isEmpty() && airworthy(day); }
+    public boolean flightReady(float day) { return complete() && airworthy(day); }
     public float condition(float day) { return 1f - Math.min(1f, repairDaysRemaining(day) / 2f); }
 
     void damage(float fraction, float day) {

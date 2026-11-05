@@ -142,6 +142,12 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         return !ownGunGone;
     }
 
+    /** Whether the hull has a gun card and nothing to fire from it: neither a weapon nor an older save's own gun. */
+    @Override
+    public boolean unarmed() {
+        return type.hasTurretWeapon() && gun() == null && !hasOwnGun();
+    }
+
     /** The weapon fitted in the gun card; null for an empty card. */
     public MechWeaponComponent gun() {
         MechWeaponComponent gun = MechWeaponComponent.findById(gunId);

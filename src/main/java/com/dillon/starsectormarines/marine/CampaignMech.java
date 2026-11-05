@@ -242,6 +242,15 @@ public final class CampaignMech implements CampaignMachine, Serializable {
         return MechWeaponComponent.resolve(rightShoulderComponentId, variant.rightShoulder);
     }
 
+    /** Whether no mount carries a weapon: every chassis has mounts, so a mech with none is unarmed. */
+    @Override
+    public boolean unarmed() {
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            if (weaponAt(slot) != null) return false;
+        }
+        return true;
+    }
+
     public MechWeaponComponent weaponAt(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> arms();

@@ -10,7 +10,7 @@ import java.util.List;
  * a gantry, fitted from the one part catalog. Whatever reads a machine reads this, so a rule written here holds for
  * both; what stays on {@link CampaignMech} or {@link CampaignVehicle} alone is a stated difference between them.
  */
-public interface CampaignMachine {
+public interface CampaignMachine extends Equipped {
 
     String id();
 
@@ -43,7 +43,27 @@ public interface CampaignMachine {
         return List.copyOf(missing);
     }
 
+    /**
+     * Whether the machine can carry a weapon and has none anywhere: it can still go, so this is only recommended. A
+     * hull with no gun card is not unarmed, it is built that way.
+     */
+    boolean unarmed();
+
+    /**
+     * What it is fitted without, by the one rule (mechs-nouns.md, readiness): each role it requires left empty, then
+     * an empty armor point and, where it can carry one, no weapon anywhere.
+     */
+    @Override
+    default List<FittingGap> gaps() {
+        List<FittingGap> gaps = new ArrayList<>();
+        for (MechInternal.Role role : missingInternals()) gaps.add(FittingGap.missing(role));
+        if (internal(MechInternal.Role.PLATING) == null) gaps.add(FittingGap.without(FittingGap.Lack.ARMOR));
+        if (unarmed()) gaps.add(FittingGap.without(FittingGap.Lack.WEAPON));
+        return List.copyOf(gaps);
+    }
+
     /** Whether the machine has every part it cannot go without. */
+    @Override
     default boolean complete() {
         return missingInternals().isEmpty();
     }

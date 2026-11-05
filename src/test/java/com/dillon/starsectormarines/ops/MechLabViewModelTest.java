@@ -1194,11 +1194,11 @@ class MechLabViewModelTest {
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
-        assertFalse(viewModel.selectedMachineUnarmed());
+        assertFalse(viewModel.selectedMachine().unarmed());
         for (MechMountSlot slot : MechMountSlot.values()) {
             if (mech.weaponAt(slot) != null) viewModel.removeInstalledWeapon(SocketId.valueOf(slot.name()));
         }
-        assertTrue(viewModel.selectedMachineUnarmed());
+        assertTrue(viewModel.selectedMachine().unarmed());
         assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
         assertTrue(readinessIds(viewModel).contains("mech-readiness:unarmed"));
     }
@@ -1210,9 +1210,9 @@ class MechLabViewModelTest {
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("a", "Mule 01", VehicleType.HEAVY_APC)));
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(1).select().run();
-        assertFalse(viewModel.selectedMachineUnarmed(), "a truck has no gun card to fill");
+        assertFalse(viewModel.selectedMachine().unarmed(), "a truck has no gun card to fill");
         viewModel.gantryRows().get().get(2).select().run();
-        assertTrue(viewModel.selectedMachineUnarmed());
+        assertTrue(viewModel.selectedMachine().unarmed());
     }
 
     @Test

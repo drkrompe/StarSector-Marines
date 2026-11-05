@@ -3291,10 +3291,9 @@ private static BufferedImage renderBarracks(
             fittingCanvas.installedInternals(viewModel::installedInternal);
             fittingCanvas.installedWeapons(viewModel::installedWeapon);
             fittingCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
-            fittingCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
+            fittingCanvas.fittedMachine(viewModel::selectedMachine);
             fittingCanvas.installedCompartment(viewModel::compartmentPlacements);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
-            fittingCanvas.machineArmed(viewModel::selectedMachineArmed);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
@@ -3589,10 +3588,11 @@ private static BufferedImage renderBarracks(
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatHardpoint.BOTTOM, BoatGun.TWIN_PE_1.id());
         }
         if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
-            // Her drive, plating and gun dragged off into stores: the drive's socket warns and she is off the lift;
-            // the plating's reads a bare hull, which flies weak.
+            // Her drive, plating, emitter and gun dragged off into stores: the drive's socket warns red and she is off
+            // the lift; the plating's reads a bare hull, which flies weak, and the emitter's warns yellow, unshielded.
             workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.DRIVE);
             workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.PLATING);
+            workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.EMITTER);
             workshop.stripGun(deck.boats().get(0).id(), 0);
         }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.

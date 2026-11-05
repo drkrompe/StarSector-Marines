@@ -183,8 +183,7 @@ public final class MechLabScreen implements Screen {
             dollCanvas.installedCompartment(viewModel::compartmentPlacements);
             dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
             dollCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
-            dollCanvas.machineUnarmed(viewModel::selectedMachineUnarmed);
-            dollCanvas.machineArmed(viewModel::selectedMachineArmed);
+            dollCanvas.fittedMachine(viewModel::selectedMachine);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");

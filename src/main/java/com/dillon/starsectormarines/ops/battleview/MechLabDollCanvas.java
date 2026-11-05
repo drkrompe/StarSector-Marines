@@ -13,8 +13,10 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignMachine;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.MachineCapabilities;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -108,8 +110,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
     private Supplier<List<MechCompartment.Placement>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
-    private BooleanSupplier machineArmed = () -> true;
-    private BooleanSupplier machineUnarmed = () -> false;
+    private Supplier<CampaignMachine> fittedMachine = () -> null;
     private BooleanSupplier vehicleOwnGun = () -> false;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
@@ -171,9 +172,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /** Whether the selected vehicle's empty gun card still fires the gun the hull was built with. */
-    /** Whether the machine on the doll has no weapon anywhere, so its empty weapon points warn in yellow. */
-    public void machineUnarmed(BooleanSupplier source) {
-        machineUnarmed = source != null ? source : () -> false;
+    /** The machine on the doll, whose gaps light its cards red and yellow ({@link CampaignMachine#gaps}). */
+    public void fittedMachine(Supplier<CampaignMachine> source) {
+        fittedMachine = source != null ? source : () -> null;
     }
 
     public void vehicleOwnGun(BooleanSupplier source) {
@@ -193,11 +194,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** The selected vehicle's hull, for its sealed doll; null while a mech or nothing is selected. */
     public void selectedVehicle(Supplier<VehicleType> source) {
         selectedVehicle = source != null ? source : () -> null;
-    }
-
-    /** Whether the machine on the doll carries a gun, so a compartment with no capacitor bank keeps it off the drop. */
-    public void machineArmed(BooleanSupplier source) {
-        machineArmed = source != null ? source : () -> true;
     }
 
     private record DragPreview(MechWeaponComponent component, MechInternal internal, SocketId source,
@@ -356,7 +352,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     null, false,
                     socket.id().compartment() ? List.of() : null, null, assets,
                     false, false, false, false, false, seconds,
-                    new MechSocketConsole.Warnings(warnMissing, true, warnMissing), null);
+                    MechSocketConsole.Warnings.bare(warnMissing, new MachineCapabilities(true, false)), null);
         }
     }
 
@@ -372,7 +368,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawSchematicPanel(c, panelWidth, height);
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, height);
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
-        MechSocketConsole.Warnings warnings = new MechSocketConsole.Warnings(warnMissing, type.hasTurretWeapon(), warnMissing);
+        MechSocketConsole.Warnings warnings = MechSocketConsole.Warnings.bare(warnMissing, MachineCapabilities.of(type, null));
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             MechSocketConsole.draw(c, target, socket, null, null, null, false,
@@ -705,8 +701,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float[] end = path.get(path.size() - 1);
             drawAnchorMechanicalTick(c, end[0], end[1], wire, selected);
         }
-        MechSocketConsole.Warnings warnings = new MechSocketConsole.Warnings(true, machineArmed.getAsBoolean(),
-                machineUnarmed.getAsBoolean());
+        MechSocketConsole.Warnings warnings = MechSocketConsole.Warnings.of(fittedMachine.get());
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             boolean selected = selects(socket.id(), selectedSocket);

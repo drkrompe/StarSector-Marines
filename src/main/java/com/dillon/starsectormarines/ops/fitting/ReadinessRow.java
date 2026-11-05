@@ -1,6 +1,12 @@
 package com.dillon.starsectormarines.ops.fitting;
 
+import com.dillon.starsectormarines.marine.FittingGap;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * One line of a machine's readiness, as {@code fitting-readiness-row} draws it, in every fitting room: why the
@@ -17,6 +23,27 @@ public record ReadinessRow(String id, String classes, String barClasses, String 
         private final String css;
 
         Tone(String css) { this.css = css; }
+
+        /** A gap's colour, on every machine: red for one it cannot go without, yellow for one it is better for. */
+        public static Tone of(FittingGap gap) {
+            return gap.required() ? DANGER : WARN;
+        }
+    }
+
+    /**
+     * A machine's readiness list, in every fitting room: one line per gap, in the order {@code gaps} gives (each
+     * required part, then what it goes without), or the {@code whole} line alone when it lacks nothing. The room says
+     * each gap in its own words; the order and the colours are this one rule.
+     */
+    public static List<ReadinessRow> list(List<FittingGap> gaps, BiFunction<FittingGap, Tone, ReadinessRow> line,
+                                          Supplier<ReadinessRow> whole) {
+        List<ReadinessRow> rows = new ArrayList<>();
+        for (FittingGap gap : gaps) {
+            ReadinessRow row = line.apply(gap, Tone.of(gap));
+            if (row != null) rows.add(row);
+        }
+        if (rows.isEmpty()) rows.add(whole.get());
+        return List.copyOf(rows);
     }
 
     /**

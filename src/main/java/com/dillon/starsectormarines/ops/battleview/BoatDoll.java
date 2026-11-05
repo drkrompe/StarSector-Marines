@@ -95,7 +95,8 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
      * @param placed whether the hull publishes a weapon slot for this hardpoint at all
      * @param missing whether this socket is empty and the boat cannot fly without it: it warns in red
      * @param recommended whether this socket is empty and the boat can fly without it, but should not: it warns in
-     *     yellow, an armor point with no plate or a hardpoint on a boat with no gun anywhere
+     *     yellow: an armor point with no plate, an emitter socket with no emitter, or a hardpoint on a boat with no
+     *     gun anywhere ({@link com.dillon.starsectormarines.marine.CampaignBoat#gaps})
      */
     public record Slot(String key, Kind kind, String itemId, String podItemId, String title, String fitted, String tier,
                        boolean selected, float localX, float localY, float facingDeg, float arcDeg, boolean placed,
@@ -107,7 +108,7 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
         }
 
         public static Slot fitting(BoatFittingSlot slot, String itemId, String title, String fitted, String tier,
-                                   boolean selected, boolean missing) {
+                                   boolean selected, boolean missing, boolean recommended) {
             Kind kind = switch (slot) {
                 case PLATING -> Kind.PLATING;
                 case DRIVE -> Kind.DRIVE;
@@ -117,7 +118,7 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
                 case POWER -> Kind.POWER;
             };
             return new Slot(slotKey(slot), kind, itemId, null, title, fitted, tier, selected, 0f, 0f, 0f, 0f, false,
-                    missing, kind == Kind.PLATING && itemId == null);
+                    missing, recommended);
         }
 
         public static Slot hardpoint(int index, String itemId, String podItemId, String title, String fitted,

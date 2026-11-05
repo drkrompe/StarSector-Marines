@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.marine.CampaignMachine;
+import com.dillon.starsectormarines.marine.Equipped;
+import com.dillon.starsectormarines.marine.FittingGap;
+import com.dillon.starsectormarines.marine.MachineCapabilities;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -75,13 +79,30 @@ final class MechSocketConsole {
     }
 
     /**
-     * What a card warns of. Red is a part the machine cannot go without, yellow one it is better for.
+     * What a card warns of, by the one rule every machine is read by ({@link CampaignMachine#gaps}). Red is a part the
+     * machine cannot go without, yellow one it is better for.
      *
-     * @param shown        false draws every socket as merely empty, for a pattern shown for sale rather than a machine being fitted
-     * @param bankRequired the machine carries a gun, so a compartment with no capacitor bank keeps it off the manifest
-     * @param noWeapon     the machine has no weapon anywhere, so each empty weapon point warns
+     * @param shown    false draws every socket as merely empty, for a pattern shown for sale rather than a machine being fitted
+     * @param required the roles the machine cannot drop without ({@link MachineCapabilities#required}): an empty
+     *                 engine core, or a compartment with no capacitor bank where one is required, warns red
+     * @param noWeapon the machine has no weapon anywhere, so each empty weapon point warns
      */
-    record Warnings(boolean shown, boolean bankRequired, boolean noWeapon) { }
+    record Warnings(boolean shown, List<MechInternal.Role> required, boolean noWeapon) {
+
+        /** A machine being fitted; with none, as an armed machine with its weapons fitted. */
+        static Warnings of(CampaignMachine machine) {
+            if (machine == null) return new Warnings(true, new MachineCapabilities(true, false).required(), false);
+            return new Warnings(true, machine.capabilities().required(),
+                    Equipped.lacks(machine.gaps(), FittingGap.Lack.WEAPON));
+        }
+
+        /** A pattern standing bare, as bought: nothing fitted, so with {@code shown} every empty weapon point warns. */
+        static Warnings bare(boolean shown, MachineCapabilities capabilities) {
+            return new Warnings(shown, capabilities.required(), shown && capabilities.armed());
+        }
+
+        boolean requires(MechInternal.Role role) { return required.contains(role); }
+    }
 
     /**
      * What a card holds that is built into the machine rather than fitted: its drawing and its colour. A
@@ -120,8 +141,10 @@ final class MechSocketConsole {
         // An empty engine well, or a compartment with no capacitor bank on a machine with a gun, keeps it off the drop
         // manifest: red. An empty armor point does not, but the machine goes in with no armor: yellow. So does a machine
         // with no weapon on it at all, on each of its empty weapon points.
-        boolean missing = warnings.shown() && !fixed && (socket.id() == SocketId.CORE ? empty
-                : compartment && warnings.bankRequired() && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
+        boolean missing = warnings.shown() && !fixed && (socket.id() == SocketId.CORE
+                ? empty && warnings.requires(MechInternal.Role.ENGINE)
+                : compartment && warnings.requires(MechInternal.Role.CAPACITOR_BANK)
+                        && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
         boolean recommended = warnings.shown() && !fixed && empty
                 && (socket.id() == SocketId.PLATING || warnings.noWeapon() && socket.type().weaponPoint());
         float pulse = pulse(time);

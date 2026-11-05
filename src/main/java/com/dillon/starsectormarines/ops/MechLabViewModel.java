@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.FittingGap;
 import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.marine.VehicleRack;
@@ -1737,27 +1738,6 @@ public final class MechLabViewModel {
         return internal != null;
     }
 
-    /**
-     * Whether the selected machine can carry a weapon and has none anywhere: it can still go, so this warns in yellow. A
-     * hull with no gun card is not unarmed, it is built that way.
-     */
-    public boolean selectedMachineUnarmed() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicle.type().hasTurretWeapon() && vehicle.gun() == null && !vehicle.hasOwnGun();
-        CampaignMech mech = selectedMech();
-        if (mech == null) return false;
-        for (MechMountSlot slot : MechMountSlot.values()) {
-            if (mech.weaponAt(slot) != null) return false;
-        }
-        return true;
-    }
-
-    /** Whether the selected machine carries a gun, so a compartment with no capacitor bank keeps it off the drop. */
-    public boolean selectedMachineArmed() {
-        CampaignMachine machine = selectedMachine();
-        return machine != null && machine.capabilities().armed();
-    }
-
     /** Whether the selected vehicle's empty gun card still fires the gun its hull was built with (an older save). */
     public boolean selectedVehicleHasOwnGun() {
         CampaignVehicle vehicle = selectedVehicle();
@@ -1977,29 +1957,30 @@ public final class MechLabViewModel {
         CampaignMachine machine = selectedMachine();
         if (machine == null) return List.of();
         List<SocketDef> sockets = machineSockets(machine);
-        List<ReadinessRow> rows = new ArrayList<>();
-        for (MechInternal.Role role : machine.missingInternals()) {
-            boolean engine = role == MechInternal.Role.ENGINE;
-            rows.add(readiness("missing:" + role.name(), ReadinessRow.Tone.DANGER,
-                    Strings.get(engine ? "mechLabReadinessEngineMissing" : "mechLabReadinessCapacitorsMissing"),
-                    Strings.get("mechLabReadinessMissingDetail"),
-                    engine ? SocketId.CORE : firstSocket(sockets, socket -> socket.id().compartment())));
-        }
-        if (machine.internal(MechInternal.Role.PLATING) == null) {
-            rows.add(readiness("no-plate", ReadinessRow.Tone.WARN, Strings.get("mechLabReadinessNoPlate"),
+        return ReadinessRow.list(machine.gaps(), (gap, tone) -> readiness(machine, sockets, gap, tone),
+                () -> readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("mechLabReadinessWhole"),
+                        Strings.get("mechLabReadinessWholeDetail"), null));
+    }
+
+    /** One gap in the lab's words, opening the socket it is about; a machine has no shield or mounts to go without. */
+    private ReadinessRow readiness(CampaignMachine machine, List<SocketDef> sockets, FittingGap gap,
+                                   ReadinessRow.Tone tone) {
+        return switch (gap.lack()) {
+            case PART -> {
+                boolean engine = gap.part() == MechInternal.Role.ENGINE;
+                yield readiness("missing:" + gap.part().name(), tone,
+                        Strings.get(engine ? "mechLabReadinessEngineMissing" : "mechLabReadinessCapacitorsMissing"),
+                        Strings.get("mechLabReadinessMissingDetail"),
+                        engine ? SocketId.CORE : firstSocket(sockets, socket -> socket.id().compartment()));
+            }
+            case ARMOR -> readiness("no-plate", tone, Strings.get("mechLabReadinessNoPlate"),
                     Strings.format("mechLabReadinessNoPlateDetail", number(figures(machine, null, null).structure())),
-                    SocketId.PLATING));
-        }
-        if (selectedMachineUnarmed()) {
-            rows.add(readiness("unarmed", ReadinessRow.Tone.WARN, Strings.get("mechLabReadinessNoWeapons"),
+                    SocketId.PLATING);
+            case WEAPON -> readiness("unarmed", tone, Strings.get("mechLabReadinessNoWeapons"),
                     Strings.get("mechLabReadinessNoWeaponsDetail"),
-                    firstSocket(sockets, socket -> mountFor(socket.id()) != null)));
-        }
-        if (rows.isEmpty()) {
-            rows.add(readiness("whole", ReadinessRow.Tone.GOOD, Strings.get("mechLabReadinessWhole"),
-                    Strings.get("mechLabReadinessWholeDetail"), null));
-        }
-        return List.copyOf(rows);
+                    firstSocket(sockets, socket -> mountFor(socket.id()) != null));
+            case SHIELD, MOUNTS -> null;
+        };
     }
 
     private static SocketId firstSocket(List<SocketDef> sockets, Predicate<SocketDef> test) {
@@ -2564,7 +2545,8 @@ public final class MechLabViewModel {
     }
 
     /** The machine being fitted, whichever kind it is; null when neither is selected. */
-    private CampaignMachine selectedMachine() {
+    /** The machine on the gantry, a mech or a vehicle; null when nothing is selected. */
+    public CampaignMachine selectedMachine() {
         CampaignMech mech = selectedMech();
         return mech != null ? mech : selectedVehicle();
     }
