@@ -596,8 +596,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
                     gantry.centerX, gantry.centerY).mechVariant(variant)
                     .atPosition(gantry.worldCenterX(), gantry.worldCenterY()));
-            simulation.world().attachMechLoadout(mech,
-                    variant.createLoadout(variant.defaultRole));
+            MechLoadoutComponent parkedLoadout = variant.createLoadout(variant.defaultRole);
+            parkedLoadout.torsoFacingDegrees = parkedFacing(gantry);
+            simulation.world().attachMechLoadout(mech, parkedLoadout);
             // Parked machinery faces cardinally down the berth's long axis,
             // toward its mouth and the room's shared service lane.
             FacingSystem.faceStanding(simulation.getEntityWorld(),
@@ -613,17 +614,25 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     /**
      * Reprojects campaign-authoritative fitting into the live home-deck scene.
-     * Existing machines keep their entity identity; a newly fabricated chassis
-     * is stood in the next previously vacant berth.
+     * A berth still holding its chassis keeps its entity; a newly fabricated
+     * chassis is stood in the vacant berth. A machine scrapped or stored leaves
+     * the deck and the lance closes up behind it, so a berth whose chassis has
+     * changed gives up the old body for the new one.
      */
     public void syncGantries(List<MechDeploymentSpec> deployments) {
         if (deployments == null) return;
-        int count = Math.min(deployments.size(), machineBerths.length);
-        for (int seat = 0; seat < count; seat++) {
-            MechDeploymentSpec deployment = deployments.get(seat);
-            if (deployment == null) continue;
+        for (int seat = 0; seat < machineBerths.length; seat++) {
+            MechDeploymentSpec deployment = seat < deployments.size() ? deployments.get(seat) : null;
             int index = machineBerths[seat];
             long mech = berthedMachines[index];
+            if (mech != 0L && (deployment == null
+                    || simulation.identity().mechVariant(mech) != deployment.variant())) {
+                simulation.getRoster().takeOffTheField(mech);
+                mech = 0L;
+                berthedMachines[index] = 0L;
+                occupiedBerths[index] = berthedVehicles[index] != 0L;
+            }
+            if (deployment == null) continue;
             Gantry gantry = gantries.get(index);
             if (mech == 0L) {
                 mech = simulation.spawn(new EntitySpec(
@@ -637,6 +646,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
             MechLoadoutComponent loadout = deployment.createLoadout(deployment.role());
             loadout.installMissileReplenisher(deployment.missileReplenisher());
+            // A fresh loadout starts its torso at a default bearing; parked, it already looks down the berth.
+            loadout.torsoFacingDegrees = parkedFacing(gantry);
             simulation.world().attachMechLoadout(mech, loadout);
         }
     }

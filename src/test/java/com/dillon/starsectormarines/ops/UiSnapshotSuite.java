@@ -2646,6 +2646,20 @@ private static BufferedImage renderBarracks(
                 selectHound, selectVacant, specSheet, null);
     }
 
+    static List<SnapshotArtifact> renderBayRemoval(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("mech-before.png", renderMechLab(context, renderer, 1920, 1080, 1f)),
+                new SnapshotArtifact("mech-after-scrap.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-scrapped")),
+                new SnapshotArtifact("boat-before.png", renderBoatDeck(context, renderer, 1920, 1080, false)),
+                new SnapshotArtifact("boat-after-store.png", renderBoatDeck(context, renderer, 1920, 1080,
+                        false, false, RESERVE_STRIP)));
+    }
+
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
@@ -3166,6 +3180,15 @@ private static BufferedImage renderBarracks(
                 List::of, () -> null).vehicles(viewModel::gantryVehicles);
         readied(ship);
         ship.advance(18f);
+        // SCRAP pressed twice on the live deck, then the scene told, as MechLabScreen tells it.
+        if ("machine-scrapped".equals(materialHint)) {
+            viewModel.mechRows().get().get(0).select().run();
+            viewModel.scrapAction().run();
+            viewModel.scrapAction().run();
+            ship.scene().syncGantries(viewModel.gantryDeployments());
+            ship.scene().parkVehicles(viewModel.gantryDeployments().size(), viewModel.gantryVehicles());
+            ship.advance(1f);
+        }
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
         if (weldingEvidence) seekMachineService(ship, vehicleBay, viewModel.selectedGantryIndex());
         ShipDeckBattleScene.RoomView framing =
