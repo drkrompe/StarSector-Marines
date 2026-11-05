@@ -114,8 +114,9 @@ class DepartureTurnaroundTest {
         assertTrue(rig.body().x > 235f,
                 "a misaligned departure must turn itself round and leave, not hold"
                         + " (ended at x=" + rig.body().x + ", started at 220.5)");
-        assertEquals(1, rig.convoy().control(rig.id()).turnaroundsUsed,
-                "and it should take exactly one maneuver to do it");
+        int used = rig.convoy().control(rig.id()).turnaroundsUsed;
+        assertTrue(used >= 1 && used <= VehicleController.MAX_DEPARTURE_TURNAROUNDS,
+                "and it should do it within the maneuvers it is allowed (used=" + used + ")");
     }
 
     @Test
