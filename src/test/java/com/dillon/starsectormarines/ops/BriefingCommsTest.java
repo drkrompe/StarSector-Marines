@@ -121,6 +121,17 @@ class BriefingCommsTest {
         assertSame(legacy, olderTurns.get(0).recording(), "Parsed legacy flavor must not displace a whole recording");
     }
 
+    @Test void orderedRecordingsOutrankTurnsParsedFromContractCopy() {
+        var first = new WaylineNarration.Line("one", "mission", "briefing.01", "First turn.", 1, 1, 10, List.of());
+        var second = new WaylineNarration.Line("two", "mission", "briefing.02", "Second turn.", 1, 1, 10, List.of());
+        var contract = Mission.builder().id("chapter").flavor("Zoey Venn: Contract copy and last job's ledger.").build();
+        var turns = BriefingComms.conversation(contract, List.of(first, second));
+        assertEquals(List.of("First turn.", "Second turn."), turns.stream().map(BriefingComms.Turn::text).toList());
+        assertEquals(List.of(first, second), turns.stream().map(BriefingComms.Turn::recording).toList());
+        assertEquals(List.of("Contract copy and last job's ledger."),
+                BriefingComms.conversation(contract, List.of()).stream().map(BriefingComms.Turn::text).toList());
+    }
+
     @Test void refreshedSameMissionKeepsDismissalButDropsStaleRecording() {
         var comms = new BriefingComms(new NarrationPlayer(line -> completedSound()));
         Mission mission = conversation();

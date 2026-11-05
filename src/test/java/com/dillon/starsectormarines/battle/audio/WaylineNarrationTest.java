@@ -162,6 +162,15 @@ class WaylineNarrationTest {
         assertTrue(line.speaker().contains("KORD"));
     }
 
+    @Test void dustLedgerRetriesHearTheirOwnBriefing() {
+        for (int attempt : new int[]{1, 12}) {
+            String id = "wayline_corvus_v1_0_" + attempt;
+            assertEquals("story_corvus_dust_ledger", WaylineNarration.storyMissionId(
+                    Mission.builder().id(id).source(MissionSource.STORY).build()));
+            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
+        }
+    }
+
     @Test void blindWatchRetriesHearTheSoundingsCalls() throws Exception {
         for (int attempt : new int[]{1, 12}) {
             String id = "wayline_corvus_v1_1_" + attempt;

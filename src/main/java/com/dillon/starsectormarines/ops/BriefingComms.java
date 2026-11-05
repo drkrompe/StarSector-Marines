@@ -54,14 +54,16 @@ final class BriefingComms {
     static List<Turn> conversation(Mission mission, List<WaylineNarration.Line> recordings) {
         List<MissionDialogue.Turn> authored = MissionDialogue.turns(mission);
         var result = new ArrayList<Turn>();
-        // Explicit authored turns are authoritative. Older missions can still derive
-        // speaker turns from flavor; their whole-briefing recording remains the fallback.
+        // Explicit authored turns are authoritative. Otherwise a chapter's recordings outrank
+        // turns parsed from flavor, which is contract copy: a speaker prefix on it must not
+        // displace the conversation written for the briefing.
         boolean explicitDialogue = mission != null && mission.dialogue != null && !mission.dialogue.isEmpty();
-        if (!explicitDialogue && recordings.size() == 1 && !recordings.get(0).event().contains(".")) {
-            WaylineNarration.Line line = recordings.get(0);
-            String key = MissionDialogue.say(line.speaker(), line.text()).speakerKey();
-            result.add(new Turn(key, line.speaker(), line.text(), line.portrait(), line));
-        } else if (!authored.isEmpty()) {
+        if (!explicitDialogue && !recordings.isEmpty()) {
+            for (WaylineNarration.Line line : recordings) {
+                String key = MissionDialogue.say(line.speaker(), line.text()).speakerKey();
+                result.add(new Turn(key, line.speaker(), line.text(), line.portrait(), line));
+            }
+        } else {
             for (int i = 0; i < authored.size(); i++) {
                 MissionDialogue.Turn turn = authored.get(i);
                 WaylineNarration.Line recording = turn.narrationId().isBlank()
@@ -72,9 +74,6 @@ final class BriefingComms {
                 result.add(new Turn(turn.speakerKey(), turn.speaker(), turn.text(),
                         recording != null && !recording.portrait().isBlank() ? recording.portrait() : MissionDialogue.speakerPortrait(turn.speakerKey()), recording));
             }
-        } else for (WaylineNarration.Line line : recordings) {
-            String key = MissionDialogue.say(line.speaker(), line.text()).speakerKey();
-            result.add(new Turn(key, line.speaker(), line.text(), line.portrait(), line));
         }
         return List.copyOf(result);
     }

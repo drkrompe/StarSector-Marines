@@ -164,6 +164,8 @@ public final class WaylineNarration {
         if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.termsOfProtection(mission.id) ? "story_agreus_terms_of_protection" : AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
+        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.DUST_LEDGER)
+            return "story_corvus_dust_ledger";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
             return "story_corvus_cold_account";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.BLIND_WATCH)
@@ -186,6 +188,7 @@ public final class WaylineNarration {
             case LAST_LIFT -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
             case RELAY_NINE -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
             case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
+            case DUST_LEDGER -> "story_corvus_dust_ledger";
             case BLIND_WATCH -> "story_corvus_blind_watch";
             case COLD_ACCOUNT -> "story_corvus_cold_account";
             case SALVAGE_RIGHTS -> "story_shepherd_salvage";
