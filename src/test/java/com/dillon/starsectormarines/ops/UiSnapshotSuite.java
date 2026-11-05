@@ -3186,7 +3186,7 @@ private static BufferedImage renderBarracks(
             viewModel.scrapAction().run();
             viewModel.scrapAction().run();
             ship.scene().syncGantries(viewModel.gantryDeployments());
-            ship.scene().parkVehicles(viewModel.gantryDeployments().size(), viewModel.gantryVehicles());
+            ship.scene().parkVehicles(viewModel.gantryVehicles());
             ship.advance(1f);
         }
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
@@ -3220,7 +3220,7 @@ private static BufferedImage renderBarracks(
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
                             viewModel::hoveredWeapon)
-                    .withOccupiedGantries(viewModel::occupiedGantries)
+                    .withOccupiedPads(viewModel::padOccupied)
                     .withSideShift(() -> camera.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);

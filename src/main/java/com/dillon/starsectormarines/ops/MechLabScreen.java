@@ -172,7 +172,7 @@ public final class MechLabScreen implements Screen {
                             this::currentBayId,
                             () -> previewSeconds,
                             viewModel::hoveredWeapon)
-                    .withOccupiedGantries(viewModel::occupiedGantries)
+                    .withOccupiedPads(viewModel::padOccupied)
                     .withSideShift(() -> cameraController.pose().sideShift())
                     .withPadPreview(viewModel::padPreview)
                     .withHover(boardHover);
@@ -574,10 +574,14 @@ public final class MechLabScreen implements Screen {
         List<MechDeploymentSpec> mechs = viewModel.gantryDeployments();
         List<VehicleDeploymentSpec> vehicles = viewModel.gantryVehicles();
         deck.scene().syncGantries(mechs);
-        deck.scene().parkVehicles(mechs.size(), vehicles);
+        deck.scene().parkVehicles(vehicles);
         // A hull built since the deck mustered is a line her sprites have not loaded yet.
         BattleSprites sprites = previewSprites();
-        if (sprites != null) for (VehicleDeploymentSpec vehicle : vehicles) sprites.loadConvoySprite(vehicle.type());
+        if (sprites != null) {
+            for (VehicleDeploymentSpec vehicle : vehicles) {
+                if (vehicle != null) sprites.loadConvoySprite(vehicle.type());
+            }
+        }
     }
 
     /** The berths standing in that bay, in the order the deck authored them. */

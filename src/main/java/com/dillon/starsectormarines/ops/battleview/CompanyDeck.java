@@ -135,7 +135,7 @@ public final class CompanyDeck {
         return this;
     }
 
-    /** The company's vehicles, parked in the berths after the lance; read on this thread, as the lance is. */
+    /** The company's vehicles, pad by pad with the lance; read on this thread, as the lance is. */
     private Supplier<List<VehicleDeploymentSpec>> vehicles = List::of;
 
     public CompanyDeck vehicles(Supplier<List<VehicleDeploymentSpec>> parked) {
@@ -587,7 +587,7 @@ public final class CompanyDeck {
         ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks, grounded);
         manned.dress(dressing == null ? CoreDressing.of(ship) : dressing);
         manned.occupyGantries(berthed);
-        manned.parkVehicles(berthed.size(), parked);
+        manned.parkVehicles(parked);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
         // hands who are not.

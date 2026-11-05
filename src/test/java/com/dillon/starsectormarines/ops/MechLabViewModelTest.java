@@ -60,6 +60,31 @@ class MechLabViewModelTest {
             "data/ui/components/company/company-resource-stock.mlx", "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx")).stream().map(path -> "mod/" + path).toList();
 
+    @Test void scrappingLeavesThePadVacantAndABuildGoesOnThePadPressed() {
+        MechBay bay = new MechBay();
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech("first", "First", MechVariant.HOUND,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech("second", "Second", MechVariant.WARDEN,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
+        var model = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+
+        model.mechRows().get().get(0).select().run();
+        model.scrapAction().run();
+        model.scrapAction().run();
+
+        assertEquals(1, bay.squadById(MechBay.STARTER_SQUAD_ID).padOf("second"));
+        assertFalse(model.padOccupied(0));
+        assertTrue(model.padOccupied(1));
+        assertEquals(Arrays.asList(null, MechVariant.WARDEN), model.gantryVariants());
+
+        model.selectGantryAction(3).run();
+        model.catalogRows().get().stream().filter(row -> !row.actionDisabled()).findFirst().orElseThrow().action().run();
+
+        assertTrue(model.padOccupied(3), "built on the pad pressed");
+        assertFalse(model.padOccupied(0));
+        assertEquals(3, model.selectedGantryIndex());
+    }
+
     @Test void compactWorkshopRejectsStaleFabricationAfterCapacityShrinks() {
         MechBay bay = MechBay.legacyStarterFixture();
         TestPurse resources = new TestPurse(60_000);

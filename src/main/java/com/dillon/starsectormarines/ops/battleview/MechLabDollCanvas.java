@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -88,8 +89,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<List<Gantry>> berths;
     private final IntSupplier workSite;
     private final DoubleSupplier elapsedSeconds;
-    /** Pads holding a mech or a vehicle; the doll draws mechs only, so this can exceed the lance. */
-    private IntSupplier occupiedGantries;
+    /** Which pads hold a mech or a vehicle; the doll draws mechs only, so the lance alone cannot say. */
+    private IntPredicate occupiedPads;
     private DoubleSupplier sideShift;
     private final Supplier<MechWeaponComponent> candidateWeapon;
     /** Every pad a press selects: vacant pads always, occupied ones while the lance is in overview. */
@@ -288,7 +289,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
         drawVacantGantryActions(context, sceneCamera, host[0], standing,
-                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0),
+                occupiedPads != null ? occupiedPads
+                        : pad -> pad < lance.size() && lance.get(pad) != null,
                 !fittingOverlaysVisible.getAsBoolean());
         VehicleType vehicle = selected == null ? selectedVehicle.get() : null;
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
@@ -426,9 +428,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return this;
     }
 
-    /** Pads past the mech lance that hold a vehicle are not vacant; the host says how many are taken. */
-    public MechLabDollCanvas withOccupiedGantries(IntSupplier occupied) {
-        this.occupiedGantries = occupied;
+    /** A pad that holds a vehicle is not vacant; the host says which are taken. */
+    public MechLabDollCanvas withOccupiedPads(IntPredicate occupied) {
+        this.occupiedPads = occupied;
         return this;
     }
 
@@ -471,11 +473,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private void drawVacantGantryActions(CanvasContext context, BattleCamera camera,
                                           CanvasHostViewport viewport,
-                                          List<Gantry> standing, int occupied, boolean letters) {
+                                          List<Gantry> standing, IntPredicate occupied, boolean letters) {
         int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
         List<GantryTarget> targets = new ArrayList<>();
         for (int index = 0; index < count; index++) {
-            if (index < Math.max(0, occupied) && !letters) continue;
+            boolean held = occupied.test(index);
+            if (held && !letters) continue;
             Gantry gantry = standing.get(index);
             PadBounds pad = padBounds(gantry);
             float left = camera.cellToScreenX(pad.left()) / viewport.scaleX();
@@ -491,7 +494,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     Math.min(left, right) + inset, Math.min(top, bottom) + inset,
                     Math.max(1f, width - inset * 2f),
                     Math.max(1f, height - inset * 2f));
-            if (index >= Math.max(0, occupied)) {
+            if (!held) {
                 targets.add(target);
                 Object preview = index == selectedIndex(selectedGantry.getAsInt()) && padPreview != null
                         ? padPreview.get() : null;

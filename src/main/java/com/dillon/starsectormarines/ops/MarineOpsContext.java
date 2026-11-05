@@ -322,7 +322,7 @@ public class MarineOpsContext {
         return signature.toString();
     }
 
-    /** The machines parked in the company ship's berths: whatever the player owns. */
+    /** The machines parked in the company ship's berths, pad by pad: whatever the player owns. */
     private static List<MechVariant> companyLance() {
         List<MechVariant> lance = new ArrayList<>();
         MarineRosterScript script = MarineRosterScript.getInstance();
@@ -332,18 +332,26 @@ public class MarineOpsContext {
         // in the berths whatever the company actually owns.
         CampaignMechSquad squad = roster == null ? null : roster.mechBay().activeSquad();
         if (squad != null) {
-            for (CampaignMech mech : squad.mechs()) lance.add(mech.variant());
+            for (int pad = 0; pad < CampaignMechSquad.CAPACITY; pad++) {
+                CampaignMech mech = squad.mechOnPad(pad);
+                lance.add(mech != null ? mech.variant() : null);
+            }
         }
         return lance;
     }
 
-    /** The active squad's vehicles, parked in the berths after its mechs. */
+    /** The active squad's vehicles, pad by pad, null where none stands. */
     private static List<VehicleDeploymentSpec> companyVehicles() {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script == null ? null : script.roster();
         CampaignMechSquad squad = roster == null ? null : roster.mechBay().activeSquad();
         if (squad == null) return List.of();
-        return squad.vehicles().stream().map(CampaignVehicle::freezeForDeployment).toList();
+        List<VehicleDeploymentSpec> parked = new ArrayList<>();
+        for (int pad = 0; pad < CampaignMechSquad.CAPACITY; pad++) {
+            CampaignVehicle vehicle = squad.vehicleOnPad(pad);
+            parked.add(vehicle != null ? vehicle.freezeForDeployment() : null);
+        }
+        return parked;
     }
 
     /**
