@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a85d-4892-7221-9ead-6d6b944c50ea",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a85d-4892-7221-9ead-6d6b944c50ea\\exec-dc7e50d1-f8d3-46f7-96bf-93d8e9e198c4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\deck-plate-v6.master.png",
+    "sha256": "3ee73ce5c3a765552b13756856521b8871209bef9a29e8fe12a3c2e34bc525ca",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\hq-command-deck\\deck-plate-v6.brief.txt",
+  "promptSha256": "fa64678d5ec7090a9ca11a516a7424d04b2066a773d2ce12630c0ea5ab72745c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact camera, silhouettes, placement and scale, including the seated crew mannequins; paint over it, never move anything\nImage 2: Brushwork and figure painting only; not layout, not colour\n\nUse case: sketch-to-render illustration, background plate. Asset type: wide landscape establishing illustration for Starsector Marines, a grounded mercenary ground-operations game; it becomes the background layer of a banner across the top of the company's headquarters screen.\n\nReference 1 is a grey 3D blockout rendered from the exact camera of this shot. It is the geometry and layout authority: keep every object where it is, at its size, with its silhouette, perspective and horizon. Paint over it; do not move, add, remove, resize or re-angle anything, and do not change the camera. Plain grey surfaces in it become painted materials; the near-white surfaces in it are lit screens, lamps and light strips; the black surfaces in it are armoured window glass looking out into space. The smooth mid-grey seated mannequins are crew: paint each one as a person exactly where and how the mannequin sits.\nReference 2 is an earlier painting from this game. It is brushwork and figure-painting reference only; ignore its layout, its objects and above all its amber and olive colour.\n\nScene: the working bridge of a military starship, seen across the ship with the bow off to the left. A moulded, purpose-built late-1990s science-fiction starship interior: smooth faceted grey composite and painted-metal panels with crisp panel seams, chamfered edges, flush access plates and small stencilled-looking markings with no legible text. Big raked windows run along the far side and wrap to the left, between heavy leaning pillars with lit bands. Overhead, faceted soffits and beams with recessed light troughs, and one monolithic cowl hung from the deck head holding a large monitor. In the middle, a large rectangular plotting table. Crew sit in high moulded shell seats on thick deck pedestals, their backs to us, at raked consoles dense with keypads, small lit keys, gooseneck microphones and hooded monitors. To the right, past a broad structural frame, the bridge's working end is rougher and more used: a ledger desk with paper, a roster board with pinned cards, a wheeled pressure hatch, a few exposed pipes. Worn where hands go: scuffed deck plate, rubbed paint on seat edges and console nosings. A mercenary company has owned this ship for years, so it is clean and maintained but not new.\n\nStyle: detailed late-1990s/early-2000s science-fiction strategy-game illustration, matte-painted cinematic realism, visible restrained brush texture, the same painted family as the game's character portraits.\n\nPalette and light: cold. Blue-grey and gunmetal steel, near-black shadow, cool white and pale blue light from the troughs and strips, pale blue-cyan glow from the screens lifting the crew's faces and hands. The only warm colour is small and rare: a thin dim red accent in one or two overhead troughs, and tiny amber indicator keys. No amber wash, no sepia, no olive. Lighting, which the figure layers will match: cool key light falling from the overhead troughs, soft blue-white fill from the screens, deep shadow under the consoles and round the deck, faint haze in the air.\n\nThrough the windows: deep black space, a dense soft field of small stars, and the dim curved limb of a dusty planet low in the far left panes only. Quiet and dark, especially behind the plotting table. No ships, stations or explosions.\n\nLive effects will be drawn over this plate in the game, so paint every screen (console screens, hooded monitors, the big cowl monitor, the ledger monitor) as a simple rectangle with a dim, even pale blue glow and only faint texture, no readouts, graphs or maps. Paint the plotting table top as a flat, evenly lit, pale blue-grey surface with only the one faint ring and cross the reference shows. Small indicator lamps and lit keys may be painted.\n\nThe watch is stood. Paint the seated crew from the mannequins: men and women of a mercenary company's ship's company in dark slate-blue duty uniforms and headsets, sleeves rolled, seen from behind and in three-quarter back view, hands on their consoles, in varied ordinary postures. Faces are mostly turned away and small; no portrait detail. Nobody looks at the viewer.\n\nNo other people: the two seats at the comms consoles under the far windows stay empty, and nobody stands anywhere on the deck, at the plotting table or at the ledger desk. Those places are kept for figures painted as separate layers.\n\nConstraints: no text, lettering, numbers, logos, insignia, HUD elements, frames or watermark. No holograms, no floating screens, no weapons. Opaque, edge-to-edge painting. Use the widest landscape canvas available, as close to 3:1 as possible, matching the reference's framing edge to edge.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-guide-v9.png",
+      "sha256": "e7a6c268cfc08732f5be43d9b3edb300bca956bb32cdee2539c29baedcbbcb8d",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact camera, silhouettes, placement and scale, including the seated crew mannequins; paint over it, never move anything"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v4.style-crop.png",
+      "sha256": "ceaf7141183d36298ffbf6936e8ac1820dfcdf46d90704efe4b3ed3bf0883465",
+      "dimensions": [
+        932,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Brushwork and figure painting only; not layout, not colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one paint-over, preserving Image 1’s layout and using Image 2 only for brushwork and figure painting.\n"
+  ],
+  "usage": {
+    "input_tokens": 44204,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 862,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.8
+}

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a923-0ac4-72b2-9918-13c1348fc07c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a923-0ac4-72b2-9918-13c1348fc07c\\exec-1a659d8e-ecec-487c-9c1f-a1ede4b5a7d7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "comms-right-v3.master.png",
+    "sha256": "20f7014cc5827d636100699aca82763dda402d9d490e72a437fcb24cd34b7b1e",
+    "dimensions": [
+      1312,
+      1199
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "comms-right-v3.brief.txt",
+  "promptSha256": "b12b6956b38603739f6dad26a4577b0c70e5ebdce72a3774f315135effef967d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Uniform, lighting, colour and figure handling only. Not layout; include none of its background.\n\nFigure card of a seated comms officer for a layered illustration, to be placed into the starship bridge painting given as reference 1, in an empty seat at the consoles just left of its plotting table, back to the viewer.\n\nA man in his thirties with short dark hair, wearing the same fitted light dove-grey fleet tunic as the seated crew in reference 1, with a high standing collar and a plain metal collar pin, pressed and correct, and a slim headset. Seen from behind, from the top of the head down to the seat of the chair. The officer sits squarely at work, head level, facing away, with one hand raised to adjust a control in front of him. Upright, disciplined posture. The legs go forward under the console and are hidden by the body.\n\nViewpoint: a level camera about a metre above the officer's head and about ten metres away, so the figure is seen from very slightly above, with no tilt.\n\nLighting matches reference 1: cool white downlight from overhead troughs, soft pale blue fill, deep soft shadow, no warm, amber or green light. Same matte-painted brushwork, palette and figure handling as the seated crew in reference 1.\n\nDo not draw the chair, console or desk. True transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, table, hologram, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "deck-plate-v10.master.png",
+      "sha256": "201af5ad3b64f9f94e2c842ff272243b825ffc8c260a3c0a92847b7cfd3dc942",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Uniform, lighting, colour and figure handling only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent officer figure using the reference for uniform, lighting, palette, and figure style."
+  ],
+  "usage": {
+    "input_tokens": 40712,
+    "cached_input_tokens": 26624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 437,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.8
+}

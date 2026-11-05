@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a923-0acb-7b42-aba6-a66f0cfae352",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a923-0acb-7b42-aba6-a66f0cfae352\\exec-ba9a7d1a-acbe-4306-993f-cd2f74bf3504.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "comms-left-v3.master.png",
+    "sha256": "e3314acb3721f4d53d0f79a13d4b4aed4c334df37401f6e6051f9b75df029a74",
+    "dimensions": [
+      1199,
+      1312
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "comms-left-v3.brief.txt",
+  "promptSha256": "de06836077cb347a78a0fedf0ef7a89b648d0a4693d11181b468f97ba450dbb3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Uniform, lighting, colour and figure handling only. Not layout; include none of its background.\n\nFigure card of a seated comms officer for a layered illustration, to be placed into the starship bridge painting given as reference 1, in an empty seat at the consoles just left of its plotting table, back to the viewer.\n\nA young woman in her twenties with dark hair pinned up in a neat bun, wearing the same fitted light dove-grey fleet tunic as the seated crew in reference 1, with a high standing collar and a plain metal collar pin, pressed and correct, and a slim headset. Seen from behind, from the top of the head down to the seat of the chair. The officer has just turned her head and shoulders to the viewer's left to look back over her shoulder into the room, one hand pressing the headset to her ear, mid-sentence, her face in profile. Upright, disciplined posture. The legs go forward under the console and are hidden by the body.\n\nViewpoint: a level camera about a metre above the officer's head and about ten metres away, so the figure is seen from very slightly above, with no tilt.\n\nLighting matches reference 1: cool white downlight from overhead troughs, soft pale blue fill, deep soft shadow, no warm, amber or green light. Same matte-painted brushwork, palette and figure handling as the seated crew in reference 1.\n\nDo not draw the chair, console or desk. True transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, table, hologram, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "deck-plate-v10.master.png",
+      "sha256": "201af5ad3b64f9f94e2c842ff272243b825ffc8c260a3c0a92847b7cfd3dc942",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Uniform, lighting, colour and figure handling only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure card using the reference for the officer’s uniform, lighting, and painted style."
+  ],
+  "usage": {
+    "input_tokens": 40835,
+    "cached_input_tokens": 35584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 524,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 54.4
+}

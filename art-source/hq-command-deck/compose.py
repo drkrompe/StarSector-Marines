@@ -18,18 +18,18 @@ import numpy as np
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-PLATE = "deck-plate-v5.master.png"
-LAYOUT = "deck-guide-v8.layout.json"
+PLATE = "deck-plate-v10.master.png"
+LAYOUT = "deck-guide-v10.layout.json"
 # card, and where its lowest painted pixels sit in metres above the stand's floor: 0 for
 # soles; a seated figure seen from behind shows no feet, so its bottom is the seat.
 CARDS = {
-    "castle": ("castle-v2.master.png", 0.0),
-    "comms-left": ("comms-left-v2.master.png", 0.45),
-    "comms-right": ("comms-right-v2.master.png", 0.45),
-    "quartermaster": ("quartermaster-v2.master.png", 0.0),
-    "morgan": ("morgan-v3.master.png", 0.0),
+    "castle": ("castle-v3.master.png", 0.0),
+    "comms-left": ("comms-left-v3.master.png", 0.45),
+    "comms-right": ("comms-right-v3.master.png", 0.45),
+    "quartermaster": ("quartermaster-v3.master.png", 0.0),
+    "morgan": ("morgan-v4.master.png", 0.0),
 }
-FOCAL, CY = 1050.0, 170.0
+FOCAL = 1050.0
 
 
 def layer(card, stand, matte, bottom_m, size):

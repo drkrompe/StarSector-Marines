@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a8fe-c91f-7c71-931f-98ffad2d765c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a8fe-c91f-7c71-931f-98ffad2d765c\\exec-dc6d79f6-50b5-4337-9b98-8e75805d930e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "deck-space.master.png",
+    "sha256": "5cddb26d6e67faa0217400402a627498eeb03504280cb23319b53d3ccc3c1113",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "deck-space.brief.txt",
+  "promptSha256": "b1623a5925e5d68edb1aaf41245966678eb23bc1d41034f23c136030abdf845a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: background plate. Asset type: the view out of a starship's bridge windows for Starsector Marines, a grounded mercenary game; it is seen only through window openings in a separate painting of the bridge, so it holds no ship, frame or interior of any kind.\n\nDeep black space with a dense but quiet field of small, soft stars of varied brightness, a very faint band of dust and distant galactic haze crossing it diagonally, and in the lower left a large dim planet: only its curved limb shows, a dusty grey-brown world with a thin pale atmosphere line, lit from the upper left, its night side falling to black towards the centre. From the middle of the image to the right edge it is only dark starfield. The palette is restrained and cold, near-black, so that lit screens and people read clearly in front of it.\n\nStyle: matte-painted cinematic realism, as in a late-1990s science-fiction film's establishing shot; restrained brush texture, no lens flare, no nebula colours.\n\nConstraints: no ships, stations, explosions, text, frames or watermark. Opaque, edge-to-edge. Use the widest landscape canvas available, as close to 3:1 as possible.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one wide, opaque starfield background with the dim planetary limb in the lower left."
+  ],
+  "usage": {
+    "input_tokens": 36758,
+    "cached_input_tokens": 30720,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 356,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 30.3
+}

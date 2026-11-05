@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a923-0ac4-78f3-bdae-0a1fbeb90d93",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a923-0ac4-78f3-bdae-0a1fbeb90d93\\exec-64fc7c77-82be-4679-a9df-2a8a8a0643ad.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "quartermaster-v3.master.png",
+    "sha256": "da031110ae72244bac80c95c9e9f137ae2ea2c2e5001503bc002e350b50e081d",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "quartermaster-v3.brief.txt",
+  "promptSha256": "99b9b9ed9ce7cd150c7db46699fd349acccd078728c6142fc4890dfd99e6b1b3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Uniform, lighting, colour and figure handling only. Not layout; include none of its background.\n\nFull-length standing figure card of a ship's quartermaster for a layered illustration, to be placed into the starship bridge painting given as reference 1, standing at the moulded counter on its back wall, seen from behind.\n\nA broad-shouldered officer in late middle age with short grey hair, wearing the same fitted light dove-grey fleet tunic as the seated crew in reference 1, with a high standing collar and a plain metal collar pin, pressed and correct, dark trousers and boots. Stands with their back three-quarters to the viewer, facing away toward the wall and slightly to the viewer's left, head bent over a clipboard held in the left hand, the right hand holding a pen. Whole body in frame from the top of the head to the boots, natural adult proportions.\n\nViewpoint: a level camera about half a metre above head height and about eight metres away, so the figure is seen from very slightly above, with no tilt.\n\nLighting matches reference 1: cool white downlight from overhead troughs, soft pale blue fill, deep soft shadow, no warm, amber or green light. Same matte-painted brushwork, palette and figure handling as reference 1.\n\nTrue transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, table, hologram, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "deck-plate-v10.master.png",
+      "sha256": "201af5ad3b64f9f94e2c842ff272243b825ffc8c260a3c0a92847b7cfd3dc942",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Uniform, lighting, colour and figure handling only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure image using the reference’s uniform, lighting, and painted style."
+  ],
+  "usage": {
+    "input_tokens": 79932,
+    "cached_input_tokens": 65536,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 512,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 44.2
+}

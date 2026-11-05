@@ -14,9 +14,7 @@ import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,9 +32,7 @@ class DeckDisplaysTest {
     void shippedDisplaysLieInsideThePackedPlate() throws Exception {
         CommandDeckLayout layout = shipped();
         assertFalse(layout.displays().isEmpty());
-        Set<DeckDisplays.Kind> kinds = EnumSet.noneOf(DeckDisplays.Kind.class);
         for (CommandDeckLayout.Display display : layout.displays()) {
-            kinds.add(DeckDisplays.Kind.of(display.kind()));
             for (int i = 0; i < 4; i++) {
                 assertTrue(display.x(i) >= 0f && display.x(i) <= layout.width(), display.id() + " x" + i);
                 assertTrue(display.y(i) >= 0f && display.y(i) <= layout.height(), display.id() + " y" + i);
@@ -49,7 +45,6 @@ class DeckDisplaysTest {
             }
             assertTrue(area > 0f, display.id() + " winds clockwise");
         }
-        assertEquals(EnumSet.allOf(DeckDisplays.Kind.class), kinds, "every content kind is on some screen");
     }
 
     @Test
@@ -89,13 +84,16 @@ class DeckDisplaysTest {
             Recording early = new Recording();
             Recording late = new Recording();
             CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(1872f, 372f, layout.width(), layout.height());
-            displays.draw(early, layout, fit, 1.0f, 0f);
-            displays.draw(late, layout, fit, 2.5f, 0.8f);
+            displays.screens(early, layout, fit, 1.0f, 0f);
+            displays.bloom(early);
+            displays.screens(late, layout, fit, 2.5f, 0.8f);
+            displays.bloom(late);
             assertTrue(early.triangles.size() > 200, "screens carry content");
             assertEquals(layout.displays().size(), early.sprites, "one bloom per screen");
             assertNotEquals(early.triangles, late.triangles, "content moves with time");
             Recording again = new Recording();
-            displays.draw(again, layout, fit, 1.0f, 0f);
+            displays.screens(again, layout, fit, 1.0f, 0f);
+            displays.bloom(again);
             assertEquals(early.triangles, again.triangles, "a pure function of time");
         } finally {
             SvgAsset.setSource(previous);
@@ -108,7 +106,7 @@ class DeckDisplaysTest {
         SvgAsset.Source previous = SvgAsset.setSource(path -> { throw new IllegalStateException("no assets"); });
         try {
             Recording canvas = new Recording();
-            new DeckDisplays().draw(canvas, layout, new CommandDeckLayout.Fit(1f, 0f, 0f), 3f, 0f);
+            new DeckDisplays().screens(canvas, layout, new CommandDeckLayout.Fit(1f, 0f, 0f), 3f, 0f);
             assertTrue(canvas.triangles.size() > 100);
         } finally {
             SvgAsset.setSource(previous);

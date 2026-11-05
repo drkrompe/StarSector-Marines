@@ -2,42 +2,53 @@
 
 Status: IN PROGRESS — banner, command strip and station hotspots shipped on HQ; edge-case evidence and the alert plate remain
 Written: 2026-10-16
-Updated: 2026-10-18 — lower half is now the action board (`hq-action-board.md`); stations answer into its detail pane.
+Updated: 2026-11-04 — the deck is now the ship's bridge, with windows and screens as holes in the plate and buttons drawn by the game.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
 ## Outcome
 
 Company HQ stops being a wall of panels and becomes a place: a painted banner of
-the company's operations deck, with Castle, two comms officers, Morgan Hale and a
-quartermaster on watch. The scene replaces the abstract intel
-network drawing and the separate assessment strip. Each station on deck is a
-hotspot for the panel that already holds its information, so the picture shows
-where things live without becoming the only way to reach them.
+the bridge of the company's ship, in the manner of the Rodger Young in Starship
+Troopers, with Castle, two comms officers, Morgan Hale and a quartermaster on watch.
+The scene replaces the abstract intel network drawing and the separate assessment
+strip. Each station on deck is a hotspot for the panel that already holds its
+information, so the picture shows where things live without becoming the only way to
+reach them.
 
 ## Scope and laws
 
 - **Painted layers, not a live scene.** The art lives in `art-source/hq-command-deck/`
-  (`prompts.json`, masters, briefs, provenance). A Blender blockout
-  (`blender/deck_blockout.py`) is the layout authority; the **deck plate**
-  (`deck-plate-v5.master.png`, approved) is painted over its guide, and one
-  transparent **figure card** per person (Castle, the comms pair, the quartermaster,
-  Morgan Hale) is cut by its stand's occluder matte.
-  `pack.py` writes the shipped band, figure sprites and
-  `mod/data/ui/hq-command-deck.json`; a repaint registered on the same guide needs
-  only a re-run. Layers let a station highlight its own figure, let an alert
-  relight the deck alone, and let one figure be redone without repainting the scene.
-  The generic deck is the company's home whatever its flagship; per-hull plates are
-  out of scope.
-- **Live overlays.** Console screens and the chart-table top are painted blank so the
-  game can draw over them: readouts, blinking lamps and a live plot on the table.
-  The lit monitor faces are the one thing measured off the painting rather than the
-  guide (ImageGen moved them): `displays.json` holds each face's corners and content
-  kind, the pack carries them, and `DeckDisplays` draws animated readouts in each
-  face's perspective. Faces a painted operator sits in front of stay as painted.
-  The readouts are scenery, not information: nothing on them is a fact.
-  Stations sit in fixed bands so a station can later become its own layer (for
-  example one that appears as the company grows) or carry motion.
+  (masters, briefs, provenance). A Blender blockout (`blender/deck_blockout.py`) is the
+  layout authority: the ship seen across its beam, bow to the left, in ship coordinates
+  with the yaw baked in. The **deck plate** is painted over its guide, and one
+  transparent **figure card** per person is cut by its stand's occluder matte. `pack.py`
+  writes the shipped band, figure sprites and `mod/data/ui/hq-command-deck.json`; a
+  repaint on the same guide needs only a re-run. Layers let a station highlight its own
+  figure and let one figure be redone without repainting the scene. The generic deck is
+  the company's home whatever its flagship; per-hull plates are out of scope.
+- **Everything aboard has a job** (owner). Helm and navigator fly her; the two near
+  stations are the fire-control and sensor watches; comms talks to the fleet and the
+  company; the plot and its cowl monitor are where the officers read the situation; the
+  quartermaster runs the money and the roster; the engineering watch and the systems
+  board mind the ship; the hull frame carries the damage-control point. A prop with no
+  function comes out rather than filling a gap.
+- **Key colours, not masks.** ImageGen drifts a few pixels from any guide, so a mask from
+  the model would halo. The painter keeps screens flat magenta, windows flat green and
+  button boards flat cyan (`cut_keys.py`). Screens and windows become holes in the plate;
+  anything painted in front of them stays in front without a list of occluders.
+- **The draw order** (`CommandDeckBanner`), back to front: the view of space; the screens'
+  readouts (`DeckDisplays`); the plate; the screens' glow; the buttons (`DeckPanels`); the
+  people beyond the table; the holo board; the people before it.
+- **Buttons are drawn, not painted** (owner). Hundreds of tiny keys defeat the painter, so
+  the plate leaves plain boards and the id pass gives each button's outline; a button the
+  model shows behind something nearer is not drawn. The comms boards ripple when a report
+  arrives, the quartermaster's indicator row shows the payroll runway's tone, and the
+  cowl's buttons count the open actions. The rest is the watch at work.
+- **The screens are colour televisions.** Saturated graphics on black glass with coloured
+  status bars, in rounded 4:3 tubes let into panels. Their quads come from the model's
+  outlines, nudged by how far the painter moved each key. The readouts are scenery, not
+  information: nothing on them is a fact.
 - **Remove** the `company-hq-network-canvas` intel drawing and the
   `company-hq-assessment` strip. Every fact they carried still appears: the rating
   and Castle's daily assessment move onto the banner, and the source windows,
@@ -93,9 +104,9 @@ hotspots, which are invisible until pointed at.
 
 ## Stations
 
-Hotspot rectangles are authored as fractions of the packed banner in a small
-layout file beside the art, so a regenerated plate only needs its rectangles
-re-measured. Hotspots are absolutely positioned buttons (`UiPosition.ABSOLUTE`):
+Hotspot rectangles are fractions of the packed banner, computed by the pack from the
+figures and the layout's markers.
+Hotspots are absolutely positioned buttons (`UiPosition.ABSOLUTE`):
 a faint outline and label chip on hover or focus, a short pulse on the panel
 they answer into.
 

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a923-0ac4-70c2-a152-1ce69471d5b9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a923-0ac4-70c2-a152-1ce69471d5b9\\exec-aa893680-1fd9-4694-8af7-9e518ac00a11.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "castle-v3.master.png",
+    "sha256": "b7a04ba1c2bd3058a76ce7733049e07633438ce3ef540098c06c5a563bb2fd60",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "castle-v3.brief.txt",
+  "promptSha256": "618916fc6cb5ef49981794e642a89670e87d9b7dc9120db02b76e7778d237b55",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: face, hair, age and jacket. Not pose, framing or background.\nImage 2: Lighting, colour and painting style only. Not layout; include none of its background.\n\nFull-length standing figure card of Castle for a layered illustration, to be placed into the starship bridge painting given as reference 2, standing beside its plotting table, facing the viewer.\n\nShe is the same person as reference 1, and must be recognisably her: a woman in her early fifties, warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with silver at the temples tied back in a short practical bun, small earpiece with a short boom microphone. Her jacket is the high-collared duty jacket of reference 1, in the same cut and colour, kept neat, with dark trousers and boots.\n\nPose: standing square to the viewer, weight on one leg, shoulders very slightly turned toward the viewer's left. She holds a battered data slate up at chest height in both hands, glancing up from it toward the viewer with a restrained knowing half-smile. Both hands and the slate sit above her waist. Whole body in frame from the top of her head to her boots, natural adult proportions, small clearance around the figure.\n\nViewpoint: a level camera about half a metre above her head height and about seven metres away, so she is seen from very slightly above, with no tilt: vertical lines of her body stay vertical.\n\nLighting matches reference 2: cool white downlight from overhead troughs, soft pale blue fill, deep soft shadow, no warm, amber or green light. Same matte-painted brushwork and palette as reference 2.\n\nTrue transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, table, hologram, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "..\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, age and jacket. Not pose, framing or background."
+    },
+    {
+      "path": "deck-plate-v10.master.png",
+      "sha256": "201af5ad3b64f9f94e2c842ff272243b825ffc8c260a3c0a92847b7cfd3dc942",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting, colour and painting style only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent full-length Castle figure using the references as specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 44816,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 482,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.4
+}

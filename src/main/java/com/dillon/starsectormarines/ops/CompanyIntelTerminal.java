@@ -58,6 +58,7 @@ final class CompanyIntelTerminal {
 
     /** The station actions the markup binds, before the document exists. */
     void put(Map<String, Object> props) {
+        banner.runway(DeckPanels.Tone.of(props.get("runwayClasses") instanceof String classes ? classes : null));
         for (CommandDeckLayout.Station station : banner.layout().stations()) {
             String id = station.id();
             props.put("deck" + Character.toUpperCase(id.charAt(0)) + id.substring(1), (Runnable) () -> use(id));

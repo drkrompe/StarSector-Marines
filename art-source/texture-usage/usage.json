@@ -65358,6 +65358,41 @@
     }
    }
   },
+  "graphics/ui/hq-command-deck/deck-space.png": {
+   "sliced": false,
+   "sources": {
+    "snapshot:first-contract": {
+     "displayWidth": 3748.2,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    },
+    "snapshot:hq-holo": {
+     "displayWidth": 3744.0,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    },
+    "snapshot:hq-intel": {
+     "displayWidth": 3748.2,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    },
+    "snapshot:supply-route": {
+     "displayWidth": 3748.2,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    },
+    "snapshot:ui": {
+     "displayWidth": 3748.2,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    },
+    "snapshot:wayline-corvus": {
+     "displayWidth": 3748.2,
+     "displayHeight": 755.0,
+     "domain": "ui"
+    }
+   }
+  },
   "graphics/ui/hq-command-deck/quartermaster.png": {
    "sliced": false,
    "sources": {

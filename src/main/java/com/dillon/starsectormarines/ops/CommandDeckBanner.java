@@ -13,11 +13,12 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The command deck drawn live: the painted plate cover-fitted to the banner, each
- * figure as its own sprite, and the overlays the painting leaves blank for — the
- * action board's hologram over the plotting table ({@link HqHoloBoard}), and live
- * readouts on the painted monitors ({@link DeckDisplays}), which a report arriving
- * brightens on the comms bank.
+ * The command deck drawn live, back to front: the view of space and the screens'
+ * readouts ({@link DeckDisplays}), which a report arriving brightens on the comms bank;
+ * the painted plate over them, whose windows and screens are holes, so whatever was
+ * painted in front of them stays in front; the consoles' buttons ({@link DeckPanels});
+ * the people beyond the table, the action board's hologram over it
+ * ({@link HqHoloBoard}), and the people before it.
  *
  * <p>A station a player is pointing at or has focused lights its own people, which is
  * why the figures are separate sprites rather than painted into the plate. A report
@@ -27,12 +28,16 @@ import java.util.Objects;
  */
 final class CommandDeckBanner implements CanvasProducer {
     private static final Color WARM = new Color(255, 214, 150);
+    private static final float SPACE_MARGIN = 0.03f;
+    private static final float SPACE_DRIFT = 0.012f;
 
     private final CompanyHqNewsDesk desk;
     private final CommandDeckLayout layout;
     private final CompanyIntelMotion motion = new CompanyIntelMotion();
     private final HqHoloBoard holo = new HqHoloBoard();
     private final DeckDisplays displays = new DeckDisplays();
+    private final DeckPanels panels = new DeckPanels();
+    private DeckPanels.Tone runway = DeckPanels.Tone.NONE;
     private HqActionBoard board;
     private String holoSelected;
     private String holoHovered;
@@ -54,6 +59,9 @@ final class CommandDeckBanner implements CanvasProducer {
 
     /** The action board the hologram shows; null or empty leaves the bare scanning disc. */
     void board(HqActionBoard board) { this.board = board; }
+
+    /** How the payroll runway stands, for the quartermaster's indicator lamps. */
+    void runway(DeckPanels.Tone tone) { runway = Objects.requireNonNull(tone, "runway tone"); }
 
     /** The selected action item's id, or null; it gets the beam from the table. */
     void holoSelected(String itemId) { holoSelected = itemId; }
@@ -88,17 +96,38 @@ final class CommandDeckBanner implements CanvasProducer {
         float height = context.metrics().surfaceHeight();
         if (width <= 0f || height <= 0f) return;
         CommandDeckLayout.Fit fit = CommandDeckLayout.Fit.cover(width, height, layout.width(), layout.height());
-        context.sprite(layout.plate(), null, fit.x(layout.width() * 0.5f), fit.y(layout.height() * 0.5f),
-                layout.width() * fit.scale(), layout.height() * fit.scale(), 0f, Color.WHITE);
+        float time = motion.timeSeconds();
         float arrival = Math.max(motion.arrivalStrength(CompanyIntelMotion.COMPANY),
                 Math.max(motion.arrivalStrength(CompanyIntelMotion.CONFIRMED),
                         motion.arrivalStrength(CompanyIntelMotion.RUMOR)));
-        displays.draw(context, layout, fit, motion.timeSeconds(), arrival);
-        holo.draw(context, layout, fit, board, holoSelected, holoHovered, motion.timeSeconds());
+        space(context, fit, time);
+        displays.screens(context, layout, fit, time, arrival);
+        context.sprite(layout.plate(), null, fit.x(layout.width() * 0.5f), fit.y(layout.height() * 0.5f),
+                layout.width() * fit.scale(), layout.height() * fit.scale(), 0f, Color.WHITE);
+        displays.bloom(context);
+        panels.draw(context, layout, fit, time,
+                new DeckPanels.Signals(arrival, board == null ? 0 : board.items().size(), runway));
         CommandDeckLayout.Station hot = hotStation == null ? null : layout.station(hotStation);
+        figures(context, fit, hot, arrival, true);
+        holo.draw(context, layout, fit, board, holoSelected, holoHovered, time);
         if (hot != null) outline(context, fit, hot, width, height);
+        figures(context, fit, hot, arrival, false);
+    }
+
+    /** The view out of the windows, drifting very slowly as the ship does. */
+    private void space(CanvasContext context, CommandDeckLayout.Fit fit, float time) {
+        if (layout.space() == null) return;
+        float across = 0.5f + 0.5f * (float) Math.sin(time * SPACE_DRIFT);
+        CanvasSpriteRegion region = new CanvasSpriteRegion(across * SPACE_MARGIN, 0f, 1f - SPACE_MARGIN, 1f);
+        context.sprite(layout.space(), null, fit.x(layout.width() * 0.5f), fit.y(layout.height() * 0.5f),
+                layout.width() * fit.scale(), layout.height() * fit.scale(), 0f, Color.WHITE, region, CanvasBlend.NORMAL);
+    }
+
+    private void figures(CanvasContext context, CommandDeckLayout.Fit fit, CommandDeckLayout.Station hot,
+                         float arrival, boolean behindPlot) {
         CommandDeckLayout.Station comms = layout.station("comms");
         for (CommandDeckLayout.Figure figure : layout.figures()) {
+            if (figure.behindPlot() != behindPlot) continue;
             float cx = fit.x(figure.x() + figure.w() * 0.5f);
             float cy = fit.y(figure.y() + figure.h() * 0.5f);
             float w = figure.w() * fit.scale();

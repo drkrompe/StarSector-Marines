@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1a906-3177-7ab1-bd3c-04ebc9db5059",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1a906-3177-7ab1-bd3c-04ebc9db5059\\exec-d9aabea9-e80b-4742-87b8-d79ef516e910.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "deck-plate-v9.master.png",
+    "sha256": "39296a13fe92c3bfe83c7d037e448714e992a0e1cce9f51fb58580c8fa725b47",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "deck-plate-v9.brief.txt",
+  "promptSha256": "40a781c65004a17eab3b2c8b47de514c97b8939f0f031c3cbb1d60ad02896e70",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and layout authority; keep every object; magenta, green and cyan surfaces are flat key colours to be kept\nImage 2: Material, brushwork and figure-painting reference only; not layout\n\nUse case: sketch-to-render illustration, background plate. Asset type: wide landscape establishing illustration for Starsector Marines, a grounded mercenary ground-operations game; it becomes a layer of a banner across the top of the company's headquarters screen. Game screens and the view outside are drawn behind this painting, through holes keyed in it.\n\nReference 1 is a grey 3D blockout rendered from the exact camera of this shot. It is the geometry and layout authority: keep every object where it is, at its size, with its silhouette, perspective and horizon. Paint over it; do not move, add, remove, resize or re-angle anything, and do not change the camera.\nReference 2 is the previous painting of this room. It is material, brushwork and figure-painting reference only: take its steel and its people's painted handling, and ignore its layout, its too-clean finish, its strong red line, its bright table and its lit amber keys.\n\nKEY COLOURS, the most important instruction. Three kinds of surface in reference 1 are flat key colours, and the painting must keep them as flat, uniform, unlit fill, like a green screen in a film:\n- Every magenta surface in reference 1 is a screen. Fill it with pure solid magenta, exactly #FF00FF, edge to edge, up to its bezel.\n- Every green surface in reference 1 is a window. Fill it with pure solid green, exactly #00FF00, edge to edge, up to the pillars, sill and crown. No stars, no planet, no space, no reflections, no glass effect: only the flat green.\n- Every small cyan button and indicator in reference 1 is a live light. Fill each one with pure solid cyan, exactly #00FFFF, as its own separate crisp square or rectangle at exactly its place and size, with a thin dark gap round it. Do not merge neighbouring ones, do not add more, do not remove any. Every other button stays a dark, unlit physical button; do not paint amber, yellow or white lit keys anywhere.\nNo gradient, texture, shading, glare, vignette or painted detail inside either key colour. None of these colours lights anything: no magenta, green or cyan glow, reflection or tint on faces, hands, desks, seats, pillars, sills or floor. Use magenta, green and cyan nowhere else. Anything in front of a key surface in reference 1 (a person, a seat, a pillar, a microphone, a rail) is painted normally on top of it with a crisp edge.\n\nScene: the working bridge of a military starship, seen across the ship with the bow off to the left. A moulded, purpose-built late-1990s science-fiction starship interior, in the manner of a practical film set: smooth faceted grey composite and painted-metal panels with crisp seams, chamfered edges, flush access plates and small stencilled-looking markings with no legible text. Surfaces are moulded and clean-edged, not riveted plate. Big raked window openings run along the far side and wrap to the left, between heavy leaning pillars with lit bands. Overhead, faceted soffits and beams with recessed light troughs, and one monolithic cowl hung from the deck head. In the middle, a large rectangular plotting table. Shell seats on thick deck pedestals face raked consoles dense with keypads, small lit keys and gooseneck microphones.\n\nThe console on the back wall at right is built into the bulkhead, moulded in one piece from deck to head height, with its two screens let deep into a raked face, rows of small lit keys let into the deck below them and a brow with a light strip above. It is 1990s embedded military computer hardware. Paint it nothing like office furniture or a modern flat panel: no stand, no drawers, no separate keyboard. Beside it, a plain moulded counter with a paper ledger, a clipboard, binders and a mug, under a roster board with pinned cards. Further right a wheeled pressure hatch, and a few exposed pipes above: the working end of the bridge. This ship has served for decades and a mercenary company has owned it for years: maintained, but plainly not new. Scuffed and dulled deck plate with worn walkways, rubbed paint down to primer on seat edges, console nosings, rails and door surrounds, chipped paint on panel corners, faded stencil patches with nothing legible, grime in seams and streaks below vents. Only traces of rust, in the working end. Moulded surfaces, not riveted plate.\n\nStyle: detailed late-1990s/early-2000s science-fiction strategy-game illustration, matte-painted cinematic realism, visible restrained brush texture, the same painted family as the game's character portraits.\n\nPalette and light: neutral gunmetal and cool steel grey, near-black shadow, cool white from the overhead troughs and pillar bands, and one very thin, dim, deep red line in the troughs along the window heads only, far more restrained than in reference 2, with no red on the sills, on the pillars or anywhere else, and no red glow on nearby surfaces. Cool pale blue light falls softly on hands and faces at the consoles. Deep shadow under the consoles and round the deck, faint haze in the air.\n\nPaint the plotting table top as a flat, evenly lit, dark muted grey-blue surface, unlit and well below the brightness of the overhead lights, with only the one faint ring and cross the reference shows.\n\nThe crew: the smooth mid-grey mannequins in reference 1 are the only people in the painting. Each one, and every one, becomes a person in the exact seat and pose of its mannequin: the two near the camera, and the helm and navigator on the raised platform at left. Men and women of the ship's company dressed as naval officers of a late-1990s science-fiction film's starship: pressed, fitted light-to-mid dove-grey fleet tunics, clearly lighter than the surrounding steel and consoles, with a high standing collar, a plain metal collar pin and clean shoulder seams, worn buttoned and correct, hair short or pinned up in a neat bun, slim headsets. Disciplined, upright posture, backs to us, hands on their consoles, faces turned away. Not fatigues, not rolled sleeves, not armour. A seat without a mannequin stays empty: the two seats at the consoles just left of the plotting table are empty, and must show their bare seat backs with nobody in them. Nobody stands anywhere.\n\nConstraints: no text, lettering, numbers, logos, insignia other than the plain collar pins, HUD elements, frames or watermark. No holograms, no floating screens, no weapons. Opaque, edge-to-edge painting. Use the widest landscape canvas available, as close to 3:1 as possible, matching the reference's framing edge to edge.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "deck-guide-v10.png",
+      "sha256": "c4a8eda3c4e08445ebe6e2230ed8919016dc906572b38fa2e77e30494b254009",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and layout authority; keep every object; magenta, green and cyan surfaces are flat key colours to be kept"
+    },
+    {
+      "path": "deck-plate-v8.master.png",
+      "sha256": "2b07f41cf09beba7f2d3187f873b602908377d6ca9fffb977cddb85249ab8b02",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Material, brushwork and figure-painting reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one painted image using Image 1 for the exact layout and key colours, and Image 2 for material and figure style."
+  ],
+  "usage": {
+    "input_tokens": 47074,
+    "cached_input_tokens": 36352,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1160,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.0
+}

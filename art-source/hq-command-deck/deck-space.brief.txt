@@ -1,0 +1,7 @@
+Use case: background plate. Asset type: the view out of a starship's bridge windows for Starsector Marines, a grounded mercenary game; it is seen only through window openings in a separate painting of the bridge, so it holds no ship, frame or interior of any kind.
+
+Deep black space with a dense but quiet field of small, soft stars of varied brightness, a very faint band of dust and distant galactic haze crossing it diagonally, and in the lower left a large dim planet: only its curved limb shows, a dusty grey-brown world with a thin pale atmosphere line, lit from the upper left, its night side falling to black towards the centre. From the middle of the image to the right edge it is only dark starfield. The palette is restrained and cold, near-black, so that lit screens and people read clearly in front of it.
+
+Style: matte-painted cinematic realism, as in a late-1990s science-fiction film's establishing shot; restrained brush texture, no lens flare, no nebula colours.
+
+Constraints: no ships, stations, explosions, text, frames or watermark. Opaque, edge-to-edge. Use the widest landscape canvas available, as close to 3:1 as possible.
