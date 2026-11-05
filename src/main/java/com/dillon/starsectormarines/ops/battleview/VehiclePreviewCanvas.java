@@ -1,16 +1,21 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 
 import java.awt.Color;
+import java.util.function.BooleanSupplier;
 
 /**
  * Static thumbnail of one vehicle hull and its turret, nose to the left as the sheet draws it,
- * on the same dark pad the chassis previews use so a lance reads as one row of machines.
+ * on the same dark pad the chassis previews use so a lance reads as one row of machines. A hull with
+ * an empty gun card stands with a bare turret ring, as it does in a battle.
  */
 public final class VehiclePreviewCanvas implements CanvasProducer {
 
@@ -21,13 +26,36 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     /** The canvas turn that brings the sheet's left-pointing nose down the screen, as a parked hull faces down its berth. */
     private static final float ON_PAD_DEGREES = 90f;
 
+    private static final String ART_ROOT = "graphics/battle/vehicles/";
+    private static final String COLLAR_TEXTURE = ART_ROOT + "turret-collar.png";
+
     private final VehicleType type;
+    /** Read on every draw: fitting a gun to a campaign hull changes what its standing canvas shows. */
+    private final BooleanSupplier bareRing;
     /** Resolved on the first draw, from whichever host is drawing; NaN until then. */
     private float frameAspect = Float.NaN;
 
+    /** The hull in its stock fit, its own turret on it: a debug loadout's machine. */
     public VehiclePreviewCanvas(VehicleType type) {
+        this(type, () -> false);
+    }
+
+    private VehiclePreviewCanvas(VehicleType type, BooleanSupplier bareRing) {
         if (type == null) throw new IllegalArgumentException("vehicle type required");
         this.type = type;
+        this.bareRing = bareRing;
+    }
+
+    /** The hull as it is bought, with nothing in its gun card: a pattern on offer. */
+    public static VehiclePreviewCanvas asBought(VehicleType type) {
+        return new VehiclePreviewCanvas(type, () -> true);
+    }
+
+    /** A campaign hull as it stands now, its ring bare while its gun card is empty. */
+    public static VehiclePreviewCanvas of(CampaignVehicle vehicle) {
+        if (vehicle == null) throw new IllegalArgumentException("vehicle required");
+        return new VehiclePreviewCanvas(vehicle.type(), () -> vehicle.gun() == null
+                && (!vehicle.hasOwnGun() || vehicle.type().hasModularTurret()));
     }
 
     @Override
@@ -45,7 +73,9 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
 
     /**
      * Draws the hull and turret at a canvas point. The sheet's nose points left; {@code onPad}
-     * turns the whole vehicle a quarter so it faces down its pad as the parked hull does.
+     * turns the whole vehicle a quarter so it faces down its pad as the parked hull does. A hull
+     * with an empty gun card carries a bare ring where its turret stands; a hull that never takes a
+     * gun keeps whatever turret its sheet was drawn with, as in a battle.
      */
     void drawAt(CanvasContext context, float centerX, float centerY, float cellPx, boolean onPad, float alpha) {
         float hullWidth = type.drawnLengthCells * cellPx;
@@ -63,6 +93,10 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             // forward left and right up on the sheet; forward down and right to the left when turned.
             float turretX = onPad ? centerX - type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;
             float turretY = onPad ? centerY + type.turretMountY * cellPx : centerY - type.turretMountX * cellPx;
+            if (type.hasTurretWeapon() && bareRing.getAsBoolean()) {
+                drawBareRing(context, turretX, turretY, cellPx, angle, alpha);
+                return;
+            }
             VehicleType.GunLayer gun = type.gunLayer(null);
             if (gun != null) {
                 // A head's gun is its own layer under the housing ({@link VehicleType.GunLayer}), ahead of its centre.
@@ -78,6 +112,17 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * aspect, angle,
                     new Color(1f, 1f, 1f, alpha), CanvasSpriteRegion.frame(type.frameCount, 1, type.turretFrame),
                     CanvasBlend.NORMAL);
+        }
+    }
+
+    /** The ring in the hull's roof, and the white ring's collar in it, as {@link ConvoyRenderSystem} draws them. */
+    private void drawBareRing(CanvasContext context, float x, float y, float cellPx, float angle, float alpha) {
+        float ringPx = VehicleGun.mountCells(type) * cellPx;
+        Color tint = new Color(1f, 1f, 1f, alpha);
+        context.sprite(ART_ROOT + type.mountStyle().ringTexture, null, x, y, ringPx, ringPx, 0f, tint);
+        if (type.mountStyle() == TurretMountStyle.WHITE) {
+            float collarPx = ringPx * ConvoyRenderSystem.COLLAR_SHARE_OF_RING;
+            context.sprite(COLLAR_TEXTURE, null, x, y, collarPx, collarPx, angle, tint);
         }
     }
 

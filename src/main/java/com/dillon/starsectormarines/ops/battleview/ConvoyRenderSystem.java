@@ -361,7 +361,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     private static final Set<VehicleType> APS_ON_TURRET = EnumSet.of(VehicleType.BREAKTHROUGH_TANK);
 
     /** How wide the turning collar is drawn against the turret ring it rides in. */
-    private static final float COLLAR_SHARE_OF_RING = .86f;
+    static final float COLLAR_SHARE_OF_RING = .86f;
 
     /** How dark a wrecked gun is drawn: charred, not black. */
     private static final float WRECK_SHADE = .35f;

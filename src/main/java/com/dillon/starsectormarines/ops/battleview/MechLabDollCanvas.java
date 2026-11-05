@@ -566,7 +566,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         } else if (preview instanceof VehicleType type) {
             if (previewVehicleArt == null || previewVehicleType != type) {
                 previewVehicleType = type;
-                previewVehicleArt = new VehiclePreviewCanvas(type);
+                previewVehicleArt = VehiclePreviewCanvas.asBought(type);
             }
             previewVehicleArt.drawAt(context, centerX, centerY, cellPx, true, PREVIEW_ALPHA);
         }

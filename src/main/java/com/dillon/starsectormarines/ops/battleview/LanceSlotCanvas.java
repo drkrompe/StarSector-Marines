@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -26,12 +26,12 @@ public final class LanceSlotCanvas implements CanvasProducer {
     private final String letter;
     private final CanvasProducer machine;
 
-    public LanceSlotCanvas(String letter, CampaignMech mech, VehicleType vehicle,
+    public LanceSlotCanvas(String letter, CampaignMech mech, CampaignVehicle vehicle,
                            Supplier<LayeredMechAssets> assets) {
         if (letter == null) throw new IllegalArgumentException("pad letter required");
         this.letter = letter;
         this.machine = mech != null ? new MechChassisPreviewCanvas(mech, assets)
-                : vehicle != null ? new VehiclePreviewCanvas(vehicle) : null;
+                : vehicle != null ? VehiclePreviewCanvas.of(vehicle) : null;
     }
 
     @Override

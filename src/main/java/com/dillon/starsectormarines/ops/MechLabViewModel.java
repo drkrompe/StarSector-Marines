@@ -1135,7 +1135,7 @@ public final class MechLabViewModel {
                 CampaignVehicle vehicle = mech == null ? vehicleAt(squad, index) : null;
                 String occupant = mech != null ? mech.id() : vehicle != null ? vehicle.id() : "vacant";
                 slots.add(new LanceSlot(base + ":pad:" + index + ":" + occupant, padLetter(index),
-                        mech, vehicle != null ? vehicle.type() : null));
+                        mech, vehicle));
             }
             rows.add(new SquadRow(base, base + ":name", base + ":status", base + ":strength", base + ":slots",
                     squad.id().equals(selected) ? "mech-squad-row selected" : "mech-squad-row",
@@ -1170,7 +1170,7 @@ public final class MechLabViewModel {
             if (vehicle != null) {
                 String base = "vehicle:" + vehicle.id();
                 rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                        base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), null, vehicle.type(),
+                        base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), null, vehicle,
                         vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
                         vehicle.displayName(), vehicleIdentity(vehicle.type()),
                         vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
@@ -3170,7 +3170,7 @@ public final class MechLabViewModel {
     }
 
     /** One pad of a lance in the picker: the machine on it, or neither for a vacant pad. */
-    public record LanceSlot(String id, String letter, CampaignMech mech, VehicleType vehicle)
+    public record LanceSlot(String id, String letter, CampaignMech mech, CampaignVehicle vehicle)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; default -> throw unknown("mech-lance-slot", p); }; }
@@ -3178,7 +3178,7 @@ public final class MechLabViewModel {
 
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
                           String actionId, String previewId, String padId, String pad, String letter,
-                          CampaignMech mech, VehicleType vehicle,
+                          CampaignMech mech, CampaignVehicle vehicle,
                           String classes, String name, String chassis, String subsystem,
                           String status, String statusClasses,
                           Runnable select) implements MarkupPropertySource {
