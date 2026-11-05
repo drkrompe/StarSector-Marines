@@ -524,7 +524,6 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
         var debrief = ResultsScreen.previewProps(true, false);
         debrief.put("missionName", mission.name);
         debrief.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
-        debrief.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(debrief, outcome);
         frames.add(document(context, renderer, "repair-debrief.png", ResultsScreen.COMPONENT_PATHS,
                 ResultsScreen.ROOT_COMPONENT, debrief));

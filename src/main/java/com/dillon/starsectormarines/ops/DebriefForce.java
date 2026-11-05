@@ -32,9 +32,6 @@ import java.util.Map;
  */
 final class DebriefForce {
 
-    /** How many tiles the debrief's inset shows on one row at full width; past it the inset takes two. */
-    static final int TILES_PER_ROW = 8;
-
     private DebriefForce() {
     }
 
@@ -124,9 +121,9 @@ final class DebriefForce {
     }
 
     /** One squad tile: the same picture the briefing draws, its tally and names in the hover. */
-    static BriefingViewModel.SquadPicture squad(int index, SquadMuster muster, ResultsScreen.PersonnelRow row) {
-        return new BriefingViewModel.SquadPicture("results-field-squad-" + index, muster, new SpecSheet(row.name(),
-                row.summary(), null, "command", List.of(), List.of(row.members())));
+    static BriefingViewModel.SquadPicture squad(int index, SquadMuster muster, String name, String tally, String members) {
+        return new BriefingViewModel.SquadPicture("results-field-squad-" + index, muster, new SpecSheet(name, tally, null,
+                "command", List.of(), List.of(Strings.get("resultsScreenPersonnelSubtitle"), members)));
     }
 
     /** Fills the section's props and returns its tiles, squads then machines; the section hides with none. */
@@ -135,8 +132,6 @@ final class DebriefForce {
         tiles.addAll(machines);
         props.put("fieldTiles", List.copyOf(tiles));
         props.put("forceClasses", tiles.isEmpty() ? "hidden" : "results-force");
-        props.put("forceInsetClasses", "field-inset console-well "
-                + (tiles.size() > TILES_PER_ROW ? "field-inset-two" : "field-inset-one"));
         float days = daysToFullyRepaired(machines);
         props.put("repairSummary", machines.isEmpty() ? "" : days > 0f
                 ? Strings.format("resultsScreenRepairDays", tenths(days)) : Strings.get("resultsScreenRepairNone"));

@@ -176,7 +176,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         var debrief = ResultsScreen.previewProps(true,false);
         debrief.put("missionName", mission.name);
         debrief.put("resultRows", ResultsScreen.resultRows(result, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
-        debrief.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(debrief,result);
         frames.add(document(context,renderer,"salvage-victory-debrief.png",ResultsScreen.COMPONENT_PATHS,ResultsScreen.ROOT_COMPONENT,debrief));
         String claim = progress.missionId();
@@ -225,7 +224,6 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         var props = ResultsScreen.previewProps(true, false);
         props.put("missionName", outcome.missionName);
         props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
-        props.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(props, outcome);
         frames.add(document(context, renderer, filename, ResultsScreen.COMPONENT_PATHS, ResultsScreen.ROOT_COMPONENT, props));
     }

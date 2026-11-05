@@ -16,8 +16,6 @@ class ResultsScreenPersonnelPresentationTest {
     void namedStationingDebriefIdentifiesPersistentDetachment() {
         MissionOutcome outcome = outcome(MissionSource.STATIONING, Set.of("team-1"));
 
-        assertEquals("STATIONED DETACHMENT — RTD / WIA / MIA / KIA",
-                ResultsScreen.personnelHeader(outcome));
         assertEquals("No persistent personnel assigned.",
                 ResultsScreen.noPersonnelMessage(outcome));
     }
@@ -26,18 +24,8 @@ class ResultsScreenPersonnelPresentationTest {
     void anonymousLegacyStationingDebriefStaysAggregate() {
         MissionOutcome outcome = outcome(MissionSource.STATIONING, Collections.emptySet());
 
-        assertEquals("STATIONING PERSONNEL — AGGREGATE REPORT",
-                ResultsScreen.personnelHeader(outcome));
         assertEquals("Legacy anonymous detachment — aggregate casualties only.",
                 ResultsScreen.noPersonnelMessage(outcome));
-    }
-
-    @Test
-    void ordinaryMissionKeepsGenericPersonnelCopy() {
-        MissionOutcome outcome = outcome(MissionSource.GENERATED, Set.of("team-1"));
-
-        assertEquals("PERSONNEL — RTD / WIA / MIA / KIA",
-                ResultsScreen.personnelHeader(outcome));
     }
 
     /**

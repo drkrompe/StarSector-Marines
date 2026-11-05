@@ -66,17 +66,13 @@ public final class DebriefForceSnapshotSuite implements SnapshotSuite {
         props.put("sceneCaption", "LOCATION ARCHIVE / WAYLINE CHECKPOINT");
         MarineRoster roster = new MarineRoster();
         List<BriefingViewModel.SquadPicture> squads = new ArrayList<>();
-        List<ResultsScreen.PersonnelRow> rows = new ArrayList<>();
         for (int i = 0; i < squadCount; i++) {
             var squad = roster.createSquad();
             List<MarineSoldier> marines = roster.recruitToSquad(squad.id(), 12);
             Set<String> gone = marines.stream().limit(i == 0 ? lost : 0).map(MarineSoldier::id).collect(Collectors.toSet());
-            var row = new ResultsScreen.PersonnelRow("result-squad-" + i, squad.name(), (12 - gone.size()) + "R 0W 0M " + gone.size() + "K",
-                    "label heading results-squad-summary tone-good", "Hale R · Chen R · Ilyin W · Okafor R · Bell K · Ruiz R");
-            rows.add(row);
-            squads.add(DebriefForce.squad(i, SquadMuster.from(roster, squad.id()).without(gone), row));
+            squads.add(DebriefForce.squad(i, SquadMuster.from(roster, squad.id()).without(gone), squad.name(),
+                    (12 - gone.size()) + "R 0W 0M " + gone.size() + "K", "Hale R · Chen R · Ilyin W · Okafor R · Bell K · Ruiz R"));
         }
-        props.put("squadRows", List.copyOf(rows));
         List<Object> tiles = DebriefForce.put(props, squads, machines);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), ResultsScreen.COMPONENT_PATHS);
         try (var markup = loader.reloadAndBuild(new Reactor(), ResultsScreen.ROOT_COMPONENT, props)) {

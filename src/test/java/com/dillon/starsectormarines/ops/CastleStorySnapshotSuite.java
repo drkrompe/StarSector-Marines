@@ -39,9 +39,6 @@ public final class CastleStorySnapshotSuite implements SnapshotSuite {
                     .waylineHound(new WaylineHoundRecovery.Report(true, disabled)).build();
             var props = ResultsScreen.previewProps(true, false);
             props.put("missionName", outcome.missionName);
-            props.put("squadRows", List.of(new ResultsScreen.PersonnelRow("result-company", "1st Squad",
-                    "10R 0W 0M 2K", "label heading results-squad-summary tone-danger",
-                    "10 returned / 2 killed")));
             props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
             ResultsScreen.putStoryDebrief(props, outcome);
             ResultsScreen.putSalvageConversation(props, HoundSalvageDebrief.lines(outcome, catalog));
@@ -80,8 +77,6 @@ public final class CastleStorySnapshotSuite implements SnapshotSuite {
                 .payoutEarned(42000).marinesEngaged(48).marinesLost(21).build();
         var props = ResultsScreen.previewProps(true, false);
         props.put("missionName", cold.missionName);
-        props.put("squadRows", List.of(new ResultsScreen.PersonnelRow("cold-company", "Company survivors",
-                "27R 0W 0M 21K", "label heading results-squad-summary tone-danger", "Illustrative personnel record")));
         props.put("resultRows", ResultsScreen.resultRows(cold, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
         ResultsScreen.putStoryDebrief(props, cold);
         ResultsScreen.putSalvageConversation(props, MissionDebriefConversation.lines(cold, catalog));

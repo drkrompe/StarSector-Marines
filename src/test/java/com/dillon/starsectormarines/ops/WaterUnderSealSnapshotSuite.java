@@ -363,7 +363,6 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
         var props = ResultsScreen.previewProps(true, false);
         props.put("missionName", mission.name);
         props.put("resultRows", ResultsScreen.resultRows(outcome, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
-        props.put("squadRows", List.of());
         ResultsScreen.putStoryDebrief(props, outcome);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), ResultsScreen.COMPONENT_PATHS);
         loader.reload();

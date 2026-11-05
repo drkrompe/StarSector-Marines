@@ -1,4 +1,4 @@
-<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvagePlaybackClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,forceClasses,forceInsetClasses,fieldTiles,repairSummary,repairClasses,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="rewardPrompt,refitClasses,refitCopy,refitAction,conversationTitle,salvageClasses,salvagePlaybackClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelEmpty,personnelEmptyClasses,forceClasses,fieldTiles,repairSummary,repairClasses,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -62,7 +62,7 @@
             <div id="mission-results-force-title" class="label heading tone-edge force-title">{i18n.resultsScreenFieldForce}</div>
             <div id="mission-results-force-repair" class="{repairClasses}">{repairSummary}</div>
           </div>
-          <div id="mission-results-field-inset" class="{forceInsetClasses}">
+          <div id="mission-results-field-inset" class="field-inset console-well">
             <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
               <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
               <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="124" height="66" />
@@ -70,20 +70,7 @@
             </div>
           </div>
         </div>
-        <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
-          <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
-          <div id="mission-results-personnel-subtitle" class="label tone-muted">{i18n.resultsScreenPersonnelSubtitle}</div>
-        </div>
-        <div id="mission-results-squads" class="results-squad-grid">
-          <div each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="results-squad-card console-readout">
-            <div id="{squad.topId}" class="results-squad-top">
-              <div id="{squad.nameId}" class="label heading">{squad.name}</div>
-              <div id="{squad.summaryId}" class="{squad.tone}">{squad.summary}</div>
-            </div>
-            <div id="{squad.membersId}" class="label tone-muted">{squad.members}</div>
-          </div>
-        </div>
-        <div id="mission-results-personnel-empty" class="label tone-muted personnel-empty">{personnelEmpty}</div>
+        <div id="mission-results-personnel-empty" class="{personnelEmptyClasses}">{personnelEmpty}</div>
       </div>
     </div>
     <div id="mission-results-actions" class="mission-flow-actions console-section">
@@ -164,23 +151,13 @@
   .result-row .heading { width: 185px; }
   .result-value { width: 0px; flex-grow: 1; text-align: right; }
   .results-personnel { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
-  .personnel-heading { flex-direction: row; height: 52px; padding: 10px; gap: 10px; border-width: 1px; }
-  .personnel-heading .heading { width: 520px; }
-  .personnel-heading .tone-muted { width: 0px; flex-grow: 1; text-align: right; }
-  .results-squad-grid { display: grid; height: 0px; flex-grow: 1; gap: 7px; overflow: scroll; }
-  .results-squad-card { flex-direction: column; width: 360px; height: 86px; padding: 10px; gap: 10px; border-width: 1px; border-color: #31485f; }
-  .results-squad-top { flex-direction: row; height: 20px; }
-  .results-squad-top .label { width: 0px; flex-grow: 1; }
-  .results-squad-summary { width: 190px; text-align: right; }
   .personnel-empty { height: 22px; }
   /* The briefing's field force as the battle left it: seats emptied, dolls worn, words in hovers. */
-  .results-force { flex-direction: column; gap: 4px; }
+  .results-force { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; }
   .force-heading { flex-direction: row; align-items: center; height: 24px; gap: 12px; }
   .force-title { width: 0px; flex-grow: 1; }
   .force-repair { width: 420px; text-align: right; }
-  .field-inset { display: grid; width: 100%; padding: 6px; gap: 6px; border-width: 2px; overflow: scroll; }
-  .field-inset-one { height: 88px; }
-  .field-inset-two { height: 168px; }
+  .field-inset { display: grid; width: 100%; height: 0px; flex-grow: 1; padding: 6px; gap: 6px; border-width: 2px; overflow: scroll; }
   .field-tile { flex-direction: row; align-items: center; width: 158px; height: 72px; padding: 2px; gap: 2px; border-width: 1px; }
   .field-tile.field-tile-refused { border-color: #a8473c; }
   .field-tile.field-tile-stack { border-color: #6fc4a8; }
@@ -209,11 +186,6 @@
   .result-row { flex-direction: column; width: 195px; height: 84px; padding: 7px; gap: 6px; background-color: #182228; border-color: #325368; }
   .result-row .heading { width: 100%; height: 18px; }
   .result-value { width: 100%; min-height: 42px; flex-grow: 0; text-align: left; white-space: normal; }
-  .personnel-heading { height: 50px; padding: 9px; }
-  .personnel-heading .heading { width: 360px; }
-  .results-squad-card { width: 440px; height: 100px; padding: 9px; gap: 8px; }
-  .results-squad-card .tone-muted { white-space: normal; min-height: 52px; }
-  .results-squad-summary { width: 220px; }
   .results-scene { flex-direction: column; height: 426px; padding: 7px; gap: 6px; border-width: 2px; overflow: hidden; pointer-events: none; }
   .results-scene-image { width: 100%; height: 384px; }
   .scene-caption { height: 18px; }
