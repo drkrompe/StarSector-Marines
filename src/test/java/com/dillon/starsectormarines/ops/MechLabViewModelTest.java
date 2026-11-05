@@ -1145,7 +1145,7 @@ class MechLabViewModelTest {
         assertTrue(viewModel.liftable(MechInternal.HEAVY_PLATING), "a plate lifts off the doll");
         assertTrue(viewModel.removeInstalledInternal(SocketId.PLATING));
         assertNull(tank.plating());
-        assertFalse(viewModel.rackIncomplete(), "no plate is no fault of the compartment");
+        assertTrue(tank.missingInternals().isEmpty(), "no plate keeps nothing off the drop");
         assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "the plate is a spare");
     }
 

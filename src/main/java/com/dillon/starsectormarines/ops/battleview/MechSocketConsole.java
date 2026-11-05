@@ -30,7 +30,6 @@ final class MechSocketConsole {
     private static final float HEADER_END = 10f;
     /** What a header keeps beside its name: the tick and inset before it, a warning mark after. */
     private static final float LABEL_RESERVE = 40f;
-    private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
     private static final Color PLATE_SOLID = new Color(0x08, 0x0b, 0x09);
@@ -46,12 +45,10 @@ final class MechSocketConsole {
      */
     static float width(SocketDef socket) {
         float header = Fonts.ORBITRON_12_BOLD.measureWidth(socket.label()) + LABEL_RESERVE;
-        if (socket.factoryLocked()) return Math.max(header, HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth("SEALED") + HEADER_END);
         return Math.max(header, bricks(socket, 0, 0).width() + SIDE * 2f);
     }
 
     static float height(SocketDef socket) {
-        if (socket.factoryLocked()) return SEALED_HEIGHT;
         return HEADER + bricks(socket, 0, 0).height() + FOOT;
     }
 
@@ -78,8 +75,24 @@ final class MechSocketConsole {
     }
 
     /**
-     * A mount card: a quiet plate carrying the socket's name, its bricks at the doll's fixed
-     * size, and what is fitted. The plate only keeps the workshop floor from showing through;
+     * What a card warns of. Red is a part the machine cannot go without, yellow one it is better for.
+     *
+     * @param shown        false draws every socket as merely empty, for a pattern shown for sale rather than a machine being fitted
+     * @param bankRequired the machine carries a gun, so a compartment with no capacitor bank keeps it off the manifest
+     * @param noWeapon     the machine has no weapon anywhere, so each empty weapon point warns
+     */
+    record Warnings(boolean shown, boolean bankRequired, boolean noWeapon) { }
+
+    /**
+     * What a card holds that is built into the machine rather than fitted: its drawing and its colour. A
+     * {@linkplain SocketDef#factoryLocked locked} socket wears a lock too; an older save's own gun looks the same but a
+     * weapon can replace it, so it does not.
+     */
+    record Sealed(String art, Color tone) { }
+
+    /**
+     * A mount card on any machine: a quiet plate carrying the socket's name, its bricks at the doll's
+     * fixed size, and what is fitted. The plate only keeps the workshop floor from showing through;
      * the bricks and the hardpoint colour carry the meaning.
      *
      * @param internal the engine fitted in the core, drawn as its footprint on the socket grid and
@@ -88,6 +101,7 @@ final class MechSocketConsole {
      * @param parts    the whole auxiliary compartment's parts at their packed places, across every
      *                 bay (the card draws those in its own bay); null for any other socket
      * @param previewPart the one of {@code parts} that is in hand, snapped in but not yet fitted; or null
+     * @param sealed   what is built in here, drawn over all its bricks; null where the socket is fitted
      */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
@@ -95,48 +109,21 @@ final class MechSocketConsole {
                      List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
                      LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
-                     boolean rejected, boolean draggingHere, double time) {
-        draw(c, t, socket, installed, preview, internal, internalPreview, parts, previewPart, assets,
-                selected, hovered, compatible, rejected, draggingHere, time, true);
-    }
-
-    /**
-     * As above; {@code warnMissing} false draws a socket that would keep a mech off the manifest as
-     * merely empty, for a pattern shown for sale rather than a mech being fitted.
-     */
-    static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
-                     SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, MechInternal internal, boolean internalPreview,
-                     List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
-                     LayeredMechAssets assets,
-                     boolean selected, boolean hovered, boolean compatible,
-                     boolean rejected, boolean draggingHere, double time, boolean warnMissing) {
-        draw(c, t, socket, installed, preview, internal, internalPreview, parts, previewPart, assets,
-                selected, hovered, compatible, rejected, draggingHere, time, warnMissing, false);
-    }
-
-    /** As above; {@code unarmed} is a machine with no weapon anywhere, whose empty weapon points warn in yellow. */
-    static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
-                     SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, MechInternal internal, boolean internalPreview,
-                     List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
-                     LayeredMechAssets assets,
-                     boolean selected, boolean hovered, boolean compatible,
-                     boolean rejected, boolean draggingHere, double time, boolean warnMissing, boolean unarmed) {
+                     boolean rejected, boolean draggingHere, double time, Warnings warnings, Sealed sealed) {
         boolean fixed = socket.factoryLocked();
         Color accent = rejected ? RED : compatible ? FITS : selected ? AMBER : MUTED;
-        Color socketTone = HardpointBricks.tone(socket.type());
+        Color socketTone = sealed != null ? sealed.tone() : HardpointBricks.tone(socket.type());
         boolean compartment = socket.id().compartment();
         List<MechCompartment.Placement> here = compartment ? MechCompartment.in(parts, socket.id()) : null;
-        boolean empty = installed == null && preview == null && internal == null
+        boolean empty = sealed == null && installed == null && preview == null && internal == null
                 && (here == null || here.isEmpty());
-        // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the drop manifest: red.
-        // An empty armor point does not, but the mech goes in with no armor: yellow. So does a machine with no
-        // weapon on it at all, on each of its empty weapon points.
-        boolean missing = warnMissing && !fixed && (socket.id() == SocketId.CORE ? empty
-                : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
-        boolean recommended = warnMissing && !fixed && empty
-                && (socket.id() == SocketId.PLATING || unarmed && socket.type().weaponPoint());
+        // An empty engine well, or a compartment with no capacitor bank on a machine with a gun, keeps it off the drop
+        // manifest: red. An empty armor point does not, but the machine goes in with no armor: yellow. So does a machine
+        // with no weapon on it at all, on each of its empty weapon points.
+        boolean missing = warnings.shown() && !fixed && (socket.id() == SocketId.CORE ? empty
+                : compartment && warnings.bankRequired() && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
+        boolean recommended = warnings.shown() && !fixed && empty
+                && (socket.id() == SocketId.PLATING || warnings.noWeapon() && socket.type().weaponPoint());
         boolean warns = missing || recommended;
         Color warning = recommended ? HardpointBricks.RECOMMENDED : RED;
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
@@ -146,18 +133,20 @@ final class MechSocketConsole {
         HardpointBricks.rim(c, x, y, w, h, CUT, warns ? new Color(warning.getRed(), warning.getGreen(), warning.getBlue(),
                 (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
                 : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), warns ? 2f : 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : warns ? warning : socketTone);
+        c.fillRect(x + 8, y + 7, 3, 9, fixed || sealed != null ? MUTED : warns ? warning : socketTone);
         c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         if (warns) drawWarningBadge(c, x + w - 26f, y + 5f, warning);
         if (fixed) drawLock(c, x + w - 22f, y + 5f);
 
-        if (fixed) {
-            c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 16, y + HEADER,
-                    rejected ? RED : MUTED);
-        } else {
-            HardpointBricks.Layout bricks = placed(t, socket);
-            HardpointBricks.drawEmpty(c, bricks, socketTone);
+        HardpointBricks.Layout bricks = placed(t, socket);
+        HardpointBricks.drawEmpty(c, bricks, socketTone);
+        if (sealed != null) {
+            // Its lock, its muted rim and its one factory piece say it is sealed.
+            HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
+                    HardpointBricks.mix(socketTone, 0x101311, .35f));
+            HardwareArt.drawVehicle(c, sealed.art(), bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
+        } else if (!fixed) {
             MechWeaponComponent shown = preview != null ? preview : installed;
             int[] shownBlock = null;
             if (shown != null) {
@@ -218,57 +207,6 @@ final class MechSocketConsole {
         float top = bricks.brickY(part.row());
         return new float[] {left, top, left + bricks.span(part.columns(), bricks.brickWidth()),
                 top + bricks.span(part.rows(), bricks.brickHeight())};
-    }
-
-    /**
-     * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
-     * mark and a SEALED tag; or an auxiliary compartment bay, its parts at their packed places,
-     * each lifted off by being dragged. A compartment bay of an armed hull with no bank warns, as a
-     * mech's compartment does: the hull cannot drop.
-     *
-     * @param parts the parts packed into this bay; empty for a sealed card
-     */
-    static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                            Color tone, String art, List<MechCompartment.Placement> parts, boolean missing,
-                            boolean selected, boolean hovered, double time) {
-        boolean rack = socket.id().compartment();
-        // Truly built in: an older save's own gun looks sealed but a weapon can replace it.
-        boolean builtIn = !rack && socket.id() != SocketId.ARMS;
-        float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
-        float x = t.left(), y = t.top(), w = t.width(), h = t.height();
-        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
-        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? new Color(RED.getRed(), RED.getGreen(), RED.getBlue(),
-                (int) (150 + pulse * 105)) : rack && parts.isEmpty() ? tone
-                : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), missing ? 2f : 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, missing ? RED : rack ? tone : MUTED);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - (missing || builtIn ? LABEL_RESERVE : 24)), x + 16,
-                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f, RED);
-        if (builtIn) drawLock(c, x + w - 22f, y + 5f);
-        // A sealed card says so by its lock, its muted rim and its one factory piece; how full the rack is
-        // its bricks show.
-        HardpointBricks.Layout bricks = placed(t, socket);
-        HardpointBricks.drawEmpty(c, bricks, tone);
-        if (rack) {
-            for (MechCompartment.Placement part : parts) {
-                MechInternal internal = part.part();
-                HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
-                        HardpointBricks.tone(internal.role));
-                float left = bricks.brickX(part.column()), top = bricks.brickY(part.row());
-                float width = bricks.span(part.columns(), bricks.brickWidth());
-                float height = bricks.span(part.rows(), bricks.brickHeight());
-                HardwareArt.draw(c, internal, left, top, width, height, 255);
-            }
-        } else {
-            HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
-                    HardpointBricks.mix(tone, 0x101311, .35f));
-            HardwareArt.drawVehicle(c, art, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
-        }
-        if (selected || hovered) {
-            MechLabDollCanvas.drawCornerBrackets(c, x - 2, y - 2, w + 4, h + 4,
-                    new Color(AMBER.getRed(), AMBER.getGreen(), AMBER.getBlue(), (int) (180 + pulse * 65)),
-                    selected ? 2.4f : 1.4f, 17, 5);
-        }
     }
 
     /** A padlock, 14 px wide and 16 tall from its top-left corner: built in, and no part can go here or come off. */

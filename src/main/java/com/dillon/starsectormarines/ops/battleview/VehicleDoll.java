@@ -44,9 +44,9 @@ final class VehicleDoll {
                 case BALLISTIC -> SocketType.BALLISTIC;
             }, gun.rows, "@vehicleDollTurret"));
         }
-        if (bay(type) != null) sockets.add(card(SocketId.LEFT_SHOULDER, SocketType.AUXILIARY, 2, "@vehicleDollBay"));
+        if (bay(type) != null) sockets.add(sealed(SocketId.LEFT_SHOULDER, SocketType.AUXILIARY, "@vehicleDollBay"));
         if (!systems(type).isEmpty()) {
-            sockets.add(card(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, "@vehicleDollSystems"));
+            sockets.add(sealed(SocketId.RIGHT_SHOULDER, SocketType.OMNI, "@vehicleDollSystems"));
         }
         sockets.addAll(VehicleRack.grids(type));
         sockets.add(card(SocketId.PLATING, SocketType.PLATING, 1, "@gearSocketPlating"));
@@ -55,6 +55,11 @@ final class VehicleDoll {
 
     private static SocketDef card(SocketId id, SocketType type, int rows, String label) {
         return new SocketDef(id, type, 2, rows, 0f, 0f, 0f, 1f, 1f, 1f, false, label);
+    }
+
+    /** A card no part goes on or comes off: what the hull was built with, two rows of it. */
+    private static SocketDef sealed(SocketId id, SocketType type, String label) {
+        return new SocketDef(id, type, 2, 2, 0f, 0f, 0f, 1f, 1f, 1f, true, label);
     }
 
     /**

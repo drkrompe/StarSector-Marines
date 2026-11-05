@@ -840,8 +840,7 @@ public final class MechLabViewModel {
     }
 
     public boolean socketOccupied(SocketId id) {
-        CampaignMech mech = selectedMech();
-        return mech != null && (installedWeapon(id) != null
+        return selectedMachine() != null && (installedWeapon(id) != null
                 || id != null && roleFor(id) != null && installedInternal(id) != null
                 || id != null && id.compartment() && !compartmentPlacements(id).isEmpty());
     }
@@ -2054,10 +2053,10 @@ public final class MechLabViewModel {
         return true;
     }
 
-    /** Whether the selected vehicle is armed with no capacitor bank on its rack, so stays off the drop. */
-    public boolean rackIncomplete() {
-        CampaignVehicle vehicle = selectedVehicle();
-        return vehicle != null && vehicle.missingInternals().contains(MechInternal.Role.CAPACITOR_BANK);
+    /** Whether the selected machine carries a gun, so a compartment with no capacitor bank keeps it off the drop. */
+    public boolean selectedMachineArmed() {
+        CampaignMachine machine = selectedMachine();
+        return machine != null && machine.capabilities().armed();
     }
 
     /** Puts a spare capacitor bank or vent array on the selected vehicle's rack; a bank replaced returns to stores. */
