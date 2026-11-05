@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-/** Marine Raid strike command: service one target, then withdraw the force. */
+/** Marine Raid strike command: service one target, then withdraw the force, squads under the player's orders included. */
 public final class RaidCommand implements AutonomousMissionCommand<
         RaidCommandFrame, RaidCommandSnapshot> {
 
@@ -30,11 +30,16 @@ public final class RaidCommand implements AutonomousMissionCommand<
     @Override
     public CommandPlan<RaidCommandSnapshot> plan(RaidCommandFrame frame) {
         RaidCommandFacts facts = frame.facts();
+        // Once the target is secured the raid is leaving, and a withdrawal goes past the player's order
+        // (AssignmentArbiter lets it through a lease): a squad told to hold near the pickup would otherwise
+        // never be sent up a ramp, and the company could not be lifted.
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
                 .filter(squad -> squad.directive() == null
                         || squad.directive().authority().priority()
-                        <= CommandAuthority.MISSION_COMMAND.priority())
+                        <= CommandAuthority.MISSION_COMMAND.priority()
+                        || facts.targetSecured()
+                        && squad.directive().authority() == CommandAuthority.PLAYER_INTERVENTION)
                 .toList();
         CommandSquadState service = facts.targetSecured() ? null : pool.stream()
                 .filter(squad -> frame.topology().reachable(squad.anchorCellX(),
