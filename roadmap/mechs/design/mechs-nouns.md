@@ -82,15 +82,20 @@ increasing an encounter's total armored threat.
   bigger bank never strands a chaingun. A weapon with no authored refill (a mech's
   DC cannon or rocket pod) has nothing for a loader to multiply.
 - A **rotary gun** (the chainguns, the light machine gun, and the two AC-6
-  autocannons, the AC-6 and the AC-6 (QS)) has no trigger pull. It fires while its
+  autocannons, the AC-6 and the AC-6 (QS)) has no trigger pull. Calibre sets the
+  spin (owner, 2026-11-05): the chainguns are the light calibre, fast to spin and
+  fast-firing; the AC-6 the medium, spinning up quicker to a medium rate of heavy
+  rounds; the single-shot cannons (the HC family) the large. It fires while its
   trigger is held: its **spin** ramps from a first-turn rate to its full rate over
   the spin-up time, the barrels **coast** at speed for a moment after release, so a
   quick re-press fires at full rate, then spin down. A gun with **no spin-up**
   (`spinUp` 0, its first-turn rate its full rate) fires at full rate from the press:
-  the light machine gun (24 rounds at 10 a second) and the autocannons (ten-round
-  magazines at 3 and 4 a second, the thunk-thunk-thunk of a cannon feed), whose
-  bursts end where their small belts do and are then paced by the loader (owner,
-  2026-10-30). Its rounds come off a **belt**
+  the light machine gun (24 rounds at 10 a second). The AC-6 spins up in 0.6 s from 2
+  to 5 rounds a second off a thirty-round belt; the AC-6 (QS), the cheap knockoff
+  between the chainguns and the AC-6, takes a full second to reach 6 a second of
+  softer, wilder rounds off the same belt. A QS part is worse on purpose, not a
+  balanced alternative: it is what a poor company and the poorer factions field.
+  Its rounds come off a **belt**
   (a few hundred for a chaingun), which a **hopper** refills at a fixed rate every tick for the
   life of the mech, firing or not: the chaingun's counterpart of the replenisher's
   cadence. Ammunition is unlimited over a fight; a long hold
@@ -1152,8 +1157,8 @@ part's description.
 | --- | --- | --- | --- | --- |
 | HC, heavy cannon | HC-20 | 2x3 | One heavy shell, contact payload, real structural damage; centreline only | Advanced, Military pattern; the Warden's |
 | | HC-10 | 2x2 | One armour-piercing shell, reaching a little further than the HC-20 and hitting softer; fits a side arm | Advanced, Military pattern (the linear cannon's slot) |
-| AC, autocannon | AC-6 | 2x2 | Rotary, six-round bursts off a ten-round belt, heavy rounds | Advanced, Hegemony issue |
-| | AC-6 (QS) | 2x2 | The same burst and belt, faster, softer and wilder; drawn as a nose gun on a centreline mount | Common market |
+| AC, autocannon | AC-6 | 2x2 | Rotary, a short spin-up to 5 rounds a second off a thirty-round belt, heavy rounds | Advanced, Hegemony issue |
+| | AC-6 (QS) | 2x2 | The same belt on a slower spin-up to a faster rate, softer and wilder: between the chaingun and the AC-6; drawn as a nose gun on a centreline mount | Common market |
 | DC, demolition cannon | DC-5 | 2x2 | Five shells, broad blast and wall damage; centreline only | Advanced, Path issue (the Hound's nose) |
 | | DC-4 (QS) | 2x2 | Four shells, shorter, weaker and less accurate; centreline only | Common market |
 

@@ -188,14 +188,12 @@ class RotaryFeedTest {
     }
 
     @Test
-    void theLightMachineGunAndTheAutocannonsAreHeldTriggerGunsWithNoSpinUp() {
-        for (MechWeaponComponent gun : new MechWeaponComponent[]{MechWeaponComponent.LIGHT_MACHINE_GUN,
-                MechWeaponComponent.AC_6, MechWeaponComponent.AC_6_QS}) {
-            assertNotNull(gun.rotary(), gun + " fires while held");
-            assertTrue(gun.rotary().instant(), gun + " has no spin-up");
-            assertEquals(gun.projectilesPerTrigger / gun.rotary().ratedRoundsPerSecond(), gun.cycleSeconds(), 1e-5f,
-                    "its cycle is read from its feed");
-        }
+    void aHeldTriggerGunWithNoSpinUpReadsItsCycleFromItsFeed() {
+        MechWeaponComponent gun = MechWeaponComponent.LIGHT_MACHINE_GUN;
+        assertNotNull(gun.rotary(), gun + " fires while held");
+        assertTrue(gun.rotary().instant(), gun + " has no spin-up");
+        assertEquals(gun.projectilesPerTrigger / gun.rotary().ratedRoundsPerSecond(), gun.cycleSeconds(), 1e-5f,
+                "its cycle is read from its feed");
     }
 
     /** Ten pulses a second for five flux a second. */

@@ -468,14 +468,14 @@
         "wallDamage": 6,
         "noiseMagnitude": 1.25,
         "rotary": {
-          "spinUp": 0.0,
-          "coast": 0.0,
-          "spinDown": 0.0,
-          "firstTurnRate": 3.0,
-          "fullRate": 3.0,
-          "belt": 10,
-          "refill": 1.15,
-          "fluxPerRound": 4.7
+          "spinUp": 0.6,
+          "coast": 0.4,
+          "spinDown": 1.2,
+          "firstTurnRate": 2.0,
+          "fullRate": 5.0,
+          "belt": 30,
+          "refill": 1.4,
+          "fluxPerRound": 4.0
         }
       },
       "render": {
@@ -649,28 +649,28 @@
       },
       "sim": {
         "tracksFliers": true,
-        "range": 26.0,
-        "damage": 9.0,
+        "range": 30.0,
+        "damage": 11.0,
         "accuracy": 0.48,
         "cooldown": 2.4,
-        "penetration": 4.0,
+        "penetration": 8.0,
         "burstCount": 6,
         "burstSpacing": 0.12,
         "hitSpread": 1.35,
         "roundVelocity": 240.0,
         "flightSec": 0.108333,
         "aoeRadius": 0.35,
-        "wallDamage": 2,
+        "wallDamage": 3,
         "noiseMagnitude": 0.9,
         "rotary": {
-          "spinUp": 0.0,
-          "coast": 0.0,
-          "spinDown": 0.0,
-          "firstTurnRate": 4.0,
-          "fullRate": 4.0,
-          "belt": 10,
+          "spinUp": 1.0,
+          "coast": 0.3,
+          "spinDown": 1.0,
+          "firstTurnRate": 2.0,
+          "fullRate": 6.0,
+          "belt": 30,
           "refill": 1.25,
-          "fluxPerRound": 3.7
+          "fluxPerRound": 3.0
         }
       },
       "render": {
