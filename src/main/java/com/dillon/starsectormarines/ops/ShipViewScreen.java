@@ -75,6 +75,8 @@ public final class ShipViewScreen implements Screen {
     private ShipConditionModel survey;
     private ShipConditionOverlay overlay;
     private boolean deckChanged, refocusPending, secondBayPending;
+    /** Whether her berths have been shown the machines the company has now; once she is ready. */
+    private boolean machinesSynced;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -111,6 +113,7 @@ public final class ShipViewScreen implements Screen {
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
         secondBayPending = CompanyNotices.current().contains(CompanyNotices.Notice.SECOND_BAY);
+        machinesSynced = false;
     }
 
     private void installDocument() {
@@ -201,6 +204,7 @@ public final class ShipViewScreen implements Screen {
                 document.canvases().set(deckElement, deck);
             }
         }
+        if (!machinesSynced && shownDeck != null && shownDeck.ready()) { shownDeck.syncMachines(); machinesSynced = true; }
         if (refocusPending && shownDeck != null && shownDeck.ready()) { survey.refocus(); refocusPending = false; }
         if (secondBayPending && shownDeck != null && shownDeck.ready()) inspectSecondBay();
         if (workshop != null) workshop.refresh();
