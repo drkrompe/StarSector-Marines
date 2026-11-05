@@ -67,8 +67,11 @@ class VehiclePlatingTest {
         assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
         assertEquals(1, bay.availableInternal(MechInternal.COMPOSITE_PLATING.id), "the outgoing plate is a spare");
 
-        assertFalse(bay.stripPlating("v1"), "plating is only ever replaced, as on a mech");
-        assertEquals(MechInternal.HEAVY_PLATING, tank.plating());
+        assertTrue(bay.stripPlating("v1"), "a plate lifts off, as on a mech");
+        assertNull(tank.plating());
+        assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "the plate is a spare");
+        assertFalse(tank.complete(), "a hull with no plate stays off the drop");
+        assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
 
         assertTrue(bay.scrapVehicle("v1"));
         assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "a scrap spares the plate");

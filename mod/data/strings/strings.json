@@ -3272,7 +3272,7 @@
     "openingMechLabVehicleSummary": "Structure {0}, armor {1} at rating {2}, {3} cells/s, {4} passenger seats. Its bay is sealed; the engine core, gun card, armor point and auxiliary compartment take the parts a mech wears.",
     "openingMechLabVehicleCompartmentRule": "AUXILIARY  ·  {0} / {1} SLOTS",
     "openingMechLabCompartmentFull": "The compartment is full: take a part out first.",
-    "openingMechLabVehiclePlatingCopy": "The armor point. Every hull is built in factory plating and wears a mech's plating parts by the mech's rule; plating is only ever replaced. The gun and bay stay sealed.",
+    "openingMechLabVehiclePlatingCopy": "The armor point. A hull wears a mech's plating parts by the mech's rule and cannot drop without one. Drag a plate off the doll to return it to stores. The bay stays sealed.",
     "openingMechLabVehicleEngineCopy": "The engine core. Every hull is built with the industrial engine and takes the same engines a mech runs, by the mech's rule. With no engine the hull cannot drop. The bay stays sealed.",
     "openingMechLabVehicleEngineRule": "ENGINE CORE  ·  ONE ENGINE  ·  OPEN",
     "openingMechLabVehicleEngineDetail": "VEHICLE ENGINE  ·  ENGINE CORE",

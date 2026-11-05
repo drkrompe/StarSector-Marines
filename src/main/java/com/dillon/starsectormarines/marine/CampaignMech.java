@@ -339,7 +339,7 @@ public final class CampaignMech implements Serializable {
         return missing;
     }
 
-    /** The roles a frame cannot drop without. Plating, once on, is only ever replaced. */
+    /** The roles a frame cannot drop without. */
     public static final List<MechInternal.Role> REQUIRED_INTERNALS =
             List.of(MechInternal.Role.ENGINE, MechInternal.Role.PLATING, MechInternal.Role.CAPACITOR_BANK);
 
