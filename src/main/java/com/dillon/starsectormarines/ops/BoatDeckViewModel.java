@@ -4,6 +4,11 @@ import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
+import com.dillon.starsectormarines.ops.fitting.MachineFigures;
+import com.dillon.starsectormarines.battle.turret.FluxShieldSpec;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.ops.battleview.BoatHardware;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -85,6 +90,8 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<String> selectedBoatName;
     private final ComputedSignal<String> selectedBoatIdentity;
     private final ComputedSignal<List<FittingMeter>> performanceMeters;
+    private final MutableSignal<BoatFitting> hoveredFitting;
+    private final MutableSignal<BoatGun> hoveredGun;
     private final ComputedSignal<List<ReadinessRow>> readinessRows;
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
@@ -169,6 +176,8 @@ public final class BoatDeckViewModel {
             return boat == null ? Strings.get("openingBoatDeckSelectABerthToOpenHer")
                     : boat.pattern().displayName() + "  ·  " + berthLabel(selectedBerth.get());
         });
+        hoveredFitting = reactor.signal(null);
+        hoveredGun = reactor.signal(null);
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         readinessRows = reactor.computed(this::buildReadiness);
         selectedSlotTitle = reactor.computed(() -> storesFilter.get() == null
@@ -708,28 +717,81 @@ public final class BoatDeckViewModel {
         int seats = cabin > 0 ? cabin : pattern.capacity;
         int maxSeats = pattern.capacity;
         for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
-        // A damaged hull reads as a deficit under her pattern's own figure; plating is armour over it,
-        // read against the pattern's stock skin, so a refit is gain past it and a bare hull a deficit.
-        float armorCeiling = pattern.armor() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::armorFactor);
-        return List.of(
-                FittingMeter.of("boat-meter:hull", Strings.get("openingBoatDeckHull"),
-                        Strings.format("openingBoatDeckHp", Math.round(fitted.maxHp() * boat.condition(day()))),
-                        fitted.maxHp() * boat.condition(day()), pattern.maxHp(),
-                        fitted.maxHp() * boat.condition(day()), pattern.maxHp(), FittingMeter.PLATE_TONE),
-                FittingMeter.of("boat-meter:armor", Strings.get("boatDeckArmor"),
-                        Strings.format("boatDeckArmorValue", Math.round(fitted.armor())),
-                        fitted.armor(), armorCeiling, fitted.armor(), pattern.armor(), FittingMeter.PLATE_TONE),
-                FittingMeter.of("boat-meter:speed", Strings.get("openingBoatDeckSpeed"),
-                        Strings.format("openingBoatDeckCellsS", number(fitted.maxSpeed())), fitted.maxSpeed(),
-                        pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE, BoatFitting::speedFactor),
-                        fitted.maxSpeed(), pattern.maxSpeed(), FittingMeter.ENGINE_TONE),
-                fitted.cradled()
-                        ? FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("boatDeckSeatsAndLift", seats,
-                                        LiftReadout.ratingName(fitted.liftRating())),
-                                seats, maxSeats)
-                        : FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats));
+        MachineFigures.Seats carries = new MachineFigures.Seats(fitted.cradled()
+                ? Strings.format("boatDeckSeatsAndLift", seats, LiftReadout.ratingName(fitted.liftRating()))
+                : Strings.format("openingMechLabSeats", seats), seats, maxSeats);
+        BoatFitting hoveredPart = hoveredFitting.get();
+        BoatGun hoveredArm = hoveredGun.get();
+        return MachineFigures.meters("boat-meter:", figures(boat, null, null), figures(boat, hoveredPart, hoveredArm),
+                figures(new CampaignBoat(boat.id(), boat.displayName(), pattern, null, null), null, null),
+                ceiling(pattern), carries);
+    }
+
+    /**
+     * What a boat would fly with, as it stands or with a part or gun put on her, by the rule every machine reads: no drive
+     * moves her nowhere, and no power holds no flux. Her pool is her shield's, so with no emitter she has none. A damaged
+     * hull reads as a deficit under her pattern's own figure.
+     */
+    private MachineFigures figures(CampaignBoat boat, BoatFitting part, BoatGun gun) {
+        FittedBoat fitted = boat.freezeWith(part);
+        FluxShieldSpec shield = fitted.shieldSpec();
+        boolean drive = boat.drive() != null || part != null && part.slot() == BoatFittingSlot.DRIVE;
+        boolean power = boat.fittingIn(BoatFittingSlot.POWER) != null || part != null && part.slot() == BoatFittingSlot.POWER;
+        List<String> guns = new ArrayList<>();
+        for (List<String> mounted : List.of(fitted.guns(), fitted.pods())) guns.addAll(mounted);
+        if (gun != null) guns.add(gun.structureId());
+        float range = 0f;
+        int missiles = 0;
+        for (String structure : guns) {
+            TurretMountDef mount = mountOf(structure);
+            if (mount == null) continue;
+            if (mount.weapon != null) range = Math.max(range, mount.weapon.range);
+            missiles += mount.ammoCapacity;
+        }
+        return new MachineFigures(fitted.armor(), MachineFigures.NO_RATING, fitted.maxHp() * boat.condition(day()),
+                drive ? fitted.maxSpeed() : 0f, shield != null && power ? shield.fluxCapacity() : 0f,
+                shield != null && power ? shield.dissipationPerSecond() : 0f, range, missiles);
+    }
+
+    private static TurretMountDef mountOf(String structureId) {
+        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
+        StructureDef structure = registry != null && structureId != null ? registry.getStructure(structureId) : null;
+        return structure != null ? structure.mount : null;
+    }
+
+    /** Every bar's full scale on a boat: the most her own pattern can reach, since a boat flies and reads against no walker. */
+    private static MachineFigures ceiling(ShuttleType pattern) {
+        float range = 0f;
+        int rack = 0;
+        for (BoatGun gun : BoatGun.catalog()) {
+            TurretMountDef mount = mountOf(gun.structureId());
+            if (mount == null) continue;
+            if (mount.weapon != null) range = Math.max(range, mount.weapon.range);
+            rack = Math.max(rack, mount.ammoCapacity);
+        }
+        return new MachineFigures(pattern.armor() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::armorFactor),
+                MachineFigures.NO_RATING, pattern.maxHp(),
+                pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE, BoatFitting::speedFactor),
+                FittedBoat.BASE_FLUX * bestFactor(pattern, BoatFittingSlot.POWER, BoatFitting::fluxCapacityFactor),
+                FittedBoat.BASE_VENT * bestFactor(pattern, BoatFittingSlot.POWER, BoatFitting::fluxDissipationFactor),
+                range, rack * pattern.hardpoints());
+    }
+
+    /** A store card under the pointer: the specifications preview what its part would make of her, as the lab's do. */
+    public void hoverPart(BoatDoll.Kind kind, String itemId) {
+        BoatFitting fitting = kind == BoatDoll.Kind.HARDPOINT ? null : BoatFitting.resolve(itemId, fittingSlot(kind));
+        BoatGun gun = kind == BoatDoll.Kind.HARDPOINT ? BoatGun.findById(itemId) : null;
+        if (hoveredFitting.get() != fitting) hoveredFitting.set(fitting);
+        if (hoveredGun.get() != gun) hoveredGun.set(gun);
+    }
+
+    public boolean hasHoverPart() {
+        return hoveredFitting.get() != null || hoveredGun.get() != null;
+    }
+
+    public void clearHoverPart() {
+        hoveredFitting.set(null);
+        hoveredGun.set(null);
     }
 
     /**

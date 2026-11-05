@@ -238,8 +238,8 @@ class BoatDeckViewModelTest {
                 dollSlot(viewModel, BoatDoll.slotKey(BoatFittingSlot.DRIVE)).fitted());
         assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.boatRows().get().get(0).drive());
         // 10 cells/s of pattern at the drive's 1.20, read as gain past the pattern's own figure.
-        assertEquals("12 CELLS/S", meter(viewModel, "SPEED").value());
-        assertEquals("meter-gain", meter(viewModel, "SPEED").gainClasses());
+        assertEquals("12 CELLS/S", meter(viewModel, "MOBILITY").value());
+        assertEquals("meter-gain", meter(viewModel, "MOBILITY").gainClasses());
         assertTrue(viewModel.feedbackText().get().contains("fitted to"));
         assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
     }
@@ -268,7 +268,7 @@ class BoatDeckViewModelTest {
         assertEquals(0, deck.spares(BoatFitting.REINFORCED_PLATING.id()));
         assertEquals(BoatFitting.STANDARD_PLATING.id(), deck.boats().get(0).plating().id());
         assertEquals(3, resources.credits);
-        assertEquals("60 HP", meter(viewModel, "HULL").value());
+        assertEquals("60", meter(viewModel, "STRUCTURE").value());
     }
 
     @Test
@@ -530,6 +530,30 @@ class BoatDeckViewModelTest {
         return rows.stream()
                 .filter(row -> row.id().endsWith(fittingId))
                 .findFirst().orElseThrow();
+    }
+
+    @Test
+    void aHoveredPartPreviewsOnTheSpecificationsAsInTheLab() {
+        BoatDeck deck = deck();
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
+        viewModel.selectBoatAction(0).run();
+        String resting = meter(viewModel, "MOBILITY").ghostClasses();
+
+        viewModel.hoverPart(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id());
+        assertEquals("meter-ghost gain", meter(viewModel, "MOBILITY").ghostClasses());
+
+        viewModel.clearHoverPart();
+        assertEquals(resting, meter(viewModel, "MOBILITY").ghostClasses());
+    }
+
+    @Test
+    void aBoatReadsFluxButNoArmorRating() {
+        BoatDeck deck = deck();
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
+        viewModel.selectBoatAction(0).run();
+        List<String> labels = viewModel.performanceMeters().get().stream().map(FittingMeter::label).toList();
+        assertTrue(labels.containsAll(List.of("CAPACITORS", "DISSIPATION", "MAX RANGE", "MISSILES")), labels.toString());
+        assertFalse(labels.contains("RATING"), labels.toString());
     }
 
     private static FittingMeter meter(BoatDeckViewModel viewModel,

@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
+import com.dillon.starsectormarines.ops.fitting.MachineFigures;
 import com.dillon.starsectormarines.ops.fitting.FittingSlotCard;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -616,12 +617,12 @@ public final class MechLabViewModel {
         if (recipe == null) return List.of();
         if (recipe.vehicle() != null) {
             VehicleType type = recipe.vehicle();
-            Figures bare = vehicleFigures(type, null, null, List.of(), null);
-            return specMeters("build-", bare, bare, stockFigures(type), type.capacity);
+            MachineFigures bare = vehicleFigures(type, null, null, List.of(), null);
+            return MachineFigures.meters(METER_ID + "build-", bare, bare, stockFigures(type), ceiling(), seats(type.capacity));
         }
         MechVariant variant = recipe.variant();
-        Figures bare = mechFigures(variant, MechFrameBudget.Fit.frame(variant), new Gaps(true, true, true));
-        return specMeters("build-", bare, bare, stockFigures(variant), 0);
+        MachineFigures bare = mechFigures(variant, MechFrameBudget.Fit.frame(variant), new Gaps(true, true, true));
+        return MachineFigures.meters(METER_ID + "build-", bare, bare, stockFigures(variant), ceiling(), seats(0));
     }
 
     private void buildPreviewed() {
@@ -1193,18 +1194,18 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMachine machine = selectedMachine();
         if (machine == null) return List.of();
-        Figures stock = machine instanceof CampaignMech mech ? stockFigures(mech.variant())
+        MachineFigures stock = machine instanceof CampaignMech mech ? stockFigures(mech.variant())
                 : stockFigures(((CampaignVehicle) machine).type());
         int seats = machine instanceof CampaignVehicle vehicle ? vehicle.type().capacity : 0;
-        return specMeters("", figures(machine, null, null), figures(machine, hoveredInternal.get(), hoveredWeapon.get()),
-                stock, seats);
+        return MachineFigures.meters(METER_ID, figures(machine, null, null),
+                figures(machine, hoveredInternal.get(), hoveredWeapon.get()), stock, ceiling(), seats(seats));
     }
 
     /**
      * What a machine would land with as it stands, or with {@code part} or {@code weapon} put on it: the one reading
      * the specifications, the stores' deltas and the slot lines all take.
      */
-    private Figures figures(CampaignMachine machine, MechInternal part, MechWeaponComponent weapon) {
+    private MachineFigures figures(CampaignMachine machine, MechInternal part, MechWeaponComponent weapon) {
         if (machine instanceof CampaignMech mech) {
             MechFrameBudget.Fit fit = mech.fit();
             MechMountSlot mount = mountFor(selectedSlot.get());
@@ -1224,68 +1225,41 @@ public final class MechLabViewModel {
                 rack, weapon != null ? weapon : standingGun(vehicle));
     }
 
-    /**
-     * One reading of a machine, mech or vehicle: what it would land with. The specifications and the pattern card draw
-     * every machine from these, so a figure one machine shows, every machine shows.
-     */
-    private record Figures(float armor, float rating, float structure, float speed, float flux, float dissipation,
-                           float range, int missiles) {
+    /** The prefix of the Mech Lab's bars. */
+    private static final String METER_ID = "mech-meter:";
+
+    /** Every bar's full scale in the Mech Lab: the most any mech or vehicle can reach, so they read against each other. */
+    private MachineFigures ceiling() {
+        MechRefit refit = refit();
+        return new MachineFigures(
+                Math.max(maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
+                        vehicleMaximum(t -> t.maxArmor) * VehicleType.REFIT_ARMOR_FACTOR),
+                Math.max(maximum(v -> v.armorRating),
+                        vehicleMaximum(t -> t.armorRating + VehiclePlating.HEAVY.armorRatingBonus(t))),
+                Math.max(maximum(v -> v.maxStructure), vehicleMaximum(t -> t.maxStructure)),
+                Math.max(maximum(MechFrameBudget::refitMoveSpeed),
+                        vehicleMaximum(t -> t.maxSpeed) * VehicleType.REFIT_SPEED_FACTOR),
+                maximumFluxCapacity(), maximumDissipation() * refit.dissipationMult(),
+                maximumWeaponRange(), maximumMissileTriggers());
     }
 
-    /**
-     * The bars of one machine: where it stands, where a hovered part would take it, and the stock fit's mark, all on one
-     * scale for every machine so a mech and a vehicle read against each other.
-     *
-     * @param prefix keeps the pattern card's bars apart from the specifications' own ids
-     * @param seats  the passengers it carries; a machine with none has no row for it
-     */
-    private List<FittingMeter> specMeters(String prefix, Figures now, Figures ghost, Figures stock, int seats) {
-        MechRefit refit = refit();
-        List<FittingMeter> meters = new ArrayList<>(List.of(
-                meter(prefix + "armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(now.armor())),
-                        now.armor(), Math.max(maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
-                                vehicleMaximum(t -> t.maxArmor) * VehicleType.REFIT_ARMOR_FACTOR),
-                        ghost.armor(), stock.armor(), FittingMeter.PLATE_TONE),
-                meter(prefix + "rating", Strings.get("openingMechLabArmorRating"), number(now.rating()),
-                        now.rating(), Math.max(maximum(v -> v.armorRating),
-                                vehicleMaximum(t -> t.armorRating + VehiclePlating.HEAVY.armorRatingBonus(t))),
-                        ghost.rating(), stock.rating(), FittingMeter.PLATE_TONE),
-                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(now.structure()),
-                        now.structure(), Math.max(maximum(v -> v.maxStructure), vehicleMaximum(t -> t.maxStructure)),
-                        ghost.structure(), stock.structure(), FittingMeter.NEUTRAL_TONE),
-                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(now.speed())),
-                        now.speed(), Math.max(maximum(MechFrameBudget::refitMoveSpeed),
-                                vehicleMaximum(t -> t.maxSpeed) * VehicleType.REFIT_SPEED_FACTOR),
-                        ghost.speed(), stock.speed(), FittingMeter.ENGINE_TONE),
-                meter(prefix + "flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(now.flux())),
-                        now.flux(), maximumFluxCapacity(), ghost.flux(), stock.flux(), FittingMeter.FLUX_TONE),
-                meter(prefix + "dissipation", Strings.get("openingMechLabDissipation"),
-                        Strings.format("openingMechLabDissipationValue", number(now.dissipation())),
-                        now.dissipation(), maximumDissipation() * refit.dissipationMult(),
-                        ghost.dissipation(), stock.dissipation(), FittingMeter.FLUX_TONE),
-                meter(prefix + "range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(now.range())),
-                        now.range(), maximumWeaponRange(), ghost.range(), stock.range(), FittingMeter.WEAPON_TONE),
-                meter(prefix + "endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", now.missiles()),
-                        now.missiles(), maximumMissileTriggers(), ghost.missiles(), stock.missiles(), FittingMeter.MISSILE_TONE)));
-        if (seats > 0) {
-            meters.add(meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", seats),
-                    seats, vehicleMaximum(t -> t.capacity), seats));
-        }
-        return List.copyOf(meters);
+    private static MachineFigures.Seats seats(int count) {
+        return count > 0 ? MachineFigures.Seats.of(count, Math.round(vehicleMaximum(t -> t.capacity)))
+                : MachineFigures.Seats.NONE;
     }
 
     /** A mech's figures: the fit, less what {@code gaps} says is really not there, under the ship's refit. */
-    private Figures mechFigures(MechVariant variant, MechFrameBudget.Fit fit, Gaps gaps) {
+    private MachineFigures mechFigures(MechVariant variant, MechFrameBudget.Fit fit, Gaps gaps) {
         MechRefit refit = refit();
         float armor = gaps.armor(fit) * refit.armorMult();
-        return new Figures(armor, armor > 0f ? variant.armorRating : 0f,
+        return new MachineFigures(armor, armor > 0f ? variant.armorRating : 0f,
                 variant.maxStructure * fit.frame().systems().structureFactor(), gaps.speed(fit), gaps.flux(fit),
                 gaps.dissipation(fit) * refit.dissipationMult(), weaponRange(fit),
                 finiteAmmo(fit.leftShoulder()) + finiteAmmo(fit.rightShoulder()));
     }
 
     /** The stock frame: the chassis's roll-out weapons on its stock internals. */
-    private Figures stockFigures(MechVariant variant) {
+    private MachineFigures stockFigures(MechVariant variant) {
         return mechFigures(variant, MechFrameBudget.Fit.stock(variant), new Gaps(false, false, false));
     }
 
@@ -1293,13 +1267,13 @@ public final class MechLabViewModel {
      * A hull's figures, by the mech's rules: no plate stops nothing and has no rating, no engine moves it nowhere and
      * powers no vents, and no bank holds no flux.
      */
-    private static Figures vehicleFigures(VehicleType type, MechInternal plating, MechInternal engine,
+    private static MachineFigures vehicleFigures(VehicleType type, MechInternal plating, MechInternal engine,
                                           List<MechInternal> rack, MechWeaponComponent gun) {
         HullFitEffect fit = HullFitEffect.of(VehiclePlating.of(plating), type).with(MechCompartment.systems(rack));
         float armor = Math.round(type.maxArmor * fit.armorFactor());
         HullReservoir.Frame reservoir = VehicleRack.frame(rack);
         VehicleEngine drive = VehicleEngine.of(engine);
-        return new Figures(armor, armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f,
+        return new MachineFigures(armor, armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f,
                 Math.round(type.maxStructure * fit.structureFactor()),
                 engine == null ? 0f : type.maxSpeed * drive.speedFactor(),
                 reservoir != null ? reservoir.capacity() : 0f,
@@ -1313,7 +1287,7 @@ public final class MechLabViewModel {
     }
 
     /** A hull's stock fit: the mark its bars read against. */
-    private static Figures stockFigures(VehicleType type) {
+    private static MachineFigures stockFigures(VehicleType type) {
         return vehicleFigures(type, MechInternal.FACTORY_PLATING, MechInternal.INDUSTRIAL_ENGINE,
                 VehicleRack.stockFit(type), type.ownGun());
     }
@@ -1853,8 +1827,8 @@ public final class MechLabViewModel {
 
     /** The role's own figures, signed against what the machine has now; on a mech, the mass and engine output too. */
     private Delta internalDelta(CampaignMachine machine, MechInternal internal) {
-        Figures now = figures(machine, null, null);
-        Figures with = figures(machine, internal, null);
+        MachineFigures now = figures(machine, null, null);
+        MachineFigures with = figures(machine, internal, null);
         Map<String, Float> stats = new LinkedHashMap<>();
         if (machine instanceof CampaignMech mech) {
             MechFrameBudget.Fit current = mech.fit();
@@ -1900,7 +1874,7 @@ public final class MechLabViewModel {
 
     /** What one internal makes of the machine it goes on; a bank or vent array, its own figures. */
     private String internalTelemetry(CampaignMachine machine, MechInternal internal) {
-        Figures with = figures(machine, internal, null);
+        MachineFigures with = figures(machine, internal, null);
         return switch (internal.role) {
             case ENGINE -> machine instanceof CampaignMech mech
                     ? Strings.format("openingMechLabInternalEngineTelemetry",
@@ -1930,7 +1904,7 @@ public final class MechLabViewModel {
     private String compartmentTelemetry(CampaignMachine machine) {
         int used = 0;
         for (MechInternal part : machine.compartment()) used += part.footprintColumns * part.footprintRows;
-        Figures figures = figures(machine, null, null);
+        MachineFigures figures = figures(machine, null, null);
         return Strings.format("openingMechLabCompartmentTelemetry", used,
                 MechCompartment.capacity(machine.compartmentGrids()),
                 number(figures.flux()), number(figures.dissipation()));
@@ -2821,25 +2795,6 @@ public final class MechLabViewModel {
     private CategoryFilter effectiveFilter() {
         CategoryFilter current = catalogFilter.get();
         return offeredFilters().contains(current) ? current : CategoryFilter.ALL;
-    }
-
-
-    /** A bar with no stock reference: a vehicle's read-only hull figures. */
-    private static FittingMeter meter(String suffix, String label, String value,
-                                          float currentAmount, float maximum, float ghostAmount) {
-        return meter(suffix, label, value, currentAmount, maximum, ghostAmount, currentAmount, FittingMeter.NEUTRAL_TONE);
-    }
-
-    /**
-     * One stat bar, built of positioned segments on its track: the stock share in a dim shade of
-     * the part's colour, any gain past stock in the full colour, any shortfall below stock as a
-     * deficit, a tick where stock stands, and the hovered candidate's change as a ghost on top.
-     */
-    private static FittingMeter meter(String suffix, String label, String value,
-                                          float currentAmount, float maximum, float ghostAmount,
-                                          float stockAmount, String tone) {
-        return FittingMeter.of("mech-meter:" + suffix, label, value, currentAmount, maximum,
-                ghostAmount, stockAmount, tone);
     }
 
 

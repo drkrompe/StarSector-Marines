@@ -147,6 +147,11 @@ public final class CampaignBoat implements Serializable {
      * hardpoint with two 2x1 guns freezes the bottom one as its pod's second gun.
      */
     public FittedBoat freezeForDeployment() {
+        return freezeWith(null);
+    }
+
+    /** The frame she would fly as with {@code part} in its slot in place of what is there; null changes nothing. */
+    public FittedBoat freezeWith(BoatFitting part) {
         String[] guns = new String[pattern.hardpoints()];
         String[] pods = new String[guns.length];
         for (int index = 0; index < guns.length; index++) {
@@ -157,7 +162,7 @@ public final class CampaignBoat implements Serializable {
         }
         Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
-            BoatFitting fitted = fittingIn(slot);
+            BoatFitting fitted = part != null && part.slot() == slot ? part : fittingIn(slot);
             if (fitted != null) fit.put(slot, fitted);
             else if (FittedBoat.optional(slot)) fit.put(slot, null);
         }

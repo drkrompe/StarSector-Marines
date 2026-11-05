@@ -262,7 +262,10 @@ public final class BoatDeckScreen implements Screen {
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> pickUp(event, row));
-            card.onPointerMove(this::carry);
+            card.onPointerMove(event -> {
+                carry(event);
+                if (drag.carried() == null) viewModel.hoverPart(row.kind(), row.itemId());
+            });
             card.onPointerUp(this::letGo);
         }
     }
@@ -552,6 +555,11 @@ public final class BoatDeckScreen implements Screen {
             if (document != null) wireStores(markupInstance, document);
         }
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
+        if (document != null && viewModel.hasHoverPart()) {
+            boolean overStores = document.hoverChain().stream().anyMatch(element ->
+                    viewModel.catalogRows().get().stream().anyMatch(row -> row.id().equals(element.id())));
+            if (!overStores || drag.carried() != null) viewModel.clearHoverPart();
+        }
         if (document != null) document.advance(dt);
         if (specSheets != null) specSheets.update();
         if (bayElement != null) BoatDeckCanvas.fitSurface(bayElement);

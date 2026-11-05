@@ -256,8 +256,8 @@ public final class FittedBoat implements Airframe, AirHandling {
     /** Her shield's arc with the hull's own emitter: the Hermes's 120°. */
     static final float BASE_SHIELD_ARC = 120f;
     /** Her pool with the yard's capacitors, and what it vents a second: the vehicle mounts' scale. */
-    static final float BASE_FLUX = 100f;
-    static final float BASE_VENT = 8f;
+    public static final float BASE_FLUX = 100f;
+    public static final float BASE_VENT = 8f;
     /** Upkeep while the shield is up, as a share of her venting: always under it, as a warship's is. */
     static final float UPKEEP_SHARE = 0.5f;
     /** Shield radius in cells: a Hermes's, vanilla's 57 px. */
