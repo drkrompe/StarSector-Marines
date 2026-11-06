@@ -39,12 +39,12 @@
       </button>
       <button id="page-nav-engineering" class="{engineeringClasses}" onclick="{engineeringAction}">
         <div id="page-nav-engineering-lamp" class="console-toggle-lamp" />
-        <div id="page-nav-engineering-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <img id="page-nav-engineering-news" class="page-nav-news page-nav-news-icon" src="graphics/ui/console/nav-news-engineering.svg" />
         <div id="page-nav-engineering-legend" class="console-key-legend" accesskey="e">{i18n.openingUiMarineOpsPageNavEngineering}</div>
       </button>
       <button id="page-nav-shop" class="{shopClasses}" onclick="{shopAction}">
         <div id="page-nav-shop-lamp" class="console-toggle-lamp" />
-        <div id="page-nav-shop-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <img id="page-nav-shop-news" class="page-nav-news page-nav-news-icon" src="graphics/ui/icons/fleettab/credits_24x24.png" />
         <div id="page-nav-shop-legend" class="console-key-legend" accesskey="t">{i18n.openingUiMarineOpsPageNavStore}</div>
       </button>
       <button id="page-nav-settings" class="{settingsClasses}" onclick="{settingsAction}">
@@ -135,6 +135,8 @@
   #marine-ops-page-routes .page-nav-attention .page-nav-status { display: flex; }
   .page-nav-news { display: none; }
   #marine-ops-page-routes .page-nav-new .page-nav-news { display: flex; color: #ffd200; }
+  /* Engineering's news is a wrench and the store's the game's credit sign, in the gold of the word. */
+  .page-nav-news-icon { width: 16px; height: 16px; pointer-events: none; }
   .console-toggle-lamp { display: none; }
   .doc-narrow #marine-ops-page-nav { height: 35px; }
   .doc-narrow #marine-ops-page-bar { width: 1032px; height: 35px; }
