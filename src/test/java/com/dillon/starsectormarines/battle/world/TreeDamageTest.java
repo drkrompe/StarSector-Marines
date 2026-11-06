@@ -70,6 +70,15 @@ class TreeDamageTest {
             assertFalse(g.navigation.isNavigationTopologyDirty());
         }
     }
+    @Test void fireGrazingAStandingCrownPassesAndFireThroughItsTrunkStops() {
+        for (TreeCanopy canopy : TreeCanopy.values()) for (int turns = 0; turns < 2; turns++) try (Ground g = new Ground()) {
+            g.add(canopy, 3, 3, turns);
+            float midY = 3 + canopy.height(turns) * .5f;
+            assertFalse(g.grid.hasLineOfSight(0, 3, 13, 3), canopy + " outer crown row is solid crown");
+            assertTrue(g.grid.hasLineOfFire(.5f, 3.5f, 13.5f, 3.5f), canopy + " outer crown row");
+            assertFalse(g.grid.hasLineOfFire(.5f, midY, 13.5f, midY), canopy + " trunk");
+        }
+    }
     @Test void oneBlastDoesNotMultiplyDamageByTheNumberOfCanopyCells() {
         try (Ground g = new Ground()) {
             g.add(TreeCanopy.OAK, 3, 3, 0);

@@ -241,6 +241,8 @@ public class NavigationGrid {
      * every copy of this grid; see {@link ElevationMap}.
      */
     private ElevationMap elevation;
+    /** Where a natural solid's canopy stops a round, or null to stop every round on the whole cell. */
+    private CanopyFire canopyFire;
 
     public NavigationGrid(int width, int height) {
         this(width, height, false);
@@ -303,6 +305,21 @@ public class NavigationGrid {
 
     /** The map's raised ground, or null when the map is flat. */
     public ElevationMap elevation() { return elevation; }
+
+    /**
+     * Where a structurally solid {@link CellTag#NATURAL_SOLID} cell stops a direct round: the natural objects layer
+     * answers, so a tree stops fire at its trunk and dense core rather than wherever its canopy touches a cell
+     * ({@code CanopyCore}). Sight is untouched; only the firing trace ({@link #hasLineOfFire},
+     * {@link #firstWallOnLine(float, float, float, float)}) asks it.
+     */
+    @FunctionalInterface
+    public interface CanopyFire {
+        /** Whether the segment, where it crosses solid natural cell ({@code x},{@code y}), stops there. */
+        boolean stops(int x, int y, float x0, float y0, float x1, float y1);
+    }
+
+    /** Installs the natural objects layer's {@link CanopyFire}; null restores the whole-cell stop. */
+    public void setCanopyFire(CanopyFire canopyFire) { this.canopyFire = canopyFire; }
 
     /**
      * Installs the map's raised ground. Generation only: the map is fixed for
@@ -1740,13 +1757,13 @@ public class NavigationGrid {
             if (tMaxX < tMaxY) {
                 x += stepX;
                 tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
-                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround, x0, y0, x1, y1);
                 if (step == RAY_BLOCKED) return packCell(x, y);
                 onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             } else if (tMaxY < tMaxX) {
                 y += stepY;
                 tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
-                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround, x0, y0, x1, y1);
                 if (step == RAY_BLOCKED) return packCell(x, y);
                 onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             } else {
@@ -1758,7 +1775,7 @@ public class NavigationGrid {
                 y += stepY;
                 tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
                 tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
-                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround, x0, y0, x1, y1);
                 if (step == RAY_BLOCKED) return packCell(x, y);
                 onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             }
@@ -1772,13 +1789,29 @@ public class NavigationGrid {
     private static final int RAY_ONTO_HIGHER_GROUND = 2;
 
     private int rayCell(int x, int y, int endX, int endY, boolean excludeEnd,
-                        ElevationMap elevation, int eye, boolean onHigherGround) {
+                        ElevationMap elevation, int eye, boolean onHigherGround,
+                        float x0, float y0, float x1, float y1) {
         if (excludeEnd && x == endX && y == endY) return RAY_CLEAR;
         if (!inBounds(x, y)) return RAY_CLEAR;
         int idx = index(x, y);
-        if (elevation == null) return blocksStructuralLineOfSightAt(idx) ? RAY_BLOCKED : RAY_CLEAR;
-        if (elevationBlocks(elevation, idx, eye, onHigherGround, false)) return RAY_BLOCKED;
+        if (elevation == null) {
+            return blocksStructuralLineOfSightAt(idx) && canopyStops(idx, x, y, x0, y0, x1, y1)
+                    ? RAY_BLOCKED : RAY_CLEAR;
+        }
+        if (elevation.above(idx, eye)) {
+            if (elevation.stopsSight(idx, eye, onHigherGround)) return RAY_BLOCKED;
+        } else if (!elevation.isFaceAt(idx) && blocksStructuralLineOfSightAt(idx)
+                && canopyStops(idx, x, y, x0, y0, x1, y1)) {
+            return RAY_BLOCKED;
+        }
         return elevation.above(idx, eye) && !elevation.isFaceAt(idx) ? RAY_ONTO_HIGHER_GROUND : RAY_CLEAR;
+    }
+
+    /** A structurally solid cell stops the round, unless it is natural and its {@link CanopyFire} lets it by. */
+    private boolean canopyStops(int idx, int x, int y, float x0, float y0, float x1, float y1) {
+        CanopyFire canopy = canopyFire;
+        return canopy == null || (cellFlags[idx] & CellTag.NATURAL_SOLID.mask()) == 0L
+                || canopy.stops(x, y, x0, y0, x1, y1);
     }
 
     /**
