@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -47,6 +48,12 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     private String engineId;
     /** The weapon component in its gun card; null is an empty card, which fires nothing unless {@link #hasOwnGun}. */
     private String gunId;
+    /**
+     * The weapon-point variant the hull was built in ({@link VehicleType#weaponPoints}), a {@link HardpointType} name:
+     * the colour its gun card is locked to. Null is the hull's own colour, as every hull from a save from before
+     * variants reads: a Scorpion or Onager built then is the yellow one.
+     */
+    private String pointId;
     /**
      * Whether the gun this hull was built with, which is no inventory part, is gone: true from the lab, which sells a
      * hull with nothing, and once a weapon has gone in the card. False in a save from before, whose hull keeps firing it.
@@ -93,7 +100,13 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
      * gun, no plate, no engine and an empty compartment, so it stands incomplete until fitted.
      */
     public static CampaignVehicle hull(String id, String displayName, VehicleType type) {
+        return hull(id, displayName, type, null);
+    }
+
+    /** {@link #hull(String, String, VehicleType)} built in its {@code point} variant; null is the hull's own colour. */
+    public static CampaignVehicle hull(String id, String displayName, VehicleType type, HardpointType point) {
         CampaignVehicle vehicle = new CampaignVehicle(id, displayName, type);
+        vehicle.pointId = point != null && type.weaponPoints().contains(point) ? point.name() : null;
         vehicle.engineId = null;
         vehicle.platingId = null;
         vehicle.ownGunGone = true;
@@ -104,6 +117,23 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     public String id() { return id; }
     public String displayName() { return displayName; }
     public VehicleType type() { return type; }
+
+    /**
+     * The colour the gun card is locked to: the variant the hull was built in, or its own card's for a hull built in
+     * no other (and every hull from an older save); null for an omni or absent card.
+     */
+    public HardpointType point() {
+        if (pointId != null) {
+            for (HardpointType point : type.weaponPoints()) if (point.name().equals(pointId)) return point;
+        }
+        VehicleGunCard own = VehicleGunCard.of(type);
+        return own != null ? own.hardpoint : null;
+    }
+
+    /** The gun card on this hull's doll, in its variant's colour; null for an unarmed hull. */
+    public VehicleGunCard gunCard() {
+        return VehicleGunCard.of(type, point());
+    }
 
     /** The plating part fitted at the armor point; null for an empty one, which leaves the hull incomplete. */
     public MechInternal plating() {
@@ -151,18 +181,28 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     /** The weapon fitted in the gun card; null for an empty card. */
     public MechWeaponComponent gun() {
         MechWeaponComponent gun = MechWeaponComponent.findById(gunId);
-        return gun != null && takesGun(type, gun) ? gun : null;
+        return gun != null && takesGun(gun) ? gun : null;
     }
 
-    /** Whether {@code gun} goes in {@code type}'s gun card: an armed hull, and a weapon the card accepts. */
+    /** Whether {@code gun} goes in this hull's gun card, in the variant it was built in. */
+    public boolean takesGun(MechWeaponComponent gun) {
+        return takesGun(type, point(), gun);
+    }
+
+    /** Whether {@code gun} goes in {@code type}'s own gun card: an armed hull, and a weapon the card accepts. */
     public static boolean takesGun(VehicleType type, MechWeaponComponent gun) {
-        VehicleGunCard card = VehicleGunCard.of(type);
+        return takesGun(type, null, gun);
+    }
+
+    /** Whether {@code gun} goes in {@code type}'s gun card in its {@code point} variant; null is its own colour. */
+    public static boolean takesGun(VehicleType type, HardpointType point, MechWeaponComponent gun) {
+        VehicleGunCard card = VehicleGunCard.of(type, point);
         return card != null && card.accepts(gun);
     }
 
     /** Fits {@code gun} in the gun card, replacing what was there; false for a weapon that does not go. */
     boolean fitGun(MechWeaponComponent gun) {
-        if (!takesGun(type, gun)) return false;
+        if (!takesGun(gun)) return false;
         gunId = gun.id;
         ownGunGone = true;
         return true;

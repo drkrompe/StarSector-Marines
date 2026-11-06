@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
@@ -335,6 +336,11 @@ public final class MechWorkshop {
 
     /** Builds a vehicle onto a vacant gantry: the same berth and material rules as a chassis. */
     public Result fabricateVehicle(String squadId, VehicleType type) {
+        return fabricateVehicle(squadId, type, null);
+    }
+
+    /** As above, the hull built in its {@code point} variant ({@link VehicleType#weaponPoints}); null is its own colour. */
+    public Result fabricateVehicle(String squadId, VehicleType type, HardpointType point) {
         if (type == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(type)) return Result.of(Status.PATTERN_LOCKED);
         if (!bay.canAddMech(squadId) || bay.squadById(squadId).occupied() >= workingBerths.getAsInt())
@@ -344,7 +350,7 @@ public final class MechWorkshop {
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
         }
-        CampaignVehicle vehicle = bay.fabricateVehicle(squadId, type);
+        CampaignVehicle vehicle = bay.fabricateVehicle(squadId, type, point);
         if (vehicle == null) {
             throw new IllegalStateException("validated vehicle could not enter its vacant gantry");
         }

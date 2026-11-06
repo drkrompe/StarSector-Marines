@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -683,6 +684,16 @@ public enum VehicleType {
         return this == HEAVY_APC || this == MEDIUM_TANK || this == BREAKTHROUGH_TANK ? TurretHead.HEGEMONY : null;
     }
 
+    /**
+     * The head a weapon of {@code point}'s colour turns in on this hull: a missile rack in a Hegemony closed head's place
+     * stands in the open barbette instead, as the carriers' do, so a green Scorpion or Onager raises its rack to fire;
+     * the hull's own head for any other colour, and for null.
+     */
+    public TurretHead turretHead(HardpointType point) {
+        TurretHead own = turretHead();
+        return own == TurretHead.HEGEMONY && point == HardpointType.MISSILE ? TurretHead.HEGEMONY_BARBETTE : own;
+    }
+
     public TurretMountStyle mountStyle() {
         return switch (this) {
             case LASER_TANK -> TurretMountStyle.WHITE;
@@ -703,6 +714,42 @@ public enum VehicleType {
             case MEDIUM_TANK -> MechWeaponComponent.HC_10;
             default -> ownGun();
         };
+    }
+
+    /**
+     * The part a stock spawn fits in {@code type}'s {@code point} variant ({@link #weaponPoints}): the green Scorpion's
+     * SRM-5 and the red one's PL-2, the green Onager's SRM-15 and the red one's PL-3; the hull's own standard part in
+     * its own colour, or for a point it is not built in.
+     */
+    public MechWeaponComponent standardPart(HardpointType point) {
+        if (point == null || !weaponPoints().contains(point)) return standardPart();
+        return switch (this) {
+            case MEDIUM_TANK -> switch (point) {
+                case MISSILE -> MechWeaponComponent.SRM_5;
+                case ENERGY -> MechWeaponComponent.PL_2;
+                case BALLISTIC -> standardPart();
+            };
+            case BREAKTHROUGH_TANK -> switch (point) {
+                case MISSILE -> MechWeaponComponent.SRM_15;
+                case ENERGY -> MechWeaponComponent.PL_3;
+                case BALLISTIC -> standardPart();
+            };
+            default -> standardPart();
+        };
+    }
+
+    /**
+     * The weapon-point colours a hull of this type is built in (hegemony-armor-line.md, weapon-point variants): the
+     * Scorpion and the Onager in all three, yellow ballistic, green missile and red energy, the same hull with its gun
+     * card locked to another hardpoint; every other armed hull only in its own card's, and an omni or unarmed hull in
+     * none. A hull's variant is chosen when it is built and is what its doll, its fitting and its stock part read.
+     */
+    public List<HardpointType> weaponPoints() {
+        if (this == MEDIUM_TANK || this == BREAKTHROUGH_TANK) {
+            return List.of(HardpointType.BALLISTIC, HardpointType.MISSILE, HardpointType.ENERGY);
+        }
+        VehicleGunCard own = VehicleGunCard.of(this);
+        return own == null || own.hardpoint == null ? List.of() : List.of(own.hardpoint);
     }
 
     /**

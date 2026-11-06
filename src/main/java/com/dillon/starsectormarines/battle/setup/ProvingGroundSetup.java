@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
@@ -47,7 +48,8 @@ import java.util.Locale;
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
  * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
- * to compare and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * to compare, then the green and red Scorpion and Onager ({@link #COLOUR_HULLS}) and a laser tank fitted with the
+ * PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -78,10 +80,16 @@ public final class ProvingGroundSetup {
             MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
     private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
     /**
-     * The laser tank's other large laser, parked in the third rank after the gun ladder: the second rank's laser tank
+     * The laser tank's other large laser, parked at the end of the third rank: the second rank's laser tank
      * carries its standard PL-3 ({@link VehicleType#standardPart}), so the two lasers can be driven side by side.
      */
     private static final MechWeaponComponent[] LASER_VARIANTS = {MechWeaponComponent.PL_3_SWEEP};
+    /**
+     * The hulls built in every weapon-point colour (hegemony-armor-line.md), fielded in the third rank after the gun
+     * ladder in green and red with the part a stock spawn of each fits; the ranks above hold their yellow ones.
+     */
+    private static final VehicleType[] COLOUR_HULLS = {VehicleType.MEDIUM_TANK, VehicleType.BREAKTHROUGH_TANK};
+    private static final HardpointType[] OTHER_COLOURS = {HardpointType.MISSILE, HardpointType.ENERGY};
     /** How far around the ranks a building or wild ground counts as nearby. */
     private static final int SURROUND = 20;
     /** Cells of either kind that count, so that a town with nothing wild does not outscore a little of both. */
@@ -128,10 +136,12 @@ public final class ProvingGroundSetup {
             long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
         }
-        for (int i = 0; i < GUN_LADDER.length; i++) parkFitted(convoy, site, i, GUN_LADDER_HULL, GUN_LADDER[i]);
-        for (int i = 0; i < LASER_VARIANTS.length; i++) {
-            parkFitted(convoy, site, GUN_LADDER.length + i, VehicleType.LASER_TANK, LASER_VARIANTS[i]);
+        int file = 0;
+        for (MechWeaponComponent gun : GUN_LADDER) parkFitted(convoy, site, file++, GUN_LADDER_HULL, gun);
+        for (VehicleType hull : COLOUR_HULLS) {
+            for (HardpointType colour : OTHER_COLOURS) parkFitted(convoy, site, file++, hull, hull.standardPart(colour));
         }
+        for (MechWeaponComponent gun : LASER_VARIANTS) parkFitted(convoy, site, file++, VehicleType.LASER_TANK, gun);
         spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.
         sim.setGroundMarineArrival(new GroundMarineArrival(site.x(WIDTH / 2), site.y(HEIGHT / 2),

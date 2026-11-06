@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.vehicle.FactionVehiclePoints;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
 
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
@@ -2608,6 +2609,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     + this.groundRoster.id());
         }
         this.groundRoster = groundRoster;
+        convoy().fieldPoint(Faction.DEFENDER, FactionVehiclePoints.of(groundRoster.primaryFactionId()));
     }
 
     public List<ShotEvent> getActiveShots(){ return shots.getActiveShots(); }
