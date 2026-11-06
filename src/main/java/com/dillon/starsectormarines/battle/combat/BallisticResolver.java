@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -108,6 +110,35 @@ public final class BallisticResolver {
      * headroom for vehicles.
      */
     public static final float MAX_MOVER_SPEED_CELLS = 4f;
+
+    /**
+     * How many bodies a round passes through before the next one stops it, and whether only soft ones
+     * ({@link #softBody}): a lance runs through whatever it meets, a laser's pulse through the men and ravs of a
+     * crowd and no further than the first hull, mech or emplacement.
+     */
+    public record Pierce(int bodies, boolean softOnly) {
+        public static final Pierce NONE = new Pierce(0, false);
+
+        public Pierce {
+            if (bodies < 0) throw new IllegalArgumentException("bodyPenetrations cannot be negative");
+        }
+
+        /** Through {@code bodies} bodies of any kind. */
+        public static Pierce any(int bodies) { return bodies == 0 ? NONE : new Pierce(bodies, false); }
+
+        /** Through {@code bodies} soft bodies; a hardened one stops it. */
+        public static Pierce soft(int bodies) { return bodies == 0 ? NONE : new Pierce(bodies, true); }
+
+    }
+
+    /**
+     * A body a soft-only pierce passes through (`mechs-nouns.md`, pulse laser): anything not a hull and not hardened
+     * by type ({@link TacticalScoring#isHardened}), so infantry, militia and ravs, never a vehicle, mech, turret or
+     * drone hub.
+     */
+    public static boolean softBody(boolean hull, UnitType type) {
+        return !hull && type != null && !TacticalScoring.isHardened(type);
+    }
 
     /** Where a round's flight ended and what stopped it. */
     /** {@code GROUND_BURST} is a thrown rocket that met nothing on its way and burst where it was aimed. */
@@ -472,14 +503,21 @@ public final class BallisticResolver {
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, float maximumTargetingRange,
                                int bodyPenetrations, BeamWander wander, Random rng) {
+        if (bodyPenetrations < 0) throw new IllegalArgumentException("bodyPenetrations cannot be negative");
+        return resolve(source, target, finalAccuracy, effectiveSpread, roundVelocity, maximumTargetingRange,
+                Pierce.any(bodyPenetrations), wander, rng);
+    }
+
+    /** As above, with a {@link Pierce} that may pass only soft bodies. */
+    public Resolution resolve(Source source, long target,
+                               float finalAccuracy, float effectiveSpread,
+                               float roundVelocity, float maximumTargetingRange,
+                               Pierce pierce, BeamWander wander, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
         if (!(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
             throw new IllegalArgumentException("maximumTargetingRange must be finite and positive");
-        }
-        if (bodyPenetrations < 0) {
-            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
         }
         World world = roster.world();
         MovementService movement = roster.movement();
@@ -544,7 +582,7 @@ public final class BallisticResolver {
         }
         float maximumFlightDistance = maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER;
         float rawLen = maximumFlightDistance;
-        if (aim.onTarget() && bodyPenetrations == 0) {
+        if (aim.onTarget() && pierce.bodies() == 0) {
             float targetContactTime = firstCircleContactTime(
                     fromX, fromY, dirX, dirY, roundVelocity,
                     targetX, targetY, wTargetX, wTargetY, targetRadius(target));
@@ -562,7 +600,7 @@ public final class BallisticResolver {
             rawLen = Math.min(maximumFlightDistance, accurateFlightDistance);
         }
         return trace(source, target, aim.onTarget(), aim.heightFraction(), dirX, dirY, zSlope,
-                rawLen, roundVelocity, bodyPenetrations, rng);
+                rawLen, roundVelocity, pierce, rng);
     }
 
     /**
@@ -586,7 +624,7 @@ public final class BallisticResolver {
         return resolvePoint(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
                 aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, 0, dispersion, null, rng);
+                maximumTargetingRange, Pierce.NONE, dispersion, null, rng);
     }
 
     public Resolution resolvePoint(Source source, float aimX, float aimY,
@@ -613,7 +651,7 @@ public final class BallisticResolver {
                                    float roundVelocity, float maximumTargetingRange,
                                    int bodyPenetrations, Random rng) {
         return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, null, rng);
+                maximumTargetingRange, bodyPenetrations, null, rng);
     }
 
     /**
@@ -624,23 +662,30 @@ public final class BallisticResolver {
                                    float finalAccuracy, float effectiveSpread,
                                    float roundVelocity, float maximumTargetingRange,
                                    int bodyPenetrations, BeamWander wander, Random rng) {
+        if (bodyPenetrations < 0) throw new IllegalArgumentException("bodyPenetrations cannot be negative");
         return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, wander, rng);
+                maximumTargetingRange, Pierce.any(bodyPenetrations), PointAimDispersion.WEAPON, wander, rng);
+    }
+
+    /** As above, with a {@link Pierce} that may pass only soft bodies. */
+    public Resolution resolvePoint(Source source, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   Pierce pierce, BeamWander wander, Random rng) {
+        return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, pierce, PointAimDispersion.WEAPON, wander, rng);
     }
 
     private Resolution resolvePoint(Source source, float aimX, float aimY,
                                     float finalAccuracy, float effectiveSpread,
                                     float roundVelocity, float maximumTargetingRange,
-                                    int bodyPenetrations, PointAimDispersion dispersion, BeamWander wander,
+                                    Pierce pierce, PointAimDispersion dispersion, BeamWander wander,
                                     Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
         if (!(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
             throw new IllegalArgumentException("maximumTargetingRange must be finite and positive");
-        }
-        if (bodyPenetrations < 0) {
-            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
         }
         float dx = aimX - source.x();
         float dy = aimY - source.y();
@@ -669,7 +714,7 @@ public final class BallisticResolver {
                 / directionLength;
         return trace(source, 0L, false, 0.5f, dirX, dirY, zSlope,
                 maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER,
-                roundVelocity, bodyPenetrations, rng);
+                roundVelocity, pierce, rng);
     }
 
     /**
@@ -697,14 +742,21 @@ public final class BallisticResolver {
                                          float finalAccuracy, float effectiveSpread,
                                          float roundVelocity, float weaponRange,
                                          int bodyPenetrations, BeamWander wander, Random rng) {
+        if (bodyPenetrations < 0) throw new IllegalArgumentException("bodyPenetrations cannot be negative");
+        return resolveGroundBurst(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity, weaponRange,
+                Pierce.any(bodyPenetrations), wander, rng);
+    }
+
+    /** As above, with a {@link Pierce} that may pass only soft bodies. */
+    public Resolution resolveGroundBurst(Source source, float aimX, float aimY,
+                                         float finalAccuracy, float effectiveSpread,
+                                         float roundVelocity, float weaponRange,
+                                         Pierce pierce, BeamWander wander, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
         if (!(weaponRange > 0f) || !Float.isFinite(weaponRange)) {
             throw new IllegalArgumentException("weaponRange must be finite and positive");
-        }
-        if (bodyPenetrations < 0) {
-            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
         }
         float dx = aimX - source.x();
         float dy = aimY - source.y();
@@ -733,16 +785,22 @@ public final class BallisticResolver {
         // The round comes down to the ground at the burst point.
         float zSlope = -source.z() / burstDistance;
         Resolution res = trace(source, 0L, false, 0.5f, dirX, dirY, zSlope,
-                burstDistance, roundVelocity, bodyPenetrations, rng);
+                burstDistance, roundVelocity, pierce, rng);
         if (res.kind() != StopKind.OVERSHOOT) return res;
         return new Resolution(res.endX(), res.endY(), res.endZ(), res.flightTime(),
                 0L, res.hitIntended(), false, StopKind.GROUND_BURST, res.bodyHits(), null);
     }
 
+    /** Whether a round with {@code left} passes still in it goes on through the body it just struck. */
+    private boolean passesThrough(Pierce pierce, int left, Event e) {
+        if (left <= 0) return false;
+        return !pierce.softOnly() || softBody(e.hull, e.hull ? null : roster.identity().type(e.unitId));
+    }
+
     /** Shared physical contact walk; aim policy is fully committed before entry. */
     private Resolution trace(Source source, long target, boolean onTarget, float targetHeightFraction,
                              float dirX, float dirY, float zSlope, float rawLen,
-                             float roundVelocity, int bodyPenetrations, Random rng) {
+                             float roundVelocity, Pierce pierce, Random rng) {
         World world = roster.world();
         MovementService movement = roster.movement();
         Faction shooterFaction = source.faction();
@@ -900,7 +958,7 @@ public final class BallisticResolver {
         // stop is exactly "nothing stopped it before the wall/ray end".
         events.sort((a, b) -> Float.compare(a.t, b.t));
         List<BodyHit> bodyHits = new ArrayList<>();
-        int penetrationsRemaining = bodyPenetrations;
+        int penetrationsRemaining = pierce.bodies();
         // The part the committed aim landed on, when the round is headed for a person. A prop
         // crossed in the lane short of him catches by that part; no roll is spent deciding it.
         BodyPlan targetPlan = onTarget && target != 0L && bodies.carrierOf(target) == null
@@ -993,7 +1051,7 @@ public final class BallisticResolver {
                 if (!onTarget) continue;
                 BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, true, e.friendly, part);
                 bodyHits.add(hit);
-                if (penetrationsRemaining-- > 0) continue;
+                if (passesThrough(pierce, penetrationsRemaining--, e)) continue;
                 return new Resolution(e.x, e.y, e.z, e.t, victim, true,
                         e.friendly, StopKind.UNIT_HIT, bodyHits);
             }
@@ -1004,7 +1062,7 @@ public final class BallisticResolver {
             if (hitChance > 0f && rng.nextFloat() < hitChance) {
                 BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, false, e.friendly, part);
                 bodyHits.add(hit);
-                if (penetrationsRemaining-- > 0) continue;
+                if (passesThrough(pierce, penetrationsRemaining--, e)) continue;
                 return new Resolution(e.x, e.y, e.z, e.t, victim,
                         anyIntended(bodyHits), e.friendly, StopKind.UNIT_HIT, bodyHits);
             }
