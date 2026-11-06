@@ -104,6 +104,7 @@ com.dillon.starsectormarines.battle.world.gen.ship.CerberusStartSnapshotSuite
 com.dillon.starsectormarines.ops.InstallationGroundSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSuite
+com.dillon.starsectormarines.tools.tilesetauthoring.ResidentialSofaDamageSnapshotSuite
 com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.MissionObjectiveSnapshotSuite
 com.dillon.starsectormarines.ops.FirstRefitSnapshotSuite
