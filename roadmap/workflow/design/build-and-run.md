@@ -67,7 +67,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `:key=value` options; `fixture:<path>`), or the bare name of a fixture in
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
 - **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
-  generated colony map, beside its buildings and with trees planted ahead, with no
+  generated colony map, and a third of medium tanks with each rotary gun and a
+  laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, with no
   enemy and no end, for feeling how machines drive (`ProvingGroundSetup`; options
   `surface=` and `seed=`). Click one, Tab to take it over. Debug Missions lists the
   same battle under Diagnostics, where a company of one squad lands with it.

@@ -9,9 +9,9 @@ space game's turret it was painted from.
 
 | Head | Laser | Source | Vanilla turret |
 |------|-------|--------|----------------|
-| `pl-3-sweep-head.png` | PL-3 (Sweep) emplacement | `art-source/vehicles/tank-laser/pd-skin-tt-raw.png` (the laser tank's turret) | PD Laser |
+| `pl-3-sweep-head.png` | PL-3 (Pulse) emplacement | `art-source/vehicles/tank-laser/pd-skin-tt-raw.png` (the laser tank's turret) | PD Laser |
 | `pl-3-head.png` | PL-3 emplacement | `burstpd-raw.png` (`burstpd-prompt.txt`) | Burst PD Laser |
-| `heavy-laser-head.png` | PL-3 (Sweep) hardpoint | `art-source/vehicles/tank-laser/pd-skin-red-raw.png` (the laser tank's red turret, at hardpoint size) | PD Laser |
+| `heavy-laser-head.png` | PL-3 (Pulse) hardpoint | `art-source/vehicles/tank-laser/pd-skin-red-raw.png` (the laser tank's red turret, at hardpoint size) | PD Laser |
 
 ```
 python art-source/ground-turrets/laser/upres_guide.py    # the vanilla guides, from the install (git-ignored)

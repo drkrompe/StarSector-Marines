@@ -173,7 +173,7 @@
     {
       "component": "component.mech-pl-3-sweep",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "PL-3 (Sweep)",
+      "designation": "PL-3 (Pulse)",
       "description": "@gearCatalogComponentMechPl3SweepDescription"
     },
     {

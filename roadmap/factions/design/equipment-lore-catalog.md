@@ -114,7 +114,7 @@ how they fire (`mechs-nouns.md`, Weapon names); a lore name stays in the descrip
 Cannon, Tri-Tachyon's emitter for facilities that cannot be resupplied; the PL-2 (AP) is the walker-scale member
 of the AR-PULSE security family; the BL and PL lasers are the frigate's point-defence emitters and the laser
 tank's gun taken onto walkers, and the ground emplacements and hardpoint lasers carry the same PL-3 and
-PL-3 (Sweep) names. Only a gun that shoots down missiles is called PD (the Halo PD Laser). The **Thermal Lance** (`weapon.mech-thermal-lance`) is Lion's Brand, a Sindrian
+PL-3 (Pulse) names. Only a gun that shoots down missiles is called PD (the Halo PD Laser). The **Thermal Lance** (`weapon.mech-thermal-lance`) is Lion's Brand, a Sindrian
 prestige thermal projector fed from fuel cells, issued to Lion's Guard formations by allotment: a heat lance
 whose impact burns, not a laser, so it keeps its own name outside the laser families.
 
