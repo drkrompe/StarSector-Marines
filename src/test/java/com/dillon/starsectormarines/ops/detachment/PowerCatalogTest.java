@@ -91,6 +91,19 @@ class PowerCatalogTest {
     }
 
     @Test
+    void aReplayedCompanyBayChapterDropsTheBayAsOnFirstPlay() {
+        Mission replay = Mission.builder().id("replay_completed:THUNDER_RUN")
+                .name("Thunder Run (replay)").type(MissionType.ASSAULT).source(MissionSource.REPLAY)
+                .risk(RiskLevel.LOW).build();
+
+        List<CommandPower> powers = PowerCatalog.resolve(List.of(), replay, List.of(), BAY);
+
+        assertEquals(1, powers.size());
+        MechSupport drop = assertInstanceOf(MechSupport.class, powers.get(0));
+        assertEquals(BAY, drop.vehicles());
+    }
+
+    @Test
     void aFrozenArmourSupportRestoresAsMechSupportCarryingItsVehicles() {
         CommandPower restored = new CommandPowerCommitment("vehicle_support", List.of(), List.of(), BAY)
                 .toPower();
