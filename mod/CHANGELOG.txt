@@ -1,6 +1,74 @@
 Starsector Marines - Changelog
 ==============================
 
+0.1.2-alpha
+-----------
+Interface
+  - The company screens take the base game's look: its blue panels, buttons
+    and type sizes, the sky of wherever your fleet is behind every page, and
+    a page bar in the bottom left whose routes take the letter key
+    underlined in their names, as the game's own bar does.
+  - Missions is a route on the page bar and greys out when nothing is on
+    offer. New things on any page are marked with a gold symbol.
+  - A Settings page, starting with a Voice-over switch that silences the
+    mod's recorded speech.
+  - Out-of-combat screens keep their controls at 125%, 133% and 150% UI
+    scale.
+  - The briefing is trimmed to what matters: mission name, scale, risk and
+    reward (with the credit sign), and warning lamps for strength and lift.
+  - Barracks reads people first: squad musters drawn with the battle's own
+    sprites, lost marines' seats left empty where they stood. The Company
+    Roster is gone.
+  - The debrief shows your field force as the battle left it and how long
+    until it is fully repaired.
+  - Castle's tutorial is reworded and shortened, in one callout style.
+
+Company
+  - The first squad and first shuttle are free; the prepaid stores are gone.
+  - The First Refit is one choice that fits every line squad at once.
+  - Casualties are a dice roll: a downed marine comes home fit, with the
+    wound on their record, or is killed. Nobody waits in a wounded list.
+  - Mechs, vehicles and shuttles share one kind of stores (spare parts) and
+    one way to fit, strip, buy and recycle. A bought machine stands with
+    nothing fitted, plates can be lifted off to stores, and parts keep
+    their places.
+  - Engineering shows the company's machines as fitted, and the HQ command
+    deck is rebuilt as the ship's bridge.
+
+Machines
+  - The Hegemony armour line: the Onager heavy repulsor tank, the Scorpion
+    medium tank, and the APC with its mortar and LRM carriers, in Hegemony,
+    Independent and pirate paint. The dozer breacher is retired.
+  - Weight decides shoving, crushing and ramming. Heavy hulls crush across
+    their whole footprint and break ordinary walls, props and furniture.
+  - Large pulse lasers (the PL-3, and the PL-3 (Pulse), formerly Sweep) pass
+    through one soldier, splash, wear walls and can light grass. The AC-6
+    and AC-6 (QS) are retuned as medium and cheap calibres.
+  - Drone bays rebuild every drone they lose, and the FL-THRM's tank refills.
+  - Debug Missions has a Proving Ground with every mech and vehicle parked
+    in ranks to drive.
+
+Battles
+  - Vehicles no longer pile up on each other or stand stuck for long, and
+    battles run smoother.
+  - Infantry stall far less, stop flickering between facings, step out of
+    fire, and run through it when ordered to.
+  - Trees stop rounds only at the trunk and dense core.
+  - Squad radio chatter and Castle's replies in battle are gone; story lines
+    remain. The battle HUD uses the base game's combat colours.
+  - Wolf Strike, Onslaught Drop and the Mudskipper are fleet support, called
+    with the committed ship.
+  - A Cold Account ends when the company rallies at the pickup.
+  - Depot Clearance meets a full force, and the Dust Ledger plays its own
+    briefing.
+
+Fixes
+  - Closing the company dialog no longer leaves the campaign map's
+    background white.
+  - A missing catalog manifest no longer stops launch under a mod that
+    replaces the file loader.
+  - A replayed company-bay chapter grants its armour drop again.
+
 0.1.1-alpha (hotfix)
 --------------------
   - Fixed: the game no longer fails to launch with Starsector Marines and
