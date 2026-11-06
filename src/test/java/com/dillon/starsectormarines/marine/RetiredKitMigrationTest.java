@@ -99,6 +99,8 @@ class RetiredKitMigrationTest {
         CampaignVehicle vehicle = new CampaignVehicle("v", "Old", type);
         set(vehicle, "kitIds", new ArrayList<>(kitIds));
         set(vehicle, "rackInternalIds", new ArrayList<>(rackIds));
+        // An old save has no rack record, only the id list; readResolve builds the rack from it.
+        set(vehicle, "rack", null);
         set(vehicle, "fitVersion", 0);
         resolve(vehicle);
         return vehicle;
