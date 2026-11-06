@@ -125,7 +125,7 @@ tuned in the playtest, not by evidence alone.
    specialists: the mortar carrier's 2x2 ballistic card and the LRM carrier's missile card, grown to 3x2 so it holds a
    fifteen-tube rack (`VehicleGunCard.LRM`). The head follows the fitted weapon: a missile rack in a closed head's
    place stands in the open barbette, as the carriers' do (`VehicleType.turretHead(point)`), so a tank with a rack
-   raises it to fire; any other part keeps the closed head. An energy weapon on the Onager is drawn as the Hegemony
+   raises it to fire; any other part keeps the closed head. An energy weapon on either tank is drawn as the Hegemony
    emitter (`VehicleGunArt.HEGEMONY_EMITTER`, art-source/vehicles/hegemony-emitter), not the mech's white Tri-Tachyon
    drawing, which read as pasted on under the bronze head: a converted-cannon barrel with copper cooling rings and a
    red lens (owner's pick over an industrial projector). A stock spawn fits its side's preferred colour
@@ -151,4 +151,3 @@ tuned in the playtest, not by evidence alone.
 - The laser tank stays on today's hull until a Tri-Tachyon head and hull are drawn.
 - Independents and pirates field only ballistic tanks; a mix of whatever they could buy or steal is not built.
 - Only the defenders take their faction's colour; allies' stock tanks carry cannons.
-- The Scorpion's PL-2 still wears the mech's white emitter; only the Onager has the Hegemony emitter.

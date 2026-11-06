@@ -20,6 +20,8 @@ class VehicleGunArtTest {
                 VehicleGunArt.vehicleDrawingPath(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PL_3));
         assertEquals(VehicleGunArt.HEGEMONY_EMITTER,
                 VehicleGunArt.vehicleDrawingPath(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.LL_3));
+        assertEquals(VehicleGunArt.HEGEMONY_EMITTER,
+                VehicleGunArt.vehicleDrawingPath(VehicleType.MEDIUM_TANK, MechWeaponComponent.PL_2));
         assertNull(VehicleGunArt.vehicleDrawingPath(VehicleType.LASER_TANK, MechWeaponComponent.PL_3),
                 "Tri-Tachyon's tank keeps the white emitter");
         assertNull(VehicleGunArt.vehicleDrawingPath(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20));

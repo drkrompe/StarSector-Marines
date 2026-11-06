@@ -35,8 +35,8 @@ final class VehicleGunArt {
     }
 
     /**
-     * The emitter an Onager carries an energy weapon in under its closed Hegemony head: old depot hardware with a red
-     * lens, where the mech's white Tri-Tachyon emitter read as pasted on (owner;
+     * The emitter a gun tank carries an energy weapon in under its closed Hegemony head, the Onager's and the Scorpion's
+     * alike: old depot hardware with a red lens, where the mech's white Tri-Tachyon emitter read as pasted on (owner;
      * art-source/vehicles/hegemony-emitter).
      */
     static final String HEGEMONY_EMITTER = "graphics/battle/vehicles/hegemony-emitter.png";
@@ -45,11 +45,11 @@ final class VehicleGunArt {
     static final List<String> DRAWINGS = List.of(PINTLE_LMG, HEGEMONY_EMITTER);
 
     /**
-     * As {@link #vehicleDrawingPath(MechWeaponComponent)}, on {@code type}: an energy weapon under the Onager's closed
+     * As {@link #vehicleDrawingPath(MechWeaponComponent)}, on {@code type}: an energy weapon under a gun tank's closed
      * Hegemony head is the Hegemony emitter, whichever part it is.
      */
     static String vehicleDrawingPath(VehicleType type, MechWeaponComponent weapon) {
-        if (type == VehicleType.BREAKTHROUGH_TANK && weapon != null && weapon.hardpointType == HardpointType.ENERGY
+        if ((type == VehicleType.BREAKTHROUGH_TANK || type == VehicleType.MEDIUM_TANK) && weapon != null && weapon.hardpointType == HardpointType.ENERGY
                 && VehicleGun.closedHead(type, weapon.hardpointType)) {
             return HEGEMONY_EMITTER;
         }
