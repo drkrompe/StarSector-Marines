@@ -312,7 +312,9 @@ increasing an encounter's total armored threat.
   reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the loader paces its guns
   (the loader, below). An **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a
   mech is; an armed hull's stock fit is a bank (the laser tank the double bank and two vent arrays, the rest
-  the factory bank) and the standard loader (`VehicleRack.stockFit`; the lab sells the hull bare), so a Light hull
+  the factory bank) and the standard loader (`VehicleRack.stockFit`; the lab sells the hull bare). The laser tank's
+  own power plant sheds 10 flux a second more on top of whatever its rack holds (`HullReservoir.plantDissipation`),
+  so its stock fit pays its PL-3's burst every cycle (owner, 2026-11-05). A Light hull
   is full with the two, as a Hound is; fitting
   another bank or loader returns the old one to stores. An unarmed hull takes no bank and is built with no
   loader. Every part is an inventory part: learned as a pattern, bought for its price into stores, dragged
@@ -1181,7 +1183,7 @@ None of them is called a PD laser: none shoots down a missile.
 | | BL-2 | 2x2 | A held beam that bites light plate, still tracks fliers |
 | PL, pulse laser | PL-1 | 2x1 | Two pulses and a vent |
 | | PL-2 | 2x2 | Three pulses and a vent |
-| | PL-3 | 2x3 | Four heavy pulses, then a long vent; each pulse bursts where it stops, splashing a half cell, wearing the wall it struck and heating the ground, so held on grass it lights it; the laser tank's white head; centreline only |
+| | PL-3 | 2x3 | Four heavy pulses (penetration 6), then a long vent; each pulse bursts where it stops, splashing a half cell, wearing the wall it struck and heating the ground, so held on grass it lights it; the laser tank's white head; centreline only |
 | | PL-2 (AP) | 2x2 | Eight hard pulses that pierce plate (penetration 9), the longest pulse-laser reach; Tri-Tachyon Prestige |
 | | PL-3 (Sweep) | 2x3 | Fourteen light pulses (penetration 2) a pull, cool enough to repeat; each bursts as the PL-3's does, lighter, so a stream held on grass lights it and a few break a light wall; the laser tank's red head; centreline only |
 | LL, lance laser | LL-3 | 2x3 shoulder | One heavy lance through a body, contact burn and wall damage, a 7 s cycle; the Lance Cannon in lore |

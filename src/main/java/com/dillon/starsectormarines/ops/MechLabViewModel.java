@@ -1287,7 +1287,7 @@ public final class MechLabViewModel {
                                           List<MechInternal> rack, MechWeaponComponent gun) {
         HullFitEffect fit = HullFitEffect.of(VehiclePlating.of(plating), type).with(MechCompartment.systems(rack));
         float armor = Math.round(type.maxArmor * fit.armorFactor());
-        HullReservoir.Frame reservoir = VehicleRack.frame(rack);
+        HullReservoir.Frame reservoir = VehicleRack.frame(type, rack);
         VehicleEngine drive = VehicleEngine.of(engine);
         return new MachineFigures(armor, armor > 0f ? type.armorRating + fit.armorRatingBonus() : 0f,
                 Math.round(type.maxStructure * fit.structureFactor()),

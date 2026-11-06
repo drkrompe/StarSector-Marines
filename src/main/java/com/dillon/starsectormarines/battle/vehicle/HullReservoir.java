@@ -39,6 +39,17 @@ public final class HullReservoir {
      */
     static final Frame LASER_TANK_STOCK_BANK = DOUBLE_BANK;
     static final int LASER_TANK_STOCK_VENT_ARRAYS = 2;
+    /**
+     * What the laser tank's own power plant, in the shell stowage's room, sheds a second on top of its rack's parts: with
+     * its stock bank and vent arrays, enough to pay its PL-3's 38 flux a burst on every two-second cycle (owner,
+     * 2026-11-05: the burst laser tank was still bad; it fired a burst every four seconds on flux alone).
+     */
+    static final float LASER_TANK_PLANT_DISSIPATION = 10f;
+
+    /** What {@code type}'s hull sheds a second of its own, beside its rack's parts: the laser tank's plant, none elsewhere. */
+    public static float plantDissipation(VehicleType type) {
+        return type == VehicleType.LASER_TANK ? LASER_TANK_PLANT_DISSIPATION : 0f;
+    }
 
     /** The bank {@code type} is built with: the laser tank's own, the factory bank on every other armed hull. */
     public static Frame stockBank(VehicleType type) {
@@ -52,15 +63,16 @@ public final class HullReservoir {
     }
 
     /**
-     * The frame a hull of {@code type} is set down with in its stock fit: its bank ({@link #stockBank}) and each
-     * stock vent array's dissipation on top; null for an unarmed hull, which needs none.
+     * The frame a hull of {@code type} is set down with in its stock fit: its bank ({@link #stockBank}), each
+     * stock vent array's dissipation and its own plant's ({@link #plantDissipation}) on top; null for an unarmed
+     * hull, which needs none.
      */
     public static Frame stockFrame(VehicleType type) {
         Frame bank = stockBank(type);
         if (bank == null) return null;
-        int vents = stockVentArrays(type);
-        if (vents == 0) return bank;
-        return new Frame(bank.capacity(), bank.dissipationPerSecond() + vents * VENT_ARRAY_DISSIPATION);
+        float extra = stockVentArrays(type) * VENT_ARRAY_DISSIPATION + plantDissipation(type);
+        if (extra == 0f) return bank;
+        return new Frame(bank.capacity(), bank.dissipationPerSecond() + extra);
     }
 
     /** A fresh reservoir on {@code frame}, or null for no frame. */
