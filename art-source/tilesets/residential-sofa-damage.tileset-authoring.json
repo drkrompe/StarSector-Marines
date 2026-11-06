@@ -1,0 +1,140 @@
+{
+  "sheetName": "residential-sofa-damage",
+  "sheet": "art-source/tilesets/residential-sofa-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Built-in ImageGen reskin of retained geometry. Full two-cell placement frames, no silhouette trim; back N/S/W/E columns, damaged/destroyed rows. Transparent low fragments release cover.",
+  "entries": [
+    {
+      "id": "doodad.residential-sofa-h-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        0,
+        111,
+        443,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-back-s-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        444,
+        111,
+        443,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-v-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        998,
+        0,
+        222,
+        443
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-back-e-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1441,
+        0,
+        222,
+        443
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-h-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        0,
+        555,
+        443,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-back-s-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "rect": [
+        444,
+        555,
+        443,
+        222
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-v-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        998,
+        444,
+        222,
+        443
+      ]
+    },
+    {
+      "id": "doodad.residential-sofa-back-e-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "rect": [
+        1441,
+        444,
+        222,
+        443
+      ]
+    }
+  ]
+}

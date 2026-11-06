@@ -184,7 +184,7 @@ public final class ConvoyService implements BodyCarrier {
                       MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, Faction faction,
                       VehicleMission mission) {
         if (weapon == null && !noOwnGun) weapon = type.ownGun();
-        HullReservoir.Frame flux = VehicleRack.frame(compartment);
+        HullReservoir.Frame flux = VehicleRack.frame(type, compartment);
         if (flux == null) flux = HullReservoir.stockFrame(type);
         // The engine runs on the reservoir as a mech's does: the military engine's penalty comes off its dissipation.
         if (flux != null && engine.dissipation() != 0f) {

@@ -59,9 +59,9 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
         this(campaignId, callsign, type, VehiclePlating.FACTORY);
     }
 
-    /** The flux frame the compartment's bank and vent arrays make; null without a bank (an unarmed hull). */
+    /** The flux frame the compartment's bank and vent arrays make with the hull's plant; null without a bank. */
     public HullReservoir.Frame flux() {
-        return VehicleRack.frame(compartment);
+        return VehicleRack.frame(type, compartment);
     }
 
     /** The loader the compartment carries; {@link MissileReplenisherComponent#NONE} without one. */

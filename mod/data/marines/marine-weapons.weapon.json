@@ -805,10 +805,10 @@
         "damage": 16.0,
         "accuracy": 0.85,
         "cooldown": 1.59,
-        "penetration": 3.0,
+        "penetration": 6.0,
         "contact": {
           "damage": 16.0,
-          "penetration": 3.0
+          "penetration": 6.0
         },
         "burstCount": 4,
         "burstSpacing": 0.13,

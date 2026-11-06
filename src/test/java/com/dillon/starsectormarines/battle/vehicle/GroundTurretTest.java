@@ -66,8 +66,10 @@ class GroundTurretTest {
         HullReservoir.Frame laser = HullReservoir.stockFrame(VehicleType.LASER_TANK);
         assertEquals(HullReservoir.stockBank(VehicleType.LASER_TANK).capacity(), laser.capacity(), 1e-6f);
         assertEquals(HullReservoir.stockBank(VehicleType.LASER_TANK).dissipationPerSecond()
-                        + HullReservoir.stockVentArrays(VehicleType.LASER_TANK) * HullReservoir.VENT_ARRAY_DISSIPATION,
-                laser.dissipationPerSecond(), 1e-6f, "the laser tank's stock vent arrays shed its flux faster");
+                        + HullReservoir.stockVentArrays(VehicleType.LASER_TANK) * HullReservoir.VENT_ARRAY_DISSIPATION
+                        + HullReservoir.plantDissipation(VehicleType.LASER_TANK),
+                laser.dissipationPerSecond(), 1e-6f, "the laser tank's stock vent arrays and plant shed its flux faster");
+        assertEquals(0f, HullReservoir.plantDissipation(VehicleType.LRM_CARRIER), "only the laser tank has a plant");
         assertNull(HullReservoir.stockFrame(VehicleType.SUPPLY_TRUCK), "no gun, no reservoir");
 
         TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;

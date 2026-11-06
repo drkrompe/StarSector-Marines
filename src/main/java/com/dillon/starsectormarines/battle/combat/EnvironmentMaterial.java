@@ -54,6 +54,8 @@ public enum EnvironmentMaterial {
             "doodad.industrial-cable-reel", "doodad.industrial-pallet-stack",
             "doodad.military-bunk", "doodad.residential-bed-h", "doodad.residential-bed-head-e",
             "doodad.residential-bed-v", "doodad.residential-bed-head-n",
+            "doodad.residential-sofa-h", "doodad.residential-sofa-back-s",
+            "doodad.residential-sofa-v", "doodad.residential-sofa-back-e",
             "doodad.desk-1", "doodad.desk-2",
             "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
             "main-stores.pallet", "main-stores.cartons", "sickbay-clinic.linen-high",

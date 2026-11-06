@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ae27-722a-76a2-b588-35d6c4ba652d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ae27-722a-76a2-b588-35d6c4ba652d\\exec-9a50b949-4356-4141-a3ee-e28a36e821ab.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\residential-sofa-damage.raw.png",
+    "sha256": "50094dc5329ba3f560daf13e62027f8d8eb20b4e9996fd6b668cd1fc4b8af5a0",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\residential-sofa-damage.prompt.txt",
+  "promptSha256": "bb325e7e67606ce24032fa4cbfe32d592cb24a614c3d5d6a6a392186a6e2b1c6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: exact positions, footprints, orientation order and fragment layout\nImage 2: Material/style only (intact sofas); not layout\n\nUse case: sketch-to-render. Make one transparent 4-column, 2-row sprite sheet for damage states of the exact two-seat residential sofas shown. Image 1 is the authoritative geometry guide and edit target (2048x1024, 512-pixel square slots). Image 2 is the intact material/style reference only. Preserve the guide's exact object positions, orientation order, long two-cell footprints, clear slot gutters and open gaps between fragments. Columns left to right: horizontal sofa with its back along the top edge, horizontal sofa with its back along the bottom edge, vertical sofa with its back along the left edge, vertical sofa with its back along the right edge. Top row: damaged sofas still largely assembled, worn olive fabric upholstery with a slashed seat cushion showing pale yellowed foam stuffing, one crushed and splayed arm, a torn seam in the back cushion, restrained scorch and grime. Bottom row: destroyed sofas, flattened and broken apart: bent dark steel frame rails, the split back and the seat cushions torn loose and lying flat as separate low fragments, tufts of loose foam, matching the supplied debris geometry; transparent ground visible between fragments. Match the gritty restrained overhead game sprite style and the original subdued olive and dark seam palette of image 2. Straight orthographic top-down camera, no perspective, minimal neutral lighting, no tall side faces. Only reskin the supplied bodies. Keep all pixels outside each sofa's original rectangular footprint transparent (horizontal slots occupy the central 512x256, vertical slots central 256x512). No floor, no backing slab, no apron, no borders, no labels, no smoke clouds, no added objects or cast shadow beyond the sprite. Keep genuine alpha transparency. Retain exact 2:1 sheet aspect ratio.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\residential-sofa-damage-guide.png",
+      "sha256": "2cb6b6ac53065f3269b9b4b5bf1f04bfbe27d3ee987b7e3a8ea8314edf8feee7",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: exact positions, footprints, orientation order and fragment layout"
+    },
+    {
+      "path": "art-source\\templates\\residential-sofa-reference.png",
+      "sha256": "6a7b954b5a8ebdaceaae49ce29ee29b262e6d6fd5bb6f7d390d10145fc2f9be6",
+      "dimensions": [
+        2048,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (intact sofas); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, using Image 1 for geometry and Image 2 for the upholstery style."
+  ],
+  "usage": {
+    "input_tokens": 45571,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 593,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 44.6
+}
