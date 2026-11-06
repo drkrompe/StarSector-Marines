@@ -1752,7 +1752,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
                 navigation, rosterService, shots, noiseEvents);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
-                rosterService, shots);
+                rosterService, shots, this::squadRuns);
         this.digIn = new DigInSystem(rosterService, this::fightingPositions);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.assaultCoordination = new AssaultCoordinationSystem(rosterService);

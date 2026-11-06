@@ -515,7 +515,11 @@ or chassis with no standing order and a vehicle ignore the key, and so does a
 controlled battle. A mech's run is on its own chassis order (`mechs-nouns.md`,
 Run), paid from the same stamina; unlike a Marine it fires as it runs. A fresh order starts at a walk, a reissue that refreshes the same lease
 (a ride driving off, a compound rebound) keeps its pace, and the run ends with
-the lease. A running squad's Marines are paid for out of the same battle stamina
+the lease. A run is a **forced march**: while it lasts none of the squad's fire
+teams breaks, and a team already broken rallies to the order and is back in its
+roles, so R is how the player takes a shaken squad back in hand. Morale still
+drains and recovers underneath; when the run ends, a team still below the broken
+line breaks where it stands (`SquadMoraleSystem`). A running squad's Marines are paid for out of the same battle stamina
 a controlled Marine sprints on (`direct-control-nouns.md`, Movement by carrier):
 each one with stamina left moves at the sprint multiplier and is charged only for
 the share of a full sprint it actually covered, so a Marine held up by a wall, a

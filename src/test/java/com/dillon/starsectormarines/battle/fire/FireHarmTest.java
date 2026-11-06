@@ -34,6 +34,15 @@ class FireHarmTest {
     }
 
     @Test
+    void aBurnRattlesATeamByItsHeatAndNoMoreThanAHit() {
+        float full = FireHarm.DPS_IN * FireField.STEP_SECONDS;
+        assertEquals(1f, FireHarm.moraleImpact(full), 1e-6f, "full flame on a soft body: one hit a step");
+        assertEquals(FireHarm.BESIDE_SHARE, FireHarm.moraleImpact(full * FireHarm.BESIDE_SHARE), 1e-6f,
+                "beside the flames: a tenth of one");
+        assertEquals(1f, FireHarm.moraleImpact(full * FireHarm.SWARM_SHARE), 1e-6f, "never more than a hit");
+    }
+
+    @Test
     void burningGroundCostsMoreAndItsEdgeSomewhat() {
         FireField f = burningAt(5, 5);
         float[] cost = FireRouteCost.hazard(f);

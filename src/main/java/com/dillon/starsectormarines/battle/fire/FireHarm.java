@@ -69,9 +69,19 @@ public final class FireHarm {
             long id = ids[i];
             if (!sim.getRoster().isAliveById(id)) continue;
             boolean through = throughArmor(sim.identity().type(id), sim.identity().armorClass(id));
-            sim.applyDamage(id, amounts[i], through ? DamageResolver.THROUGH_ARMOR : PENETRATION, 1f);
+            sim.applyDamage(id, amounts[i], through ? DamageResolver.THROUGH_ARMOR : PENETRATION, moraleImpact(amounts[i]));
         }
         consumeSwarmDead(sim, field, c);
+    }
+
+    /**
+     * What a fire step's burn does to the burnt man's fire team, as a share of a rifle hit's drain: the
+     * step's damage against a soft body's in full flame, so standing in the flames rattles a team as a hit
+     * a step does and standing beside them a tenth as much. A burn is not a shot: rated as one, a marine
+     * scorched beside a front for a few seconds broke his team and took it out of the player's hands.
+     */
+    static float moraleImpact(float amount) {
+        return Math.min(1f, amount / (DPS_IN * FireField.STEP_SECONDS));
     }
 
     /** The share of fire damage a body of this kind takes: a tenth for a hull, half as much again for the swarm. */

@@ -214,9 +214,13 @@ fire is judged by the kind of target rather than by its armour pool:
 - **Hulls** (mechs, machine frames, vehicles) take a tenth, so armour can drive
   through a grass fire.
 
-**Morale.** Fire damage carries morale as being hit does, so a team standing
-in fire drains toward breaking as one under fire would; fire near a team that
-is not touching it costs nothing.
+**Morale.** Fire damage carries morale in proportion to its heat
+(`FireHarm.moraleImpact`): a fire step in full flame rattles a team as one
+hit does, so a team standing in fire drains toward breaking as one under fire
+would, and a marine burnt beside the flames costs a tenth of that. A burn is
+not a shot: rated as a full hit every step, a few seconds scorched beside a
+front broke a team and took it out of the player's hands. Fire near a team
+that is not touching it costs nothing.
 
 **Static things take nothing.** Turrets, hubs, bores and the swarm's growths
 are fought through their durability, never burnt. Burning never collapses a
@@ -261,6 +265,8 @@ now lies rather than waiting on one planned before the fire crossed it. A
 squad the player told to run is the exception to all of this: the run is the
 player's last word on the move, so its marines neither step out nor wait at
 the edge, and go through the fire if their route does, burning as they cross.
+The run is also a forced march (`mission-command-nouns.md`, Run): none of its
+fire teams breaks while it lasts, so a squad the fire has shaken still takes it.
 A squad holding ground the fire
 takes therefore stands off at the edge and returns when it has burnt out.
 `-Dbattle.fire.stepOut=false` is the control.

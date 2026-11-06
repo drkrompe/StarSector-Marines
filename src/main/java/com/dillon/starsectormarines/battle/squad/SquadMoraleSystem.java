@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.SquadService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Stateless tick consumer that owns fire-team and mech morale recovery,
@@ -97,10 +98,17 @@ public final class SquadMoraleSystem {
 
     private final UnitRosterService roster;
     private final ShotService shots;
+    /** Whether the player told this squad's standing order to run: see {@link #updateFireTeamMorale(Squad, float, boolean)}. */
+    private final IntPredicate forcedMarch;
 
     public SquadMoraleSystem(UnitRosterService roster, ShotService shots) {
+        this(roster, shots, squadId -> false);
+    }
+
+    public SquadMoraleSystem(UnitRosterService roster, ShotService shots, IntPredicate forcedMarch) {
         this.roster = roster;
         this.shots = shots;
+        this.forcedMarch = forcedMarch;
     }
 
     public void tick(float dt) {
@@ -180,7 +188,7 @@ public final class SquadMoraleSystem {
                         squad.moraleBroken != wasMoraleBroken;
                 continue;
             }
-            updateFireTeamMorale(squad, dt);
+            updateFireTeamMorale(squad, dt, forcedMarch.test(squad.id));
         }
     }
 
@@ -221,6 +229,17 @@ public final class SquadMoraleSystem {
      * role slots around the team that just peeled — or just rejoined.
      */
     static void updateFireTeamMorale(Squad squad, float dt) {
+        updateFireTeamMorale(squad, dt, false);
+    }
+
+    /**
+     * As {@link #updateFireTeamMorale(Squad, float)}, for a squad the player told to run when
+     * {@code forcedMarch}: a forced march. Its teams' morale drains and recovers as ever, but none of
+     * them breaks while the run lasts, and a team already broken rallies to the order, so the run is
+     * the player's last word on the move whatever has rattled the squad. When the run ends, with its
+     * order, a team still shaken below the broken line breaks where it stands.
+     */
+    static void updateFireTeamMorale(Squad squad, float dt, boolean forcedMarch) {
         int aliveTotal = 0;
         int brokenAlive = 0;
         float weightedMorale = 0f;
@@ -257,7 +276,9 @@ public final class SquadMoraleSystem {
             // permanently below an absolute clear line it could never reach.
             float brokenAt = MORALE_BROKEN_THRESHOLD * cap;
             float clearAt  = MORALE_CLEAR_THRESHOLD  * cap;
-            if (team.broken) {
+            if (forcedMarch) {
+                team.broken = false;
+            } else if (team.broken) {
                 if (team.morale > clearAt) team.broken = false;
             } else {
                 if (team.morale < brokenAt) team.broken = true;
