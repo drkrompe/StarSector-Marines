@@ -59,7 +59,7 @@ public final class VehicleGun {
      */
     public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
         if (weapon == null || lengthCells(type, weapon) <= 0f || closedHead(type, weapon.hardpointType)) return 0f;
-        boolean machineGunHull = type.ownGun() != null;
+        boolean machineGunHull = type.ownGun() == MechWeaponComponent.LIGHT_MACHINE_GUN;
         boolean headlessOnArmyTurret = type.hasModularTurret() && type.mountStyle() != TurretMountStyle.WHITE;
         return machineGunHull || headlessOnArmyTurret ? mountCells(type) * PLATE_SHARE_OF_MOUNT : 0f;
     }

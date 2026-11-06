@@ -24,14 +24,14 @@ class VehicleGunsTest {
         assertFalse(CampaignVehicle.takesGun(VehicleType.SUPPLY_TRUCK, MechWeaponComponent.CHAINGUN), "no card, no gun");
 
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
-        assertNull(tank.gun());
-        assertNull(tank.freezeForDeployment().gun(), "the hull fires its own gun");
+        assertSame(MechWeaponComponent.HC_20, tank.gun(), "a stock hull's cannon is a part in its card");
+        assertSame(MechWeaponComponent.HC_20, tank.freezeForDeployment().gun());
     }
 
     @Test
     void aGunFitsFromStoresReplacesToStoresAndGoesDownWithTheHullButNotWithAScrap() {
         MechBay bay = new MechBay();
-        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        CampaignVehicle tank = CampaignVehicle.hull("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
 
         assertFalse(bay.fitGun("v1", MechWeaponComponent.HC_20), "nothing in stores");
@@ -47,14 +47,14 @@ class VehicleGunsTest {
 
         assertTrue(bay.stripGun("v1"));
         assertNull(tank.gun());
-        assertFalse(bay.stripGun("v1"), "the hull fires its own gun already");
+        assertFalse(bay.stripGun("v1"), "the card is empty already");
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.HC_10.id));
 
         assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));
         assertTrue(bay.scrapVehicle("v1"));
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.HC_10.id), "a scrap spares the gun");
 
-        CampaignVehicle lost = new CampaignVehicle("v2", "Lost", VehicleType.BREAKTHROUGH_TANK);
+        CampaignVehicle lost = CampaignVehicle.hull("v2", "Lost", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, lost));
         assertTrue(bay.fitGun("v2", MechWeaponComponent.HC_20));
         assertEquals(1, bay.loseVehicles(List.of("v2")));
@@ -64,7 +64,7 @@ class VehicleGunsTest {
     @Test
     void aFittedGunCountsAsInstalledSoItIsNeverAlsoASpare() {
         MechBay bay = new MechBay();
-        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        CampaignVehicle tank = CampaignVehicle.hull("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
         bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
         assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));

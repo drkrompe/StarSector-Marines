@@ -741,11 +741,15 @@ public enum VehicleType {
 
     /**
      * The mech weapon this hull's own turret is, for a hull whose stock gun is a shared mech part rather than a turret
-     * of its own: every machine-gun hull carries the light machine gun, so the game has one machine gun. Its turret
-     * structure stays the carriage the weapon sits in ({@link VehicleGun#fit}). Null for a modular hull, whose empty
-     * card is a bare ring, and for a hull whose own gun is its turret structure's weapon.
+     * of its own: every machine-gun hull carries the light machine gun, so the game has one machine gun, and the gun
+     * tanks their cannons, the Onager's HC-20 and the Scorpion's HC-10, the parts a stock spawn fits, so a hull from an
+     * older save firing its own gun is drawn and fires as one fitted with it (owner: its own gun drew no barrel, only the
+     * head on the sheet). Its turret structure stays the carriage the weapon sits in ({@link VehicleGun#fit}). Null for
+     * a modular hull, whose empty card is a bare ring, and for a hull whose own gun is its turret structure's weapon.
      */
     public MechWeaponComponent ownGun() {
+        if (this == BREAKTHROUGH_TANK) return MechWeaponComponent.HC_20;
+        if (this == MEDIUM_TANK) return MechWeaponComponent.HC_10;
         return TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID.equals(turretStructureId) && turretFrame >= 0
                 ? MechWeaponComponent.LIGHT_MACHINE_GUN : null;
     }

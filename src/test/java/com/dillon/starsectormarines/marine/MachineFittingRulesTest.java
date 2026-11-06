@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -114,14 +115,20 @@ class MachineFittingRulesTest {
     }
 
     @Test
-    void aHullFromAnOlderSaveKeepsItsOwnGunUntilAWeaponReplacesIt() {
-        CampaignVehicle older = new CampaignVehicle("older", "Older", VehicleType.HEAVY_APC);
-        assertTrue(older.hasOwnGun());
-        assertFalse(older.freezeForDeployment().noOwnGun());
+    void aHullsOwnMechGunIsAFittedPartAndOnlyATurretsOwnWeaponStaysBuiltIn() {
+        CampaignVehicle onager = new CampaignVehicle("o", "Onager", VehicleType.BREAKTHROUGH_TANK);
+        assertSame(MechWeaponComponent.HC_20, onager.gun(), "the cannon is in the card, not built in");
+        assertFalse(onager.hasOwnGun());
+        assertTrue(onager.fitGun(MechWeaponComponent.LIGHT_MACHINE_GUN), "the card takes anything that fits");
+        assertTrue(onager.stripGun());
+        assertNull(onager.gun());
 
-        assertTrue(older.fitGun(MechWeaponComponent.BL_1));
-        assertTrue(older.stripGun());
-        assertNull(older.gun());
-        assertFalse(older.hasOwnGun(), "the card stands empty once its own gun has gone");
+        CampaignVehicle mortar = new CampaignVehicle("m", "Pounder", VehicleType.FIRE_SUPPORT_APC);
+        assertNull(mortar.gun());
+        assertTrue(mortar.hasOwnGun(), "the mortar is its turret's own weapon, no part");
+        assertFalse(mortar.freezeForDeployment().noOwnGun());
+        assertTrue(mortar.fitGun(MechWeaponComponent.CHAINGUN));
+        assertTrue(mortar.stripGun());
+        assertFalse(mortar.hasOwnGun(), "the card stands empty once its own gun has gone");
     }
 }

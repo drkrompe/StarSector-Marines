@@ -69,10 +69,11 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     private int fitVersion;
 
     /**
-     * The current fitting rules: the loader is a part in the compartment (1), and the engine and plating are parts at
-     * their points (2); an empty socket means nothing.
+     * The current fitting rules: the loader is a part in the compartment (1), the engine and plating are parts at
+     * their points (2), and a hull's own gun that is a mech part is that part in the gun card (3); an empty socket
+     * means nothing.
      */
-    static final int FIT_VERSION = 2;
+    static final int FIT_VERSION = 3;
 
     /** The room at a vehicle's engine core and armor point, the same as a mech's. */
     private static final int CORE_COLUMNS = 2, CORE_ROWS = 2, ARMOR_COLUMNS = 2, ARMOR_ROWS = 1;
@@ -92,6 +93,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         rack = new CompartmentFit();
         for (MechInternal part : VehicleRack.stockFit(type)) rack.addUnplaced(part.id);
         rack.settle(compartmentGrids());
+        fitTheHullsOwnGun();
     }
 
     /**
@@ -102,6 +104,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         CampaignVehicle vehicle = new CampaignVehicle(id, displayName, type);
         vehicle.engineId = null;
         vehicle.platingId = null;
+        vehicle.gunId = null;
         vehicle.ownGunGone = true;
         vehicle.rack.clear();
         return vehicle;
@@ -317,10 +320,25 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         retireKitsToInternals();
         if (fitVersion < 1) fitTheSealedLoader();
         if (fitVersion < 2) fitTheHullsOwnEngineAndPlate();
+        if (fitVersion < 3) fitTheHullsOwnGun();
         kitIds.clear();
         fitVersion = FIT_VERSION;
         rack.settle(compartmentGrids());
         return this;
+    }
+
+    /**
+     * A hull's own gun that is a mech part ({@link VehicleType#ownGun}: the light machine gun, the gun tanks' cannons)
+     * is that part in its gun card, never built in (owner: the Onager's cannon is not built in; the card takes anything
+     * that fits, down to a light machine gun), so it comes off to stores and another goes in. A hull still firing
+     * its own gun from an older save gets it fitted; one whose own gun is its turret structure's (the mortar, the
+     * carriers' racks) keeps it until a weapon replaces it.
+     */
+    private void fitTheHullsOwnGun() {
+        MechWeaponComponent own = type.ownGun();
+        if (own == null || ownGunGone || gun() != null || !takesGun(type, own)) return;
+        gunId = own.id;
+        ownGunGone = true;
     }
 
     /**
