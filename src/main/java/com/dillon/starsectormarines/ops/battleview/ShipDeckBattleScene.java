@@ -135,9 +135,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * lifted and be back in its bay when it landed. The Boat Deck draws both
      * for the same reason, and a view of the whole ship is the one place a
      * turnaround can be watched from end to end.
+     *
+     * <p>The convoy layer is here because a company vehicle parked in its berth
+     * is a live hull ({@link #parkVehicles}), drawn where a battle draws its
+     * hulls; without it the whole-ship view showed the mechs and none of the
+     * vehicles standing beside them.
      */
     public static final EnumSet<RenderLayer> DECK_LAYERS = EnumSet.of(
-            RenderLayer.GROUND, RenderLayer.VEHICLES,
+            RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.CONVOY,
             RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.ROOFS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.DECK_LIGHTING);
 
     /**
