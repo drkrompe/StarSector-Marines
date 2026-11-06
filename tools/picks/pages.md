@@ -30,3 +30,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Tutorial wording (Castle's callouts on their rooms; edits in the page db) | https://claude.ai/artifact/7yVMbqWK3DLdZuAPsVRMhY |
 | Mechlab drop sound (sliders and takes for the doll-point drop sound; takes in the page db) | https://claude.ai/artifact/A2Dq7xyu3oGYnZSCYYsUD8 |
 | HQ command deck reskin (bridge room, colour, plate versions) | https://claude.ai/artifact/6HMasKcthSGxBwC2fbUZNK |
+| Hegemony armour line (weapon-point variants, the red Onager's emitter) | https://claude.ai/artifact/DH3gtRXwEHXt3tiSmzPWNU |

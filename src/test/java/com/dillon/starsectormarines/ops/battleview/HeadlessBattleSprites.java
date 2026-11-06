@@ -133,7 +133,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final EnumMap<TurretHead, LayeredSpriteCache> turretHeads = new EnumMap<>(TurretHead.class);
     private final EnumMap<TurretHead, LayeredSpriteCache> turretHeadWrecks = new EnumMap<>(TurretHead.class);
     private final LayeredSpriteCache kitActiveProtection;
-    private final EnumMap<MechWeaponComponent, LayeredSpriteCache> gunDrawings = new EnumMap<>(MechWeaponComponent.class);
+    private final Map<String, LayeredSpriteCache> gunDrawings = new LinkedHashMap<>();
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
     private SpriteAPI warshipEngineFlame;
@@ -210,10 +210,9 @@ final class HeadlessBattleSprites extends BattleSprites {
             if (wreck != null) turretHeadWrecks.put(head, wreck);
         }
         kitActiveProtection = optionalLayer("graphics/battle/vehicles/kit-active-protection.png");
-        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
-            String path = VehicleGunArt.vehicleDrawingPath(weapon);
-            LayeredSpriteCache drawing = path == null ? null : optionalLayer(path);
-            if (drawing != null) gunDrawings.put(weapon, drawing);
+        for (String path : VehicleGunArt.DRAWINGS) {
+            LayeredSpriteCache drawing = optionalLayer(path);
+            if (drawing != null) gunDrawings.put(path, drawing);
         }
     }
 
@@ -382,7 +381,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         return head == null ? null : (wrecked ? turretHeadWrecks : turretHeads).get(head);
     }
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
-    @Override public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return gunDrawings.get(weapon); }
+    @Override public LayeredSpriteCache vehicleGunDrawing(String path) { return gunDrawings.get(path); }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     /** The side's paint as a review suite bound it ({@link ReviewFactions}), else as the base set binds it. */
     @Override public VehiclePaint vehiclePaint(Faction side) {

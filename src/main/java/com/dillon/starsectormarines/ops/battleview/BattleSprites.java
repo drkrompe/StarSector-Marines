@@ -166,8 +166,7 @@ public class BattleSprites {
     private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeads = new EnumMap<>(TurretHead.class);
     private final EnumMap<TurretHead, LayeredSpriteCache> vehicleTurretHeadWrecks = new EnumMap<>(TurretHead.class);
     private LayeredSpriteCache vehicleKitActiveProtection;
-    private final EnumMap<MechWeaponComponent, LayeredSpriteCache> vehicleGunDrawings =
-            new EnumMap<>(MechWeaponComponent.class);
+    private final Map<String, LayeredSpriteCache> vehicleGunDrawings = new LinkedHashMap<>();
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -339,7 +338,7 @@ public class BattleSprites {
      */
     public LayeredSpriteCache vehicleKitActiveProtection() { return vehicleKitActiveProtection; }
     /** The drawing a hull carries {@code weapon} in instead of the mech's ({@link VehicleGunArt#vehicleDrawingPath}); null for none. */
-    public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return vehicleGunDrawings.get(weapon); }
+    public LayeredSpriteCache vehicleGunDrawing(String path) { return vehicleGunDrawings.get(path); }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1496,10 +1495,9 @@ public class BattleSprites {
             if (wreck != null) vehicleTurretHeadWrecks.put(head, wreck);
         }
         vehicleKitActiveProtection = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection.png");
-        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
-            String path = VehicleGunArt.vehicleDrawingPath(weapon);
-            LayeredSpriteCache drawing = path == null ? null : loadLayeredSprite(path);
-            if (drawing != null) vehicleGunDrawings.put(weapon, drawing);
+        for (String path : VehicleGunArt.DRAWINGS) {
+            LayeredSpriteCache drawing = loadLayeredSprite(path);
+            if (drawing != null) vehicleGunDrawings.put(path, drawing);
         }
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }

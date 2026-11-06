@@ -208,7 +208,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     /** The weapon's drawing on this hull, as {@link VehicleGunArt#sprite} picks it; null for one that wears a head on the sheet. */
     private GunArt gunArt(CanvasContext context, MechWeaponComponent weapon) {
         if (VehicleGun.lengthCells(type, weapon) <= 0f) return null;
-        String own = VehicleGunArt.vehicleDrawingPath(weapon);
+        String own = VehicleGunArt.vehicleDrawingPath(type, weapon);
         float[] size = own == null ? null : context.imageSize(own);
         if (size != null && size[0] > 0f && size[1] > 0f) return new GunArt(own, null, size[0] / size[1]);
         LayeredMechAssets mechArt = assets.get();

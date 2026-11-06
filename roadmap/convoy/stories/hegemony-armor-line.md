@@ -133,7 +133,10 @@ tuned in the playtest, not by evidence alone.
    defenders field their faction's colour (`FactionVehiclePoints`: the Diktat and the Lion's Guard red, the Luddic
    factions green, everyone else, independents and pirates among them, yellow). Evidence: `createSnapshots
    -Psnapshot=vehicle-colours` (each colour firing) and `-Psnapshot=bought-machines` (the three Scorpion dolls); the
-   proving ground's third rank fields the green and red ones.
+   proving ground's third rank fields the green and red ones. The red Onager carries its energy weapon in the
+   Hegemony emitter (`VehicleGunArt.HEGEMONY_EMITTER`, art-source/vehicles/hegemony-emitter), not the mech's white
+   Tri-Tachyon drawing, which read as pasted on under the bronze head (owner): a converted-cannon barrel with copper
+   cooling rings and a red lens, the recommended pick on the picks page against an industrial projector.
 
 ## Open
 

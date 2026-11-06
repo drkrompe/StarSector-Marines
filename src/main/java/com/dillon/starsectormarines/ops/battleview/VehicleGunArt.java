@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+
+import java.util.List;
 
 /**
  * How a hull's fitted mech weapon is drawn (mechs-nouns.md, vehicle gun card): a drawing made for a hull's roof where
@@ -31,10 +34,33 @@ final class VehicleGunArt {
         return weapon == MechWeaponComponent.LIGHT_MACHINE_GUN ? PINTLE_LMG : null;
     }
 
+    /**
+     * The emitter an Onager carries an energy weapon in under its closed Hegemony head: old depot hardware with a red
+     * lens, where the mech's white Tri-Tachyon emitter read as pasted on (owner;
+     * art-source/vehicles/hegemony-emitter).
+     */
+    static final String HEGEMONY_EMITTER = "graphics/battle/vehicles/hegemony-emitter.png";
+
+    /** Every drawing a hull may carry a weapon in, for loading. */
+    static final List<String> DRAWINGS = List.of(PINTLE_LMG, HEGEMONY_EMITTER);
+
+    /**
+     * As {@link #vehicleDrawingPath(MechWeaponComponent)}, on {@code type}: an energy weapon under the Onager's closed
+     * Hegemony head is the Hegemony emitter, whichever part it is.
+     */
+    static String vehicleDrawingPath(VehicleType type, MechWeaponComponent weapon) {
+        if (type == VehicleType.BREAKTHROUGH_TANK && weapon != null && weapon.hardpointType == HardpointType.ENERGY
+                && VehicleGun.closedHead(type, weapon.hardpointType)) {
+            return HEGEMONY_EMITTER;
+        }
+        return vehicleDrawingPath(weapon);
+    }
+
     /** The weapon's drawing on a hull; null where the hull fires its own gun or the weapon has none. */
     static LayeredSpriteCache sprite(BattleSprites sprites, VehicleType type, MechWeaponComponent weapon) {
         if (weapon == null || VehicleGun.lengthCells(type, weapon) <= 0f) return null;
-        LayeredSpriteCache own = sprites.vehicleGunDrawing(weapon);
+        String path = vehicleDrawingPath(type, weapon);
+        LayeredSpriteCache own = path == null ? null : sprites.vehicleGunDrawing(path);
         if (own != null && own.sprite != null) return own;
         LayeredMechAssets assets = sprites.layeredMechSprites();
         if (assets == null) return null;

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1ae4d-97b5-7c30-bf85-d5d39df86a8f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1ae4d-97b5-7c30-bf85-d5d39df86a8f\\exec-a14bc0f3-8a17-4b97-8c99-db360df66667.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\hegemony-emitter\\projector-master.png",
+    "sha256": "f5100c940d67bd79d51051ad9c462a11c794810642a570198f7d6a5a8f302127",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\hegemony-emitter\\projector.prompt.txt",
+  "promptSha256": "f9fb2a99063b71bc1ab6a609de9413f55c94d94e30ba4f04515db2300e853a2a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: reskin, never move or resize shapes\nImage 2: Material/style only; not layout\nImage 3: Identity only: the sibling heavy cannon; not layout\n\nAsset type: production-source master for a top-down game sprite: a HEAVY LASER PROJECTOR built by an old, low-tech Hegemony ordnance depot into a tank's cast turret: industrial equipment, boxy and riveted, more power plant than gun. Draw only the weapon; the turret head is drawn over its middle later.\n\nImage 1 is the exact geometry and layout authority: reskin it, never move, resize, widen or add to its shapes. Keep every part on its place: the squat aperture housing at the very top with the small red window in it, the long shroud below it with six raised bands, the plain wide block down the middle, and at the bottom the wide power coupling with two round cable glands on its rear face. Everything stands symmetric on the vertical centre line. Keep all empty canvas empty.\n\nImage 2 is material and style reference only, never layout: the cast Hegemony turret head this weapon sits under: warm tan and bronze cast steel, dark gunmetal working parts, worn edges, rivets, grime, crisp painted game-sprite finish, light from the upper left. Image 3 is identity reference only, never layout: the heavy cannon the yellow version of this tank carries; the projector should sit beside it as the same depot's work.\n\nPrimary request: a square-sectioned, riveted projector that reads as heavy industrial plant and clearly as a laser rather than a gun. The shroud is a box of tan-and-bronze painted plate matching Image 2, with the six bands as dark louvred radiator slats crossing it; the aperture housing is a square armoured frame of dark gunmetal holding a small dull-red glass port, deep red with a faint warm highlight, never glowing or bright, and a short hazard-orange stripe either side of it like the stripes on Image 2. The hidden middle block is plain dark steel. The power coupling at the rear is dark parkerised steel with bronze bolt heads and two black rubber cable glands. Crisp dark outline round the whole silhouette. No white, no blue, no cyan.\n\nStrict 90-degree zenith orthographic top-down view. The camera looks straight down on the weapon's top surfaces; it fires toward the TOP edge of the canvas, level with the ground, so no bore face is visible, only the top of the aperture frame. True transparent background, including all negative space; no ground, turret, vehicle, shadow slab, cast shadow, halo, glow, beam, border, text or labels.\n\nAvoid: white or pale paint, blue or cyan glass, glowing lights, a beam, a second weapon, perspective, side view, isometric view, sci-fi smooth plastic, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\hegemony-emitter\\guide.png",
+      "sha256": "e66f512fd7a8755526b605610763240b3f4dce1ee2f022a6ecbd3e44c25d710c",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: reskin, never move or resize shapes"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\turret-head-hegemony.png",
+      "sha256": "0f6d090404d5a45d70f206a0d3824c70b69cd757ed3b5a66b1a22008197c9a34",
+      "dimensions": [
+        320,
+        320
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "mod\\graphics\\battle\\mech-modular-topdown\\factions\\hegemony\\hc-20.png",
+      "sha256": "6c54dd32914b7b0b93f4c7e0c708013051967a94052eb64cfbf689c9af128325",
+      "dimensions": [
+        64,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: the sibling heavy cannon; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact geometry and the other references for finish and identity.\n"
+  ],
+  "usage": {
+    "input_tokens": 42731,
+    "cached_input_tokens": 20608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 706,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.5
+}
