@@ -202,6 +202,22 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void returnStepsBackToTheOverviewBeforeLeaving() {
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), MechBay.legacyStarterFixture());
+        int[] left = {0};
+        Runnable returnAction = viewModel.returnAction(() -> left[0]++);
+        viewModel.gantryRows().get().get(0).select().run();
+        assertTrue(viewModel.fittingFocused());
+
+        returnAction.run();
+        assertFalse(viewModel.fittingFocused());
+        assertEquals(0, left[0]);
+
+        returnAction.run();
+        assertEquals(1, left[0]);
+    }
+
+    @Test
     void assetPickerIsASeparateInternalScreenAndSelectionReturnsToGantry() {
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), MechBay.legacyStarterFixture());

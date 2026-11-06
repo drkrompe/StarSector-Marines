@@ -665,6 +665,17 @@ public final class MechLabViewModel {
     public Runnable nextGantryAction() { return this::nextGantry; }
     public Runnable selectGantryAction(int index) { return () -> selectGantry(index); }
     public Runnable overviewAction() { return this::showLanceOverview; }
+
+    /**
+     * The shell's Return: from a machine open for fitting, or the asset picker, it steps back to
+     * the lance overview, as the armory steps back to Barracks; from the overview it leaves.
+     */
+    public Runnable returnAction(Runnable leave) {
+        return () -> {
+            if (fittingFocused.get() || assetPickerOpen.get()) showLanceOverview();
+            else leave.run();
+        };
+    }
     public Consumer<String> editCallSignAction() { return this::editCallSign; }
     public Runnable renameCallSignAction() { return this::renameSelectedMech; }
     public Signal<String> categoryFilterClasses() { return categoryFilterClasses; }
