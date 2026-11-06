@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
@@ -47,7 +48,7 @@ import java.util.Locale;
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
  * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
- * to compare, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * to compare, then the green and red Scorpion and Onager ({@link #COLOUR_HULLS}), with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -77,6 +78,12 @@ public final class ProvingGroundSetup {
     private static final MechWeaponComponent[] GUN_LADDER = {
             MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
     private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
+    /**
+     * The hulls built in every weapon-point colour (hegemony-armor-line.md), fielded in the third rank after the gun
+     * ladder in green and red with the part a stock spawn of each fits; the ranks above hold their yellow ones.
+     */
+    private static final VehicleType[] COLOUR_HULLS = {VehicleType.MEDIUM_TANK, VehicleType.BREAKTHROUGH_TANK};
+    private static final HardpointType[] OTHER_COLOURS = {HardpointType.MISSILE, HardpointType.ENERGY};
     /** How far around the ranks a building or wild ground counts as nearby. */
     private static final int SURROUND = 20;
     /** Cells of either kind that count, so that a town with nothing wild does not outscore a little of both. */
@@ -130,6 +137,17 @@ public final class ProvingGroundSetup {
                     VehicleEngine.STOCK, GUN_LADDER[i]);
             long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
+        }
+        int file = GUN_LADDER.length;
+        for (VehicleType hull : COLOUR_HULLS) {
+            for (HardpointType colour : OTHER_COLOURS) {
+                float x = site.x(fileX(file++)) + 0.5f;
+                float y = site.y(rankY(2)) + 0.5f;
+                VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, hull, VehiclePlating.FACTORY,
+                        VehicleEngine.STOCK, hull.standardPart(colour));
+                long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
+                convoy.body(id).teleport(x, y, FACING_NORTH);
+            }
         }
         spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.

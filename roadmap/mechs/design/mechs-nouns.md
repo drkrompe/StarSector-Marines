@@ -417,6 +417,10 @@ increasing an encounter's total armored threat.
   scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun and the BL-1
   authored for it (and the PL-1), the Thermal Lance and the SRM-3 (QS) rack (`SRM_3_QS`). A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
+  A hull built in several **weapon-point variants** (`VehicleType.weaponPoints`: the Scorpion and the Onager) has its
+  card locked to the colour it was built in, yellow ballistic, green missile or red energy, at the same rows
+  (`CampaignVehicle.point`, `VehicleGunCard.of(type, point)`); the doll shows that colour and takes that colour's parts
+  (`hegemony-armor-line.md`, slice 8).
   An empty gun card means no gun, as every empty socket does (owner, 2026-11-05): a bought hull stands with a bare turret ring and may still drop unarmed, as a mech with no weapons may. Only a hull from an older save keeps an own gun, no part, until a weapon first replaces it (`CampaignVehicle.hasOwnGun`), so a weapon
   is only ever a part from stores. A stock hull's machine gun is the mech light machine gun itself
   (`VehicleType.ownGun`), set down as if fitted, so there is one machine gun in the game. A fitted weapon is the hull's turret with the weapon's ballistics in it

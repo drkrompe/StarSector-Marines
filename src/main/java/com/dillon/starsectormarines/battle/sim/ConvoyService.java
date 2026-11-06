@@ -15,8 +15,10 @@ import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
+import com.dillon.starsectormarines.battle.vehicle.FactionVehiclePoints;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
@@ -38,6 +40,7 @@ import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.VehicleRack;
 
+import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,6 +107,13 @@ public final class ConvoyService implements BodyCarrier {
     /** Held footprint masks, so a route question does not erode the whole map again. */
     private final VehicleClearances clearances = new VehicleClearances();
 
+    /**
+     * The weapon-point variant each side fields its stock hulls in ({@link VehicleType#weaponPoints}): the defender's
+     * campaign faction's colour once the battle knows it ({@link FactionVehiclePoints}); a side with none set fields
+     * each hull in its own.
+     */
+    private final Map<Faction, HardpointType> sidePoints = new EnumMap<>(Faction.class);
+
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
     }
@@ -122,7 +132,19 @@ public final class ConvoyService implements BodyCarrier {
      * {@code mission} (single-use — one mission, one spawn), the air-spawn shape.
      */
     public long spawn(VehicleType type, Faction faction, VehicleMission mission) {
-        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), faction, mission);
+        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, standardPart(type, faction), faction, mission);
+    }
+
+    /** Sets the colour {@code side} fields its stock hulls in; null returns it to each hull's own. */
+    public void fieldPoint(Faction side, HardpointType point) {
+        if (side == null) return;
+        if (point == null) sidePoints.remove(side);
+        else sidePoints.put(side, point);
+    }
+
+    /** The part a stock {@code type} of {@code side}'s fits: its standard part in the side's colour, if built in it. */
+    public MechWeaponComponent standardPart(VehicleType type, Faction side) {
+        return type.standardPart(side == null ? null : sidePoints.get(side));
     }
 
     /**
@@ -150,7 +172,7 @@ public final class ConvoyService implements BodyCarrier {
     public long spawnFitted(VehicleType type, List<MechInternal> internals, Faction faction, VehicleMission mission) {
         List<MechInternal> compartment = new ArrayList<>(VehicleRack.stockFit(type));
         compartment.addAll(internals);
-        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart(), compartment,
+        return spawn(type, VehiclePlating.FACTORY, VehicleEngine.STOCK, standardPart(type, faction), compartment,
                 faction, mission);
     }
 

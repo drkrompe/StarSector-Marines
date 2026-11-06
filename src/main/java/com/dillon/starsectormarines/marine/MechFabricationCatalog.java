@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.EnumMap;
@@ -112,6 +114,20 @@ public final class MechFabricationCatalog {
     public static List<Recipe> chassis() { return CHASSIS; }
 
     public static List<Recipe> vehicles() { return VEHICLES; }
+
+    /**
+     * What the lab builds: every vehicle pattern, one recipe per weapon-point variant for a hull built in several
+     * colours ({@link VehicleType#weaponPoints}), each at the pattern's price. A hull built in one is its own recipe.
+     */
+    public static List<Recipe> vehicleBuilds() {
+        List<Recipe> builds = new ArrayList<>();
+        for (Recipe recipe : VEHICLES) {
+            List<HardpointType> points = recipe.vehicle().weaponPoints();
+            if (points.size() < 2) builds.add(recipe);
+            else for (HardpointType point : points) builds.add(recipe.inPoint(point));
+        }
+        return List.copyOf(builds);
+    }
 
     public static Recipe vehicle(VehicleType type) {
         for (Recipe recipe : VEHICLES) {
@@ -263,12 +279,32 @@ public final class MechFabricationCatalog {
         return new FabricationCost(Math.max(10, Math.round(value / 10f) * 10));
     }
 
+    /**
+     * One thing the shops build. {@code point} is a vehicle recipe's weapon-point variant, the colour its hull is built
+     * in ({@link VehicleType#weaponPoints}); null for every other recipe and for a hull built only in its own.
+     */
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         MechInternal internal, VehicleType vehicle, FabricationCost cost) {
+                         MechInternal internal, VehicleType vehicle, FabricationCost cost, HardpointType point) {
+
+        public Recipe(String id, String displayName, String provenance, MechWeaponComponent component,
+                      MechVariant variant, MechInternal internal, VehicleType vehicle, FabricationCost cost) {
+            this(id, displayName, provenance, component, variant, internal, vehicle, cost, null);
+        }
+
+        /** This vehicle recipe in its {@code point} variant: the same pattern and price, its own id and name. */
+        Recipe inPoint(HardpointType point) {
+            return new Recipe(id + "." + point.name().toLowerCase(Locale.ROOT), displayName, provenance, component,
+                    variant, internal, vehicle, cost, point);
+        }
+
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
             if (internal != null) return internal.displayName();
+            if (vehicle != null && point != null) {
+                return Strings.format("vehicleVariantName", CampaignVehicle.typeName(vehicle),
+                        Strings.get("gearHardpoint" + point.name()));
+            }
             if (vehicle != null) return CampaignVehicle.typeName(vehicle);
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());

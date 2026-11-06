@@ -3253,6 +3253,7 @@
     "vehicleDollSealed": "SEALED",
     "vehicleDollRackCaption": "{0} / {1} SLOTS",
     "vehicleDollSeats": "{0} SEATS",
+    "vehicleVariantName": "{0} ({1})",
     "vehicleDollSupply": "SUPPLY STOCK {0}",
     "vehicleDollDrones": "{0} DRONES",
     "vehicleDollSecondary": "SECONDARY GUN",

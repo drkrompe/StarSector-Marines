@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -57,7 +58,7 @@ public final class VehicleGun {
      * hull's fitted weapon stands on the ring, and an empty card has nothing.
      */
     public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
-        if (weapon == null || lengthCells(type, weapon) <= 0f || closedHead(type)) return 0f;
+        if (weapon == null || lengthCells(type, weapon) <= 0f || closedHead(type, weapon.hardpointType)) return 0f;
         boolean machineGunHull = type.ownGun() != null;
         boolean headlessOnArmyTurret = type.hasModularTurret() && type.mountStyle() != TurretMountStyle.WHITE;
         return machineGunHull || headlessOnArmyTurret ? mountCells(type) * PLATE_SHARE_OF_MOUNT : 0f;
@@ -82,14 +83,25 @@ public final class VehicleGun {
      * hull with no head ({@link VehicleType#turretHead}).
      */
     public static float headCells(VehicleType type) {
-        TurretHead head = type.turretHead();
+        return headCells(type, null);
+    }
+
+    /** As above, the head a weapon of {@code point}'s colour turns in ({@link VehicleType#turretHead(HardpointType)}). */
+    public static float headCells(VehicleType type, HardpointType point) {
+        TurretHead head = type.turretHead(point);
         if (head == null) return 0f;
         return mountCells(type) * (head.closed ? HEAD_SHARE_OF_MOUNT : OPEN_HEAD_SHARE_OF_MOUNT);
     }
 
     /** Whether {@code type} draws a closed head over its weapon, which a barrel must clear and which replaces a plate. */
     public static boolean closedHead(VehicleType type) {
-        return type.turretHead() != null && type.turretHead().closed;
+        return closedHead(type, null);
+    }
+
+    /** As above, for a weapon of {@code point}'s colour: a missile rack stands in the open barbette, never under a lid. */
+    public static boolean closedHead(VehicleType type, HardpointType point) {
+        TurretHead head = type.turretHead(point);
+        return head != null && head.closed;
     }
 
     /** The diameter of the mount ring a fitted weapon stands on, in cells: the share of its width the hull's ring spans. */
@@ -115,10 +127,10 @@ public final class VehicleGun {
             return (mountCells(type) / 2f + past) / (1f - RING_FROM_REAR);
         }
         float own = MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
-        if (!closedHead(type) || own <= 0f) return own;
+        if (!closedHead(type, weapon.hardpointType) || own <= 0f) return own;
         // Under a closed head the barrel must clear the mantlet: a gun shorter than that is drawn long enough to.
         float past = weapon.footprintRows >= 2 ? HEAD_PROTRUSION_CELLS : LIGHT_HEAD_PROTRUSION_CELLS;
-        return Math.max(own, (headCells(type) / 2f + past) / (1f - RING_FROM_REAR));
+        return Math.max(own, (headCells(type, weapon.hardpointType) / 2f + past) / (1f - RING_FROM_REAR));
     }
 
     /** How far the drawn weapon kicks back on {@code type} as it fires, in cells. */

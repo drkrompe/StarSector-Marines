@@ -19,7 +19,13 @@ public enum VehicleGunCard {
     MEDIUM_CANNON(HardpointType.BALLISTIC, 2),
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
-    LRM(HardpointType.MISSILE, 2);
+    LRM(HardpointType.MISSILE, 2),
+    /** The medium tank's red variant: any two-row energy weapon. */
+    MEDIUM_LASER(HardpointType.ENERGY, 2),
+    /** The medium tank's green variant: any two-row missile rack. */
+    MEDIUM_MISSILE(HardpointType.MISSILE, 2),
+    /** The Onager's green variant: any three-row missile rack. */
+    HEAVY_MISSILE(HardpointType.MISSILE, 3);
 
     /** Every gun card is two columns wide, as every mech weapon is. */
     public static final int COLUMNS = 2;
@@ -50,6 +56,21 @@ public enum VehicleGunCard {
     /** The card on {@code type}'s doll; null for an unarmed hull, which has none. */
     public static VehicleGunCard of(VehicleType type) {
         return type != null && type.hasTurretWeapon() ? of(type.turretStructureId) : null;
+    }
+
+    /**
+     * The card on {@code type}'s doll in its weapon-point variant ({@link VehicleType#weaponPoints}): the hull's own
+     * card when {@code point} is null or the hull's own colour, otherwise the card of the same rows locked to
+     * {@code point}. Null for an unarmed hull, and for a point the hull is not built in.
+     */
+    public static VehicleGunCard of(VehicleType type, HardpointType point) {
+        VehicleGunCard own = of(type);
+        if (own == null || point == null || point == own.hardpoint) return own;
+        if (!type.weaponPoints().contains(point)) return null;
+        for (VehicleGunCard card : values()) {
+            if (card.hardpoint == point && card.rows == own.rows && card != MORTAR && card != LRM) return card;
+        }
+        return null;
     }
 
     /** Whether {@code weapon} goes in this card: the lock's hardpoint type if any, no wider or taller than the card. */
