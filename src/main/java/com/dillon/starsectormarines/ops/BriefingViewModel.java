@@ -70,7 +70,7 @@ final class BriefingViewModel {
         props.put("rewardHeader", Strings.get("briefingVmContractHeader"));
         putFactionIdentity(props, "employer", Strings.get("briefingVmEmployerUndisclosed"), null);
         putFactionIdentity(props, "opposition", Strings.get("briefingVmOppositionUnidentified"), null);
-        props.put("rewardValue", Strings.get("briefingVmPaymentUnspecified"));
+        putRewardWords(props, Strings.get("briefingVmPaymentUnspecified"));
         props.put("rewardTerms", Strings.get("briefingVmTermsFromEmployer"));
         putSurvey(props, null, Strings.get("briefingVmSurveyPending"));
         props.put("assignClasses", "");
@@ -117,7 +117,7 @@ final class BriefingViewModel {
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
         props.put("deploymentStatus", "");
         props.put("deploymentStatusClasses", "label tone-muted");
-        props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
+        putRewardCredits(props, CompanyResources.number(late ? 480_000 : 18_000));
         props.put("rewardTerms", "");
         putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
@@ -298,7 +298,7 @@ final class BriefingViewModel {
     static void putReward(Map<String, Object> props, Mission mission) {
         if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.workingPassage(mission.id)) {
             props.put("rewardHeader", Strings.get("shepherdRewardHeader"));
-            props.put("rewardValue", Strings.get("shepherdRewardShip"));
+            putRewardWords(props, Strings.get("shepherdRewardShip"));
             props.put("rewardTerms", Strings.get("shepherdRewardHandover"));
             return;
         }
@@ -307,18 +307,34 @@ final class BriefingViewModel {
         long payment = (long) mission.payout * multiplier / 100;
         if (SupplyRouteCampaign.freight(mission)) {
             props.put("rewardHeader", Strings.get("briefingVmFreightHeader"));
-            props.put("rewardValue", Strings.get("briefingVmFreightValue"));
+            putRewardCredits(props, Strings.get("briefingVmFreightValue"));
             props.put("rewardTerms", Strings.get("briefingVmFreightTerms"));
             return;
         }
         props.put("rewardHeader", Strings.get(mission.source.isDebug()
                 ? "briefingVmSimulationHeader" : "briefingVmContractHeader"));
-        props.put("rewardValue", payment > 0 ? Strings.format("briefingVmCredits", payment)
-                : Strings.get("briefingVmNoCredits"));
+        if (payment > 0) putRewardCredits(props, CompanyResources.number(payment));
+        else putRewardWords(props, Strings.get("briefingVmNoCredits"));
         int salvage = mission.contractSalvageNegotiated & 0xff;
         props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
                 ? Strings.format("briefingVmSalvageTerms", salvage)
                 : payment > 0 ? "" : Strings.get("briefingVmNoCashReward"));
+    }
+
+    /** A credit reward: the game's credit sign before the figure, in the company's stock-strip colour. */
+    static void putRewardCredits(Map<String, Object> props, String amount) {
+        props.put("rewardValue", amount);
+        props.put("rewardValueClasses", "label title reward-credits");
+        props.put("rewardIcon", CompanyResources.CREDITS_ICON);
+        props.put("rewardIconStyle", "width: 24px; height: 24px");
+    }
+
+    /** A reward that is not a credit figure (a ship, no payment, terms still pending), in words. */
+    static void putRewardWords(Map<String, Object> props, String words) {
+        props.put("rewardValue", words);
+        props.put("rewardValueClasses", "label title tone-good");
+        props.put("rewardIcon", CompanyResources.CREDITS_ICON);
+        props.put("rewardIconStyle", "width: 0px; height: 0px");
     }
 
     static void putSurvey(Map<String, Object> props, BriefingSurvey map, String pending) {
