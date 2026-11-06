@@ -182,6 +182,7 @@ public final class MechLabScreen implements Screen {
             dollCanvas.installedWeapons(viewModel::installedWeapon);
             dollCanvas.installedCompartment(viewModel::compartmentPlacements);
             dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            dollCanvas.vehiclePoint(viewModel::shownVehiclePoint);
             dollCanvas.vehicleOwnGun(viewModel::selectedVehicleHasOwnGun);
             dollCanvas.fittedMachine(viewModel::selectedMachine);
             built.canvases().set(dollElement, dollCanvas);
@@ -311,7 +312,7 @@ public final class MechLabScreen implements Screen {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
                             CampaignMech.frame(row.id(), row.chassisPreview()), this::previewMechs));
                 } else if (row.vehiclePreview() != null) {
-                    target.canvases().set(canvas, VehiclePreviewCanvas.asBought(row.vehiclePreview()));
+                    target.canvases().set(canvas, VehiclePreviewCanvas.asBought(row.vehiclePreview(), row.vehiclePoint()));
                 } else if (row.weaponPreview() != null || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
                             row.weaponPreview(), row.internalPreview(), this::previewMechs));
