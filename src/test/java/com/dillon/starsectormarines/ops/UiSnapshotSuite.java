@@ -2856,6 +2856,8 @@ private static BufferedImage renderBarracks(
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "drag-floor")),
                 new SnapshotArtifact("mech-hover-installed-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "hover-installed")),
+                new SnapshotArtifact("mech-hover-compartment-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "hover-compartment")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
@@ -3106,7 +3108,8 @@ private static BufferedImage renderBarracks(
             viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence || "repairing".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
-        if ("hover-installed".equals(materialHint) || materialHint != null && materialHint.startsWith("drag-")) {
+        if ("hover-installed".equals(materialHint) || "hover-compartment".equals(materialHint)
+                || materialHint != null && materialHint.startsWith("drag-")) {
             viewModel.gantryRows().get().get(0).select().run();
         }
         // Internals: the engine socket with an uprated engine hovered, then frame plating
@@ -3394,10 +3397,21 @@ private static BufferedImage renderBarracks(
                 showCarriedPart(document, instance, fittingCanvas, viewModel, materialHint);
             }
             // The pointer resting on a fitted missile pod, nothing in hand: the board names it.
-            if ("hover-installed".equals(materialHint)) {
+            // Or on the first part in an auxiliary bank: it opens its own sheet, beside that part.
+            boolean compartmentHover = "hover-compartment".equals(materialHint);
+            if ("hover-installed".equals(materialHint) || compartmentHover) {
+                // Laid out at the size it is drawn first, so the point found is where the part stands.
+                renderRelative(renderer, document, width, height, uiScale);
                 float[] at = null;
                 for (float y = 0f; y < 2000f && at == null; y += 4f) {
                     for (float x = 0f; x < 2000f; x += 4f) {
+                        if (compartmentHover) {
+                            if (fittingCanvas.placementAt(x, y) != null) {
+                                at = new float[]{x + 8f, y + 8f};
+                                break;
+                            }
+                            continue;
+                        }
                         SocketId socket = fittingCanvas.socketAt(x, y);
                         MechWeaponComponent fitted = socket != null ? viewModel.installedWeapon(socket) : null;
                         if (fitted != null && fitted.hardpointType == MechWeaponComponent.HardpointType.MISSILE) {
@@ -3406,7 +3420,7 @@ private static BufferedImage renderBarracks(
                         }
                     }
                 }
-                if (at == null) throw new IllegalStateException("No fitted missile pod drawn on the doll");
+                if (at == null) throw new IllegalStateException("No fitted part drawn on the doll for " + materialHint);
                 UiElement doll = instance.requireElement("mech-doll-canvas");
                 SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
                 MechLabSpecSheets.bindDoll(binder, document, doll, fittingCanvas, viewModel);
@@ -3417,8 +3431,11 @@ private static BufferedImage renderBarracks(
                 document.canvases().invalidate(doll);
                 renderRelative(renderer, document, width, height, uiScale);
                 binder.update();
-                if (binder.openTarget() != doll) throw new IllegalStateException("No spec sheet for the pointed pod");
+                if (binder.openTarget() != doll) throw new IllegalStateException("No spec sheet for the pointed part");
                 document.advance(0f);
+                if (!SpecSheetLayer.install(document).visible()) {
+                    throw new IllegalStateException("The pointed part's spec sheet is not shown");
+                }
             }
             renderRelative(renderer, document, width, height, uiScale);
             guide.update();

@@ -701,6 +701,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float[] end = path.get(path.size() - 1);
             drawAnchorMechanicalTick(c, end[0], end[1], wire, selected);
         }
+        // The card under the pointer is read off this frame's board, not the last move's: the board can
+        // settle or shift under a resting pointer, and its highlight and spec sheet follow the card drawn there.
+        hoveredSocket = null;
+        for (SocketDropTarget target : targets) {
+            if (!socketById(sockets, target.id()).factoryLocked() && target.contains(hover.x(), hover.y())) {
+                hoveredSocket = target.id();
+                break;
+            }
+        }
         MechSocketConsole.Warnings warnings = MechSocketConsole.Warnings.of(fittedMachine.get());
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
@@ -748,11 +757,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 continue;
             }
             if (hoveredSocket != socket.id()) continue;
-            MechInternal part = socket.id().compartment() ? partAt(hover.x(), hover.y())
+            MechCompartment.Placement placed = socket.id().compartment() ? placementAt(hover.x(), hover.y()) : null;
+            MechInternal part = socket.id().compartment() ? placed != null ? placed.part() : null
                     : installedInternals.apply(socket.id());
             if (part != null || weapon != null) {
-                // A fitted part is described by its spec sheet, the one its stores card opens.
-                float[] box = socket.id().compartment() ? partBoxes.get(part) : null;
+                // A fitted part is described by its spec sheet, the one its stores card opens, beside that part.
+                float[] box = placed != null ? partBoxes.get(placed) : null;
                 pointed = box != null ? new PointedPart(weapon, part, box[0], box[1], box[2], box[3])
                         : new PointedPart(weapon, part, target.left(), target.top(), target.right(), target.bottom());
             } else if (!socket.id().compartment()) {
