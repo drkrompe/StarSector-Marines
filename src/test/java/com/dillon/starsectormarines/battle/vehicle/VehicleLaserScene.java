@@ -27,7 +27,7 @@ import java.util.Map;
  * The large vehicle lasers on the ground (owner, 2026-11-05: "its laser should be able to do decent damage to walls and
  * have an AoE on areas hit; its laser should be able to light fires with sustained damage to a flammable area"). A
  * driven laser tank on bare ground holds its fire on a patch of grass, then on a light wall, as a player would, once
- * with its PL-3 and once with a PL-3 (Sweep) fitted.
+ * with its PL-3 and once with a PL-3 (Pulse) fitted.
  *
  * <p>Verdicts are mechanics: the laser fires, sustained fire on the grass lights it, and its pulses wear the wall
  * they stop at. How long the grass took, how much wall it took and how many cells burnt are readings.

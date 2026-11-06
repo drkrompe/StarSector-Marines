@@ -39,7 +39,7 @@ public enum MechWeaponComponent {
             1, -1, LayeredMechAppearance.ARMS_HC_20),
     // The lasers are named <Family>-<N> by how they fire (mechs-nouns.md, Weapon names): BL beam lasers (held), PL pulse
     // lasers (a burst a trigger), LL lance lasers (one lance a trigger); N is the footprint's rows. A PL moniker marks a
-    // pulse laser built for one job: (AP) fewer, harder pulses that pierce plate, (Sweep) a long stream of light pulses.
+    // pulse laser built for one job: (AP) fewer, harder pulses that pierce plate, (Pulse) a long stream of light pulses.
     PL_2_AP("component.mech-pl-2-ap", "@gearMechWeaponComponentPL2AP",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2, "weapon.mech-pl-2-ap",
             4, -1, LayeredMechAppearance.ARMS_PL_2_AP),
@@ -71,9 +71,9 @@ public enum MechWeaponComponent {
             WeaponRegistry.MECH_BL_1_ID, 4, -1,
             LayeredMechAppearance.ARMS_BL_1),
 
-    // The laser ladder (vehicle-card-sizes.md): the red-banded lasers (BL-1, BL-2 and PL-3 (Sweep)) and the pulse lasers
+    // The laser ladder (vehicle-card-sizes.md): the red-banded lasers (BL-1, BL-2 and PL-3 (Pulse)) and the pulse lasers
     // (short heavy volleys that vent, clean white and blue: PL-1, PL-2, PL-3). The BL-1 and BL-2 are held beams; the
-    // PL-3 (Sweep) keeps its long stream of pulses a pull at a time.
+    // PL-3 (Pulse) keeps its long stream of pulses a pull at a time.
     PL_1("component.mech-pl-1", "@gearMechWeaponComponentPL1",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
             WeaponRegistry.MECH_PL_1_ID, 2, -1,
@@ -184,7 +184,7 @@ public enum MechWeaponComponent {
 
     /**
      * The turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrames}): the
-     * PL-3 the white head the laser tank has always carried, the PL-3 (Sweep) the red head the retired PD laser tank
+     * PL-3 the white head the laser tank has always carried, the PL-3 (Pulse) the red head the retired PD laser tank
      * carried. Every other weapon is drawn as its own drawing, on the mount ring or under a hull's closed head
      * ({@code VehicleType.turretHead}).
      */

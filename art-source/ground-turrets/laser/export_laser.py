@@ -1,13 +1,13 @@
 """Cut the high-tech posts' laser heads into mod/graphics/structures/ground-turrets/laser/ (`ground-turret-tiers.md`).
 
-Each head is a painted, up-res'd vanilla laser turret (upres_guide.py; the PL-3 (Sweep) head is the laser tank's
+Each head is a painted, up-res'd vanilla laser turret (upres_guide.py; the PL-3 (Pulse) head is the laser tank's
 Tri-Tachyon skin), turned nose up and scaled about its pivot, the sprite's centre as in the game, so the head turns on
 its mount. A laser has no recoil, so there is no barrel layer; the contact shadow is baked in as for every head. The
 heads are named for the laser they carry (`mechs-nouns.md`, Weapon names).
 
-  pl-3-sweep-head.png   160x160 (visualCells 1.25): the PL-3 (Sweep) emplacement, from art-source/vehicles/tank-laser/pd-skin-tt-raw.png
+  pl-3-sweep-head.png   160x160 (visualCells 1.25): the PL-3 (Pulse) emplacement, from art-source/vehicles/tank-laser/pd-skin-tt-raw.png
   pl-3-head.png         160x160 (visualCells 1.25): the PL-3 emplacement's twin emitters, from burstpd-raw.png
-  heavy-laser-head.png  384x384 (visualCells 3.0):  the hardpoint's PL-3 (Sweep), the laser tank's own red head
+  heavy-laser-head.png  384x384 (visualCells 3.0):  the hardpoint's PL-3 (Pulse), the laser tank's own red head
                         (art-source/vehicles/tank-laser/pd-skin-red-raw.png) at hardpoint size
 
 Prints each head's muzzle (the emitter tip on the axis), in cells forward of the pivot, for the mounts.

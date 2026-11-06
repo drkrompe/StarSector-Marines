@@ -48,7 +48,8 @@ import java.util.Locale;
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
  * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
- * to compare, then the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS}), with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * to compare, then the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS})
+ * and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -78,6 +79,11 @@ public final class ProvingGroundSetup {
     private static final MechWeaponComponent[] GUN_LADDER = {
             MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
     private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
+    /**
+     * The laser tank's other large laser, parked at the end of the third rank: the second rank's laser tank
+     * carries its standard PL-3 ({@link VehicleType#standardPart}), so the two lasers can be driven side by side.
+     */
+    private static final MechWeaponComponent[] LASER_VARIANTS = {MechWeaponComponent.PL_3_SWEEP};
     /**
      * The gun tanks, whose omni cards take any colour (hegemony-armor-line.md), fielded in the third rank after the
      * gun ladder with the missile and the energy part a stock spawn of each fits; the ranks above hold their cannons.
@@ -130,25 +136,12 @@ public final class ProvingGroundSetup {
             long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
         }
-        for (int i = 0; i < GUN_LADDER.length; i++) {
-            float x = site.x(fileX(i)) + 0.5f;
-            float y = site.y(rankY(2)) + 0.5f;
-            VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, GUN_LADDER_HULL, VehiclePlating.FACTORY,
-                    VehicleEngine.STOCK, GUN_LADDER[i]);
-            long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
-            convoy.body(id).teleport(x, y, FACING_NORTH);
-        }
-        int file = GUN_LADDER.length;
+        int file = 0;
+        for (MechWeaponComponent gun : GUN_LADDER) parkFitted(convoy, site, file++, GUN_LADDER_HULL, gun);
         for (VehicleType hull : COLOUR_HULLS) {
-            for (HardpointType colour : OTHER_COLOURS) {
-                float x = site.x(fileX(file++)) + 0.5f;
-                float y = site.y(rankY(2)) + 0.5f;
-                VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, hull, VehiclePlating.FACTORY,
-                        VehicleEngine.STOCK, hull.standardPart(colour));
-                long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
-                convoy.body(id).teleport(x, y, FACING_NORTH);
-            }
+            for (HardpointType colour : OTHER_COLOURS) parkFitted(convoy, site, file++, hull, hull.standardPart(colour));
         }
+        for (MechWeaponComponent gun : LASER_VARIANTS) parkFitted(convoy, site, file++, VehicleType.LASER_TANK, gun);
         spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.
         sim.setGroundMarineArrival(new GroundMarineArrival(site.x(WIDTH / 2), site.y(HEIGHT / 2),
@@ -156,6 +149,16 @@ public final class ProvingGroundSetup {
         sim.playerCommandsCompany();
         sim.addObjective(new TestDrive());
         return sim;
+    }
+
+    /** A hull fitted with {@code gun}, parked at {@code file} of the third rank. */
+    private static void parkFitted(ConvoyService convoy, Site site, int file, VehicleType hull, MechWeaponComponent gun) {
+        float x = site.x(fileX(file)) + 0.5f;
+        float y = site.y(rankY(2)) + 0.5f;
+        VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, hull, VehiclePlating.FACTORY,
+                VehicleEngine.STOCK, gun);
+        long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
+        convoy.body(id).teleport(x, y, FACING_NORTH);
     }
 
     /**

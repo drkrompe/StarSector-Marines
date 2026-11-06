@@ -60,7 +60,7 @@ laser (steady lances that run cool, a slight red motif) and the burst laser (sho
 and blue). Every part has a glass blue orb lens at the front and white electronics built into the arm; the 2x2 and the 1x2
 are progressively miniaturized 3x2s, drawn from the picked 3x2 designs. The six parts: light PD (`BL_1`,
 24 dps), PD (`BL_2`), heavy PD (`PL_3_SWEEP`), light burst (`PL_1`), burst (`PL_2`) and
-heavy burst (`PL_3`); they are named BL-1, BL-2, PL-3 (Sweep), PL-1, PL-2 and PL-3 now (`mechs-nouns.md`, Weapon names). The two heavy
+heavy burst (`PL_3`); they are named BL-1, BL-2, PL-3 (Pulse), PL-1, PL-2 and PL-3 now (`mechs-nouns.md`, Weapon names). The two heavy
 parts are nose guns only (the centreline mount), like the HC-20, and are Prestige; on a mech they fit the Warden's nose, which is an omni socket for it (the Hound's stays a 2x2 ballistic one, so it takes none); the others fit any arm. One
 white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
 the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,

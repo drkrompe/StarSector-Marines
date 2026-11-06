@@ -478,14 +478,14 @@
   .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
-  .mission-threat { flex-direction: row; align-items: center; width: 416px; height: 48px; gap: 8px; }
+  .mission-threat { flex-direction: row; align-items: center; width: 456px; height: 48px; gap: 8px; }
   .threat-symbols { flex-direction: row; align-items: center; min-height: 26px; gap: 4px; }
   #mission-scale-symbols { width: 126px; }
   #mission-scale-name { width: 112px; height: auto; white-space: normal; }
-  #mission-risk-symbols { width: 188px; }
+  #mission-risk-symbols { width: 198px; }
   #mission-risk-pips { width: 74px; }
   .threat-symbols .indicator { width: 22px; height: 22px; }
-  #mission-risk-name { width: 106px; height: auto; white-space: normal; padding: 0px 4px; }
+  #mission-risk-name { width: 120px; height: auto; white-space: normal; padding: 0px 4px; }
   .indicator.dim { opacity: 0.18; }
   .mission-flavor { white-space: normal; padding: 0px; border-width: 0px; background-color: transparent; }
   .info-row { flex-direction: column; align-items: start; height: 46px; padding: 0px; gap: 4px; border-width: 0px; }
@@ -546,7 +546,8 @@
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
   .mission-reward-line { flex-direction: row; align-items: center; height: 26px; gap: 8px; }
-  #mission-reward-value { width: 0px; flex-grow: 1; height: 26px; }
+  /* Orbitron sits high in its line: the padding lowers its capitals onto the sign's centre. */
+  #mission-reward-value { width: 0px; flex-grow: 1; height: 24px; padding: 3px 0px 0px 0px; }
   /* A credit amount reads as the company's stock strips do: the game's credit sign, then the figure. */
   .reward-credits { color: #cddfef; }
   .mission-survey-slot { flex-direction: column; width: 428px; }
