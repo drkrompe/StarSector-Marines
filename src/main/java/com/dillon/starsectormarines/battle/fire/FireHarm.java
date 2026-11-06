@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.fire;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -13,7 +15,10 @@ import java.util.Arrays;
  * What fire does to whoever is in it (`fire-nouns.md`, Damage): every fire
  * step a unit in a burning cell takes damage scaled by the cell's intensity,
  * and one beside a burning cell a tenth of the hottest neighbour's. The damage
- * carries morale, so a team standing in fire breaks as one under fire does.
+ * carries morale in proportion to its heat ({@link #moraleImpact}), so a team
+ * standing in fire breaks as one under fire does and one beside it holds. Only
+ * the flames count as coming under fire: a burn beside them drains its share
+ * but leaves the team's recovery clock running.
  * What it does depends on what is burning, not on what stops bullets: a soft
  * body (infantry in ordinary armour, militia, civilians, the swarm) takes it
  * straight to health, its armour untouched, so a marine stood in full flame is
@@ -44,6 +49,8 @@ public final class FireHarm {
 
     private long[] ids = new long[64];
     private float[] amounts = new float[64];
+    /** Whether each burnt unit stands in a burning cell, rather than beside one. */
+    private boolean[] inFlames = new boolean[64];
     private int count;
 
     public void tick(BattleSimulation sim, FireField field) {
@@ -62,14 +69,19 @@ public final class FireHarm {
                 if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
                 float share = exposure(field, cx, cy);
                 if (share <= 0f) continue;
-                add(t.entityAt(r), share * bodyShare(type) * DPS_IN * FireField.STEP_SECONDS);
+                add(t.entityAt(r), share * bodyShare(type) * DPS_IN * FireField.STEP_SECONDS, field.isBurning(cx, cy));
             }
         }
         for (int i = 0; i < count; i++) {
             long id = ids[i];
             if (!sim.getRoster().isAliveById(id)) continue;
             boolean through = throughArmor(sim.identity().type(id), sim.identity().armorClass(id));
+            FireTeamMorale team = inFlames[i] ? null : teamOf(sim, id);
+            float quiet = team == null ? 0f : team.timeSinceUnderFire;
             sim.applyDamage(id, amounts[i], through ? DamageResolver.THROUGH_ARMOR : PENETRATION, moraleImpact(amounts[i]));
+            // Scorched beside the flames is not coming under fire: the team's quiet clock runs on, so a team
+            // that has broken near a fire steadies there rather than staying broken until the fire burns out.
+            if (team != null) team.timeSinceUnderFire = quiet;
         }
         consumeSwarmDead(sim, field, c);
     }
@@ -126,12 +138,21 @@ public final class FireHarm {
         }
     }
 
-    private void add(long id, float amount) {
+    /** The fire team a burnt infantry squad member belongs to, or {@code null} for anyone else. */
+    private static FireTeamMorale teamOf(BattleSimulation sim, long id) {
+        if (!sim.squad().hasSquad(id)) return null;
+        Squad squad = sim.getSquad(sim.squad().squadId(id));
+        return squad == null || squad.isMechSquad() ? null : squad.fireTeamMorale(sim.squad().fireTeamIndex(id));
+    }
+
+    private void add(long id, float amount, boolean flames) {
         if (count == ids.length) {
             ids = Arrays.copyOf(ids, count * 2);
             amounts = Arrays.copyOf(amounts, count * 2);
+            inFlames = Arrays.copyOf(inFlames, count * 2);
         }
         ids[count] = id;
+        inFlames[count] = flames;
         amounts[count++] = amount;
     }
 }

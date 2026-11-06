@@ -36,6 +36,9 @@ import java.util.Map;
  *   or running, and in {@code shaken-run} with every fire team broken. The order is carried out.</li>
  *   <li>{@code beside}: a player's squad on bare ground beside a stand that burns keeps its nerve and takes
  *   the next order.</li>
+ *   <li>{@code broken-beside}: a player's squad, every fire team broken, beside a burning stand on the side
+ *   away from a distant enemy. It falls back out of the fire's way rather than into the stand, steadies, and
+ *   takes a walking order.</li>
  *   <li>{@code swarm-round}: runners on the prey flow field after marines beyond a
  *   burning band of brush that has a way round its south end. The field charges
  *   burning cells, so the runners go round the band rather than through it.</li>
@@ -73,7 +76,8 @@ public final class FireFearScene implements BehaviorScene {
                 ordered("run-away", frames, ORDER_EAST_X, true, false),
                 ordered("run-through", frames, ORDER_WEST_X, true, false),
                 ordered("shaken-run", frames, ORDER_WEST_X, true, true),
-                beside(frames));
+                beside(frames),
+                brokenBeside(frames));
     }
 
     private static NavigationGrid ground(CellTopology topology, int fuelFrom, int fuelTo, int fuelMaxY, boolean brush) {
@@ -283,6 +287,63 @@ public final class FireFearScene implements BehaviorScene {
             metrics.put("firstBrokenTick", firstBroken);
             metrics.put("arrivedTick", arrived);
             return new SceneReport(id(), "beside", ticks, verdicts, metrics);
+        }
+    }
+
+    /**
+     * A broken squad at the edge of a brush stand that burns, on the side away from a distant enemy: does it
+     * steady as quickly as it would anywhere else, and take an order? Kept beside the flames by its own
+     * fall-back cell, each burn there restarted its recovery clock.
+     */
+    private SceneReport brokenBeside(FrameSink frames) throws Exception {
+        int ticks = 30 * 40, breakTick = 30, orderTick = 600;
+        // A team broken out of the fire's way steadies in two seconds here; one kept in it stays broken.
+        int steadyBy = breakTick + 90;
+        CellTopology topology = new CellTopology(WIDTH, HEIGHT);
+        NavigationGrid grid = ground(topology, 20, 40, HEIGHT, true);
+        SceneBuilder builder = SceneBuilder.over(grid, topology).seed(SEED).missionCompletion(false);
+        builder.squad("broken").faction(Faction.MARINE).type(UnitType.MARINE).size(6).unarmed()
+                .inFile(41, 14, 0, 2).done();
+        builder.unit("enemy", Faction.DEFENDER, UnitType.MILITIA, 97, 20,
+                spec -> spec.moveSpeed(0f).attackDamage(0f));
+        SceneWorld world = builder.build();
+        try (BattleSimulation sim = world.sim()) {
+            int squadId = world.squadId("broken");
+            long[] members = world.members("broken");
+            SquadMoveOrderService orders = sim.getSquadMoveOrderService();
+            int brokenTicks = 0, brokenLate = 0, exposed = 0, arrived = -1;
+            for (int tick = 0; tick < ticks; tick++) {
+                if (tick == 0) for (int y = 0; y < HEIGHT; y++) sim.fireField().addHeat(39, y, 3000);
+                if (tick == breakTick) {
+                    for (FireTeamMorale team : sim.getSquad(squadId).fireTeamMorale()) {
+                        team.morale = 0.1f;
+                        team.broken = true;
+                    }
+                }
+                if (tick == orderTick) orders.requestMove(squadId, 70, 19);
+                sim.advance(BattleSimulation.TICK_DT);
+                Squad squad = sim.getSquad(squadId);
+                for (long m : members) {
+                    if (!sim.getRoster().isAliveById(m)) continue;
+                    if (FireHarm.exposure(sim.fireField(), sim.world().cellX(m), sim.world().cellY(m)) > 0f) exposed++;
+                    if (squad.fireTeamBroken(sim.squad().fireTeamIndex(m))) {
+                        brokenTicks++;
+                        if (tick >= steadyBy) brokenLate++;
+                    }
+                }
+                if (tick > orderTick + 1 && arrived < 0 && orders.activeOrder(squadId) == null) arrived = tick;
+                if (tick % 15 == 0) frames.frame("broken-beside", sim, tick, "broken-beside / tick " + tick);
+            }
+            List<Verdict> verdicts = new ArrayList<>();
+            verdicts.add(Verdict.of("steadies", brokenLate == 0,
+                    brokenLate + " marine-ticks still broken from tick " + steadyBy));
+            verdicts.add(Verdict.of("takes-the-order", arrived >= 0, "the walking order was over at tick " + arrived));
+            Map<String, Number> metrics = new LinkedHashMap<>();
+            metrics.put("brokenMarineTicks", brokenTicks);
+            metrics.put("brokenLateMarineTicks", brokenLate);
+            metrics.put("exposedMarineTicks", exposed);
+            metrics.put("arrivedTick", arrived);
+            return new SceneReport(id(), "broken-beside", ticks, verdicts, metrics);
         }
     }
 

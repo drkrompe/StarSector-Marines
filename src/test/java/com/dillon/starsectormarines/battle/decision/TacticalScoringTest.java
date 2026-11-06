@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.fire.FireEscape;
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireFuel;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -830,6 +833,28 @@ public class TacticalScoringTest {
                 "picker returned a non-walkable cell (" + dest[0] + "," + dest[1] + ")");
         assertTrue(dest[0] < 10,
                 "picker shouldn't have crossed the wall to land on the enemy's side — got (" + dest[0] + "," + dest[1] + ")");
+    }
+
+    @Test
+    public void aPersonDoesNotFallBackIntoTheFiresWay() {
+        // The picker's first choice is set burning: a person picks again, out of the fire's way, and a cached
+        // fall-back cell the fire has come into the way of asks for a refresh.
+        BattleSimulation sim = openArena(20, 20);
+        long self = unit(sim, Faction.MARINE, 5, 10);
+        unit(sim, Faction.DEFENDER, 15, 10);
+        TacticalScoring scoring = sim.getTacticalScoring();
+        int[] first = scoring.findFallbackPosition(self);
+
+        FireField fire = new FireField(20, 20, 1L, idx -> FireFuel.CROWN.bit);
+        fire.addHeat(first[0], first[1], 5000);
+        for (int t = 0; t < 30 * FireField.STEP_TICKS && !fire.isBurning(first[0], first[1]); t++) fire.tick(t);
+        assertTrue(FireEscape.needsToMove(fire, first[0], first[1]), "the first choice is in the fire's way");
+
+        int[] again = scoring.findFallbackPosition(self, fire);
+        assertFalse(FireEscape.needsToMove(fire, again[0], again[1]),
+                "picked (" + again[0] + "," + again[1] + "), in the fire's way");
+        sim.world().setFallbackCell(self, first[0], first[1]);
+        assertTrue(scoring.fallbackDestinationNeedsRefresh(self, fire), "a cached cell in the fire's way is picked again");
     }
 
     // ---------------------------------------------------------------------

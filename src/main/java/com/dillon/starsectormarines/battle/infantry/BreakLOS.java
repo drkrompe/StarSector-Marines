@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -99,8 +100,9 @@ public final class BreakLOS implements Action {
                     : ActionStatus.RUNNING;
         }
 
-        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
-            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
+        FireField fire = sim.fireFieldIfPresent();
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member, fire)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member, fire);
             sim.world().setFallbackCell(member, dest[0], dest[1]);
         }
 

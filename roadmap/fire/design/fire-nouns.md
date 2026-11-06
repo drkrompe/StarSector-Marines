@@ -219,7 +219,10 @@ fire is judged by the kind of target rather than by its armour pool:
 hit does, so a team standing in fire drains toward breaking as one under fire
 would, and a marine burnt beside the flames costs a tenth of that. A burn is
 not a shot: rated as a full hit every step, a few seconds scorched beside a
-front broke a team and took it out of the player's hands. Fire near a team
+front broke a team and took it out of the player's hands. Only the flames
+count as coming under fire: a burn beside them drains its tenth but leaves
+the team's recovery clock running, so a team broken near a fire steadies
+there instead of staying broken until the fire burns out. Fire near a team
 that is not touching it costs nothing.
 
 **Static things take nothing.** Turrets, hubs, bores and the swarm's growths
@@ -267,6 +270,10 @@ player's last word on the move, so its marines neither step out nor wait at
 the edge, and go through the fire if their route does, burning as they cross.
 The run is also a forced march (`mission-command-nouns.md`, Run): none of its
 fire teams breaks while it lasts, so a squad the fire has shaken still takes it.
+A broken team does not fall back into the fire's way either: its fall-back
+cell (`TacticalScoring.findFallbackPosition`) is never in, beside or on fuel
+near a burning cell, and one the fire comes into the way of is picked again,
+so the peel and the step-out do not walk it to and from the flames' edge.
 A squad holding ground the fire
 takes therefore stands off at the edge and returns when it has burnt out.
 `-Dbattle.fire.stepOut=false` is the control.

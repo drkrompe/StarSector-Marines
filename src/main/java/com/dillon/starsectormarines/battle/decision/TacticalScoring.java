@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.world.TacticalNodeQueries;
+import com.dillon.starsectormarines.battle.fire.FireEscape;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
@@ -3421,16 +3423,26 @@ public final class TacticalScoring {
      * enter fall-back."
      */
     public int[] findFallbackPosition(long self) {
+        return findFallbackPosition(self, null);
+    }
+
+    /**
+     * {@link #findFallbackPosition(long)} for a person, who does not fall back into the fire's way
+     * ({@link FireEscape#needsToMove}): a cell in or beside a burning one, or on fuel near one, is no
+     * hide. Picked there, a broken team walked back to the fire's edge, stepped out of it and walked
+     * back again, burnt each time, so its morale never came back. {@code fire} may be {@code null}.
+     */
+    public int[] findFallbackPosition(long self, FireField fire) {
         long _profT0 = System.nanoTime();
         try {
-            return findFallbackPositionImpl(self);
+            return findFallbackPositionImpl(self, fire == null || fire.burningCount() == 0 ? null : fire);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.FALLBACK_POSITION, System.nanoTime() - _profT0);
         }
     }
 
-    private int[] findFallbackPositionImpl(long self) {
+    private int[] findFallbackPositionImpl(long self, FireField fire) {
 
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
@@ -3486,6 +3498,7 @@ public final class TacticalScoring {
                 int cy = sy + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 if (!reachable[grid.index(cx, cy)]) continue;
+                if (fire != null && FireEscape.needsToMove(fire, cx, cy)) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
                 int fdx = threatRef[0] - cx;
@@ -3705,10 +3718,19 @@ public final class TacticalScoring {
      * was glued to it.
      */
     public boolean fallbackDestinationNeedsRefresh(long member) {
+        return fallbackDestinationNeedsRefresh(member, null);
+    }
+
+    /**
+     * As {@link #fallbackDestinationNeedsRefresh(long)}, for a person: a cached cell the fire has
+     * come into the way of is picked again ({@link #findFallbackPosition(long, FireField)}).
+     */
+    public boolean fallbackDestinationNeedsRefresh(long member, FireField fire) {
         World world = roster.world();
         int fx = world.fallbackCellX(member);
         int fy = world.fallbackCellY(member);
         if (fx < 0 || fy < 0) return true;
+        if (fire != null && FireEscape.needsToMove(fire, fx, fy)) return true;
         return !isHiddenFromAllEnemies(member, fx, fy);
     }
 
