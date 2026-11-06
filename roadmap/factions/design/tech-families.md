@@ -111,9 +111,10 @@ Correct it here when a pattern's lore says otherwise.
 
 | Vehicle | Family | Notes |
 |---|---|---|
-| APC, LRM carrier | Low-tech | Hegemony Ordnance Board hull |
-| Fire-support APC | Low-tech hull | Diktat allotment; a midline refit candidate |
-| Breakthrough tank (Onager, and the Parapet fit) | Low-tech | "A shape older than anyone's records" |
+| APC (Packhorse), LRM carrier (Longshot) | Low-tech | Ordnance Board line schedule, copied from Domain colonial-garrison drawings; the Board's cast turret head, roofless as an open barbette on the Longshot |
+| Fire-support APC (Pounder) | Low-tech hull | The Lion's Guard's refit of bought Packhorses, the head cut to an open barbette; a midline refit candidate |
+| Breakthrough tank (Onager, and the Parapet fit) | Low-tech | "A shape older than anyone's records"; a Domain lift-sled repulsor skirt on combustion turbines |
+| Medium tank (Scorpion) | Low-tech | The medium schedule's Domain-era escort tank, kept in production for its running cost |
 | Burst laser tank | High-tech refit of a low-tech hull | Tri-Tachyon emitter, livery and power plant |
 | Militia technical, SRM technical, Supply truck, Scout car | Low-tech | Field rigs on workshop pickups |
 | Hover scout, Drone skimmer | High-tech | Tri-Tachyon Asset Protection |
