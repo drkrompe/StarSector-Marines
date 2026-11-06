@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.weapon;
 
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
@@ -102,6 +103,11 @@ public final class WeaponDef {
     public final float wallDamageRadius;
     /** Heat the weapon's blast puts into the ground it covers (`fire-nouns.md`, Starting fires); 0 for none. */
     private int incendiaryHeat;
+    /**
+     * Soft bodies a round passes through before the next body stops it ({@code sim.softPierce}; `mechs-nouns.md`,
+     * pulse laser): men and ravs, never a hull ({@link BallisticResolver#softBody}). 0 for none.
+     */
+    private int softPierce;
     /** Detachable feed for a handheld primary, or {@code null} for a weapon that only cycles. */
     private MagazineDef magazine;
     /** A mech rotary gun's spin and belt, or {@code null} for a weapon fired a trigger pull at a time. */
@@ -122,6 +128,11 @@ public final class WeaponDef {
 
     /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
     public int incendiaryHeat() { return incendiaryHeat; }
+
+    /** What a round of this weapon passes through: its soft pierce, else its {@link #bodyPenetrations} of any body. */
+    public BallisticResolver.Pierce pierce() {
+        return softPierce > 0 ? BallisticResolver.Pierce.soft(softPierce) : BallisticResolver.Pierce.any(bodyPenetrations);
+    }
     /** The shove each round's blast gives what stands in it, or null for a round that pushes nothing. */
     public BlastImpulse blast() { return blast; }
     /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
@@ -454,6 +465,7 @@ public final class WeaponDef {
         }
         def.loopEnvelope = HeldLoopEnvelope.parse(audio, id);
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
+        def.softPierce = sim.optInt("softPierce", 0);
         def.blast = BlastImpulse.parse(sim.optJSONObject("blast"), def.aoeRadius, id);
         if (def.blast != null && !(def.aoeRadius > 0f)) {
             throw new JSONException("Weapon '" + id + "' declares sim.blast without a splash (aoeRadius)");
@@ -662,6 +674,14 @@ public final class WeaponDef {
                 || !(def.roundVelocity > 0f))) {
             throw new JSONException("Weapon '" + def.id
                     + "' bodyPenetrations requires a direct resolved mech round with a contact payload");
+        }
+        if (def.softPierce < 0) {
+            throw new JSONException("Weapon '" + def.id + "' softPierce cannot be negative");
+        }
+        if (def.softPierce > 0 && (def.bodyPenetrations > 0 || def.indirectFire || def.interceptableProjectile
+                || def.contactDamage <= 0f || !(def.roundVelocity > 0f))) {
+            throw new JSONException("Weapon '" + def.id + "' softPierce requires a direct resolved round with a"
+                    + " contact payload and no bodyPenetrations");
         }
         if (def.interceptableProjectile && !(def.roundVelocity > 0f)) {
             throw new JSONException("Weapon '" + def.id

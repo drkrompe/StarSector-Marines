@@ -361,6 +361,35 @@ class BallisticResolverTest {
         assertTrue(res.bodyHits().get(0).flightTime() < res.bodyHits().get(1).flightTime());
     }
 
+    /** A soft pierce runs through a man in its lane to the target behind him, and stops on a mech in the same place. */
+    @Test
+    void aSoftPiercePassesAManButStopsOnAMech() {
+        for (UnitType interposerType : new UnitType[] {UnitType.MARINE, UnitType.HEAVY_MECH}) {
+            BattleSimulation sim = openArena();
+            DoodadService doodads = new DoodadService(sim.getGrid());
+            long shooter = spawn(sim, Faction.MARINE, 2);
+            long interposer = sim.spawn(new EntitySpec("in-lane", Faction.DEFENDER, interposerType, 6, ROW));
+            long target = spawn(sim, Faction.DEFENDER, 12);
+            BallisticResolver resolver = new BallisticResolver(
+                    sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+            BallisticResolver.Source source = new BallisticResolver.Source(
+                    shooter, cellCenter(2), rowCenter(), 0f, Faction.MARINE);
+
+            BallisticResolver.Resolution res = resolver.resolve(source, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
+                    BallisticResolver.Pierce.soft(1), null, new QueueRandom(0f, 0.5f, 0.5f, 0f));
+
+            assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+            assertEquals(interposer, res.bodyHits().get(0).victimId(), interposerType + " in the lane is struck");
+            if (interposerType == UnitType.MARINE) {
+                assertEquals(target, res.victimId(), "the pulse runs on through the man to the target");
+                assertEquals(2, res.bodyHits().size());
+            } else {
+                assertEquals(interposer, res.victimId(), "a mech stops it");
+                assertEquals(1, res.bodyHits().size());
+            }
+        }
+    }
+
     @Test
     void marineRoundsIgnoreCivilianBodiesAndReachTheLockedEnemy() {
         BattleSimulation sim = openArena();

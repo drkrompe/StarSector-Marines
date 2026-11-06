@@ -379,7 +379,7 @@ public class HeavyWeapons {
         BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(source, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
-                weapon.range, weapon.bodyPenetrations, wander, rng);
+                weapon.range, weapon.pierce(), wander, rng);
         // And on where the round will burst: one that would reach a friend, or the chassis itself, is not fired.
         if (laneDiscipline && weapon.aoeRadius > 0f && res.impacts()
                 && resolver.friendInBlast(shooter, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius)) return;
@@ -417,9 +417,9 @@ public class HeavyWeapons {
         float accuracy = weapon.accuracy * sensorAccuracy(loadout);
         BallisticResolver.Resolution resolution = manual && bursts(weapon)
                 ? resolver.resolveGroundBurst(source, target.x(), target.y(), accuracy, spread,
-                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng)
+                        weapon.roundVelocity, weapon.range, weapon.pierce(), wanderOf(mount), rng)
                 : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
-                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng);
+                        weapon.roundVelocity, weapon.range, weapon.pierce(), wanderOf(mount), rng);
         roster.telemetry().recordRoundFired(shooter);
         deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y(), mount);
         return true;

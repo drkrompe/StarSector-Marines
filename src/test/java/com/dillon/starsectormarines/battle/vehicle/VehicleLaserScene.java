@@ -31,6 +31,10 @@ import java.util.Map;
  *
  * <p>Verdicts are mechanics: the laser fires, sustained fire on the grass lights it, and its pulses wear the wall
  * they stop at. How long the grass took, how much wall it took and how many cells burnt are readings.
+ *
+ * <p>The {@code crowd} loops are the soft pierce (`mechs-nouns.md`, pulse laser): a parked laser tank fires down a
+ * packed column of rav runners, and each pulse runs through the runner it strikes into the one behind. How many it kills and how
+ * fast are readings; the control is the same scene with {@code softPierce} taken off the weapon.
  */
 public final class VehicleLaserScene implements BehaviorScene {
 
@@ -57,7 +61,57 @@ public final class VehicleLaserScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         return List.of(
                 loop(frames, "pl-3-fitted", MechWeaponComponent.PL_3),
-                loop(frames, "pl-3-sweep-fitted", MechWeaponComponent.PL_3_SWEEP));
+                loop(frames, "pl-3-sweep-fitted", MechWeaponComponent.PL_3_SWEEP),
+                crowd(frames, "crowd-pl-3", MechWeaponComponent.PL_3),
+                crowd(frames, "crowd-pl-3-sweep", MechWeaponComponent.PL_3_SWEEP));
+    }
+
+    private static final int RUNNERS = 30;
+    private static final int CROWD_TICKS = 30 * 20;
+    /** The column's front rank: well inside the laser's reach, and all ten ranks with it. */
+    private static final int CROWD_FRONT_X = 18;
+
+    private SceneReport crowd(FrameSink frames, String loopId, MechWeaponComponent gun) throws Exception {
+        SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).seed(SEED).missionCompletion(false);
+        // Three files of ten down the tank's line of fire, a cell apart and held there: the packed column a rush
+        // arrives as, so the scene reads the pierce and not how a swarm spreads. Unarmed: thirty runners in reach
+        // destroy a lone laser tank in seconds, which is not the question here.
+        for (int f = 0; f < 3; f++) {
+            builder.squad("ravs" + f).faction(Faction.DEFENDER).type(UnitType.SWARM_RUNNER).size(RUNNERS / 3)
+                    .inFile(CROWD_FRONT_X, TANK_Y - 1 + f, 1, 0).unarmed().stationary().done();
+        }
+        SceneWorld world = builder.build();
+        long[] ravs = new long[RUNNERS];
+        for (int f = 0; f < 3; f++) System.arraycopy(world.members("ravs" + f), 0, ravs, f * (RUNNERS / 3), RUNNERS / 3);
+        try (BattleSimulation sim = world.sim()) {
+            float tx = TANK_X + .5f, ty = TANK_Y + .5f;
+            long tank = sim.convoy().spawn(VehicleType.LASER_TANK, VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
+                    Faction.MARINE, VehicleMission.deployed(tx, ty));
+            sim.convoy().body(tank).teleport(tx, ty, 0f);
+            float startStructure = sim.convoy().structure(tank);
+            int[] pulses = {0};
+            int[] halfDead = {-1}, allDead = {-1};
+            SceneRun.of(world).observe((s, tick) -> {
+                for (ShotEvent shot : s.getShotsThisFrame()) if (shot.shooterId == tank) pulses[0]++;
+                int alive = 0;
+                for (long rav : ravs) if (s.getRoster().isAliveById(rav)) alive++;
+                if (halfDead[0] < 0 && alive <= RUNNERS / 2) halfDead[0] = tick;
+                if (allDead[0] < 0 && alive == 0) allDead[0] = tick;
+            }).frames(frames, loopId, 15, tick -> String.format(Locale.ROOT, "%s  t=%.1fs", loopId, tick / 30f))
+                    .run(CROWD_TICKS);
+            int killed = 0;
+            for (long rav : ravs) if (!sim.getRoster().isAliveById(rav)) killed++;
+            List<Verdict> verdicts = new ArrayList<>();
+            verdicts.add(Verdict.of("laser-thins-the-rush", killed > 0, killed + " of " + RUNNERS + " runners killed"));
+            Map<String, Number> m = new LinkedHashMap<>();
+            m.put("pulses", pulses[0]);
+            m.put("killed", killed);
+            m.put("killsPerPulse", pulses[0] > 0 ? (float) killed / pulses[0] : 0f);
+            m.put("halfDeadSeconds", halfDead[0] < 0 ? -1f : halfDead[0] / 30f);
+            m.put("allDeadSeconds", allDead[0] < 0 ? -1f : allDead[0] / 30f);
+            m.put("tankStructureLost", startStructure - (sim.convoy().isPresent(tank) ? sim.convoy().structure(tank) : 0f));
+            return new SceneReport(id(), loopId, CROWD_TICKS, verdicts, m);
+        }
     }
 
     private SceneReport loop(FrameSink frames, String loopId, MechWeaponComponent gun) throws Exception {

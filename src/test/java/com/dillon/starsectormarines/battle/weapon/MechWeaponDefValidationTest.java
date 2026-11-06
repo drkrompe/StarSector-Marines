@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.battle.weapon;
 
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MechWeaponDefValidationTest {
@@ -55,6 +57,23 @@ class MechWeaponDefValidationTest {
         JSONObject payloadless = directContactWeapon();
         payloadless.getJSONObject("sim").remove("contact");
         payloadless.getJSONObject("sim").put("bodyPenetrations", 1);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(payloadless));
+    }
+
+    /** A soft pierce reads as a soft-only pass, needs a contact payload, and is never authored beside a body pierce. */
+    @Test
+    void softPierceIsASoftOnlyPassWithAContactPayload() throws Exception {
+        JSONObject json = directContactWeapon();
+        json.getJSONObject("sim").put("softPierce", 1);
+        assertEquals(BallisticResolver.Pierce.soft(1), WeaponDef.parse(json).pierce());
+
+        JSONObject both = directContactWeapon();
+        both.getJSONObject("sim").put("softPierce", 1).put("bodyPenetrations", 1);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(both));
+
+        JSONObject payloadless = directContactWeapon();
+        payloadless.getJSONObject("sim").remove("contact");
+        payloadless.getJSONObject("sim").put("softPierce", 1);
         assertThrows(JSONException.class, () -> WeaponDef.parse(payloadless));
     }
 

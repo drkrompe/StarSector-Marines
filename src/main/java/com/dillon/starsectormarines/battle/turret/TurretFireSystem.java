@@ -346,9 +346,9 @@ public final class TurretFireSystem implements TurretFireSink {
         }
         BallisticResolver.Resolution res = ManualPointFire.bursts(weapon)
                 ? resolver.resolveGroundBurst(source, aim.x(), aim.y(), accuracy, weapon.hitSpread,
-                        weapon.directRoundVelocity(), weapon.range, 0, wander, rng)
-                : resolver.resolvePoint(source, aim.x(), aim.y(),
-                        accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
+                        weapon.directRoundVelocity(), weapon.range, weapon.pierce(), wander, rng)
+                : resolver.resolvePoint(source, aim.x(), aim.y(), accuracy, weapon.hitSpread,
+                        weapon.directRoundVelocity(), weapon.range, weapon.pierce(), wander, rng);
         telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
         return true;
@@ -394,7 +394,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 shooterId, fromX, fromY, muzzleZ, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
-                weapon.directRoundVelocity(), weapon.range, rng);
+                weapon.directRoundVelocity(), weapon.range, weapon.pierce(), null, rng);
         // Nor does it put a burst where its own hull is: the round lands too close, and that is not a judgement call.
         if (laneDiscipline && holdChance > 0f && weapon.aoeRadius > 0f && res.impacts()
                 && resolver.bodyInBlast(shooterId, res.endX(), res.endY(), weapon.aoeRadius)) return false;
@@ -432,7 +432,9 @@ public final class TurretFireSystem implements TurretFireSink {
                     effectiveAccuracy);
         }
         float offDeg = TurretAim.shortestAngleDelta(facingDeg, TurretAim.bearingTo(fromX, fromY, tx, ty));
-        float reach = distance * beamReachFraction(offDeg);
+        // A pulse that pierces runs on past its target, so the man behind is in its lane.
+        float reach = distance * beamReachFraction(offDeg)
+                + (weapon.pierce().bodies() > 0 ? PIERCE_RUN_ON_CELLS : 0f);
         // Sprite-angle convention: 0 deg is +Y, positive counter-clockwise (TurretAim.bearingTo).
         double rad = Math.toRadians(facingDeg + 90f);
         float aimX = fromX + (float) Math.cos(rad) * reach;
@@ -441,7 +443,7 @@ public final class TurretFireSystem implements TurretFireSink {
         BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY,
                 structure.muzzleHeightCells(), shooterFaction);
         BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aimX, aimY, effectiveAccuracy,
-                effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
+                effectiveSpread, weapon.directRoundVelocity(), weapon.range, weapon.pierce(), wander, rng);
         float holdChance = friendlyFireHold.chance(shooterId);
         if (holdChance > 0f && holdsRound(res.friendlyHit(), holdChance, rng)) return false;
         telemetry.recordRoundFired(shooterId);
@@ -458,6 +460,12 @@ public final class TurretFireSystem implements TurretFireSink {
         return 1f - (1f - BEAM_SHORT_FRACTION) * t;
     }
 
+    /**
+     * How far past its target a piercing beam's pulse runs before it bursts on the ground, in cells: far enough to reach
+     * the second rank of a crowd, short enough that its burst stays on the crowd.
+     */
+    static final float PIERCE_RUN_ON_CELLS = 4f;
+
     /** The share of the target's distance a beam reaches when it opens at the widest arc. */
     static final float BEAM_SHORT_FRACTION = 0.7f;
 
@@ -465,6 +473,18 @@ public final class TurretFireSystem implements TurretFireSink {
                                      Faction shooterFaction, StructureDef structure,
                                      BallisticResolver.Resolution res) {
         WeaponDef weapon = structure.mount.weapon;
+        // A piercing round strikes each body it passed through on its way with its direct payload; the body it stopped
+        // in takes its payload below, as any round's does.
+        float passDamage = weapon.contactDamage > 0f ? weapon.contactDamage : weapon.damage;
+        float passPenetration = weapon.contactDamage > 0f ? weapon.contactPenetration : weapon.penetration;
+        for (BallisticResolver.BodyHit hit : res.bodyHits()) {
+            if (hit.victimId() == res.victimId()) continue;
+            shots.queueImpact(new ShotService.PendingImpact(
+                    hit.victimId(), shooterId, hit.flightTime(),
+                    hit.friendly() ? passDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT : passDamage,
+                    passPenetration, /*moraleImpact*/ 1f, hit.friendly(), hit.part())
+                    .at(hit.x(), hit.y()));
+        }
 
         if (weapon.aoeRadius > 0f && res.impacts()) {
             queueGroundDetonation(shooterId, shooterFaction, structure, res);
