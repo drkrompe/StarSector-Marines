@@ -810,6 +810,7 @@
           "damage": 16.0,
           "penetration": 6.0
         },
+        "softPierce": 1,
         "burstCount": 4,
         "burstSpacing": 0.13,
         "hitSpread": 0.2,
@@ -907,6 +908,7 @@
           "damage": 8.0,
           "penetration": 2.0
         },
+        "softPierce": 1,
         "burstCount": 14,
         "burstSpacing": 0.1,
         "hitSpread": 0.2,

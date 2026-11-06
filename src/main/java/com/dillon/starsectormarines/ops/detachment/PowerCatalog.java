@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
+import com.dillon.starsectormarines.ops.CompletedReplays;
+import com.dillon.starsectormarines.ops.DebugMissionCatalog.Scenario;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -170,7 +172,7 @@ public final class PowerCatalog {
     static Set<String> fleetGranted(List<FleetMemberAPI> committedShips, Mission m) {
         if (AgreusArcCampaign.isBattle(m) || SupplyRouteCampaign.isBattle(m)
                 || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
-                || DistrictEscortCampaign.isBattle(m)) {
+                || DistrictEscortCampaign.isBattle(m) || replaysCompanyBay(m)) {
             return Set.of();
         }
         Set<String> ids = new LinkedHashSet<>();
@@ -209,7 +211,24 @@ public final class PowerCatalog {
                     || AgreusArcProgress.smallWar(m.id);
         }
         return SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m)
-                || ShepherdRecoveryCampaign.isBattle(m) || DistrictEscortCampaign.isBattle(m);
+                || ShepherdRecoveryCampaign.isBattle(m) || DistrictEscortCampaign.isBattle(m)
+                || replaysCompanyBay(m);
+    }
+
+    /**
+     * Whether {@code m} replays ({@link CompletedReplays}) a chapter whose drop is the company's own
+     * bay: the replay carries a replay id and source, so the arcs' own tests miss it, yet it drops
+     * the bay on the company's boats exactly as the chapter did.
+     */
+    static boolean replaysCompanyBay(Mission m) {
+        Scenario scenario = CompletedReplays.scenario(m);
+        if (scenario == null) return false;
+        return switch (scenario) {
+            case JUNCTION, THUNDER_RUN, DUST_LEDGER, BLIND_WATCH, COLD_ACCOUNT,
+                 SALVAGE_RIGHTS, COLD_START, WORKING_PASSAGE,
+                 YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT -> true;
+            default -> false;
+        };
     }
 
     private static List<CommandPower> resolveSourced(List<FleetMemberAPI> committedShips, Mission m,
@@ -227,7 +246,7 @@ public final class PowerCatalog {
         // neither lift nor chassis. Empty bays must not fall through MechSupport's legacy
         // debug default.
         if (SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
-                || DistrictEscortCampaign.isBattle(m)) {
+                || DistrictEscortCampaign.isBattle(m) || replaysCompanyBay(m)) {
             return configuredMechs == null || configuredMechs.isEmpty() ? List.of()
                     : List.of(MechSupport.configured(configuredMechs));
         }

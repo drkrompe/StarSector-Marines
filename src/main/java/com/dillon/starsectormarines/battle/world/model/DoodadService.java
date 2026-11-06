@@ -96,6 +96,8 @@ public final class DoodadService {
         this.fightingPositions = FightingPositionIndex.empty(grid.getWidth(), grid.getHeight());
         this.destructibleCover = new CoverPropDamage(grid, doodads);
         this.naturalProps = new NaturalPropDamage(grid, doodads);
+        // A tree stops fire at its core, not at every cell its canopy touches (CanopyCore).
+        grid.setCanopyFire(naturalProps::stopsRound);
         this.rocks = new RockDamage(grid, doodads);
         this.destructibleProps = new PropDamage(grid, doodads);
     }

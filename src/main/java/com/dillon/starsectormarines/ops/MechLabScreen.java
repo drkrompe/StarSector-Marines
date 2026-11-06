@@ -263,7 +263,7 @@ public final class MechLabScreen implements Screen {
         props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 context::roomAboard,
-                this::close,
+                viewModel.returnAction(this::close),
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),

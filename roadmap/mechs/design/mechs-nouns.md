@@ -182,6 +182,16 @@ increasing an encounter's total armored threat.
   cycle) is shortened by the wider spacing to keep the vehicle's cadence. Against a
   control at the old 0.06 s spacing, armorMatchup read the same win share and
   time to kill within noise (2026-10-30).
+  The large pulse lasers, the PL-3 and the PL-3 (Sweep), carry a **soft pierce**
+  (`sim.softPierce`, `BallisticResolver.Pierce`): each pulse runs through one soft
+  body (infantry, power suits included, militia and ravs; `BallisticResolver.softBody`)
+  into the next behind it, striking each with its full contact payload, and stops on
+  any hull, mech, turret or drone hub. A vehicle's pulse runs four cells past its target
+  before it bursts on the ground, so the second rank is in its lane (owner, 2026-11-05:
+  crowd control against swarmers). Fired down a packed column of rav runners in the
+  `vehicle-laser` scene, it roughly doubles the kills per pulse against a control
+  with no pierce. The LL-3's body pierce is not soft-only: its lance runs through
+  whatever it meets.
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -1187,9 +1197,9 @@ None of them is called a PD laser: none shoots down a missile.
 | | BL-2 | 2x2 | A held beam that bites light plate, still tracks fliers |
 | PL, pulse laser | PL-1 | 2x1 | Two pulses and a vent |
 | | PL-2 | 2x2 | Three pulses and a vent |
-| | PL-3 | 2x3 | Four heavy pulses (penetration 6), then a long vent; each pulse bursts where it stops, splashing a half cell, wearing the wall it struck and heating the ground, so held on grass it lights it; the laser tank's white head; centreline only |
+| | PL-3 | 2x3 | Four heavy pulses (penetration 6) that run through a man or rav into the one behind, then a long vent; each pulse bursts where it stops, splashing a half cell, wearing the wall it struck and heating the ground, so held on grass it lights it; the laser tank's white head; centreline only |
 | | PL-2 (AP) | 2x2 | Eight hard pulses that pierce plate (penetration 9), the longest pulse-laser reach; Tri-Tachyon Prestige |
-| | PL-3 (Sweep) | 2x3 | Fourteen light pulses (penetration 2) a pull, cool enough to repeat; each bursts as the PL-3's does, lighter, so a stream held on grass lights it and a few break a light wall; the laser tank's red head; centreline only |
+| | PL-3 (Sweep) | 2x3 | Fourteen light pulses (penetration 2) a pull, cool enough to repeat, each running through a soft body as the PL-3's do; each bursts as the PL-3's does, lighter, so a stream held on grass lights it and a few break a light wall; the laser tank's red head; centreline only |
 | LL, lance laser | LL-3 | 2x3 shoulder | One heavy lance through a body, contact burn and wall damage, a 7 s cycle; the Lance Cannon in lore |
 
 The Thermal Lance is not a laser and keeps its name: its lore, drawing and sound

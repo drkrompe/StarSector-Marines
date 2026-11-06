@@ -200,6 +200,15 @@ only cells free of surviving crowns and underlying hills reopen. Original
 ground and permanent terrain remain, and neither actor durability nor
 building collapse owns these changes.
 
+A standing tree stops a direct round only at its **core**: the trunk and the
+dense middle of its crown, an ellipse about the footprint's centre spanning
+just under half the footprint on each axis (`CanopyCore`). Its crown still
+closes every cell a canopy lobe touches to movement and sight, but a round
+that only grazes the outer crown flies on through the leaves (owner: a tree
+taking the hit at its edge felt wrong). The firing trace asks the same rule a
+firing decision does, so a shooter's line of fire and its rounds agree. Bushes,
+rocks and permanent ground under a tree still stop a round on the whole cell.
+
 Multi-cell rock and ice formations use the same whole-object law. Cracked
 stone or ice retains the original silhouette's obstruction; low fragments open
 the former footprint and reveal the ground beneath it. Rock and ice may have

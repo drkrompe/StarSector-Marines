@@ -1,4 +1,4 @@
-<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,rewardTermsStyle,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
+<template props="deploymentStatusClasses,commsText,commsProgress,commsSkipAction,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardValueClasses,rewardIcon,rewardIconStyle,rewardTerms,rewardTermsStyle,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,termActions,groupCommandHeading,groupCommandSummary,groupCommandStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -19,7 +19,10 @@
       </div>
       <div id="mission-reward" class="mission-reward console-readout">
         <div id="mission-reward-header" class="label heading tone-accent">{rewardHeader}</div>
-        <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
+        <div id="mission-reward-line" class="mission-reward-line">
+          <img id="mission-reward-icon" class="mission-reward-icon" src="{rewardIcon}" style="{rewardIconStyle}" />
+          <div id="mission-reward-value" class="{rewardValueClasses}">{rewardValue}</div>
+        </div>
       </div>
       <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">
         <img id="mission-debug-toggle-arrow" class="debug-toggle-arrow" src="{debugToggleArrow}" />
@@ -542,7 +545,10 @@
   .mission-overview.narrated .mission-overview-copy { height: 0px; flex-grow: 1; }
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
-  #mission-reward-value { height: 26px; }
+  .mission-reward-line { flex-direction: row; align-items: center; height: 26px; gap: 8px; }
+  #mission-reward-value { width: 0px; flex-grow: 1; height: 26px; }
+  /* A credit amount reads as the company's stock strips do: the game's credit sign, then the figure. */
+  .reward-credits { color: #cddfef; }
   .mission-survey-slot { flex-direction: column; width: 428px; }
   .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 10px; gap: 4px; border-width: 2px; }
   #mission-survey-heading { height: 20px; }

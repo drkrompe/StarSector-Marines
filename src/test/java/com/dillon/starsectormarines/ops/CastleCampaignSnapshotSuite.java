@@ -53,7 +53,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
         var props = BriefingViewModel.campaignPreviewProps(false);
         props.put("missionTitle", mission.name);
         props.put("missionFlavor", "Capture Weigh Station, Freight Yard and Junction Dispatch together. Our militia will hold your gains while the company advances.");
-        props.put("rewardValue", "12,000 credits");
+        BriefingViewModel.putRewardCredits(props, "12,000");
         props.put("personnelSummary", "Two formations / 24 marines aboard");
         props.put("experienceSummary", "Company infantry / recovered Hound");
         props.put("sourceRows", List.of());
