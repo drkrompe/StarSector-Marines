@@ -127,6 +127,14 @@ public final class VehicleRack {
         return new HullReservoir.Frame(bank.fluxCapacity, dissipation);
     }
 
+    /** The flux frame {@code type} carries with these parts: {@link #frame(List)} and the hull's own plant on top. */
+    public static HullReservoir.Frame frame(VehicleType type, List<MechInternal> internals) {
+        HullReservoir.Frame parts = frame(internals);
+        float plant = HullReservoir.plantDissipation(type);
+        return parts == null || plant == 0f ? parts
+                : new HullReservoir.Frame(parts.capacity(), parts.dissipationPerSecond() + plant);
+    }
+
     private static MechInternal bank(List<MechInternal> internals) {
         for (MechInternal internal : internals) if (internal.role == MechInternal.Role.CAPACITOR_BANK) return internal;
         return null;

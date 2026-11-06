@@ -75,7 +75,7 @@ class VehicleRackTest {
         for (VehicleType type : VehicleType.values()) {
             List<MechInternal> fit = VehicleRack.stockFit(type);
             assertNotNull(VehicleRack.pack(type, fit), type + "'s stock fit packs");
-            assertEquals(HullReservoir.stockFrame(type), VehicleRack.frame(fit), type + "'s stock frame");
+            assertEquals(HullReservoir.stockFrame(type), VehicleRack.frame(type, fit), type + "'s stock frame");
         }
     }
 
