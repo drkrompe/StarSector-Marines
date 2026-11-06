@@ -183,13 +183,24 @@ final class BattleDirectControlStatus {
      * reads its group off {@code trigger}. {@code tooClose} is a cursor inside the mount's manual minimum range, where
      * its trigger is refused. {@code reloading} is a magazine being changed, in which case the cooldown
      * and cycle fields carry the reload clock instead of the action's. {@code heldRounds} is what a held rack
-     * trigger has fired so far in this hold ({@code SalvoChain}), zero when its button is up.
+     * trigger has fired so far in this hold ({@code SalvoChain}), zero when its button is up. {@code refillSeconds}
+     * is how long until a part-spent rack's loader has it full again, zero for a full rack, an empty one (whose
+     * recharge is its {@code reloading} clock) and anything a loader does not refill.
      */
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
                         boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
-                        boolean reloading, String group, int heldRounds) {
+                        boolean reloading, String group, int heldRounds, float refillSeconds) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
+                     boolean reloading, String group, int heldRounds) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds, cycleDurationSeconds,
+                    burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, tooClose, reloading, group,
+                    heldRounds, 0f);
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
@@ -251,7 +262,7 @@ final class BattleDirectControlStatus {
         WeaponStatus onList(String trigger, String group) {
             return new WeaponStatus(number, slotKey, name, behavior, directEligible, cooldownSeconds,
                     cycleDurationSeconds, burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger,
-                    tooClose, reloading, group, heldRounds);
+                    tooClose, reloading, group, heldRounds, refillSeconds);
         }
 
         /** The button whose list this weapon is in, read off its trigger when the status carries no group. */
@@ -466,8 +477,10 @@ final class BattleDirectControlStatus {
                 weapons.add(rotaryWeapon(mount, mounts, flux, picks, aimDistance));
                 continue;
             }
-            // An empty rack reads its recharge, the loader's long wait, rather than its mechanical cycle.
-            float recharge = mount.component.ammoCapacity >= 0 && mount.ammo <= 0 ? mount.rechargeRemaining() : 0f;
+            // An empty rack reads its recharge, the loader's long wait, rather than its mechanical cycle. A part-spent
+            // one still fires on its cycle, and carries the same clock beside it: every salvo restarts it.
+            float loaderClock = mount.component.ammoCapacity >= 0 ? mount.rechargeRemaining() : 0f;
+            float recharge = mount.ammo <= 0 ? loaderClock : 0f;
             boolean recharging = recharge > 0f;
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
                     mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
@@ -480,7 +493,7 @@ final class BattleDirectControlStatus {
                     !flux.permits(mount.triggerFlux(), false), mount.component.cycleLabel(),
                     MechFireGroups.badge(mounts, picks, mount),
                     HeavyWeapons.tooClose(mount, aimDistance), recharging, MechFireGroups.group(mounts, mount),
-                    mount.holdSalvos * mount.component.projectilesPerTrigger));
+                    mount.holdSalvos * mount.component.projectilesPerTrigger, recharging ? 0f : loaderClock));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);

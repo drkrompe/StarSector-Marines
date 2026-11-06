@@ -405,12 +405,13 @@ public final class BattleDirectControlHudModel {
         // A folded strip is read to the burst, so its exact count stays beside it.
         boolean counted = strip instanceof MagazineGauge gauge && !gauge.folded()
                 || strip != null && weapon.ammo().unlimited();
+        String load = refilled(counted ? "" : ammo(weapon.ammo()), weapon.refillSeconds());
         return new WeaponRow(id, classes + (strip != null ? " weapon-magazine" : ""),
                 rowStyle(highlighted, !enabled ? .6f : dimmed ? UNPICKED_OPACITY : 1f)
                         + (strip != null ? " height: 74px;" : ""),
                 !enabled || !mech, key,
                 key.isEmpty() ? "key key-none" : "key", name, behavior(weapon.behavior()),
-                counted ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
+                load, state, stateClasses, width(weapon.cycleFraction()),
                 action, roundBlocks(id, strip),
                 strip != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
     }
@@ -660,6 +661,16 @@ public final class BattleDirectControlHudModel {
             value = behavior.kind() == BattleDirectControlStatus.FireKind.SINGLE ? trigger : trigger + " · " + value;
         }
         return value;
+    }
+
+    /**
+     * A part-spent rack's load line with the loader's clock after it: the salvo cycle on the bar says when the next
+     * one can go, this says when the spent ones are all back. Unchanged for anything not refilling.
+     */
+    String refilled(String load, float refillSeconds) {
+        if (refillSeconds <= 0f) return load;
+        String clock = label("Refill") + " " + seconds(refillSeconds);
+        return load.isEmpty() ? clock : load + "  " + clock;
     }
 
     private String ammo(BattleDirectControlStatus.Ammo ammo) {

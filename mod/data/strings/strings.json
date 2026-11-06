@@ -4994,6 +4994,7 @@
 		"battleDirectHudTOO_CLOSE": "TOO CLOSE",
 		"battleDirectHudEMPTY": "EMPTY",
 		"battleDirectHudRELOADING": "RELOADING",
+		"battleDirectHudRefill": "Full in",
 		"battleDirectHudUnlimited": "∞ ammo",
 		"battleDirectHudUntracked": "No ammo counter",
 		"battleDirectHudROUNDS": "rounds",

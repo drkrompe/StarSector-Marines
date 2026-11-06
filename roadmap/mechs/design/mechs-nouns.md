@@ -1270,7 +1270,9 @@ fires them as more salvos; it does not fire stronger ones. A mech rack's salvo i
   per family (SRM or LRM) and the same at both sizes, so a 15-rack sustains three
   times a 5-rack's fire and holds three times its spike; the accelerated loader
   recharges in three quarters of the time (`LoaderPace`). An empty rack shows its
-  recharge on the direct-control row and reticle where a loaded one shows its cycle.
+  recharge on the direct-control row and reticle where a loaded one shows its cycle;
+  a part-spent one shows its cycle on the bar and the recharge still to run beside
+  its load ("Full in 24.0s").
 - Missiles are the same at every size of a family, so damage per missile is the
   warhead's (Missile warheads) and a rack's weight is its count. A salvo costs
   the same flux from either size and a chained salvo half of it (Flux).

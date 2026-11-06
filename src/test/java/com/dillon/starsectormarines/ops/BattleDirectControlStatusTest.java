@@ -97,10 +97,17 @@ class BattleDirectControlStatusTest {
         assertEquals(BattleDirectControlStatus.WeaponState.RELOADING, empty.state());
         assertEquals(rack.rechargeSeconds - 1f, empty.cooldownSeconds(), 1e-4f);
         assertEquals(rack.rechargeSeconds, empty.cycleDurationSeconds(), 1e-4f);
+        assertEquals(0f, empty.refillSeconds(), "an empty rack's recharge is its reload clock, not a second one");
 
         rack.ammo = 1;
         var partLoaded = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{rack}).get(0);
         assertEquals(BattleDirectControlStatus.WeaponState.LOADED, partLoaded.state());
+        assertEquals(rack.rechargeSeconds - 1f, partLoaded.refillSeconds(), 1e-4f,
+                "a part-spent rack still carries the loader's clock to full");
+
+        rack.ammo = rack.component.ammoCapacity;
+        var full = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{rack}).get(0);
+        assertEquals(0f, full.refillSeconds());
     }
 
     @Test
