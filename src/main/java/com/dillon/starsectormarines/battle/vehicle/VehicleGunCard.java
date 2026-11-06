@@ -9,23 +9,22 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
  * The gun card on a vehicle's doll (mechs-nouns.md, a vehicle is a mech for parts): the socket its turret fills, set by
  * the hull's size class and lock (vehicle-card-sizes.md), as a mech's arm socket is typed and sized. A mech weapon
  * fits it by the mech's own rule: the lock's hardpoint type, if it has one, and a footprint the card accommodates; the
- * footprint is the only cap on a weapon's power. A small card is unlocked, an omni slot that takes any one-row part.
+ * footprint is the only cap on a weapon's power. The small card and the gun tanks' cards are unlocked, omni slots that
+ * take any part of their height: the owner's pick over yellow, green and red builds of one tank (hegemony-armor-line.md).
+ * Only the specialists are locked: the APC carriers' mortar and missile cards and the laser tank's.
  */
 public enum VehicleGunCard {
     /** Small, unlocked: the APCs, the technicals and the hover scout. */
     SMALL(null, 1),
-    CANNON(HardpointType.BALLISTIC, 3),
-    /** The medium tank's: any two-row ballistic gun, the HC-10 and the autocannons, never the HC-20. */
-    MEDIUM_CANNON(HardpointType.BALLISTIC, 2),
+    /** The Onager's: any three-row part, a heavy cannon, a three-row rack or emitter, or anything smaller. */
+    HEAVY(null, 3),
+    /** The Scorpion's: any two-row part, never a three-row one. */
+    MEDIUM(null, 2),
+    /** The fire-support APC's: two rows, ballistic, for its mortar. */
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
-    LRM(HardpointType.MISSILE, 2),
-    /** The medium tank's red variant: any two-row energy weapon. */
-    MEDIUM_LASER(HardpointType.ENERGY, 2),
-    /** The medium tank's green variant: any two-row missile rack. */
-    MEDIUM_MISSILE(HardpointType.MISSILE, 2),
-    /** The Onager's green variant: any three-row missile rack. */
-    HEAVY_MISSILE(HardpointType.MISSILE, 3);
+    /** The LRM carrier's: three rows, missile, room for a fifteen-tube rack. */
+    LRM(HardpointType.MISSILE, 3);
 
     /** Every gun card is two columns wide, as every mech weapon is. */
     public static final int COLUMNS = 2;
@@ -43,8 +42,8 @@ public enum VehicleGunCard {
     public static VehicleGunCard of(String structureId) {
         if (structureId == null) return SMALL;
         return switch (structureId) {
-            case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
-            case TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID -> MEDIUM_CANNON;
+            case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> HEAVY;
+            case TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID -> MEDIUM;
             case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID,
                     TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
             case TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID -> LASER;
@@ -56,21 +55,6 @@ public enum VehicleGunCard {
     /** The card on {@code type}'s doll; null for an unarmed hull, which has none. */
     public static VehicleGunCard of(VehicleType type) {
         return type != null && type.hasTurretWeapon() ? of(type.turretStructureId) : null;
-    }
-
-    /**
-     * The card on {@code type}'s doll in its weapon-point variant ({@link VehicleType#weaponPoints}): the hull's own
-     * card when {@code point} is null or the hull's own colour, otherwise the card of the same rows locked to
-     * {@code point}. Null for an unarmed hull, and for a point the hull is not built in.
-     */
-    public static VehicleGunCard of(VehicleType type, HardpointType point) {
-        VehicleGunCard own = of(type);
-        if (own == null || point == null || point == own.hardpoint) return own;
-        if (!type.weaponPoints().contains(point)) return null;
-        for (VehicleGunCard card : values()) {
-            if (card.hardpoint == point && card.rows == own.rows && card != MORTAR && card != LRM) return card;
-        }
-        return null;
     }
 
     /** Whether {@code weapon} goes in this card: the lock's hardpoint type if any, no wider or taller than the card. */

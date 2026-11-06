@@ -108,9 +108,9 @@ public final class ConvoyService implements BodyCarrier {
     private final VehicleClearances clearances = new VehicleClearances();
 
     /**
-     * The weapon-point variant each side fields its stock hulls in ({@link VehicleType#weaponPoints}): the defender's
-     * campaign faction's colour once the battle knows it ({@link FactionVehiclePoints}); a side with none set fields
-     * each hull in its own.
+     * The weapon colour each side fits its stock hulls' omni cards with ({@link VehicleType#standardPart(HardpointType)}):
+     * the defender's campaign faction's once the battle knows it ({@link FactionVehiclePoints}); a side with none set
+     * fits each hull's own standard part.
      */
     private final Map<Faction, HardpointType> sidePoints = new EnumMap<>(Faction.class);
 

@@ -23,10 +23,15 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 | Class | Card | Lock | Hulls |
 | --- | --- | --- | --- |
 | Small | 1x2 | omni | APC, militia technical, SRM technical, hover scout |
+| Medium | 2x2 | omni | medium tank (Scorpion) |
 | Medium | 2x2 | yellow (ballistic) | fire-support (mortar) APC |
-| Medium | 2x2 | green (missile) | LRM carrier |
-| Large | 3x2 | yellow (ballistic) | breakthrough tank (Onager) |
+| Large | 3x2 | green (missile) | LRM carrier |
+| Large | 3x2 | omni | breakthrough tank (Onager) |
 | Large | 3x2 | red (energy) | laser tank |
+
+The gun tanks' cards are omni (owner, 2026-11-05: rather than yellow, green and red builds of one tank), so only the
+APC carriers and the laser tank are specialists; the LRM carrier's card is 3x2 so it holds a fifteen-tube rack
+(`hegemony-armor-line.md`, slice 8).
 
 The medium and large cards are the ones the stock guns already imply, so those hulls do not change; the small
 class is new, and it is where the work is. A bought hull has no gun at all (`mechs-nouns.md`); only an older save's hull keeps an own gun, no part, so a small

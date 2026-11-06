@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -19,39 +18,14 @@ class VehicleGunsTest {
     @Test
     void theGunCardTakesOnlyAWeaponOfItsTypeAndSize() {
         assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20));
-        assertFalse(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PL_2_AP));
+        assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PL_2_AP), "the tank's card is omni");
+        assertFalse(CampaignVehicle.takesGun(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.PL_2_AP),
+                "the mortar carrier's card stays ballistic");
         assertFalse(CampaignVehicle.takesGun(VehicleType.SUPPLY_TRUCK, MechWeaponComponent.CHAINGUN), "no card, no gun");
 
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertNull(tank.gun());
         assertNull(tank.freezeForDeployment().gun(), "the hull fires its own gun");
-    }
-
-    @Test
-    void aHullBuiltInAVariantTakesThatColoursGunsAndAnOlderSavesIsTheYellowOne() {
-        CampaignVehicle green = CampaignVehicle.hull("g", "Scorpion 01", VehicleType.MEDIUM_TANK, HardpointType.MISSILE);
-        assertEquals(HardpointType.MISSILE, green.point());
-        assertTrue(green.takesGun(MechWeaponComponent.SRM_5));
-        assertFalse(green.takesGun(MechWeaponComponent.HC_10));
-
-        CampaignVehicle older = new CampaignVehicle("o", "Scorpion 02", VehicleType.MEDIUM_TANK);
-        assertEquals(HardpointType.BALLISTIC, older.point(), "a hull with no variant recorded is its own colour");
-        assertTrue(older.takesGun(MechWeaponComponent.HC_10));
-
-        CampaignVehicle carrier = CampaignVehicle.hull("c", "Longshot 01", VehicleType.LRM_CARRIER, HardpointType.ENERGY);
-        assertEquals(HardpointType.MISSILE, carrier.point(), "a colour the hull is not built in is ignored");
-    }
-
-    @Test
-    void theLabBuildsEachVariantAsItsOwnRecipeAtThePatternsPrice() {
-        MechFabricationCatalog.Recipe pattern = MechFabricationCatalog.vehicle(VehicleType.MEDIUM_TANK);
-        List<MechFabricationCatalog.Recipe> scorpions = MechFabricationCatalog.vehicleBuilds().stream()
-                .filter(recipe -> recipe.vehicle() == VehicleType.MEDIUM_TANK).toList();
-        assertEquals(3, scorpions.size());
-        assertEquals(3, scorpions.stream().map(MechFabricationCatalog.Recipe::id).distinct().count());
-        for (MechFabricationCatalog.Recipe recipe : scorpions) assertEquals(pattern.cost(), recipe.cost());
-        assertEquals(1, MechFabricationCatalog.vehicleBuilds().stream()
-                .filter(recipe -> recipe.vehicle() == VehicleType.LRM_CARRIER).count());
     }
 
     @Test
@@ -64,7 +38,6 @@ class VehicleGunsTest {
         bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
         bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
         bay.addWeapon(MechWeaponComponent.PL_2_AP.id, 1);
-        assertFalse(bay.fitGun("v1", MechWeaponComponent.PL_2_AP), "an energy weapon is not a ballistic one");
         assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_20));
         assertEquals(0, bay.availableWeapon(MechWeaponComponent.HC_20.id));
         assertSame(MechWeaponComponent.HC_20, tank.freezeForDeployment().gun(), "the drop carries the gun");

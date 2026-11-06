@@ -19,16 +19,31 @@ class VehicleGunTest {
 
     @Test
     void aCardTakesOnlyAWeaponOfItsOwnTypeNoLargerThanItself() {
-        VehicleGunCard cannon = VehicleGunCard.of(VehicleType.BREAKTHROUGH_TANK);
-        assertSame(VehicleGunCard.CANNON, cannon);
-        assertTrue(cannon.accepts(MechWeaponComponent.HC_20));
-        assertTrue(cannon.accepts(MechWeaponComponent.CHAINGUN), "a smaller gun of the type fits a larger card");
-        assertFalse(cannon.accepts(MechWeaponComponent.PL_2_AP), "an energy weapon is not a ballistic one");
-        assertFalse(cannon.accepts(MechWeaponComponent.LRM_5));
+        VehicleGunCard mortar = VehicleGunCard.of(VehicleType.FIRE_SUPPORT_APC);
+        assertSame(VehicleGunCard.MORTAR, mortar);
+        assertTrue(mortar.accepts(MechWeaponComponent.CHAINGUN), "a ballistic gun of the card's height fits");
+        assertFalse(mortar.accepts(MechWeaponComponent.PL_2_AP), "an energy weapon is not a ballistic one");
+        assertFalse(mortar.accepts(MechWeaponComponent.HC_20), "three rows do not fit a two-row card");
         assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.CHAINGUN), "two rows do not fit a one-row card");
-        assertFalse(VehicleGunCard.LRM.accepts(MechWeaponComponent.SRM_15), "three rows do not fit a two-row card");
+        assertTrue(VehicleGunCard.LRM.accepts(MechWeaponComponent.LRM_15), "the carrier's card holds a fifteen-tube rack");
         assertTrue(VehicleGunCard.LRM.accepts(MechWeaponComponent.SRM_5), "launchers are one type, whichever mount family");
-        assertFalse(VehicleGunCard.CANNON.accepts(null));
+        assertFalse(VehicleGunCard.LRM.accepts(MechWeaponComponent.HC_20));
+        assertFalse(VehicleGunCard.HEAVY.accepts(null));
+    }
+
+    @Test
+    void theGunTanksCardsAreOmniAndCappedOnlyByHeight() {
+        VehicleGunCard heavy = VehicleGunCard.of(VehicleType.BREAKTHROUGH_TANK);
+        assertSame(VehicleGunCard.HEAVY, heavy);
+        assertNull(heavy.hardpoint, "unlocked");
+        assertTrue(heavy.accepts(MechWeaponComponent.HC_20));
+        assertTrue(heavy.accepts(MechWeaponComponent.SRM_15));
+        assertTrue(heavy.accepts(MechWeaponComponent.PL_3));
+        VehicleGunCard medium = VehicleGunCard.of(VehicleType.MEDIUM_TANK);
+        assertSame(VehicleGunCard.MEDIUM, medium);
+        assertTrue(medium.accepts(MechWeaponComponent.SRM_5));
+        assertTrue(medium.accepts(MechWeaponComponent.PL_2));
+        assertFalse(medium.accepts(MechWeaponComponent.HC_20), "three rows are the Onager's");
     }
 
     @Test
@@ -41,7 +56,7 @@ class VehicleGunTest {
         assertTrue(small.accepts(MechWeaponComponent.SRM_3_QS));
         assertFalse(small.accepts(MechWeaponComponent.PL_2_AP), "footprint is the only cap: two rows are too tall");
         assertFalse(small.accepts(null));
-        assertFalse(VehicleGunCard.CANNON.accepts(MechWeaponComponent.BL_1), "a locked card keeps its lock");
+        assertFalse(VehicleGunCard.LASER.accepts(MechWeaponComponent.LIGHT_MACHINE_GUN), "a locked card keeps its lock");
     }
 
     @Test
@@ -52,16 +67,6 @@ class VehicleGunTest {
         assertTrue(laser.accepts(MechWeaponComponent.BL_2));
         assertFalse(laser.accepts(MechWeaponComponent.HC_20), "a ballistic gun is not an energy one");
         assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.PL_3), "a three-row part does not fit a small card");
-    }
-
-    @Test
-    void theMediumTankTakesTwoRowBallisticGunsButNeverTheHeavyCannon() {
-        VehicleGunCard card = VehicleGunCard.of(VehicleType.MEDIUM_TANK);
-        assertSame(VehicleGunCard.MEDIUM_CANNON, card);
-        assertTrue(card.accepts(VehicleType.MEDIUM_TANK.standardPart()), "its stock gun fits its own card");
-        assertTrue(card.accepts(MechWeaponComponent.AC_6));
-        assertFalse(card.accepts(MechWeaponComponent.HC_20), "three rows are the Onager's");
-        assertFalse(card.accepts(MechWeaponComponent.PL_2_AP));
     }
 
     @Test

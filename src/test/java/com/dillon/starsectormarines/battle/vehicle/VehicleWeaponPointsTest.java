@@ -7,34 +7,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A hull's weapon-point variant: the gun card it locks, the head its gun turns in, and the colour a faction fields. */
+/** A weapon's colour on a hull: the head it turns in, the part a stock spawn fits, and the colour a faction prefers. */
 class VehicleWeaponPointsTest {
-
-    @Test
-    void aVariantLocksTheSameRowsToAnotherColour() {
-        VehicleGunCard green = VehicleGunCard.of(VehicleType.MEDIUM_TANK, HardpointType.MISSILE);
-        assertEquals(HardpointType.MISSILE, green.hardpoint);
-        assertEquals(VehicleGunCard.of(VehicleType.MEDIUM_TANK).rows, green.rows);
-        assertTrue(green.accepts(MechWeaponComponent.SRM_5));
-        assertFalse(green.accepts(MechWeaponComponent.SRM_15), "three rows do not go in two");
-        assertFalse(green.accepts(MechWeaponComponent.HC_10), "the yellow gun does not go in the green card");
-
-        VehicleGunCard red = VehicleGunCard.of(VehicleType.BREAKTHROUGH_TANK, HardpointType.ENERGY);
-        assertTrue(red.accepts(MechWeaponComponent.PL_3));
-        assertFalse(red.accepts(MechWeaponComponent.HC_20));
-    }
-
-    @Test
-    void theHullsOwnColourAndNoColourAreItsOwnCardAndAColourItIsNotBuiltInIsNone() {
-        VehicleGunCard own = VehicleGunCard.of(VehicleType.MEDIUM_TANK);
-        assertSame(own, VehicleGunCard.of(VehicleType.MEDIUM_TANK, null));
-        assertSame(own, VehicleGunCard.of(VehicleType.MEDIUM_TANK, HardpointType.BALLISTIC));
-        assertNull(VehicleGunCard.of(VehicleType.LRM_CARRIER, HardpointType.ENERGY));
-        assertTrue(VehicleType.HEAVY_APC.weaponPoints().isEmpty(), "an omni card has no colour to choose");
-    }
 
     @Test
     void aMissileRackStandsInTheOpenBarbetteAndEveryOtherGunUnderTheClosedHead() {
@@ -46,15 +22,19 @@ class VehicleWeaponPointsTest {
     }
 
     @Test
-    void aStockSpawnFitsAPartItsVariantsCardTakes() {
+    void aStockSpawnFitsItsSidesColourOnlyInAnOmniCardAndAlwaysAPartTheCardTakes() {
+        assertEquals(MechWeaponComponent.SRM_15, VehicleType.BREAKTHROUGH_TANK.standardPart(HardpointType.MISSILE));
+        assertEquals(VehicleType.LRM_CARRIER.standardPart(), VehicleType.LRM_CARRIER.standardPart(HardpointType.ENERGY),
+                "a locked card keeps its own part");
+        assertEquals(VehicleType.MEDIUM_TANK.standardPart(), VehicleType.MEDIUM_TANK.standardPart(null));
         for (VehicleType type : VehicleType.values()) {
-            for (HardpointType point : type.weaponPoints()) {
+            VehicleGunCard card = VehicleGunCard.of(type);
+            for (HardpointType point : HardpointType.values()) {
                 MechWeaponComponent part = type.standardPart(point);
-                if (part == null) continue;
-                assertTrue(VehicleGunCard.of(type, point).accepts(part), type + " " + point + " " + part);
+                if (card == null || part == null || part == type.standardPart()) continue;
+                assertTrue(card.accepts(part), type + " " + point + " " + part);
             }
         }
-        assertEquals(VehicleType.MEDIUM_TANK.standardPart(), VehicleType.MEDIUM_TANK.standardPart(null));
     }
 
     @Test

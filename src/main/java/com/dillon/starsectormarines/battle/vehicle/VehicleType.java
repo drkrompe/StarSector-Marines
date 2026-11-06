@@ -717,12 +717,13 @@ public enum VehicleType {
     }
 
     /**
-     * The part a stock spawn fits in {@code type}'s {@code point} variant ({@link #weaponPoints}): the green Scorpion's
-     * SRM-5 and the red one's PL-2, the green Onager's SRM-15 and the red one's PL-3; the hull's own standard part in
-     * its own colour, or for a point it is not built in.
+     * The part a stock spawn of a side that prefers {@code point}'s colour fits ({@link FactionVehiclePoints}): in the
+     * gun tanks' omni cards the Scorpion's SRM-5 or PL-2 and the Onager's SRM-15 or PL-3; the hull's own standard
+     * part for ballistic, for null, and on every hull whose card is not omni.
      */
     public MechWeaponComponent standardPart(HardpointType point) {
-        if (point == null || !weaponPoints().contains(point)) return standardPart();
+        VehicleGunCard card = VehicleGunCard.of(this);
+        if (point == null || card == null || card.hardpoint != null) return standardPart();
         return switch (this) {
             case MEDIUM_TANK -> switch (point) {
                 case MISSILE -> MechWeaponComponent.SRM_5;
@@ -736,20 +737,6 @@ public enum VehicleType {
             };
             default -> standardPart();
         };
-    }
-
-    /**
-     * The weapon-point colours a hull of this type is built in (hegemony-armor-line.md, weapon-point variants): the
-     * Scorpion and the Onager in all three, yellow ballistic, green missile and red energy, the same hull with its gun
-     * card locked to another hardpoint; every other armed hull only in its own card's, and an omni or unarmed hull in
-     * none. A hull's variant is chosen when it is built and is what its doll, its fitting and its stock part read.
-     */
-    public List<HardpointType> weaponPoints() {
-        if (this == MEDIUM_TANK || this == BREAKTHROUGH_TANK) {
-            return List.of(HardpointType.BALLISTIC, HardpointType.MISSILE, HardpointType.ENERGY);
-        }
-        VehicleGunCard own = VehicleGunCard.of(this);
-        return own == null || own.hardpoint == null ? List.of() : List.of(own.hardpoint);
     }
 
     /**

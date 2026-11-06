@@ -16,7 +16,6 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
@@ -508,7 +507,7 @@ public final class MechLabViewModel {
             }
         }
         if (filter != CategoryFilter.WALKERS) {
-            for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicleBuilds()) {
+            for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
                 if (bay.canFabricate(recipe.vehicle())
                         && (weight == null || MechPattern.weightClass(recipe.vehicle()) == weight)) shown.add(recipe);
             }
@@ -524,7 +523,7 @@ public final class MechLabViewModel {
     private void build(MechFabricationCatalog.Recipe recipe) {
         previewRecipeId.set(null);
         if (recipe.variant() != null) fabricateChassis(recipe.variant());
-        else fabricateVehicle(recipe.vehicle(), recipe.point());
+        else fabricateVehicle(recipe.vehicle());
     }
 
     private String patternClasses(MechFabricationCatalog.Recipe recipe) {
@@ -538,17 +537,6 @@ public final class MechLabViewModel {
         MechFabricationCatalog.Recipe recipe = previewRecipe();
         if (recipe == null) return null;
         return recipe.variant() != null ? recipe.variant() : recipe.vehicle();
-    }
-
-    /**
-     * The weapon-point variant of the vehicle the doll shows: the selected hull's, or with none selected the previewed
-     * pattern's ({@link VehicleType#weaponPoints}); null for a mech, or a hull in its own colour.
-     */
-    public HardpointType shownVehiclePoint() {
-        CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicle.point();
-        MechFabricationCatalog.Recipe recipe = previewRecipe();
-        return recipe != null ? recipe.point() : null;
     }
 
     public void previewPattern(String recipeId) { previewRecipeId.set(recipeId); }
@@ -844,7 +832,7 @@ public final class MechLabViewModel {
     /** Every socket a machine's doll has: a chassis's authored layout, or what a hull's type gives it. */
     private static List<SocketDef> machineSockets(CampaignMachine machine) {
         return machine instanceof CampaignMech mech ? MechFittingLayout.forVariant(mech.variant()).sockets()
-                : VehicleDoll.sockets(((CampaignVehicle) machine).type(), ((CampaignVehicle) machine).point());
+                : VehicleDoll.sockets(((CampaignVehicle) machine).type());
     }
 
     /** Installed weapon currently projected into one fitting-rack row. */
@@ -1559,7 +1547,7 @@ public final class MechLabViewModel {
     private List<CatalogRow> weaponCatalog(CampaignMachine machine, MechMountSlot mount) {
         MechWeaponComponent current = mount != null ? slotWeapon(machine, selectedSlot.get()) : null;
         if (machine instanceof CampaignVehicle vehicle) {
-            return weaponRows(current, vehicle::takesGun);
+            return weaponRows(current, component -> CampaignVehicle.takesGun(vehicle.type(), component));
         }
         SocketDef socket = mount != null ? selectedSocketDefinition() : null;
         return weaponRows(current, component -> mount == null || socket != null && component.accepts(mount)
@@ -1660,7 +1648,7 @@ public final class MechLabViewModel {
                     variant != null ? roleLabel(variant.defaultRole) : patternArmament(type),
                     Strings.get("openingMechLabFab"), buildHint(recipe),
                     !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
-                    () -> build(recipe), () -> previewRecipeId.set(recipe.id())).inPoint(recipe.point()));
+                    () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
         }
         return List.copyOf(rows);
     }
@@ -2500,15 +2488,10 @@ public final class MechLabViewModel {
      * which owns the pattern, berth and material refusals.
      */
     boolean fabricateVehicle(VehicleType type) {
-        return fabricateVehicle(type, null);
-    }
-
-    /** As above, the hull built in its {@code point} variant; null is its own colour. */
-    boolean fabricateVehicle(VehicleType type, HardpointType point) {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || type == null) return false;
         int pad = selectedGantryIndex();
-        MechWorkshop.Result result = workshop.fabricateVehicle(squad.id(), type, point);
+        MechWorkshop.Result result = workshop.fabricateVehicle(squad.id(), type);
         CampaignVehicle fabricated = result.vehicle();
         if (fabricated != null) {
             squad.standOn(fabricated.id(), pad);
@@ -2971,19 +2954,8 @@ public final class MechLabViewModel {
      */
     public record CatalogRow(FittingCard card, MechVariant chassisPreview,
                              MechWeaponComponent weaponPreview,
-                             MechInternal internalPreview, VehicleType vehiclePreview, HardpointType vehiclePoint,
-                             Runnable select)
+                             MechInternal internalPreview, VehicleType vehiclePreview, Runnable select)
             implements MarkupPropertySource {
-        public CatalogRow(FittingCard card, MechVariant chassisPreview, MechWeaponComponent weaponPreview,
-                          MechInternal internalPreview, VehicleType vehiclePreview, Runnable select) {
-            this(card, chassisPreview, weaponPreview, internalPreview, vehiclePreview, null, select);
-        }
-
-        /** This row's vehicle pattern in its weapon-point variant, for its picture ({@link VehicleType#weaponPoints}). */
-        CatalogRow inPoint(HardpointType point) {
-            return new CatalogRow(card, chassisPreview, weaponPreview, internalPreview, vehiclePreview, point, select);
-        }
-
         public String id() { return card.id(); }
         public String previewId() { return card.previewId(); }
         public String actionId() { return card.actionId(); }

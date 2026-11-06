@@ -105,11 +105,18 @@ final class MechSocketConsole {
     }
 
     /**
-     * What a card holds that is built into the machine rather than fitted: its drawing and its colour. A
+     * What a card holds that is built into the machine rather than fitted: its drawing, the card's colour ({@code tone},
+     * its frame) and the piece's own ({@code fill}, its bricks): a built-in gun in an omni card is the gun's colour, as a
+     * fitted weapon is, never the card's grey (owner: a weapon has its colour). A
      * {@linkplain SocketDef#factoryLocked locked} socket wears a lock too; an older save's own gun looks the same but a
      * weapon can replace it, so it does not.
      */
-    record Sealed(String art, Color tone) { }
+    record Sealed(String art, Color tone, Color fill) {
+        /** A sealed piece in the card's own colour. */
+        Sealed(String art, Color tone) {
+            this(art, tone, tone);
+        }
+    }
 
     /**
      * A mount card on any machine: a quiet plate carrying the socket's name, its bricks at the doll's
@@ -157,7 +164,7 @@ final class MechSocketConsole {
         if (sealed != null) {
             // Its lock, its muted rim and its one factory piece say it is sealed.
             HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
-                    HardpointBricks.mix(socketTone, 0x101311, .35f));
+                    HardpointBricks.mix(sealed.fill(), 0x101311, .35f));
             HardwareArt.drawVehicle(c, sealed.art(), bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
         } else if (!fixed) {
             MechWeaponComponent shown = preview != null ? preview : installed;

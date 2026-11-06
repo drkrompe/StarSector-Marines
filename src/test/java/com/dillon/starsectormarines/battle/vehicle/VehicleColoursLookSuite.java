@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Hegemony line's weapon-point variants in play (hegemony-armor-line.md): the Scorpion and the Onager each in
- * yellow, green and red with the part a stock spawn of that colour fits ({@link VehicleType#standardPart(HardpointType)}),
+ * The Hegemony gun tanks' omni cards in play (hegemony-armor-line.md): the Scorpion and the Onager each with a
+ * ballistic, a missile and an energy part, the ones a stock spawn of that colour fits ({@link VehicleType#standardPart(HardpointType)}),
  * firing north on a pinned, unarmed scout car each, so the green racks stand up in their open barbettes and the red
  * emitters fire from under the closed head. At play zoom and close on each class. Owner-facing look frames only.
  */

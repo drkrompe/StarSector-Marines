@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
@@ -64,7 +63,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private CampaignMech previewMech;
     private MechChassisPreviewCanvas previewMechArt;
     private VehicleType previewVehicleType;
-    private HardpointType previewVehiclePoint;
     private VehiclePreviewCanvas previewVehicleArt;
     private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
@@ -112,7 +110,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
     private Supplier<List<MechCompartment.Placement>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
-    private Supplier<HardpointType> vehiclePoint = () -> null;
     private Supplier<CampaignMachine> fittedMachine = () -> null;
     private BooleanSupplier vehicleOwnGun = () -> false;
 
@@ -197,14 +194,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** The selected vehicle's hull, for its sealed doll; null while a mech or nothing is selected. */
     public void selectedVehicle(Supplier<VehicleType> source) {
         selectedVehicle = source != null ? source : () -> null;
-    }
-
-    /**
-     * The weapon-point variant of the vehicle the doll shows, the selected hull's or the previewed pattern's
-     * ({@link VehicleType#weaponPoints}); null for the hull's own colour.
-     */
-    public void vehiclePoint(Supplier<HardpointType> source) {
-        vehiclePoint = source != null ? source : () -> null;
     }
 
     private record DragPreview(MechWeaponComponent component, MechInternal internal, SocketId source,
@@ -318,19 +307,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     MechLabDollCanvas::isSocketCompatible, id -> HardpointBricks.tone(layout.socket(id).type()),
                     width, height);
         } else if (vehicle != null && fittingOverlaysVisible.getAsBoolean()) {
-            HardpointType point = vehiclePoint.get();
-            VehicleGunCard card = VehicleGunCard.of(vehicle, point);
-            drawSchematic(context, VehicleDoll.sockets(vehicle, point), vehicle, installedWeapons,
+            VehicleGunCard card = VehicleGunCard.of(vehicle);
+            drawSchematic(context, VehicleDoll.sockets(vehicle), vehicle, installedWeapons,
                     (socket, weapon) -> socket.id() == SocketId.ARMS && card != null && card.accepts(weapon),
-                    id -> VehicleDoll.tone(vehicle, point, id), width, height);
+                    id -> VehicleDoll.tone(vehicle, id), width, height);
         } else {
             lastSocketTargets = List.of();
             Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
             if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
             else if (preview instanceof VehicleType type) {
-                HardpointType point = vehiclePoint.get();
-                drawBareVehicle(context, type, point, panelWidth(VehicleDoll.sockets(type, point), width), height,
-                        elapsedSeconds.getAsDouble(), true);
+                drawBareVehicle(context, type, panelWidth(VehicleDoll.sockets(type), width), height, elapsedSeconds.getAsDouble(), true);
             }
         }
     }
@@ -376,12 +362,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * selected vehicle's ({@link VehicleDoll}): the engine core, armor point, gun card and auxiliary compartment all
      * empty. {@code warnMissing} marks what keeps the hull off the manifest, as on a chassis.
      */
-    static void drawBareVehicle(CanvasContext c, VehicleType type, HardpointType point, float panelWidth,
-                                float height, double seconds, boolean warnMissing) {
-        List<SocketDef> sockets = VehicleDoll.sockets(type, point);
+    static void drawBareVehicle(CanvasContext c, VehicleType type, float panelWidth, float height, double seconds,
+                                boolean warnMissing) {
+        List<SocketDef> sockets = VehicleDoll.sockets(type);
         drawSchematicPanel(c, panelWidth, height);
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, height);
-        drawWires(c, targets, id -> VehicleDoll.tone(type, point, id));
+        drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         MechSocketConsole.Warnings warnings = MechSocketConsole.Warnings.bare(warnMissing, MachineCapabilities.of(type, null));
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
@@ -588,11 +574,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
             previewMechArt.drawAt(context, centerX, centerY,
                     UnitRenderService.layeredMechHullWidth(cellPx, variant.renderScale), PREVIEW_ALPHA);
         } else if (preview instanceof VehicleType type) {
-            HardpointType point = vehiclePoint.get();
-            if (previewVehicleArt == null || previewVehicleType != type || previewVehiclePoint != point) {
+            if (previewVehicleArt == null || previewVehicleType != type) {
                 previewVehicleType = type;
-                previewVehiclePoint = point;
-                previewVehicleArt = VehiclePreviewCanvas.asBought(type, point);
+                previewVehicleArt = VehiclePreviewCanvas.asBought(type);
             }
             previewVehicleArt.drawAt(context, centerX, centerY, cellPx, true, PREVIEW_ALPHA);
         }
@@ -791,7 +775,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static MechSocketConsole.Sealed sealedOf(VehicleType hull, SocketId card) {
-        return new MechSocketConsole.Sealed(VehicleDoll.art(hull, card), VehicleDoll.tone(hull, card));
+        return new MechSocketConsole.Sealed(VehicleDoll.art(hull, card), VehicleDoll.tone(hull, card),
+                VehicleDoll.fill(hull, card));
     }
 
     private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {

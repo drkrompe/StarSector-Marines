@@ -119,24 +119,22 @@ tuned in the playtest, not by evidence alone.
    blue and fades the plate grey, pirates turn them red and darken, soot, chip and rust the plate. A side drives in
    the paint of the faction its mechs wear the livery of (employer for the marines, target for the defenders); every
    faction but those two keeps the Hegemony's. Evidence: `createSnapshots -Psnapshot=vehicle-liveries`.
-8. **Shipped.** **Weapon-point variants** (owner: a difference in the doll, not a locked turret; yellow, green and red,
-   one of each): the Scorpion and the Onager are built in any of the three colours, the same hull with its gun card
-   locked to ballistic, missile or energy at the same rows (`VehicleType.weaponPoints`, `VehicleGunCard.of(type,
-   point)`: the Scorpion's two-row cards, the Onager's three-row ones). The colour is chosen when the hull is built:
-   the pattern is bought once and the lab lists one build per colour at its price
-   (`MechFabricationCatalog.vehicleBuilds`), and the hull keeps it (`CampaignVehicle.point`); a hull from a save from
-   before is the yellow one. The doll's turret card, its fitting and the pad preview read it. A missile rack in a
-   closed head's place stands in the open barbette, as the carriers' do (`VehicleType.turretHead(point)`), so a green
-   tank raises its rack to fire; red and yellow keep the closed head. The APC carriers are already the Packhorse's
-   yellow and green, and the laser tank keeps its own card. A stock spawn fits its colour's part
-   (`VehicleType.standardPart(point)`: SRM-5 and PL-2 on the Scorpion, SRM-15 and PL-3 on the Onager), and a battle's
-   defenders field their faction's colour (`FactionVehiclePoints`: the Diktat and the Lion's Guard red, the Luddic
-   factions green, everyone else, independents and pirates among them, yellow). Evidence: `createSnapshots
-   -Psnapshot=vehicle-colours` (each colour firing) and `-Psnapshot=bought-machines` (the three Scorpion dolls); the
-   proving ground's third rank fields the green and red ones. The red Onager carries its energy weapon in the
-   Hegemony emitter (`VehicleGunArt.HEGEMONY_EMITTER`, art-source/vehicles/hegemony-emitter), not the mech's white
-   Tri-Tachyon drawing, which read as pasted on under the bronze head (owner): a converted-cannon barrel with copper
-   cooling rings and a red lens, the recommended pick on the picks page against an industrial projector.
+8. **Shipped.** **Omni gun tanks** (owner: three builds of one tank are one tank, so give it an omni grey slot and
+   let the player fit what they like): the Scorpion's and the Onager's gun cards are unlocked, two and three rows
+   (`VehicleGunCard.MEDIUM`, `HEAVY`), capped only by height as the small card is. Only the APC carriers stay
+   specialists: the mortar carrier's 2x2 ballistic card and the LRM carrier's missile card, grown to 3x2 so it holds a
+   fifteen-tube rack (`VehicleGunCard.LRM`). The head follows the fitted weapon: a missile rack in a closed head's
+   place stands in the open barbette, as the carriers' do (`VehicleType.turretHead(point)`), so a tank with a rack
+   raises it to fire; any other part keeps the closed head. An energy weapon on the Onager is drawn as the Hegemony
+   emitter (`VehicleGunArt.HEGEMONY_EMITTER`, art-source/vehicles/hegemony-emitter), not the mech's white Tri-Tachyon
+   drawing, which read as pasted on under the bronze head: a converted-cannon barrel with copper cooling rings and a
+   red lens (owner's pick over an industrial projector). A stock spawn fits its side's preferred colour
+   (`VehicleType.standardPart(point)`: SRM-5 or PL-2 on the Scorpion, SRM-15 or PL-3 on the Onager), and a battle's
+   defenders prefer their faction's (`FactionVehiclePoints`: the Diktat and the Lion's Guard energy, the Luddic
+   factions missile, everyone else, independents and pirates among them, ballistic). Evidence: `createSnapshots
+   -Psnapshot=vehicle-colours` (each colour firing on both tanks) and `-Psnapshot=bought-machines` (the omni dolls);
+   the proving ground's third rank fields the missile and energy tanks. A one-hour build of yellow, green and red
+   builds came first; a save from it loads, its colour ignored (`CampaignVehicle.pointId`).
 
 ## Open
 
@@ -151,7 +149,6 @@ tuned in the playtest, not by evidence alone.
 - The active-protection kit's deck overlay is registered to the laser tank's frame, not yet refitted to the Onager's
   or the medium tank's deck; the Onager's doll is still the tracked tank's outline.
 - The laser tank stays on today's hull until a Tri-Tachyon head and hull are drawn.
-- An empty green hull on the lab pad shows the closed head until a rack goes in: the pad's battle render reads the
-  head from the fitted weapon, and a bare hull has none. The store's pattern card shows the yellow doll.
-- Independents and pirates field only yellow; a mix of whatever they could buy or steal is not built.
-- Only the defenders take their faction's colour; allies and the marines' stock hulls are yellow.
+- Independents and pirates field only ballistic tanks; a mix of whatever they could buy or steal is not built.
+- Only the defenders take their faction's colour; allies' stock tanks carry cannons.
+- The Scorpion's PL-2 still wears the mech's white emitter; only the Onager has the Hegemony emitter.

@@ -48,7 +48,7 @@ import java.util.Locale;
 /**
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
  * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
- * to compare, then the green and red Scorpion and Onager ({@link #COLOUR_HULLS}), with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * to compare, then the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS}), with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -79,8 +79,8 @@ public final class ProvingGroundSetup {
             MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
     private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
     /**
-     * The hulls built in every weapon-point colour (hegemony-armor-line.md), fielded in the third rank after the gun
-     * ladder in green and red with the part a stock spawn of each fits; the ranks above hold their yellow ones.
+     * The gun tanks, whose omni cards take any colour (hegemony-armor-line.md), fielded in the third rank after the
+     * gun ladder with the missile and the energy part a stock spawn of each fits; the ranks above hold their cannons.
      */
     private static final VehicleType[] COLOUR_HULLS = {VehicleType.MEDIUM_TANK, VehicleType.BREAKTHROUGH_TANK};
     private static final HardpointType[] OTHER_COLOURS = {HardpointType.MISSILE, HardpointType.ENERGY};

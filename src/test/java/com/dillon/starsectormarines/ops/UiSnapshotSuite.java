@@ -83,7 +83,6 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
@@ -2687,12 +2686,8 @@ private static BufferedImage renderBarracks(
                         false, false, false, false, null, "machine-plate-off")),
                 new SnapshotArtifact("vehicle-onager.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-vehicle.BREAKTHROUGH_TANK")),
-                new SnapshotArtifact("vehicle-scorpion-yellow.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-bought-vehicle.MEDIUM_TANK.BALLISTIC")),
-                new SnapshotArtifact("vehicle-scorpion-green.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-bought-vehicle.MEDIUM_TANK.MISSILE")),
-                new SnapshotArtifact("vehicle-scorpion-red.png", renderMechLab(context, renderer, 1920, 1080, 1f,
-                        false, false, false, false, null, "machine-bought-vehicle.MEDIUM_TANK.ENERGY")),
+                new SnapshotArtifact("vehicle-scorpion.png", renderMechLab(context, renderer, 1920, 1080, 1f,
+                        false, false, false, false, null, "machine-bought-vehicle.MEDIUM_TANK")),
                 new SnapshotArtifact("vehicle-drone-tank.png", renderMechLab(context, renderer, 1920, 1080, 1f,
                         false, false, false, false, null, "machine-vehicle.DRONE_SKIMMER")),
                 new SnapshotArtifact("pattern-card-vehicle.png", renderMechLab(context, renderer, 1920, 1080, 1f,
@@ -3036,13 +3031,10 @@ private static BufferedImage renderBarracks(
             machineName = bay.fabricateFrame(MechBay.STARTER_SQUAD_ID, variant).displayName();
         }
         if (materialHint != null && materialHint.startsWith("machine-bought-vehicle.")) {
-            // machine-bought-vehicle.<VehicleType>[.<HardpointType>]: the hull in its weapon-point variant, if named.
-            String[] parts = materialHint.substring("machine-bought-vehicle.".length()).split("\\.");
-            VehicleType type = VehicleType.valueOf(parts[0]);
-            HardpointType point = parts.length > 1 ? HardpointType.valueOf(parts[1]) : null;
+            VehicleType type = VehicleType.valueOf(materialHint.substring("machine-bought-vehicle.".length()));
             bay = new MechBay();
             machineName = CampaignVehicle.className(type) + " 01";
-            bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("bought_vehicle", machineName, type, point));
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, CampaignVehicle.hull("bought_vehicle", machineName, type));
         }
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             bay = new MechBay();
@@ -3299,7 +3291,6 @@ private static BufferedImage renderBarracks(
             fittingCanvas.fittedMachine(viewModel::selectedMachine);
             fittingCanvas.installedCompartment(viewModel::compartmentPlacements);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
-            fittingCanvas.vehiclePoint(viewModel::shownVehiclePoint);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {

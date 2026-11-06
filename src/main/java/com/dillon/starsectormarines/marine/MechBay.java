@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -240,16 +239,11 @@ public final class MechBay implements Serializable {
 
     /** Builds one bare hull ({@link CampaignVehicle#hull}) onto a vacant gantry in the selected lance. */
     public CampaignVehicle fabricateVehicle(String squadId, VehicleType type) {
-        return fabricateVehicle(squadId, type, null);
-    }
-
-    /** As above, the hull built in its {@code point} variant ({@link VehicleType#weaponPoints}); null is its own colour. */
-    public CampaignVehicle fabricateVehicle(String squadId, VehicleType type, HardpointType point) {
         if (type == null || !canAddMech(squadId)) return null;
         int serial = Math.max(1, nextVehicleSerial);
         String number = String.format(Locale.ROOT, "%02d", serial);
         CampaignVehicle vehicle = CampaignVehicle.hull(vehicleId(serial),
-                CampaignVehicle.className(type) + " " + String.format(Strings.locale(), "%02d", serial), type, point);
+                CampaignVehicle.className(type) + " " + String.format(Strings.locale(), "%02d", serial), type);
         if (!addVehicle(squadId, vehicle)) return null;
         nextVehicleSerial = serial + 1;
         return vehicle;
@@ -615,7 +609,7 @@ public final class MechBay implements Serializable {
     /** Whether {@code gun} would go in the vehicle's gun card: an armed hull, and a weapon of the card's type and size. */
     public boolean canFitGun(String vehicleId, MechWeaponComponent gun) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && vehicle.takesGun(gun);
+        return vehicle != null && CampaignVehicle.takesGun(vehicle.type(), gun);
     }
 
     /**
@@ -624,7 +618,7 @@ public final class MechBay implements Serializable {
      */
     public boolean fitGun(String vehicleId, MechWeaponComponent gun) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        if (vehicle == null || gun == null || !vehicle.takesGun(gun)
+        if (vehicle == null || gun == null || !CampaignVehicle.takesGun(vehicle.type(), gun)
                 || availableWeapon(gun.id) <= 0) {
             return false;
         }

@@ -33,20 +33,11 @@ public final class VehicleDoll {
 
     /** The cards a hull of {@code type} shows: the auxiliary compartment's bay or bays ({@link VehicleRack#grids}) near last. */
     public static List<SocketDef> sockets(VehicleType type) {
-        return sockets(type, null);
-    }
-
-    /**
-     * As above, for a hull built in its {@code point} variant ({@link VehicleType#weaponPoints}): the gun card takes
-     * that colour and the rows its card has, so a green Scorpion's doll shows a missile card where the yellow one's
-     * shows a ballistic one. Null is the hull's own colour.
-     */
-    public static List<SocketDef> sockets(VehicleType type, HardpointType point) {
         List<SocketDef> sockets = new ArrayList<>();
         sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
                 "@gearSocketEngine"));
         if (type.hasTurretWeapon()) {
-            VehicleGunCard gun = VehicleGunCard.of(type, point);
+            VehicleGunCard gun = VehicleGunCard.of(type);
             sockets.add(card(SocketId.ARMS, gun.hardpoint == null ? SocketType.OMNI : switch (gun.hardpoint) {
                 case MISSILE -> SocketType.MISSILE;
                 case ENERGY -> SocketType.ENERGY;
@@ -97,15 +88,12 @@ public final class VehicleDoll {
      */
     private static String gunArt(VehicleGunCard card) {
         return switch (card) {
-            case CANNON -> "hc-20";
-            case MEDIUM_CANNON -> "hc-10";
+            case HEAVY -> "hc-20";
+            case MEDIUM -> "hc-10";
             case SMALL -> "light-machine-gun";
             case MORTAR -> "vehicle-turret-mortar";
             case LASER -> "ll-3";
             case LRM -> "lrm-5";
-            case MEDIUM_LASER -> "pl-2";
-            case MEDIUM_MISSILE -> "srm-5";
-            case HEAVY_MISSILE -> "srm-15";
         };
     }
 
@@ -114,10 +102,7 @@ public final class VehicleDoll {
      * several guns, so the SRM pod and the hover pulse emitter each carry their own picture rather than the light
      * machine gun's; any other turret, the machine-gun hulls' light machine gun among them, reads from its card.
      */
-    private static String gunArt(VehicleType type, HardpointType point) {
-        VehicleGunCard own = VehicleGunCard.of(type);
-        VehicleGunCard card = VehicleGunCard.of(type, point);
-        if (card != null && card != own) return gunArt(card);
+    private static String gunArt(VehicleType type) {
         return switch (type.turretStructureId == null ? "" : type.turretStructureId) {
             case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> "vehicle-srm-5";
             case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> "bl-1";
@@ -144,17 +129,29 @@ public final class VehicleDoll {
      * compartment the compartment's steel, its parts bringing their own role's colours.
      */
     static Color tone(VehicleType type, SocketId card) {
-        return tone(type, null, card);
-    }
-
-    /** As above, the turret in its {@code point} variant's colour; null is the hull's own. */
-    static Color tone(VehicleType type, HardpointType point, SocketId card) {
         return switch (card) {
             case CORE -> HardpointBricks.ENGINE;
-            case ARMS -> HardpointBricks.tone(VehicleGunCard.of(type, point).hardpoint);
+            case ARMS -> HardpointBricks.tone(VehicleGunCard.of(type).hardpoint);
             case RIGHT_SHOULDER -> HardpointBricks.UTILITY;
             case PLATING -> HardpointBricks.OMNI;
             default -> HardpointBricks.AUXILIARY;
+        };
+    }
+
+    /**
+     * The colour a sealed card's piece is drawn in: the card's own, except at the turret, where a built-in gun is its
+     * own colour whatever the card's lock, as any fitted weapon is (owner: an omni card does not colour the weapon in
+     * it). The gun is the hull's own part, its stock part, or the weapon its turret structure is; with none known the
+     * card's colour.
+     */
+    static Color fill(VehicleType type, SocketId card) {
+        if (card != SocketId.ARMS) return tone(type, card);
+        MechWeaponComponent gun = type.ownGun() != null ? type.ownGun() : type.standardPart();
+        if (gun != null) return HardpointBricks.tone(gun.hardpointType);
+        return switch (type.turretStructureId == null ? "" : type.turretStructureId) {
+            case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> HardpointBricks.tone(HardpointType.MISSILE);
+            case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> HardpointBricks.tone(HardpointType.ENERGY);
+            default -> tone(type, card);
         };
     }
 
@@ -163,18 +160,13 @@ public final class VehicleDoll {
      * bay by what it holds, and the systems card by the most telling system on it; null for the rack.
      */
     static String art(VehicleType type, SocketId card) {
-        return art(type, null, card);
-    }
-
-    /** As above, the turret drawn as its {@code point} variant's gun; null is the hull's own. */
-    static String art(VehicleType type, HardpointType point, SocketId card) {
         return switch (card) {
             case CORE -> switch (type.weight()) {
                 case LIGHT -> "engine-industrial";
                 case MEDIUM -> "engine-uprated";
                 case HEAVY, ULTRA_HEAVY -> "engine-military";
             };
-            case ARMS -> gunArt(type, point);
+            case ARMS -> gunArt(type);
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
             case RIGHT_SHOULDER -> type.sightCells() > 0f ? "vehicle-systems-mast" : "vehicle-systems-secondary";

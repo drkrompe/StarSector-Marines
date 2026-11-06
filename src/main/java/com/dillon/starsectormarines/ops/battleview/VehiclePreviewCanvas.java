@@ -49,8 +49,6 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     private record GunArt(String path, SpriteAPI live, float widthOverLength) { }
 
     private final VehicleType type;
-    /** The weapon-point variant the hull is built in ({@link VehicleType#weaponPoints}); null for its own colour. */
-    private final HardpointType point;
     /** Read on every draw: fitting a gun to a campaign hull changes what its standing canvas shows. */
     private final Supplier<GunCard> gunCard;
     /** Where a fitted weapon's mech drawing comes from; may yield null where no machine art is loaded. */
@@ -60,32 +58,25 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
 
     /** The hull in its stock fit, its own turret on it: a debug loadout's machine. */
     public VehiclePreviewCanvas(VehicleType type) {
-        this(type, null, () -> GunCard.OWN_TURRET, () -> null);
+        this(type, () -> GunCard.OWN_TURRET, () -> null);
     }
 
-    private VehiclePreviewCanvas(VehicleType type, HardpointType point, Supplier<GunCard> gunCard,
-                                 Supplier<LayeredMechAssets> assets) {
+    private VehiclePreviewCanvas(VehicleType type, Supplier<GunCard> gunCard, Supplier<LayeredMechAssets> assets) {
         if (type == null) throw new IllegalArgumentException("vehicle type required");
         this.type = type;
-        this.point = point;
         this.gunCard = gunCard;
         this.assets = assets;
     }
 
     /** The hull as it is bought, with nothing in its gun card: a pattern on offer. */
     public static VehiclePreviewCanvas asBought(VehicleType type) {
-        return asBought(type, null);
-    }
-
-    /** As above, the hull built in its {@code point} variant, which may stand in another head; null is its own colour. */
-    public static VehiclePreviewCanvas asBought(VehicleType type, HardpointType point) {
-        return new VehiclePreviewCanvas(type, point, () -> GunCard.EMPTY, () -> null);
+        return new VehiclePreviewCanvas(type, () -> GunCard.EMPTY, () -> null);
     }
 
     /** A campaign hull as it stands now, with whatever is in its gun card. */
     public static VehiclePreviewCanvas of(CampaignVehicle vehicle, Supplier<LayeredMechAssets> assets) {
         if (vehicle == null) throw new IllegalArgumentException("vehicle required");
-        return new VehiclePreviewCanvas(vehicle.type(), vehicle.point(), () -> gunCardOf(vehicle), assets);
+        return new VehiclePreviewCanvas(vehicle.type(), () -> gunCardOf(vehicle), assets);
     }
 
     /** The battle's own reading of a gun card ({@code ConvoyService}): an older save's hull keeps its own gun until replaced. */
@@ -200,9 +191,9 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                 (onPad ? ON_PAD_DEGREES : 0f) + GUN_TO_NOSE_DEGREES, new Color(1f, 1f, 1f, alpha));
     }
 
-    /** The colour the head is chosen by: the fitted weapon's, or with none fitted the hull's variant. */
-    private HardpointType headPoint(GunCard card) {
-        return card.weapon() != null ? card.weapon().hardpointType : point;
+    /** The colour the head is chosen by: the fitted weapon's; null with none fitted, the hull's own head. */
+    private static HardpointType headPoint(GunCard card) {
+        return card.weapon() != null ? card.weapon().hardpointType : null;
     }
 
     /** The weapon's drawing on this hull, as {@link VehicleGunArt#sprite} picks it; null for one that wears a head on the sheet. */
