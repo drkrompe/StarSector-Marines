@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -28,6 +29,8 @@ public final class NaturalPropDamage {
         final DoodadDef damaged, destroyed;
         final int[] cells;
         boolean undergrowth;
+        /** A tree, whose canopy stops a round only at its core ({@link CanopyCore}); anything else stops it whole. */
+        boolean tree;
         int hp;
         long lastAttack = Long.MIN_VALUE;
         Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed, int[] cells, int hp) {
@@ -80,6 +83,7 @@ public final class NaturalPropDamage {
             throw new IllegalStateException("Missing or mismatched natural prop damage pair for " + prop.definitionId());
         Entry entry = new Entry(index, prop, damaged, destroyed, cells.stream().mapToInt(Integer::intValue).toArray(), shape.hitPoints());
         entry.undergrowth = shape.undergrowth();
+        entry.tree = shape instanceof TreeCanopy;
         entries.add(entry);
         for (int cell : entry.cells) owners.computeIfAbsent(cell, unused -> new ArrayList<>()).add(entry);
         refreshCrushable(entry);
@@ -138,6 +142,30 @@ public final class NaturalPropDamage {
             if (trunk(entry, cell)) return false;
         }
         return standing;
+    }
+
+    /**
+     * Whether a round whose segment crosses natural cell ({@code x},{@code y}) stops there: on permanent ground, on a
+     * cell no registered object owns, and on any standing object that is not a tree, always; on a tree's crown only
+     * where the segment reaches the tree's core inside this cell ({@link CanopyCore}). The grid's
+     * {@link NavigationGrid.CanopyFire}.
+     */
+    public boolean stopsRound(int x, int y, float x0, float y0, float x1, float y1) {
+        if (!grid.inBounds(x, y)) return true;
+        int cell = grid.index(x, y);
+        List<Entry> at = owners.get(cell);
+        if (at == null || permanent.test(cell)) return true;
+        boolean standing = false;
+        for (Entry entry : at) {
+            if (entry.hp <= 0) continue;
+            standing = true;
+            if (!entry.tree) return true;
+            Doodad d = entry.original;
+            if (CanopyCore.stops(x, y, x0, y0, x1, y1,
+                    d.cellX + d.footprintCellsX * 0.5f, d.cellY + d.footprintCellsY * 0.5f,
+                    CanopyCore.radius(d.footprintCellsX), CanopyCore.radius(d.footprintCellsY))) return true;
+        }
+        return !standing;
     }
 
     private boolean trunk(Entry entry, int cell) {
