@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-07 — the sky port is an industrial stepped pyramid: terraces with freight bays and lanes over the hive city.
+Updated: 2026-11-07 — the industrial stepped sky port has traffic: vanilla hulls flying its bays and skyways, freighters parked on its terraces.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -216,10 +216,24 @@ Laws):
      the drop, a long one keeps the terraces large. Both are on the picks
      page.
    Seen straight down, a stepped pyramid is mostly its terraces' roofs: its
-   walls show only past the edge of the level the camera is over. Next, by
-   the owner's word: traffic into the bays, scale on the terraces (cranes,
-   parked ships, gantries), an industrial deck surface, and the city's own
-   layers.
+   walls show only past the edge of the level the camera is over, so
+   scale and movement carry the depth:
+   - **Traffic** of vanilla hulls (the owner's suggestion: Hounds,
+     aeroshuttles and the like): two craft to a bay fly in from far out over
+     its lane and into the mouth, or out the other way, and skyways cross
+     the drop beside the structure at four depths, two streams apiece,
+     opposite ways. Craft move on the presentation clock, are drawn in the
+     painter's order of their depth, fade into the haze, and show an engine
+     glow.
+   - **Parked freighters** stand on the terraces between the bays, on their
+     own shadows.
+   - Hulls below the surface are sized to the structure (`craftMetersPerPx`,
+     0.2 m a pixel: a Buffalo about 30 m), not to the battle's own craft,
+     which are drawn small to sit beside infantry; the bays and lanes are
+     sized for them.
+   Left: cranes and gantries, an industrial deck surface, the city's own
+   layers. The play area's size and chokepoints will change (owner,
+   2026-11-07); the structure follows whatever footprint the deck has.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the

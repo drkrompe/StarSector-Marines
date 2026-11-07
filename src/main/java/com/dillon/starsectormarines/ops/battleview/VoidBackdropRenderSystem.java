@@ -40,7 +40,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** The ground system's own backing colour, laid under the surface. */
     static final float BACKING_R = 0x18 / 255f, BACKING_G = 0x22 / 255f, BACKING_B = 0x30 / 255f;
     /** Freight bay mouths: spacing along a wall, width and height in metres, and the lane each feeds. */
-    static final float MOUTH_SPACING = 56f, MOUTH_W = 18f, MOUTH_H = 12f, LANE_W = 14f;
+    static final float MOUTH_SPACING = 64f, MOUTH_W = 28f, MOUTH_H = 16f, LANE_W = 24f;
+    /** Craft flying in and out of a bay: how far out they come from, how fast, how many to a bay. */
+    static final float APPROACH_METERS = 170f, BAY_SPEED = 16f;
+    static final int BAY_CRAFT = 2;
+    /** Skyways crossing the drop: their length, the spacing of craft along them, and their speed. */
+    static final float SKYWAY_METERS = 1600f, SKYWAY_SPACING = 70f, SKYWAY_SPEED = 28f;
 
     private final BattleSprites sprites;
     private SunLight sun;
@@ -53,6 +58,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private final List<float[]> surface = new ArrayList<>();
     private String shadowKey;
     private final List<float[]> shadow = new ArrayList<>();
+    /** Paths craft fly: {@code {count, speed, spacing, x0, y0, z0, x1, y1, z1, ...}}, looping from first to last. */
+    private final List<float[]> routes = new ArrayList<>();
 
     // The frame being drawn.
     private DrawList out;
@@ -75,6 +82,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         List<float[]> footings = List.of();
         /** The shadow the levels above lay on this level's roof, for the current sun: rectangles in cells. */
         final List<float[]> shadow = new ArrayList<>();
+        /** Hulls parked on this level's roof: {@code {x, y, heading in radians, craft index}}. */
+        final List<float[]> parked = new ArrayList<>();
+        /** Craft flying in this level's band of depth this frame: {@code {x, y, z, heading, craft, alpha}}. */
+        final List<float[]> flying = new ArrayList<>();
     }
 
     VoidBackdropRenderSystem(BattleSprites sprites) {
@@ -107,12 +118,18 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
         drawGround(cellPx);
         drawShadow();
+        fly(ctx.animationTimeSeconds);
         float px = cam.panCellX(), py = cam.panCellY();
         for (int i = levels.size() - 1; i >= 0; i--) {
             Level level = levels.get(i);
             List<float[]> order = new ArrayList<>(level.runs);
             order.sort((a, b) -> Float.compare(planDistance(b, px, py), planDistance(a, px, py)));
             for (float[] run : order) drawWall(level, run);
+            // Craft in this level's band of depth fly outside its walls, deepest first, under the roof above.
+            level.flying.sort((a, b) -> Float.compare(b[2], a[2]));
+            for (float[] craft : level.flying) {
+                drawCraft(craft[0], craft[1], craft[2], craft[3], (int) craft[4], craft[5]);
+            }
             if (i > 0) drawRoof(level);
         }
         for (float[] run : levels.get(0).runs) drawRail(run);
@@ -457,6 +474,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
         }
         // Softer than the shadow on the ground: a terrace is lit by the sky and the walls around it.
+        for (float[] hull : level.parked) {
+            // A parked hull sits on its own soft shadow, laid away from the sun.
+            float sdx = sun == null ? .6f : -sun.dirX() * 1.6f, sdy = sun == null ? .6f : -sun.dirY() * 1.6f;
+            drawCraft(hull[0] + sdx, hull[1] + sdy, depth, hull[2], (int) hull[3], -.45f);
+            drawCraft(hull[0], hull[1], depth, hull[2], (int) hull[3], 1f);
+        }
         float shade = sun == null ? 0f : sun.shadowStrength() * .35f * alpha;
         for (float[] r : level.shadow) rect(r[0], r[1], r[2], r[3], depth, SHADOW_R, SHADOW_G, SHADOW_B, shade);
         // Ambient dark at the foot of each wall standing on this roof, fading out across the terrace.
@@ -482,6 +505,156 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         for (float[] r : level.roofs) {
             rect(r[0], r[1], r[2], r[3], depth, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(), haze * alpha);
         }
+    }
+
+    // ----- traffic -----
+
+    /** Places every craft on its route at {@code time}, in the band of depth of the level it flies beside. */
+    private void fly(float time) {
+        for (Level level : levels) level.flying.clear();
+        if (backdrop.craft().isEmpty()) return;
+        for (int r = 0; r < routes.size(); r++) {
+            float[] route = routes.get(r);
+            int count = (int) route[0];
+            float speed = route[1], spacing = route[2];
+            int points = (route.length - 3) / 3;
+            float total = 0f;
+            for (int k = 1; k < points; k++) total += segment(route, k);
+            if (total <= 0f) continue;
+            float cycle = Math.max(total, count * spacing);
+            for (int c = 0; c < count; c++) {
+                float d = (float) ((time * speed + c * spacing + r * 37f) % cycle);
+                if (d > total) continue;
+                int k = 1;
+                float along = d;
+                while (k < points - 1 && along > segment(route, k)) along -= segment(route, k++);
+                float len = segment(route, k), t = len <= 0f ? 0f : Math.min(1f, along / len);
+                int a = 3 + (k - 1) * 3, b = a + 3;
+                float x = route[a] + (route[b] - route[a]) * t, y = route[a + 1] + (route[b + 1] - route[a + 1]) * t;
+                float z = route[a + 2] + (route[b + 2] - route[a + 2]) * t;
+                float heading = (float) Math.atan2(route[b + 1] - route[a + 1], route[b] - route[a]);
+                // Craft fade in at the start of a path and out at its end, into a bay's dark or the haze.
+                float fade = Math.min(1f, Math.min(d, total - d) / 25f);
+                int hull = Math.floorMod(r * 5 + c * 3 + r / 3, backdrop.craft().size());
+                Level band = levels.get(0);
+                for (Level level : levels) if (level.top <= z) band = level;
+                if (z < backdrop.depthMeters()) band.flying.add(new float[]{x, y, z, heading, hull, fade});
+            }
+        }
+    }
+
+    private static float segment(float[] route, int k) {
+        int a = 3 + (k - 1) * 3, b = a + 3;
+        float dx = route[b] - route[a], dy = route[b + 1] - route[a + 1], dz = route[b + 2] - route[a + 2];
+        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    /**
+     * A hull at {@code (x, y)}, {@code z} metres down, nose along {@code heading}, sized by the scale the
+     * backdrop names. A negative {@code fade} draws its silhouette dark at that strength, for a shadow.
+     */
+    private void drawCraft(float x, float y, float z, float heading, int hull, float fade) {
+        ShuttleSpriteCache sprite = sprites.spriteByPath(backdrop.craft().get(hull));
+        if (sprite == null || sprite.pxH <= 0) return;
+        float s = scale(z);
+        float length = sprite.pxH * backdrop.craftMetersPerPx();
+        float cellPx = cam.cellPxSize();
+        float h = length * s * cellPx, w = h * sprite.aspect;
+        if (h < 1.5f) return;
+        float qx = sx(x, s), qy = sy(y, s);
+        if (qx < cam.vpX() - h || qx > cam.vpX() + cam.vpW() + h || qy < cam.vpY() - h
+                || qy > cam.vpY() + cam.vpH() + h) return;
+        float nx = sx(x + (float) Math.cos(heading), s) - qx, ny = sy(y + (float) Math.sin(heading), s) - qy;
+        float angle = (float) Math.toDegrees(Math.atan2(ny, nx)) - 90f;
+        if (fade < 0f) {
+            out.addSprite(RenderLayer.GROUND, sprite.sprite, qx, qy, w, h, angle, 0f, 0f, 0f, -fade * alpha);
+            return;
+        }
+        float haze = hazeAt(z);
+        float a = fade * (1f - haze * .55f) * alpha;
+        out.addSprite(RenderLayer.GROUND, sprite.sprite, qx, qy, w, h, angle, 1f, 1f, 1f, a);
+        // An engine's glow at the tail, warm against the haze.
+        float tx = x - (float) Math.cos(heading) * length * .5f, ty = y - (float) Math.sin(heading) * length * .5f;
+        float g = Math.max(.2f, length * .035f);
+        rect(tx - g, ty - g, tx + g, ty + g, z, 1f, .78f, .45f, .9f * a);
+        rect(tx - g * 2.2f, ty - g * 2.2f, tx + g * 2.2f, ty + g * 2.2f, z, 1f, .55f, .2f, .25f * a);
+    }
+
+    /**
+     * The paths craft fly: in from far out over each bay's lane and into the bay (every other bay outbound), and
+     * skyways crossing the drop beside the structure at several depths, two streams apiece, opposite ways. And
+     * the hulls parked on each terrace, between its bays, along the wall above.
+     */
+    private void plotTraffic(VoidBackdrop backdrop) {
+        routes.clear();
+        if (backdrop.craft().isEmpty()) return;
+        int bay = 0;
+        for (int i = 0; i + 1 < levels.size(); i++) {
+            Level level = levels.get(i), below = levels.get(i + 1);
+            float reach = below.outset - level.outset;
+            for (float[] mouth : level.mouths) {
+                float[] run = level.runs.get((int) mouth[0]);
+                boolean horizontal = run[1] == run[3];
+                float wx = horizontal ? mouth[1] : run[0], wy = horizontal ? run[1] : mouth[1];
+                float nx = run[4], ny = run[5];
+                float zIn = level.bottom - MOUTH_H / 2f - 1f;
+                float[] far = {wx + nx * (reach + APPROACH_METERS), wy + ny * (reach + APPROACH_METERS),
+                        Math.max(4f, level.bottom - 50f)};
+                float[] edge = {wx + nx * reach, wy + ny * reach, level.bottom - 8f};
+                float[] in = {wx, wy, zIn};
+                float[][] path = bay++ % 2 == 0 ? new float[][]{far, edge, in} : new float[][]{in, edge, far};
+                routes.add(route(BAY_CRAFT, BAY_SPEED, 90f, path));
+            }
+            // Parked hulls between the bays, a third of the way out across the terrace, nose along the wall.
+            for (int k = 0; k < level.runs.size(); k++) {
+                float[] run = level.runs.get(k);
+                boolean horizontal = run[1] == run[3];
+                List<Float> centres = new ArrayList<>();
+                for (float[] mouth : level.mouths) if ((int) mouth[0] == k) centres.add(mouth[1]);
+                for (int c = 0; c + 1 < centres.size(); c++) {
+                    float u = (centres.get(c) + centres.get(c + 1)) / 2f;
+                    float inset = reach * .35f;
+                    float x = horizontal ? u : run[0] + run[4] * inset, y = horizontal ? run[1] + run[5] * inset : u;
+                    float heading = horizontal ? 0f : (float) (Math.PI / 2);
+                    int hull = backdrop.craft().size() - 1 - (k + c) % Math.min(3, backdrop.craft().size());
+                    below.parked.add(new float[]{x, y, heading, hull});
+                }
+            }
+        }
+        Level last = levels.get(levels.size() - 1);
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+        for (float[] r : last.roofs) {
+            minX = Math.min(minX, r[0]); minY = Math.min(minY, r[1]);
+            maxX = Math.max(maxX, r[2]); maxY = Math.max(maxY, r[3]);
+        }
+        float mx = (minX + maxX) / 2f, my = (minY + maxY) / 2f;
+        float clear = (float) Math.hypot(maxX - minX, maxY - minY) / 2f + 40f;
+        float[] depths = {.30f, .50f, .70f, .88f};
+        float[] bearings = {20f, 112f, 64f, 158f};
+        for (int k = 0; k < depths.length; k++) {
+            float z = depths[k] * backdrop.depthMeters();
+            float th = (float) Math.toRadians(bearings[k]);
+            float dx = (float) Math.cos(th), dy = (float) Math.sin(th);
+            float side = k % 2 == 0 ? 1f : -1f;
+            for (int lane = 0; lane < 2; lane++) {
+                float off = side * (clear + lane * 12f);
+                float ox = mx - dy * off, oy = my + dx * off;
+                float[] a = {ox - dx * SKYWAY_METERS / 2f, oy - dy * SKYWAY_METERS / 2f, z};
+                float[] b = {ox + dx * SKYWAY_METERS / 2f, oy + dy * SKYWAY_METERS / 2f, z};
+                int count = Math.round(SKYWAY_METERS / SKYWAY_SPACING);
+                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING,
+                        lane == 0 ? new float[][]{a, b} : new float[][]{b, a}));
+            }
+        }
+    }
+
+    private static float[] route(int count, float speed, float spacing, float[][] points) {
+        float[] route = new float[3 + points.length * 3];
+        route[0] = count;
+        route[1] = speed;
+        route[2] = spacing;
+        for (int k = 0; k < points.length; k++) System.arraycopy(points[k], 0, route, 3 + k * 3, 3);
+        return route;
     }
 
     /** A railing along the surface's edge, on the void side: a lit rail over its own dark shadow line. */
@@ -557,6 +730,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 }
             }
         }
+        plotTraffic(backdrop);
     }
 
     /** The mask grown by {@code r} cells in every direction, square-cornered. */

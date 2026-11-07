@@ -29,7 +29,7 @@ import java.util.Locale;
  * seen moving under the deck. Opt-in: a look review, not part of {@code all}.
  *
  * <p>{@code -Dsnapshot.skyPort.depth=400} picks the depth in metres, the terraces and the ground below scaled
- * with it; {@code -Dsnapshot.skyPort.eyes=1,2} the camera heights compared, as multiples of the view's width.
+ * with it; {@code -Dsnapshot.skyPort.eyes=1,2} the camera heights to compare, as multiples of the view's width.
  */
 public final class SkyPortVoidLookSuite implements SnapshotSuite {
 
@@ -41,9 +41,18 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
     /** A landing pier off the deck's east side. */
     static final int PX0 = DX1, PY0 = OY + 20, PX1 = DX1 + 20, PY1 = OY + 34;
     static final float PLAY = 60f;
-    static final int PAN_FRAMES = 120;
+    static final int PAN_FRAMES = 240;
+    /** Where the presentation clock stands for the stills, so the traffic is caught mid-flight. */
+    static final float REVIEW_CLOCK = 40f;
 
     /** The industrial hive sky port: a stepped pyramid of terraces down to the hive city (owner: direction C). */
+    /** Vanilla hulls flying the bays and skyways; the last three, the freighters, stand parked on the terraces. */
+    static final List<String> CRAFT = List.of(
+            "graphics/ships/aeroshuttle/aeroshuttle_base.png", "graphics/ships/hermes/hermes_base.png",
+            "graphics/ships/hound/hound_base.png", "graphics/ships/wayfarer/wayfarer.png",
+            "graphics/ships/buffalo/buffalo_base.png", "graphics/ships/tarsus/tarsus_base.png",
+            "graphics/ships/mule/mule_base.png");
+
     static VoidBackdrop industrial(float depth, float eye) {
         float f = depth / 400f;
         return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
@@ -51,7 +60,8 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                 "graphics/battle/voids/industrial-facade.png", 32f,
                 "graphics/battle/voids/industrial-terrace-roof.png", 40f,
                 List.of(new VoidBackdrop.Tier(60f * f, 14f), new VoidBackdrop.Tier(130f * f, 34f),
-                        new VoidBackdrop.Tier(220f * f, 60f), new VoidBackdrop.Tier(310f * f, 90f)), eye);
+                        new VoidBackdrop.Tier(220f * f, 60f), new VoidBackdrop.Tier(310f * f, 90f)), eye,
+                CRAFT, .2f);
     }
 
     @Override public String id() { return "sky-port-void-look"; }
@@ -66,7 +76,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         boolean video = FfmpegVideo.executable() != null;
         List<SnapshotArtifact> out = new ArrayList<>();
         float depth = Float.parseFloat(System.getProperty("snapshot.skyPort.depth", "400"));
-        for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1,2").split(",")) {
+        for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
             String tag = String.format(Locale.ROOT, "industrial-%04dm-eye%.1f", Math.round(depth), eye);
             try (BattleSimulation sim = deck(industrial(depth, eye))) {
@@ -90,7 +100,8 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                 float t = i / (float) (PAN_FRAMES - 1);
                 float u = .5f - .5f * (float) Math.cos(t * 2f * Math.PI);
                 encoder.add(BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080,
-                        x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, PLAY).withoutRoofs().render(sim, name));
+                        x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, PLAY).withoutRoofs()
+                        .atClock(REVIEW_CLOCK + i / 30f).render(sim, name));
             }
             encoder.finish();
         }
@@ -100,7 +111,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
     private static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name,
                                          float x, float y, float cells) throws Exception {
         return new SnapshotArtifact(name, BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y, cells)
-                .withoutRoofs().render(sim, name));
+                .withoutRoofs().atClock(REVIEW_CLOCK).render(sim, name));
     }
 
     /** The roof deck: apron, lanes, a few blocks of plant, a squad for scale; the rest void. */
