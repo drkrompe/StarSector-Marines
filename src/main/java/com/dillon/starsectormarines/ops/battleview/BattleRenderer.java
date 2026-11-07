@@ -299,6 +299,8 @@ public class BattleRenderer {
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
         creep.useSun(sun);
         cliffArt.useSun(sun);
+        VoidBackdropRenderSystem voidBackdrop = new VoidBackdropRenderSystem(sprites);
+        voidBackdrop.useSun(sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -320,6 +322,8 @@ public class BattleRenderer {
         nightLighting.useLights(groundLights);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         this.worldSystems = List.of(
+                // The ground far below a map's void cells, under the tiles that cover it everywhere else.
+                voidBackdrop,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
                 cliffArt,

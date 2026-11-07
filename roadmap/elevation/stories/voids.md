@@ -1,10 +1,10 @@
 # Story — Voids: depth a map can't walk into
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-07 — depth is felt out in the look slices; railings are drawn only, and no edge gives cover.
+Updated: 2026-11-07 — the city drop's look is being found on a sky port roof deck: a parallax city plate, walls drawn storey by storey, the structure's swept shadow.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -136,11 +136,34 @@ Laws):
    drops in city blocks, bridged where streets cross; crevasses in ice and rock
    country; a gorge river as a brook's alternative; a sea cliff along a map's
    edge.
-3. **Look, first style.** Negative relief and its headroom, the baked edge and
-   the parallax floor for the city drop, which started this.
-   `-Dbattle.render.voidLook=false` is the control. Renders at 1920x1080
-   through the look preset, for the owner's pick of edge and floor, each at
-   one, two and three storeys deep so the owner can feel out the depth.
+3. **Look, first style.** The city drop, on the owner's first target: a **sky
+   port**, a battle fought on the roof deck of a megastructure over an endless
+   city (2026-11-07). Its look experiment is built ahead of slices 1 and 2,
+   on a hand-made deck (`createSnapshots -Psnapshot=sky-port-void-look`).
+   - The map carries a `VoidBackdrop` (a seamless city plate, its depth in
+     metres, the metres one copy covers, the haze colour, lit or dark
+     windows); `VoidBackdropRenderSystem` draws it first in the ground layer,
+     so the tiles cover it everywhere but the void cells, which draw nothing.
+   - The view is a pinhole camera looking straight down from a height equal
+     to the view's width, so a point `d` metres down stands at
+     `h / (h + d)` of its distance from the view's centre. The city moves
+     slower than the deck when panning and grows less when zooming, with no
+     shader change.
+   - Every edge of the deck has a wall going down to the city, drawn storey
+     by storey at each storey's own scale, with window bands and pilasters
+     running toward the view's centre. A wall that faces away projects in
+     under the deck and is covered by it; faces are drawn far to near, so a
+     nearer face covers one behind it at a re-entrant corner.
+   - The structure casts on the city: its footprint swept from straight below
+     to the sun's reach, so the shadow is the whole tower's.
+   - A railing along every edge, drawn only.
+   - Depth here is the structure's height, not a storey or three: 150 m,
+     400 m and 1 km are on the voids picks page, the plate scaled with depth
+     so its blocks stay city-sized. Day and dusk plates are
+     `art-source/voids/sky-port/`.
+   Left: the owner's picks (depth, day or dusk); negative relief in the
+   composite; the walls' look past placeholder bands; slices 1 and 2 for
+   generated maps.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the

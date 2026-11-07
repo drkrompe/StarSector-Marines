@@ -172,7 +172,8 @@ public final class GroundRenderSystem implements RenderSystem {
         // One quad; the scissor bracket clips it to the viewport. A host whose
         // world does not fill its own grid declines it, because the quad would
         // paint over whatever it has put behind the world.
-        if (ctx.hostProfile.worldBackingPainted()) {
+        // A map with a void backdrop shows the ground far below through its void cells, so it is not backed.
+        if (ctx.hostProfile.worldBackingPainted() && topology.voidBackdrop() == null) {
             float wx0 = cam.cellToScreenX(0);
             float wy0 = cam.cellToScreenY(0);
             float wx1 = cam.cellToScreenX(grid.getWidth());

@@ -31,3 +31,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Mechlab drop sound (sliders and takes for the doll-point drop sound; takes in the page db) | https://claude.ai/artifact/A2Dq7xyu3oGYnZSCYYsUD8 |
 | HQ command deck reskin (bridge room, colour, plate versions) | https://claude.ai/artifact/6HMasKcthSGxBwC2fbUZNK |
 | Hegemony armour line (weapon-point variants, the red Onager's emitter) | https://claude.ai/artifact/DH3gtRXwEHXt3tiSmzPWNU |
+| Voids (city drop look: sky port roof deck over the city below) | https://claude.ai/artifact/PcifafuBfp8foX5w1DuBeA |
