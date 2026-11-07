@@ -154,7 +154,10 @@ which the handoff battle is built.
    row is inert. Our "use Nexerelin" option does not name Nexerelin's command.
    It sets a one-shot bypass flag and re-fires the Invade selection, so
    Nexerelin's own row runs exactly as it would have. The fork's Back reuses
-   Nexerelin's own `nex_mktInvadeGoBack`.
+   Nexerelin's own `nex_mktInvadeGoBack`. `playBattle`'s planet menu
+   (`build-and-run.md`) plays this against the real rows: the intercept scores
+   101 over Nexerelin's 1, the bypass reaches Nexerelin's row, and the Marine
+   choice opens the invasion briefing. The settlement still needs the game.
 6. **Compiling against Nexerelin.** A compile-only stub module, `:nex-stubs`,
    declares only the signatures the handoff calls. It is `compileOnly` for the
    mod, and `verifyModJarBoundary` keeps its classes out of the jar. Every

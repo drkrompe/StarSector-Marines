@@ -28,8 +28,13 @@ public class Nex_MarketCMD extends MarketCMD {
         // Nexerelin's Go back row clears its military-response tracker first; there is none here.
         if ("cleanupResponder".equals(command)) return true;
         if ("invadeMenu".equals(command)) {
-            dialog.getTextPanel().addPara("[playBattle] Nexerelin's invasion is not stood in for yet.");
-            showDefenses(dialog);
+            // Nexerelin's own invasion menu: its strength comparison and ground battle are Nexerelin's, so this only
+            // shows that the selection reached it, and offers its Back.
+            dialog.getTextPanel().addPara("[playBattle] Nexerelin's invasion menu would open here: its own"
+                    + " strength comparison and ground battle, which this stand-in does not play.");
+            OptionPanelAPI options = dialog.getOptionPanel();
+            options.clearOptions();
+            options.addOption("Go back", "nex_mktInvadeGoBack");
             return true;
         }
         return super.other(command, dialog, memoryMap);

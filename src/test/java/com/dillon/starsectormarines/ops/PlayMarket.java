@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.ops.playrules.StandInMarket;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.ModManagerAPI;
+import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CustomVisualDialogDelegate;
@@ -115,14 +117,14 @@ final class PlayMarket implements StandInMarket.State {
     }
 
     /**
-     * The rows the planet menu stands in for: the mod's raid rows, vanilla's Take Hostile Action rows (and the main
+     * The rows the planet menu stands in for: the mod's raid and invade rows, vanilla's Take Hostile Action rows (and the main
      * menu row offering them), Nexerelin's replacements when it is toggled on, and {@code playBattle}'s own Leave.
      */
     private static List<PlayRules.Source> sources(boolean nexerelin) {
         Path core = Path.of(System.getProperty("starsectorDir"), "starsector-core", "data", "campaign", "rules.csv");
         List<PlayRules.Source> sources = new ArrayList<>();
         sources.add(new PlayRules.Source("mod", Path.of("mod/data/campaign/rules.csv"), StandardCharsets.UTF_8,
-                id -> id.startsWith("smRaid")));
+                id -> id.startsWith("smRaid") || id.startsWith("smNexInvade")));
         sources.add(new PlayRules.Source("vanilla", core, GAME_CSV,
                 id -> id.equals("marketOptHostile") || id.startsWith("marketHostile")));
         if (nexerelin) {
@@ -218,8 +220,10 @@ final class PlayMarket implements StandInMarket.State {
 
     private void inScope(Runnable action) {
         SectorAPI before = Global.getSector();
+        SettingsAPI settingsBefore = Global.getSettings();
         StandInMarket.current = this;
         Global.setSector(sector);
+        Global.setSettings(withNexerelin(settingsBefore));
         try {
             action.run();
         } catch (RuntimeException failure) {
@@ -228,7 +232,22 @@ final class PlayMarket implements StandInMarket.State {
             traced("FAILED: " + failure);
         } finally {
             Global.setSector(before);
+            Global.setSettings(settingsBefore);
         }
+    }
+
+    /**
+     * The settings with a mod manager that reports Nexerelin enabled exactly when its toggle is on, so the mod's own
+     * Nexerelin checks (the invade fork, its settlement) see the same Nexerelin the loaded rows do.
+     */
+    private SettingsAPI withNexerelin(SettingsAPI settings) {
+        ModManagerAPI underneath = settings.getModManager();
+        ModManagerAPI mods = proxy(ModManagerAPI.class, (method, args) -> {
+            if (method.getName().equals("isModEnabled") && "nexerelin".equals(args[0])) return toggles.nexerelin;
+            return underneath != null ? delegate(method, underneath, args) : inert(method.getReturnType());
+        });
+        return proxy(SettingsAPI.class, (method, args) ->
+                method.getName().equals("getModManager") ? mods : delegate(method, settings, args));
     }
 
     private void traced(String line) {
