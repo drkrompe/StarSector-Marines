@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6c2-77d2-7fa0-b5f8-3083554a3f93",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6c2-77d2-7fa0-b5f8-3083554a3f93\\exec-9d26835c-721d-40c4-babd-85e264412a1e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\concepts\\c-industrial-hive.png",
+    "sha256": "440038e4295247375a06657ab876d262407000aab0e7b922afb49f242cb422c3",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\concepts\\c-industrial-hive.prompt.txt",
+  "promptSha256": "ea0b2686162122878ca4195442fa91dc685635506ae88bea4b42e007af1d0065",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content\n\nConcept frame for a top-down tactical battle game (1920x1080 landscape). The\nbattle is fought on the roof deck of a colossal sky port megastructure that\nrises out of an endless, hazy megacity hundreds of metres below. The camera\nlooks STRAIGHT DOWN (true overhead, no tilt, no horizon, no sky). The\nattached render is the camera and projection authority: the roof deck\noccupies the upper-left of the frame, seen flat from above, and the\nstructure's walls fall away from the deck's edges in steep perspective,\nconverging toward the centre of the frame, down to the city far below. Keep\nthat framing, projection and vanishing point; replace everything else.\n\nThe roof deck must stay readable as a flat, walkable battlefield: landing\npads, apron markings, cargo, low roof plant and parapets, at the scale of\nsoldiers about 1 m across in a 60 m wide view. Below the deck's edge,\neverything shows real depth: the structure's own lower tiers, neighbouring\nmegastructures with their own roofs at different depths, haze between\nlayers, and the city floor glowing deep below.\n\nPainterly-realistic, grounded, game-art finish; no text, no UI, no labels,\nno border, no vignette, no people drawn larger than 1 m.\n\nDirection C, industrial hive spire (gritty frontier sector): a brutal,\npatched megastructure of grimy plate and girders. Massive buttresses and\ndocking arms with cranes and gantries bristle off its flanks below the\ndeck; cargo lifts, pipe runs and radiator fins cling to the walls; warning\nbeacons blink. Neighbouring hive stacks crowd close, connected by cable\nbridges and conduits. Overcast daylight, rust, soot and steel grey with\nhazard yellow; thick industrial haze over a dense city far below.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\f3a1995d-8474-4712-8153-68166bf54cee\\scratchpad\\picks\\media\\void-depth\\day-0400m.jpg",
+      "sha256": "b7dd058ba37b702aec44b6061357eda220fd2f973cb6cba2b825490eefa5f9f4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference for camera, projection, and framing.\n"
+  ],
+  "usage": {
+    "input_tokens": 43112,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 572,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.2
+}

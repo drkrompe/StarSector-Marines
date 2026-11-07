@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6c2-77b2-7912-9971-304e54729c4a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6c2-77b2-7912-9971-304e54729c4a\\exec-e1cc2b1b-e67e-44cb-a45f-d68a3a71e270.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\concepts\\a-ziggurat.png",
+    "sha256": "f62f5328d6c3c1ca58dc508b3d7af5bb0059390c169ef88175141cd7f706f68d",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\concepts\\a-ziggurat.prompt.txt",
+  "promptSha256": "7d7e69959cee6d4a1fae6f5adb85e9fa2f40b58a42dcabccbf0cd53d4448b90b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content\n\nConcept frame for a top-down tactical battle game (1920x1080 landscape). The\nbattle is fought on the roof deck of a colossal sky port megastructure that\nrises out of an endless, hazy megacity hundreds of metres below. The camera\nlooks STRAIGHT DOWN (true overhead, no tilt, no horizon, no sky). The\nattached render is the camera and projection authority: the roof deck\noccupies the upper-left of the frame, seen flat from above, and the\nstructure's walls fall away from the deck's edges in steep perspective,\nconverging toward the centre of the frame, down to the city far below. Keep\nthat framing, projection and vanishing point; replace everything else.\n\nThe roof deck must stay readable as a flat, walkable battlefield: landing\npads, apron markings, cargo, low roof plant and parapets, at the scale of\nsoldiers about 1 m across in a 60 m wide view. Below the deck's edge,\neverything shows real depth: the structure's own lower tiers, neighbouring\nmegastructures with their own roofs at different depths, haze between\nlayers, and the city floor glowing deep below.\n\nPainterly-realistic, grounded, game-art finish; no text, no UI, no labels,\nno border, no vignette, no people drawn larger than 1 m.\n\nDirection A, arcology ziggurat (Blade Runner): the sky port is the summit of\na vast stepped pyramid. Below the deck the walls step outward in broad\nterraces, each terrace its own lit roof with machinery, flare stacks\nburning, vents and running lights, receding in tiers toward the city. Dark,\nsmoggy amber-and-teal palette; a sodium-lit city choked with haze; spotlight\nbeams and the glow of advertising far below. Neighbouring arcology\npyramids rise to either side at lower heights.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\f3a1995d-8474-4712-8153-68166bf54cee\\scratchpad\\picks\\media\\void-depth\\day-0400m.jpg",
+      "sha256": "b7dd058ba37b702aec44b6061357eda220fd2f973cb6cba2b825490eefa5f9f4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s overhead framing and the amber-and-teal arcology direction."
+  ],
+  "usage": {
+    "input_tokens": 43015,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 486,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.5
+}

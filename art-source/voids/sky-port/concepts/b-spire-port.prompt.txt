@@ -1,0 +1,27 @@
+Concept frame for a top-down tactical battle game (1920x1080 landscape). The
+battle is fought on the roof deck of a colossal sky port megastructure that
+rises out of an endless, hazy megacity hundreds of metres below. The camera
+looks STRAIGHT DOWN (true overhead, no tilt, no horizon, no sky). The
+attached render is the camera and projection authority: the roof deck
+occupies the upper-left of the frame, seen flat from above, and the
+structure's walls fall away from the deck's edges in steep perspective,
+converging toward the centre of the frame, down to the city far below. Keep
+that framing, projection and vanishing point; replace everything else.
+
+The roof deck must stay readable as a flat, walkable battlefield: landing
+pads, apron markings, cargo, low roof plant and parapets, at the scale of
+soldiers about 1 m across in a 60 m wide view. Below the deck's edge,
+everything shows real depth: the structure's own lower tiers, neighbouring
+megastructures with their own roofs at different depths, haze between
+layers, and the city floor glowing deep below.
+
+Painterly-realistic, grounded, game-art finish; no text, no UI, no labels,
+no border, no vignette, no people drawn larger than 1 m.
+
+Direction B, spire sky port (Star Wars city-planet): the deck is the crown
+of a tall, elegant spire. Round landing platforms on slender arms jut out
+from the structure at several levels below the deck, each with its own
+markings and parked craft. Ribbed buttresses run down the faces. Streams of
+air traffic flow in lanes between neighbouring towers at different depths.
+Bright, pale stone and steel, warm afternoon haze, the city a sunlit
+blue-grey sea of towers far below.

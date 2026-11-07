@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6c2-77e1-7d72-80a3-bdf3dc7524e1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6c2-77e1-7d72-80a3-bdf3dc7524e1\\exec-2b508a7d-d235-436f-9404-b13f728fc1c1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\concepts\\b-spire-port.png",
+    "sha256": "c77f70c55f2155e852ae332f5020e9f9e3bfee52150935bc2a1f83867aaf02ca",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\concepts\\b-spire-port.prompt.txt",
+  "promptSha256": "2031688ace5c181921876ee7fecbc79a9b095c96fdcf1a66e3952dc91ce58f63",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content\n\nConcept frame for a top-down tactical battle game (1920x1080 landscape). The\nbattle is fought on the roof deck of a colossal sky port megastructure that\nrises out of an endless, hazy megacity hundreds of metres below. The camera\nlooks STRAIGHT DOWN (true overhead, no tilt, no horizon, no sky). The\nattached render is the camera and projection authority: the roof deck\noccupies the upper-left of the frame, seen flat from above, and the\nstructure's walls fall away from the deck's edges in steep perspective,\nconverging toward the centre of the frame, down to the city far below. Keep\nthat framing, projection and vanishing point; replace everything else.\n\nThe roof deck must stay readable as a flat, walkable battlefield: landing\npads, apron markings, cargo, low roof plant and parapets, at the scale of\nsoldiers about 1 m across in a 60 m wide view. Below the deck's edge,\neverything shows real depth: the structure's own lower tiers, neighbouring\nmegastructures with their own roofs at different depths, haze between\nlayers, and the city floor glowing deep below.\n\nPainterly-realistic, grounded, game-art finish; no text, no UI, no labels,\nno border, no vignette, no people drawn larger than 1 m.\n\nDirection B, spire sky port (Star Wars city-planet): the deck is the crown\nof a tall, elegant spire. Round landing platforms on slender arms jut out\nfrom the structure at several levels below the deck, each with its own\nmarkings and parked craft. Ribbed buttresses run down the faces. Streams of\nair traffic flow in lanes between neighbouring towers at different depths.\nBright, pale stone and steel, warm afternoon haze, the city a sunlit\nblue-grey sea of towers far below.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\f3a1995d-8474-4712-8153-68166bf54cee\\scratchpad\\picks\\media\\void-depth\\day-0400m.jpg",
+      "sha256": "b7dd058ba37b702aec44b6061357eda220fd2f973cb6cba2b825490eefa5f9f4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Camera, projection and framing authority only: straight-down view, deck upper-left, walls converging to frame centre; not style, not content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s overhead camera, framing, and vanishing point."
+  ],
+  "usage": {
+    "input_tokens": 42963,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 447,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.1
+}
