@@ -4,7 +4,7 @@ Status: PLANNED
 
 Written: 2026-11-07
 
-Updated: 2026-11-07 — named void; one battle rule under several void styles (crevasse, sea cliff, gorge river, city drop), outdoors as well as in cities.
+Updated: 2026-11-07 — depth is felt out in the look slices; railings are drawn only, and no edge gives cover.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -38,7 +38,9 @@ face and ramp, and folds into `elevation-nouns.md` when it ships.
   every other part of the elevation map.
 - A void has a **depth**, a whole number of storeys below the tier around it
   (the tier rise, 4 m). Depth is read only by the sun and the look. To the
-  battle every void is simply a drop.
+  battle every void is simply a drop. How deep each style should be is not
+  decided: the owner will feel it out from renders (2026-11-07), so depth
+  stays a dial until then.
 - A void's **edge** is its band of cells along walkable ground. It is drawn
   as a wall going down. To the battle it is the void itself, not a face, so it
   needs no width of its own.
@@ -85,8 +87,9 @@ honours it:
 - **Sight and direct fire** pass over a void as they pass over water. The fog,
   AI perception and the fire ray agree because they already share the
   see-through rule.
-- **Cover.** The edge gives none by default: a void is not a silhouette.
-  (Open: railings on some edges, below.)
+- **Cover.** No edge gives any: a void is not a silhouette. A city drop's
+  railing is drawn only, not cover (owner, 2026-11-07: railings visual for
+  now).
 - **Indirect fire and grenades** that land in a void are lost: no ground to
   burst on and nobody there. A blast on the ground beside a void spreads over
   it as over water.
@@ -136,7 +139,8 @@ Laws):
 3. **Look, first style.** Negative relief and its headroom, the baked edge and
    the parallax floor for the city drop, which started this.
    `-Dbattle.render.voidLook=false` is the control. Renders at 1920x1080
-   through the look preset, for the owner's pick of edge and floor.
+   through the look preset, for the owner's pick of edge and floor, each at
+   one, two and three storeys deep so the owner can feel out the depth.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the
@@ -160,10 +164,10 @@ Laws):
 
 ## Open (owner)
 
-- Depth: whole storeys (one to three) per style, or one "bottomless" look.
-- Railings: does some edge give low cover against fire across the gap (a city
-  drop's railing), or is every edge bare like a shore? A railing would be the
-  one place a style touched the battle.
+- Depth: felt out from the slice 3 and 4 renders: whole storeys per style, or
+  one "bottomless" look.
+- Later, not now: whether a railing ever gives low cover. It would be the one
+  place a style touched the battle.
 
 ## Acceptance
 
