@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6cc-b4ce-7910-a43c-e436f5c2e74e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6cc-b4ce-7910-a43c-e436f5c2e74e\\exec-4060ddc0-4f37-47ba-867c-ef8ce630cb1d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\industrial\\city-floor.png",
+    "sha256": "363eb078b96a34f2a1daa0e4e27507505841b7b3456d0cb524bb2bc6a37223fc",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\industrial\\city-floor.prompt.txt",
+  "promptSha256": "d16defcad2282998f792aab1b9dd4fab7ba5368b67a2af27f481d6be756776c3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, palette and finish only; not layout, not content, not perspective\n\nA seamless, tileable background plate for a top-down game: an endless\ngritty industrial hive city seen from directly overhead (true nadir, no\nhorizon, no tilt) from high above. Dense packed hive stacks, factory\nroofs with big fan housings, tanks, pipe galleries, narrow canyon\nstreets glowing with warm amber light, faint red beacons, steam plumes.\nThick grey industrial haze lies over all of it, so it is low contrast and\nreads as far below. A whole city block is about 60 pixels across. Even\ndensity with no focal point, so it can repeat. Overcast daylight. No\ntext, no logos, no border, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\sky-port\\concepts\\c-industrial-hive.png",
+      "sha256": "440038e4295247375a06657ab876d262407000aab0e7b922afb49f242cb422c3",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, palette and finish only; not layout, not content, not perspective"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one square, tileable city plate, using the reference only for its materials, palette, and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 41284,
+    "cached_input_tokens": 33280,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 369,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.0
+}

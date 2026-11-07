@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-07 — the city drop's look is being found on a sky port roof deck: a parallax city plate, walls drawn storey by storey, the structure's swept shadow.
+Updated: 2026-11-07 — the sky port is an industrial stepped pyramid: terraces with freight bays and lanes over the hive city.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -193,8 +193,33 @@ Laws):
      landing platforms and docking arms at lower levels, with beacons.
    - **Surface**: dense machinery, vents and lit strips rather than office
      window bands; light pools and haze clinging to the lower tiers.
-   A concept pass comes first: overhead ImageGen frames of the sky port and
-   its city, for the owner to pick a direction, before the drawing changes.
+   From the concept pass (`art-source/voids/sky-port/concepts/`) the owner
+   picked the **industrial hive spire** for this first pass, and expects
+   factions to mix in the megacity canyon and spire styles later
+   (2026-11-07). The owner sees the sky port as a large, almost stepped pyramid
+   with layers and entrance points feeding different traffic into central
+   freight corridors. The first pass draws that:
+   - The `VoidBackdrop` names its **tiers**: each terrace's depth and how far
+     it reaches past the deck's edge. A level is the deck's footprint grown
+     by its outset; levels are drawn from the deepest up, walls (far faces
+     first) then the roof over them, so a face turned away is covered.
+   - Walls carry a seamless industrial facade and terraces a seamless roof,
+     both ImageGen (`art-source/voids/sky-port/industrial/`), with the hive
+     city as the ground; haze thickens with depth over each.
+   - **Freight bays**: dark mouths, lit at the sill with beacons at the
+     corners, along the foot of every wall that stands on a terrace, each
+     feeding a lane with guide lights across the terrace to its edge, where
+     traffic would come in.
+   - The tiers above shade each terrace, and every wall's foot darkens the
+     roof it stands on.
+   - The camera's height is a map's own (`eyeHeight`): a wide lens deepens
+     the drop, a long one keeps the terraces large. Both are on the picks
+     page.
+   Seen straight down, a stepped pyramid is mostly its terraces' roofs: its
+   walls show only past the edge of the level the camera is over. Next, by
+   the owner's word: traffic into the bays, scale on the terraces (cranes,
+   parked ships, gantries), an industrial deck surface, and the city's own
+   layers.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the

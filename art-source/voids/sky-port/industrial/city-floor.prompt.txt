@@ -1,0 +1,9 @@
+A seamless, tileable background plate for a top-down game: an endless
+gritty industrial hive city seen from directly overhead (true nadir, no
+horizon, no tilt) from high above. Dense packed hive stacks, factory
+roofs with big fan housings, tanks, pipe galleries, narrow canyon
+streets glowing with warm amber light, faint red beacons, steam plumes.
+Thick grey industrial haze lies over all of it, so it is low contrast and
+reads as far below. A whole city block is about 60 pixels across. Even
+density with no focal point, so it can repeat. Overcast daylight. No
+text, no logos, no border, no vignette. Square canvas.

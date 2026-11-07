@@ -6,50 +6,76 @@ import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * The ground far below a map's void cells, and the playing surface's walls going down to it (the city drop
- * void style, `voids.md`). Drawn first in the ground layer, so the ground tiles cover it everywhere but the
- * void cells, which paint nothing.
+ * The structure a map's playing surface is the roof of, stepping down in terraces to the ground far below, and
+ * that ground, seen through the map's void cells (the city drop void style, `voids.md`). Drawn first in the
+ * ground layer, so the ground tiles cover it everywhere but the void cells, which paint nothing.
  *
- * <p><b>Depth.</b> The view is a pinhole camera looking straight down from a height that grows with how much
- * of the map is in view, so a point {@code d} metres below the surface stands on screen at
- * {@code h / (h + d)} of its distance from the view's centre. The ground below therefore moves slower than
- * the surface when the camera pans, and grows less when it zooms. A wall going down from a surface edge is
- * drawn storey by storey at each storey's own scale. Where a wall faces away from the camera its storeys
- * project in under the surface, whose tiles cover them, so only the walls the camera could see show.
+ * <p><b>Depth.</b> The view is a pinhole camera looking straight down from a height in proportion to the view's
+ * width in cells ({@link VoidBackdrop#eyeHeight}), so a point {@code d} metres below the surface stands on screen at {@code h / (h + d)} of its
+ * distance from the view's centre. The ground below moves slower than the surface when the camera pans, and
+ * grows less when it zooms.
+ *
+ * <p><b>Painter's order.</b> The structure is drawn from the bottom up: the ground, the structure's shadow on
+ * it, then each level from the deepest: its walls, far faces first, then the roof it stands under, which
+ * covers the faces turned away from the camera, and the freight lanes on that roof. The surface's own tiles,
+ * drawn after, close the top. A level is the surface's footprint grown by its terrace's outset, its walls
+ * running from its roof down to the next terrace or the ground.
  *
  * <p>Presentation only. It reads the map's void cells and its {@link VoidBackdrop}, never the battle.
  */
 final class VoidBackdropRenderSystem implements RenderSystem {
 
-    /** Camera height as a multiple of the view's width in cells: about a 53 degree field of view. */
-    static final float EYE_HEIGHT_PER_VIEW = 1.0f;
-    /** One storey of the walls, in metres: the tier rise. */
-    static final float STOREY_METERS = 4f;
-
+    /** Metres of wall drawn as one band, at one scale: two storeys. Divides any facade tile used. */
+    static final float BAND_METERS = 8f;
     /** Shadow on the ground below: a cool, dark veil, as the composite's own shadow tint. */
-    static final float SHADOW_R = .04f, SHADOW_G = .06f, SHADOW_B = .12f;
+    static final float SHADOW_R = .04f, SHADOW_G = .05f, SHADOW_B = .08f;
     /** The railing along the surface's edge, as a fraction of a cell. */
     static final float RAIL_CELLS = .16f;
-    /** Metres between the pilasters running down a wall. */
-    static final float PILASTER_METERS = 8f;
-    /** Shadow mask cells per map cell: fine enough that the shadow's diagonal edges do not step visibly. */
-    static final int SHADOW_RES = 4;
+    /** Shadow mask cells per map cell. */
+    static final int SHADOW_RES = 2;
     /** The ground system's own backing colour, laid under the surface. */
     static final float BACKING_R = 0x18 / 255f, BACKING_G = 0x22 / 255f, BACKING_B = 0x30 / 255f;
+    /** Freight bay mouths: spacing along a wall, width and height in metres, and the lane each feeds. */
+    static final float MOUTH_SPACING = 56f, MOUTH_W = 18f, MOUTH_H = 12f, LANE_W = 14f;
 
     private final BattleSprites sprites;
     private SunLight sun;
-    private CellTopology runsFor;
-    /** Each edge run: {@code {x0, y0, x1, y1, normalX, normalY}} in cell coordinates along a cell boundary. */
-    private final List<float[]> runs = new ArrayList<>();
+
+    private CellTopology builtFor;
+    private VoidBackdrop builtWith;
+    /** The surface (level 0) and each terrace below it, shallowest first. */
+    private final List<Level> levels = new ArrayList<>();
     /** Everything not void, as rectangles {@code {x0, y0, x1, y1}} in cells. */
     private final List<float[]> surface = new ArrayList<>();
     private String shadowKey;
-    /** The structure's shadow on the ground below, as rectangles {@code {x0, y0, x1, y1}} in cells. */
     private final List<float[]> shadow = new ArrayList<>();
+
+    // The frame being drawn.
+    private DrawList out;
+    private BattleCamera cam;
+    private VoidBackdrop backdrop;
+    private float eye, cx, cy, alpha;
+
+    /** A footprint and the depths its walls run between. */
+    private static final class Level {
+        float top, bottom, outset;
+        /** Each edge run: {@code {x0, y0, x1, y1, normalX, normalY}} in cells along a cell boundary. */
+        final List<float[]> runs = new ArrayList<>();
+        /** The footprint as rectangles in cells. */
+        final List<float[]> roofs = new ArrayList<>();
+        /** Freight bay mouths in this level's walls: {@code {runIndex, centre along the run}}. */
+        final List<float[]> mouths = new ArrayList<>();
+        /** Freight lanes on this level's roof, from the bays above: rectangles in cells. */
+        final List<float[]> lanes = new ArrayList<>();
+        /** The walls standing on this level's roof: the runs of the level above. */
+        List<float[]> footings = List.of();
+        /** The shadow the levels above lay on this level's roof, for the current sun: rectangles in cells. */
+        final List<float[]> shadow = new ArrayList<>();
+    }
 
     VoidBackdropRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -70,77 +96,524 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         if (cellPx <= 0f) return;
-        float eye = cam.vpW() / cellPx * EYE_HEIGHT_PER_VIEW;
-        float cx = cam.cellToScreenX(cam.panCellX());
-        float cy = cam.cellToScreenY(cam.panCellY());
+        this.out = out;
+        this.cam = cam;
+        this.backdrop = backdrop;
+        this.alpha = ctx.alphaMult;
+        this.eye = cam.vpW() / cellPx * backdrop.eyeHeight();
+        this.cx = cam.cellToScreenX(cam.panCellX());
+        this.cy = cam.cellToScreenY(cam.panCellY());
+        if (builtFor != topology || builtWith != backdrop) build(topology, backdrop);
 
-        drawGround(out, backdrop, cam, cellPx, eye, cx, cy, ctx.alphaMult);
-        if (runsFor != topology) findRuns(topology);
-        drawShadow(out, topology, backdrop, cam, eye, cx, cy, ctx.alphaMult);
-        // Walls far from the camera's point first, so a nearer face covers one behind it at a re-entrant corner.
+        drawGround(cellPx);
+        drawShadow();
         float px = cam.panCellX(), py = cam.panCellY();
-        List<float[]> order = new ArrayList<>(runs);
-        order.sort((a, b) -> Float.compare(planDistance(b, px, py), planDistance(a, px, py)));
-        for (float[] run : order) drawWall(out, backdrop, cam, eye, cx, cy, run, ctx.alphaMult);
-        for (float[] run : runs) drawRail(out, cam, run, ctx.alphaMult);
+        for (int i = levels.size() - 1; i >= 0; i--) {
+            Level level = levels.get(i);
+            List<float[]> order = new ArrayList<>(level.runs);
+            order.sort((a, b) -> Float.compare(planDistance(b, px, py), planDistance(a, px, py)));
+            for (float[] run : order) drawWall(level, run);
+            if (i > 0) drawRoof(level);
+        }
+        for (float[] run : levels.get(0).runs) drawRail(run);
         // The surface's own backing, which the ground system leaves off on a map with a backdrop: wall art is
-        // not opaque everywhere, and through it the walls going down under the surface would show.
-        for (float[] r : surface) {
-            rect(out, cam, r[0], r[1], r[2], r[3], BACKING_R, BACKING_G, BACKING_B, ctx.alphaMult);
+        // not opaque everywhere, and through it the structure under the surface would show.
+        for (float[] r : surface) rect(r[0], r[1], r[2], r[3], 0f, BACKING_R, BACKING_G, BACKING_B, alpha);
+    }
+
+    // ----- projection -----
+
+    private float scale(float depth) { return eye / (eye + depth); }
+
+    private float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX) - cx) * s; }
+
+    private float sy(float cellY, float s) { return cy + (cam.cellToScreenY(cellY) - cy) * s; }
+
+    /** How much of the haze stands between the eye and something {@code depth} metres down. */
+    private float hazeAt(float depth) {
+        return .85f * (float) Math.pow(Math.min(1f, depth / backdrop.depthMeters()), .7f);
+    }
+
+    /** A rectangle in cells at {@code depth}, filled with one colour. */
+    private void rect(float x0, float y0, float x1, float y1, float depth, float r, float g, float b, float a) {
+        float s = scale(depth);
+        float ax = sx(x0, s), bx = sx(x1, s), ay = sy(y0, s), by = sy(y1, s);
+        out.addSolidRect(RenderLayer.GROUND, Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx),
+                Math.max(ay, by), r, g, b, a);
+    }
+
+    // ----- the ground below -----
+
+    private void drawGround(float cellPx) {
+        ShuttleSpriteCache image = sprites.spriteByPath(backdrop.cityTexture());
+        if (image == null) return;
+        float s = scale(backdrop.depthMeters());
+        float tile = backdrop.cityTileMeters();
+        float tilePx = tile * cellPx * s;
+        if (tilePx < 1f) return;
+        float halfW = cam.vpW() / 2f / (cellPx * s) + tile;
+        float halfH = cam.vpH() / 2f / (cellPx * s) + tile;
+        int i0 = (int) Math.floor((cam.panCellX() - halfW) / tile);
+        int i1 = (int) Math.ceil((cam.panCellX() + halfW) / tile);
+        int j0 = (int) Math.floor((cam.panCellY() - halfH) / tile);
+        int j1 = (int) Math.ceil((cam.panCellY() + halfH) / tile);
+        float size = tilePx + 1f;
+        int pw = image.pxW, ph = image.pxH;
+        for (int j = j0; j <= j1; j++) {
+            for (int i = i0; i <= i1; i++) {
+                float tx = sx((i + .5f) * tile, s), ty = sy((j + .5f) * tile, s);
+                if (pw > 4 && ph > 4) {
+                    out.addImageRegion(RenderLayer.GROUND, image.sprite, pw, ph, 2, 2, pw - 4, ph - 4,
+                            tx, ty, size, size, 0f, 1f, 1f, 1f, alpha);
+                } else {
+                    out.addSprite(RenderLayer.GROUND, image.sprite, tx, ty, size, size, 0f, 1f, 1f, 1f, alpha);
+                }
+            }
+        }
+    }
+
+    private void drawShadow() {
+        if (sun == null || !sun.casts()) return;
+        String key = sun.azimuthDegrees() + "/" + sun.elevationDegrees();
+        if (!key.equals(shadowKey)) {
+            shadowKey = key;
+            castShadow();
+        }
+        float a = sun.shadowStrength() * .6f * alpha;
+        for (float[] r : shadow) rect(r[0], r[1], r[2], r[3], backdrop.depthMeters(), SHADOW_R, SHADOW_G, SHADOW_B, a);
+    }
+
+    /**
+     * The structure's shadow on the ground below. Each level is a block from its roof down to its foot, and the
+     * sun lays a point {@code d} metres above the ground {@code d / tan(elevation)} metres away from itself, so
+     * a level's shadow is the hull of its footprint laid from its foot and from its roof. The levels' shadows
+     * are merged into rectangles.
+     */
+    private void castShadow() {
+        shadow.clear();
+        float depth = backdrop.depthMeters();
+        List<float[]> hulls = new ArrayList<>();
+        for (Level level : levels) hulls.add(cast(level, depth));
+        shade(hulls, null, shadow);
+        // Each terrace is shaded by the levels above it, which stand on it.
+        for (int i = 1; i < levels.size(); i++) {
+            Level level = levels.get(i);
+            level.shadow.clear();
+            List<float[]> above = new ArrayList<>();
+            for (int j = 0; j < i; j++) above.add(cast(levels.get(j), level.top));
+            shade(above, level.roofs, level.shadow);
         }
     }
 
     /**
-     * The structure's shadow on the ground below: everything not void, swept from its foot straight below to
-     * where the sun lays its top, so the shadow is the whole tower's and not only its roof's.
+     * Where a level's shadow falls on ground {@code onto} metres down: the sun lays a point {@code d} metres
+     * above that ground {@code d / tan(elevation)} metres away from itself, so it is the hull of the level's
+     * footprint laid from its foot and from its roof.
      */
-    private void drawShadow(DrawList out, CellTopology topology, VoidBackdrop backdrop, BattleCamera cam,
-                            float eye, float cx, float cy, float alpha) {
-        if (sun == null || !sun.casts()) return;
-        float depth = backdrop.depthMeters();
-        String key = System.identityHashCode(topology) + "/" + depth + "/" + sun.azimuthDegrees() + "/"
-                + sun.elevationDegrees();
-        if (!key.equals(shadowKey)) {
-            shadowKey = key;
-            castShadow(topology, depth);
+    private float[] cast(Level level, float onto) {
+        float perMetre = 1f / sun.risePerCell();
+        float dx = -sun.dirX(), dy = -sun.dirY();
+        List<float[]> points = new ArrayList<>();
+        for (float lift : new float[]{onto - level.bottom, onto - level.top}) {
+            float ox = dx * lift * perMetre, oy = dy * lift * perMetre;
+            for (float[] r : level.roofs) {
+                points.add(new float[]{r[0] + ox, r[1] + oy});
+                points.add(new float[]{r[2] + ox, r[1] + oy});
+                points.add(new float[]{r[0] + ox, r[3] + oy});
+                points.add(new float[]{r[2] + ox, r[3] + oy});
+            }
         }
-        float s = eye / (eye + depth);
-        float a = sun.shadowStrength() * .6f * alpha;
-        for (float[] r : shadow) {
-            float ax = cx + (cam.cellToScreenX(r[0]) - cx) * s, bx = cx + (cam.cellToScreenX(r[2]) - cx) * s;
-            float ay = cy + (cam.cellToScreenY(r[1]) - cy) * s, by = cy + (cam.cellToScreenY(r[3]) - cy) * s;
-            out.addSolidRect(RenderLayer.GROUND, Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx),
-                    Math.max(ay, by), SHADOW_R, SHADOW_G, SHADOW_B, a);
+        return hull(points);
+    }
+
+    /** The union of some convex hulls, kept only inside {@code clip}'s rectangles if given, as rectangles. */
+    private static void shade(List<float[]> hulls, List<float[]> clip, List<float[]> into) {
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+        for (float[] hull : hulls) {
+            for (int k = 0; k < hull.length; k += 2) {
+                minX = Math.min(minX, hull[k]); maxX = Math.max(maxX, hull[k]);
+                minY = Math.min(minY, hull[k + 1]); maxY = Math.max(maxY, hull[k + 1]);
+            }
+        }
+        if (minX > maxX) return;
+        int res = SHADOW_RES;
+        int ox = (int) Math.floor(minX * res) - 1, oy = (int) Math.floor(minY * res) - 1;
+        int mw = (int) Math.ceil(maxX * res) - ox + 2, mh = (int) Math.ceil(maxY * res) - oy + 2;
+        boolean[] mask = new boolean[mw * mh];
+        for (float[] hull : hulls) {
+            int n = hull.length / 2;
+            for (int my = 0; my < mh; my++) {
+                float y = (my + oy + .5f) / res;
+                float lo = Float.MAX_VALUE, hi = -Float.MAX_VALUE;
+                for (int k = 0; k < n; k++) {
+                    float ax = hull[2 * k], ay = hull[2 * k + 1];
+                    float bx = hull[2 * ((k + 1) % n)], by = hull[2 * ((k + 1) % n) + 1];
+                    if ((ay <= y && by > y) || (by <= y && ay > y)) {
+                        float x = ax + (y - ay) / (by - ay) * (bx - ax);
+                        lo = Math.min(lo, x);
+                        hi = Math.max(hi, x);
+                    }
+                }
+                if (lo > hi) continue;
+                int x0 = Math.max(0, Math.round(lo * res) - ox), x1 = Math.min(mw, Math.round(hi * res) - ox);
+                if (x1 > x0) Arrays.fill(mask, my * mw + x0, my * mw + x1, true);
+            }
+        }
+        if (clip != null) {
+            boolean[] inside = new boolean[mw * mh];
+            for (float[] r : clip) {
+                int x0 = Math.max(0, Math.round(r[0] * res) - ox), x1 = Math.min(mw, Math.round(r[2] * res) - ox);
+                int y0 = Math.max(0, Math.round(r[1] * res) - oy), y1 = Math.min(mh, Math.round(r[3] * res) - oy);
+                for (int y = y0; y < y1; y++) if (x1 > x0) Arrays.fill(inside, y * mw + x0, y * mw + x1, true);
+            }
+            for (int k = 0; k < mask.length; k++) mask[k] &= inside[k];
+        }
+        mergeRects(mask, mw, mh, res, ox, oy, into);
+    }
+
+    /** The convex hull of some points, anticlockwise, as {@code {x0, y0, x1, y1, ...}}. */
+    private static float[] hull(List<float[]> points) {
+        points.sort((a, b) -> a[0] != b[0] ? Float.compare(a[0], b[0]) : Float.compare(a[1], b[1]));
+        int n = points.size();
+        float[][] h = new float[2 * n][];
+        int k = 0;
+        for (int i = 0; i < n; i++) {
+            while (k >= 2 && cross(h[k - 2], h[k - 1], points.get(i)) <= 0) k--;
+            h[k++] = points.get(i);
+        }
+        for (int i = n - 2, lower = k + 1; i >= 0; i--) {
+            while (k >= lower && cross(h[k - 2], h[k - 1], points.get(i)) <= 0) k--;
+            h[k++] = points.get(i);
+        }
+        float[] flat = new float[Math.max(0, k - 1) * 2];
+        for (int i = 0; i < k - 1; i++) {
+            flat[2 * i] = h[i][0];
+            flat[2 * i + 1] = h[i][1];
+        }
+        return flat;
+    }
+
+    private static float cross(float[] o, float[] a, float[] b) {
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    }
+
+    // ----- the structure -----
+
+    /** One face of a level, from its roof down to its foot, in bands of facade, then its freight bays. */
+    private void drawWall(Level level, float[] run) {
+        boolean horizontal = run[1] == run[3];
+        float a = horizontal ? run[0] : run[1], b = horizontal ? run[2] : run[3];
+        float line = horizontal ? run[1] : run[0];
+        float toSun = sun == null ? 0f : run[4] * sun.dirX() + run[5] * sun.dirY();
+        float lit = .82f + .18f * toSun;
+        ShuttleSpriteCache facade = backdrop.facadeTexture() == null ? null
+                : sprites.spriteByPath(backdrop.facadeTexture());
+        float tile = backdrop.facadeTileMeters();
+        float z = level.top;
+        while (z < level.bottom - .01f) {
+            float z1 = Math.min(level.bottom, (float) (Math.floor(z / BAND_METERS) + 1) * BAND_METERS);
+            float s0 = scale(z), s1 = scale(z1), sm = scale((z + z1) / 2f);
+            if (facade != null && facade.pxW > 0) {
+                float u = a;
+                while (u < b - .01f) {
+                    float u1 = Math.min(b, (float) (Math.floor(u / tile) + 1) * tile);
+                    facadeQuad(facade, horizontal, line, u, u1, z, z1, s0, s1, sm, lit);
+                    u = u1;
+                }
+            } else {
+                float g = .40f * lit;
+                band(horizontal, line, a, b, s0, s1, sm, g, g * 1.02f, g * 1.08f, alpha);
+            }
+            float haze = hazeAt((z + z1) / 2f);
+            band(horizontal, line, a, b, s0, s1, sm, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(),
+                    haze * alpha);
+            z = z1;
+        }
+        int index = level.runs.indexOf(run);
+        for (float[] mouth : level.mouths) if ((int) mouth[0] == index) drawMouth(level, horizontal, line, mouth[1]);
+    }
+
+    /** One tile-aligned piece of facade, between two depths and two points along its run. */
+    private void facadeQuad(ShuttleSpriteCache facade, boolean horizontal, float line, float u0, float u1,
+                            float z0, float z1, float s0, float s1, float sm, float lit) {
+        float tile = backdrop.facadeTileMeters();
+        int pw = facade.pxW, ph = facade.pxH;
+        float fu = (float) (u0 / tile - Math.floor(u0 / tile));
+        float fz = (float) (z0 / tile - Math.floor(z0 / tile));
+        int srcX = Math.round(fu * pw), srcW = Math.max(1, Math.round((u1 - u0) / tile * pw));
+        int srcY = Math.round(fz * ph), srcH = Math.max(1, Math.round((z1 - z0) / tile * ph));
+        srcW = Math.min(srcW, pw - srcX);
+        srcH = Math.min(srcH, ph - srcY);
+        if (srcW <= 0 || srcH <= 0) return;
+        float qx, qy, w, h, angle;
+        if (horizontal) {
+            float x0 = sx(u0, sm), x1 = sx(u1, sm), ya = sy(line, s0), yb = sy(line, s1);
+            qx = (x0 + x1) / 2f; qy = (ya + yb) / 2f;
+            w = Math.abs(x1 - x0) + .5f; h = Math.abs(yb - ya) + .5f;
+            // The facade's top is the shallow end: turn it over where the deep end lies above.
+            angle = yb < ya ? 180f : 0f;
+        } else {
+            float y0 = sy(u0, sm), y1 = sy(u1, sm), xa = sx(line, s0), xb = sx(line, s1);
+            qx = (xa + xb) / 2f; qy = (y0 + y1) / 2f;
+            w = Math.abs(y1 - y0) + .5f; h = Math.abs(xb - xa) + .5f;
+            angle = xb > xa ? 90f : 270f;
+        }
+        out.addImageRegion(RenderLayer.GROUND, facade.sprite, pw, ph, srcX, srcY, srcW, srcH,
+                qx, qy, w, h, angle, lit, lit, lit, alpha);
+    }
+
+    /** A band of a face between two depths, filled with one colour. */
+    private void band(boolean horizontal, float line, float a, float b, float s0, float s1, float sm,
+                      float r, float g, float bl, float al) {
+        float ax, ay, bx, by;
+        if (horizontal) {
+            ax = sx(a, sm); bx = sx(b, sm); ay = sy(line, s0); by = sy(line, s1);
+        } else {
+            ay = sy(a, sm); by = sy(b, sm); ax = sx(line, s0); bx = sx(line, s1);
+        }
+        float minX = Math.min(ax, bx), maxX = Math.max(ax, bx), minY = Math.min(ay, by), maxY = Math.max(ay, by);
+        if (horizontal) { minY -= .25f; maxY += .25f; } else { minX -= .25f; maxX += .25f; }
+        out.addSolidRect(RenderLayer.GROUND, minX, minY, maxX, maxY, r, g, bl, al);
+    }
+
+    /** A freight bay: a dark mouth in the foot of a wall, lit along its sill, a beacon at each upper corner. */
+    private void drawMouth(Level level, boolean horizontal, float line, float centre) {
+        float zb = level.bottom - 1f, zt = zb - MOUTH_H;
+        float haze = hazeAt(zb);
+        float dim = 1f - haze * .7f;
+        mouthRect(horizontal, line, centre - MOUTH_W / 2f, centre + MOUTH_W / 2f, zt, zb,
+                .035f, .03f, .03f, alpha * dim);
+        mouthRect(horizontal, line, centre - MOUTH_W / 2f, centre + MOUTH_W / 2f, zb - 1.6f, zb,
+                1f, .70f, .32f, alpha * .95f * dim);
+        mouthRect(horizontal, line, centre - MOUTH_W / 2f, centre + MOUTH_W / 2f, zt - 1f, zt,
+                .85f, .66f, .15f, alpha * .8f * dim);
+        for (float side : new float[]{-1f, 1f}) {
+            float u = centre + side * (MOUTH_W / 2f + 1.2f);
+            mouthRect(horizontal, line, u - .7f, u + .7f, zt - .7f, zt + .7f, 1f, .15f, .1f, alpha * dim);
         }
     }
 
-    /** Sweeps the structure's footprint from straight below to the sun's reach, then merges it into rectangles. */
-    private void castShadow(CellTopology topology, float depth) {
-        shadow.clear();
+    private void mouthRect(boolean horizontal, float line, float u0, float u1, float z0, float z1,
+                           float r, float g, float b, float a) {
+        float s0 = scale(z0), s1 = scale(z1), sm = scale((z0 + z1) / 2f);
+        float ax, ay, bx, by;
+        if (horizontal) {
+            ax = sx(u0, sm); bx = sx(u1, sm); ay = sy(line, s0); by = sy(line, s1);
+        } else {
+            ay = sy(u0, sm); by = sy(u1, sm); ax = sx(line, s0); bx = sx(line, s1);
+        }
+        out.addSolidRect(RenderLayer.GROUND, Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx),
+                Math.max(ay, by), r, g, b, a);
+    }
+
+    /** A terrace's roof, tiled with the roof image, its freight lanes, its edge, and the haze over it. */
+    private void drawRoof(Level level) {
+        float depth = level.top;
+        float s = scale(depth);
+        ShuttleSpriteCache roof = backdrop.roofTexture() == null ? null : sprites.spriteByPath(backdrop.roofTexture());
+        float tile = backdrop.roofTileMeters();
+        float vx0 = cam.vpX(), vx1 = cam.vpX() + cam.vpW(), vy0 = cam.vpY(), vy1 = cam.vpY() + cam.vpH();
+        for (float[] r : level.roofs) {
+            if (roof == null || roof.pxW <= 0) {
+                rect(r[0], r[1], r[2], r[3], depth, .30f, .29f, .28f, alpha);
+                continue;
+            }
+            int pw = roof.pxW, ph = roof.pxH;
+            for (int ty = (int) Math.floor(r[1] / tile); ty * tile < r[3]; ty++) {
+                for (int tx = (int) Math.floor(r[0] / tile); tx * tile < r[2]; tx++) {
+                    float ux0 = Math.max(r[0], tx * tile), ux1 = Math.min(r[2], (tx + 1) * tile);
+                    float uy0 = Math.max(r[1], ty * tile), uy1 = Math.min(r[3], (ty + 1) * tile);
+                    if (ux1 <= ux0 || uy1 <= uy0) continue;
+                    float x0 = sx(ux0, s), x1 = sx(ux1, s), y0 = sy(uy0, s), y1 = sy(uy1, s);
+                    if (Math.max(x0, x1) < vx0 || Math.min(x0, x1) > vx1
+                            || Math.max(y0, y1) < vy0 || Math.min(y0, y1) > vy1) continue;
+                    int srcX = Math.round((ux0 - tx * tile) / tile * pw);
+                    int srcY = Math.round((uy0 - ty * tile) / tile * ph);
+                    int srcW = Math.max(1, Math.min(pw - srcX, Math.round((ux1 - ux0) / tile * pw)));
+                    int srcH = Math.max(1, Math.min(ph - srcY, Math.round((uy1 - uy0) / tile * ph)));
+                    out.addImageRegion(RenderLayer.GROUND, roof.sprite, pw, ph, srcX, srcY, srcW, srcH,
+                            (x0 + x1) / 2f, (y0 + y1) / 2f, Math.abs(x1 - x0) + .5f, Math.abs(y1 - y0) + .5f,
+                            0f, 1f, 1f, 1f, alpha);
+                }
+            }
+        }
+        for (float[] lane : level.lanes) {
+            rect(lane[0], lane[1], lane[2], lane[3], depth, .07f, .07f, .08f, .88f * alpha);
+            boolean alongX = lane[2] - lane[0] > lane[3] - lane[1];
+            if (alongX) {
+                rect(lane[0], lane[1], lane[2], lane[1] + .9f, depth, .86f, .68f, .14f, .85f * alpha);
+                rect(lane[0], lane[3] - .9f, lane[2], lane[3], depth, .86f, .68f, .14f, .85f * alpha);
+            } else {
+                rect(lane[0], lane[1], lane[0] + .9f, lane[3], depth, .86f, .68f, .14f, .85f * alpha);
+                rect(lane[2] - .9f, lane[1], lane[2], lane[3], depth, .86f, .68f, .14f, .85f * alpha);
+            }
+            // Guide lights down both sides of the lane, leading in to the bay.
+            float length = alongX ? lane[2] - lane[0] : lane[3] - lane[1];
+            for (float t = 2f; t < length - 1f; t += 5f) {
+                for (float side : new float[]{2.2f, (alongX ? lane[3] - lane[1] : lane[2] - lane[0]) - 2.2f}) {
+                    float lx = alongX ? lane[0] + t : lane[0] + side, ly = alongX ? lane[1] + side : lane[1] + t;
+                    rect(lx - .45f, ly - .45f, lx + .45f, ly + .45f, depth, 1f, .78f, .38f, .95f * alpha);
+                }
+            }
+        }
+        // Softer than the shadow on the ground: a terrace is lit by the sky and the walls around it.
+        float shade = sun == null ? 0f : sun.shadowStrength() * .35f * alpha;
+        for (float[] r : level.shadow) rect(r[0], r[1], r[2], r[3], depth, SHADOW_R, SHADOW_G, SHADOW_B, shade);
+        // Ambient dark at the foot of each wall standing on this roof, fading out across the terrace.
+        for (float[] run : level.footings) {
+            boolean horizontal = run[1] == run[3];
+            for (int k = 0; k < 4; k++) {
+                float a0 = k * 1.5f, a1 = a0 + 1.5f, al = (.42f - k * .1f) * alpha;
+                if (horizontal) {
+                    rect(run[0], run[1] + run[5] * a0, run[2], run[1] + run[5] * a1, depth, 0f, 0f, 0f, al);
+                } else {
+                    rect(run[0] + run[4] * a0, run[1], run[0] + run[4] * a1, run[3], depth, 0f, 0f, 0f, al);
+                }
+            }
+        }
+        // A light lip along the terrace's edge, so each step reads against the one below.
+        for (float[] run : level.runs) {
+            boolean horizontal = run[1] == run[3];
+            float w = .6f;
+            if (horizontal) rect(run[0], run[1] - run[5] * w, run[2], run[1], depth, .62f, .60f, .55f, .9f * alpha);
+            else rect(run[0] - run[4] * w, run[1], run[0], run[3], depth, .62f, .60f, .55f, .9f * alpha);
+        }
+        float haze = hazeAt(depth);
+        for (float[] r : level.roofs) {
+            rect(r[0], r[1], r[2], r[3], depth, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(), haze * alpha);
+        }
+    }
+
+    /** A railing along the surface's edge, on the void side: a lit rail over its own dark shadow line. */
+    private void drawRail(float[] run) {
+        boolean horizontal = run[1] == run[3];
+        float nx = run[4], ny = run[5];
+        if (horizontal) {
+            rect(run[0], run[1], run[2], run[1] + ny * RAIL_CELLS, 0f, .70f, .72f, .74f, alpha);
+            rect(run[0], run[1] + ny * RAIL_CELLS, run[2], run[1] + ny * RAIL_CELLS * 1.6f, 0f,
+                    .05f, .06f, .09f, .55f * alpha);
+        } else {
+            rect(run[0], run[1], run[0] + nx * RAIL_CELLS, run[3], 0f, .70f, .72f, .74f, alpha);
+            rect(run[0] + nx * RAIL_CELLS, run[1], run[0] + nx * RAIL_CELLS * 1.6f, run[3], 0f,
+                    .05f, .06f, .09f, .55f * alpha);
+        }
+    }
+
+    // ----- building the levels, once per map -----
+
+    private void build(CellTopology topology, VoidBackdrop backdrop) {
+        builtFor = topology;
+        builtWith = backdrop;
+        shadowKey = null;
+        levels.clear();
+        surface.clear();
         int w = topology.getWidth(), h = topology.getHeight();
-        int res = SHADOW_RES;
-        float reach = sun.reachCells(depth) * res;
-        float vx = -sun.dirX() * reach, vy = -sun.dirY() * reach;
-        int ox = (int) Math.floor(Math.min(0f, vx)) - 1, oy = (int) Math.floor(Math.min(0f, vy)) - 1;
-        int mw = w * res + (int) Math.ceil(Math.abs(vx)) + 2, mh = h * res + (int) Math.ceil(Math.abs(vy)) + 2;
-        boolean[] mask = new boolean[mw * mh];
-        // Stamp the footprint at every step of the sweep, one mask cell apart.
-        int steps = Math.max(1, (int) Math.ceil(Math.max(Math.abs(vx), Math.abs(vy))));
-        for (int k = 0; k <= steps; k++) {
-            int dx = Math.round(vx * k / steps) - ox, dy = Math.round(vy * k / steps) - oy;
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    if (isVoid(topology, x, y)) continue;
-                    for (int sy = 0; sy < res; sy++) {
-                        int my = y * res + sy + dy;
-                        if (my < 0 || my >= mh) continue;
-                        int base = my * mw + x * res + dx;
-                        for (int sx = 0; sx < res; sx++) mask[base + sx] = true;
+        float widest = 0f;
+        for (VoidBackdrop.Tier tier : backdrop.tiers()) widest = Math.max(widest, tier.outsetMeters());
+        int m = (int) Math.ceil(widest) + 2;
+        int mw = w + 2 * m, mh = h + 2 * m;
+        boolean[] base = new boolean[mw * mh];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                base[(y + m) * mw + x + m] = topology.getGroundKind(x, y) != GroundKind.VOID;
+            }
+        }
+        mergeRects(base, mw, mh, 1, -m, -m, surface);
+        List<VoidBackdrop.Tier> tiers = backdrop.tiers();
+        for (int i = 0; i <= tiers.size(); i++) {
+            Level level = new Level();
+            level.top = i == 0 ? 0f : tiers.get(i - 1).depthMeters();
+            level.bottom = i < tiers.size() ? tiers.get(i).depthMeters() : backdrop.depthMeters();
+            level.outset = i == 0 ? 0f : tiers.get(i - 1).outsetMeters();
+            boolean[] mask = i == 0 ? base : dilate(base, mw, mh, Math.round(level.outset));
+            findRuns(mask, mw, mh, m, level.runs);
+            mergeRects(mask, mw, mh, 1, -m, -m, level.roofs);
+            if (i > 0) level.footings = levels.get(i - 1).runs;
+            levels.add(level);
+        }
+        // Freight bays in the foot of every wall that stands on a terrace, each feeding a lane across it.
+        for (int i = 0; i + 1 < levels.size(); i++) {
+            Level level = levels.get(i), below = levels.get(i + 1);
+            float reach = below.outset - level.outset;
+            if (reach < 4f || level.bottom - level.top < MOUTH_H + 4f) continue;
+            for (int k = 0; k < level.runs.size(); k++) {
+                float[] run = level.runs.get(k);
+                boolean horizontal = run[1] == run[3];
+                float a = horizontal ? run[0] : run[1], b = horizontal ? run[2] : run[3];
+                float length = b - a;
+                if (length < MOUTH_W + 8f) continue;
+                int count = Math.max(1, (int) Math.floor(length / MOUTH_SPACING));
+                for (int c = 0; c < count; c++) {
+                    float centre = a + length * (c + .5f) / count;
+                    level.mouths.add(new float[]{k, centre});
+                    float lane0 = centre - LANE_W / 2f, lane1 = centre + LANE_W / 2f;
+                    if (horizontal) {
+                        float y0 = run[1], y1 = run[1] + run[5] * reach;
+                        below.lanes.add(new float[]{lane0, Math.min(y0, y1), lane1, Math.max(y0, y1)});
+                    } else {
+                        float x0 = run[0], x1 = run[0] + run[4] * reach;
+                        below.lanes.add(new float[]{Math.min(x0, x1), lane0, Math.max(x0, x1), lane1});
                     }
                 }
             }
         }
-        mergeRects(mask, mw, mh, res, ox, oy, shadow);
+    }
+
+    /** The mask grown by {@code r} cells in every direction, square-cornered. */
+    private static boolean[] dilate(boolean[] mask, int mw, int mh, int r) {
+        if (r <= 0) return mask;
+        boolean[] across = new boolean[mw * mh];
+        int[] sum = new int[Math.max(mw, mh) + 1];
+        for (int y = 0; y < mh; y++) {
+            for (int x = 0; x < mw; x++) sum[x + 1] = sum[x] + (mask[y * mw + x] ? 1 : 0);
+            for (int x = 0; x < mw; x++) {
+                int lo = Math.max(0, x - r), hi = Math.min(mw, x + r + 1);
+                across[y * mw + x] = sum[hi] - sum[lo] > 0;
+            }
+        }
+        boolean[] grown = new boolean[mw * mh];
+        for (int x = 0; x < mw; x++) {
+            for (int y = 0; y < mh; y++) sum[y + 1] = sum[y] + (across[y * mw + x] ? 1 : 0);
+            for (int y = 0; y < mh; y++) {
+                int lo = Math.max(0, y - r), hi = Math.min(mh, y + r + 1);
+                grown[y * mw + x] = sum[hi] - sum[lo] > 0;
+            }
+        }
+        return grown;
+    }
+
+    /** Every straight run of boundary between the mask and its outside, in cells, normals pointing out. */
+    private static void findRuns(boolean[] mask, int mw, int mh, int m, List<float[]> into) {
+        for (int y = 1; y < mh; y++) {
+            int start = -1, normal = 0;
+            for (int x = 0; x <= mw; x++) {
+                int n = 0;
+                if (x < mw) {
+                    boolean above = mask[(y - 1) * mw + x], below = mask[y * mw + x];
+                    if (above != below) n = above ? 1 : -1;
+                }
+                if (n != normal) {
+                    if (normal != 0) into.add(new float[]{start - m, y - m, x - m, y - m, 0, normal});
+                    start = x;
+                    normal = n;
+                }
+            }
+        }
+        for (int x = 1; x < mw; x++) {
+            int start = -1, normal = 0;
+            for (int y = 0; y <= mh; y++) {
+                int n = 0;
+                if (y < mh) {
+                    boolean left = mask[y * mw + x - 1], right = mask[y * mw + x];
+                    if (left != right) n = left ? 1 : -1;
+                }
+                if (n != normal) {
+                    if (normal != 0) into.add(new float[]{x - m, start - m, x - m, y - m, normal, 0});
+                    start = y;
+                    normal = n;
+                }
+            }
+        }
     }
 
     /**
@@ -172,187 +645,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         return true;
     }
 
-    /** A railing along the surface's edge, on the void side: a lit rail over its own dark shadow line. */
-    private void drawRail(DrawList out, BattleCamera cam, float[] run, float alpha) {
-        boolean horizontal = run[1] == run[3];
-        float nx = run[4], ny = run[5];
-        float ax = run[0], ay = run[1], bx = run[2], by = run[3];
-        float r0x0, r0y0, r0x1, r0y1;
-        if (horizontal) {
-            r0x0 = ax; r0x1 = bx; r0y0 = ay; r0y1 = ay + ny * RAIL_CELLS;
-        } else {
-            r0y0 = ay; r0y1 = by; r0x0 = ax; r0x1 = ax + nx * RAIL_CELLS;
-        }
-        rect(out, cam, r0x0, r0y0, r0x1, r0y1, .70f, .72f, .74f, alpha);
-        float sx0 = horizontal ? r0x0 : r0x1, sx1 = horizontal ? r0x1 : r0x1 + nx * RAIL_CELLS * .6f;
-        float sy0 = horizontal ? r0y1 : r0y0, sy1 = horizontal ? r0y1 + ny * RAIL_CELLS * .6f : r0y1;
-        rect(out, cam, sx0, sy0, sx1, sy1, .05f, .06f, .09f, .55f * alpha);
-    }
-
-    private static void rect(DrawList out, BattleCamera cam, float x0, float y0, float x1, float y1,
-                             float r, float g, float b, float a) {
-        float ax = cam.cellToScreenX(x0), bx = cam.cellToScreenX(x1);
-        float ay = cam.cellToScreenY(y0), by = cam.cellToScreenY(y1);
-        out.addSolidRect(RenderLayer.GROUND, Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx),
-                Math.max(ay, by), r, g, b, a);
-    }
-
-    private void drawGround(DrawList out, VoidBackdrop backdrop, BattleCamera cam, float cellPx, float eye,
-                            float cx, float cy, float alpha) {
-        ShuttleSpriteCache image = sprites.spriteByPath(backdrop.texturePath());
-        if (image == null) return;
-        float s = eye / (eye + backdrop.depthMeters());
-        float tile = backdrop.tileMeters();
-        float tilePx = tile * cellPx * s;
-        if (tilePx < 1f) return;
-        // The ground below that the view holds, in cells, about the camera's own point.
-        float halfW = cam.vpW() / 2f / (cellPx * s) + tile;
-        float halfH = cam.vpH() / 2f / (cellPx * s) + tile;
-        int i0 = (int) Math.floor((cam.panCellX() - halfW) / tile);
-        int i1 = (int) Math.ceil((cam.panCellX() + halfW) / tile);
-        int j0 = (int) Math.floor((cam.panCellY() - halfH) / tile);
-        int j1 = (int) Math.ceil((cam.panCellY() + halfH) / tile);
-        // Tiles overlap by a pixel so no seam of the clear colour shows between them, and each samples two
-        // pixels in from its image's edge so the filter never reads the texture's border.
-        float size = tilePx + 1f;
-        int pw = image.pxW, ph = image.pxH;
-        for (int j = j0; j <= j1; j++) {
-            for (int i = i0; i <= i1; i++) {
-                float sx = cx + (cam.cellToScreenX((i + .5f) * tile) - cx) * s;
-                float sy = cy + (cam.cellToScreenY((j + .5f) * tile) - cy) * s;
-                if (pw > 4 && ph > 4) {
-                    out.addImageRegion(RenderLayer.GROUND, image.sprite, pw, ph, 2, 2, pw - 4, ph - 4,
-                            sx, sy, size, size, 0f, 1f, 1f, 1f, alpha);
-                } else {
-                    out.addSprite(RenderLayer.GROUND, image.sprite, sx, sy, size, size, 0f, 1f, 1f, 1f, alpha);
-                }
-            }
-        }
-    }
-
-    private void drawWall(DrawList out, VoidBackdrop backdrop, BattleCamera cam, float eye, float cx, float cy,
-                          float[] run, float alpha) {
-        float depth = backdrop.depthMeters();
-        int storeys = Math.max(1, Math.round(depth / STOREY_METERS));
-        float x0 = cam.cellToScreenX(run[0]), y0 = cam.cellToScreenY(run[1]);
-        float x1 = cam.cellToScreenX(run[2]), y1 = cam.cellToScreenY(run[3]);
-        boolean horizontal = run[1] == run[3];
-        // A face turned toward the sun is lit; one turned away stands in its own shade.
-        float toSun = sun == null ? 0f : run[4] * sun.dirX() + run[5] * sun.dirY();
-        float facing = .78f + .22f * toSun;
-        float baseR = .46f * facing, baseG = .47f * facing, baseB = .50f * facing;
-        for (int k = 0; k < storeys; k++) {
-            float d0 = depth * k / storeys, d1 = depth * (k + 1) / storeys;
-            float s0 = eye / (eye + d0), s1 = eye / (eye + d1), sm = (s0 + s1) / 2f;
-            float t = (k + .5f) / storeys;
-            float haze = (float) Math.pow(t, .55f);
-            float r = baseR + (backdrop.hazeR() - baseR) * haze;
-            float g = baseG + (backdrop.hazeG() - baseG) * haze;
-            float b = baseB + (backdrop.hazeB() - baseB) * haze;
-            float ax, ay, bx, by;
-            if (horizontal) {
-                ax = cx + (x0 - cx) * sm;
-                bx = cx + (x1 - cx) * sm;
-                ay = cy + (y0 - cy) * s0;
-                by = cy + (y0 - cy) * s1;
-            } else {
-                ay = cy + (y0 - cy) * sm;
-                by = cy + (y1 - cy) * sm;
-                ax = cx + (x0 - cx) * s0;
-                bx = cx + (x0 - cx) * s1;
-            }
-            float minX = Math.min(ax, bx), maxX = Math.max(ax, bx);
-            float minY = Math.min(ay, by), maxY = Math.max(ay, by);
-            // Overlap the next storey by half a pixel so the bands join.
-            if (horizontal) { minY -= .5f; maxY += .5f; } else { minX -= .5f; maxX += .5f; }
-            out.addSolidRect(RenderLayer.GROUND, minX, minY, maxX, maxY, r, g, b, alpha);
-            float band = horizontal ? maxY - minY : maxX - minX;
-            if (band >= 3f) {
-                // A strip of windows across the middle of the storey, lit or dark glass, fading into the haze.
-                float w0 = .30f, w1 = .70f;
-                float wr = backdrop.lit() ? .98f : .10f, wg = backdrop.lit() ? .80f : .13f;
-                float wb = backdrop.lit() ? .52f : .20f;
-                float wa = (backdrop.lit() ? .65f : .55f) * (1f - haze) * alpha;
-                if (horizontal) {
-                    float a0 = minY + band * w0, a1 = minY + band * w1;
-                    out.addSolidRect(RenderLayer.GROUND, minX, a0, maxX, a1, wr, wg, wb, wa);
-                } else {
-                    float a0 = minX + band * w0, a1 = minX + band * w1;
-                    out.addSolidRect(RenderLayer.GROUND, a0, minY, a1, maxY, wr, wg, wb, wa);
-                }
-            }
-        }
-        // Pilasters every few metres down the whole face: lines that all run toward the view's centre, which
-        // is what makes the face read as falling away rather than lying flat.
-        float sBottom = eye / (eye + depth);
-        float length = horizontal ? Math.abs(run[2] - run[0]) : Math.abs(run[3] - run[1]);
-        int bays = Math.max(1, Math.round(length / PILASTER_METERS));
-        for (int k = 0; k <= bays; k++) {
-            float u = k / (float) bays;
-            float px = horizontal ? x0 + (x1 - x0) * u : x0;
-            float py = horizontal ? y0 : y0 + (y1 - y0) * u;
-            float qx = cx + (px - cx) * sBottom, qy = cy + (py - cy) * sBottom;
-            float mx = cx + (px - cx) * .5f * (1f + sBottom), my = cy + (py - cy) * .5f * (1f + sBottom);
-            out.addLine(RenderLayer.GROUND, px, py, mx, my, 2f, baseR * .55f, baseG * .55f, baseB * .6f,
-                    .8f * alpha);
-            out.addLine(RenderLayer.GROUND, mx, my, qx, qy, 1.5f, baseR * .55f, baseG * .55f, baseB * .6f,
-                    .35f * alpha);
-        }
-    }
-
-    /** Collects every straight run of boundary between surface and void, once per map: the map never changes. */
-    private void findRuns(CellTopology topology) {
-        runs.clear();
-        surface.clear();
-        runsFor = topology;
-        int w = topology.getWidth(), h = topology.getHeight();
-        boolean[] solid = new boolean[w * h];
-        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) solid[y * w + x] = !isVoid(topology, x, y);
-        mergeRects(solid, w, h, 1, 0, 0, surface);
-        // Horizontal boundaries: between (x, y-1) and (x, y).
-        for (int y = 1; y < h; y++) {
-            int start = -1;
-            int normal = 0;
-            for (int x = 0; x <= w; x++) {
-                int n = 0;
-                if (x < w) {
-                    boolean above = isVoid(topology, x, y - 1), below = isVoid(topology, x, y);
-                    if (above != below) n = below ? 1 : -1;
-                }
-                if (n != normal) {
-                    if (normal != 0) runs.add(new float[]{start, y, x, y, 0, normal});
-                    start = x;
-                    normal = n;
-                }
-            }
-        }
-        // Vertical boundaries: between (x-1, y) and (x, y).
-        for (int x = 1; x < w; x++) {
-            int start = -1;
-            int normal = 0;
-            for (int y = 0; y <= h; y++) {
-                int n = 0;
-                if (y < h) {
-                    boolean left = isVoid(topology, x - 1, y), right = isVoid(topology, x, y);
-                    if (left != right) n = right ? 1 : -1;
-                }
-                if (n != normal) {
-                    if (normal != 0) runs.add(new float[]{x, start, x, y, normal, 0});
-                    start = y;
-                    normal = n;
-                }
-            }
-        }
-    }
-
     /** How far a wall's run lies from the camera's point, seen from above. */
     private static float planDistance(float[] run, float px, float py) {
         float qx = Math.max(Math.min(run[0], run[2]), Math.min(px, Math.max(run[0], run[2])));
         float qy = Math.max(Math.min(run[1], run[3]), Math.min(py, Math.max(run[1], run[3])));
         return (qx - px) * (qx - px) + (qy - py) * (qy - py);
-    }
-
-    private static boolean isVoid(CellTopology topology, int x, int y) {
-        return topology.getGroundKind(x, y) == GroundKind.VOID;
     }
 }

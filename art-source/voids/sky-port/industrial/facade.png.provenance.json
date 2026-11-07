@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6cc-b4a1-7d02-acec-e4d7b9e3372a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6cc-b4a1-7d02-acec-e4d7b9e3372a\\exec-be05a55b-1026-49fc-8467-64424d88cdf3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\industrial\\facade.png",
+    "sha256": "0b6b03d935122cad18db5f2545664cc324ec2668cc55b45adc93618eb656b333",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\industrial\\facade.prompt.txt",
+  "promptSha256": "4a3c5f77c4f71d6853d484786fdfe1f94ab9bc5b8ddbe967c4bc59792bcfc56b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, palette and finish only; not layout, not content, not perspective\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective) of the outer wall of a gritty industrial\nmegastructure, as it would be mapped onto a vertical wall. Heavy riveted\narmour plates and girders in horizontal courses about one storey (4 m)\ntall, vertical pipe runs and cable trunking, narrow lit slit windows in\nwarm amber, vents, maintenance ladders and small catwalk ledges, soot\nstreaks running down, rust and patched panels, a few red warning lights.\nEven density across the whole tile with no focal point, so it repeats\nboth horizontally and vertically. Palette: soot, rust, steel grey,\nhazard yellow, amber light. No text, no logos, no people, no border, no\nvignette. Square canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\sky-port\\concepts\\c-industrial-hive.png",
+      "sha256": "440038e4295247375a06657ab876d262407000aab0e7b922afb49f242cb422c3",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, palette and finish only; not layout, not content, not perspective"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one square, seamless wall texture, using the reference only for its materials, palette, and finish."
+  ],
+  "usage": {
+    "input_tokens": 80968,
+    "cached_input_tokens": 72576,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 381,
+    "reasoning_output_tokens": 15
+  },
+  "elapsedSeconds": 67.6
+}

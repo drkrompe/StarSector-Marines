@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6cc-b4c3-7381-aac3-21a9c6614d7f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6cc-b4c3-7381-aac3-21a9c6614d7f\\exec-8b14b351-2843-497d-981e-e48bfbef7b54.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\industrial\\terrace-roof.png",
+    "sha256": "377e254ac1cfa1b4b4d7d6a59bf203115fc25f0caae57a5b9b89714e3b049c6f",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\industrial\\terrace-roof.prompt.txt",
+  "promptSha256": "a70953bee4e5dbe265b8cb33d76022c91a9e2868bb50e583904195149e61e9a2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, palette and finish only; not layout, not content, not perspective\n\nA seamless, tileable texture for a top-down game: the flat roof of a\nterrace on a gritty industrial megastructure, seen straight down (true\noverhead, no perspective, no horizon). Patched and riveted steel deck\nplates, stained concrete, grilles, square vent housings with fans, pipe\nruns and conduit trays, small hatch covers, faded hazard-yellow edge\nlines and grime. Everything at the scale of a 40 m square of roof: a vent\nhousing is about 3 m across. Even density across the whole tile with no\nfocal point and no large single object, so it can repeat. Overcast,\ndiffuse light, soft contact shadows only. Palette: soot, rust, steel\ngrey, hazard yellow, a few small warm lights. No text, no logos, no\npeople, no vehicles, no border, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\sky-port\\concepts\\c-industrial-hive.png",
+      "sha256": "440038e4295247375a06657ab876d262407000aab0e7b922afb49f242cb422c3",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, palette and finish only; not layout, not content, not perspective"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one square, tileable roof texture using the reference’s materials, palette, and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 41345,
+    "cached_input_tokens": 33280,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 361,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.3
+}

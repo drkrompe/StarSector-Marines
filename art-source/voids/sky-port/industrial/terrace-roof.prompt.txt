@@ -1,0 +1,11 @@
+A seamless, tileable texture for a top-down game: the flat roof of a
+terrace on a gritty industrial megastructure, seen straight down (true
+overhead, no perspective, no horizon). Patched and riveted steel deck
+plates, stained concrete, grilles, square vent housings with fans, pipe
+runs and conduit trays, small hatch covers, faded hazard-yellow edge
+lines and grime. Everything at the scale of a 40 m square of roof: a vent
+housing is about 3 m across. Even density across the whole tile with no
+focal point and no large single object, so it can repeat. Overcast,
+diffuse light, soft contact shadows only. Palette: soot, rust, steel
+grey, hazard yellow, a few small warm lights. No text, no logos, no
+people, no vehicles, no border, no vignette. Square canvas.
