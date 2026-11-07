@@ -231,8 +231,13 @@ Laws):
      0.2 m a pixel: a Buffalo about 30 m), not to the battle's own craft,
      which are drawn small to sit beside infantry; the bays and lanes are
      sized for them.
-   Left: cranes and gantries, an industrial deck surface, the city's own
-   layers. The play area's size and chokepoints will change (owner,
+   - **The deck surface** is built from shipped floor blocks set as surface
+     overrides, no new art: riveted hold plate with worn patches for the
+     field, the marked apron for freight lanes, and landing pads of plain
+     landing deck inside a hatched keep-clear rim; plant blocks stand in dark
+     concrete on staging deck. A bespoke deck plate in the terrace roof's
+     style is the next step if the shipped plate reads too clean.
+   Left: cranes and gantries, the city's own layers. The play area's size and chokepoints will change (owner,
    2026-11-07); the structure follows whatever footprint the deck has.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.

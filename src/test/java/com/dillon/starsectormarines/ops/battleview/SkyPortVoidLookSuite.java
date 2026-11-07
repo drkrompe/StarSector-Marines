@@ -124,6 +124,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                 if (onDeck) {
                     grid.setWalkableFloor(x, y);
                     topology.setGroundKind(x, y, surface(x, y));
+                    topology.setSurface(x, y, topology.surfaceIndex(finish(x, y)));
                 } else {
                     grid.setWalkable(x, y, false);
                     grid.setTag(x, y, CellTag.SEE_THROUGH, true);
@@ -155,21 +156,44 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         return GroundKind.STRIPED;
     }
 
+    /**
+     * The deck's industrial finish: riveted plate with worn patches, freight lanes marked out in yellow, and
+     * the pier and the central pad set out as landing pads.
+     */
+    private static String finish(int x, int y) {
+        GroundKind kind = surface(x, y);
+        if (kind == GroundKind.STREET) return "apron.marked";
+        if (inside(x, y, PX0 - 6, PY0, PX1, PY1)) return pad(x, y, PX0 - 6, PY0, PX1, PY1);
+        if (inside(x, y, OX + 30, OY + 20, OX + 54, OY + 34)) return pad(x, y, OX + 30, OY + 20, OX + 54, OY + 34);
+        // Worn plate in loose patches, where traffic and weather have scuffed the deck.
+        int patch = Math.floorMod((x / 5) * 73 + (y / 4) * 151 + (x / 9) * 37, 7);
+        return patch < 2 ? "ship-hold.plate-worn" : "ship-hold.plate";
+    }
+
+    /** A landing pad: a hatched keep-clear rim around plain landing deck. */
+    private static String pad(int x, int y, int x0, int y0, int x1, int y1) {
+        boolean rim = x == x0 || x == x1 || y == y0 || y == y1;
+        return rim ? "apron.keep-clear" : "shuttle-bay.landing-deck";
+    }
+
     /** A walled block of roof plant: closed walls with one door. */
     private static void block(NavigationGrid grid, CellTopology topology, int x0, int y0, int x1, int y1) {
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
                 topology.setGroundKind(x, y, GroundKind.INDOOR);
+                topology.setSurface(x, y, topology.surfaceIndex("loading-bay.staging-deck"));
                 if (x != x0 && x != x1 && y != y0 && y != y1) continue;
                 grid.setWalkable(x, y, false);
                 grid.setWallHp(x, y, 400);
                 topology.setTag(x, y, CellTopology.Tag.WALL, true);
+                topology.setSurface(x, y, topology.surfaceIndex("installation.dark-concrete-wall"));
             }
         }
         int doorX = (x0 + x1) / 2;
         grid.setWalkableFloor(doorX, y1);
         grid.setDoorway(doorX, y1, true);
         topology.setTag(doorX, y1, CellTopology.Tag.WALL, false);
+        topology.setSurface(doorX, y1, topology.surfaceIndex("loading-bay.staging-deck"));
     }
 
     private static boolean inside(int x, int y, int x0, int y0, int x1, int y1) {
