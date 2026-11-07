@@ -1138,7 +1138,14 @@ tasks.register('playBattle', JavaExec) {
     // The test task's classpath but for its classes: its resources hold the fixtures.
     classpath = files(compilePlayBattle, tasks.named('processTestResources')) + sourceSets.main.output +
             configurations.testRuntimeClasspath + files(new File(starsectorCore, 'jogg-0.0.7.jar'),
-            new File(starsectorCore, 'jorbis-0.0.15.jar'))
+            new File(starsectorCore, 'jorbis-0.0.15.jar')) +
+            // The planet menu runs the game's own rule lines (`PlayRuleLines`), reached by reflection only; these
+            // jars are on no compile classpath and in no test fork. Their obfuscated names need the verifier relaxed
+            // for app classes, as the game's own -noverify does.
+            files(new File(starsectorCore, 'starfarer_obf.jar'), new File(starsectorCore, 'fs.common_obf.jar'),
+                    new File(starsectorCore, 'janino.jar'), new File(starsectorCore, 'commons-compiler.jar'),
+                    new File(starsectorCore, 'commons-compiler-jdk.jar'))
+    jvmArgs '-XX:+UnlockDiagnosticVMOptions', '-XX:-BytecodeVerificationRemote'
     // `-Psilent` plays without sound, and without needing the gitignored clips or ffmpeg.
     if (providers.gradleProperty('silent').isPresent()) systemProperty 'play.silent', 'true'
     else dependsOn ':asset-pipeline:processAudio'

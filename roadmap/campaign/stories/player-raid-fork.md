@@ -14,6 +14,12 @@ model says, and that launching it as usual is unchanged.
 
 ## Live pass
 
+`playBattle`'s planet menu (`build-and-run.md`) already plays the mod's side of
+every item below against the real `rules.csv` rows, with and without Nexerelin's,
+and traces each match's scores. What only the game can show is the real raid
+command's own effects: loot, disruption, reputation, cooldown and Nexerelin's
+listeners.
+
 Run each with Nexerelin enabled, then again with it disabled.
 
 1. **Standard path unchanged.** Set up a raid for valuables, Launch raid,
