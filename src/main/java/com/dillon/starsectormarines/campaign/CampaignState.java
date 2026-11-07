@@ -598,6 +598,24 @@ public final class CampaignState implements Serializable {
     public int nexInvasionIssued = 0;
     public int nexInvasionSettled = 0;
 
+    // ---------- The player's own raid on a market (see raid-resolution.md) ----------
+
+    /*
+     * How the player's raids resolve in this save, as a RaidResolutionPreference ordinal:
+     * 0 is Ask, which a save written before the column existed loads as.
+     * RaidResolutionPreferenceLedger is the one reader and writer.
+     *
+     * The raid serials make a Marine Operations raid commit exactly once: every briefing
+     * draws the next issued serial, Results records the battle against it, and the raid
+     * dialog takes it once into the game's own raid command. MarketRaidLedger owns all four.
+     */
+
+    public int raidResolutionPreference = 0;
+    public int marketRaidIssued = 0;
+    public int marketRaidRecorded = 0;
+    public boolean marketRaidRecordedVictory = false;
+    public int marketRaidCommitted = 0;
+
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();

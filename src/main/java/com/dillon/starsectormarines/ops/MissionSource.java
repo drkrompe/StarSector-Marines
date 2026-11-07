@@ -25,6 +25,8 @@ package com.dillon.starsectormarines.ops;
  *   <li>{@link #NEX_INVASION} — the player's own Nexerelin invasion, fought as a
  *       Conquest and settled through Nexerelin rather than a contract.</li>
  *   <li>{@link #REPLAY} — a won campaign chapter flown again for credits only.</li>
+ *   <li>{@link #MARKET_RAID} — the player's own raid on a market, fought as a Raid and
+ *       committed through the game's own raid command.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -60,7 +62,14 @@ public enum MissionSource {
      * board's replay contact ({@code CompletedReplays}). Never settles the arc that owns
      * the chapter. Append-only: ordinals are persisted.
      */
-    REPLAY;
+    REPLAY,
+    /**
+     * The player's own raid on a market, fought as a Raid and committed through the
+     * game's own raid command (vanilla's, or Nexerelin's) once the battle ends
+     * ({@code raid-resolution.md}). No contract, no MRB credibility. Append-only:
+     * ordinals are persisted.
+     */
+    MARKET_RAID;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT

@@ -1,6 +1,6 @@
 # Campaign story board
 
-Status: ACTIVE — 5 open stories
+Status: ACTIVE — 6 open stories
 
 Written: 2026-08-23
 
@@ -21,3 +21,4 @@ For authored mission sequences and their dedicated arc boards, start with
 | `polity-defence-raid-hook.md` | In progress — slices 1–6 shipped, live acceptance remains | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |
 | `derived-polity-roster.md` | In progress — slices 1–4 shipped, live pass remains | The polity ground doctrine implemented: released kit, production quality, a derived `GroundRosterProfile` registered under the player faction, defence-strength headcount net of the company, three doctrine points and their panel. |
 | `campaign-backend.md` | In progress — all but news and world basics moved | What screens ask of the running campaign goes behind one seam, family by family, so `playBattle` can host them with no game. Each family needs a pass in the real game. |
+| `player-raid-fork.md` | In progress — built and unit-tested, live pass remains | Lead the player's own raid on a market as a Marine Operations battle, or launch it as usual; works with and without Nexerelin (`raid-resolution.md`). |

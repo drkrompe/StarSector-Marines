@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
+import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
+import com.dillon.starsectormarines.campaign.raid.MarketRaidMissionKey;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -540,6 +542,20 @@ public final class MissionResolver {
                     && Global.getSector() != null && Global.getSector().getCampaignUI() != null) {
                 Global.getSector().getCampaignUI().addMessage(Strings.get("nexInvasionNotApplied"));
             }
+        }
+        if (outcome.missionSource == MissionSource.MARKET_RAID) {
+            CampaignStateScript script = CampaignStateScript.getInstance();
+            MarketRaidMissionKey key = MarketRaidMissionKey.parse(outcome.missionId);
+            // Exactly-once: the raid dialog takes this record into the game's own raid
+            // command when the panel closes. A replayed result records nothing further
+            // and writes nothing further back.
+            if (key == null || !MarketRaidLedger.record(
+                    script != null ? script.state() : null, key.serial(), outcome.victory)) {
+                LOG.info("MarineOps: market raid " + outcome.missionId + " already recorded — no writeback");
+                return;
+            }
+            LOG.info("MarineOps: market raid " + outcome.missionId + " recorded as "
+                    + (outcome.victory ? "won" : "lost"));
         }
         CargoAPI cargo = CampaignBackend.playerFleet() != null
                 ? CampaignBackend.playerFleet().getCargo()

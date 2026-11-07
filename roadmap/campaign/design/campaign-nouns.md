@@ -132,6 +132,8 @@ the company and the player's vanilla holdings. It owns no threshold; each
 number stays with the domain that settles it. `polity-ground-doctrine.md`
 owns how the polity's own ground forces are composed: a roster derived from
 its markets the way vanilla derives fleet quality, never authored.
+`raid-resolution.md` owns leading the player's own raid on a market as an
+operation, committed through the game's own raid command.
 
 `themes.md`, `economy.md`, and `backgrounds.md` are direction for future
 campaign work. `moral-compass.md` owns the hidden record that can connect

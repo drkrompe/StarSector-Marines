@@ -45,7 +45,8 @@ seam), `architecture.md` (the external-state boundary) and
   | **AI war**: one AI faction invades another | AI faction | Nexerelin, untouched |
 
   Nexerelin's Raid option is not an entry point. It is vanilla's raid with
-  Nexerelin's adjustments and starts no Nex ground battle.
+  Nexerelin's adjustments and starts no Nex ground battle. Leading it as an
+  operation is `raid-resolution.md`'s, the same with or without Nexerelin.
 - A **resolver** is the system that decides a battle: **Nexerelin** (its own
   abstract battle) or **Marine Operations** (a played battle).
 - A **supported entry point** is one for which Marine Operations has a mapped

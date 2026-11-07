@@ -46,7 +46,8 @@ public final class MissionForceEnvelope {
      * unrepeatable work on the company's own colony, and a raid already on the ground
      * will not wait for a full task force ({@code mission-tier-nouns.md}). A Nexerelin
      * invasion is the one Conquest that may: it is the player's own decision with
-     * whatever the company has, not an authored set piece a patron sized.
+     * whatever the company has, not an authored set piece a patron sized. The player's
+     * own raid on a market may too, for the same reason.
      * The opening Wayline operations, story and recurring, may too: their authored
      * sorties size the lift, not the company, so a seat count from the manifest is
      * never a launch gate for a starting company one marine short.
@@ -55,6 +56,7 @@ public final class MissionForceEnvelope {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
                         || mission.source == MissionSource.POLITY_DEFENCE
+                        || mission.source == MissionSource.MARKET_RAID
                         || OpeningOperationKind.fromMission(mission) != null
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                         || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission))

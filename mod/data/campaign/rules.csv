@@ -48,3 +48,13 @@ smStrandedPickupOption,PopulateOptions,"$hasMarket
 $menuState == main
 StrandedDetachmentCMD available",StrandedDetachmentCMD addOption,,,Offers to collect survivors of an overrun garrison waiting on this market
 smStrandedPickupSel,DialogOptionSelected,$option == smStrandedPickup,StrandedDetachmentCMD pickup,,,Collects the stranded detachment without a battle and rebuilds the market menu
+smRaidConfirmIntercept,DialogOptionSelected,"$option == mktRaidConfirm score:2
+MarineRaidCMD intercept",MarineRaidCMD fork,,,"The raid confirm: offers leading the raid with Marine Operations or launching it as usual, per the save's raid preference. Scores 3 (score:2 plus the intercept line), one above Nexerelin's own row (2) and vanilla's (1), so it works with and without Nexerelin"
+smRaidMarineSel,DialogOptionSelected,$option == smRaidMarine,MarineRaidCMD marine,,,Leads the raid as a Marine Operations battle
+smRaidMarineAlwaysSel,DialogOptionSelected,$option == smRaidMarineAlways,MarineRaidCMD marineAlways,,,Remembers Marine Operations for raids in this save and opens the briefing
+smRaidStandardSel,DialogOptionSelected,$option == smRaidStandard,MarineRaidCMD standard,,,Hands this raid back to the raid command's own row
+smRaidStandardAlwaysSel,DialogOptionSelected,$option == smRaidStandardAlways,MarineRaidCMD standardAlways,,,Remembers the standard raid for this save and hands the raid back
+smRaidResetOption,PopulateOptions,"$hasMarket
+$menuState == main
+MarineRaidCMD resetAvailable",MarineRaidCMD addReset,,,Offers a way back to asking once a raid preference is remembered
+smRaidResetSel,DialogOptionSelected,$option == smRaidReset,MarineRaidCMD reset,,,Returns the save's raid preference to Ask

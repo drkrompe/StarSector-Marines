@@ -5402,6 +5402,20 @@
 		"nexInvasionRequirements": "Company detachment and lift",
 		"nexInvasionFlavor": "The company lands to take {0} from its garrison. The whole garrison stands against you: win the ground and the world changes hands. Retreat or lose and it stays with its owner.",
 		"nexInvasionNotApplied": "The invasion's result could not be handed to Nexerelin. The market is unchanged; the company's losses stand.",
+		"marketRaidForkText": "How will this raid be carried out? Marine Operations lands the company and fights it out on the ground: win and the raid takes what it set out for, lose and it takes nothing, and the fleet's marines stay aboard either way. Launched as usual, the fleet's marines carry it out and the losses are rolled.",
+		"marketRaidForkMarine": "Lead the raid with Marine Operations",
+		"marketRaidForkStandard": "Launch the raid as usual",
+		"marketRaidForkMarineAlways": "Always lead raids with Marine Operations",
+		"marketRaidForkStandardAlways": "Always launch raids as usual",
+		"marketRaidForkBack": "Go back",
+		"marketRaidResetOption": "Ask again how raids are carried out",
+		"marketRaidResetDone": "Raids will ask again whether to lead them with Marine Operations or launch them as usual.",
+		"marketRaidCommitWon": "The company holds the ground long enough. The raid goes ahead as planned; the fleet's marines never left their ships.",
+		"marketRaidCommitLost": "The company is driven off before it reaches its objectives. The raid achieves nothing, but the attack is on record.",
+		"marketRaidMissionName": "Raid — {0}",
+		"marketRaidRequirements": "Company detachment and lift",
+		"marketRaidFlavorValuables": "The company lands on {0} to strip its stores and get out. Win the ground and the raid takes what it came for. Retreat or lose and it takes nothing.",
+		"marketRaidFlavorDisrupt": "The company lands on {0} to put an industry out of action. Win the ground and the raid disrupts its target. Retreat or lose and the target keeps running.",
 
 		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog
 		# ids in jangala_arrival_hail.json (hail and Castle's lines alike) and must match its text.
