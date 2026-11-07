@@ -1,0 +1,27 @@
+A background plate for a top-down tactical battle game: an endless futuristic
+megacity seen from directly overhead (true nadir, camera pointing straight
+down, no horizon, no sky, no perspective tilt), from about one kilometre above
+its tallest roofs. The players fight on the roof of a colossal sky port far
+above this city; this plate is what they see when they look over the edge.
+
+Content: a dense, continuous field of tower rooftops, plazas and canyon
+streets packed edge to edge, in an irregular district grid with a few broad
+transit trenches, landing pads and rooftop machinery. Roof tops are
+mechanical and grimy: vents, cooling plant, antennae, solar decks. Tiny
+streams of air traffic glint in the street canyons. Everything is small: a
+whole city block is about 60 pixels across.
+
+Depth: thick, cool atmospheric haze sits over everything, so the city is
+low contrast, desaturated blue-grey with warm sodium and cyan window lights
+showing through in the deep street canyons. The deepest streets fall away
+into dark haze. No single building dominates.
+
+Dusk: the sky light is nearly gone, the haze is deep blue-violet and the city glows from within with thousands of warm and cyan window lights, signage glow and traffic streaks in the canyons. Rooftops are dark silhouettes rimmed by their own lights.
+
+Style: the material and palette of the attached game screenshot (muted,
+painterly-realistic top-down sprites), but far more distant and hazier, so
+it reads as far below the playing surface. Not pixel art. No text, no UI,
+no labels, no borders, no vignette. The image should be uniformly busy
+across the whole frame with no focal point, so it can sit under a game map.
+
+Square canvas.

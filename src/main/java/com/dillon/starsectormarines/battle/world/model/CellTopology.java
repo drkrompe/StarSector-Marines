@@ -66,6 +66,10 @@ public class CellTopology {
     private ElevationLayout cliffArt;
     public ElevationLayout cliffArt() { return cliffArt; }
     public void setCliffArt(ElevationLayout value) { cliffArt = value; }
+    /** What the void cells show far below, or null: presentation only, written once at generation. */
+    private VoidBackdrop voidBackdrop;
+    public VoidBackdrop voidBackdrop() { return voidBackdrop; }
+    public void setVoidBackdrop(VoidBackdrop value) { voidBackdrop = value; }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {

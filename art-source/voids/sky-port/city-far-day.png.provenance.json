@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b6af-408e-79d3-bf8e-4db03c4d41f2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b6af-408e-79d3-bf8e-4db03c4d41f2\\exec-c0324e92-d0bd-4bc4-9f27-efbbf18ddee0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\sky-port\\city-far-day.png",
+    "sha256": "ff9bb831a2764dbb78da50d1dbcbeb58a958b249c5ba88a36ac2de30065eec1c",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\sky-port\\city-far-day.brief.txt",
+  "promptSha256": "a90b97f2c9a7bd5a9f1e11d48ef5a7017f643300f25a2c9320d49176c16bf98c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material and palette only; not layout, not content, not scale\n\nA background plate for a top-down tactical battle game: an endless futuristic\nmegacity seen from directly overhead (true nadir, camera pointing straight\ndown, no horizon, no sky, no perspective tilt), from about one kilometre above\nits tallest roofs. The players fight on the roof of a colossal sky port far\nabove this city; this plate is what they see when they look over the edge.\n\nContent: a dense, continuous field of tower rooftops, plazas and canyon\nstreets packed edge to edge, in an irregular district grid with a few broad\ntransit trenches, landing pads and rooftop machinery. Roof tops are\nmechanical and grimy: vents, cooling plant, antennae, solar decks. Tiny\nstreams of air traffic glint in the street canyons. Everything is small: a\nwhole city block is about 60 pixels across.\n\nDepth: thick, cool atmospheric haze sits over everything, so the city is\nlow contrast, desaturated blue-grey with warm sodium and cyan window lights\nshowing through in the deep street canyons. The deepest streets fall away\ninto dark haze. No single building dominates.\n\nDaylight, overcast diffuse light, no hard shadows.\n\nStyle: the material and palette of the attached game screenshot (muted,\npainterly-realistic top-down sprites), but far more distant and hazier, so\nit reads as far below the playing surface. Not pixel art. No text, no UI,\nno labels, no borders, no vignette. The image should be uniformly busy\nacross the whole frame with no focal point, so it can sit under a game map.\n\nSquare canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "G:\\My Drive\\starsector\\review\\cordon-line-bores\\2026-10-31_pullout-zone-town-bores-seed7_windows\\town-road-arid-seed7-02-west-half.png",
+      "sha256": "b11bb58fdad7c02369b93863faea177e4023e1d6f8e64a9e80e5767f8bb729e1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "Material and palette only; not layout, not content, not scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one square city background using the reference only for material and palette.\n"
+  ],
+  "usage": {
+    "input_tokens": 42779,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 416,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.6
+}
