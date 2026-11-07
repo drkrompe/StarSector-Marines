@@ -161,9 +161,40 @@ Laws):
      400 m and 1 km are on the voids picks page, the plate scaled with depth
      so its blocks stay city-sized. Day and dusk plates are
      `art-source/voids/sky-port/`.
-   Left: the owner's picks (depth, day or dusk); negative relief in the
-   composite; the walls' look past placeholder bands; slices 1 and 2 for
-   generated maps.
+   The owner picked 400 m and the hazy day plate, and holds the idea but
+   wants more work on the city's look and feel (2026-11-07). Left: the
+   city's look (below); the walls' look past placeholder bands; negative
+   relief in the composite; slices 1 and 2 for generated maps.
+
+   **The city's look.** One flat plate reads as wallpaper: it has no volume
+   of its own, and its tiling shows. Candidates, cheapest first:
+   - **Neighbouring towers**: other megastructures' roofs at their own depths
+     below the deck (60 m, 150 m, 250 m), each with walls down to the city
+     drawn as the deck's are, so the space between the deck and the city
+     has things in it at several depths.
+   - **Layered city**: the plate split into a far floor and a nearer layer of
+     tower tops with transparent streets between them, each at its own
+     depth, so the city itself has parallax.
+   - **Air between**: haze or cloud banks and streams of air traffic at
+     depths between the deck and the city, drifting with the battle's
+     time.
+   - **Less repetition**: a larger plate, or several plates mixed, so the
+     tiling does not show at 400 m.
+
+   **The megastructure's look.** A sheer box with window bands reads as a
+   skyscraper, not a sky port. The owner imagines something more Blade
+   Runner or Star Wars (2026-11-07): an arcology, not an office tower.
+   The wall drawing already projects any profile storey by storey, so the
+   structure can change shape as it falls:
+   - **Setbacks and flare**: the walls step outward in terraces or flare
+     toward the base, ziggurat-like, so lower tiers stand out past the deck
+     and are seen from above with their own roofs, lights and machinery.
+   - **Buttresses and fins**: great ribs down the faces, and cantilevered
+     landing platforms and docking arms at lower levels, with beacons.
+   - **Surface**: dense machinery, vents and lit strips rather than office
+     window bands; light pools and haze clinging to the lower tiers.
+   A concept pass comes first: overhead ImageGen frames of the sky port and
+   its city, for the owner to pick a direction, before the drawing changes.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the
