@@ -12,6 +12,7 @@ the elevation plan and brush) and sight and fire (one skyline rule for the fog, 
 | Story | State and dependency |
 | --- | --- |
 | elevation-look | **IN PROGRESS.** Grass-topped cliffs draw in the live renderer as the owner's layered escarpment with cut stone ramp steps, baked once per battle (`CliffArtLayer`; `renderEvidence -PrenderMaps=overlook` against `-Dbattle.render.cliffLook=false`). A shot down from higher ground exposes the shooter for three seconds (`FiringExposure`, the `firing-down` scene). Cliffs cast a smooth sun shadow in the live composite (it had been switched off for the battle by a full zoom-in on a small map). Left: nothing named; the owner's look review of the baked cliffs in play. |
+| voids | **PLANNED.** Unwalkable drops below the map's tier, crossed by bridges: see-through like water, one battle rule under every void style (crevasse, sea cliff, gorge river, city drop), depth from negative relief and baked edges; raymarched depth inside voids only if needed. Open owner questions in the story. |
 
 Owner decisions (2026-10-22): skyline sight, no uphill penalty, no climbing
 swarm, one-cell cliff tiles with tall south faces, cut stone ramp steps, and a
