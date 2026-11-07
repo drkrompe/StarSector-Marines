@@ -100,6 +100,21 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   stays out of the owner's.
 - **The company** is a veteran one under its founding field commander, Morgan Hale, with
   the officer lesson behind it; a save from before Hale was added gets Hale on load.
+- **The planet menu:** each world's Planet menu button opens its interaction dialog
+  (`PlayMarket`, `PlayMarketMenu`) instead of the board. The rows are the real
+  `rules.csv` rows: the mod's raid rows, vanilla's Take Hostile Action rows and, with
+  the Nexerelin toggle on, Nexerelin's replacements read from the installed mod, plus
+  `src/test/resources/play/rules.csv` for Leave. They are matched and run by the
+  game's own rule-line class (`PlayRuleLines`), so `score:`, memory and command lookup
+  are the game's. The game's jars for that are on `playBattle`'s runtime classpath
+  only, reached by reflection, with the verifier relaxed as the game's `-noverify`
+  does. Game commands that need the running game are stood in for by same-named
+  classes in `ops.playrules`, which the lookup tries first: `MarketCMD` and
+  `Nex_MarketCMD` keep vanilla's option ids and raid record, take the market's state
+  from the menu's toggles (star fortress, strong defenders, already hostile, raid
+  cooldown, Nexerelin), and report what the real command would commit. A stand-in
+  sector is installed only while rules run. The side panel traces every match with
+  each candidate's score. Options are pressable as `market-option-<optionId>`.
 - **What is not there:** stationing and a colony's screens land on HQ. The worlds have
   nothing on them the mission board does not read, and there is no flight between them. The clock stands
   at day zero and nothing saves: story progress holds for the run and a run starts

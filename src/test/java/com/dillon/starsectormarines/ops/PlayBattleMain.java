@@ -14,7 +14,10 @@ import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CustomVisualDialogDelegate;
 import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.util.FaderUtil;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.BasicConfigurator;
@@ -147,8 +150,27 @@ public final class PlayBattleMain {
     private static final class Host {
         private final PositionAPI position;
         private final boolean direct;
-        private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, () -> this.finished = true,
-                name -> this.loading = name, () -> this.saving = true, () -> this.startingOver = true, grant -> this.granting = grant);
+        private final PlayWorldMenu menu = new PlayWorldMenu(world -> this.next = world, world -> this.visiting = world,
+                () -> this.finished = true, name -> this.loading = name, () -> this.saving = true,
+                () -> this.startingOver = true, grant -> this.granting = grant);
+        /** The planet menu ({@link PlayMarket}): the game's rules over a dialog, between the worlds and a panel. */
+        private final PlayMarketMenu marketMenu = new PlayMarketMenu(action -> this.marketAction = action,
+                () -> this.leavingMarket = true, toggles -> this.reopening = toggles);
+        private final PlayMarket.Host marketHost = new PlayMarket.Host() {
+            @Override public void showPanel(CustomVisualDialogDelegate delegate) { pendingPanel = delegate; }
+
+            @Override public void leave() { leavingMarket = true; }
+        };
+        private PlayMarket market;
+        private boolean marketAttached;
+        private PlanetAPI visiting;
+        private Runnable marketAction;
+        private PlayMarket.Toggles reopening;
+        private boolean leavingMarket;
+        private CustomVisualDialogDelegate pendingPanel;
+        /** The panel a rule command opened from the planet menu, while it is up. */
+        private CustomVisualDialogDelegate panelDelegate;
+        private boolean panelClosing;
         private final TextureLease menuImages = TextureLedger.shared().lease("playBattle world menu");
         private Context context;
         private MarineOpsPanelPlugin plugin;
@@ -229,6 +251,82 @@ public final class PlayBattleMain {
                 UiSpriteCache.shared().leave(menuImages);
                 open(world, null);
             }
+            settleMarket();
+        }
+
+        /** The planet menu's turn: arriving, an option or toggle, a panel closing, leaving. */
+        private void settleMarket() {
+            if (visiting != null) {
+                PlanetAPI world = visiting;
+                visiting = null;
+                menu.detach();
+                UiSpriteCache.shared().leave(menuImages);
+                PlayCompany.dockAt(world);
+                visit(world, new PlayMarket.Toggles());
+            }
+            if (reopening != null) {
+                PlayMarket.Toggles toggles = reopening;
+                reopening = null;
+                visit(market.world(), toggles);
+            }
+            if (marketAction != null) {
+                Runnable action = marketAction;
+                marketAction = null;
+                action.run();
+                afterMarketAction();
+            }
+            if (panelClosing) {
+                panelClosing = false;
+                CustomVisualDialogDelegate delegate = panelDelegate;
+                panelDelegate = null;
+                plugin = null;
+                market.panelClosed(delegate);
+                afterMarketAction();
+            }
+            if (leavingMarket) {
+                leavingMarket = false;
+                if (marketAttached) marketMenu.detach();
+                marketAttached = false;
+                market = null;
+                UiSpriteCache.shared().enter(menuImages);
+                menu.attach(position, null, () -> { });
+            }
+        }
+
+        private void visit(PlanetAPI world, PlayMarket.Toggles toggles) {
+            market = new PlayMarket(world, toggles, marketHost);
+            marketMenu.show(market);
+            market.open();
+            afterMarketAction();
+        }
+
+        /** After the rules ran: open the panel a command asked for, or show the dialog as it now stands. */
+        private void afterMarketAction() {
+            if (leavingMarket) return;
+            if (pendingPanel != null) {
+                CustomVisualDialogDelegate delegate = pendingPanel;
+                pendingPanel = null;
+                if (marketAttached) marketMenu.detach();
+                marketAttached = false;
+                panelDelegate = delegate;
+                CustomPanelAPI panel = (CustomPanelAPI) Proxy.newProxyInstance(CustomPanelAPI.class.getClassLoader(),
+                        new Class<?>[]{CustomPanelAPI.class}, (proxy, method, args) ->
+                                "getPosition".equals(method.getName()) ? position : null);
+                delegate.init(panel, new CustomVisualDialogDelegate.DialogCallbacks() {
+                    @Override public void dismissDialog() { panelClosing = true; }
+
+                    @Override public FaderUtil getPanelFader() { return null; }
+                });
+                plugin = (MarineOpsPanelPlugin) delegate.getCustomPanelPlugin();
+                plugin.positionChanged(position);
+                return;
+            }
+            if (marketAttached) {
+                marketMenu.refresh();
+            } else {
+                marketMenu.attach(position, null, () -> { });
+                marketAttached = true;
+            }
         }
 
         /** Whichever is up, ahead of the campaign under it changing. */
@@ -237,6 +335,10 @@ public final class PlayBattleMain {
                 plugin.dismiss();
                 plugin = null;
                 context = null;
+            } else if (marketAttached) {
+                marketMenu.detach();
+                marketAttached = false;
+                market = null;
             } else {
                 menu.detach();
                 UiSpriteCache.shared().leave(menuImages);
@@ -274,24 +376,29 @@ public final class PlayBattleMain {
 
         void processInput(List<InputEventAPI> events) {
             if (plugin != null) plugin.processInput(events);
+            else if (marketAttached) marketMenu.processInput(events);
             else menu.processInput(events);
             settle();
         }
 
         void advance(float dt) {
             if (plugin != null) plugin.advance(dt);
+            else if (marketAttached) marketMenu.advance(dt);
             else menu.advance(dt);
             settle();
         }
 
         void render() {
             if (plugin != null) plugin.render(1f);
+            else if (marketAttached) marketMenu.render(1f);
             else menu.render(1f);
         }
 
         void close() {
             if (plugin != null) {
                 plugin.dismiss();
+            } else if (marketAttached) {
+                marketMenu.detach();
             } else {
                 menu.detach();
                 UiSpriteCache.shared().leave(menuImages);

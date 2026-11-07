@@ -1,0 +1,71 @@
+<template props="title,copy,paragraphs,choices,confirms,toggles,trace,leaveAction">
+  <div id="market-menu-root" class="market-root">
+    <div id="market-menu-header" class="market-header console-header">
+      <img id="market-menu-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
+      <div id="market-menu-heading" class="market-heading">
+        <div id="market-menu-title" class="label title tone-edge">{title}</div>
+        <div id="market-menu-copy" class="label tone-muted">{copy}</div>
+      </div>
+      <div id="market-menu-leave-rail" class="market-leave-rail console-command-rail">
+        <button id="market-menu-leave" onclick="{leaveAction}">
+          <div id="market-menu-leave-signal" class="console-command-signal" />
+          <div id="market-menu-leave-legend" class="console-key-legend">WORLDS</div>
+          <img id="market-menu-leave-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+        </button>
+      </div>
+      <img id="market-menu-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
+    </div>
+    <div id="market-menu-body" class="market-body">
+      <div id="market-menu-dialog" class="market-dialog panel">
+        <div id="market-menu-log" class="market-log">
+          <div each="para in paragraphs" key="{para.id}" id="{para.id}" class="label market-para">{para.text}</div>
+        </div>
+        <div id="market-menu-confirm" class="market-confirm">
+          <div each="confirm in confirms" key="{confirm.id}" id="{confirm.id}" class="market-confirm-box">
+            <div id="{confirm.textId}" class="label market-para tone-accent">{confirm.text}</div>
+            <div id="{confirm.rowId}" class="market-confirm-row">
+              <button id="{confirm.yesId}" class="market-choice" onclick="{confirm.yesAction}">Yes</button>
+              <button id="{confirm.noId}" class="market-choice" onclick="{confirm.noAction}">Never mind</button>
+            </div>
+          </div>
+        </div>
+        <div id="market-menu-choices" class="market-choices">
+          <button each="choice in choices" key="{choice.id}" id="{choice.id}" class="market-choice" disabled="{choice.disabled}" onclick="{choice.action}">{choice.text}</button>
+        </div>
+      </div>
+      <div id="market-menu-side" class="market-side panel">
+        <div id="market-menu-toggles-title" class="label heading tone-edge">MARKET STATE</div>
+        <div id="market-menu-toggles" class="market-toggles">
+          <button each="toggle in toggles" key="{toggle.id}" id="{toggle.id}" class="market-toggle" disabled="{toggle.disabled}" onclick="{toggle.action}">{toggle.label}</button>
+        </div>
+        <div id="market-menu-trace-title" class="label heading tone-edge">RULES</div>
+        <div id="market-menu-trace" class="market-trace">
+          <div each="line in trace" key="{line.id}" id="{line.id}" class="label market-trace-line tone-muted">{line.text}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<style>
+.market-root { flex-direction: column; padding: 12px; gap: 10px; border-width: 2px; overflow: hidden; }
+.market-header { flex-direction: row; align-items: center; height: 72px; padding: 10px; gap: 12px; border-width: 1px; }
+.market-heading { flex-direction: column; flex-grow: 1; gap: 7px; }
+.market-heading .label { height: 24px; }
+.market-leave-rail { flex-direction: row; width: 180px; height: 42px; padding: 3px; border-width: 2px; }
+.market-leave-rail button { flex-direction: row; align-items: center; width: 100%; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
+.market-body { flex-direction: row; flex-grow: 1; height: 0px; gap: 10px; }
+.market-dialog { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 10px; border-width: 1px; }
+.market-log { flex-direction: column; flex-grow: 1; height: 0px; gap: 8px; overflow: scroll; }
+.market-para { font-family: body; height: auto; white-space: normal; }
+.market-confirm { flex-direction: column; gap: 6px; }
+.market-confirm-box { flex-direction: column; gap: 6px; padding: 8px; border-width: 1px; }
+.market-confirm-row { flex-direction: row; height: 38px; gap: 8px; }
+.market-choices { flex-direction: column; gap: 6px; }
+.market-choice { height: 38px; padding: 4px 12px; border-width: 1px; font-family: heading; text-align: left; }
+.market-side { flex-direction: column; width: 560px; padding: 12px; gap: 8px; border-width: 1px; }
+.market-side .heading { height: 24px; }
+.market-toggles { flex-direction: column; gap: 6px; }
+.market-toggle { height: 36px; padding: 4px 10px; border-width: 1px; font-family: heading; text-align: left; }
+.market-trace { flex-direction: column; flex-grow: 1; height: 0px; gap: 4px; overflow: scroll; }
+.market-trace-line { font-family: body; height: auto; white-space: normal; }
+</style>

@@ -17,14 +17,17 @@
     </div>
     <div id="world-menu-body" class="world-body">
     <div id="world-menu-list" class="world-list panel">
-      <button each="world in worlds" key="{world.id}" id="{world.id}" class="world-row" onclick="{world.action}">
-        <canvas id="{world.globeId}" class="world-globe" width="72" height="72" />
-        <div id="{world.copyId}" class="world-copy">
-          <div id="{world.nameId}" class="label heading">{world.name}</div>
-          <div id="{world.placeId}" class="label tone-muted">{world.place}</div>
-          <div id="{world.workId}" class="label tone-accent">{world.work}</div>
-        </div>
-      </button>
+      <div each="world in worlds" key="{world.id}" id="{world.lineId}" class="world-line">
+        <button id="{world.id}" class="world-row" onclick="{world.action}">
+          <canvas id="{world.globeId}" class="world-globe" width="72" height="72" />
+          <div id="{world.copyId}" class="world-copy">
+            <div id="{world.nameId}" class="label heading">{world.name}</div>
+            <div id="{world.placeId}" class="label tone-muted">{world.place}</div>
+            <div id="{world.workId}" class="label tone-accent">{world.work}</div>
+          </div>
+        </button>
+        <button id="{world.visitId}" class="world-visit" onclick="{world.visitAction}">Planet menu</button>
+      </div>
     </div>
     <div id="world-menu-saves" class="world-saves panel">
       <div id="world-menu-saves-title" class="label heading tone-edge">SAVES</div>
@@ -62,7 +65,9 @@
 .world-save-row { flex-direction: column; height: 58px; padding: 6px 10px; gap: 2px; border-width: 1px; text-align: left; }
 .world-save-row .label { height: 20px; pointer-events: none; }
 .world-list { flex-direction: column; width: 0px; flex-grow: 1; gap: 10px; padding: 12px; border-width: 1px; overflow: scroll; }
-.world-row { flex-direction: row; align-items: center; height: 110px; padding: 12px; gap: 18px; border-width: 1px; text-align: left; }
+.world-line { flex-direction: row; height: 110px; gap: 10px; }
+.world-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 110px; padding: 12px; gap: 18px; border-width: 1px; text-align: left; }
+.world-visit { width: 180px; height: 110px; border-width: 1px; font-family: heading; text-align: center; }
 .world-globe { width: 72px; height: 72px; pointer-events: none; }
 .world-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; pointer-events: none; }
 .world-copy .label { height: 22px; pointer-events: none; }

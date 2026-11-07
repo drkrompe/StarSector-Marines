@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * {@code playBattle}'s campaign map: the worlds {@link PlayCompany} stands in, each with who has work there now, so the
  * story can be followed from one to the next. Picking one docks there and opens Marine Operations, as a flight and a
- * planet menu would. Beside them are the run's saves ({@link PlaySaves}) and a way to start the campaign over. Not a screen of the mod; its markup lives with the test tree and never ships.
+ * planet menu would; each world's Planet menu opens its interaction dialog instead ({@link PlayMarketMenu}). Beside them are the run's saves ({@link PlaySaves}) and a way to start the campaign over. Not a screen of the mod; its markup lives with the test tree and never ships.
  */
 final class PlayWorldMenu extends MissionFlowMlxScreen {
 
@@ -23,16 +23,18 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
     private static final int GRANT = 20_000;
 
     private final Consumer<PlanetAPI> pick;
+    private final Consumer<PlanetAPI> visit;
     private final Runnable quit;
     private final Consumer<String> load;
     private final Runnable save;
     private final Runnable startOver;
     private final Consumer<Runnable> grant;
 
-    PlayWorldMenu(Consumer<PlanetAPI> pick, Runnable quit, Consumer<String> load, Runnable save, Runnable startOver,
+    PlayWorldMenu(Consumer<PlanetAPI> pick, Consumer<PlanetAPI> visit, Runnable quit, Consumer<String> load, Runnable save, Runnable startOver,
                   Consumer<Runnable> grant) {
         super(ROOT, COMPONENTS);
         this.pick = pick;
+        this.visit = visit;
         this.quit = quit;
         this.load = load;
         this.save = save;
@@ -59,6 +61,9 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
             row.put("place", world.getStarSystem().getName() + (world == PlayCompany.docked() ? " / docked here" : ""));
             row.put("work", work(world));
             row.put("action", (Runnable) () -> pick.accept(world));
+            row.put("lineId", id + "-line");
+            row.put("visitId", id + "-visit");
+            row.put("visitAction", (Runnable) () -> visit.accept(world));
             worlds.add(row);
         }
         Map<String, Object> props = new HashMap<>();

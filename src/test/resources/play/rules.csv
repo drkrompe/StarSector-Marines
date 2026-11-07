@@ -1,0 +1,2 @@
+id,trigger,conditions,script,text,options,notes
+playLeaveOption,PopulateOptions,$menuState == main,,,100:playLeave:Leave orbit,"playBattle's own way out of the planet menu, back to the worlds"
