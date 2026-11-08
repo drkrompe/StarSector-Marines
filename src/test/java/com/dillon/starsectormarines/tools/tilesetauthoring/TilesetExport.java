@@ -261,6 +261,8 @@ public final class TilesetExport {
         /** {@code 0xRRGGBB} painted for the layout's null case, or null when it has none. */
         public Integer fillRgb;
         public String windowBlockId, doorBlockId, rubbleBlockId, damageBlockId;
+        /** A pool laid as a pattern this many cells wide, by position; zero for a hashed pool. */
+        public int patternCols;
 
         public BlockSpec(String id, GridLayout layout, Integer fillRgb) {
             this.id = id;
@@ -925,6 +927,7 @@ public final class TilesetExport {
                     cellList.put(new JSONArray().put(entry.col).put(entry.row));
                 }
                 o.put("cells", cellList);
+                if (spec.patternCols > 0) o.put("patternCols", spec.patternCols);
             } else {
                 o.put("origin", new JSONArray().put(origin[0]).put(origin[1]));
                 o.put("layout", jsonLayout(spec.layout));

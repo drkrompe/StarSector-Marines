@@ -157,7 +157,8 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
     }
 
     /**
-     * The deck's industrial finish: riveted plate with worn patches, freight lanes marked out in yellow, and
+     * The deck's industrial finish: the sky port's own heavy plate (one picture laid across the cells by
+     * position, grilles and hatches in it), freight lanes marked out in yellow, and
      * the pier and the central pad set out as landing pads.
      */
     private static String finish(int x, int y) {
@@ -165,15 +166,13 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         if (kind == GroundKind.STREET) return "apron.marked";
         if (inside(x, y, PX0 - 6, PY0, PX1, PY1)) return pad(x, y, PX0 - 6, PY0, PX1, PY1);
         if (inside(x, y, OX + 30, OY + 20, OX + 54, OY + 34)) return pad(x, y, OX + 30, OY + 20, OX + 54, OY + 34);
-        // Worn plate in loose patches, where traffic and weather have scuffed the deck.
-        int patch = Math.floorMod((x / 5) * 73 + (y / 4) * 151 + (x / 9) * 37, 7);
-        return patch < 2 ? "ship-hold.plate-worn" : "ship-hold.plate";
+        return "sky-port.deck-plate";
     }
 
     /** A landing pad: a hatched keep-clear rim around plain landing deck. */
     private static String pad(int x, int y, int x0, int y0, int x1, int y1) {
         boolean rim = x == x0 || x == x1 || y == y0 || y == y1;
-        return rim ? "apron.keep-clear" : "shuttle-bay.landing-deck";
+        return rim ? "apron.keep-clear" : "sky-port.pad-plate";
     }
 
     /** A walled block of roof plant: closed walls with one door. */

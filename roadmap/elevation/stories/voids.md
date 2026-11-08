@@ -231,12 +231,14 @@ Laws):
      0.2 m a pixel: a Buffalo about 30 m), not to the battle's own craft,
      which are drawn small to sit beside infantry; the bays and lanes are
      sized for them.
-   - **The deck surface** is built from shipped floor blocks set as surface
-     overrides, no new art: riveted hold plate with worn patches for the
-     field, the marked apron for freight lanes, and landing pads of plain
-     landing deck inside a hatched keep-clear rim; plant blocks stand in dark
-     concrete on staging deck. A bespoke deck plate in the terrace roof's
-     style is the next step if the shipped plate reads too clean.
+   - **The deck surface** is the sky port's own tileset (`sky-port-deck`),
+     set as surface overrides: heavy 4 m deck plates in the terrace roof's
+     style, with drainage grilles and hatch covers, laid as a 12x12-cell
+     pattern so a plate spans three cells and its seams and bolts read at
+     battle zoom; landing pads of smooth heat plate (an 8x8-cell pattern)
+     inside a hatched keep-clear rim; the marked apron for freight lanes; plant
+     blocks in dark concrete on staging deck. One-cell plates were tried
+     first: at battle zoom their seams vanished and the tread aliased.
    Left: cranes and gantries, the city's own layers. The play area's size and chokepoints will change (owner,
    2026-11-07); the structure follows whatever footprint the deck has.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same

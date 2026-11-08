@@ -1,0 +1,2101 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          18,
+          0
+        ],
+        [
+          19,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          21,
+          0
+        ],
+        [
+          22,
+          0
+        ],
+        [
+          23,
+          0
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          25,
+          0
+        ],
+        [
+          26,
+          0
+        ],
+        [
+          27,
+          0
+        ],
+        [
+          28,
+          0
+        ],
+        [
+          29,
+          0
+        ],
+        [
+          30,
+          0
+        ],
+        [
+          31,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          33,
+          0
+        ],
+        [
+          34,
+          0
+        ],
+        [
+          35,
+          0
+        ],
+        [
+          36,
+          0
+        ],
+        [
+          37,
+          0
+        ],
+        [
+          38,
+          0
+        ],
+        [
+          39,
+          0
+        ],
+        [
+          40,
+          0
+        ],
+        [
+          41,
+          0
+        ],
+        [
+          42,
+          0
+        ],
+        [
+          43,
+          0
+        ],
+        [
+          44,
+          0
+        ],
+        [
+          45,
+          0
+        ],
+        [
+          46,
+          0
+        ],
+        [
+          47,
+          0
+        ],
+        [
+          48,
+          0
+        ],
+        [
+          49,
+          0
+        ],
+        [
+          50,
+          0
+        ],
+        [
+          51,
+          0
+        ],
+        [
+          52,
+          0
+        ],
+        [
+          53,
+          0
+        ],
+        [
+          54,
+          0
+        ],
+        [
+          55,
+          0
+        ],
+        [
+          56,
+          0
+        ],
+        [
+          57,
+          0
+        ],
+        [
+          58,
+          0
+        ],
+        [
+          59,
+          0
+        ],
+        [
+          60,
+          0
+        ],
+        [
+          61,
+          0
+        ],
+        [
+          62,
+          0
+        ],
+        [
+          63,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          65,
+          0
+        ],
+        [
+          66,
+          0
+        ],
+        [
+          67,
+          0
+        ],
+        [
+          68,
+          0
+        ],
+        [
+          69,
+          0
+        ],
+        [
+          70,
+          0
+        ],
+        [
+          71,
+          0
+        ],
+        [
+          72,
+          0
+        ],
+        [
+          73,
+          0
+        ],
+        [
+          74,
+          0
+        ],
+        [
+          75,
+          0
+        ],
+        [
+          76,
+          0
+        ],
+        [
+          77,
+          0
+        ],
+        [
+          78,
+          0
+        ],
+        [
+          79,
+          0
+        ],
+        [
+          80,
+          0
+        ],
+        [
+          81,
+          0
+        ],
+        [
+          82,
+          0
+        ],
+        [
+          83,
+          0
+        ],
+        [
+          84,
+          0
+        ],
+        [
+          85,
+          0
+        ],
+        [
+          86,
+          0
+        ],
+        [
+          87,
+          0
+        ],
+        [
+          88,
+          0
+        ],
+        [
+          89,
+          0
+        ],
+        [
+          90,
+          0
+        ],
+        [
+          91,
+          0
+        ],
+        [
+          92,
+          0
+        ],
+        [
+          93,
+          0
+        ],
+        [
+          94,
+          0
+        ],
+        [
+          95,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          97,
+          0
+        ],
+        [
+          98,
+          0
+        ],
+        [
+          99,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          101,
+          0
+        ],
+        [
+          102,
+          0
+        ],
+        [
+          103,
+          0
+        ],
+        [
+          104,
+          0
+        ],
+        [
+          105,
+          0
+        ],
+        [
+          106,
+          0
+        ],
+        [
+          107,
+          0
+        ],
+        [
+          108,
+          0
+        ],
+        [
+          109,
+          0
+        ],
+        [
+          110,
+          0
+        ],
+        [
+          111,
+          0
+        ],
+        [
+          112,
+          0
+        ],
+        [
+          113,
+          0
+        ],
+        [
+          114,
+          0
+        ],
+        [
+          115,
+          0
+        ],
+        [
+          116,
+          0
+        ],
+        [
+          117,
+          0
+        ],
+        [
+          118,
+          0
+        ],
+        [
+          119,
+          0
+        ],
+        [
+          120,
+          0
+        ],
+        [
+          121,
+          0
+        ],
+        [
+          122,
+          0
+        ],
+        [
+          123,
+          0
+        ],
+        [
+          124,
+          0
+        ],
+        [
+          125,
+          0
+        ],
+        [
+          126,
+          0
+        ],
+        [
+          127,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          129,
+          0
+        ],
+        [
+          130,
+          0
+        ],
+        [
+          131,
+          0
+        ],
+        [
+          132,
+          0
+        ],
+        [
+          133,
+          0
+        ],
+        [
+          134,
+          0
+        ],
+        [
+          135,
+          0
+        ],
+        [
+          136,
+          0
+        ],
+        [
+          137,
+          0
+        ],
+        [
+          138,
+          0
+        ],
+        [
+          139,
+          0
+        ],
+        [
+          140,
+          0
+        ],
+        [
+          141,
+          0
+        ],
+        [
+          142,
+          0
+        ],
+        [
+          143,
+          0
+        ]
+      ],
+      "id": "sky-port.deck-plate",
+      "patternCols": 12
+    },
+    {
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          14,
+          1
+        ],
+        [
+          15,
+          1
+        ],
+        [
+          16,
+          1
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          18,
+          1
+        ],
+        [
+          19,
+          1
+        ],
+        [
+          20,
+          1
+        ],
+        [
+          21,
+          1
+        ],
+        [
+          22,
+          1
+        ],
+        [
+          23,
+          1
+        ],
+        [
+          24,
+          1
+        ],
+        [
+          25,
+          1
+        ],
+        [
+          26,
+          1
+        ],
+        [
+          27,
+          1
+        ],
+        [
+          28,
+          1
+        ],
+        [
+          29,
+          1
+        ],
+        [
+          30,
+          1
+        ],
+        [
+          31,
+          1
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          33,
+          1
+        ],
+        [
+          34,
+          1
+        ],
+        [
+          35,
+          1
+        ],
+        [
+          36,
+          1
+        ],
+        [
+          37,
+          1
+        ],
+        [
+          38,
+          1
+        ],
+        [
+          39,
+          1
+        ],
+        [
+          40,
+          1
+        ],
+        [
+          41,
+          1
+        ],
+        [
+          42,
+          1
+        ],
+        [
+          43,
+          1
+        ],
+        [
+          44,
+          1
+        ],
+        [
+          45,
+          1
+        ],
+        [
+          46,
+          1
+        ],
+        [
+          47,
+          1
+        ],
+        [
+          48,
+          1
+        ],
+        [
+          49,
+          1
+        ],
+        [
+          50,
+          1
+        ],
+        [
+          51,
+          1
+        ],
+        [
+          52,
+          1
+        ],
+        [
+          53,
+          1
+        ],
+        [
+          54,
+          1
+        ],
+        [
+          55,
+          1
+        ],
+        [
+          56,
+          1
+        ],
+        [
+          57,
+          1
+        ],
+        [
+          58,
+          1
+        ],
+        [
+          59,
+          1
+        ],
+        [
+          60,
+          1
+        ],
+        [
+          61,
+          1
+        ],
+        [
+          62,
+          1
+        ],
+        [
+          63,
+          1
+        ]
+      ],
+      "id": "sky-port.pad-plate",
+      "patternCols": 8
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "sky-port.deck-plate v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "sky-port.deck-plate v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 3 of the pool",
+      "name": "sky-port.deck-plate v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 4 of the pool",
+      "name": "sky-port.deck-plate v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 5 of the pool",
+      "name": "sky-port.deck-plate v5",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 6 of the pool",
+      "name": "sky-port.deck-plate v6",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 7 of the pool",
+      "name": "sky-port.deck-plate v7",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 8 of the pool",
+      "name": "sky-port.deck-plate v8",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 9 of the pool",
+      "name": "sky-port.deck-plate v9",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "variant 10 of the pool",
+      "name": "sky-port.deck-plate v10",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "variant 11 of the pool",
+      "name": "sky-port.deck-plate v11",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "variant 12 of the pool",
+      "name": "sky-port.deck-plate v12",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "variant 13 of the pool",
+      "name": "sky-port.deck-plate v13",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "variant 14 of the pool",
+      "name": "sky-port.deck-plate v14",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "variant 15 of the pool",
+      "name": "sky-port.deck-plate v15",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "variant 16 of the pool",
+      "name": "sky-port.deck-plate v16",
+      "row": 0
+    },
+    {
+      "col": 16,
+      "description": "variant 17 of the pool",
+      "name": "sky-port.deck-plate v17",
+      "row": 0
+    },
+    {
+      "col": 17,
+      "description": "variant 18 of the pool",
+      "name": "sky-port.deck-plate v18",
+      "row": 0
+    },
+    {
+      "col": 18,
+      "description": "variant 19 of the pool",
+      "name": "sky-port.deck-plate v19",
+      "row": 0
+    },
+    {
+      "col": 19,
+      "description": "variant 20 of the pool",
+      "name": "sky-port.deck-plate v20",
+      "row": 0
+    },
+    {
+      "col": 20,
+      "description": "variant 21 of the pool",
+      "name": "sky-port.deck-plate v21",
+      "row": 0
+    },
+    {
+      "col": 21,
+      "description": "variant 22 of the pool",
+      "name": "sky-port.deck-plate v22",
+      "row": 0
+    },
+    {
+      "col": 22,
+      "description": "variant 23 of the pool",
+      "name": "sky-port.deck-plate v23",
+      "row": 0
+    },
+    {
+      "col": 23,
+      "description": "variant 24 of the pool",
+      "name": "sky-port.deck-plate v24",
+      "row": 0
+    },
+    {
+      "col": 24,
+      "description": "variant 25 of the pool",
+      "name": "sky-port.deck-plate v25",
+      "row": 0
+    },
+    {
+      "col": 25,
+      "description": "variant 26 of the pool",
+      "name": "sky-port.deck-plate v26",
+      "row": 0
+    },
+    {
+      "col": 26,
+      "description": "variant 27 of the pool",
+      "name": "sky-port.deck-plate v27",
+      "row": 0
+    },
+    {
+      "col": 27,
+      "description": "variant 28 of the pool",
+      "name": "sky-port.deck-plate v28",
+      "row": 0
+    },
+    {
+      "col": 28,
+      "description": "variant 29 of the pool",
+      "name": "sky-port.deck-plate v29",
+      "row": 0
+    },
+    {
+      "col": 29,
+      "description": "variant 30 of the pool",
+      "name": "sky-port.deck-plate v30",
+      "row": 0
+    },
+    {
+      "col": 30,
+      "description": "variant 31 of the pool",
+      "name": "sky-port.deck-plate v31",
+      "row": 0
+    },
+    {
+      "col": 31,
+      "description": "variant 32 of the pool",
+      "name": "sky-port.deck-plate v32",
+      "row": 0
+    },
+    {
+      "col": 32,
+      "description": "variant 33 of the pool",
+      "name": "sky-port.deck-plate v33",
+      "row": 0
+    },
+    {
+      "col": 33,
+      "description": "variant 34 of the pool",
+      "name": "sky-port.deck-plate v34",
+      "row": 0
+    },
+    {
+      "col": 34,
+      "description": "variant 35 of the pool",
+      "name": "sky-port.deck-plate v35",
+      "row": 0
+    },
+    {
+      "col": 35,
+      "description": "variant 36 of the pool",
+      "name": "sky-port.deck-plate v36",
+      "row": 0
+    },
+    {
+      "col": 36,
+      "description": "variant 37 of the pool",
+      "name": "sky-port.deck-plate v37",
+      "row": 0
+    },
+    {
+      "col": 37,
+      "description": "variant 38 of the pool",
+      "name": "sky-port.deck-plate v38",
+      "row": 0
+    },
+    {
+      "col": 38,
+      "description": "variant 39 of the pool",
+      "name": "sky-port.deck-plate v39",
+      "row": 0
+    },
+    {
+      "col": 39,
+      "description": "variant 40 of the pool",
+      "name": "sky-port.deck-plate v40",
+      "row": 0
+    },
+    {
+      "col": 40,
+      "description": "variant 41 of the pool",
+      "name": "sky-port.deck-plate v41",
+      "row": 0
+    },
+    {
+      "col": 41,
+      "description": "variant 42 of the pool",
+      "name": "sky-port.deck-plate v42",
+      "row": 0
+    },
+    {
+      "col": 42,
+      "description": "variant 43 of the pool",
+      "name": "sky-port.deck-plate v43",
+      "row": 0
+    },
+    {
+      "col": 43,
+      "description": "variant 44 of the pool",
+      "name": "sky-port.deck-plate v44",
+      "row": 0
+    },
+    {
+      "col": 44,
+      "description": "variant 45 of the pool",
+      "name": "sky-port.deck-plate v45",
+      "row": 0
+    },
+    {
+      "col": 45,
+      "description": "variant 46 of the pool",
+      "name": "sky-port.deck-plate v46",
+      "row": 0
+    },
+    {
+      "col": 46,
+      "description": "variant 47 of the pool",
+      "name": "sky-port.deck-plate v47",
+      "row": 0
+    },
+    {
+      "col": 47,
+      "description": "variant 48 of the pool",
+      "name": "sky-port.deck-plate v48",
+      "row": 0
+    },
+    {
+      "col": 48,
+      "description": "variant 49 of the pool",
+      "name": "sky-port.deck-plate v49",
+      "row": 0
+    },
+    {
+      "col": 49,
+      "description": "variant 50 of the pool",
+      "name": "sky-port.deck-plate v50",
+      "row": 0
+    },
+    {
+      "col": 50,
+      "description": "variant 51 of the pool",
+      "name": "sky-port.deck-plate v51",
+      "row": 0
+    },
+    {
+      "col": 51,
+      "description": "variant 52 of the pool",
+      "name": "sky-port.deck-plate v52",
+      "row": 0
+    },
+    {
+      "col": 52,
+      "description": "variant 53 of the pool",
+      "name": "sky-port.deck-plate v53",
+      "row": 0
+    },
+    {
+      "col": 53,
+      "description": "variant 54 of the pool",
+      "name": "sky-port.deck-plate v54",
+      "row": 0
+    },
+    {
+      "col": 54,
+      "description": "variant 55 of the pool",
+      "name": "sky-port.deck-plate v55",
+      "row": 0
+    },
+    {
+      "col": 55,
+      "description": "variant 56 of the pool",
+      "name": "sky-port.deck-plate v56",
+      "row": 0
+    },
+    {
+      "col": 56,
+      "description": "variant 57 of the pool",
+      "name": "sky-port.deck-plate v57",
+      "row": 0
+    },
+    {
+      "col": 57,
+      "description": "variant 58 of the pool",
+      "name": "sky-port.deck-plate v58",
+      "row": 0
+    },
+    {
+      "col": 58,
+      "description": "variant 59 of the pool",
+      "name": "sky-port.deck-plate v59",
+      "row": 0
+    },
+    {
+      "col": 59,
+      "description": "variant 60 of the pool",
+      "name": "sky-port.deck-plate v60",
+      "row": 0
+    },
+    {
+      "col": 60,
+      "description": "variant 61 of the pool",
+      "name": "sky-port.deck-plate v61",
+      "row": 0
+    },
+    {
+      "col": 61,
+      "description": "variant 62 of the pool",
+      "name": "sky-port.deck-plate v62",
+      "row": 0
+    },
+    {
+      "col": 62,
+      "description": "variant 63 of the pool",
+      "name": "sky-port.deck-plate v63",
+      "row": 0
+    },
+    {
+      "col": 63,
+      "description": "variant 64 of the pool",
+      "name": "sky-port.deck-plate v64",
+      "row": 0
+    },
+    {
+      "col": 64,
+      "description": "variant 65 of the pool",
+      "name": "sky-port.deck-plate v65",
+      "row": 0
+    },
+    {
+      "col": 65,
+      "description": "variant 66 of the pool",
+      "name": "sky-port.deck-plate v66",
+      "row": 0
+    },
+    {
+      "col": 66,
+      "description": "variant 67 of the pool",
+      "name": "sky-port.deck-plate v67",
+      "row": 0
+    },
+    {
+      "col": 67,
+      "description": "variant 68 of the pool",
+      "name": "sky-port.deck-plate v68",
+      "row": 0
+    },
+    {
+      "col": 68,
+      "description": "variant 69 of the pool",
+      "name": "sky-port.deck-plate v69",
+      "row": 0
+    },
+    {
+      "col": 69,
+      "description": "variant 70 of the pool",
+      "name": "sky-port.deck-plate v70",
+      "row": 0
+    },
+    {
+      "col": 70,
+      "description": "variant 71 of the pool",
+      "name": "sky-port.deck-plate v71",
+      "row": 0
+    },
+    {
+      "col": 71,
+      "description": "variant 72 of the pool",
+      "name": "sky-port.deck-plate v72",
+      "row": 0
+    },
+    {
+      "col": 72,
+      "description": "variant 73 of the pool",
+      "name": "sky-port.deck-plate v73",
+      "row": 0
+    },
+    {
+      "col": 73,
+      "description": "variant 74 of the pool",
+      "name": "sky-port.deck-plate v74",
+      "row": 0
+    },
+    {
+      "col": 74,
+      "description": "variant 75 of the pool",
+      "name": "sky-port.deck-plate v75",
+      "row": 0
+    },
+    {
+      "col": 75,
+      "description": "variant 76 of the pool",
+      "name": "sky-port.deck-plate v76",
+      "row": 0
+    },
+    {
+      "col": 76,
+      "description": "variant 77 of the pool",
+      "name": "sky-port.deck-plate v77",
+      "row": 0
+    },
+    {
+      "col": 77,
+      "description": "variant 78 of the pool",
+      "name": "sky-port.deck-plate v78",
+      "row": 0
+    },
+    {
+      "col": 78,
+      "description": "variant 79 of the pool",
+      "name": "sky-port.deck-plate v79",
+      "row": 0
+    },
+    {
+      "col": 79,
+      "description": "variant 80 of the pool",
+      "name": "sky-port.deck-plate v80",
+      "row": 0
+    },
+    {
+      "col": 80,
+      "description": "variant 81 of the pool",
+      "name": "sky-port.deck-plate v81",
+      "row": 0
+    },
+    {
+      "col": 81,
+      "description": "variant 82 of the pool",
+      "name": "sky-port.deck-plate v82",
+      "row": 0
+    },
+    {
+      "col": 82,
+      "description": "variant 83 of the pool",
+      "name": "sky-port.deck-plate v83",
+      "row": 0
+    },
+    {
+      "col": 83,
+      "description": "variant 84 of the pool",
+      "name": "sky-port.deck-plate v84",
+      "row": 0
+    },
+    {
+      "col": 84,
+      "description": "variant 85 of the pool",
+      "name": "sky-port.deck-plate v85",
+      "row": 0
+    },
+    {
+      "col": 85,
+      "description": "variant 86 of the pool",
+      "name": "sky-port.deck-plate v86",
+      "row": 0
+    },
+    {
+      "col": 86,
+      "description": "variant 87 of the pool",
+      "name": "sky-port.deck-plate v87",
+      "row": 0
+    },
+    {
+      "col": 87,
+      "description": "variant 88 of the pool",
+      "name": "sky-port.deck-plate v88",
+      "row": 0
+    },
+    {
+      "col": 88,
+      "description": "variant 89 of the pool",
+      "name": "sky-port.deck-plate v89",
+      "row": 0
+    },
+    {
+      "col": 89,
+      "description": "variant 90 of the pool",
+      "name": "sky-port.deck-plate v90",
+      "row": 0
+    },
+    {
+      "col": 90,
+      "description": "variant 91 of the pool",
+      "name": "sky-port.deck-plate v91",
+      "row": 0
+    },
+    {
+      "col": 91,
+      "description": "variant 92 of the pool",
+      "name": "sky-port.deck-plate v92",
+      "row": 0
+    },
+    {
+      "col": 92,
+      "description": "variant 93 of the pool",
+      "name": "sky-port.deck-plate v93",
+      "row": 0
+    },
+    {
+      "col": 93,
+      "description": "variant 94 of the pool",
+      "name": "sky-port.deck-plate v94",
+      "row": 0
+    },
+    {
+      "col": 94,
+      "description": "variant 95 of the pool",
+      "name": "sky-port.deck-plate v95",
+      "row": 0
+    },
+    {
+      "col": 95,
+      "description": "variant 96 of the pool",
+      "name": "sky-port.deck-plate v96",
+      "row": 0
+    },
+    {
+      "col": 96,
+      "description": "variant 97 of the pool",
+      "name": "sky-port.deck-plate v97",
+      "row": 0
+    },
+    {
+      "col": 97,
+      "description": "variant 98 of the pool",
+      "name": "sky-port.deck-plate v98",
+      "row": 0
+    },
+    {
+      "col": 98,
+      "description": "variant 99 of the pool",
+      "name": "sky-port.deck-plate v99",
+      "row": 0
+    },
+    {
+      "col": 99,
+      "description": "variant 100 of the pool",
+      "name": "sky-port.deck-plate v100",
+      "row": 0
+    },
+    {
+      "col": 100,
+      "description": "variant 101 of the pool",
+      "name": "sky-port.deck-plate v101",
+      "row": 0
+    },
+    {
+      "col": 101,
+      "description": "variant 102 of the pool",
+      "name": "sky-port.deck-plate v102",
+      "row": 0
+    },
+    {
+      "col": 102,
+      "description": "variant 103 of the pool",
+      "name": "sky-port.deck-plate v103",
+      "row": 0
+    },
+    {
+      "col": 103,
+      "description": "variant 104 of the pool",
+      "name": "sky-port.deck-plate v104",
+      "row": 0
+    },
+    {
+      "col": 104,
+      "description": "variant 105 of the pool",
+      "name": "sky-port.deck-plate v105",
+      "row": 0
+    },
+    {
+      "col": 105,
+      "description": "variant 106 of the pool",
+      "name": "sky-port.deck-plate v106",
+      "row": 0
+    },
+    {
+      "col": 106,
+      "description": "variant 107 of the pool",
+      "name": "sky-port.deck-plate v107",
+      "row": 0
+    },
+    {
+      "col": 107,
+      "description": "variant 108 of the pool",
+      "name": "sky-port.deck-plate v108",
+      "row": 0
+    },
+    {
+      "col": 108,
+      "description": "variant 109 of the pool",
+      "name": "sky-port.deck-plate v109",
+      "row": 0
+    },
+    {
+      "col": 109,
+      "description": "variant 110 of the pool",
+      "name": "sky-port.deck-plate v110",
+      "row": 0
+    },
+    {
+      "col": 110,
+      "description": "variant 111 of the pool",
+      "name": "sky-port.deck-plate v111",
+      "row": 0
+    },
+    {
+      "col": 111,
+      "description": "variant 112 of the pool",
+      "name": "sky-port.deck-plate v112",
+      "row": 0
+    },
+    {
+      "col": 112,
+      "description": "variant 113 of the pool",
+      "name": "sky-port.deck-plate v113",
+      "row": 0
+    },
+    {
+      "col": 113,
+      "description": "variant 114 of the pool",
+      "name": "sky-port.deck-plate v114",
+      "row": 0
+    },
+    {
+      "col": 114,
+      "description": "variant 115 of the pool",
+      "name": "sky-port.deck-plate v115",
+      "row": 0
+    },
+    {
+      "col": 115,
+      "description": "variant 116 of the pool",
+      "name": "sky-port.deck-plate v116",
+      "row": 0
+    },
+    {
+      "col": 116,
+      "description": "variant 117 of the pool",
+      "name": "sky-port.deck-plate v117",
+      "row": 0
+    },
+    {
+      "col": 117,
+      "description": "variant 118 of the pool",
+      "name": "sky-port.deck-plate v118",
+      "row": 0
+    },
+    {
+      "col": 118,
+      "description": "variant 119 of the pool",
+      "name": "sky-port.deck-plate v119",
+      "row": 0
+    },
+    {
+      "col": 119,
+      "description": "variant 120 of the pool",
+      "name": "sky-port.deck-plate v120",
+      "row": 0
+    },
+    {
+      "col": 120,
+      "description": "variant 121 of the pool",
+      "name": "sky-port.deck-plate v121",
+      "row": 0
+    },
+    {
+      "col": 121,
+      "description": "variant 122 of the pool",
+      "name": "sky-port.deck-plate v122",
+      "row": 0
+    },
+    {
+      "col": 122,
+      "description": "variant 123 of the pool",
+      "name": "sky-port.deck-plate v123",
+      "row": 0
+    },
+    {
+      "col": 123,
+      "description": "variant 124 of the pool",
+      "name": "sky-port.deck-plate v124",
+      "row": 0
+    },
+    {
+      "col": 124,
+      "description": "variant 125 of the pool",
+      "name": "sky-port.deck-plate v125",
+      "row": 0
+    },
+    {
+      "col": 125,
+      "description": "variant 126 of the pool",
+      "name": "sky-port.deck-plate v126",
+      "row": 0
+    },
+    {
+      "col": 126,
+      "description": "variant 127 of the pool",
+      "name": "sky-port.deck-plate v127",
+      "row": 0
+    },
+    {
+      "col": 127,
+      "description": "variant 128 of the pool",
+      "name": "sky-port.deck-plate v128",
+      "row": 0
+    },
+    {
+      "col": 128,
+      "description": "variant 129 of the pool",
+      "name": "sky-port.deck-plate v129",
+      "row": 0
+    },
+    {
+      "col": 129,
+      "description": "variant 130 of the pool",
+      "name": "sky-port.deck-plate v130",
+      "row": 0
+    },
+    {
+      "col": 130,
+      "description": "variant 131 of the pool",
+      "name": "sky-port.deck-plate v131",
+      "row": 0
+    },
+    {
+      "col": 131,
+      "description": "variant 132 of the pool",
+      "name": "sky-port.deck-plate v132",
+      "row": 0
+    },
+    {
+      "col": 132,
+      "description": "variant 133 of the pool",
+      "name": "sky-port.deck-plate v133",
+      "row": 0
+    },
+    {
+      "col": 133,
+      "description": "variant 134 of the pool",
+      "name": "sky-port.deck-plate v134",
+      "row": 0
+    },
+    {
+      "col": 134,
+      "description": "variant 135 of the pool",
+      "name": "sky-port.deck-plate v135",
+      "row": 0
+    },
+    {
+      "col": 135,
+      "description": "variant 136 of the pool",
+      "name": "sky-port.deck-plate v136",
+      "row": 0
+    },
+    {
+      "col": 136,
+      "description": "variant 137 of the pool",
+      "name": "sky-port.deck-plate v137",
+      "row": 0
+    },
+    {
+      "col": 137,
+      "description": "variant 138 of the pool",
+      "name": "sky-port.deck-plate v138",
+      "row": 0
+    },
+    {
+      "col": 138,
+      "description": "variant 139 of the pool",
+      "name": "sky-port.deck-plate v139",
+      "row": 0
+    },
+    {
+      "col": 139,
+      "description": "variant 140 of the pool",
+      "name": "sky-port.deck-plate v140",
+      "row": 0
+    },
+    {
+      "col": 140,
+      "description": "variant 141 of the pool",
+      "name": "sky-port.deck-plate v141",
+      "row": 0
+    },
+    {
+      "col": 141,
+      "description": "variant 142 of the pool",
+      "name": "sky-port.deck-plate v142",
+      "row": 0
+    },
+    {
+      "col": 142,
+      "description": "variant 143 of the pool",
+      "name": "sky-port.deck-plate v143",
+      "row": 0
+    },
+    {
+      "col": 143,
+      "description": "variant 144 of the pool",
+      "name": "sky-port.deck-plate v144",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "sky-port.pad-plate v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "sky-port.pad-plate v2",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "variant 3 of the pool",
+      "name": "sky-port.pad-plate v3",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "variant 4 of the pool",
+      "name": "sky-port.pad-plate v4",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "variant 5 of the pool",
+      "name": "sky-port.pad-plate v5",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "variant 6 of the pool",
+      "name": "sky-port.pad-plate v6",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "variant 7 of the pool",
+      "name": "sky-port.pad-plate v7",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "variant 8 of the pool",
+      "name": "sky-port.pad-plate v8",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "variant 9 of the pool",
+      "name": "sky-port.pad-plate v9",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "variant 10 of the pool",
+      "name": "sky-port.pad-plate v10",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "variant 11 of the pool",
+      "name": "sky-port.pad-plate v11",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "variant 12 of the pool",
+      "name": "sky-port.pad-plate v12",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "variant 13 of the pool",
+      "name": "sky-port.pad-plate v13",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "variant 14 of the pool",
+      "name": "sky-port.pad-plate v14",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "variant 15 of the pool",
+      "name": "sky-port.pad-plate v15",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "description": "variant 16 of the pool",
+      "name": "sky-port.pad-plate v16",
+      "row": 1
+    },
+    {
+      "col": 16,
+      "description": "variant 17 of the pool",
+      "name": "sky-port.pad-plate v17",
+      "row": 1
+    },
+    {
+      "col": 17,
+      "description": "variant 18 of the pool",
+      "name": "sky-port.pad-plate v18",
+      "row": 1
+    },
+    {
+      "col": 18,
+      "description": "variant 19 of the pool",
+      "name": "sky-port.pad-plate v19",
+      "row": 1
+    },
+    {
+      "col": 19,
+      "description": "variant 20 of the pool",
+      "name": "sky-port.pad-plate v20",
+      "row": 1
+    },
+    {
+      "col": 20,
+      "description": "variant 21 of the pool",
+      "name": "sky-port.pad-plate v21",
+      "row": 1
+    },
+    {
+      "col": 21,
+      "description": "variant 22 of the pool",
+      "name": "sky-port.pad-plate v22",
+      "row": 1
+    },
+    {
+      "col": 22,
+      "description": "variant 23 of the pool",
+      "name": "sky-port.pad-plate v23",
+      "row": 1
+    },
+    {
+      "col": 23,
+      "description": "variant 24 of the pool",
+      "name": "sky-port.pad-plate v24",
+      "row": 1
+    },
+    {
+      "col": 24,
+      "description": "variant 25 of the pool",
+      "name": "sky-port.pad-plate v25",
+      "row": 1
+    },
+    {
+      "col": 25,
+      "description": "variant 26 of the pool",
+      "name": "sky-port.pad-plate v26",
+      "row": 1
+    },
+    {
+      "col": 26,
+      "description": "variant 27 of the pool",
+      "name": "sky-port.pad-plate v27",
+      "row": 1
+    },
+    {
+      "col": 27,
+      "description": "variant 28 of the pool",
+      "name": "sky-port.pad-plate v28",
+      "row": 1
+    },
+    {
+      "col": 28,
+      "description": "variant 29 of the pool",
+      "name": "sky-port.pad-plate v29",
+      "row": 1
+    },
+    {
+      "col": 29,
+      "description": "variant 30 of the pool",
+      "name": "sky-port.pad-plate v30",
+      "row": 1
+    },
+    {
+      "col": 30,
+      "description": "variant 31 of the pool",
+      "name": "sky-port.pad-plate v31",
+      "row": 1
+    },
+    {
+      "col": 31,
+      "description": "variant 32 of the pool",
+      "name": "sky-port.pad-plate v32",
+      "row": 1
+    },
+    {
+      "col": 32,
+      "description": "variant 33 of the pool",
+      "name": "sky-port.pad-plate v33",
+      "row": 1
+    },
+    {
+      "col": 33,
+      "description": "variant 34 of the pool",
+      "name": "sky-port.pad-plate v34",
+      "row": 1
+    },
+    {
+      "col": 34,
+      "description": "variant 35 of the pool",
+      "name": "sky-port.pad-plate v35",
+      "row": 1
+    },
+    {
+      "col": 35,
+      "description": "variant 36 of the pool",
+      "name": "sky-port.pad-plate v36",
+      "row": 1
+    },
+    {
+      "col": 36,
+      "description": "variant 37 of the pool",
+      "name": "sky-port.pad-plate v37",
+      "row": 1
+    },
+    {
+      "col": 37,
+      "description": "variant 38 of the pool",
+      "name": "sky-port.pad-plate v38",
+      "row": 1
+    },
+    {
+      "col": 38,
+      "description": "variant 39 of the pool",
+      "name": "sky-port.pad-plate v39",
+      "row": 1
+    },
+    {
+      "col": 39,
+      "description": "variant 40 of the pool",
+      "name": "sky-port.pad-plate v40",
+      "row": 1
+    },
+    {
+      "col": 40,
+      "description": "variant 41 of the pool",
+      "name": "sky-port.pad-plate v41",
+      "row": 1
+    },
+    {
+      "col": 41,
+      "description": "variant 42 of the pool",
+      "name": "sky-port.pad-plate v42",
+      "row": 1
+    },
+    {
+      "col": 42,
+      "description": "variant 43 of the pool",
+      "name": "sky-port.pad-plate v43",
+      "row": 1
+    },
+    {
+      "col": 43,
+      "description": "variant 44 of the pool",
+      "name": "sky-port.pad-plate v44",
+      "row": 1
+    },
+    {
+      "col": 44,
+      "description": "variant 45 of the pool",
+      "name": "sky-port.pad-plate v45",
+      "row": 1
+    },
+    {
+      "col": 45,
+      "description": "variant 46 of the pool",
+      "name": "sky-port.pad-plate v46",
+      "row": 1
+    },
+    {
+      "col": 46,
+      "description": "variant 47 of the pool",
+      "name": "sky-port.pad-plate v47",
+      "row": 1
+    },
+    {
+      "col": 47,
+      "description": "variant 48 of the pool",
+      "name": "sky-port.pad-plate v48",
+      "row": 1
+    },
+    {
+      "col": 48,
+      "description": "variant 49 of the pool",
+      "name": "sky-port.pad-plate v49",
+      "row": 1
+    },
+    {
+      "col": 49,
+      "description": "variant 50 of the pool",
+      "name": "sky-port.pad-plate v50",
+      "row": 1
+    },
+    {
+      "col": 50,
+      "description": "variant 51 of the pool",
+      "name": "sky-port.pad-plate v51",
+      "row": 1
+    },
+    {
+      "col": 51,
+      "description": "variant 52 of the pool",
+      "name": "sky-port.pad-plate v52",
+      "row": 1
+    },
+    {
+      "col": 52,
+      "description": "variant 53 of the pool",
+      "name": "sky-port.pad-plate v53",
+      "row": 1
+    },
+    {
+      "col": 53,
+      "description": "variant 54 of the pool",
+      "name": "sky-port.pad-plate v54",
+      "row": 1
+    },
+    {
+      "col": 54,
+      "description": "variant 55 of the pool",
+      "name": "sky-port.pad-plate v55",
+      "row": 1
+    },
+    {
+      "col": 55,
+      "description": "variant 56 of the pool",
+      "name": "sky-port.pad-plate v56",
+      "row": 1
+    },
+    {
+      "col": 56,
+      "description": "variant 57 of the pool",
+      "name": "sky-port.pad-plate v57",
+      "row": 1
+    },
+    {
+      "col": 57,
+      "description": "variant 58 of the pool",
+      "name": "sky-port.pad-plate v58",
+      "row": 1
+    },
+    {
+      "col": 58,
+      "description": "variant 59 of the pool",
+      "name": "sky-port.pad-plate v59",
+      "row": 1
+    },
+    {
+      "col": 59,
+      "description": "variant 60 of the pool",
+      "name": "sky-port.pad-plate v60",
+      "row": 1
+    },
+    {
+      "col": 60,
+      "description": "variant 61 of the pool",
+      "name": "sky-port.pad-plate v61",
+      "row": 1
+    },
+    {
+      "col": 61,
+      "description": "variant 62 of the pool",
+      "name": "sky-port.pad-plate v62",
+      "row": 1
+    },
+    {
+      "col": 62,
+      "description": "variant 63 of the pool",
+      "name": "sky-port.pad-plate v63",
+      "row": 1
+    },
+    {
+      "col": 63,
+      "description": "variant 64 of the pool",
+      "name": "sky-port.pad-plate v64",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/sky-port-deck.png"
+}

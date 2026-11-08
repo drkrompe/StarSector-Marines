@@ -507,6 +507,13 @@ These properties of that pass are part of the model rather than of the tool:
   all — so it is written as an explicit list of cells and laid out as a plain
   run. Giving a pool a layout would put it where every autotile resolver then
   has to special-case it out again.
+- **A pattern is a pool laid by position.** A pool with `patternCols` draws
+  its row-major cells as one picture repeated across the grid: cell `(x, y)`
+  takes column `x mod cols` of the picture's row counted from the top, since
+  grid y runs up the screen. It is for a surface whose features are larger
+  than a cell (the sky port's 4 m deck plates span three cells), where hashing
+  would scatter half-plates. The cells stay an explicit list; only the pick
+  changes.
 - **A block's origin is generated, never counted.** Its cells are addressed as
   origin plus a layout offset, so they must be packed as one contiguous patch
   and the packer reports where it put them. A slot a sheet does not fill stays

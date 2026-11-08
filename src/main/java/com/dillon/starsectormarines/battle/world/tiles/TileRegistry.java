@@ -180,6 +180,7 @@ public final class TileRegistry {
             "data/tilesets/ship-dressing.tileset.json",
             "data/tilesets/barracks-bunks-worn.tileset.json",
             "data/tilesets/ship-hold.tileset.json",
+            "data/tilesets/sky-port-deck.tileset.json",
             "data/tilesets/shuttle-bay.tileset.json",
             "data/tilesets/loading-bay.tileset.json",
             "data/tilesets/briefing-room.tileset.json",
@@ -510,9 +511,11 @@ public final class TileRegistry {
                     JSONArray cell = cellsArr.getJSONArray(k);
                     cells[k] = new int[]{cell.getInt(0), cell.getInt(1)};
                 }
-                blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells,
+                GridBlockDef pool = GridBlockDef.variantPool(id, sheet, cellPx, cells,
                         o.optString("windowBlock", null), o.optString("doorBlock", null),
-                        o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
+                        o.optString("rubbleBlock", null), o.optString("damageBlock", null));
+                int patternCols = o.optInt("patternCols", 0);
+                blocksById.put(id, patternCols > 0 ? pool.asPattern(patternCols) : pool);
                 sourceById.put(id, source);
                 indexLook(id);
                 continue;

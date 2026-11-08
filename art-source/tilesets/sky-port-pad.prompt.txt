@@ -1,0 +1,6 @@
+Texture reference 1, a placement guide, into one finished SEAMLESS TILEABLE texture for a top-down game: the landing pad surface on the roof deck of a gritty industrial sky port megastructure. Seen straight down (orthographic), soft overcast top light, no shadows, no lighting gradient, no vignette.
+
+Reference 1 is the GEOMETRY AUTHORITY: keep the square canvas and the two long heat-resistant plates with their faint weld seams exactly where they are (half a seam on the top and bottom edges, so the texture repeats on a full seam).
+Reference 2 is MATERIAL, PALETTE AND MOOD ONLY (the deck plate of the same port; never copy its plates, bolts or grilles).
+
+Smooth heat-resistant ceramic-steel pad plate, a step lighter and warmer grey than the deck, broad soft heat discolouring (straw, blue-grey), soot haze and faint scorch where engines fire, a few skid marks. Keep it broad and soft: no fine speckle or tread; it must read when shrunk to one eighth. Even value across the canvas so it repeats without a visible tile. Opposite edges must match exactly. No markings, no text, no numbers, no border, no lights.

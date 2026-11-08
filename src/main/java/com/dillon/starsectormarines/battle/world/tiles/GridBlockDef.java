@@ -45,6 +45,13 @@ public final class GridBlockDef {
     public final String rubbleBlockId;
     /** Optional transparent, coordinate-stable damage overlay pool for ground. */
     public final String damageBlockId;
+    /**
+     * For a variant pool laid as a pattern, the pattern's width in cells; zero for a hashed pool. A pattern's
+     * {@link #cells} are row-major from the picture's top row, and the battle grid's y runs up the screen, so cell
+     * {@code (x, y)} draws column {@code x mod cols} of row {@code rows - 1 - (y mod rows)}: one large seamless
+     * picture (deck plates spanning several cells) repeats across the grid the right way up.
+     */
+    public final int patternCols;
 
     /** Autotile block (origin + named {@link GridLayout}). */
     public GridBlockDef(String id, String sheetPath, int cellPx,
@@ -86,6 +93,32 @@ public final class GridBlockDef {
         this.doorBlockId = doorBlockId;
         this.rubbleBlockId = rubbleBlockId;
         this.damageBlockId = damageBlockId;
+        this.patternCols = 0;
+    }
+
+    private GridBlockDef(GridBlockDef pool, int patternCols) {
+        if (pool.cells == null || patternCols <= 0 || pool.cells.length % patternCols != 0) {
+            throw new IllegalArgumentException("block '" + pool.id + "': a pattern of " + patternCols
+                    + " columns needs a variant pool whose cell count it divides");
+        }
+        this.id = pool.id;
+        this.sheetPath = pool.sheetPath;
+        this.cellPx = pool.cellPx;
+        this.originCol = 0;
+        this.originRow = 0;
+        this.layout = null;
+        this.fillRgb = null;
+        this.cells = pool.cells;
+        this.windowBlockId = pool.windowBlockId;
+        this.doorBlockId = pool.doorBlockId;
+        this.rubbleBlockId = pool.rubbleBlockId;
+        this.damageBlockId = pool.damageBlockId;
+        this.patternCols = patternCols;
+    }
+
+    /** This variant pool laid as a {@code cols}-wide pattern by position instead of picked by hash. */
+    public GridBlockDef asPattern(int cols) {
+        return new GridBlockDef(this, cols);
     }
 
     /** Variant pool — hash-picked from an explicit list of {@code {col,row}} cells. */
@@ -114,11 +147,15 @@ public final class GridBlockDef {
 
     /**
      * Resolves this block to a {@code {col, row}} cell. For a variant pool, picks
-     * by the {@code (x, y)} hash (neighbor mask ignored). For an autotile, runs
+     * by the {@code (x, y)} hash, or by position for a {@linkplain #patternCols pattern} (neighbor mask ignored). For an autotile, runs
      * the {@link #layout} on the neighbor mask ({@code (x, y)} ignored), returning
      * {@code null} when the caller should paint {@link #fillRgb}.
      */
     public int[] resolve(boolean nWall, boolean sWall, boolean eWall, boolean wWall, int x, int y) {
+        if (cells != null && patternCols > 0) {
+            int rows = cells.length / patternCols;
+            return cells[(rows - 1 - Math.floorMod(y, rows)) * patternCols + Math.floorMod(x, patternCols)];
+        }
         if (cells != null) return cells[stableHash(x, y) % cells.length];
         return layout.resolve(originCol, originRow, nWall, sWall, eWall, wWall);
     }

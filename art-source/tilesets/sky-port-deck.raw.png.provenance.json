@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1b8b5-a554-7300-b7a2-bbc77f75c341",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1b8b5-a554-7300-b7a2-bbc77f75c341\\exec-f3490f4d-25f2-4cf7-8f43-d490914097bc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\sky-port-deck.raw.png",
+    "sha256": "cbff379062fe71b892201405feab722c5a01f7edd7d72b088cf688f2b1249dc0",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\sky-port-deck.prompt.txt",
+  "promptSha256": "4d364fa446926c9293cadcec6e1f5d3d88d500336da781285a494855c9a4ffe8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: plates, seams, bolts, grilles, hatches\nImage 2: Material/palette/mood only; not layout\n\nTexture reference 1, a placement guide, into one finished SEAMLESS TILEABLE texture for a top-down game: the open roof deck of a gritty industrial sky port megastructure, where infantry fight between freight lanes. Seen straight down (orthographic), soft overcast top light, no cast shadows, no lighting gradient, no vignette.\n\nReference 1 is the GEOMETRY AUTHORITY: keep the same square canvas and the 4x4 grid of heavy steel deck plates exactly where it is, with the dark seam lines on the same positions (half a seam on each canvas edge, so the texture repeats on a full seam), the bolts where they are, the three recessed drainage grilles and the two square hatch covers where they are. Add nothing that crosses a seam except stains.\nReference 2 is MATERIAL, PALETTE AND MOOD ONLY (the roof of a lower terrace of the same structure; never copy its layout, vents or pipes): heavy patched riveted steel, soot, rust, steel grey, faded hazard yellow.\n\nThe plates are each about 4 m square: dull grey-brown paint worn to dark steel, broad soft oil stains and soot, tyre scuffs, a few welded repair patches, rust bleeding from the grilles and bolts. Keep the surface texture broad and soft: NO fine diamond tread, no fine high-contrast speckle; detail should still read when the image is shrunk to one eighth. Even value across the whole canvas, mid-dark, so it repeats without a visible tile. Opposite edges must match exactly. No text, no numbers, no labels, no border, no lights.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\sky-port-deck-guide.png",
+      "sha256": "8a77c94d4553d1c1f0cfb381c0199bc007b6dae7017c63af293232a281919e14",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: plates, seams, bolts, grilles, hatches"
+    },
+    {
+      "path": "art-source\\voids\\sky-port\\industrial\\terrace-roof.png",
+      "sha256": "377e254ac1cfa1b4b4d7d6a59bf203115fc25f0caae57a5b9b89714e3b049c6f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Material/palette/mood only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture using Image 1’s exact layout and Image 2’s materials and palette."
+  ],
+  "usage": {
+    "input_tokens": 47581,
+    "cached_input_tokens": 36480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 627,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.3
+}
