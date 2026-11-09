@@ -94,6 +94,13 @@ mission's to decide (`ruins-works.md`).
 6. **Interior.** Built: the megastructure, or the bunker, at the vault's end
    (Interior, below). The battle's look frames, with an interior frame with its
    roofs off, are `createSnapshots -Psnapshot=ruins-battle-look`.
+7. **Building dressing.** Next (owner: interior first, dressing after it). The
+   dead town's buildings still read as lived in: whole coloured roofs, green
+   hedge borders and furniture inside, and the vault is a plain slab. Dress
+   them as ruins: broken or missing roofs, no hedges, wreckage in place of
+   furniture, and a vault that reads as the site's hardened heart. Reuse the
+   ruined-lot materials and roof damage; any new roof or wall set is a picks
+   decision.
 
 ## Open
 
