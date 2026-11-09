@@ -23,6 +23,11 @@ import java.util.Arrays;
  * step out to the side, takes the foot up on it, gripping; in the open the foot stands on the floor at
  * {@link #REST_CELLS}, short of any wall in the way. So in a hall the walker pulls itself along between the walls,
  * and in a chamber it walks. The torso itself keeps to floor cells.
+ *
+ * <p><b>Crippled</b> (`ruins-guardians.md`, The walker's legs). A leg whose knee is lost ({@link #legsLost}) never
+ * lifts again and grips nothing: its foot stays on the floor and is dragged along behind the torso, held within
+ * {@link #DRAG_SLACK_CELLS} of where it would rest, and the body sags toward it, carried on three legs. Downed, the
+ * torso sinks to {@link #DOWNED_CELLS} below its rest height and no foot steps.
  */
 public final class DerelictLegRig {
 
@@ -78,6 +83,14 @@ public final class DerelictLegRig {
     static final float TUCK_CELLS = 0.35f;
     /** A leg looking for a wall swings out sideways by this much, once. */
     static final float SPLAY_DEGREES = 20f;
+    /** A lost leg's foot is dragged once it trails further than this from where it would rest, cells. */
+    public static final float DRAG_SLACK_CELLS = 0.6f;
+    /** How far the body sags for each lost leg, cells. */
+    public static final float LIMP_SAG_CELLS = 0.12f;
+    /** How far the body tips toward a lost leg's hip, cells. */
+    public static final float LIMP_TILT_CELLS = 0.18f;
+    /** How far a downed torso sinks below its rest height, cells. */
+    public static final float DOWNED_CELLS = 0.55f;
     private static final float MARCH = 0.05f;
     private static final int LEGS = 4;
 
@@ -103,6 +116,9 @@ public final class DerelictLegRig {
     private float offX;
     private float offY;
     private float height;
+    private final boolean[] lost = new boolean[LEGS];
+    private final boolean[] dragging = new boolean[LEGS];
+    private boolean downed;
 
     public DerelictLegRig() {
         Arrays.fill(swing, -1f);
@@ -129,6 +145,29 @@ public final class DerelictLegRig {
     public float hipY(int leg) { return bodyY() + dirY(facing + hipAngle[leg]) * HIP_CELLS; }
     /** Whether leg {@code i} is lifted in a step. */
     public boolean stepping(int leg) { return swing[leg] >= 0f; }
+    /** Whether leg {@code i}'s knee is lost. */
+    public boolean lost(int leg) { return lost[leg]; }
+    /** Whether leg {@code i}'s foot was dragged along this frame. */
+    public boolean dragging(int leg) { return dragging[leg]; }
+    /** Whether the walker is downed, its torso on the floor. */
+    public boolean downed() { return downed; }
+
+    /**
+     * The battle's leg state: bit {@code i} of {@code lostMask} set for each leg whose knee is lost, and whether the
+     * walker is downed. A lost leg lets go of any wall at once.
+     */
+    public void legsLost(int lostMask, boolean downed) {
+        for (int i = 0; i < LEGS; i++) {
+            boolean now = (lostMask & (1 << i)) != 0;
+            if (now && !lost[i]) {
+                swing[i] = -1f;
+                onWall[i] = false;
+            }
+            lost[i] = now;
+        }
+        this.downed = downed;
+    }
+
     /** Leg {@code i}'s diagonal pair: the pair a run lifts together. */
     public int pair(int leg) { return pair[leg]; }
 
@@ -167,8 +206,10 @@ public final class DerelictLegRig {
         float speed = (float) Math.sqrt(velX * velX + velY * velY);
         gait = speed < MOVING_SPEED ? Gait.STAND
                 : speed > RUN_SPEED || (gait == Gait.RUN && speed > WALK_SPEED) ? Gait.RUN : Gait.WALK;
+        if (downed) gait = Gait.STAND;
         if (gait == Gait.STAND) stand(dt, solid);
         else stride(moved, speed, solid);
+        drag(solid);
         pose(dt, speed);
     }
 
@@ -183,6 +224,7 @@ public final class DerelictLegRig {
         float hy = speed > 1e-4f ? velY / speed : 0f;
         float[] spot = new float[3];
         for (int i = 0; i < LEGS; i++) {
+            if (lost[i]) continue;
             float local = ((phase - offset[i]) % 1f + 1f) % 1f;
             if (local >= swingShare) {
                 if (swing[i] >= 0f) land(i, solid);
@@ -218,7 +260,7 @@ public final class DerelictLegRig {
         float[] spot = new float[3];
         boolean anySwinging = false;
         for (int i = 0; i < LEGS; i++) {
-            if (swing[i] < 0f) continue;
+            if (swing[i] < 0f || lost[i]) continue;
             anySwinging = true;
             swing[i] = Math.min(1f, swing[i] + dt / STEP_SECONDS);
             rest(i, pathX, pathY, solid, spot);
@@ -230,10 +272,11 @@ public final class DerelictLegRig {
                 onWall[i] = spot[2] > 0f;
             }
         }
-        if (anySwinging) return;
+        if (anySwinging || downed) return;
         int worst = -1;
         float worstStrain = RESTEP_CELLS;
         for (int i = 0; i < LEGS; i++) {
+            if (lost[i]) continue;
             rest(i, pathX, pathY, solid, spot);
             float strain = distance(footX[i], footY[i], spot[0], spot[1]);
             if (strain > worstStrain) {
@@ -248,14 +291,41 @@ public final class DerelictLegRig {
         swing[worst] = 0f;
     }
 
+    /**
+     * A lost leg's foot stays on the floor where it is until it trails further than {@link #DRAG_SLACK_CELLS} from
+     * where it would rest; then it is dragged along, held at that slack.
+     */
+    private void drag(Solid solid) {
+        float[] spot = new float[3];
+        for (int i = 0; i < LEGS; i++) {
+            dragging[i] = false;
+            if (!lost[i]) continue;
+            floorRest(i, pathX, pathY, solid, spot);
+            float d = distance(footX[i], footY[i], spot[0], spot[1]);
+            if (d <= DRAG_SLACK_CELLS) continue;
+            float k = (d - DRAG_SLACK_CELLS) / d;
+            footX[i] += (spot[0] - footX[i]) * k;
+            footY[i] += (spot[1] - footY[i]) * k;
+            dragging[i] = true;
+        }
+    }
+
     /** The body's weight on its feet: sway over the standing feet, dip for lifted ones, the run's bounce, the lean. */
     private void pose(float dt, float speed) {
         float sx = 0f;
         float sy = 0f;
         int standing = 0;
         float lifted = 0f;
+        float sag = 0f;
+        float tiltX = 0f;
+        float tiltY = 0f;
         for (int i = 0; i < LEGS; i++) {
-            if (swing[i] < 0f) {
+            if (lost[i]) {
+                // Carried on three: the body sags and tips toward the leg that no longer holds it.
+                sag += LIMP_SAG_CELLS;
+                tiltX += dirX(facing + hipAngle[i]) * LIMP_TILT_CELLS;
+                tiltY += dirY(facing + hipAngle[i]) * LIMP_TILT_CELLS;
+            } else if (swing[i] < 0f) {
                 sx += footX[i];
                 sy += footY[i];
                 standing++;
@@ -269,7 +339,9 @@ public final class DerelictLegRig {
             tx = (sx / standing - pathX) * SWAY;
             ty = (sy / standing - pathY) * SWAY;
         }
-        float th = -DIP_CELLS * lifted;
+        tx += tiltX;
+        ty += tiltY;
+        float th = downed ? -DOWNED_CELLS : -DIP_CELLS * lifted - sag;
         if (gait != Gait.STAND && speed > 1e-4f) {
             float lean = Math.min(LEAN_MAX_CELLS, LEAN * speed);
             tx += velX / speed * lean;
@@ -288,6 +360,10 @@ public final class DerelictLegRig {
      * {@link #REST_CELLS}, short of any wall in between.
      */
     void rest(int i, float cx, float cy, Solid solid, float[] out) {
+        if (lost[i]) {
+            floorRest(i, cx, cy, solid, out);
+            return;
+        }
         float own = facing + hipAngle[i];
         float side = sideOf(hipAngle[i]);
         for (int k = 0; k <= 1; k++) {
@@ -301,6 +377,16 @@ public final class DerelictLegRig {
                 return;
             }
         }
+        float hit = wallDistance(cx, cy, own, REST_CELLS, solid);
+        float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
+        out[0] = cx + dirX(own) * at;
+        out[1] = cy + dirY(own) * at;
+        out[2] = 0f;
+    }
+
+    /** Where leg {@code i}'s foot would stand on the floor, never on a wall: a lost leg's, which grips nothing. */
+    private void floorRest(int i, float cx, float cy, Solid solid, float[] out) {
+        float own = facing + hipAngle[i];
         float hit = wallDistance(cx, cy, own, REST_CELLS, solid);
         float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
         out[0] = cx + dirX(own) * at;
