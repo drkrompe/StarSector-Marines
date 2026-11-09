@@ -16,6 +16,7 @@ import com.fs.starfarer.api.campaign.RuleBasedDialog;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
 import com.fs.starfarer.api.campaign.listeners.ListenerManagerAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
@@ -67,7 +68,19 @@ final class PlayMarket implements StandInMarket.State {
         boolean hostile;
         boolean cooldown;
         boolean nexerelin;
+        /** An uncolonized world's ruins have already been explored. */
+        boolean explored;
+        /** A hostile fleet nearby is tracking the player. */
+        boolean hostileFleet;
     }
+
+    /**
+     * Vanilla's rows for exploring a world's ruins and the salvage they hand over to, through to the post-salvage row
+     * that marks the ruins explored. The commands that read the running game are stood in for ({@link StandInMarket}).
+     */
+    private static final Set<String> SALVAGE_ROWS = Set.of("sal_noDefenders", "sal_checkSpecialNoneFound",
+            "sal_showRatingAndCost", "sal_optionLeave", "sal_optionSalvageEnabled", "sal_optionCheckAccidents",
+            "sal_salvageOptionSelected");
 
     private static final Charset GAME_CSV = Charset.forName("windows-1252");
     private static final String LEAVE = "playLeave";
@@ -117,16 +130,17 @@ final class PlayMarket implements StandInMarket.State {
     }
 
     /**
-     * The rows the planet menu stands in for: the mod's raid and invade rows, vanilla's Take Hostile Action rows (and the main
-     * menu row offering them), Nexerelin's replacements when it is toggled on, and {@code playBattle}'s own Leave.
+     * The rows the planet menu stands in for: the mod's raid, invade and ruins rows, vanilla's Take Hostile Action rows
+     * (and the main menu row offering them), vanilla's ruins exploration and the salvage it hands over to, Nexerelin's replacements when it is toggled on, and {@code playBattle}'s own Leave.
      */
     private static List<PlayRules.Source> sources(boolean nexerelin) {
         Path core = Path.of(System.getProperty("starsectorDir"), "starsector-core", "data", "campaign", "rules.csv");
         List<PlayRules.Source> sources = new ArrayList<>();
         sources.add(new PlayRules.Source("mod", Path.of("mod/data/campaign/rules.csv"), StandardCharsets.UTF_8,
-                id -> id.startsWith("smRaid") || id.startsWith("smNexInvade")));
+                id -> id.startsWith("smRaid") || id.startsWith("smNexInvade") || id.startsWith("smRuins")));
         sources.add(new PlayRules.Source("vanilla", core, GAME_CSV,
-                id -> id.equals("marketOptHostile") || id.startsWith("marketHostile")));
+                id -> id.equals("marketOptHostile") || id.startsWith("marketHostile") || id.startsWith("salRuins")
+                        || SALVAGE_ROWS.contains(id)));
         if (nexerelin) {
             sources.add(new PlayRules.Source("nex", nexerelinRules(), GAME_CSV,
                     id -> id.startsWith("nex_marketHostile")));
@@ -148,6 +162,11 @@ final class PlayMarket implements StandInMarket.State {
 
     PlanetAPI world() {
         return world;
+    }
+
+    /** An uncolonized world with ruins: the ruins rows apply here, the raid rows never. */
+    boolean ruinsSite() {
+        return world.getMarket() != null && world.getMarket().isPlanetConditionMarketOnly();
     }
 
     Toggles toggles() {
@@ -174,7 +193,21 @@ final class PlayMarket implements StandInMarket.State {
     void open() {
         inScope(() -> {
             paragraphs.add("Your fleet holds orbit over " + world.getName() + ".");
-            memoryMap.get(MemKeys.LOCAL).set("$hasMarket", true);
+            if (ruinsSite()) {
+                // What vanilla's memory update puts on an uncolonized, surveyed world's market.
+                MemoryAPI market = memoryMap.get(MemKeys.MARKET);
+                market.set("$isSurveyed", true);
+                market.set("$isPlanetConditionMarketOnly", true);
+                market.set("$hasRuins", true);
+                market.set("$ruinsExplored", toggles.explored);
+                for (MarketConditionAPI condition : world.getMarket().getConditions()) {
+                    market.set("$mc:" + condition.getId(), true);
+                }
+                traced("an uncolonized ruins world; the ruins fork shows only with -Dmarines.dev=true until the"
+                        + " expedition battle exists");
+            } else {
+                memoryMap.get(MemKeys.LOCAL).set("$hasMarket", true);
+            }
             memoryMap.get(MemKeys.LOCAL).set("$menuState", "main");
             FireAll.fire(null, dialog, memoryMap, "PopulateOptions");
         });
@@ -266,6 +299,8 @@ final class PlayMarket implements StandInMarket.State {
     @Override public boolean cooldown() { return toggles.cooldown; }
 
     @Override public void cooldown(boolean running) { toggles.cooldown = running; }
+
+    @Override public boolean hostileFleet() { return toggles.hostileFleet; }
 
     @Override public void report(String line) { traced(line); }
 

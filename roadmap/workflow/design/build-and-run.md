@@ -105,7 +105,13 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `rules.csv` rows: the mod's raid and invade rows, vanilla's Take Hostile Action rows
   and, with the Nexerelin toggle on, Nexerelin's replacements read from the installed
   mod (the settings' mod manager then reports Nexerelin enabled), plus
-  `src/test/resources/play/rules.csv` for Leave. They are matched and run by the
+  `src/test/resources/play/rules.csv` for Leave. Ossuary, an uncolonized world with
+  extensive ruins listed after the colonies, plays the ruins fork
+  (`ruins-expedition.md`) over vanilla's own ruins and salvage rows, through to
+  the post-salvage row that marks the ruins explored, with toggles for ruins
+  already explored and a hostile fleet nearby; it has no port, so the fleet
+  never docks there. Until the expedition battle exists the fork needs
+  `-Dmarines.dev=true`. They are matched and run by the
   game's own rule-line class (`PlayRuleLines`), so `score:`, memory and command lookup
   are the game's. The game's jars for that are on `playBattle`'s runtime classpath
   only, reached by reflection, with the verifier relaxed as the game's `-noverify`

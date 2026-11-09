@@ -95,14 +95,21 @@ final class PlayMarketMenu extends MissionFlowMlxScreen {
 
         PlayMarket.Toggles toggles = market.toggles();
         List<Map<String, Object>> rows = new ArrayList<>();
-        rows.add(toggle("market-toggle-station", "Star fortress in orbit", toggles.station, false,
-                () -> toggles.station = !toggles.station));
-        rows.add(toggle("market-toggle-defenders", "Defenders strong enough to stop a raid", toggles.defenders,
-                false, () -> toggles.defenders = !toggles.defenders));
-        rows.add(toggle("market-toggle-hostile", "Faction already hostile (no confirmation)", toggles.hostile,
-                false, () -> toggles.hostile = !toggles.hostile));
-        rows.add(toggle("market-toggle-cooldown", "Raid cooldown running", toggles.cooldown, false,
-                () -> toggles.cooldown = !toggles.cooldown));
+        if (market.ruinsSite()) {
+            rows.add(toggle("market-toggle-explored", "Ruins already explored", toggles.explored, false,
+                    () -> toggles.explored = !toggles.explored));
+            rows.add(toggle("market-toggle-hostile-fleet", "Hostile fleet nearby and tracking you",
+                    toggles.hostileFleet, false, () -> toggles.hostileFleet = !toggles.hostileFleet));
+        } else {
+            rows.add(toggle("market-toggle-station", "Star fortress in orbit", toggles.station, false,
+                    () -> toggles.station = !toggles.station));
+            rows.add(toggle("market-toggle-defenders", "Defenders strong enough to stop a raid", toggles.defenders,
+                    false, () -> toggles.defenders = !toggles.defenders));
+            rows.add(toggle("market-toggle-hostile", "Faction already hostile (no confirmation)", toggles.hostile,
+                    false, () -> toggles.hostile = !toggles.hostile));
+            rows.add(toggle("market-toggle-cooldown", "Raid cooldown running", toggles.cooldown, false,
+                    () -> toggles.cooldown = !toggles.cooldown));
+        }
         boolean nex = PlayMarket.nexerelinAvailable();
         rows.add(toggle("market-toggle-nexerelin", "Nexerelin installed" + (nex ? "" : " (not found in mods)"),
                 toggles.nexerelin, !nex, () -> toggles.nexerelin = !toggles.nexerelin));

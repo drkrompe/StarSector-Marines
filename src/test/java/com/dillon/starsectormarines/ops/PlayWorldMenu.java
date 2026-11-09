@@ -66,6 +66,26 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
             row.put("visitAction", (Runnable) () -> visit.accept(world));
             worlds.add(row);
         }
+        // Uncolonized ruins worlds: no port to dock at, so the row opens the planet menu too.
+        for (PlanetAPI site : PlayCompany.ruinsSites()) {
+            String id = "world-" + site.getId();
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", id);
+            row.put("globeId", id + "-globe");
+            row.put("copyId", id + "-copy");
+            row.put("nameId", id + "-name");
+            row.put("placeId", id + "-place");
+            row.put("workId", id + "-work");
+            row.put("name", site.getName());
+            row.put("place", site.getStarSystem().getName() + " / uncolonized");
+            row.put("work", "Surveyed; " + site.getMarket().getConditions().get(0).getId().replace('_', ' ')
+                    + ". Planet menu only");
+            row.put("action", (Runnable) () -> visit.accept(site));
+            row.put("lineId", id + "-line");
+            row.put("visitId", id + "-visit");
+            row.put("visitAction", (Runnable) () -> visit.accept(site));
+            worlds.add(row);
+        }
         Map<String, Object> props = new HashMap<>();
         props.put("worlds", worlds);
         props.put("quitAction", quit);
@@ -102,7 +122,9 @@ final class PlayWorldMenu extends MissionFlowMlxScreen {
     }
 
     @Override protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
-        for (PlanetAPI world : PlayCompany.worlds()) {
+        List<PlanetAPI> globes = new ArrayList<>(PlayCompany.worlds());
+        globes.addAll(PlayCompany.ruinsSites());
+        for (PlanetAPI world : globes) {
             built.canvases().set(instance.requireElement("world-" + world.getId() + "-globe"),
                     PlanetGlobeCanvas.forLocation(world.getName()));
         }

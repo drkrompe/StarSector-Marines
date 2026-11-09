@@ -32,8 +32,9 @@ fork and commit path can ship before ruins mapgen exists.
    company says the battle is not built yet and returns to the choice. A
    player's install sees Explore the ruins unchanged. Slice 3 removes the gate.
    The fork's Back rebuilds the planet menu itself, since vanilla's salvage
-   flow has no never-mind to reuse. `playBattle`'s planet menu does not play
-   ruins sites yet: its stand-in worlds are colonies.
+   flow has no never-mind to reuse. `playBattle`'s planet menu plays it on
+   Ossuary, a stand-in ruins world (`build-and-run.md`), with
+   `-Dmarines.dev=true`.
 2. **Commit path.** Results records won or lost once. On a win, closing the
    panel re-fires `salExplore` through the bypass, so `SalvageGenFromSeed` and
    `PostSalvagePerform` run as vanilla's and the site is marked explored. A
