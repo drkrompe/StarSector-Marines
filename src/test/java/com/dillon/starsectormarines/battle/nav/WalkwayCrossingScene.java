@@ -7,12 +7,11 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneReport;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.Verdict;
+import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.ops.battleview.SkyPortCluster;
-import com.dillon.starsectormarines.ops.battleview.SkyPortVoidLookSuite;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -32,7 +31,9 @@ import java.util.Map;
  *       the dogleg, across C and over the skybridge.</li>
  * </ul>
  *
- * <p>Every loop asserts that no one ever stands over the drop, that the squad reaches the roof it was sent to,
+ * <p>Tower C stands a tier above the others, reached by the stairs at the ends of the dogleg and the skybridge.
+ * Every loop asserts that no one ever stands over the drop, that no one stands on C's raised roof without having
+ * climbed a ramp, that the squad reaches the roof it was sent to,
  * and which walkways it crossed. The other side is one unarmed defender on a lone roof in the far corner, out of
  * sight, so the battle runs; the mission's end is off.
  */
@@ -58,12 +59,14 @@ public final class WalkwayCrossingScene implements BehaviorScene {
 
     private SceneReport loop(String loop, boolean catwalk, int[] goal, List<String> crossed, List<String> avoided,
                              FrameSink frames) {
-        SceneBuilder builder = SkyPortCluster.lay(SkyPortVoidLookSuite.clustered(400f, 1f), catwalk).seed(20261109L);
+        SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(catwalk);
+        SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false)
+                .seed(20261109L);
         builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
                 .inFile(36, 84, 1, 0)
                 .assigned(id -> ObjectiveAssignment.attackMove(id, goal[0], goal[1]))
                 .done();
-        int lx = SkyPortCluster.OUTPOST[0] + 3, ly = SkyPortCluster.OUTPOST[1] + 3;
+        int lx = SkyPortClusterSetup.OUTPOST[0] + 3, ly = SkyPortClusterSetup.OUTPOST[1] + 3;
         builder.squad("lookout").faction(Faction.DEFENDER).size(1).unarmed().stationary().at(lx, ly)
                 .assigned(id -> ObjectiveAssignment.defendArea(id, lx, ly))
                 .done();
@@ -75,6 +78,10 @@ public final class WalkwayCrossingScene implements BehaviorScene {
             for (String walkway : List.of("catwalk", "dogleg", "skybridge")) {
                 stoodOn.put(walkway, new boolean[members.length]);
             }
+            ElevationMap elevation = sim.getGrid().elevation();
+            boolean[] onStairs = new boolean[members.length];
+            int offStairs = 0, climbed = 0;
+            String firstOffStairs = "";
             int overDrop = 0, arrivedAt = -1, tick = 0;
             String firstOverDrop = "";
             for (; tick < MAX_TICKS && arrivedAt < 0; tick++) {
@@ -83,20 +90,33 @@ public final class WalkwayCrossingScene implements BehaviorScene {
                 for (int m = 0; m < members.length; m++) {
                     float x = sim.world().x(members[m]), y = sim.world().y(members[m]);
                     int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+                    int at = cy * topology.getWidth() + cx;
+                    if (elevation.isRampAt(at)) onStairs[m] = true;
+                    if (elevation.eyeTier(cx, cy) > 0 && !elevation.isRampAt(at) && !onStairs[m]
+                            && offStairs++ == 0) {
+                        firstOffStairs = "member " + m + " at (" + cx + ", " + cy + ") on tick " + tick;
+                    }
                     if (topology.getGroundKind(cx, cy) == GroundKind.VOID && overDrop++ == 0) {
                         firstOverDrop = "member " + m + " at (" + cx + ", " + cy + ") on tick " + tick;
                     }
-                    if (SkyPortCluster.inside(cx, cy, SkyPortCluster.CATWALK)) stoodOn.get("catwalk")[m] = true;
-                    if (SkyPortCluster.inside(cx, cy, SkyPortCluster.SKYBRIDGE)) stoodOn.get("skybridge")[m] = true;
-                    for (int[] leg : SkyPortCluster.DOGLEG) {
-                        if (SkyPortCluster.inside(cx, cy, leg)) stoodOn.get("dogleg")[m] = true;
+                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.CATWALK)) stoodOn.get("catwalk")[m] = true;
+                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.SKYBRIDGE)) stoodOn.get("skybridge")[m] = true;
+                    for (int[] leg : SkyPortClusterSetup.DOGLEG) {
+                        if (SkyPortClusterSetup.inside(cx, cy, leg)) stoodOn.get("dogleg")[m] = true;
                     }
                     all &= Math.hypot(x - goal[0] - .5f, y - goal[1] - .5f) <= ARRIVED_CELLS;
                 }
                 if (all) arrivedAt = tick;
                 if (tick % FRAME_EVERY == 0) frames.frame(loop, sim, tick, loop + " / " + tick);
             }
+            for (long member : members) {
+                int mx = (int) Math.floor(sim.world().x(member)), my = (int) Math.floor(sim.world().y(member));
+                if (elevation.eyeTier(mx, my) > 0) climbed++;
+            }
             List<Verdict> verdicts = new ArrayList<>();
+            verdicts.add(Verdict.of("up-by-the-stairs", offStairs == 0, offStairs == 0
+                    ? "no member stood on tower C's raised roof without having climbed a ramp"
+                    : offStairs + " member-ticks on the raised roof never having climbed, first " + firstOffStairs));
             verdicts.add(Verdict.of("never-over-the-drop", overDrop == 0, overDrop == 0
                     ? "no member stood on a void cell"
                     : overDrop + " member-ticks over the drop, first " + firstOverDrop));
@@ -115,6 +135,7 @@ public final class WalkwayCrossingScene implements BehaviorScene {
             }
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("arrivedTick", arrivedAt);
+            metrics.put("onRaisedRoofAtEnd", climbed);
             for (Map.Entry<String, boolean[]> e : stoodOn.entrySet()) metrics.put(e.getKey(), count(e.getValue()));
             return new SceneReport(id(), loop, tick, verdicts, metrics);
         }

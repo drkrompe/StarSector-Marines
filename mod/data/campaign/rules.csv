@@ -58,3 +58,16 @@ smRaidResetOption,PopulateOptions,"$hasMarket
 $menuState == main
 MarineRaidCMD resetAvailable",MarineRaidCMD addReset,,,Offers a way back to asking once a raid preference is remembered
 smRaidResetSel,DialogOptionSelected,$option == smRaidReset,MarineRaidCMD reset,,,Returns the save's raid preference to Ask
+smRuinsExploreIntercept,DialogOptionSelected,"$option == salExplore score:2
+$market.hasRuins
+!$market.ruinsExplored
+MarineRuinsCMD intercept",MarineRuinsCMD fork,,,"Explore the ruins: offers sending the company as a Marine Operations expedition or a salvage team as usual, per the save's ruins preference. salExplore is shared with derelicts, so it needs ruins. Scores 5 (score:2 plus three condition lines), ahead of vanilla's own row (1). Development builds only until the expedition battle exists"
+smRuinsMarineSel,DialogOptionSelected,$option == smRuinsMarine,MarineRuinsCMD marine,,,Sends the company into the ruins as a Marine Operations expedition
+smRuinsMarineAlwaysSel,DialogOptionSelected,$option == smRuinsMarineAlways,MarineRuinsCMD marineAlways,,,Remembers the company for ruins in this save and opens the expedition
+smRuinsStandardSel,DialogOptionSelected,$option == smRuinsStandard,MarineRuinsCMD standard,,,Hands Explore the ruins back to vanilla's salvage team
+smRuinsStandardAlwaysSel,DialogOptionSelected,$option == smRuinsStandardAlways,MarineRuinsCMD standardAlways,,,Remembers the salvage team for this save and hands the ruins back
+smRuinsBackSel,DialogOptionSelected,$option == smRuinsBack,MarineRuinsCMD back,,,Returns to the planet menu with nothing done
+smRuinsResetOption,PopulateOptions,"$market.hasRuins
+!$market.ruinsExplored
+MarineRuinsCMD resetAvailable",MarineRuinsCMD addReset,,,Offers a way back to asking once a ruins preference is remembered
+smRuinsResetSel,DialogOptionSelected,$option == smRuinsReset,MarineRuinsCMD reset,,,Returns the save's ruins preference to Ask

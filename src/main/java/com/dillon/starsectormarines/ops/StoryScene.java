@@ -50,7 +50,7 @@ enum StoryScene {
         var debug = DebugMissionCatalog.scenario(id, source);
         if (debug == null) debug = CompletedReplays.scenario(id, source);
         if (debug != null) return switch (debug) {
-            case MISSILE_AA, PROVING_GROUND, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN, WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT -> null;
+            case MISSILE_AA, PROVING_GROUND, SKY_PORT, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN, WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT -> null;
             case RELIEF, MILITIA_RELIEF -> RELIEF;
             case COUNTERATTACK, DEPOT_CLEARANCE -> DEPOT;
             case JUNCTION -> JUNCTION;

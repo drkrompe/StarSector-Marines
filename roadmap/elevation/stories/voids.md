@@ -263,14 +263,28 @@ Laws):
      and a six-cell skybridge a vehicle could cross, ten neighbours from
      45 m to 180 m down. `-Dsnapshot.skyPort.layout=deck` keeps the single
      roof deck.
+   - The cluster ships as a diagnostic battle (`SkyPortClusterSetup`): **Sky
+     Port Towers** on the debug missions' Diagnostics tab, and
+     `playBattle -Pbattle=sky-port`. Two squads land on tower A; no enemy
+     and no end. The look suite and the scene lay the same ground.
+   - **A raised tower.** Tower C stands a tier (4 m) above A and B, written
+     straight into the elevation map (`ElevationMap.of`) rather than
+     stamped by the brush: the drop round every roof is void, so no cliff
+     face is needed, and the only walkable cells of different tiers that
+     meet are a ramp's head and C. The last six cells of the dogleg and of
+     the skybridge are the ramps, the only ways up, and C's holders see down
+     across the drop under the skyline rule. `BuiltStairRenderSystem` draws
+     a ramp laid on built ground as treads; the void renderer stands a
+     raised tower's roof that much higher, so its walls start above the
+     surface.
    - **Walkway routing** is proved by the `walkway-crossing` behaviour scene
      (`sceneEvidence -Pscene=walkway-crossing`) on the same cluster: a rifle
      squad sent from A to B crosses the catwalk and no other walkway, A to C
      takes the dogleg, and with the catwalk cut A to B goes round by the
-     dogleg and the skybridge; in every loop no one stands on a void cell.
+     dogleg and the skybridge; in every loop no one stands on a void cell,
+     and no one stands on C's raised roof without having climbed a ramp.
      The lone roof in the cluster's far corner holds the scene's other side.
-   Left: towers at different roof heights (a tier up by stairs or
-   lifts); the walkway's own surface past the ship-bay grate; cranes and
+   Left: towers more than a tier up (chained ramps, or lifts); the walkway's own surface past the ship-bay grate; cranes and
    gantries; the city's own layers. The play area's size and chokepoints will
    change (owner, 2026-11-07); the structures follow whatever footprint the
    surface has.

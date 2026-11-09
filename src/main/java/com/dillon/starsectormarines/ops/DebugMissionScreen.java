@@ -96,7 +96,8 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         context.goTo(context.planet == null ? ScreenId.COMPANY_HQ : ScreenId.MISSION_SELECT);
     }
     static int groupOf(Mission mission) {
-        if (DebugMissionCatalog.scenario(mission) == DebugMissionCatalog.Scenario.PROVING_GROUND) return 2;
+        DebugMissionCatalog.Scenario scenario = DebugMissionCatalog.scenario(mission);
+        if (scenario == DebugMissionCatalog.Scenario.PROVING_GROUND || scenario == DebugMissionCatalog.Scenario.SKY_PORT) return 2;
         if (DebugMissionCatalog.scenario(mission) != null || DebugMissionCatalog.colonyBreach(mission)) return 0;
         return mission.id.startsWith("debug:CONQUEST_DEFENDER:") || mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE ? 2 : 1;
     }

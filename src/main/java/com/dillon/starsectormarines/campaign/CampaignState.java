@@ -616,6 +616,16 @@ public final class CampaignState implements Serializable {
     public boolean marketRaidRecordedVictory = false;
     public int marketRaidCommitted = 0;
 
+    // ---------- Exploring an uncolonized world's ruins (see ruins-expedition.md) ----------
+
+    /*
+     * How Explore the ruins is carried out in this save, as a RuinsExpeditionPreference
+     * ordinal: 0 is Ask, which a save written before the column existed loads as.
+     * RuinsExpeditionPreferenceLedger is the one reader and writer.
+     */
+
+    public int ruinsExpeditionPreference = 0;
+
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();

@@ -1,8 +1,10 @@
 # Ruins expedition fork
 
-Status: PLANNED — owner direction; nothing built.
+Status: IN PROGRESS — slice 1 built and unit-tested; development builds only until slice 3.
 
 Written: 2026-11-09
+
+Updated: 2026-11-09 — slice 1 (fork and preference) built.
 
 Read `ruins-expedition.md` in full first, then `raid-resolution.md`, whose
 fork this mirrors.
@@ -23,6 +25,15 @@ fork and commit path can ship before ruins mapgen exists.
    preference is set, as the raid fork has. The standard path re-fires
    `salExplore` with a one-shot bypass. Unit-test the route decision the way
    the raid fork's route is tested.
+
+   *Built.* `MarineRuinsCMD` and the `smRuins*` rows. Until the expedition
+   battle exists (`MarineRuinsCMD.EXPEDITION_BUILT`), the fork is offered only
+   when `DevConfig.DEV_MODE` is on (`runStarsector` passes it), and choosing the
+   company says the battle is not built yet and returns to the choice. A
+   player's install sees Explore the ruins unchanged. Slice 3 removes the gate.
+   The fork's Back rebuilds the planet menu itself, since vanilla's salvage
+   flow has no never-mind to reuse. `playBattle`'s planet menu does not play
+   ruins sites yet: its stand-in worlds are colonies.
 2. **Commit path.** Results records won or lost once. On a win, closing the
    panel re-fires `salExplore` through the bypass, so `SalvageGenFromSeed` and
    `PostSalvagePerform` run as vanilla's and the site is marked explored. A

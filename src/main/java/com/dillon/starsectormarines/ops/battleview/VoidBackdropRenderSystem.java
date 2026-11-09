@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
@@ -138,7 +139,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         this.eye = cam.vpW() / cellPx * backdrop.eyeHeight();
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
-        if (builtFor != topology || builtWith != backdrop) build(topology, backdrop);
+        if (builtFor != topology || builtWith != backdrop) build(topology, ctx.sim.getGrid().elevation(), backdrop);
 
         drawGround(cellPx);
         drawShadow();
@@ -721,7 +722,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
     // ----- building the levels, once per map -----
 
-    private void build(CellTopology topology, VoidBackdrop backdrop) {
+    private void build(CellTopology topology, ElevationMap elevation, VoidBackdrop backdrop) {
         builtFor = topology;
         builtWith = backdrop;
         shadowKey = null;
@@ -749,7 +750,15 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             spans[k] = base[k] && !towers[k];
             anySpan |= spans[k];
         }
-        for (boolean[] footprint : pieces(towers, mw, mh)) addStructure(footprint, mw, mh, m, 0f, backdrop);
+        // A tower on a raised tier stands that much higher: its roof is above the surface, its walls start there.
+        for (boolean[] footprint : pieces(towers, mw, mh)) {
+            int tier = 0;
+            for (int k = 0; elevation != null && k < footprint.length; k++) {
+                int x = k % mw - m, y = k / mw - m;
+                if (footprint[k] && elevation.inBounds(x, y)) tier = Math.max(tier, elevation.eyeTier(x, y));
+            }
+            addStructure(footprint, mw, mh, m, -tier * ElevationMap.TIER_RISE_METERS, backdrop);
+        }
         if (anySpan) {
             Level span = new Level();
             span.top = 0f;

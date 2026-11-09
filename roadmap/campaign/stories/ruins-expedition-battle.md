@@ -14,7 +14,9 @@ Briefing), then `extraction-command.md` (Generic recovery law) and
 The fork's "send the company" plays a real expedition: land, delve to the vault,
 hold it through the breach time, walk the haul out to the lift. It plays on an
 existing map until `ruins-ground.md` lands, against a scavenger crew sized by the
-ruins grade. The fork story's commit path reads its won or lost.
+ruins grade. The fork story's commit path reads its won or lost. When this
+story's battle plays, it lifts the fork's development-only gate
+(`MarineRuinsCMD.EXPEDITION_BUILT`), as the fork story's slice 1 says.
 
 ## Slices
 

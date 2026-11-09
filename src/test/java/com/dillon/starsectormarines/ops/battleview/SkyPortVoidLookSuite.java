@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
+import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -51,40 +52,11 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
     static final float REVIEW_CLOCK = 40f;
 
     /** The industrial hive sky port: a stepped pyramid of terraces down to the hive city (owner: direction C). */
-    /** Vanilla hulls flying the bays and skyways; the last three, the freighters, stand parked on the terraces. */
-    static final List<String> CRAFT = List.of(
-            "graphics/ships/aeroshuttle/aeroshuttle_base.png", "graphics/ships/hermes/hermes_base.png",
-            "graphics/ships/hound/hound_base.png", "graphics/ships/wayfarer/wayfarer.png",
-            "graphics/ships/buffalo/buffalo_base.png", "graphics/ships/tarsus/tarsus_base.png",
-            "graphics/ships/mule/mule_base.png");
-
     static VoidBackdrop industrial(float depth, float eye) {
         float f = depth / 400f;
-        return backdrop(depth, eye, List.of(new VoidBackdrop.Tier(60f * f, 14f), new VoidBackdrop.Tier(130f * f, 34f),
-                new VoidBackdrop.Tier(220f * f, 60f), new VoidBackdrop.Tier(310f * f, 90f)), List.of());
-    }
-
-    /**
-     * The cluster's backdrop: slender towers, stepping out only a little as they fall so the drop between them
-     * stays open, and lower towers standing round them in the drop.
-     */
-    public static VoidBackdrop clustered(float depth, float eye) {
-        float f = depth / 400f;
-        return backdrop(depth, eye, List.of(new VoidBackdrop.Tier(50f * f, 4f), new VoidBackdrop.Tier(120f * f, 10f),
-                new VoidBackdrop.Tier(210f * f, 18f), new VoidBackdrop.Tier(300f * f, 28f)), List.of(
-                new VoidBackdrop.Tower(180, 40, 215, 80, 50f * f), new VoidBackdrop.Tower(88, 115, 108, 160, 45f * f),
-                new VoidBackdrop.Tower(0, 115, 22, 150, 90f * f), new VoidBackdrop.Tower(185, 110, 230, 160, 140f * f),
-                new VoidBackdrop.Tower(85, 0, 105, 22, 65f * f), new VoidBackdrop.Tower(0, 10, 25, 45, 55f * f),
-                new VoidBackdrop.Tower(175, 0, 205, 25, 180f * f), new VoidBackdrop.Tower(40, 125, 70, 160, 55f * f),
-                new VoidBackdrop.Tower(-40, 60, -5, 100, 120f * f), new VoidBackdrop.Tower(245, 70, 280, 105, 70f * f)));
-    }
-
-    private static VoidBackdrop backdrop(float depth, float eye, List<VoidBackdrop.Tier> tiers,
-                                         List<VoidBackdrop.Tower> neighbours) {
-        return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
-                .42f, .41f, .40f,
-                "graphics/battle/voids/industrial-facade.png", 32f,
-                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .2f, neighbours);
+        return SkyPortClusterSetup.industrial(depth, eye, List.of(new VoidBackdrop.Tier(60f * f, 14f),
+                new VoidBackdrop.Tier(130f * f, 34f), new VoidBackdrop.Tier(220f * f, 60f),
+                new VoidBackdrop.Tier(310f * f, 90f)), List.of());
     }
 
     @Override public String id() { return "sky-port-void-look"; }
@@ -103,12 +75,13 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
             for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
                 float eye = Float.parseFloat(eyeText.trim());
                 String tag = String.format(Locale.ROOT, "cluster-%04dm-eye%.1f", Math.round(depth), eye);
-                try (BattleSimulation sim = SkyPortCluster.build(clustered(depth, eye))) {
+                try (BattleSimulation sim = cluster(depth, eye)) {
                     out.add(shot(context, sim, tag + "-1-catwalk.png", 100f, 100f, PLAY));
                     out.add(shot(context, sim, tag + "-2-skybridge.png", 138f, 74f, PLAY));
-                    out.add(shot(context, sim, tag + "-3-wide.png", SkyPortCluster.W / 2f, SkyPortCluster.H / 2f, 210f));
+                    out.add(shot(context, sim, tag + "-3-wide.png", SkyPortClusterSetup.W / 2f, SkyPortClusterSetup.H / 2f, 210f));
                     out.add(shot(context, sim, tag + "-5-dogleg.png", 76f, 36f, PLAY));
                     out.add(shot(context, sim, tag + "-6-tower-edge.png", 158f, 136f, PLAY));
+                    out.add(shot(context, sim, tag + "-7-stairs.png", 126f, 44f, PLAY));
                     if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 55f, 82f, 142f, 120f));
                 }
             }
@@ -150,6 +123,18 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                                          float x, float y, float cells) throws Exception {
         return new SnapshotArtifact(name, BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y, cells)
                 .withoutRoofs().atClock(REVIEW_CLOCK).render(sim, name));
+    }
+
+    /** The tower cluster under a backdrop at {@code depth} and {@code eye}, a rifle squad on the catwalk for scale. */
+    static BattleSimulation cluster(float depth, float eye) {
+        SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(true);
+        ground.topology().setVoidBackdrop(SkyPortClusterSetup.backdrop(depth, eye));
+        SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false);
+        builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
+                .inFile(92, 99, 1, 0)
+                .assigned(id -> ObjectiveAssignment.defendArea(id, 130, 100))
+                .done();
+        return builder.build().sim();
     }
 
     /** The roof deck: apron, lanes, a few blocks of plant, a squad for scale; the rest void. */

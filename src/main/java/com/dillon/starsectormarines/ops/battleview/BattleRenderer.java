@@ -327,6 +327,8 @@ public class BattleRenderer {
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
                 cliffArt,
+                // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.
+                new BuiltStairRenderSystem(),
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)

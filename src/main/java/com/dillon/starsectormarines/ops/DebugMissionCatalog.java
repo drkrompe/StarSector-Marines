@@ -21,6 +21,7 @@ import com.fs.starfarer.api.campaign.RepLevel;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup;
 import com.dillon.starsectormarines.battle.setup.ProvingGroundSetup;
+import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
@@ -88,7 +89,8 @@ public final class DebugMissionCatalog {
         WELLHOLLOW_BURN("The Khettara Bloom", "@wellhollowChapterTheBurn", "@wellhollowFlavorTheBurn", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         WELLHOLLOW_FRONT("The Khettara Bloom", "@wellhollowChapterBroadFront", "@wellhollowFlavorBroadFront", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         MISSILE_AA("Battlefield fixtures", "@missileAaTestTitle", "@missileAaTestDescription", 1, false),
-        PROVING_GROUND("Battlefield fixtures", "@provingGroundTitle", "@provingGroundDescription", 1, false);
+        PROVING_GROUND("Battlefield fixtures", "@provingGroundTitle", "@provingGroundDescription", 1, false),
+        SKY_PORT("Battlefield fixtures", "@skyPortTitle", "@skyPortDescription", 2, false);
         public final String group, title, description;
         public final int squads;
         public final boolean hound;
@@ -151,6 +153,7 @@ public final class DebugMissionCatalog {
             return switch (this) {
                 case MISSILE_AA -> "AA";
                 case PROVING_GROUND -> "PG";
+                case SKY_PORT -> "SP";
                 case WATER_UNDER_SEAL -> "01";
                 case LIMITED_WARRANT -> "02";
                 case YARD_OWNERS -> "03";
@@ -183,6 +186,7 @@ public final class DebugMissionCatalog {
         public String location() {
             if (this == MISSILE_AA) return Strings.get("missileAaTestLocation");
             if (this == PROVING_GROUND) return Strings.get("provingGroundLocation");
+            if (this == SKY_PORT) return Strings.get("skyPortLocation");
             if (ravBloom()) return "Bloomed world";
             if (agreus()) return "Agreus";
             if (wellhollow() != null) return "Asharu";
@@ -194,6 +198,7 @@ public final class DebugMissionCatalog {
             return switch (this) {
                 case MISSILE_AA -> Strings.get("missileAaTestHint");
                 case PROVING_GROUND -> Strings.get("provingGroundHint");
+                case SKY_PORT -> Strings.get("skyPortHint");
                 case WATER_UNDER_SEAL -> "Agreus arc 1 of 5 / After Asharu 04";
                 case LIMITED_WARRANT -> "Agreus arc 2 of 5 / After Water Under Seal";
                 case YARD_OWNERS -> "Agreus arc 3 of 5 / After Limited Warrant";
@@ -234,7 +239,7 @@ public final class DebugMissionCatalog {
                     : Mission.builder(chapter.mission("unused", chapter.planetName, ""));
             return builder.id(PREFIX + name()).name(Strings.resolve(title)).source(MissionSource.DEBUG).payout(0)
                     .requiredDrops(squads * 2).employerShuttles(0)
-                    .marineArrivalPolicy(this == COLD_START || this == RELIEF || this == PROVING_GROUND ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                    .marineArrivalPolicy(this == COLD_START || this == RELIEF || this == PROVING_GROUND || this == SKY_PORT ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                     .requirements(squads + (this == COLD_ACCOUNT ? " squads carrying the kit unlocked by Blind Watch (rockets, point defence, anti-materiel rifles) + " + ColdAccountCompany.BAY
                             : this == SALVAGE_RIGHTS ? " squads carrying the kit unlocked by A Cold Account (rockets, point defence, anti-materiel rifles) + " + WorkingShipCompany.BAY
@@ -243,6 +248,7 @@ public final class DebugMissionCatalog {
                             : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : this == PROVING_GROUND ? ProvingGroundSetup.SEED
+                            : this == SKY_PORT ? SkyPortClusterSetup.SEED
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
         }
@@ -381,6 +387,7 @@ public final class DebugMissionCatalog {
         return switch (scenario) {
             case MISSILE_AA -> MissileAaTestSetup.create(seed, manifest);
             case PROVING_GROUND -> ProvingGroundSetup.create(SurfacePalette.VERDANT, seed);
+            case SKY_PORT -> SkyPortClusterSetup.create(seed);
             case WORKING_PASSAGE -> BattleSetup.createWorkingPassage(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case COLD_START -> BattleSetup.createColdStart(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD),false,false);
             case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
