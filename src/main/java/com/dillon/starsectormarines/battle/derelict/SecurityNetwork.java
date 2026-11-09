@@ -79,6 +79,25 @@ public final class SecurityNetwork {
         }
     }
 
+    /**
+     * A loud work at a cell (a ruins site's power hall restarting, `ruins-works.md`): the zone keeping the cell stirs,
+     * or, outside every perimeter, the zone whose node is nearest; its linked zones hear the relay as from any stir.
+     */
+    public void loud(int cellX, int cellY, int tick) {
+        SecurityZone zone = zoneAt(cellX, cellY);
+        if (zone == null) {
+            int best = Integer.MAX_VALUE;
+            for (SecurityZone z : zones.values()) {
+                int distance = Math.max(Math.abs(cellX - z.nodeCellX), Math.abs(cellY - z.nodeCellY));
+                if (distance < best) {
+                    best = distance;
+                    zone = z;
+                }
+            }
+        }
+        if (zone != null) stir(zone.id, tick);
+    }
+
     /** The vault is breached: every zone with a live node wakes, now and from here on. */
     public void breachVault(int tick) {
         contingency = true;
