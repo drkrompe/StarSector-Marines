@@ -1,8 +1,9 @@
 # Ruins vault prize
 
-Status: PLANNED — slice 1 (the draw) built, built on the recommended options
-while the owner's picks `ruins-vault-prize`, `ruins-prize-hint` and
-`ruins-prize-forced` are open.
+Status: IN PROGRESS. Slices 1 and 2 are built, and so are the rules for slices 3
+and 6. Owner picks `ruins-find-tiers` a, `ruins-prize-forced` a and
+`ruins-theme-defences` a are decided; `ruins-vault-prize` and
+`ruins-prize-hint` are open, and the work is built on their recommended options.
 
 Written: 2026-11-09
 
@@ -26,18 +27,26 @@ the ruins and guesses what is inside before committing the company.
    - The stake, and the core hint (true three in four, else one step off).
 
    Unit-tested in `RuinsVaultPrizesTest`.
-2. **The tell in the briefing.** The survey adds the theme's tell
-   (`RuinsVaultTheme.tellKey`) and, for a core, the hinted tier, worded in the
-   occupant's instruments. This adds the strings.
-3. **The prize at the vault.** The won expedition's settlement adds the prize
-   beside the vault store:
-   - A colony item as vanilla's special item.
-   - A core as its commodity.
-   - Tech as a tech cache from the site's drop groups.
-   - Goods as a larger bundle.
-
-   Whether the vault was powered decides whether a core or item breaks into
-   tech caches (pick `ruins-prize-forced`). Unit-test the settlement.
+2. **The tell in the briefing.** *Built.* The survey ends on the theme's tell
+   (`RuinsVaultPrizes.tellKeys`, one string per theme). For a core it adds the
+   hinted tier. `MarineRuinsCMD` passes the sector seed, and `ruins-briefing`
+   shows one tell for each family. Still owed: wording the tell in the
+   occupant's own instruments.
+3. **The prize at the vault.** *Rules built* (`RuinsVaultPayout`,
+   `RuinsTechCache`, `RuinsFindTier`).
+   - Powered at the breach, a core or colony item comes out whole. Forced, it
+     breaks into stake + 1 tech caches.
+   - Goods pay three supply bundles; tech pays two tech caches.
+   - Still owed: the wiring. The battle records whether the vault was powered
+     at the breach (`RuinsVaultObjective.vaultPowered` when `breached()` turns
+     true). The won expedition's settlement then pays:
+     - A colony item as vanilla's special item.
+     - A core as its commodity.
+     - Each tech cache by rolling its drop group through vanilla's salvage
+       generator.
+   - Tech caches in sealed stores, guardian rooms and the vault store's deepest
+     layer need the same settlement. That opens `loot-nouns.md`'s
+     equipment-cache gate for ruins.
 4. **Stakes read by pressure and guardians.** `ruins-pressure.md`'s reserve and
    stir rate, and the vault warden's tier, read `RuinsVaultPrize.stakes`. That
    is the pressure and mini-boss sessions' work; this slice only publishes the
@@ -45,6 +54,14 @@ the ruins and guesses what is inside before committing the company.
 5. **Themed ground and works.** The ruins ground lays the theme's interior set
    and the works' twist (heat valves, magnet gates, coolant junctions), one
    theme at a time, through picks with look shots. That is mapgen and art.
+
+6. **The old colony's batteries.** *Rules built* (`RuinsBatteries`: the count
+   by grade on a core or item site, and dark, awake or cut by the hall and their
+   branch). Still owed, all through the parent and the owning sessions:
+   - Batteries on the approach, from mapgen.
+   - A neutral gun that fires on anyone.
+   - A consumer on the batteries' branch in `PowerGraph`.
+   - Their fit with `ruins-pressure.md` and the mini-boss design.
 
 ## Constraints
 

@@ -566,9 +566,22 @@ makes it worth going in anyway, as deep as the company can, and coming back.
 ### The vault and its prize
 
 The owner: "vault theming around what the pickup will be as a hint. Example
-industrial upgrades for planets or gamma/beta/alpha cores". Built on the
-recommended options while picks `ruins-vault-prize`, `ruins-prize-hint` and
-`ruins-prize-forced` are open (`ruins-vault-prize.md`).
+industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
+`ruins-find-tiers` a, `ruins-prize-forced` a and `ruins-theme-defences` a are
+decided; this is built on the recommended options while `ruins-vault-prize` and
+`ruins-prize-hint` are open (`ruins-vault-prize.md`).
+
+**Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
+tier is set by where it lies, never rolled:
+
+- **Supply finds** are field salvage's commodity bundles, along the route.
+- **Tech caches** (`RuinsTechCache`) lie in sealed stores, in guardian rooms
+  and on the vault store's deepest layer, so the store always holds exactly one.
+  A cache holds the game's own equipment, never new items. Its contents roll at
+  settlement from one of vanilla's ruins drop groups, picked from the site and
+  the find alone: `weapons2` (weapons and fighter wings) five times
+  `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
+  salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
 
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one
 **prize**, drawn from the site alone like the occupant and never stored
@@ -593,8 +606,10 @@ points.
 **The site is built round its prize**, so reading it hints what is inside before
 the company commits. The prize's **theme** shows four ways:
 
-- **The survey's tell**: a line in the briefing in the occupant's instruments,
-  for example "cold racks humming below; repair drones at work in lit halls".
+- **The survey's tell** (`RuinsVaultPrizes.tellKeys`): the briefing's last
+  survey line, for example "Cold racks humming below; something keeps a hall
+  lit and its repair drones at work.", then for a core its hinted tier ("The
+  hall draws a steady load: likely a beta core.").
 - **The approach**: what the company sees outside.
 - **The interior's art.**
 - **The works' twist.**
@@ -623,10 +638,22 @@ deeper reserve and a faster stir (`ruins-pressure.md`) and a stronger guardian
 (the mini-boss design). So a server hall that hums loud is a harder site, and
 the player sees that coming.
 
-**A forced vault** (pick `ruins-prize-forced` a): a core or a colony item comes
-out whole only if the vault's seal was powered. Forced with charges, it breaks
-into tech caches. Goods and tech survive either way. The better the prize, the
-more the power puzzle is worth solving, and nothing is lost outright.
+**A forced vault** (`RuinsVaultPayout`, pick `ruins-prize-forced` a): a core
+or a colony item comes out whole only if power reached the vault's seal before
+the breach was held. Breached on the long unpowered hold, it breaks into tech
+caches, one more than its stake. Goods (three supply bundles) and tech (two tech
+caches) pay the same either way. The better the prize, the more the power
+puzzle is worth solving, and nothing is lost outright.
+
+**The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
+a). A site built round a core or a colony item keeps the guns that once kept
+it: one at a scattered site, one more per grade up to four at a vast one. They
+stand on the approach outside, wired to the power hall:
+
+- Dark while the hall is cold, so dark when the company lands.
+- Restarting the hall, which powers the vault, wakes them too, unless a junction
+  cuts their branch: power for the prize against guns on the way out.
+- They fire on anyone; the occupant never commands them.
 
 ## Occupants
 
