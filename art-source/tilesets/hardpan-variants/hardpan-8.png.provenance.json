@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ac-d910-74a2-ba36-84fe8a256833",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ac-d910-74a2-ba36-84fe8a256833\\exec-1a8d8cda-2393-44ea-9d6b-9a8a2ed130ad.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\hardpan-variants\\hardpan-8.png",
+    "sha256": "d0bc6df52679082080d0fc12b098f3b17dc7d299eae25175214ce213264bcd5a",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\hardpan-variants\\hardpan-8.prompt.txt",
+  "promptSha256": "53bc5ce35082d1fdc720a122dea04db6b10edda6e7af27acf2aeaffc94d973a0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: an opaque flat overhead ground tile; not colour, not texture, not layout\n\nA seamless ground material texture for a top-down tactical game: the bare\nground of an irradiated, airless dead world, seen from directly overhead.\n\nMaterial: scorched, bleached, glassed hardpan. Pale bone and ash-white to pale\ngrey-beige baked crust, broken into a polygonal desiccation crack network: flat\nplates separated by clearly legible dark grey cracks, 2 to 4 pixels wide,\nso the network still reads when the image is shrunk to a quarter of its size. Plates are irregular polygons,\neach roughly 1/12 to 1/16 of the image width across, so there are many of them.\nHarsh and washed out, very low saturation, nothing grows. Average colour close\nto RGB (182, 178, 164): pale and slightly warm grey, lighter than grey stone,\ngreyer than desert sand, warmer and duller than snow.\n\nVariant feature: larger glassed areas: about a third of the surface is a fused, bubbled, pale olive-green trinitite glaze, slightly glossy, in irregular patches distributed across the whole image, with cracked bleached hardpan between them.\n\nRules:\n- Square image, the whole frame filled edge to edge with this one surface.\n- Flat, even, overhead lighting. No directional sun, no cast shadows, no\n  vignette, no gradient across the frame, no highlights larger than a few pixels.\n- The feature is repeated and spread evenly across the ENTIRE image, so that\n  any crop of the middle third still contains it. No single central subject.\n- Low contrast, fine detail. No objects, rocks, debris piles, craters, rubble,\n  plants, footprints, vehicles, text, borders or frames.\n- Photographic orthographic material scan, not an illustration.\n\nThe reference image is for format only (an opaque, flat, fine-grained ground\ntile seen from overhead); do not copy its colour or its texture.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: an opaque flat overhead ground tile; not colour, not texture, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one seamless overhead texture using your material and glaze specifications."
+  ],
+  "usage": {
+    "input_tokens": 38033,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 420,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 46.3
+}
