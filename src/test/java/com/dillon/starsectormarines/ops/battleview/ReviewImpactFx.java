@@ -111,16 +111,21 @@ public final class ReviewImpactFx {
             turretFx.onShot(shot, sim, fx);
             // A line tracer lands its impact the instant it fires; a travelling body lands it when it expires.
             if (ShotFx.of(shot).travels() || !shot.impacts()) continue;
-            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+            boolean isWall = isWallAt(grid, shot.toX, shot.toY);
+            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWall);
             lights.spawnImpact(WeaponFxRuntime.definition(shot), shot.toX, shot.visualToY());
+            if (shot.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, decalRng, shot.weaponDef(),
+                    WeaponFxRuntime.definition(shot), shot.fromX, shot.fromY, shot.toX, shot.toY, isWall);
         }
         for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(shot).travels() || !shot.impacts()) continue;
-            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+            boolean isWall = isWallAt(grid, shot.toX, shot.toY);
+            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWall);
             lights.spawnImpact(WeaponFxRuntime.definition(shot), shot.toX, shot.visualToY());
-            // A weapon's own authored ground mark (Spitter acid) as the screen drops it; the stock craters and
-            // casings the screen also drops stay out of review frames, as they always have.
-            if (shot.toZ <= 0f) ImpactDecals.spawnAuthored(sim, decalRng, shot.weaponDef(), shot.toX, shot.toY);
+            // The weapon's impact mark as the screen drops it; the casings the screen also drops stay out of
+            // review frames, as they always have.
+            if (shot.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, decalRng, shot.weaponDef(),
+                    WeaponFxRuntime.definition(shot), shot.fromX, shot.fromY, shot.toX, shot.toY, isWall);
         }
         for (float[] point : sim.getShots().getInterceptPointsThisFrame()) {
             fx.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);

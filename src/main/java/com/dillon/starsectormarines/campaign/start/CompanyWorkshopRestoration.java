@@ -93,10 +93,16 @@ public final class CompanyWorkshopRestoration {
                 && CampaignBackend.playerFleet().getFleetData().getMembersListCopy().contains(ship)
                 && roster != null && ship.getId().equals(roster.companyShipId());
     }
+    /** The credits in the player's purse, which every company page's stock shows. */
+    public static int credits() {
+        CargoAPI cargo = cargo();
+        return cargo == null ? 0 : (int) cargo.getCredits().get();
+    }
+
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster) {
         WorkshopState state = state(ship);
         CargoAPI cargo = cargo();
-        int credits = cargo == null ? 0 : (int) cargo.getCredits().get();
+        int credits = credits();
         boolean home = ownedHome(ship, roster);
         String refusal = refusal(state, state, home, MercenaryCompanyConversion.installed(ship),
                 ship != null && !ship.isMothballed(), roster != null

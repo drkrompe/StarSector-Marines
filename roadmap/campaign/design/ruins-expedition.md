@@ -216,9 +216,11 @@ expedition opened, powered or destroyed stays that way.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
 supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
-`ruins-ground.md` is the mapgen story: a landing area at one end, the vault at
-the other, the grade's layers between with their side rooms, landing courts and
-works sites, built from mapgen's ruined-lot vocabulary (`mapgen-nouns.md`).
+The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area at
+one end, the vault at the other, the grade's layers between with their side
+rooms, landing courts and works sites, every place published by name, built
+from mapgen's ruined-lot vocabulary. Its map grows with the grade: 112x64,
+144x80, 200x112 and 280x168 cells.
 `BattleSetup.createRuins` plays on it: the vault and every lift point come from
 the ground's published places, never from a search of the map.
 
@@ -227,8 +229,10 @@ company lands outside, on the landing area or a court, and works into a
 megastructure or bunker, roofed rooms, corridors and seal doors with the vault
 deep inside, then brings the haul back out to a lift point. The interior grows
 with the grade: a bunker round the vault on scattered ground, the last layer
-at widespread, the last two at extensive and vast (`ruins-ground.md`,
-Interior). Inside is where derelict flocks
+at widespread, the last two at extensive and vast (`mapgen-nouns.md`, Ruins
+ground). One roof covers the whole megastructure, the owner's pick; a court
+inside is a light well, so every lift point is under open sky. Inside is where
+derelict flocks
 cannot follow and heavies hold, and where the works' seal doors and power hall
 stand.
 
@@ -256,6 +260,12 @@ choice and the order: power the store first and route the vault later, or
 take the vault fast and leave the store; restart the hall, or spend a charge on
 the door and keep moving. The records terminal turns the unknown wiring into a
 plan; without it the company learns each junction by throwing it.
+
+**The wiring follows the delve.** Each layer has one junction at its stand. It
+feeds either that layer's sealed store or the way on: the layer's seal gate, and
+at the last layer the vault's seal. Junctions start on the way on, and the
+capacity is the way on's load plus one, so one store at a time can be fed
+beside it. An overloaded hall powers nothing until a junction sheds load.
 
 **Charges are the price of skipping it.** A breaching charge forces a seal door
 or clears a collapse at once, but charges are finite issue (`DemolitionKit`),
@@ -427,6 +437,12 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
+- Ruins ground tuning waits on played battles: map sizes, the dead town's
+  densities, layer, room and court sizes, and the interior's chamber count and
+  spine width are first guesses, to be tuned against a player giving orders.
+- On scattered ground the vault's bunker stands in open country, since the dead
+  town grows about the map's middle; growing it toward the vault would ring the
+  bunker with ruins, if the owner wants that.
 
 ## Boundaries
 

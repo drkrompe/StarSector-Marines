@@ -19,7 +19,7 @@ disclosure), `extraction-command.md` (what the family borrows) and
 
 The fork's "send the company" plays a real expedition: land, delve to the vault,
 hold it through the breach time, get the haul to a lift point. It plays on an
-existing map until `ruins-ground.md` lands, against a scavenger crew sized by
+existing map until ruins ground lands (`mapgen-nouns.md`, Ruins ground), against a scavenger crew sized by
 the ruins grade. The fork story's commit path reads its won or lost. When this
 story's battle plays, it lifts the fork's development-only gate
 (`MarineRuinsCMD.EXPEDITION_BUILT`), as the fork story's slice 1 says.
@@ -82,7 +82,7 @@ story's battle plays, it lifts the fork's development-only gate
    played battle the player commands the company, and the ground is still
    changing, so `ExtractionCommand` stays the company's commander for
    `MissionType.RUINS`; it is enough for headless evidence. Take this slice up
-   only once `ruins-ground.md` has landed, and only if evidence needs more
+   only once ruins ground (`mapgen-nouns.md`, Ruins ground) has landed, and only if evidence needs more
    than `ExtractionCommand`. If it is taken up, it reads the layers and the
    vault route from what setup publishes, never open streets: a layer may be
    inside, behind a threshold or seal door.
@@ -94,6 +94,29 @@ story's battle plays, it lifts the fork's development-only gate
    defenders, answering for the dig first and the stash second. The pirate
    ground roster, strength by grade as a budget this slice tunes. The stash is
    one extra cache at the camp.
+
+   *Built.* `RuinsCrew` sizes the crew from the grade alone: a budget in
+   `BattleForceScore` units (12, 20, 30 and 60 from scattered to vast, a Hound
+   at vast) spent on its heavy first, then infantry at the grade's share of
+   regulars, on the pirate roster whoever owned the world; no emplacements and
+   no air. The setup posts a third of the infantry at the dig (the vault) and a
+   fifth at the camp, which stands on the vault route 30% out from the landing
+   but at least 24 cells and never past halfway; the rest walk patrol from
+   points along the route, the heavy with them. `RuinsCrewCommand` replaces
+   `ExtractionDefenderCommand` for the family. It borrows the Extraction
+   defenders' picture, alarm limit, fresh-contact rule, rally ring and
+   garrisonable manning as shared code. It answers for the dig first: one squad
+   always walks it, an alarm there takes all three, trouble at the camp alone
+   sends two to stand round the camp, and both at once split two and one.
+   Trouble means a fresh contact within rifle reach (26 cells) of the place.
+   The stash is one Supplies find at the camp (`BattleSimulation.occupantStash`),
+   beside the grade's caches. A derelict site keeps its own security instead.
+   Played on the ruins ground (`ruins-scavengers-extensive-v1`): both patrols
+   stood to at the camp as the company passed, the dig post held the vault
+   until the company's lead squads came in force, and the dig alarm rose each
+   time the company pressed it. The camp stands on the vault route, not yet in
+   a layer's side room the ground publishes. The budgets are untuned against a
+   player.
 5. **Stand-in ground.** The existing map nearest a ruin (decivilized or
    low-density, `SettlementLink.NONE`), the vault at the far end by route
    length, one landing court placed by hand. A ruins map that cannot place a
@@ -120,6 +143,14 @@ story's battle plays, it lifts the fork's development-only gate
    one of the family's terminals. That proves the mission works, not that it is
    hard enough; balance is a played battle (`playBattle -Pbattle=<source>`).
 
+   *Harness built.* `commanderEvidence -Pmission=ruins` plays one scavenger
+   fixture per grade on the ruins ground (`ruins-scavengers-<grade>-v1.json`),
+   three seeds each, with the company's real lift: one twelve-seat Hermes, one
+   trip per squad the tier recommends. It reports only whether each run set
+   up and whether it ended or stuck: the autopilot company is no player, so
+   its wins and times say nothing. Every run that set up has ended. Extensive
+   seed 91104 cannot lay its ground (`ruins.layer.2 seats no power hall`), so
+   the task fails until the ground does (`mapgen-nouns.md`, Ruins ground).
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Where a Ruins battle's vault and lift points stand on its ground ({@code ruins-ground.md}): the vault's source
+ * Where a Ruins battle's vault and lift points stand on its ground ({@code mapgen-nouns.md}, Ruins ground): the vault's source
  * cell as the ground published it, and a lift point at the landing area and at every landing court, each with its
  * route from the vault. Read off {@link MapResult#ruinsDelve}, never searched for.
  *

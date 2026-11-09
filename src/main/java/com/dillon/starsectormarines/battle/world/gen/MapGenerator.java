@@ -88,7 +88,7 @@ public interface MapGenerator {
     }
 
     /**
-     * A ruins site's battle ground ({@code ruins-ground.md}): an abandoned settlement laid as a delve from a
+     * A ruins site's battle ground ({@code mapgen-nouns.md}, Ruins ground): an abandoned settlement laid as a delve from a
      * landing area to a vault, at the plan's size, carrying its {@link MapResult#ruinsDelve}.
      */
     default MapResult generateRuins(long seed, TargetProfile profile, RuinsGroundPlan plan) {

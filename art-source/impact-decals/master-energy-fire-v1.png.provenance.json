@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c11a-7d57-7d13-b563-99821a3c31a2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c11a-7d57-7d13-b563-99821a3c31a2\\exec-5a44dfa0-a991-41a3-8408-0ba89929593a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\impact-decals\\master-energy-fire.png",
+    "sha256": "52e27a0ae2bd4b3a3d02cd97a4fb1685b2b14476d944afef0821a57aa1dd8810",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\impact-decals\\prompt-energy-fire.txt",
+  "promptSha256": "65cacb3ab38db6221cdaa6dd5b5bcce454777a258647260befea723690a97a0a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact 4x4 grid, positions, sizes, outlines and orientations of the sixteen decals\nImage 2: Material/style only; not layout\n\nA sheet of sixteen energy-weapon and fire decals for a top-down tactical ground-combat game: what lasers, beams,\nthermal lances and flames leave on the ground or a wall.\n\nRows, top to bottom (each row is one kind of mark; the four columns are variants of it):\n1. Pulse-laser hits. A small heat scorch: a glassy, fused near-black centre with a thin cooled rim of dull\n   tempered colour (bronze, faint blue-violet heat tint) fading into a soft charcoal scorch halo. The dots in the\n   last variant are spattered droplets of molten material. No crater, no flame, no glow.\n2. Beam burns. A long, narrow burned line seared into the surface along its length: a charred, fused black core\n   with a thin tempered heat-tint edge and a soft scorch either side. No flame, no glow.\n3. Heavy-energy melt craters (thermal lance). A shallow bowl of melted, re-solidified material: a glassy black and\n   dark grey fused centre with ropy cooled flow edges and a heat-tinted rim; the dots round it are spattered,\n   cooled droplets of melt. No glow, no fire.\n4. Fire scorch. Burned ground where incendiaries and flames burned out: soot black in the middle fading out through\n   charcoal and a faint brown at the soft feathered edge, with flecks of white-grey ash. The last two columns are\n   flame-thrower sweeps, burned from the narrow left end outward to the right. No flames, no glow, no embers.\n\nLayout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each\nflat grey shape is the footprint of one decal (blurred grey means a soft, feathered edge). Fill every grey footprint\nwith its decal, keeping its position, size, outline and orientation. Do not move, merge, add or remove marks. Keep\nevery cell's empty space fully transparent. Marks that point sideways point along +x (to the right): the round\ntravelled left to right.\n\nThese decals are stamped at random onto every kind of ground and wall in the game: earth, grass, sand, concrete\npaving, metal deck, brick, cast concrete and olive-painted plate. So their colours must be neutral and work over\nany surface: soot and scorch near-black to charcoal, cavities dark, freshly exposed dust, chips and spall pale\nneutral grey, a faint warm brown only in soot falloff. Never paint the surrounding ground or wall itself, and never\ntint a mark green, brick red or sand yellow.\n\nStyle: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching\nreference 2. Read clearly at small size: strong dark centres, crisp light rims where material is chipped.\n\nOutput: a true transparent background, including every gap between and inside marks; no ground, no floor, no wall\ntiles, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its own cell.\n\nReference 2 is material and style only: blast damage overlays from the same game. Do not copy its layout or shapes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\impact-decals\\guide-energy-fire.png",
+      "sha256": "24d4b7b76e87efeee611884d1a96fe21f069581161befc8821c3581437704461",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the exact 4x4 grid, positions, sizes, outlines and orientations of the sixteen decals"
+    },
+    {
+      "path": "art-source\\tilesets\\terrain-blast.raw.png",
+      "sha256": "1dc5860f04d31e1912458728ef2a119e23f9c87287334cb86174ed7fb87b2e1d",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent decal sheet using Image 1 for the exact layout and Image 2 for the painted material style."
+  ],
+  "usage": {
+    "input_tokens": 48215,
+    "cached_input_tokens": 36736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 660,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 75.1
+}

@@ -1,0 +1,36 @@
+A sheet of sixteen energy-weapon and fire decals for a top-down tactical ground-combat game: what lasers, beams,
+thermal lances and flames leave on the ground or a wall.
+
+Rows, top to bottom (each row is one kind of mark; the four columns are variants of it):
+1. Pulse-laser hits. A small heat scorch: a glassy, fused near-black centre with a thin cooled rim of dull
+   tempered colour (bronze, faint blue-violet heat tint) fading into a soft charcoal scorch halo. The dots in the
+   last variant are spattered droplets of molten material. No crater, no flame, no glow.
+2. Beam burns. A long, narrow burned line seared into the surface along its length: a charred, fused black core
+   with a thin tempered heat-tint edge and a soft scorch either side. No flame, no glow.
+3. Heavy-energy melt craters (thermal lance). A shallow bowl of melted, re-solidified material: a glassy black and
+   dark grey fused centre with ropy cooled flow edges and a heat-tinted rim; the dots round it are spattered,
+   cooled droplets of melt. No glow, no fire.
+4. Fire scorch. Burned ground where incendiaries and flames burned out: soot black in the middle fading out through
+   charcoal and a faint brown at the soft feathered edge, with flecks of white-grey ash. The last two columns are
+   flame-thrower sweeps, burned from the narrow left end outward to the right. No flames, no glow, no embers.
+
+Layout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each
+flat grey shape is the footprint of one decal (blurred grey means a soft, feathered edge). Fill every grey footprint
+with its decal, keeping its position, size, outline and orientation. Do not move, merge, add or remove marks. Keep
+every cell's empty space fully transparent. Marks that point sideways point along +x (to the right): the round
+travelled left to right.
+
+These decals are stamped at random onto every kind of ground and wall in the game: earth, grass, sand, concrete
+paving, metal deck, brick, cast concrete and olive-painted plate. So their colours must be neutral and work over
+any surface: soot and scorch near-black to charcoal, cavities dark, freshly exposed dust, chips and spall pale
+neutral grey, a faint warm brown only in soot falloff. Every outline is rough, ragged and organic, like real damage: never a regular geometric star, flower or
+perfect circle, even where the grey footprint is close to one. Never paint the surrounding ground or wall itself, and never
+tint a mark green, brick red or sand yellow.
+
+Style: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching
+reference 2. Read clearly at small size: strong dark centres, crisp light rims where material is chipped.
+
+Output: a true transparent background, including every gap between and inside marks; no ground, no floor, no wall
+tiles, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its own cell.
+
+Reference 2 is material and style only: blast damage overlays from the same game. Do not copy its layout or shapes.

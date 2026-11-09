@@ -33,6 +33,8 @@ import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -108,6 +110,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -147,6 +150,7 @@ import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.evacuation.RuinsSleepers;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
@@ -540,6 +544,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new CivilianEvacuationSystem(civilianEvacuation);
     /** A derelict site's security network director (`derelict-security-network.md`); null on every other battle. */
     private DerelictSecurityDirector derelictSecurity;
+    private RuinsSleepers ruinsSleepers;
+
+    /** Installs the Rav under a ruins site ({@code RuinsSleepers}); once, at setup. */
+    public void installRuinsSleepers(RuinsSleepers sleepers) {
+        if (ruinsSleepers != null || simTickIndex != 0) throw new IllegalStateException("Install the sleepers once at setup");
+        ruinsSleepers = sleepers;
+    }
+
+    /** The Rav under a ruins site, or null. */
+    public RuinsSleepers ruinsSleepers() {
+        return ruinsSleepers;
+    }
 
     /** Installs a derelict site's security network director; called once at setup. */
     public void installDerelictSecurity(DerelictSecurityDirector director) {
@@ -689,6 +705,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private FieldSalvage fieldSalvage = new FieldSalvage(List.of());
     private boolean salvageInstalled;
     private List<SalvagePlacement.Site> fieldSalvageSites = List.of();
+    private SalvageCache occupantStash;
 
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
     public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
@@ -710,11 +727,24 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvageSites = List.copyOf(sites);
     }
 
+    /** An occupant's own spoil, found beside the field caches: a ruins crew's stash at its camp, or null. */
+    public SalvageCache occupantStash() { return occupantStash; }
+
+    public void setOccupantStash(SalvageCache stash) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the occupant's stash before launch installs finds");
+        occupantStash = stash;
+    }
+
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
     public void installFieldSalvage() {
         if (salvageInstalled) return;
         if (simTickIndex != 0) throw new IllegalStateException("Salvage must be installed before battle");
-        fieldSalvage = new FieldSalvage(SalvagePlacement.forBattle(this, generationSeed));
+        List<SalvageCache> finds = new ArrayList<>(SalvagePlacement.forBattle(this, generationSeed));
+        // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
+        if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
+        if (occupantStash != null) finds.add(occupantStash);
+        fieldSalvage = new FieldSalvage(finds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;
@@ -1205,6 +1235,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Ticked before the story sequences; never part of the win check. Empty on a battle that offers none.
      */
     public SideObjectiveService getSideObjectives() { return sideObjectives; }
+
+    private RuinsWorks ruinsWorks;
+
+    /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
+    public RuinsWorks getRuinsWorks() { return ruinsWorks; }
+
+    /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
+    public void installRuinsWorks(RuinsWorks works) {
+        if (salvageInstalled || simTickIndex != 0) throw new IllegalStateException("Install the works at setup");
+        ruinsWorks = works;
+        works.install(this);
+    }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */
@@ -1944,11 +1986,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (applyingInitialDamage) return;
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
-            int rubbleIdx = rng.nextFloat() < 0.5f
-                    ? com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE.index
-                    : com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE_ALT.index;
-            effects.addDecal(new com.dillon.starsectormarines.battle.combat.fx.Decal(
-                    jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
+            effects.addDecal(new Decal(jx, jy, DecalKind.DEBRIS.frame(rng), rng.nextFloat() * 360f, 1.10f));
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
@@ -4304,6 +4342,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         if (derelictSecurity != null) derelictSecurity.tick(this);
+        if (ruinsSleepers != null) ruinsSleepers.tick(this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
         // After the harvest and the packs: a skitterer hauls what the harvest left loose, and tends what grew.
@@ -4341,6 +4380,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (thunderRun != null) thunderRun.tick(this);
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
+        if (ruinsWorks != null) ruinsWorks.tick(this);
         fieldSalvage.tick(this);
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);

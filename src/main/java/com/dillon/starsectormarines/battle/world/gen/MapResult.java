@@ -210,7 +210,7 @@ public final class MapResult {
      */
     public final List<IndustrialZone> industrialZones;
     /**
-     * A ruins site's delve ({@code ruins-ground.md}): its landing, vault, layers, courts and works sites by name;
+     * A ruins site's delve ({@code mapgen-nouns.md}, Ruins ground): its landing, vault, layers, courts and works sites by name;
      * null on every map that is not a ruins site's.
      */
     public final RuinsDelve ruinsDelve;

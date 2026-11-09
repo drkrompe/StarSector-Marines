@@ -32,6 +32,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD088",
         "tracerTailCells": 0.65,
@@ -70,6 +71,7 @@
         "roundVelocity": 55.0
       },
       "render": {
+        "impactMark": "PULSE",
         "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "80FF80",
         "projectileSprite": null,
@@ -116,6 +118,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "heldSpriteFamily": "SMG",
         "tracerColor": "FFE8C0",
         "tracerTailCells": 0.40,
@@ -163,6 +166,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD6A0",
         "tracerTailCells": 0.50,
@@ -210,6 +214,7 @@
         }
       },
       "render": {
+        "impactMark": "HEAVY_ROUND",
         "heldSpriteFamily": "DMR",
         "tracerColor": "E0F0FF",
         "projectileSprite": null,
@@ -248,6 +253,7 @@
         "roundVelocity": 55.0
       },
       "render": {
+        "impactMark": "PULSE",
         "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "60CFFF",
         "projectileSprite": null,
@@ -283,6 +289,7 @@
         "roundVelocity": 55.0
       },
       "render": {
+        "impactMark": "NONE",
         "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "8FE6FF",
         "projectileSprite": null,
@@ -328,6 +335,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "tracerColor": "FFE8C0",
         "tracerTailCells": 1.10,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -378,6 +386,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "tracerColor": "FFE8C0",
         "tracerTailCells": 1.10,
         "tracerEvery": 4,
@@ -422,6 +431,7 @@
         "noiseMagnitude": 0.8
       },
       "render": {
+        "impactMark": "PULSE",
         "tracerColor": "D8FCFF",
         "beam": {
           "coreWidthPx": 2.0,
@@ -479,6 +489,7 @@
         }
       },
       "render": {
+        "impactMark": "HEAVY_ROUND",
         "tracerColor": "FFD08A",
         "tracerTailCells": 0.82,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -521,6 +532,7 @@
         "noiseMagnitude": 1.4
       },
       "render": {
+        "impactMark": "SHELL",
         "tracerColor": "FFD088",
         "projectileSprite": "graphics/missiles/shell_hellbore.png",
         "projectileVisualCells": 0.26
@@ -564,6 +576,7 @@
         "wallDamageRadius": 1.1
       },
       "render": {
+        "impactMark": "HEAVY_SHELL",
         "tracerColor": "FFD088",
         "projectileSprite": "graphics/missiles/shell_hellbore.png",
         "projectileVisualCells": 0.34
@@ -609,6 +622,7 @@
         "noiseMagnitude": 2.0
       },
       "render": {
+        "impactMark": "HEAVY_SHELL",
         "tracerColor": "FFB45A",
         "tracerTailCells": 0.58,
         "projectileSprite": "graphics/missiles/shell_hellbore.png",
@@ -674,6 +688,7 @@
         }
       },
       "render": {
+        "impactMark": "HEAVY_ROUND",
         "tracerColor": "FFD69A",
         "tracerTailCells": 0.78,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -716,6 +731,7 @@
         "noiseMagnitude": 1.5
       },
       "render": {
+        "impactMark": "SHELL",
         "tracerColor": "FFBE70",
         "tracerTailCells": 0.46,
         "projectileSprite": "graphics/missiles/shell_hellbore.png",
@@ -771,6 +787,7 @@
         "noiseMagnitude": 1.2
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "FFB86A",
         "projectileSprite": "graphics/missiles/missile_SRM.png",
         "projectileVisualCells": 0.34
@@ -823,6 +840,7 @@
         "noiseMagnitude": 0.5
       },
       "render": {
+        "impactMark": "PULSE",
         "tracerColor": "EEF2FF",
         "beam": {
           "coreWidthPx": 2.5,
@@ -868,6 +886,7 @@
         "beam": { "pulseRate": 15.0, "fluxPerSecond": 15.0, "wanderPeriod": 1.0, "wanderAmplitude": 1.0 }
       },
       "render": {
+        "impactMark": "BEAM",
         "tracerColor": "FFF4F2",
         "beam": {
           "coreWidthPx": 2.2,
@@ -921,6 +940,7 @@
         "noiseMagnitude": 0.4
       },
       "render": {
+        "impactMark": "PULSE",
         "tracerColor": "FFF4F2",
         "beam": {
           "coreWidthPx": 2.4,
@@ -965,6 +985,7 @@
         "noiseMagnitude": 0.4
       },
       "render": {
+        "impactMark": "PULSE",
         "tracerColor": "EEF2FF",
         "beam": {
           "coreWidthPx": 2.4,
@@ -1009,6 +1030,7 @@
         "noiseMagnitude": 0.4
       },
       "render": {
+        "impactMark": "PULSE",
         "tracerColor": "EEF2FF",
         "beam": {
           "coreWidthPx": 2.0,
@@ -1065,6 +1087,7 @@
         }
       },
       "render": {
+        "impactMark": "SMALL_ARMS",
         "tracerColor": "FFD69A",
         "tracerTailCells": 0.6,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -1104,6 +1127,7 @@
         "beam": { "pulseRate": 15.0, "fluxPerSecond": 9.0, "wanderPeriod": 0.8, "wanderAmplitude": 1.0 }
       },
       "render": {
+        "impactMark": "BEAM",
         "tracerColor": "FFF4F2",
         "beam": {
           "coreWidthPx": 1.5,
@@ -1153,6 +1177,7 @@
         "boostRamp": true
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "FFC080",
         "projectileSprite": "graphics/missiles/missile_SRM.png",
         "projectileVisualCells": 0.40
@@ -1196,6 +1221,7 @@
         "boostRamp": true
       },
       "render": {
+        "impactMark": "FRAG",
         "tracerColor": "FFC080",
         "projectileSprite": "graphics/missiles/missile_SRM.png",
         "projectileVisualCells": 0.40
@@ -1244,6 +1270,7 @@
         "noLosAccuracyMult": 0.55
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "C8D8FF",
         "projectileSprite": "graphics/missiles/missile_LRM.png",
         "projectileVisualCells": 0.65
@@ -1291,6 +1318,7 @@
         "noLosAccuracyMult": 0.55
       },
       "render": {
+        "impactMark": "FRAG",
         "tracerColor": "C8D8FF",
         "projectileSprite": "graphics/missiles/missile_LRM.png",
         "projectileVisualCells": 0.65
@@ -1333,6 +1361,7 @@
         "noiseMagnitude": 1.5
       },
       "render": {
+        "impactMark": "MELT",
         "tracerColor": "D8FCFF",
         "beam": {
           "coreWidthPx": 3.0,
@@ -1391,6 +1420,7 @@
         "noiseMagnitude": 1.35
       },
       "render": {
+        "impactMark": "MELT",
         "tracerColor": "FFF0B0",
         "beam": {
           "coreWidthPx": 3.0,
@@ -1451,6 +1481,7 @@
         "hitSpread": 2.2
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "FFC080",
         "projectileSprite": "graphics/missiles/missile_annihilator.png",
         "projectileVisualCells": 0.5
@@ -1520,6 +1551,7 @@
         "wallDamageRadius": 1.5
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "FFC080",
         "projectileSprite": "graphics/missiles/missile_annihilator.png",
         "projectileVisualCells": 0.5
@@ -1562,6 +1594,7 @@
         "noLosAccuracyMult": 0.8
       },
       "render": {
+        "impactMark": "FRAG",
         "tracerColor": "D8A66A",
         "projectileSprite": "graphics/ui/armory/special-frag-grenade.png",
         "projectileVisualCells": 0.34
@@ -1598,6 +1631,7 @@
         "aimDuration": 1.6
       },
       "render": {
+        "impactMark": "HEAVY_ROUND",
         "tracerColor": "D8F4FF",
         "projectileSprite": null,
         "projectileVisualCells": 0.0
@@ -1639,6 +1673,7 @@
         "boostRamp": true
       },
       "render": {
+        "impactMark": "ROCKET",
         "tracerColor": "80C8FF",
         "projectileSprite": "graphics/missiles/missile_salamander.png",
         "projectileVisualCells": 0.30,
@@ -1685,6 +1720,7 @@
         "incendiaryHeat": 2600
       },
       "render": {
+        "impactMark": "INCENDIARY",
         "tracerColor": "FF9A40",
         "projectileSprite": "graphics/ui/armory/special-frag-grenade.png",
         "projectileVisualCells": 0.34
@@ -1748,6 +1784,7 @@
         "incendiaryHeat": 2200
       },
       "render": {
+        "impactMark": "FLAME",
         "tracerColor": "FF8030",
         "projectileSprite": "graphics/battle/fx/flamer-jet-head.png",
         "projectileVisualCells": 0.55

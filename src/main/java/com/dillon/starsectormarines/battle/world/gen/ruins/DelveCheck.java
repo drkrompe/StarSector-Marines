@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The laws a ruins delve keeps on its finished map ({@code ruins-ground.md}): the vault is reachable from the
+ * The laws a ruins delve keeps on its finished map ({@code mapgen-nouns.md}, Ruins ground): the vault is reachable from the
  * landing, the layer count is the one declared, every layer has its open ways, and no layer closes the route; at
  * the larger grades no single blocked way closes it either. Every published place a squad stands on is reachable
  * too. A ruins map that breaks one is a generation error, never a fallback.

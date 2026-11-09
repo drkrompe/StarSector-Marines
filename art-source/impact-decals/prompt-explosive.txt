@@ -1,0 +1,33 @@
+A sheet of sixteen explosion decals for a top-down tactical ground-combat game: what grenades, rockets, mortar and
+cannon shells leave on the ground after they burst.
+
+Rows, top to bottom (each row is one kind of mark; the four columns are variants of it):
+1. Fragmentation. The small central shape is a shallow soot-blackened blast spot; the many scattered dots are
+   fragment strikes peppered around it, each a tiny dark pit with a pale chipped fleck. No crater.
+2. Rocket and grenade blasts. A shallow scorched blast patch, black at its centre fading out through charcoal, with
+   soot thrown out in the radiating streaks. Flat: a scorch and a scuff, not a pit.
+3. Shell craters (mortar and cannon). A real crater: a dark bowl with a churned, deeper centre and a raised rim of
+   broken pale material lit from the upper left, with ejecta thrown out along the radiating streaks.
+4. Thrown debris. Each shape is a separate lump of broken material lying on the surface: rubble, chunks of broken
+   concrete and clods, mixed pale grey and dark, each with a small contact shadow. Loose debris, no crater, no fire.
+
+Layout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each
+flat grey shape is the footprint of one decal (blurred grey means a soft, feathered edge). Fill every grey footprint
+with its decal, keeping its position, size, outline and orientation. Do not move, merge, add or remove marks. Keep
+every cell's empty space fully transparent. Marks that point sideways point along +x (to the right): the round
+travelled left to right.
+
+These decals are stamped at random onto every kind of ground and wall in the game: earth, grass, sand, concrete
+paving, metal deck, brick, cast concrete and olive-painted plate. So their colours must be neutral and work over
+any surface: soot and scorch near-black to charcoal, cavities dark, freshly exposed dust, chips and spall pale
+neutral grey, a faint warm brown only in soot falloff. Every outline is rough, ragged and organic, like real damage: never a regular geometric star, flower or
+perfect circle, even where the grey footprint is close to one. Never paint the surrounding ground or wall itself, and never
+tint a mark green, brick red or sand yellow.
+
+Style: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching
+reference 2. Read clearly at small size: strong dark centres, crisp light rims where material is chipped.
+
+Output: a true transparent background, including every gap between and inside marks; no ground, no floor, no wall
+tiles, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its own cell.
+
+Reference 2 is material and style only: blast damage overlays from the same game. Do not copy its layout or shapes.
