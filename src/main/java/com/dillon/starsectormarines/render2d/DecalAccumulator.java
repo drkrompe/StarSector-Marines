@@ -8,6 +8,12 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -93,6 +99,14 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
  * stepping the per-cell resolution down rather than refusing the allocation.
  * Adjust the request via the constructor if needed.
  *
+ * <p>Zoomed in past that density, the map-wide surface shows marks magnified
+ * and soft, so the view is drawn from sharp tiles instead ({@link DecalTiles}):
+ * blocks of the map at a higher density, held only while in view, each filled
+ * by replaying the retained marks that reach it and stamped with new marks as
+ * they land. A tile not yet filled draws its block from the map-wide surface.
+ * Marks evicted from the retained list live only on the map-wide surface, so a
+ * tile replayed after their eviction does not show them.
+ *
  * <p>Modeled on {@link com.dillon.starsectormarines.render.BridgeRenderer}'s
  * state-save/restore pattern: push GL attribs for everything {@code glPopAttrib}
  * can restore (texture binding, viewport, blend, …), restore the non-attrib
@@ -111,8 +125,9 @@ public final class DecalAccumulator {
      * source tile sheets' native resolution — at neutral zoom, one FBO
      * texel = one source pixel = one screen pixel, so stamped decals
      * look identical to the pre-FBO direct-draw path. Drop to 16 (half
-     * res) to quarter the VRAM cost in exchange for visible softness;
-     * raise to 64 if you want sharp decals at max zoom (×4 VRAM).
+     * res) to quarter the VRAM cost in exchange for visible softness.
+     * Closer zooms are sharp through the view tiles ({@link DecalTiles}),
+     * not a denser map-wide surface.
      */
     public static final int DEFAULT_FBO_PX_PER_CELL = 32;
 
@@ -165,6 +180,22 @@ public final class DecalAccumulator {
      */
     private int uiFboBinding = -1;
     private boolean uiFboSampled;
+
+    /** Resident sharp tiles by {@link DecalTiles#key}, least recently drawn first. */
+    private final LinkedHashMap<Long, Tile> tiles = new LinkedHashMap<>(32, 0.75f, true);
+    /** Tiles evicted from the view whose GL objects wait to be reused. */
+    private final ArrayDeque<Tile> spareTiles = new ArrayDeque<>();
+    /** Set when a tile target fails; the map-wide surface then draws every view. */
+    private boolean tilesBroken;
+
+    /** One sharp tile: its block of the map and the framebuffer holding it. */
+    private static final class Tile {
+        int fbo;
+        int color;
+        int tileX;
+        int tileY;
+        boolean ready;
+    }
 
     /** QuadBatch bound to the decal sheet — created lazily on first stamp so we can wait for the sheet's lazy load. */
     private QuadBatch decalBatch;
@@ -219,6 +250,7 @@ public final class DecalAccumulator {
         if (simChanged) {
             lastStampedCollection = decals;
             lastStampedTotal = 0L;
+            releaseTiles();
             clearFbo();
             if (broken) return;
         }
@@ -235,11 +267,12 @@ public final class DecalAccumulator {
             if (toStamp > 0) {
                 stampLastN(decals, toStamp, frames);
                 if (broken) return;
+                stampTilesLastN(decals, toStamp, frames);
             }
             lastStampedTotal = totalEverAdded;
         }
 
-        blit(camera, alphaMult);
+        if (!drawTiles(camera, decals, frames, alphaMult)) blit(camera, alphaMult);
     }
 
     /**
@@ -250,6 +283,7 @@ public final class DecalAccumulator {
     public void invalidate() {
         lastStampedCollection = null;
         lastStampedTotal = 0L;
+        releaseTiles();
     }
 
     /**
@@ -261,6 +295,11 @@ public final class DecalAccumulator {
         if (fbo != 0)      { glDeleteFramebuffers(fbo);  fbo = 0; }
         if (fboColor != 0) { glDeleteTextures(fboColor); fboColor = 0; }
         invalidate();
+        for (Tile tile : spareTiles) {
+            glDeleteFramebuffers(tile.fbo);
+            glDeleteTextures(tile.color);
+        }
+        spareTiles.clear();
     }
 
     // ------------------------------------------------------------------
@@ -280,32 +319,185 @@ public final class DecalAccumulator {
         int idx = 0;
         for (Decal d : decals) {
             if (idx++ < skip) continue;
-            if (d.decalIndex < 0 || d.decalIndex >= frames.frames.length) continue;
-            SpriteSheetFrames.Frame f = frames.frames[d.decalIndex];
-            if (f.w <= 0 || f.h <= 0) continue;
-
-            // Decal position in FBO pixel space — world-cell coords scaled by px/cell.
-            float cx = d.x * resolvedPxPerCell;
-            float cy = d.y * resolvedPxPerCell;
-            float longPx  = d.scaleCells * resolvedPxPerCell;
-            float shortPx = (f.w > 0) ? longPx * ((float) f.h / (float) f.w) : longPx;
-
-            decalBatch.appendRotated(
-                    f.x, f.y, f.w, f.h,
-                    cx, cy, longPx, shortPx,
-                    d.rotationDeg,
-                    1f, 1f, 1f, 1f);
+            SpriteSheetFrames.Frame f = frameOf(d, frames);
+            if (f != null) append(d, f, 0f, 0f, resolvedPxPerCell, 0f);
         }
         if (decalBatch.isEmpty()) return;
 
         // Render the queued quads INTO the FBO. State-save pattern mirrors
         // BridgeRenderer: heavy push to isolate Starsector's UI render state,
         // explicit binding saves for anything outside the attrib stack.
-        withFboBound(() -> decalBatch.flush());
+        withFboBound(fbo, fboPxW, fboPxH, () -> decalBatch.flush());
+    }
+
+    /** The frame a mark draws, or null for one the sheet has no picture for. */
+    private static SpriteSheetFrames.Frame frameOf(Decal d, SpriteSheetFrames frames) {
+        if (d.decalIndex < 0 || d.decalIndex >= frames.frames.length) return null;
+        SpriteSheetFrames.Frame f = frames.frames[d.decalIndex];
+        return f.w > 0 && f.h > 0 ? f : null;
+    }
+
+    /**
+     * Queues one mark for a surface whose texel {@code (padPx, padPx)} is cell
+     * {@code (originX, originY)}, at {@code pxPerCell}.
+     */
+    private void append(Decal d, SpriteSheetFrames.Frame f, float originX, float originY, float pxPerCell,
+                        float padPx) {
+        float cx = (d.x - originX) * pxPerCell + padPx;
+        float cy = (d.y - originY) * pxPerCell + padPx;
+        float longPx = d.scaleCells * pxPerCell;
+        float shortPx = longPx * ((float) f.h / (float) f.w);
+        decalBatch.appendRotated(f.x, f.y, f.w, f.h, cx, cy, longPx, shortPx, d.rotationDeg, 1f, 1f, 1f, 1f);
+    }
+
+    /** Stamps the newest {@code n} marks into every filled tile they reach. */
+    private void stampTilesLastN(Collection<Decal> decals, int n, SpriteSheetFrames frames) {
+        if (tiles.isEmpty()) return;
+        List<Decal> fresh = new ArrayList<>(n);
+        int skip = decals.size() - n;
+        int idx = 0;
+        for (Decal d : decals) {
+            if (idx++ >= skip) fresh.add(d);
+        }
+        for (Tile tile : tiles.values()) {
+            if (tile.ready) stampTile(tile, fresh, frames);
+        }
+    }
+
+    /** Stamps the marks of {@code decals} that reach {@code tile} into it. */
+    private void stampTile(Tile tile, Iterable<Decal> decals, SpriteSheetFrames frames) {
+        float originX = tile.tileX * DecalTiles.TILE_CELLS;
+        float originY = tile.tileY * DecalTiles.TILE_CELLS;
+        for (Decal d : decals) {
+            SpriteSheetFrames.Frame f = frameOf(d, frames);
+            if (f == null || !DecalTiles.reaches(d, f, tile.tileX, tile.tileY)) continue;
+            append(d, f, originX, originY, DecalTiles.PX_PER_CELL, DecalTiles.PAD_PX);
+        }
+        if (decalBatch.isEmpty()) return;
+        withFboBound(tile.fbo, DecalTiles.TEXTURE_PX, DecalTiles.TEXTURE_PX, () -> decalBatch.flush());
+    }
+
+    /**
+     * Draws the view from sharp tiles when it is zoomed in past the map-wide
+     * surface and few enough tiles cover it, filling at most
+     * {@link DecalTiles#FILLS_PER_FRAME} new ones; a tile not yet filled draws
+     * its block from the map-wide surface. Returns false, drawing nothing, when
+     * the map-wide surface should draw the whole view instead.
+     */
+    private boolean drawTiles(BattleCamera camera, Collection<Decal> decals, SpriteSheetFrames frames,
+                              float alphaMult) {
+        if (tilesBroken || !DecalTiles.engaged(camera.cellPxSize(), resolvedPxPerCell)) return false;
+        VisibleCellRect view = camera.visibleCells(0, gridCellsW, gridCellsH);
+        if (view.equals(VisibleCellRect.EMPTY)) return false;
+        int tx0 = DecalTiles.tileOf(view.minX());
+        int ty0 = DecalTiles.tileOf(view.minY());
+        int tx1 = DecalTiles.tileOf(view.maxX());
+        int ty1 = DecalTiles.tileOf(view.maxY());
+        if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) > DecalTiles.MAX_RESIDENT) return false;
+
+        // Touch the resident tiles in view first, so making room for a new one
+        // never evicts a tile this same frame still draws.
+        for (int ty = ty0; ty <= ty1; ty++) {
+            for (int tx = tx0; tx <= tx1; tx++) tiles.get(DecalTiles.key(tx, ty));
+        }
+        int fills = 0;
+        for (int ty = ty0; ty <= ty1; ty++) {
+            for (int tx = tx0; tx <= tx1; tx++) {
+                Tile tile = tiles.get(DecalTiles.key(tx, ty));
+                if (tile == null && fills < DecalTiles.FILLS_PER_FRAME && !tilesBroken) {
+                    tile = fillTile(tx, ty, decals, frames);
+                    fills++;
+                }
+                float x0 = tx * DecalTiles.TILE_CELLS;
+                float y0 = ty * DecalTiles.TILE_CELLS;
+                float x1 = Math.min(gridCellsW, x0 + DecalTiles.TILE_CELLS);
+                float y1 = Math.min(gridCellsH, y0 + DecalTiles.TILE_CELLS);
+                if (tile != null && tile.ready) {
+                    float texel = 1f / DecalTiles.TEXTURE_PX;
+                    float span = DecalTiles.PX_PER_CELL * texel;
+                    float u0 = DecalTiles.PAD_PX * texel;
+                    blitRect(camera, tile.color, x0, y0, x1, y1,
+                            u0, u0, u0 + (x1 - x0) * span, u0 + (y1 - y0) * span, alphaMult);
+                } else {
+                    blitRect(camera, fboColor, x0, y0, x1, y1,
+                            x0 / gridCellsW, y0 / gridCellsH, x1 / gridCellsW, y1 / gridCellsH, alphaMult);
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Makes tile {@code (tileX, tileY)} resident, evicting the least recently
+     * drawn tile when {@link DecalTiles#MAX_RESIDENT} are held, and fills it by
+     * replaying every retained mark that reaches it. Returns null, and stops
+     * using tiles, if its target cannot be made.
+     */
+    private Tile fillTile(int tileX, int tileY, Collection<Decal> decals, SpriteSheetFrames frames) {
+        if (tiles.size() >= DecalTiles.MAX_RESIDENT) {
+            Iterator<Tile> eldest = tiles.values().iterator();
+            Tile evicted = eldest.next();
+            eldest.remove();
+            evicted.ready = false;
+            spareTiles.push(evicted);
+        }
+        Tile tile = spareTiles.isEmpty() ? newTile() : spareTiles.pop();
+        if (tile == null) {
+            tilesBroken = true;
+            LOG.warn("DecalAccumulator: a sharp decal tile could not be made -- the map-wide surface draws every view");
+            return null;
+        }
+        tile.tileX = tileX;
+        tile.tileY = tileY;
+        withFboBound(tile.fbo, DecalTiles.TEXTURE_PX, DecalTiles.TEXTURE_PX, () -> {
+            glColorMask(true, true, true, true);
+            glClearColor(0f, 0f, 0f, 0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        });
+        stampTile(tile, decals, frames);
+        tile.ready = !broken;
+        tiles.put(DecalTiles.key(tileX, tileY), tile);
+        return tile;
+    }
+
+    /** A new tile's framebuffer and color texture, or null if the driver will not complete it. */
+    private Tile newTile() {
+        Tile tile = new Tile();
+        tile.color = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, tile.color);
+        GlErrors.clear();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, DecalTiles.TEXTURE_PX, DecalTiles.TEXTURE_PX, 0, GL_RGBA,
+                GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        GlErrors.check("glTexImage2D (decal tile color)");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        tile.fbo = glGenFramebuffers();
+        int prevFbo = glGetInteger(GL_FRAMEBUFFER_BINDING);
+        glBindFramebuffer(GL_FRAMEBUFFER, tile.fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tile.color, 0);
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+        if (status == GL_FRAMEBUFFER_COMPLETE) return tile;
+        LOG.error("DecalAccumulator tile FBO incomplete: 0x" + Integer.toHexString(status));
+        glDeleteFramebuffers(tile.fbo);
+        glDeleteTextures(tile.color);
+        return null;
+    }
+
+    /** Moves every resident tile to the spare pool, unfilled: their marks are stale. */
+    private void releaseTiles() {
+        for (Tile tile : tiles.values()) {
+            tile.ready = false;
+            spareTiles.push(tile);
+        }
+        tiles.clear();
     }
 
     private void clearFbo() {
-        withFboBound(() -> {
+        withFboBound(fbo, fboPxW, fboPxH, () -> {
             glColorMask(true, true, true, true);
             glClearColor(0f, 0f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -313,11 +505,12 @@ public final class DecalAccumulator {
     }
 
     /**
-     * Runs {@code body} with the decal FBO bound, viewport sized to the
-     * FBO, ortho projection matching FBO pixel coords, and Starsector's
-     * UI GL state isolated via {@code glPushAttrib} + matrix push/pop.
+     * Runs {@code body} with {@code target} bound, viewport sized to its
+     * {@code width} x {@code height}, ortho projection matching its pixel
+     * coords, and Starsector's UI GL state isolated via {@code glPushAttrib} +
+     * matrix push/pop.
      */
-    private void withFboBound(Runnable body) {
+    private void withFboBound(int target, int width, int height, Runnable body) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION); glPushMatrix();
         glMatrixMode(GL_MODELVIEW);  glPushMatrix();
@@ -333,8 +526,8 @@ public final class DecalAccumulator {
         }
 
         try {
-            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glViewport(0, 0, fboPxW, fboPxH);
+            glBindFramebuffer(GL_FRAMEBUFFER, target);
+            glViewport(0, 0, width, height);
             glDisable(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
             glDisable(org.lwjgl.opengl.GL11.GL_DEPTH_TEST);
             glColorMask(true, true, true, true);
@@ -345,7 +538,7 @@ public final class DecalAccumulator {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
             glMatrixMode(GL_PROJECTION); glLoadIdentity();
-            glOrtho(0, fboPxW, 0, fboPxH, -1, 1);
+            glOrtho(0, width, 0, height, -1, 1);
             glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
 
             body.run();
@@ -371,10 +564,20 @@ public final class DecalAccumulator {
      * blending + the texture bound.
      */
     private void blit(BattleCamera camera, float alphaMult) {
-        float x0 = camera.cellToScreenX(0);
-        float y0 = camera.cellToScreenY(0);
-        float x1 = camera.cellToScreenX(gridCellsW);
-        float y1 = camera.cellToScreenY(gridCellsH);
+        blitRect(camera, fboColor, 0f, 0f, gridCellsW, gridCellsH, 0f, 0f, 1f, 1f, alphaMult);
+    }
+
+    /**
+     * Draws texture {@code color}'s {@code [u0,u1] x [v0,v1]} over the cell
+     * rect {@code [x0,x1] x [y0,y1]}. V=0 is the texture's bottom row, the
+     * row stamped at the rect's low cell y.
+     */
+    private void blitRect(BattleCamera camera, int color, float x0, float y0, float x1, float y1,
+                          float u0, float v0, float u1, float v1, float alphaMult) {
+        float sx0 = camera.cellToScreenX(x0);
+        float sy0 = camera.cellToScreenY(y0);
+        float sx1 = camera.cellToScreenX(x1);
+        float sy1 = camera.cellToScreenY(y1);
 
         // glPushAttrib restores the texture binding on pop; we only need to put
         // the shader program back to the fixed-function default (not attrib
@@ -388,15 +591,14 @@ public final class DecalAccumulator {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glDisable(org.lwjgl.opengl.GL11.GL_DEPTH_TEST);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, fboColor);
+            glBindTexture(GL_TEXTURE_2D, color);
             glColor4f(1f, 1f, 1f, alphaMult);
 
             glBegin(GL_QUADS);
-            // V=0 at bottom-left of the FBO — matches the ortho we stamped under.
-            glTexCoord2f(0f, 0f); glVertex2f(x0, y0);
-            glTexCoord2f(1f, 0f); glVertex2f(x1, y0);
-            glTexCoord2f(1f, 1f); glVertex2f(x1, y1);
-            glTexCoord2f(0f, 1f); glVertex2f(x0, y1);
+            glTexCoord2f(u0, v0); glVertex2f(sx0, sy0);
+            glTexCoord2f(u1, v0); glVertex2f(sx1, sy0);
+            glTexCoord2f(u1, v1); glVertex2f(sx1, sy1);
+            glTexCoord2f(u0, v1); glVertex2f(sx0, sy1);
             glEnd();
         } finally {
             glUseProgram(0);
