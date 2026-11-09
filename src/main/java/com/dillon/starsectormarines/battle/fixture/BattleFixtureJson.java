@@ -204,6 +204,7 @@ public final class BattleFixtureJson {
             putSprawl(root, raid.sprawl());
             if (raid.targetName() != null) root.put("targetName", raid.targetName());
             if (raid.targetKind() != null) root.put("targetKind", raid.targetKind().name());
+            if (raid.machines() > 0) root.put("machines", raid.machines());
             return root;
         }
         if (fixture instanceof ExtractionBattleFixture extraction) {
@@ -439,7 +440,8 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 sprawlFromJson(root), root.optString("targetName", null),
                 root.has("targetKind") ? enumValue(PointOfInterest.Kind.class,
-                        root.getString("targetKind"), "targetKind") : null);
+                        root.getString("targetKind"), "targetKind") : null,
+                root.optInt("machines", 0));
     }
 
     private static ExtractionBattleFixture decodeExtraction(JSONObject root)

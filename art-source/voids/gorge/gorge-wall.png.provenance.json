@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c19b-d047-7c53-a421-df2d16c96c62",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c19b-d047-7c53-a421-df2d16c96c62\\exec-53d53525-3ff4-453a-8b2b-28b4f785512f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\gorge\\gorge-wall.png",
+    "sha256": "188154538be083aedf7a202a2f88b7918c770c8ed69a27dbf4546a26abb5ff6b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\gorge\\gorge-wall.prompt.txt",
+  "promptSha256": "bac850a02cf9627d60a1288874b2a210f50ec6824bcccd2c5a2e78ca626ccf35",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of a sheer gorge wall\ncut by a river, as it would be mapped onto a vertical cliff. Weathered\nsedimentary rock in horizontal strata: thick grey-brown sandstone beds\nand thinner dark shale bands, each course roughly 1 to 3 m tall, with\ncrisp bedding lines, vertical joints and fractures, small overhanging\nledges with tufts of moss and fern, hanging roots, dark seep stains and\nmineral streaks running down, lichen patches. Lit evenly by soft daylight\nfrom straight in front, no cast shadows from outside the tile. Even\ndensity across the whole tile with no focal point, strata running\nstraight across so it repeats both horizontally and vertically. Palette:\nwarm grey-brown, ochre, slate, dark olive moss. No water, no sky, no\npeople, no text, no border, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless, square gorge-wall texture using your specifications."
+  ],
+  "usage": {
+    "input_tokens": 37299,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 313,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.9
+}

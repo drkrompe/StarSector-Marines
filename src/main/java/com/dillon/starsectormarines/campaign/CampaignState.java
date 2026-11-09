@@ -614,6 +614,8 @@ public final class CampaignState implements Serializable {
     public int marketRaidIssued = 0;
     public int marketRaidRecorded = 0;
     public boolean marketRaidRecordedVictory = false;
+    /** Share of a disrupting raid's works the recorded battle wrecked (MarketRaidLedger.recordedShare reads it). */
+    public float marketRaidRecordedShare = 1f;
     public int marketRaidCommitted = 0;
 
     // ---------- Exploring an uncolonized world's ruins (see ruins-expedition.md) ----------

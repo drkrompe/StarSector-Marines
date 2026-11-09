@@ -4,6 +4,7 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.listeners.MarineLossesStatModifier;
 import com.fs.starfarer.api.combat.MutableStat;
 import com.fs.starfarer.api.impl.campaign.graid.GroundRaidObjectivePlugin;
+import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.RaidType;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.TempData;
 
 import java.util.List;
@@ -46,13 +47,33 @@ public final class RaidOutcomeCommit {
 
     /** Adjusts {@code temp} for the battle's outcome, before the raid command's confirm runs. */
     public static void prepare(TempData temp, boolean won) {
-        if (temp == null || won) return;
-        if (temp.objectives != null) temp.objectives.clear();
+        prepare(temp, won, 1f);
     }
 
-    /** The industry a disrupting raid's assigned objectives target, or null. */
+    /**
+     * Adjusts {@code temp} for the battle's outcome. A won disrupting raid commits at the effectiveness the command
+     * computed times the share of the works wrecked, so every machine wrecked adds days down
+     * ({@code raid-mission.md}, Break); a raid for valuables commits as it was set up.
+     */
+    public static void prepare(TempData temp, boolean won, float worksShare) {
+        if (temp == null) return;
+        if (!won) {
+            if (temp.objectives != null) temp.objectives.clear();
+            return;
+        }
+        if (temp.raidType == RaidType.DISRUPT && worksShare > 0f && worksShare < 1f) {
+            temp.raidMult *= worksShare;
+        }
+    }
+
+    /**
+     * The industry a disrupting raid targets, or null for any other raid. The intent is the raid's type: a raid for
+     * valuables names no industry, even when the goods it takes come from one.
+     */
     public static String targetIndustryId(TempData temp) {
-        if (temp == null || temp.objectives == null) return null;
+        if (temp == null || temp.raidType != RaidType.DISRUPT) return null;
+        if (temp.target != null) return temp.target.getId();
+        if (temp.objectives == null) return null;
         for (GroundRaidObjectivePlugin objective : temp.objectives) {
             if (objective == null || objective.getMarinesAssigned() <= 0) continue;
             if (objective.getSource() != null) return objective.getSource().getId();

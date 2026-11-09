@@ -33,11 +33,30 @@ public final class MarketRaidLedger {
 
     /** Records the battle fought for {@code serial}; false when it, or a later raid, is already recorded. */
     public static boolean record(CampaignState state, int serial, boolean victory) {
+        return record(state, serial, victory, 1f);
+    }
+
+    /**
+     * Records the battle fought for {@code serial} with the share of a disrupting raid's works it wrecked
+     * ({@code raid-mission.md}, Break); false when it, or a later raid, is already recorded.
+     */
+    public static boolean record(CampaignState state, int serial, boolean victory, float worksShare) {
         if (state == null || serial <= 0 || serial > state.marketRaidIssued) return false;
         if (serial <= state.marketRaidRecorded) return false;
         state.marketRaidRecorded = serial;
         state.marketRaidRecordedVictory = victory;
+        state.marketRaidRecordedShare = worksShare;
         return true;
+    }
+
+    /**
+     * The share of the works the recorded battle wrecked, 0 to 1. A save from before the share was kept reads
+     * nothing there, and a won raid always wrecked something, so anything outside (0, 1] reads as the whole.
+     */
+    public static float recordedShare(CampaignState state) {
+        if (state == null) return 1f;
+        float share = state.marketRaidRecordedShare;
+        return share > 0f && share <= 1f ? share : 1f;
     }
 
     /** Takes the outcome recorded for {@code serial}, once; {@link Pending#NONE} when there is none to take. */

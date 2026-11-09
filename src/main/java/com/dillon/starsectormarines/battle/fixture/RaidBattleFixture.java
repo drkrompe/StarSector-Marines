@@ -32,7 +32,8 @@ public record RaidBattleFixture(
         List<FighterWingCommitment> enemyFighterSupport,
         PrecinctPlan.Sprawl sprawl,
         String targetName,
-        PointOfInterest.Kind targetKind) implements BattleFixture {
+        PointOfInterest.Kind targetKind,
+        int machines) implements BattleFixture {
 
     public static final String KIND = "RAID";
 
@@ -43,18 +44,40 @@ public record RaidBattleFixture(
             List<FighterWingCommitment> marineFighterSupport,
             List<FighterWingCommitment> enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
-                marineFighterSupport, enemyFighterSupport, sprawl, null, null);
+                marineFighterSupport, enemyFighterSupport, sprawl, null, null, 0);
+    }
+
+    /** A raid for one target, named and of a required kind (or null for the generic site). */
+    public RaidBattleFixture(
+            long seed, List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
+            OperationTier tier, RiskLevel risk, TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport, PrecinctPlan.Sprawl sprawl,
+            String targetName, PointOfInterest.Kind targetKind) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, sprawl, targetName, targetKind, 0);
+    }
+
+    /**
+     * A raid to disrupt an industry ({@code raid-mission.md}, Break): {@code machines} machines of its works to
+     * wreck, the works named {@code worksName} (null for the generic name).
+     */
+    public RaidBattleFixture withWorks(String worksName, int machines) {
+        if (machines <= 0) throw new IllegalArgumentException("a works needs machines");
+        return new RaidBattleFixture(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport, sprawl, worksName, null, machines);
     }
 
     public RaidBattleFixture withTarget(String name, PointOfInterest.Kind kind) {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("target name required");
         return new RaidBattleFixture(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 targetProfile, marineFighterSupport, enemyFighterSupport, sprawl, name,
-                Objects.requireNonNull(kind, "target kind"));
+                Objects.requireNonNull(kind, "target kind"), machines);
     }
 
     public RaidBattleFixture {
         if (targetName != null && targetName.isBlank()) throw new IllegalArgumentException("blank target name");
+        if (machines < 0) throw new IllegalArgumentException("negative machines");
         manifest = List.copyOf(Objects.requireNonNull(manifest, "manifest"));
         tier = Objects.requireNonNull(tier, "tier");
         risk = Objects.requireNonNull(risk, "risk");
@@ -102,6 +125,11 @@ public record RaidBattleFixture(
 
     @Override
     public BattleSimulation build() {
+        if (machines > 0) {
+            return BattleSetup.createRaidWorks(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                    FighterWingCommitment.toRoster(marineFighterSupport),
+                    FighterWingCommitment.toRoster(enemyFighterSupport), sprawl, targetName, machines);
+        }
         return BattleSetup.createRaid(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),

@@ -172,7 +172,7 @@ public class MarineRaidCMD extends BaseCommandPlugin {
             refreshMenu(dialog);
             return;
         }
-        RaidOutcomeCommit.prepare(temp, won);
+        RaidOutcomeCommit.prepare(temp, won, MarketRaidLedger.recordedShare(state()));
         dialog.getTextPanel().addPara(Strings.get(won ? "marketRaidCommitWon" : "marketRaidCommitLost"));
         rules.updateMemory();
         ListenerManagerAPI listeners = Global.getSector().getListenerManager();

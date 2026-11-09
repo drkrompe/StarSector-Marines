@@ -301,7 +301,9 @@ final class BattleHudOverlay {
         if (sim != null) {
             for (var objective : sim.getObjectives()) {
                 if (objective instanceof RaidObjective raid) {
-                    return model.updateRaid(raid.targetName(), raid.phase(),
+                    return model.updateRaid(raid.works()
+                                    ? Strings.format("objectiveRaidWorksTally", raid.targetName(), raid.sitesDone(),
+                                    raid.sites().size()) : raid.targetName(), raid.phase(),
                             raid.serviceProgress(), raid.serviceDuration(), () -> {
                                 boolean returning = raid.targetSecured();
                                 camera.centerOn((returning ? raid.egressCellX() : raid.targetCellX()) + .5f,

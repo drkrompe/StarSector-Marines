@@ -4,9 +4,8 @@ Status: IN PROGRESS — every mechanics slice is built, with its scenes (What
 is built): zones, the director over walkers and flocks, the derelict heavy
 line, spotting, the node, repair drones, folded posts and power branches. The
 walker is its own four-legged chassis on placeholder art while picks
-`derelict-walker-look` and `derelict-walker-wall-reach` wait; the posts' and
-node's looks ship on the recommended candidates while picks
-`derelict-node-look` (redrawn) and `derelict-post-restyle` wait. Feeds slice 5 of
+`derelict-walker-look` and `derelict-walker-wall-reach` are reworked; the
+posts and nodes ship their picked looks. Feeds slice 5 of
 `ruins-expedition-fork.md` through the ruins occupant (`ruins-expedition.md`,
 Occupants).
 
@@ -264,17 +263,14 @@ Everything is in `battle.derelict`.
   with the mount, with no recoil layer. A node draws its lineage's relay
   structure in the hub pass, `NODE_VISUAL_CELLS` long, as the cradle draws
   its housing. Art from ImageGen geometry guides, three post and four node
-  designs a sheet per lineage (`art-source/derelict-security`); the
-  recommended pop-up post and mast node ship while picks
-  `derelict-post-look` and `derelict-node-look` wait. The owner rejected
-  that node as off-style (photo-real steel, stencilled text); the second
-  round (`-v2b` sheets) redraws after Starsector's own derelict ship
-  sprites (owner's style target: greebled sage-green and khaki plates,
-  hazard yellow, brass, rust), no text or emblems, both lineages on one
-  sheet: three node designs
-  (cabinet, array, junction) for `derelict-node-look` and the pop-up post
-  restyled on its own geometry for `derelict-post-restyle`, carded in game
-  beside a company Hound. The walker is drawn by its own leg rig (The
+  designs a sheet per lineage (`art-source/derelict-security`). The looks
+  are painted after Starsector's own derelict ship sprites (greebled
+  sage-green and khaki plates, hazard yellow, brass, rust), no text or
+  emblems, both lineages on one sheet (`-v2b`), and cut by `pack-v2.py`:
+  owner picks `derelict-node-look` (cabinet: an armoured relay cabinet with a
+  louvred door and status lamps) and `derelict-post-restyle` (the pop-up
+  post, a striped well under an iris hatch, redrawn on its own geometry),
+  carded in game beside a company Hound. The walker is drawn by its own leg rig (The
   walker's legs).
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
