@@ -1097,6 +1097,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // The end panel hangs under the banner, which renderBanner centres on the play area.
         float bannerX = layout != null ? layout.gridX + layout.gridW / 2f : position.getX() + position.getWidth() / 2f;
         float bannerY = layout != null ? layout.gridY + layout.gridH / 2f : position.getY() + position.getHeight() / 2f;
+        retainedRetreatOverlay.wording(RuinsPullOutWording.of(sim));
         retainedRetreatOverlay.attach(position, bannerX, bannerY, exitPhase(sim), retryOffer());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
@@ -2392,7 +2393,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void renderExtractionZones(BattleSimulation sim, float alphaMult) {
         if (sim == null || camera == null) return;
         String label = Strings.upper(Strings.get("battleExtractionZone"));
-        for (LandingPad pad : sim.getMarineLandingPads()) {
+        for (LandingPad pad : sim.withdrawalPads()) {
             float cx = camera.cellToScreenX(WithdrawalExtraction.centreX(pad));
             float cy = camera.cellToScreenY(WithdrawalExtraction.centreY(pad));
             float r = WithdrawalExtraction.radius(pad) * camera.cellPxSize();

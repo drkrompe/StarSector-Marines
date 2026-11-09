@@ -25,7 +25,7 @@ public enum DroneLook {
     TT_STRIKE("graphics/battle/drones/tt-strike.png", 1.1f),
     /**
      * A flock's swarm drone ({@link Flock}) in Domain security's livery ({@link FlockLivery#DOMAIN}): small, so a flock
-     * of sixteen reads as a body of little machines (`derelict-drone-flocks.md`, slice 7).
+     * of sixteen reads as a body of little machines (`air-nouns.md`, Flocks).
      */
     SWARM("graphics/battle/drones/swarm-domain.png", .55f),
     /** The swarm drone in contingency security's livery ({@link FlockLivery#CONTINGENCY}). Appended: looks are ordinals. */

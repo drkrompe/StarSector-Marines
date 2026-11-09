@@ -107,7 +107,7 @@ public final class FragGrenadeTactics {
     }
 
     /**
-     * A throw at a flock of drones (`derelict-drone-flocks.md`, the counters): drones are low fliers, so a frag's
+     * A throw at a flock of drones (`air-nouns.md`, Flocks): drones are low fliers, so a frag's
      * blast reaches them like anyone in its radius, and a tight flock puts several in one. They fly too fast for a
      * last-seen cell, so each directly seen drone is led by its own velocity over the throw's wind-up and flight
      * ({@link #leadPoint}), and the throw goes where the most led drones fall inside the blast. Allowed while the squad

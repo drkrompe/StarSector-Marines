@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c186-756d-7030-bac6-ddad1f64c2f2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c186-756d-7030-bac6-ddad1f64c2f2\\exec-f6aeaf36-77f8-45a3-88dd-2ae7b247654f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-2-master.png",
+    "sha256": "ea9ee3fb9297eb8bf52e4c43c425fc3512f56dba9bb459eba315d64a0e441363",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-2.prompt.txt",
+  "promptSha256": "d9cff18feb28ba2d584c7c05fca927a4a7e8ebb5b320f222c16ab8e766742829",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target; change only the grey marked shape\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the pilot canopy on the Hound walking machine.\n\nPrimary request: fill the marked shape with a ROUNDED BUBBLE CANOPY seen from above: one domed, slightly oval piece of glass held in a heavy riveted armour ring, crossed by two or three thick bolted frame straps for protection, like an old armoured observation dome or a heavy helicopter bubble.\n\nImage 1 is the sole edit target and exact geometry authority: the accepted low-tech Hegemony Hound chassis, a light walking machine seen straight from above, facing the top of the canvas, with one flat grey marked shape on its spine just behind the nose. Change ONLY the grey marked shape; keep every other pixel of the chassis exactly as it is: outline, plates, rivets, pipes, cheek plates, deck, hip housings, skirts, engine, canvas registration, scale and transparent padding. Keep all empty canvas empty, including the open channel between the two nose cheeks.\n\nImage 2 is material and style reference only, never layout: the Hegemony medium tank this walker serves beside: warm tan and khaki riveted plate, dark gunmetal working parts, worn edges, grime, crisp painted game-sprite finish, light from the upper left.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, halo, glow, border, text or labels. The glass is dark smoked armoured glass, deep grey-green with a muted cool sheen and one soft reflection streak from the upper left, so it reads clearly as glass at a small size: never bright cyan, never glowing, never white. It sits low and flush in a thick riveted armour frame painted the same tan as the hull, old low-tech military hardware rather than sleek sci-fi.\n\nAvoid: changing anything outside the marked shape, a pilot figure, glowing lights, bright blue or cyan, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-guide-2.png",
+      "sha256": "bf71ffc696705572bb941d6033447233c9008ae3b4e40fea3d464531c331e3da",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target; change only the grey marked shape"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to replace only the grey shape with the framed bubble canopy."
+  ],
+  "usage": {
+    "input_tokens": 83365,
+    "cached_input_tokens": 65024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 624,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 66.1
+}

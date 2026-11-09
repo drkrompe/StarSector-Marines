@@ -1,4 +1,4 @@
-"""Deterministic geometry guide for the flock cradle's look candidates (`derelict-drone-flocks.md`, slice 7).
+"""Deterministic geometry guide for the flock cradle's look candidates (`air-nouns.md`, Flocks).
 
 Writes cradle-guide.png beside this script: a 1024x1024 sheet of four 512x512 panels, each one candidate design of the
 launch housing that keeps a flock of fourteen swarm drones docked, in strict overhead orthographic, unrotated (a

@@ -112,8 +112,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         boolean victory = outcome != null && outcome.victory;
         LootManifest manifest = context != null ? context.getLootManifest() : LootManifest.EMPTY;
         Map<String, Object> props = baseProps();
-        props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
-        props.put("outcomeLabel", Strings.get(victory ? "battleVictory" : "battleDefeat"));
+        boolean pulledOut = outcome != null && outcome.pulledOut;
+        props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : pulledOut ? "pulled-out" : "defeat"));
+        props.put("outcomeLabel", Strings.get(victory ? "battleVictory" : pulledOut ? "battlePulledOut" : "battleDefeat"));
         props.put("missionName", outcome != null && outcome.missionName != null
                 ? outcome.missionName : Strings.get("resultsScreenRecordUnavailable"));
         props.put("missionMeta", outcomeMeta(outcome, manifest));
@@ -406,8 +407,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                             f.resource().displayName))
                     .toArray(String[]::new));
             rows.add(row("result-field-salvage", Strings.get("resultsScreenFieldFinds"),
-                    outcome.victory ? finds : Strings.format("resultsScreenLeftBehind", finds),
-                    outcome.victory ? "tone-good" : "tone-muted"));
+                    banked(outcome) ? finds : Strings.format("resultsScreenLeftBehind", finds),
+                    banked(outcome) ? "tone-good" : "tone-muted"));
         }
         for (ObjectiveResult objective : outcome.objectives) {
             rows.add(row("result-objective-" + objective.key(), objective.title(),
@@ -677,6 +678,11 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     private static ResultRow row(String id, String label, String value, String tone) {
         return new ResultRow(id, label, value, "label result-value " + tone);
+    }
+
+    /** Secured finds come home on a victory, and from a Ruins expedition pulled out (its banked finds). */
+    static boolean banked(MissionOutcome outcome) {
+        return outcome.victory || outcome.pulledOut;
     }
 
     static ScreenId returnDestination(MissionOutcome outcome) {

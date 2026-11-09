@@ -594,7 +594,7 @@ battle:
 - The network is the **security-network director** that `extraction-command.md`
   leaves open for Silent Colony: a mission director with honest knowledge (its
   own sensors, flocks and relays), not a mirrored squad commander. It commands
-  flocks as units (`derelict-drone-flocks.md`) and walkers as ordinary mechs.
+  flocks as units (`air-nouns.md`, Flocks) and walkers as ordinary mechs.
 
 Its strength scales with the grade: one to four flocks, and from none or one
 heavy at scattered to four or five, a vault frame among them, at vast
