@@ -427,3 +427,4 @@ com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
 com.dillon.starsectormarines.ops.RuinsRailLookSuite
+com.dillon.starsectormarines.battle.setup.RaidMapgenReviewSuite
