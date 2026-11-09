@@ -46,4 +46,18 @@ class VaultFrameBraceTest {
         assertEquals(Stance.FREE, brace.stance());
         assertEquals(-170f, VaultFrameBrace.wrap(190f));
     }
+
+    @Test
+    void bearingsReadTheBattlesFacingConvention() {
+        assertEquals(0f, VaultFrameBrace.bearing(0f, 0f, 5f), 1e-3f, "facing 0 looks up +y");
+        assertEquals(180f, Math.abs(VaultFrameBrace.bearing(0f, 0f, -5f)), 1e-3f);
+        assertEquals(0f, VaultFrameBrace.bearing(90f, -5f, 0f), 1e-3f, "facing 90 looks down -x");
+    }
+
+    @Test
+    void freeItsGunsCycleSlowerAndOnlyFromAFreshShot() {
+        assertEquals(4f, VaultFrameBrace.stretch(0f, 2f, 0.5f), 1e-6f, "a fresh shot's cycle runs twice as long");
+        assertEquals(1.9f, VaultFrameBrace.stretch(2f, 1.9f, 0.5f), 1e-6f, "a running clock is left alone");
+        assertEquals(2f, VaultFrameBrace.stretch(0f, 2f, 1f), 1e-6f, "braced, full rate");
+    }
 }
