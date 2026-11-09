@@ -36,7 +36,9 @@ import java.util.function.IntFunction;
  *
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
  * machine halls in a dense industrial quarter; a mine's is its head works, a winding house over each shaft and the
- * ore mill they feed, in sparse ore yards.
+ * ore mill they feed, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
+ * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
+ * among depots, with the garrison beside it as on every site.
  *
  * <p>Raid only. Every other mission's map is derived as it was.
  */
@@ -120,18 +122,30 @@ public final class RaidSiteTemplate {
 
     private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
     private static final Set<String> MINING = Set.of("mining", "techmining");
+    private static final Set<String> REFINING = Set.of("refining", "fuelprod");
+    private static final Set<String> LIGHT_INDUSTRY = Set.of("lightindustry");
+    private static final Set<String> FARMING = Set.of("farming", "aquaculture");
+    private static final Set<String> PORT = Set.of("spaceport", "megaport");
+    private static final Set<String> MILITARY = Set.of("militarybase", "patrolhq", "highcommand");
 
     private final String key;
     private final IntFunction<FortressProgram> works;
     private final float worksFit;
     private final GrownTrunkPlan.Profile industryGrowth;
+    private final PrecinctCharacter industryCharacter;
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth) {
+        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter) {
         this.key = key;
         this.works = works;
         this.worksFit = worksFit;
         this.industryGrowth = industryGrowth;
+        this.industryCharacter = industryCharacter;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
@@ -142,6 +156,23 @@ public final class RaidSiteTemplate {
             return new RaidSiteTemplate("heavy-industry", FortressProgram::works, WORKS_FIT, INDUSTRY_GROWTH);
         }
         if (MINING.contains(id)) return new RaidSiteTemplate("mining", RaidWorksPrograms::mine, MINE_FIT, ORE_YARDS);
+        if (REFINING.contains(id)) {
+            return new RaidSiteTemplate("refining", RaidWorksPrograms::refinery, MINE_FIT, INDUSTRY_GROWTH);
+        }
+        if (LIGHT_INDUSTRY.contains(id)) {
+            return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
+        }
+        if (FARMING.contains(id)) {
+            return new RaidSiteTemplate("farming", RaidWorksPrograms::farmPlant, WORKS_FIT, ORE_YARDS,
+                    PrecinctCharacter.FARMSTEAD);
+        }
+        if (PORT.contains(id)) {
+            return new RaidSiteTemplate("spaceport", RaidWorksPrograms::cargoTerminal, MINE_FIT, INDUSTRY_GROWTH);
+        }
+        if (MILITARY.contains(id)) {
+            return new RaidSiteTemplate("military", RaidWorksPrograms::motorPool, MINE_FIT, ORE_YARDS,
+                    PrecinctCharacter.DEPOT);
+        }
         return null;
     }
 
@@ -177,9 +208,9 @@ public final class RaidSiteTemplate {
         briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY, oriented(INDUSTRY_AT, mirrorX, mirrorY),
-                industryGrowth, PrecinctCharacter.INDUSTRY));
+                industryGrowth, industryCharacter));
         briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
-                industryGrowth, PrecinctCharacter.INDUSTRY));
+                industryGrowth, industryCharacter));
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
             briefs.add(PrecinctBrief.settlement(OUTSKIRTS, oriented(OUTSKIRTS_AT, mirrorX, mirrorY),
                     GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB));
@@ -216,6 +247,9 @@ public final class RaidSiteTemplate {
 
     /** A mine's ore yards and railhead: a hamlet's few roads, sheds and stockpiles with open ground between. */
     private static final GrownTrunkPlan.Profile ORE_YARDS = shortArms(GrownTrunkPlan.Profile.hamlet());
+
+    /** The kind of district round the works, for evidence. */
+    PrecinctCharacter industryCharacter() { return industryCharacter; }
 
     /** How many junctions the industry round the works grows, for evidence. */
     int industryJunctions() { return industryGrowth.junctionBudget; }
