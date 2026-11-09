@@ -219,8 +219,9 @@ expedition opened, powered or destroyed stays that way.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
 supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
-The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area at
-one end, the vault at the other, the grade's layers between with their side
+The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area
+toward one end, set in from the map's edge among the ruins, the vault at the
+other, the grade's layers between with their side
 rooms, landing courts and works sites, every place published by name, built
 from mapgen's ruined-lot vocabulary. Its map grows with the grade, two steps up
 the tier band, larger than a mission at the same tier, so the player must judge
