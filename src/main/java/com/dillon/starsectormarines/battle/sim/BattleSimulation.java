@@ -2882,6 +2882,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The flocks of swarm drones on the field and the anchors their commanders move. */
     public FlockSystem flocks() { return flocks; }
+
+    /** Sets the bodies small units pass under, kept off their feet alone (`ruins-guardians.md`); null for none. */
+    public void straddle(SeparationSystem.Straddle straddle) { separation.straddle(straddle); }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
