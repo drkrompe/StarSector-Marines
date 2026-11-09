@@ -1154,7 +1154,10 @@ route through it dropped, as a sally door is barred. What unlocks it is the
 mission's puzzle (a ruins site's power, a code, a trigger); the door reads only
 whether it is unlocked. A **forcible** door is shut as ordinary wall, so a
 breach through it forces it open for good. A **hardened** door is shut as
-hardened wall, so its lock is the only way through.
+hardened wall, so its lock is the only way through. A shut door is drawn over
+its wall as a door (`LockedDoorRenderSystem`): plated, with a red lamp on its
+seam, yellow hazard bands on a forcible one and a red lock bar on a hardened
+one; open, a green lamp at each jamb. Its marker and prompt say what opens it.
 
 A **hardened wall** (`HardenedWalls`, `NavigationGrid.CellTag.HARDENED`) is a
 wall nothing breaks: every way a wall comes down refuses it (a round's or a

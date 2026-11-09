@@ -634,6 +634,8 @@ public final class CampaignState implements Serializable {
     public boolean ruinsExpeditionRecordedVictory = false;
     /** The recorded expedition pulled out (never set beside a victory). */
     public boolean ruinsExpeditionRecordedPulledOut = false;
+    /** The ids of the finds the recorded expedition brought home, joined by commas (RuinsSiteFinds). */
+    public String ruinsExpeditionRecordedFinds = "";
     public int ruinsExpeditionCommitted = 0;
 
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
