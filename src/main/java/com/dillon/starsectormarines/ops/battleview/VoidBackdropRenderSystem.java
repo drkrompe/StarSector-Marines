@@ -49,6 +49,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     static final float RAIL_CELLS = .16f;
     /** Shadow mask cells per map cell. */
     static final int SHADOW_RES = 4;
+    /** How far the dark at a wall's foot fades out across the terrace it stands on, at most, in metres. */
+    static final float FOOTING_METERS = 6f;
     /** The ground system's own backing colour, laid under the surface. */
     static final float BACKING_R = 0x18 / 255f, BACKING_G = 0x22 / 255f, BACKING_B = 0x30 / 255f;
     /** Freight bay mouths: spacing along a wall, width and height in metres, and the lane each feeds. */
@@ -107,6 +109,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** A footprint and the depths its walls run between. */
     private static final class Level {
         float top, bottom, outset;
+        /** How far this level's roof reaches out past the walls of the level above, in metres. */
+        float reach;
         /** Its roof is the playing surface, which the ground tiles draw. */
         boolean surface;
         /** A walkway's girders, not a tower's walls. */
@@ -666,11 +670,14 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         }
         float shade = sun == null ? 0f : sun.shadowStrength() * .35f * alpha;
         for (float[] r : level.shadow) rect(r[0], r[1], r[2], r[3], depth, SHADOW_R, SHADOW_G, SHADOW_B, shade);
-        // Ambient dark at the foot of each wall standing on this roof, fading out across the terrace.
+        // Ambient dark at the foot of each wall standing on this roof, fading out across the terrace and never
+        // past its edge: a terrace narrower than the fade would otherwise hang a dark band in the air beside it.
+        float fade = Math.min(FOOTING_METERS, level.reach) / 4f;
         for (float[] run : level.footings) {
+            if (fade <= 0f) break;
             boolean horizontal = run[1] == run[3];
             for (int k = 0; k < 4; k++) {
-                float a0 = k * 1.5f, a1 = a0 + 1.5f, al = (.42f - k * .1f) * alpha;
+                float a0 = k * fade, a1 = a0 + fade, al = (.42f - k * .1f) * alpha;
                 if (horizontal) {
                     rect(run[0], run[1] + run[5] * a0, run[2], run[1] + run[5] * a1, depth, 0f, 0f, 0f, al);
                 } else {
@@ -986,7 +993,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             boolean[] mask = i == 0 ? footprint : dilate(footprint, mw, mh, Math.round(level.outset));
             findRuns(mask, mw, mh, m, level.runs);
             mergeRects(mask, mw, mh, 1, -m, -m, level.roofs);
-            if (i > 0) level.footings = structure.get(i - 1).runs;
+            if (i > 0) {
+                level.footings = structure.get(i - 1).runs;
+                level.reach = level.outset - structure.get(i - 1).outset;
+            }
             structure.add(level);
         }
         structures.add(structure);
