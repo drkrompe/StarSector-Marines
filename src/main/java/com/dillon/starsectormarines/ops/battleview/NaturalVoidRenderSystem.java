@@ -56,8 +56,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final boolean rising;
     /** A lava rift's floor, light and air, drawn into this drop's order and over the ground after it. */
     private final MoltenVoidRenderSystem molten;
+    /** A glacial crevasse's floor, mist and blown snow, drawn into this drop's order and over the ground after it. */
+    private final GlacialVoidRenderSystem glacial;
     /** The drop this instance draws is a lava rift. */
     private boolean lava;
+    /** The drop this instance draws is a glacial crevasse. */
+    private boolean ice;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -86,11 +90,17 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.sprites = sprites;
         this.rising = rising;
         this.molten = new MoltenVoidRenderSystem(this, sprites);
+        this.glacial = new GlacialVoidRenderSystem(this, sprites);
     }
 
     /** A lava rift's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
     RenderSystem molten() {
         return molten;
+    }
+
+    /** A glacial crevasse's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
+    RenderSystem glacial() {
+        return glacial;
     }
 
     /** The map's drop or rise, whichever this instance draws, or null. */
@@ -166,6 +176,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             seed = drop.seed();
         }
         lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
+        ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -194,6 +205,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             for (int q = 0; q < band.count; q++) {
                 if (rising && k == n) plateau(band, q, seed, c);
                 else if (lava) LavaVoidLook.rock(band, q, k, seed, field.depth[n], c);
+                else if (ice) IceVoidLook.ice(band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
@@ -202,6 +214,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         frayColours = new float[fray.count * 3];
         for (int q = 0; q < fray.count; q++) {
             if (lava) LavaVoidLook.rock(fray, q, 0, seed, field.depth[n], frayColours);
+            else if (ice) IceVoidLook.ice(fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
     }
@@ -229,8 +242,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             for (int q = 0; q < band.count; q++) {
                 int o = q * 8;
                 if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
-                // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it.
-                if (lava && at[o + 7] < 1f) continue;
+                // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it; a
+                // crevasse's cornice goes over to the snowfield's own tone, so its end needs no fading. A partly
+                // covering piece would also thin the ground target's alpha, which the composite reads as shade.
+                if ((lava || ice) && at[o + 7] < 1f) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
@@ -279,6 +294,26 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     }
 
     float scale(float depth) { return eye / (eye + depth); }
+
+    /**
+     * Whether the rock stands between the eye, over the view's centre, and a point of the field {@code z} metres
+     * down: true where the line of sight runs into a wall, a ledge, a bridge's deck or off the field.
+     */
+    boolean hidden(float x, float y, float z) {
+        float ccx = cam.panCellX() + MARGIN, ccy = cam.panCellY() + MARGIN;
+        for (int k = 0; k <= 3; k++) {
+            float zk = z * k / 4f;
+            // The point on the line of sight at depth zk: where the eye's ray through the point passes it.
+            float f = scale(z) / scale(zk);
+            float rx = ccx + (x - ccx) * f, ry = ccy + (y - ccy) * f;
+            int ix = (int) Math.floor(rx), iy = (int) Math.floor(ry);
+            if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h) return true;
+            if (k == 0 && !field.open[iy * field.w + ix]) return true;
+            if (field.bridge[iy * field.w + ix] && zk < NaturalVoidField.DECK_METERS) return true;
+            if (field.depthAt(rx, ry) < zk - .01f) return true;
+        }
+        return false;
+    }
 
     /** Where a point of the field (map cells shifted by {@link #MARGIN}) stands on screen at scale {@code s}. */
     float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX - MARGIN) - cx) * s; }
@@ -367,8 +402,15 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             molten.drawFloor(band, time);
             return;
         }
+        if (floor && ice) {
+            glacial.drawFloor(band, time);
+            return;
+        }
         float s = scale(band.depth);
-        float tint = rising ? 0f : DEEP_MIX * band.depth / Math.max(1f, field.depth[field.steps()]);
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        float tint = rising ? 0f : ice ? IceVoidLook.deepTint(band.depth, floorDepth) : DEEP_MIX * band.depth / floorDepth;
+        float deepR = ice ? IceVoidLook.DEEP_R : DEEP_R, deepG = ice ? IceVoidLook.DEEP_G : DEEP_G;
+        float deepB = ice ? IceVoidLook.DEEP_B : DEEP_B;
         float margin = cam.cellPxSize() * 2f;
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
@@ -402,7 +444,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             } else {
                 r = c[q * 3]; g = c[q * 3 + 1]; b = c[q * 3 + 2];
             }
-            r = lerp(r, DEEP_R, tint); g = lerp(g, DEEP_G, tint); b = lerp(b, DEEP_B, tint);
+            r = lerp(r, deepR, tint); g = lerp(g, deepG, tint); b = lerp(b, deepB, tint);
             mesh.appendQuad(sx(qd[o], s), sy(qd[o + 1], s), sx(qd[o + 2], s), sy(qd[o + 3], s),
                     sx(qd[o + 4], s), sy(qd[o + 5], s), sx(qd[o + 6], s), sy(qd[o + 7], s), r, g, b, alpha);
         }
@@ -448,8 +490,17 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, .46f, .41f, .34f, alpha);
                 }
                 float dark = 1f - Math.min(1f, light[r]);
-                shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, dark * alpha);
-                if (!rising) {
+                if (ice) {
+                    // Ice in shade is lit through blue, not darkened grey; the crevasse falls to a deep blue.
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.SHADE_R,
+                            IceVoidLook.SHADE_G, IceVoidLook.SHADE_B, dark * .6f * alpha);
+                    float tint = IceVoidLook.deepTint((za + zb) / 2f, floorDepth);
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.DEEP_R,
+                            IceVoidLook.DEEP_G, IceVoidLook.DEEP_B, tint * alpha);
+                } else {
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, dark * alpha);
+                }
+                if (!rising && !ice) {
                     float tint = DEEP_MIX * ((za + zb) / 2f) / floorDepth;
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
                 }
@@ -505,9 +556,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             if (!inView(side[0], side[1], 1f, margin)) continue;
             float toSun = sun == null ? 0f : side[4] * sun.dirX() + side[5] * sun.dirY();
             float lit = .6f + .4f * Math.max(0f, toSun);
+            // A crevasse's bridges are snow: packed snow over the drop, not a timber or stone edge.
+            float r = ice ? IceVoidLook.BRIDGE_R : .30f, g = ice ? IceVoidLook.BRIDGE_G : .23f;
+            float b = ice ? IceVoidLook.BRIDGE_B : .16f;
             mesh.appendQuad(sx(side[0], s0), sy(side[1], s0), sx(side[2], s0), sy(side[3], s0),
                     sx(side[2], s1), sy(side[3], s1), sx(side[0], s1), sy(side[1], s1),
-                    .30f * lit, .23f * lit, .16f * lit, alpha);
+                    r * lit, g * lit, b * lit, alpha);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
     }

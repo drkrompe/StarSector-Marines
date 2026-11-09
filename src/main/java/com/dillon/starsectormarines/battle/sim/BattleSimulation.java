@@ -37,6 +37,7 @@ import java.util.UUID;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.ruins.RuinsBatteryGuns;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
@@ -1298,6 +1299,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void installRuinsDelveWatch(RuinsDelveWatch watch) {
         if (simTickIndex != 0) throw new IllegalStateException("Install the delve watch at setup");
         ruinsDelveWatch = watch;
+    }
+
+    private RuinsBatteryGuns ruinsBatteries;
+
+    /** The old colony's batteries on a ruins site's approach; null when the site keeps none. */
+    public RuinsBatteryGuns getRuinsBatteries() { return ruinsBatteries; }
+
+    /**
+     * Stands a ruins site's batteries ({@link RuinsBatteryGuns#install}) on its approach, after its works. At setup
+     * only.
+     */
+    public void installRuinsBatteries(int count) {
+        if (ruinsBatteries != null || simTickIndex != 0) throw new IllegalStateException("Stand the batteries once at setup");
+        ruinsBatteries = RuinsBatteryGuns.install(this, count);
     }
 
     /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
@@ -4453,6 +4468,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         if (ruinsWorks != null) ruinsWorks.tick(this);
+        // After the works, so the batteries wake on the tick the hall does.
+        if (ruinsBatteries != null) ruinsBatteries.tick(this);
         // After the works, so a hall restarted this tick is heard on it.
         if (ruinsPressure != null) ruinsPressure.tick(this);
         fieldSalvage.tick(this);
