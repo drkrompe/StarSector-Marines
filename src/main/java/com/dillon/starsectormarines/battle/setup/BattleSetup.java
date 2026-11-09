@@ -127,6 +127,8 @@ import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.RuinsDelveCommand;
+import com.dillon.starsectormarines.battle.command.RuinsDelveCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
@@ -1178,7 +1180,7 @@ public final class BattleSetup {
     }
 
     static final String RUINS_HAUL_ID = "RUINS-01";
-    static final String RUINS_HAUL_NAME = "vault haul";
+    static final String RUINS_HAUL_NAME = "Vault haul";
     static final String RUINS_VAULT_NAME = "The vault";
     static final String RUINS_LANDING_NAME = "Landing area";
 
@@ -1382,8 +1384,13 @@ public final class BattleSetup {
                     new RaidDefenderCommand(raidMobileSquads),
                     RaidDefenderCommandDisclosure.INSTANCE);
         }
-        if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
+        if (type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,
+                    new RuinsDelveCommand(ruinsDelve.layers()),
+                    RuinsDelveCommandDisclosure.INSTANCE);
+        }
+        if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
+            if (type == MissionType.EXTRACTION) sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
             sim.setAutonomousCommander(Faction.DEFENDER,

@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPictur
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.RuinsDelveSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -192,6 +193,7 @@ public final class MissionObjectiveProjection {
                 item.progressText(), item.progress(), item.blocker(), markers, item.focusMarkerId());
     }
     public static Item payload(ExtractionPayloadObjective p, CivilianEvacuationSystem.Progress evacuation) {
+        if (p instanceof RuinsVaultObjective vault) return vaultHaul(vault);
         State state = p.isFailed() ? State.FAILED : p.isComplete() ? State.COMPLETE : State.ACTIVE;
         String phase = switch (p.extractionPhase()) {
             case AT_SOURCE -> Strings.get("objectivePayloadAtSource");
@@ -292,6 +294,95 @@ public final class MissionObjectiveProjection {
                 Math.max(0, Math.min(1, progress)), blocker, markers, focus);
     }
 
+    /**
+     * The Ruins family's card ({@code ruins-expedition.md}, The Ruins mission family): breach the vault, escort the
+     * haul, board it at a lift point. The company sees the vault, every lift point and whether the boat may come down
+     * there, the haul and its escort; nothing of the occupant's layout.
+     */
+    static Item vaultHaul(RuinsVaultObjective vault) {
+        State state = vault.isFailed() ? State.FAILED : vault.isComplete() ? State.COMPLETE : State.ACTIVE;
+        ExtractionPayloadObjective.Phase stage = vault.extractionPhase();
+        boolean atVault = !vault.breached() && state == State.ACTIVE;
+        String phase = switch (stage) {
+            case AT_SOURCE -> Strings.get("objectiveVaultReach");
+            case SECURING -> Strings.get("objectiveVaultBreaching");
+            case IN_TRANSIT -> Strings.get("objectiveVaultEscorting");
+            case BOARDING -> Strings.get("objectivePayloadBoarding");
+            case COMPLETE -> Strings.get("objectivePayloadComplete");
+            case FAILED -> Strings.get("objectivePayloadFailed");
+        };
+        String lift = vault.egressName();
+        String instruction;
+        String measure;
+        String blocker = "";
+        float progress;
+        if (atVault) {
+            instruction = Strings.format(vault.vaultPowered() ? "objectiveVaultHoldPowered" : "objectiveVaultHold",
+                    seconds(vault.breachDuration()));
+            progress = vault.breachProgress() / vault.breachDuration();
+            measure = MissionObjectiveFamilies.timed(Strings.get("objectiveVaultBreachTimer"),
+                    vault.breachProgress(), vault.breachDuration());
+            if (vault.contested()) blocker = Strings.get("objectivePayloadHostileControl");
+            else if (!vault.escortPresent()) blocker = Strings.get("objectiveVaultReachHold");
+        } else if (stage == ExtractionPayloadObjective.Phase.BOARDING) {
+            instruction = Strings.format("objectiveVaultHoldLift", lift);
+            progress = vault.boardingProgress() / vault.boardingDuration();
+            measure = MissionObjectiveFamilies.timed(Strings.get("objectivePayloadBoardingTimer"),
+                    vault.boardingProgress(), vault.boardingDuration());
+            if (vault.contested()) blocker = Strings.get("objectivePayloadHostileControl");
+            else if (!vault.escortPresent()) blocker = Strings.format("objectiveVaultReachLift", lift);
+        } else {
+            instruction = Strings.format("objectiveVaultEscortTo", lift);
+            progress = (float) vault.haulRouteIndex() / Math.max(1, vault.haulRouteCellCount() - 1);
+            measure = Strings.format("objectiveVaultRoute", Math.round(progress * 100), lift);
+            if (vault.contested()) blocker = Strings.get("objectivePayloadHostileControl");
+            else if (!vault.escortPresent()) blocker = Strings.get("objectiveVaultRestoreEscort");
+            if (vault.haulLossProgress() > 0) blocker = Strings.format("objectivePayloadLossIn",
+                    seconds(vault.haulLossDuration() - vault.haulLossProgress()));
+            else if (vault.haulAbandonmentProgress() > 0) blocker = Strings.format("objectivePayloadAbandonIn",
+                    seconds(vault.haulAbandonmentDuration() - vault.haulAbandonmentProgress()));
+        }
+        if (state == State.COMPLETE) {
+            blocker = "";
+            progress = 1;
+            instruction = Strings.format("objectiveVaultDone", lift);
+            measure = Strings.get("objectiveComplete");
+        } else if (state == State.FAILED) {
+            blocker = vault.failureReason() == ExtractionPayloadObjective.Failure.ABANDONED
+                    ? Strings.get("objectiveVaultAbandoned") : Strings.get("objectiveVaultLost");
+            instruction = Strings.get("objectiveFailedSentence");
+        }
+        String id = vault.payloadId();
+        List<Marker> markers = new ArrayList<>();
+        markers.add(new Marker(id + "-source", vault.sourceName(), vault.sourceMarkerX(), vault.sourceMarkerY(),
+                atVault ? phase : Strings.get("objectiveVaultBreached"), atVault ? state : State.COMPLETE));
+        String focus = id + "-source";
+        for (int i = 0; i < vault.liftPoints().size(); i++) {
+            boolean bound = i == vault.destination();
+            String status = bound && state != State.ACTIVE ? phase
+                    : !vault.liftPointAvailable(i) ? Strings.get("objectiveVaultCourtUnheld")
+                    : bound ? Strings.get("objectiveVaultLiftBound") : Strings.get("objectiveVaultLiftOpen");
+            markers.add(new Marker(id + (bound ? "-pickup" : "-lift-" + i), vault.liftPoints().get(i).name(),
+                    vault.liftPointCellX(i), vault.liftPointCellY(i), status, bound ? state : State.ACTIVE));
+        }
+        if (!atVault && state == State.ACTIVE) {
+            focus = id + "-pickup";
+            if (Math.abs(vault.payloadCellX() - vault.egressCellX())
+                    + Math.abs(vault.payloadCellY() - vault.egressCellY()) > 3) {
+                markers.add(new Marker(id + "-payload", vault.payloadName(), vault.payloadCellX(),
+                        vault.payloadCellY(), blocker.isEmpty() ? phase : Strings.get("objectiveMarkerNeedsAttention"),
+                        state));
+                focus = id + "-payload";
+            }
+        }
+        String steps = atVault ? Strings.get("objectiveVaultSteps")
+                : state == State.COMPLETE ? Strings.get("objectiveVaultStepsDone")
+                : stage == ExtractionPayloadObjective.Phase.BOARDING ? Strings.get("objectiveVaultStepsBoard")
+                : Strings.get("objectiveVaultStepsEscort");
+        return new Item(id, vault.payloadName(), state, phase, steps, instruction, measure,
+                Math.max(0, Math.min(1, progress)), blocker, markers, focus);
+    }
+
     private static String seconds(float value) { return MissionObjectiveFamilies.seconds(value); }
 
     /** Friendly command intent, not omniscient enemy positions or invented successful execution. */
@@ -304,6 +395,8 @@ public final class MissionObjectiveProjection {
             for (var s : rescue.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), s.locallySlowed()));
         } else if (commander.detail() instanceof SilentColonyCommandSnapshot colony) {
             for (var s : colony.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), false));
+        } else if (commander.detail() instanceof RuinsDelveSnapshot delve) {
+            for (var s : delve.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), false));
         }
         if (rows.isEmpty()) for (var directive : commander.directives()) {
             if (!directive.ownsSquad()) continue;
@@ -329,6 +422,12 @@ public final class MissionObjectiveProjection {
             case "RIGHT_SCREEN" -> Strings.get("objectiveTaskRightScreen");
             case "REAR_SCREEN" -> Strings.get("objectiveTaskRearScreen");
             case "SHELTER_GUARD" -> Strings.get("objectiveTaskShelterGuard");
+            case "DELVE_LEAD" -> Strings.get("objectiveTaskDelveLead");
+            case "DELVE_BODY" -> Strings.get("objectiveTaskDelveBody");
+            case "CACHE_DETOUR" -> Strings.get("objectiveTaskCacheDetour");
+            case "VAULT_HOLD" -> Strings.get("objectiveTaskVaultHold");
+            case "VAULT_SCREEN" -> Strings.get("objectiveTaskVaultScreen");
+            case "COURT_HOLD" -> Strings.get("objectiveTaskCourtHold");
             case "PICKUP_GUARD" -> Strings.get("objectiveTaskPickupGuard");
             case "STRANDED" -> Strings.get("objectiveTaskStranded");
             case "RELEASED" -> Strings.get("objectiveTaskReleased");

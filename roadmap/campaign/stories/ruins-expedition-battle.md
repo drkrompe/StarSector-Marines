@@ -1,6 +1,7 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slice 1 (the objective) built, and the family plays
+Status: IN PROGRESS — slices 1 to 3 built (objective, disclosure, delve
+commander), and the family plays
 in battle on interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
@@ -60,10 +61,40 @@ story's battle plays, it lifts the fork's development-only gate
    its lift points, the haul's state and escort; the occupant's side sees what
    its own perspective allows; the occupant's layout is never in the company's
    frame.
+
+   *Built.* `RuinsObjectiveDisclosure` freezes `RuinsObjectiveFacts` per side.
+   The company sees the vault, the approach from the landing area, every lift
+   point with its route length and whether it is open, the haul, its escort,
+   and the field caches its own sight has found. The occupant sees its vault
+   and whether the company has reached it, as Extraction's defenders see their
+   source. The objective keeps the payload kind PACKAGE, so the generic
+   defenders still read it until slice 4. The rail and map have the family's
+   own card (`MissionObjectiveProjection.vaultHaul`): Reach the vault,
+   Breaching with the grade's breach time (and the powered wording), Escorting
+   haul to the named lift point, Boarding. Every lift point is a marker, and an
+   unheld court reads "hold to open". The steps read Breach > Escort > Board.
 3. **The delve commander.** The company's headless strategy: a layer at a time
    with a lead element, cache and works detours when a layer is quiet, the
    breach hold, then the haul screened to the nearest held lift point. Played
    battles yield to the player as every mission does.
+
+   *Built.* `RuinsDelveCommand` replaces `ExtractionCommand` on the company's
+   side for `MissionType.RUINS`. It cuts the approach into the grade's layers.
+   A lead element attack-moves to the next layer's end while the body holds the
+   last one, and the layer clears once the lead stands there out of contact.
+   The lead moves on only when the body has settled behind it, and a lead in
+   contact draws the body up. On a quiet layer, one body squad detours to a
+   found cache within 24 route cells, and the lead waits for it; contact calls
+   it back. At the vault one squad holds the breach and the rest screen it. A
+   landing court whose route is shorter than the bound lift point's gets a
+   holder while three squads or more remain. The haul then moves in
+   Extraction's escort formation, now shared as `EscortFormation`. Squads under
+   the player's order are left alone. Works detours wait for `ruins-works.md`,
+   which has no works yet. A headless `battleProbe` on a Widespread fixture
+   shows the delve leading and supporting, then a two-squad company lost at
+   the first layer: tuning belongs to slices 4 and 8. Shared fix:
+   `EscortPresence` crashed on a Marine emplacement (it has no movement); it
+   now skips one.
 4. **The crew commander.** The scavengers' strategy: posted squads at the camp
    and the dig, a patrol pool and the alarm, borrowed from the generic Extraction
    defenders, answering for the dig first and the stash second. The pirate
