@@ -138,6 +138,19 @@ class RuinsVaultPrizesTest {
     }
 
     @Test
+    void aCoreTellsItsHintedTierAndEveryOtherPrizeOnlyItsTheme() {
+        assertTrue(RuinsVaultPrizes.tellKeys(SEED, "site", null).isEmpty());
+        for (int i = 0; i < 400; i++) {
+            RuinsVaultPrize prize = prize(i, RuinsGrade.VAST, RuinsOccupant.DOMAIN_SECURITY);
+            List<String> tells = RuinsVaultPrizes.tellKeys(SEED, "site_" + i, prize);
+            assertEquals(prize.theme().tellKey(), tells.get(0));
+            String hint = RuinsVaultPrizes.hintedCore(SEED, "site_" + i, prize);
+            if (hint == null) assertEquals(1, tells.size());
+            else assertEquals(List.of(prize.theme().tellKey(), RuinsVaultPrizes.coreTellKey(hint)), tells);
+        }
+    }
+
+    @Test
     void tellKeysAreCamelCase() {
         assertEquals("ruinsTellServerHall", RuinsVaultTheme.SERVER_HALL.tellKey());
         assertEquals("ruinsTellCryoarithmeticEngine", RuinsVaultTheme.CRYOARITHMETIC_ENGINE.tellKey());

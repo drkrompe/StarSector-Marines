@@ -42,8 +42,8 @@ import java.util.Set;
  *                      a null argument normalizes to {@link SurfacePalette#ROCK}
  *                      rather than to a living world, because most of the Sector
  *                      is not a garden and silence should not claim otherwise.
- *                      Cultivated ground -- parks, street verges -- does not
- *                      consult this; see {@link SurfacePalette}.
+ *                      The colony's own lawn follows it too, through
+ *                      {@link SurfacePalette#inlandGround()}.
  * @param link          how the settlement joins the rest of its world. Never
  *                      null; a null argument normalizes to
  *                      {@link SettlementLink#ROAD}, because a battle with no

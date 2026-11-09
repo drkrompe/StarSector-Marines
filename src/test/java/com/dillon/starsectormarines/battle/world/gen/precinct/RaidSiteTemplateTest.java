@@ -6,11 +6,13 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,6 +32,7 @@ class RaidSiteTemplateTest {
     private static final int W = 280;
     private static final int H = 168;
     private static final RaidSiteTemplate SITE = RaidSiteTemplate.forIndustry("heavyindustry");
+    private static final RaidSiteTemplate MINE = RaidSiteTemplate.forIndustry("mining");
 
     private static TargetProfile market(int size, int defence) {
         return new TargetProfile(size, 5, defence, 1, "independent",
@@ -37,7 +40,11 @@ class RaidSiteTemplateTest {
     }
 
     private static PrecinctPlan lay(TargetProfile profile, long seed) {
-        return SITE.lay(profile, Fortification.Demand.UNSTATED, 4, W, H, new Random(seed));
+        return lay(SITE, profile, seed);
+    }
+
+    private static PrecinctPlan lay(RaidSiteTemplate site, TargetProfile profile, long seed) {
+        return site.lay(profile, Fortification.Demand.UNSTATED, 4, W, H, new Random(seed));
     }
 
     private static Precinct named(PrecinctPlan plan, String name) {
@@ -49,6 +56,8 @@ class RaidSiteTemplateTest {
     void onlyAnIndustryWithASiteHasOne() {
         assertNotNull(RaidSiteTemplate.forIndustry("heavyindustry"));
         assertNotNull(RaidSiteTemplate.forIndustry("orbitalworks"));
+        assertEquals("mining", RaidSiteTemplate.forIndustry("mining").key());
+        assertEquals("mining", RaidSiteTemplate.forIndustry("techmining").key());
         assertNull(RaidSiteTemplate.forIndustry("farming"));
         assertNull(RaidSiteTemplate.forIndustry(null));
     }
@@ -102,9 +111,13 @@ class RaidSiteTemplateTest {
      */
     @Test
     void theHomesStandBetweenTheLandingAndTheWorks() {
+        for (RaidSiteTemplate site : List.of(SITE, MINE)) theHomesStandBetweenTheLandingAndTheWorks(site);
+    }
+
+    private static void theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate site) {
         Set<String> orientations = new HashSet<>();
         for (long seed = 0; seed < 24; seed++) {
-            PrecinctPlan plan = lay(market(5, 3), seed);
+            PrecinctPlan plan = lay(site, market(5, 3), seed);
             boolean fromWest = plan.attackerFrom().x0() == 0f;
             orientations.add(fromWest + "/" + (named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2));
             int edge = fromWest ? 0 : W - 1;
@@ -166,6 +179,24 @@ class RaidSiteTemplateTest {
         assertTrue(works.detached());
         assertTrue(works.apron() > FortressProgram.works(3).apron(), "more halls, more yard");
         assertFalse(FortressProgram.garrison().detached(), "a garrison's buildings still corner into each other");
+    }
+
+    /** A mine's works is its head works: a winding house per shaft, the machines, standing apart on its ore yards. */
+    @Test
+    void aMinesWorksIsItsWindingHousesStandingApart() {
+        Precinct works = lay(MINE, market(5, 3), 1L).objective();
+        assertEquals(RaidSiteTemplate.WORKS, works.name());
+        assertEquals(Precinct.Boundary.WALLED, works.boundary());
+        assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE));
+        assertTrue(works.program().detached());
+        assertEquals(1, RaidWorksPrograms.mine(4).countOf(RoomPurpose.ENGINE_ROOM), "one ore mill the shafts feed");
+        assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more shafts, more ore yard");
+    }
+
+    /** A mine's ore yards are sparser than heavy industry's quarter. */
+    @Test
+    void aMinesYardsAreSparserThanAnIndustrialQuarter() {
+        assertTrue(MINE.industryJunctions() < SITE.industryJunctions());
     }
 
     /** The homes' streets reach less far than a settlement's, so the town keeps to its district. */

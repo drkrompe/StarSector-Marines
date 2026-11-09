@@ -70,6 +70,26 @@ public final class RuinsVaultPrizes {
         };
     }
 
+    /**
+     * The survey's tell of the vault, as string keys the briefing resolves: the theme's line, and for a core the
+     * hinted tier's line ({@link #hintedCore}). Empty for no prize.
+     */
+    public static List<String> tellKeys(long sectorSeed, String marketId, RuinsVaultPrize prize) {
+        if (prize == null) return List.of();
+        String core = hintedCore(sectorSeed, marketId, prize);
+        if (core == null) return List.of(prize.theme().tellKey());
+        return List.of(prize.theme().tellKey(), coreTellKey(core));
+    }
+
+    /** The line reading a core's hinted tier, for example {@code ruinsTellLikelyBetaCore}. */
+    static String coreTellKey(String core) {
+        return switch (core) {
+            case RuinsVaultPrize.ALPHA_CORE -> "ruinsTellLikelyAlphaCore";
+            case RuinsVaultPrize.BETA_CORE -> "ruinsTellLikelyBetaCore";
+            default -> "ruinsTellLikelyGammaCore";
+        };
+    }
+
     /** Family weights, goods, tech, AI core, colony item, for a grade before the occupant's lean. */
     static int[] familyWeights(RuinsGrade grade) {
         return switch (grade) {

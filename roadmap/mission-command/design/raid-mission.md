@@ -164,8 +164,15 @@ between them.
   keeps the derived map. Every other mission's map is unchanged; the glacis is
   the standard 3 cells for every place but a Raid site's works.
 
-The first site is heavy industry (`heavyindustry`, `orbitalworks`). The rest
-follow in `raid-site-templates.md`.
+The sites so far, each the same districts with the industry's own works:
+
+| Industry | Works (its machines first) | Industry round it |
+|---|---|---|
+| Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`FortressProgram.works`) | a dense industrial quarter and yards |
+| Mining (`mining`, `techmining`) | the head works: a winding house over each shaft, the ore mill they feed, stores, on wide ore yards (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
+
+The owner accepted heavy industry's site and asked for the rest in order
+(2026-11-09). The rest follow in `raid-site-templates.md`.
 
 ## Break: wreck the works (owner pick)
 

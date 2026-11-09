@@ -28,14 +28,9 @@ import java.util.Random;
  *   <li>No POI emitted.</li>
  * </ul>
  *
- * <p><b>A park is cultivated ground and does not consult the world's
- * {@link com.dillon.starsectormarines.battle.world.gen.SurfacePalette}.</b>
- * Lawn on an airless rock is a statement about the colony, not about the
- * planet: somebody shipped the soil in and somebody waters it. The palette
- * governs ground nobody planted — the hinterland and the wild {@code NATURE_*}
- * lots — so a barren world's parks stay green while the meadow outside the
- * settlement is regolith. That contrast is deliberate, and is pinned by
- * {@code CultivatedGroundTest} rather than left to be rediscovered.
+ * <p>A park lays lawn without asking the planet; the closing outdoor pass
+ * ({@link com.dillon.starsectormarines.battle.world.gen.CultivatedGround})
+ * turns it to the world's own cultivated ground where nothing grows.
  *
  * Deterministic — all randomness sourced from the orchestrator-seeded
  * {@link Random} passed in.
