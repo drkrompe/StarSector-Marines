@@ -653,7 +653,18 @@ stand on the approach outside, wired to the power hall:
 - Dark while the hall is cold, so dark when the company lands.
 - Restarting the hall, which powers the vault, wakes them too, unless a junction
   cuts their branch: power for the prize against guns on the way out.
-- They fire on anyone; the occupant never commands them.
+- The occupant never commands them.
+
+In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
+emplacement, standing 9 cells out from an entrance's apron toward the landing,
+on open ground outside the aprons and the interior. They hang on the first
+junction's way on, beside the first layer's gate. Throwing that junction to its
+store cuts the guns, but it also cuts the gate's power. The count rides the
+mission (`Mission.ruinsBatteries`) and the battle fixture. They stand on the
+defenders' side, so they fire on the company and its allies. Firing on the
+occupant too needs a side hostile to everyone, which the battle does not have
+yet. Dark and awake still look the same; a powered-down look is owed.
+`createSnapshots -Psnapshot=ruins-themed-site-look` shows them.
 
 ## Occupants
 

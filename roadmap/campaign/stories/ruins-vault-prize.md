@@ -1,7 +1,7 @@
 # Ruins vault prize
 
-Status: IN PROGRESS. Slices 1 and 2 are built, and so are the rules for slices 3
-and 6. Owner picks `ruins-find-tiers` a, `ruins-prize-forced` a and
+Status: IN PROGRESS. Slices 1, 2 and 6 are built, and so are the rules for
+slice 3. Owner picks `ruins-find-tiers` a, `ruins-prize-forced` a and
 `ruins-theme-defences` a are decided; `ruins-vault-prize` and
 `ruins-prize-hint` are open, and the work is built on their recommended options.
 
@@ -55,13 +55,19 @@ the ruins and guesses what is inside before committing the company.
    and the works' twist (heat valves, magnet gates, coolant junctions), one
    theme at a time, through picks with look shots. That is mapgen and art.
 
-6. **The old colony's batteries.** *Rules built* (`RuinsBatteries`: the count
-   by grade on a core or item site, and dark, awake or cut by the hall and their
-   branch). Still owed, all through the parent and the owning sessions:
-   - Batteries on the approach, from mapgen.
-   - A neutral gun that fires on anyone.
-   - A consumer on the batteries' branch in `PowerGraph`.
-   - Their fit with `ruins-pressure.md` and the mini-boss design.
+6. **The old colony's batteries.** *Built* (`RuinsBatteries`,
+   `RuinsBatteryGuns`).
+   - The count comes by grade on a core or item site, carried on the mission and
+     the fixture.
+   - The guns are heavy machine-gun emplacements on the approach, power cut.
+   - They wake with the hall and are cut by the first junction.
+   - `ruins-themed-site-look` shows them.
+
+   Still owed:
+   - A side hostile to everyone, so the guns fire on the occupant too.
+   - A powered-down look.
+   - The answers from `ruins-pressure.md` and the mini-boss design on stir and
+     the warden.
 
 ## Constraints
 

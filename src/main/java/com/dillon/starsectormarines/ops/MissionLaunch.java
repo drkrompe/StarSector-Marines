@@ -426,7 +426,7 @@ public final class MissionLaunch {
                                 m.enemyFighterSupport,
                                 m.ruinsGrade != null ? m.ruinsGrade : RuinsGrade.SCATTERED,
                                 m.ruinsOccupant != null ? m.ruinsOccupant : RuinsOccupant.SCAVENGERS,
-                                m.ruinsTakenFinds);
+                                m.ruinsTakenFinds, m.ruinsBatteries);
                 builder = ruinsFixture::build;
                 fixture = ruinsFixture;
                 break;

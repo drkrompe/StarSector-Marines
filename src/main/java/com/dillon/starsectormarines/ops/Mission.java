@@ -232,6 +232,8 @@ public final class Mission {
     public final RuinsOccupant ruinsOccupant;
     /** The ids of a ruins site's finds already brought home, left out of its battle ({@code RuinsSiteFinds}). */
     public final Set<String> ruinsTakenFinds;
+    /** How many of the old colony's batteries a ruins site keeps ({@code RuinsBatteries.count}); 0 for none. */
+    public final int ruinsBatteries;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -333,6 +335,7 @@ public final class Mission {
         this.ruinsGrade       = b.ruinsGrade;
         this.ruinsOccupant    = b.ruinsOccupant;
         this.ruinsTakenFinds  = b.ruinsTakenFinds == null ? Set.of() : Set.copyOf(b.ruinsTakenFinds);
+        this.ruinsBatteries   = b.ruinsBatteries;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -402,6 +405,7 @@ public final class Mission {
         private RuinsGrade ruinsGrade;
         private RuinsOccupant ruinsOccupant;
         private Set<String> ruinsTakenFinds = Set.of();
+        private int ruinsBatteries;
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -458,6 +462,7 @@ public final class Mission {
             this.ruinsGrade = m.ruinsGrade;
             this.ruinsOccupant = m.ruinsOccupant;
             this.ruinsTakenFinds = m.ruinsTakenFinds;
+            this.ruinsBatteries = m.ruinsBatteries;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -689,6 +694,12 @@ public final class Mission {
         /** @param ruinsTakenFinds the ids of a ruins site's finds already brought home ({@code RuinsSiteFinds}). */
         public Builder ruinsTakenFinds(Set<String> ruinsTakenFinds) {
             this.ruinsTakenFinds = ruinsTakenFinds;
+            return this;
+        }
+
+        /** @param ruinsBatteries how many of the old colony's batteries a ruins site keeps ({@code RuinsBatteries}). */
+        public Builder ruinsBatteries(int ruinsBatteries) {
+            this.ruinsBatteries = ruinsBatteries;
             return this;
         }
 

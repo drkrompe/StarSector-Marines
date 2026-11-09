@@ -232,6 +232,7 @@ public final class BattleFixtureJson {
             root.put("grade", ruins.grade().name());
             root.put("occupant", ruins.occupant().name());
             if (!ruins.takenFinds().isEmpty()) root.put("takenFinds", new JSONArray(ruins.takenFinds()));
+            if (ruins.batteries() > 0) root.put("batteries", ruins.batteries());
             return root;
         }
         if (fixture instanceof BloomHeartBattleFixture heart) {
@@ -476,7 +477,9 @@ public final class BattleFixtureJson {
                 root.has("occupant")
                         ? enumValue(RuinsOccupant.class, root.getString("occupant"), "occupant")
                         : RuinsOccupant.SCAVENGERS,
-                takenFindsFromJson(root));
+                takenFindsFromJson(root),
+                // Fixtures written before the batteries were carried keep none.
+                root.optInt("batteries", 0));
     }
 
     /** A ruins site's finds already brought home; none when the fixture names none. */

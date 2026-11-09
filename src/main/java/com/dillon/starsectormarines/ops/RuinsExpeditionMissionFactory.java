@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
@@ -80,9 +81,11 @@ public final class RuinsExpeditionMissionFactory {
                                  RuinsOccupant occupant, Set<String> takenFinds, Long sectorSeed) {
         if (serial <= 0 || marketId == null || planetName == null || grade == null || occupant == null) return null;
         List<String> tells = List.of();
+        int batteries = 0;
         if (sectorSeed != null) {
             RuinsVaultPrize prize = RuinsVaultPrizes.draw(sectorSeed, marketId, grade, occupant);
             tells = RuinsVaultPrizes.tellKeys(sectorSeed, marketId, prize);
+            batteries = RuinsBatteries.count(grade, prize);
         }
         OperationTier tier = tierFor(grade);
         String defenders = defenderFactionId(occupant);
@@ -105,6 +108,7 @@ public final class RuinsExpeditionMissionFactory {
                 .defenderFactionOverride(defenders)
                 .ruinsGrade(grade)
                 .ruinsTakenFinds(takenFinds == null ? Set.of() : takenFinds)
+                .ruinsBatteries(batteries)
                 // The same ground on every expedition: retry meets the same ruins (ruins-expedition.md).
                 .battleSeed(RuinsSiteFinds.battleSeed(marketId))
                 .ruinsOccupant(occupant)
