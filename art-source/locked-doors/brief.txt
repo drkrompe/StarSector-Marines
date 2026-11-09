@@ -1,0 +1,13 @@
+A sprite sheet of sliding blast doors for a top-down tactical game, seen straight down (orthographic, no perspective, no tilt), lit softly from the top-left.
+
+Reference 1 is the geometry guide and the exact layout authority. Every grey box in it is one sprite: fill each box exactly, edge to edge, keeping its position, size and proportions. Do not move, resize, add or merge boxes. Everything outside the boxes stays fully transparent: a true transparent background, including the gutters between pieces; no ground, floor, shadow slab, border, label or text anywhere.
+
+Reference 2 is material and style only, not layout: the game's existing fort door art. Match its painted, gritty, worn industrial metal look: gunmetal plates, rivets and bolts, chipped yellow-and-black hazard stripes, tiny status lamps, crisp dark outlines, readable at small size.
+
+Each long box is a shut door, lying across one wall cell, its length along the long side; the dark vertical line is the seam where its two leaves meet.
+
+- The lighter grey boxes (the 4-, 1-, 3- and 2-cell doors in the first two rows) are ordinary seal doors: two heavy sliding leaves of riveted gunmetal, each leaf banded with worn diagonal yellow-and-black hazard stripes, a dark steel frame round the whole door, and one small glowing red lamp on the seam at its middle. Old, dusty, scuffed, ancient ruin machinery.
+- The darker blue-grey boxes (the 1-cell door top right and the 2-cell door bottom left) are vault doors: massive armoured slabs, thick dark gunmetal with heavy reinforcing ribs across each leaf, interlocking locking bolts along the seam, a bright red lock bar across the seam with a glowing red lamp, and no yellow hazard stripes. They must look far heavier and more secure than the seal doors.
+- The narrow tall boxes are door jambs seen with the door open: a steel frame housing with the edge of the retracted leaf showing as the darker strip on one side, and one small glowing green lamp. The light grey jambs match the seal doors (a hint of hazard stripe on the leaf edge); the blue-grey jambs match the vault doors.
+
+No floor, no wall, no people, no text.
