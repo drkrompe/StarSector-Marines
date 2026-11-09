@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -52,6 +53,35 @@ class FlockFieldTest {
         FlockField field = FlockField.build(6, 5, 5, open);
         assertTrue(field.distance(5, 6) > FlockField.DIAGONAL, "the way round, not the one diagonal through the corner: "
                 + field.distance(5, 6));
+    }
+
+    /** A roofed hall x 4..12, y 4..12: walls round it, one door on its east wall at (12, 8); the rest open ground. */
+    private static boolean hallWalk(int x, int y) {
+        if (x < 0 || y < 0 || x > 24 || y > 24) return false;
+        boolean wall = (x == 4 || x == 12 || y == 4 || y == 12) && x >= 4 && x <= 12 && y >= 4 && y <= 12;
+        return !wall || (x == 12 && y == 8);
+    }
+
+    private static boolean hallOpen(int x, int y) {
+        return hallWalk(x, y) && !(x >= 4 && x <= 12 && y >= 4 && y <= 12);
+    }
+
+    @Test
+    void aTargetUnderARoofIsHeldAtTheDoorItWouldComeOutBy() {
+        // The target stands in the hall's west corner; its way out is the east door, so the threshold is just outside it.
+        assertArrayEquals(new int[]{13, 8}, FlockField.threshold(6, 6, 20, FlockFieldTest::hallWalk, FlockFieldTest::hallOpen));
+    }
+
+    @Test
+    void aTargetInTheOpenIsItsOwnThreshold() {
+        assertArrayEquals(new int[]{20, 20}, FlockField.threshold(20, 20, 20, FlockFieldTest::hallWalk, FlockFieldTest::hallOpen));
+    }
+
+    @Test
+    void aSealedRoomHasNoThreshold() {
+        FlockField.Open sealed = (x, y) -> hallWalk(x, y) && !(x == 12 && y == 8);
+        FlockField.Open open = (x, y) -> sealed.open(x, y) && !(x >= 4 && x <= 12 && y >= 4 && y <= 12);
+        assertNull(FlockField.threshold(6, 6, 20, sealed, open));
     }
 
     @Test

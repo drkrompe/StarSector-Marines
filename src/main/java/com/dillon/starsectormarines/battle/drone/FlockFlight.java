@@ -173,7 +173,7 @@ public final class FlockFlight {
         s.cooldownTimer = sim.world().cooldownTimer(member);
         s.attackCooldown = sim.combat().attackCooldown(member);
         s.target = sim.targetOf(member);
-        long strike = flock.strikeTarget();
+        long strike = flock.focusTarget();
         if (s.target == 0L && strike != 0L && sim.world().isAlive(strike)) s.target = strike;
         s.ignoreCloseWalls = true;
         s.closeWallRadius = sim.vision().airLosRadius(member);

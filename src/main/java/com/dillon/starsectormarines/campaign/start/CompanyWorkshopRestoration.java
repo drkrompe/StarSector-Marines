@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.campaign.start;
 
+import com.dillon.starsectormarines.campaign.refit.RefitTrack;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
@@ -28,13 +31,29 @@ public final class CompanyWorkshopRestoration {
         return WorkshopState.BURIED;
     }
     public static boolean toolingAboard() {
+        if (FleetFacilities.inUse()) return fleetWorkshop().tooled();
         FleetMemberAPI ship = CompanyShipDesignation.aboard();
         return ship != null && !ship.isMothballed() && state(ship).tooled();
     }
     /** The home ship's machine shop as a recycler; a hull outside the restoration chain runs as built. */
     public static Reclamation reclamationAboard() {
+        if (FleetFacilities.inUse()) return reclamation(fleetWorkshop());
         FleetMemberAPI ship = CompanyShipDesignation.aboard();
         return ship == null || ship.isMothballed() ? Reclamation.NONE : reclamation(state(ship));
+    }
+
+    /**
+     * Fleet facilities' machine shop as the stage of the chain its fabrication band matches: restored
+     * machinery, tooling, then the reclamation line (`fleet-facilities.md`).
+     */
+    static WorkshopState fleetWorkshop() { return workshop(FleetFacilities.condition().band(RefitTrack.FABRICATION)); }
+
+    static WorkshopState workshop(RefitBand fabrication) {
+        return switch (fabrication) {
+            case DEFICIT, RESTORED -> WorkshopState.REPAIRED;
+            case IMPROVED_I -> WorkshopState.EQUIPPED;
+            case IMPROVED_II -> WorkshopState.RECLAIMING;
+        };
     }
 
     /**

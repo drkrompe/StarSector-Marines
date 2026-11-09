@@ -1195,7 +1195,7 @@ public final class BattleSetup {
     }
 
     static final String RUINS_HAUL_ID = "RUINS-01";
-    static final String RUINS_HAUL_NAME = "vault haul";
+    static final String RUINS_HAUL_NAME = "Vault haul";
     static final String RUINS_VAULT_NAME = "The vault";
     static final String RUINS_LANDING_NAME = "Landing area";
 

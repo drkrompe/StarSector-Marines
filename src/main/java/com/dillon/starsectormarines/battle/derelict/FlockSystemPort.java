@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockTask;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,22 +14,17 @@ import java.util.TreeMap;
  * {@link Flock}'s own calls. An order that repeats the flock's standing task, point and target is not given again,
  * so a probe is not restarted every pulse.
  *
- * <p>A member's contact is reported where the unit stands now and as seen this tick: {@code contacts()} is what any
- * member saw on its last scan.
+ * <p>A contact is reported at the cell and on the scan tick its members saw it ({@code contactCells()},
+ * {@code contactTick()}), never where the unit has gone since.
  */
 final class FlockSystemPort implements FlockCommandPort {
 
     /** Within this many cells of home a flock that is going home counts as docked. */
     static final float DOCKED_CELLS = 2f;
 
-    private final BattleSimulation sim;
     private final Map<Integer, Flock> flocks = new TreeMap<>();
     private final Map<Integer, Integer> zoneOf = new TreeMap<>();
     private final Map<Integer, float[]> station = new TreeMap<>();
-
-    FlockSystemPort(BattleSimulation sim) {
-        this.sim = sim;
-    }
 
     void add(Flock flock, int zoneId) {
         flocks.put(flock.id(), flock);
@@ -39,15 +33,14 @@ final class FlockSystemPort implements FlockCommandPort {
 
     @Override
     public List<Report> reports() {
-        int tick = sim.getSimTickIndex();
         List<Report> out = new ArrayList<>();
         for (Flock flock : flocks.values()) {
             if (flock.size() == 0) continue;
             List<Contact> seen = new ArrayList<>();
-            for (long unit : flock.contacts()) {
-                if (!sim.world().isAlive(unit)) continue;
-                seen.add(new Contact(unit, (int) Math.floor(sim.world().x(unit)),
-                        (int) Math.floor(sim.world().y(unit)), tick));
+            long[] units = flock.contacts();
+            int[] cells = flock.contactCells();
+            for (int i = 0; i < units.length && 2 * i + 1 < cells.length; i++) {
+                seen.add(new Contact(units[i], cells[2 * i], cells[2 * i + 1], flock.contactTick()));
             }
             boolean home = Math.max(Math.abs(flock.anchorX() - flock.homeX()),
                     Math.abs(flock.anchorY() - flock.homeY())) <= DOCKED_CELLS;

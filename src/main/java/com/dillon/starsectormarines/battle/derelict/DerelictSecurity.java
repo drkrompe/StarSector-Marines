@@ -152,7 +152,7 @@ public final class DerelictSecurity {
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
                 vault.sourceCellX(), vault.sourceCellY());
-        FlockSystemPort port = new FlockSystemPort(sim);
+        FlockSystemPort port = new FlockSystemPort();
         for (ZonePlan plan : plans) {
             Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, plan.nodeX() + 0.5f, plan.nodeY() + 0.5f,
                     FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS);

@@ -34,6 +34,19 @@ class MissionObjectiveProjectionTest {
         assertEquals(0f, item.progress());
     }
 
+    @Test void theRuinsCardStartsAtTheVaultAndShowsEveryLiftPoint() {
+        var vault = new RuinsVaultObjective("R", "vault haul", "The vault", 0, 30f, 10f, List.of(
+                new RuinsVaultObjective.LiftPoint("Landing area", true, new int[]{10, 10, 2, 2}),
+                new RuinsVaultObjective.LiftPoint("East court", false, new int[]{10, 10, 14, 10})));
+        var item = MissionObjectiveProjection.payload(vault, IDLE);
+        assertEquals("R-source", item.focusMarkerId());
+        assertTrue(item.instruction().contains("30.0s"), "the breach states the grade's time");
+        assertEquals(3, item.markers().size(), "the vault, the landing area and the court");
+        var landing = item.markers().stream().filter(m -> m.name().equals("Landing area")).findFirst().orElseThrow();
+        var court = item.markers().stream().filter(m -> m.name().equals("East court")).findFirst().orElseThrow();
+        assertNotEquals(landing.status(), court.status(), "an unheld court is not shown as an open lift point");
+    }
+
     @Test void cohortReportsSimultaneousHoldsAndUsesTheMovingPayloadAsFocus() {
         var item = MissionObjectiveProjection.payload(new Cohort(false, false, 2, 1),
                 new CivilianEvacuationSystem.Progress(false, 0, true, false, 2, 1, 3, 1));
