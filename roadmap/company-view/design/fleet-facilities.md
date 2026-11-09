@@ -1,6 +1,6 @@
 # Fleet facilities: the company without a company ship
 
-Status: DRAFT — direction. Nothing here is implemented.
+Status: ACTIVE — direction. The fleet's receipts and neutral start are implemented; Engineering, the mock rooms and lift are not.
 Written: 2026-11-09
 
 Players ask to run the company from their own ship rather than the Second Wind.
@@ -58,9 +58,15 @@ requirements, prices and cards read the same. A purchase whose
 track owns a mock room reveals that room changed, the way `RefitReveal`
 reveals a deck room; any other purchase is confirmed in place.
 
-Every track starts at **Restored**, the band missions and evidence are tuned
-at, and sells only its Improved tiers, priced as the Second Wind's are. There
-is no Deficit to buy back, because the Deficit is her story.
+Every track starts at its neutral band, the figures missions and evidence are
+tuned at, and sells only what lies past it, priced as the Second Wind's tiers
+are. There is no Deficit to buy back, because the Deficit is her story. For most
+tracks neutral is Restored. A reserved room (range, gym, sick bay, lounge) and
+the reserve hangar are neutral while sealed, so they start shut and their
+opening is bought (`FleetFacilities`, `RefitTrack.fleetStart`). Receipts are
+the fleet's, saved under no hull, and the launch reads them for every company
+not on the Second Wind start. The fabrication core stands restored and has no
+fleet orders yet, so tiers that need Fabrication I wait on them.
 
 ## Mock rooms
 
