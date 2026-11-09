@@ -31,6 +31,9 @@ public final class FleetFacilities {
         return read(data == null ? Map.of() : data);
     }
 
+    /** A fleet that has bought nothing: every track at its neutral start. */
+    public static ShipCondition fresh() { return read(Map.of()); }
+
     /** The condition {@code data}'s receipts give, every track counted on from its fleet start. */
     static ShipCondition read(Map<String, Object> data) {
         return ShipRefits.read(data, RECEIPTS, RefitTrack::fleetStart, RefitBand.RESTORED);

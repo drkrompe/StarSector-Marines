@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
+import com.dillon.starsectormarines.ops.battleview.BackdropCanvas;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
@@ -83,8 +85,50 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
         try {
             while (!ship.ready()) Thread.onSpinWait();
             ship.advance(1f / 30f);
-            return render(context, ship, resourceBills);
+            var frames = new ArrayList<>(render(context, ship, resourceBills));
+            frames.addAll(fleet(context));
+            return frames;
         } finally { ship.dismiss(); }
+    }
+
+    /** Fleet facilities' Engineering: the tree alone over the backdrop, no deck (`fleet-facilities.md`). */
+    private List<SnapshotArtifact> fleet(SnapshotContext context) throws Exception {
+        var reactor = new Reactor();
+        var goods = HeadlessCommodityPresentation.from(context.starsectorCore());
+        var fresh = FleetFacilities.fresh();
+        var model = ShipConditionModel.fleet(reactor, () -> fresh,
+                order -> new ShipRefits.Offer(fresh, 20000, CARGO,
+                        ShipRefits.refusal(order, fresh, true, true, true, true, 20000, CARGO, goods::commodityName)),
+                order -> "Evidence: no campaign mutation", goods, () -> {});
+        var workshop = new WorkshopRestorationModel(reactor,
+                () -> new CompanyWorkshopRestoration.Offer(WorkshopState.NONE, 0, null), state -> null, () -> {}, () -> {});
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
+                "data/ui/components/company/company-resource-stock.mlx",
+                "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("survey", model.row()); props.put("workshop", workshop.row());
+        props.put("roomTitle", "ENGINEERING // FLEET FACILITIES");
+        props.put("roomCopy", "Select a system to review its next upgrade.");
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, purpose -> MarineOpsPageNav.Aboard.YES,
+                () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {});
+        try (var markup = loader.reloadAndBuild(reactor, "ship-view", props)) {
+            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+            markup.styles().forEach(document::addStyleSheet);
+            document.canvases().set(markup.requireElement("ship-view-deck"), new BackdropCanvas(null));
+            var overlay = new ShipConditionOverlay(document, markup, model);
+            var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                    new HeadlessBattleSceneRenderer(context.modRoot(), true));
+            List<SnapshotArtifact> frames = new ArrayList<>();
+            renderer.render(document, 1920, 1080);
+            overlay.update(0f, null, null);
+            frames.add(new SnapshotArtifact("20-fleet-tree.png", renderer.render(document, 1920, 1080)));
+            model.selectTrack(RefitTrack.MESS);
+            markup.flush();
+            overlay.update(0f, null, null);
+            frames.add(new SnapshotArtifact("21-fleet-mess.png", renderer.render(document, 1920, 1080)));
+            require(!overlay.dismiss(), "With no deck, going back leaves the page");
+            return frames;
+        }
     }
 
     private List<SnapshotArtifact> render(SnapshotContext context, CompanyDeck ship, boolean resourceBills) throws Exception {
