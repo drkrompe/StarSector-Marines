@@ -106,6 +106,21 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     static final String LIGHT_SPRITE = "graphics/fx/particlealpha64sq.png";
     /** Lamps along a roof's edge: their spacing and how far in from the edge, in metres. */
     static final float EDGE_LAMP_SPACING = 7f, EDGE_LAMP_INSET = 1.1f;
+    /** How often a craft's tail strobe flashes, in seconds. */
+    static final float NAV_STROBE_SECONDS = 1.3f;
+    /** Steam vents: how many at most, the share of roofs that carry one, and their puffs. */
+    static final int MAX_VENTS = 240, VENT_PERCENT = 55, PLUME_PUFFS = 12;
+    /** A plume: seconds for a puff to rise its height, the height, the lean, the swelling and the strength. */
+    static final float PLUME_SECONDS = 8f, PLUME_RISE = 32f, PLUME_LEAN = 9f, PLUME_BASE = 4f, PLUME_SWELL = 16f,
+            PLUME_ALPHA = 1f;
+    /** Searchlights: how many at most, the share of large crowns that carry one, and their beams. */
+    static final int MAX_BEAMS = 6, BEAM_PERCENT = 30, BEAM_DOTS = 36;
+    /**
+     * A beam's throw and its width at the end, its strength, how fast and how far it swings either side of straight
+     * out, the least edge that carries one, and how far under the surface it is drawn.
+     */
+    static final float BEAM_THROW = 150f, BEAM_WIDTH = 22f, BEAM_ALPHA = .13f, BEAM_SWEEP_HZ = .035f,
+            BEAM_SWEEP_RADIANS = .7f, BEAM_RUN = 30f, BEAM_DEPTH = 1.5f;
     /** Fog: the deep decks' colour, lit from the city below, and how fast the puffs drift, in metres a second. */
     static final float FOG_WARM_R = .86f, FOG_WARM_G = .64f, FOG_WARM_B = .44f, FOG_DRIFT = 1.6f;
     /** The shallow decks' fog, cool under the sky. */
@@ -152,7 +167,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * corner. {@code piece} is the bay or the corner; a corner's {@code run} is its chord, for culling and order.
      */
     private record Item(float depth, int kind, Level level, float[] run, float z0, float z1, float[] piece) {
-        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3, CORNER = 4, FOG = 5;
+        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3, CORNER = 4, FOG = 5, PLUME = 6, BEAM = 7;
     }
 
     /** Everything the structures draw, deepest first: the painter's order before the camera's far-first pass. */
@@ -502,6 +517,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             case Item.ROOF -> drawRoof(item.level());
             case Item.CORNER -> drawCornerBand(item.piece(), item.z0(), item.z1());
             case Item.FOG -> drawFog(item.depth(), (int) item.z0());
+            case Item.PLUME -> drawPlume(item.piece());
+            case Item.BEAM -> drawBeam(item.piece());
             default -> {
                 float[] run = item.run();
                 boolean horizontal = run[1] == run[3];
@@ -513,7 +530,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** Whether any of an item can be on screen: a wall band or girder by its run's ends at both its depths. */
     private boolean onScreen(Item item) {
         float[] run = item.run();
-        if (run == null || item.kind() == Item.MOUTH) return true;
+        if (run == null || item.kind() == Item.MOUTH || item.kind() == Item.PLUME || item.kind() == Item.BEAM) {
+            return true;
+        }
         float s0 = scale(item.z0()), s1 = scale(item.z1());
         float x0 = Math.min(Math.min(sx(run[0], s0), sx(run[2], s0)), Math.min(sx(run[0], s1), sx(run[2], s1)));
         float x1 = Math.max(Math.max(sx(run[0], s0), sx(run[2], s0)), Math.max(sx(run[0], s1), sx(run[2], s1)));
@@ -568,6 +587,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 items.add(new Item(air.fogDecks().get(k), Item.FOG, null, null, k, 0f, null));
             }
         }
+        if (air != null) plotVentsAndBeams(air);
         // Deepest first; at one depth a roof after the walls standing to it, so it covers its own far faces.
         items.sort((a, b) -> a.depth() != b.depth() ? Float.compare(b.depth(), a.depth())
                 : Integer.compare(a.kind() == Item.ROOF ? 1 : 0, b.kind() == Item.ROOF ? 1 : 0));
@@ -1046,6 +1066,107 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 Math.min(1f, g + .2f), Math.min(1f, b + .2f), a);
     }
 
+    // ----- steam and searchlights -----
+
+    /**
+     * Vents on the towers' roofs below the surface, each breathing a plume of steam, and searchlights at the playing
+     * surface's edges sweeping out over the drop. Placed by hash on the structures as built, so the same map always
+     * has the same ones. A plume is drawn just above its roof; a beam just under the surface, so it is over all the
+     * drop and the surface's own tiles cut it off at the edge.
+     */
+    private void plotVentsAndBeams(VoidBackdrop.Atmosphere air) {
+        int vents = 0, beams = 0;
+        for (Level level : levels) {
+            if (!level.surface || level.span) continue;
+            for (float[] run : level.runs) {
+                float length = Math.abs(run[2] - run[0]) + Math.abs(run[3] - run[1]);
+                int k = hash(Math.round(run[0] * 3), Math.round(run[1] * 5), 77);
+                if (length < BEAM_RUN || beams >= MAX_BEAMS || Math.floorMod(k, 100) >= BEAM_PERCENT) continue;
+                // At the run's far end, pointing out from the edge, the base of its sweep.
+                float base = (float) Math.atan2(run[5], run[4]);
+                items.add(new Item(BEAM_DEPTH, Item.BEAM, level, null, 0f, 0f,
+                        new float[]{run[2] + run[4] * .5f, run[3] + run[5] * .5f, BEAM_DEPTH, k >>> 3 & 0xffff, base}));
+                beams++;
+            }
+        }
+        for (Level level : levels) {
+            // Vents stand on the towers' own roofs, under the open sky, not on terraces in the walls' shade.
+            if (level.surface || level.span || !level.crown) continue;
+            for (float[] r : level.roofs) {
+                float w = r[2] - r[0], h = r[3] - r[1];
+                if (w < 4f || h < 4f) continue;
+                int k = hash(Math.round(r[0]), Math.round(r[1]), Math.round(level.top));
+                if (air.fogTexture() != null && vents < MAX_VENTS && Math.floorMod(k, 100) < VENT_PERCENT) {
+                    float vx = r[0] + w * (.2f + (k >>> 8 & 255) / 255f * .6f);
+                    float vy = r[1] + h * (.2f + (k >>> 16 & 255) / 255f * .6f);
+                    items.add(new Item(level.top - .02f, Item.PLUME, level, null, 0f, 0f,
+                            new float[]{vx, vy, level.top, k & 0xffff}));
+                    vents++;
+                }
+            }
+        }
+    }
+
+    /**
+     * A vent's steam: puffs from the fog sheet leaving the roof one after another, rising, swelling and thinning
+     * as they go and leaning with the wind, warm-lit from below.
+     */
+    private void drawPlume(float[] vent) {
+        ShuttleSpriteCache sheet = sprites.spriteByPath(backdrop.atmosphere().fogTexture());
+        if (sheet == null || sheet.pxW <= 0) return;
+        int cells = Math.max(1, backdrop.atmosphere().fogSheetCells());
+        int cw = sheet.pxW / cells, ch = sheet.pxH / cells;
+        int seed = (int) vent[3];
+        float period = PLUME_SECONDS * (.8f + (seed & 63) / 63f * .4f);
+        for (int p = 0; p < PLUME_PUFFS; p++) {
+            float u = (float) ((time / period + p / (float) PLUME_PUFFS + (seed >> 6 & 255) / 255f) % 1.0);
+            float z = vent[2] - u * PLUME_RISE;
+            float s = scale(Math.max(0f, z));
+            float x = vent[0] + u * u * PLUME_LEAN, y = vent[1] + (float) Math.sin(u * 3f + seed) * 1.5f;
+            float size = PLUME_BASE + u * PLUME_SWELL;
+            float px = sx(x, s), py = sy(y, s), pz = size * cam.cellPxSize() * s;
+            if (px < cam.vpX() - pz || px > cam.vpX() + cam.vpW() + pz || py < cam.vpY() - pz
+                    || py > cam.vpY() + cam.vpH() + pz) continue;
+            float haze = hazeAt(z);
+            // Dense as it leaves the vent, thinning as it rises and spreads.
+            float a = PLUME_ALPHA * (float) Math.sqrt(Math.sin(Math.PI * Math.min(1f, u * 1.6f + .05f)))
+                    * (1f - u) * (1f - haze * .4f) * alpha;
+            int cell = Math.floorMod(seed + p * 7, cells * cells);
+            out.addImageRegion(RenderLayer.GROUND, sheet.sprite, sheet.pxW, sheet.pxH,
+                    cell % cells * cw, cell / cells * ch, cw, ch, px, py, pz, pz, (seed + p * 53) % 360,
+                    lerp(.98f, backdrop.hazeR(), haze * .5f), lerp(.94f, backdrop.hazeG(), haze * .5f),
+                    lerp(.88f, backdrop.hazeB(), haze * .5f), a);
+        }
+    }
+
+    /**
+     * A searchlight at the surface's edge, its beam swinging slowly back and forth across the drop: a chain of soft lights
+     * along the throw, each wider and fainter than the last, so together they read as a cone of light, bright at
+     * the lamp and spreading into the air.
+     */
+    private void drawBeam(float[] lamp) {
+        ShuttleSpriteCache dot = sprites.spriteByPath(LIGHT_SPRITE);
+        if (dot == null) return;
+        int seed = (int) lamp[3];
+        float sweep = (float) (lamp[4] + Math.sin(time * BEAM_SWEEP_HZ * 2 * Math.PI + seed) * BEAM_SWEEP_RADIANS);
+        float dx = (float) Math.cos(sweep), dy = (float) Math.sin(sweep);
+        float z = lamp[2];
+        float s = scale(z), cellPx = cam.cellPxSize();
+        float a = BEAM_ALPHA * (1f - hazeAt(z) * .6f) * alpha;
+        for (int k = 1; k <= BEAM_DOTS; k++) {
+            float t = k / (float) BEAM_DOTS;
+            float x = lamp[0] + dx * BEAM_THROW * t, y = lamp[1] + dy * BEAM_THROW * t;
+            float qx = sx(x, s), qy = sy(y, s);
+            // The sprite's soft core is about a tenth of it, so it is drawn ten times the beam's width.
+            float size = BEAM_WIDTH * (.12f + .88f * t) * 10f * s * cellPx;
+            if (qx < cam.vpX() - size || qx > cam.vpX() + cam.vpW() + size || qy < cam.vpY() - size
+                    || qy > cam.vpY() + cam.vpH() + size) continue;
+            float fall = 1f - t;
+            out.addAdditiveSprite(RenderLayer.GROUND, dot.sprite, qx, qy, size, size, 0f, .85f, .92f, 1f, a * fall);
+        }
+        lamp(lamp[0], lamp[1], z, .9f, .95f, 1f, 1.6f, alpha);
+    }
+
     // ----- fog -----
 
     /**
@@ -1221,6 +1342,15 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         float g = Math.max(.2f, length * .035f);
         // Round, as the lamps are: a square of light read as a block stuck to the hull.
         lamp(tx, ty, z, 1f, .62f, .3f, g * 1.4f, .9f * a);
+        // Navigation lights: red to port and green to starboard at the hull's widest, a white strobe at the tail.
+        float span = length * sprite.aspect * .45f;
+        float px = -(float) Math.sin(heading) * span, py = (float) Math.cos(heading) * span;
+        float mx = x - (float) Math.cos(heading) * length * .1f, my = y - (float) Math.sin(heading) * length * .1f;
+        float nav = Math.max(.15f, length * .018f);
+        lamp(mx + px, my + py, z, 1f, .15f, .1f, nav, .85f * a);
+        lamp(mx - px, my - py, z, .2f, 1f, .35f, nav, .85f * a);
+        float strobe = (float) ((time + hull * .37f + Math.abs(heading)) % NAV_STROBE_SECONDS);
+        if (strobe < .09f) lamp(tx, ty, z, 1f, 1f, 1f, nav * 1.3f, a);
     }
 
     /**

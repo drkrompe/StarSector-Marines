@@ -158,7 +158,7 @@ public final class RuinsSleepers {
     }
 
     /**
-     * A loud work at a cell (the power hall restarting, `ruins-works.md`): the nearest bore still closed is roused to its
+     * A loud work at a cell (the power hall restarting, `ruins-expedition.md`, Works): the nearest bore still closed is roused to its
      * threshold and opens on the next step.
      */
     public void loud(float x, float y) {

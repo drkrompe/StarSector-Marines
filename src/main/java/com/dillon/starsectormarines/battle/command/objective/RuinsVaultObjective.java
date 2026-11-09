@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -96,6 +97,8 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     private final List<LiftPoint> liftPoints;
     private final List<EscortedRoute> routes = new ArrayList<>();
     private final List<UncontestedHold> courts = new ArrayList<>();
+    /** Whether each lift point's lift has power; all of them until the site's works say otherwise. */
+    private final boolean[] liftPowered;
     private final int landing;
     private final UncontestedHold breach;
     private final UncontestedHold boarding = new UncontestedHold(BOARDING_SECONDS);
@@ -143,6 +146,8 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
         this.breachSeconds = breachSeconds;
         this.poweredBreachSeconds = poweredBreachSeconds;
         this.liftPoints = List.copyOf(liftPoints);
+        this.liftPowered = new boolean[liftPoints.size()];
+        Arrays.fill(this.liftPowered, true);
         this.breach = new UncontestedHold(breachSeconds);
         for (LiftPoint point : this.liftPoints) {
             routes.add(new EscortedRoute(point.route(), SECONDS_PER_ROUTE_CELL, LOSS_SECONDS, ABANDONMENT_SECONDS,
@@ -226,9 +231,16 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     }
 
     private boolean available(int liftPoint) {
+        if (!liftPowered[liftPoint]) return false;
         UncontestedHold court = courts.get(liftPoint);
         return court == null || court.held();
     }
+
+    /**
+     * Whether a lift point's lift has power: a landing court on an empty ruins site lifts only while the site's works
+     * feed it ({@code ruins-expedition.md}, Works). Every lift point has power until the works say otherwise.
+     */
+    public void setLiftPowered(int liftPoint, boolean powered) { liftPowered[liftPoint] = powered; }
 
     private void report(boolean contested, boolean escortPresent, int controllingSquadId) {
         this.contested = contested;

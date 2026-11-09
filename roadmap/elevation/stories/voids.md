@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — the gorge river, the first natural style, has a look experiment; the plan for the other natural styles and their placement.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -48,6 +48,17 @@ face and ramp, and folds into `elevation-nouns.md` when it ships.
   at the tier of the ground they join. Nothing walks under it, so "one cell, one
   level" holds. A bridge's width decides what crosses it, exactly as a ramp's
   does: infantry need one cell, a vehicle or mech needs its clearance.
+- A **rise** is the void turned up: unwalkable ground **above** the tier, which
+  no ground unit stands on, a ravine's walls rising over the floor the battle
+  is fought on. Its **height** is a whole number of metres above the tier
+  around it, read only by the look; its **foot** is its band along walkable
+  ground, drawn as a wall going up. To the battle a rise is high ground
+  without a top anyone reaches: elevation's inaccessible raised mass
+  (`elevation-nouns.md`, Purpose), not a plateau, so it needs no face width
+  and no ramp. It is natural solid, unwalkable, and **blocks sight** as higher
+  ground does; its foot gives the cover a cliff foot gives. That sight rule is
+  the one battle difference between a rise and a void, and the look tells
+  their cells apart by it.
 - Roads over roads (overpasses) are **not** voids and are out of scope. They
   need two walkable levels on one cell, which this model forbids.
 
@@ -305,6 +316,19 @@ Laws):
      depth so the towers rise out of them. The shallow deck is cool under
      the sky; the deep one warm, lit by the city below, and thinner, so its
      lights show through.
+   - **Steam, searchlights and running lights** (owner, 2026-11-09: more
+     effects). Vents on the towers' own roofs breathe steam: puffs from the
+     fog sheet leaving the roof one after another, rising, swelling, thinning
+     and leaning with the wind, whiter than the fog banks so they read as
+     columns. Searchlights stand at some corners of the playing surface,
+     their beams swinging slowly out over the drop: a chain of soft lights
+     widening and fading along the throw, drawn additively, since light
+     composited over grey fog does not brighten it; the surface's tiles cut
+     a beam off where it crosses the deck. Lamps on the city's deep crowns
+     were tried first; the nearer towers' walls hid their beams. Every craft
+     carries a red and a green light at its widest and a white strobe at
+     its tail, and its engine glow is round. Steam vents on the terraces were
+     tried and dropped: the fog banks drowned them.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
      Each structure's roof takes a corner radius hashed from its place
      (square, 6, 10 or 14 m; a plain sum of its position put every tower of
@@ -420,11 +444,57 @@ Laws):
    pattern drifting downstream and fading into the next every few seconds,
    white along the walls and where the stream breaks, the sun glinting where
    it reaches. The suite renders camera heights of 120 m and 160 m (the
-   city's 240 m makes a 50 m drop read as a ditch). Left: the owner's pick
-   of depth and camera height; a mist
+   city's 240 m makes a 50 m drop read as a ditch). The owner called the
+   first pass good and named no height, so 120 m is the working camera for
+   natural styles, accepted by default (2026-11-09). Left: the owner's pick
+   of depth; a mist
    over the water; boulders and fallen trees in the stream; trees and roots
    hanging over the lip; which way the river runs on a map that names it
    (now it runs toward the map's east or south).
+
+   **Rises: verticality up** (owner, 2026-11-09: "keep working with this for
+   verticality up as well", the player on the bottom of a ravine). A map
+   carries a `NaturalRise` beside its `NaturalVoid`: the same steps with
+   heights for depths, drawn by a second `NaturalVoidRenderSystem` from the
+   same field (`NaturalVoidField` with a rising shape), not a new renderer.
+   The look suite is `createSnapshots -Psnapshot=ravine-rise-look`: a ravine
+   floor between cliffs, a side canyon and a rock stack standing in the floor.
+   - **The camera turned over.** Higher is nearer the eye, so a ledge
+     `h` metres up stands at `eye / (eye - h)` of its distance from the
+     view's centre: a rise's walls lean **out** from the centre, its rim
+     slides outward faster than the floor as the camera pans, and the eye
+     must stand above the top. The rise is drawn lowest first: its foot,
+     each face then the ledge on it, the top last. A face turned from the
+     camera is never drawn; the faces before it and the top cover where it
+     would be.
+   - **Never over a unit.** A rise is drawn in the ground layer after the
+     tiles and before every unit. So it is seen whole where it leans out past
+     its own cells (a stack's top seen from beside it, a mesa from above),
+     and a unit at the foot of a wall, or standing where a top leans over the
+     floor, is always drawn over the rock: the picture never hides or shows a
+     unit the battle sees otherwise (Laws). Clipping a rise to its own cells,
+     as the tiles clip a drop, was tried first: a stack's top leans out of
+     its footprint and was cut away, leaving a broken ring of wall.
+   - **The rim and the top.** The steps nest as a drop's do, so a rise never
+     overhangs: a lip that juts is drawn by its ledge and its face's shade,
+     not by rock over air. The top is the plateau beyond the rim: turf with
+     clumps of wood, thickest a little back, bare rock breaking through along
+     the rim. The foot is talus, fraying onto the floor over the tiles as a
+     drop's lip frays onto the bank.
+   - **Sun.** Faces and ledges are lit as a drop's are, a face's sky taken
+     just out from it at each height. The rise casts on the floor: its shadow
+     is worked out on the walkable ground round its foot, as far as its height
+     throws it, and laid over the tiles under the units, so a narrow ravine's
+     floor lies in its walls' shade but for where the sun runs along it.
+   - Narrow floor between two rises is a pass, never a bridge.
+   First pass (ravine wall): the gorge's strata wall, two ledges and the top
+   36 m up, camera 120 m. Left: the owner's pick of height; a top with real
+   art (a canopy image rather than flat colour, which blurs as the top scales
+   up); trees and roots along the rim; the floor's own look (a dry wash, a
+   stream); the floor running off the map's edge (now black past it); a rise
+   and a drop on one map (the sight tag already tells their cells apart);
+   culling the top's pieces by chunk, since a rise covering most of a map
+   cuts many.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
@@ -479,10 +549,16 @@ Laws):
 - Nothing stands, lands or falls in a void.
 - Everything drawn inside a void is presentation. It neither displaces nor
   hides a unit.
+- A rise is never walkable, blocks sight as higher ground does, and never
+  changes in a battle. Nothing drawn of it, however far it leans, hides a
+  unit.
 - A map without voids behaves exactly as before.
 
 ## Open (owner)
 
+- Rises: whether a top leaning over the walkable floor (behind a rock stack,
+  or a mesa seen from above) should give way to units more visibly, for
+  example fading where a unit stands under it. Units are drawn over it now.
 - Depth: felt out from the slice 3 and 4 renders: whole storeys per style, or
   one "bottomless" look.
 - Later, not now: whether a railing ever gives low cover. It would be the one

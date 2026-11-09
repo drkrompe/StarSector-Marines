@@ -84,6 +84,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                     out.add(shot(context, sim, tag + "-6-tracks.png", 215f, 90f, PLAY));
                     out.add(shot(context, sim, tag + "-7-platform-ends.png", 300f, 120f, 85f));
                     out.add(shot(context, sim, tag + "-8-station.png", 170f, 120f, 170f));
+                    out.add(shot(context, sim, tag + "-10-city-corner.png", 330f, 215f, 130f));
                     if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 36f, 119f, 230f, 105f));
                 }
                 // The heist's freighter at its berth: called to stand there from before the stills' battle clock.

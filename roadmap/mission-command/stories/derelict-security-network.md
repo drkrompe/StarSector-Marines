@@ -69,7 +69,7 @@ swarm director, and it commands flocks as units.
    target until its zone is awake. Secondary: a few per zone at doors and
    courts.
 8. **Power branches.** At a site whose power hall feeds the network, a
-   junction that cuts a branch powers down the zones on it (`ruins-works.md`).
+   junction that cuts a branch powers down the zones on it (`ruins-expedition.md`, Works).
 9. **Looks.** Domain and contingency looks for the posts and node
    (`tech-families.md`), with picks. The cradle's look is the flocks'
    (`air-nouns.md`, Flocks).

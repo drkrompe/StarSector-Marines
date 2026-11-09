@@ -297,45 +297,108 @@ take the vault fast and leave the store; restart the hall, or spend a charge on
 the door and keep moving. The records terminal turns the unknown wiring into a
 plan; without it the company learns each junction by throwing it.
 
-**The wiring follows the delve.** Each layer has one junction at its stand. It
-feeds either that layer's sealed store or the way on: the layer's seal gate, and
-at the last layer the vault's seal. Junctions start on the way on, and the
-capacity is the way on's load plus one, so one store at a time can be fed
-beside it. An overloaded hall powers nothing until a junction sheds load.
-The vault's seal is its inner door, and on scattered ground the bunker's door is
-sealed too, both on the last layer's way on; once the vault is breached they
-stay open. The vault's door and its suite's walls are hardened: no charge and
-no heavy hull gets in, so the hall is the vault's one way. Powered, the door
-still waits on two keys turned together: the company holds the records console
-and the vault keypad at the same moment, so it splits across the site
-(`ruins-works.md`, Vault access).
-A store, a gate or the collapse is forced through its prompt: a satchel carrier
-brought within reach sets the charge.
+**The wiring follows the delve** (`RuinsWorks`, `PowerGraph`). Each layer has
+one junction at its stand. It feeds either that layer's store side (its sealed
+stores and, on an empty site, its landing court's lift) or its way on (its seal
+gate; at the last layer the bunker's door and, unless the site crossed its feed,
+the vault's door). Junctions start on the way on. The hall's capacity is the
+whole way on plus room for any one layer's store side in place of its way on,
+at least one more (`RuinsWorks.capacity`): one junction thrown to its store side
+never overloads the hall. An overloaded hall powers nothing until a junction
+sheds load; it needs no second restart.
+
+**Working the works.** Infantry hold the hall's console 6 s to restart it, a
+junction's box 2 s to throw it, and the records console 4 s to read it, each
+through the side objective's world prompt within 10 cells. A box in the open is
+worked within 2.5 cells; a console in a building (the hall, the records office)
+by anyone in it or within 3 cells of its walls, since a squad sent to a building
+holds it from its tactical places. A restart is loud: it wakes the Rav's
+nearest closed bore at once (`RuinsSleepers.loud`) and stirs the derelict zone
+keeping the hall, or the nearest (`SecurityNetwork.loud`). Until the records are
+read, every sealed store is unmarked and offers no prompt, and a junction says
+what it feeds only once thrown (FEEDS ?, verb THROW); a store is still there and
+opens when its junction is thrown blind. The objectives rail carries a Site
+power row: the hall's load, each junction's branch, each door's state.
+
+**Seal doors** are locked doors (`garrisonables.md`, Locked doors and hardened
+walls) whose lock is their consumer's power: shut at setup as the wall beside
+them, open while powered, shut again once nobody stands in the door or the room
+it keeps, dropping routes through it. A breach through a forcible one (a store,
+a gate, the bunker's door) forces it open for good. Once the vault is breached
+every door on the way on stays open, so the haul is never shut in. A store is a
+field cache just inside its door, recovered by holding its room
+(`SalvageCache.heldFromRoom`).
+
+**The vault's door** is its inner door, hardened, as are its suite's walls
+(`HardenedWalls`, from the published `ruins.vault` footprint): no charge and no
+heavy hull gets in. Owner pick `ruins-vault-seal`: a door with a puzzle, so a
+heavy tank is not simply driven through. Its power is not enough: each site
+draws its **vault access** from a pool (`VaultAccess`; owner pick
+`ruins-vault-access`, "we shouldn't have the same situation each time"),
+uniform over what its ground allows, from a seed read off the ground
+(`RuinsWorks.siteSeed`), so the same ground always draws the same access:
+
+- **Two keys** (`VaultKeys`): once powered, the company holds the records
+  console and the vault keypad (on the antechamber floor before the door) at the
+  same moment for 3 s. It splits the company across the site.
+- **Records code** (`VaultCode`): the records give the vault code; with the door
+  powered the company holds the keypad 3 s to enter it.
+- **Crossed feed**: the last junction feeds the vault's door on its store side
+  and the way in (the bunker's door or the last gate) on its way on. The company
+  gets in first, then throws it; the way in shuts behind it once clear, and
+  opens again with the breach or a charge.
+- **Power only**: a site with no records and nothing to cross.
+
+The keypad variants need a records terminal; the crossed feed needs a door on
+the last layer's way on to cross with. The door says what it lacks: its marker
+and prompt read NO POWER, then TURN BOTH KEYS (keys held n/2), NEEDS THE CODE or
+ENTER THE CODE; the keypad and the records console are marked; the last
+junction reads FEEDS THE VAULT; and the door's lock bar and lamp burn amber
+while it is powered but still locked. Powered, the breach takes the powered
+time.
+
+A store, a gate or the collapse is forced through its prompt: the first
+company satchel carrier within his contact range (plus 1.5 cells) of one of its
+cells sets a charge there (`SatchelChargeService.plantAtCell`).
 
 **Charges are the price of skipping it.** A breaching charge forces a store or
 gate or clears a collapse at once, but charges are finite issue
-(`DemolitionKit`). The vault is the exception: its door opens only by the
-hall's power. Nothing is ever locked for good: every other puzzle has a forced
-way and the hall is always on the site, so a wrong choice costs time and
-charges, never the expedition.
+(`DemolitionKit`). The vault is the exception: only its power and its access
+open it. Nothing is ever locked for good: every other puzzle has a forced way,
+and the hall and records are always on the site, so a wrong choice costs time
+and charges, never the expedition.
 
 **What the works pay.** A powered vault breaches in a third of the time. Each
-**sealed store** behind a seal door holds an extra field cache. An empty site
-has two stores, where they are its main reward; an occupied site has at most one
-per layer. A hidden store is shown only by the records terminal. All of it
-settles as field finds, preselected and outside vanilla's haul (Law 5).
+**sealed store** holds an extra field cache. An empty site has two stores (its
+last layer seals both side rooms, `RuinsWorks.storesIn`), where they are its
+main reward; an occupied site has one per layer. All of it settles as field
+finds, preselected and outside vanilla's haul (Law 5).
 
 **On an empty site** the works are laid as one chain that ends at the vault:
-the vault seal is unpowered, the short way is choked by a collapse, the power
-hall stands in a side layer, and the capacity covers the vault and one other
-consumer, so the player chooses between the sealed store and the landing court.
-It is short (scattered is the smallest map) and every step is visible from the
-one before it.
+the vault's door is unpowered, the short way is choked by a collapse, the power
+hall stands in a side layer. Each landing court's lift is a consumer on its
+layer's store side, and an unpowered court is no lift point (owner pick
+`ruins-court-power`; `RuinsVaultObjective.setLiftPowered`): the player chooses
+between the way on and the store with the near lift, and after the breach can
+throw the last junction to bring a court's lift up for the haul.
 
-**On an occupied site** the works are fewer and optional, and they touch the
-occupant: restarting a power hall is loud (it wakes the Rav's nearest bores and
-any derelict zone that hears it), and at a derelict site the power hall feeds
-the network, so a junction that cuts a branch powers down the zones on it.
+**On an occupied site** the works are fewer and optional beside the occupant:
+the seal gates and the bunker's door stand open, only the stores and the vault
+stay locked (owner pick `ruins-occupied-locks`), so the loud restart is the
+price of every vault. At a derelict site the power hall feeds the network, so a
+junction thrown to its store side powers down the zones on its way on
+(`derelict-security-network.md`). Courts stay lift points once held.
+
+**Proof and look.** The rules are proven by unit tests where they are decided:
+`PowerGraphTest`, `RuinsWorksTest`, `VaultAccessTest`, `VaultKeysTest`,
+`VaultCodeTest`, `LockedDoorTest`, `RuinsVaultObjectiveTest`,
+`SalvageCacheTest`, `RuinsSleepersTest`, `SecurityNetworkTest`. No mission run
+or scene judges whether the company gets through (owner rule); whether the
+chain plays well is the owner's playtest. Look shots: `ruins-works-look` (a
+store sealed and powered open), `ruins-vault-lock-look` (the vault's door
+locked, its hardened walls tinted, powered, open), `ruins-vault-access-look`
+(one card per access variant on a site that drew it), `ruins-works-picks` (the
+court-power and occupied-locks cards).
 
 ### The entrance and the pull-out point
 
@@ -396,6 +459,11 @@ toward the entrance:
   scavenger patrols, a derelict flock on its leash (flocks never enter a roofed
   room). It does not take the entrance. It is waiting when the company and the
   haul come out, so a thorough phase A pays at the end.
+- **The stir** (planned, `ruins-pressure.md`). An occupied site keeps the
+  pressure on the whole delve: time inside, gunfire and loud acts raise a stir
+  that never falls, and each step sends a push out of a finite reserve deeper
+  in, hunting the company, or onto the way back behind a company that sits
+  still. Nothing comes up behind the first layer inside.
 - **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out
