@@ -24,7 +24,7 @@ public final class RuinsLandingStage implements GenStage {
             ctx.landingPads.addAll(area.berths());
         }
         RuinsDelve.Area ground = delve.landingGround();
-        ctx.put(BspKeys.MARINE_SPAWN, new int[]{RuinsDelveStage.BERTH_COLUMN + 4, ground.centreY()});
+        ctx.put(BspKeys.MARINE_SPAWN, new int[]{ground.left() + RuinsDelveStage.BERTH_COLUMN + 4, ground.centreY()});
         RuinsDelve.Cell approach = delve.vault().approach();
         ctx.put(BspKeys.DEFENDER_SPAWN, new int[]{approach.x(), approach.y()});
     }

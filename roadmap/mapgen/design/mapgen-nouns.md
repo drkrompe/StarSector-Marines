@@ -1888,7 +1888,7 @@ the map records for the command layer to read.
 A ruins site's map (`ruins-expedition.md`, Ruined ground) is a grown
 settlement that died: the same growth at a density the mission states,
 `SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
-cleared landing ground at the west end, a vault at the east end, and between
+cleared landing ground toward the west end, a vault at the east end, and between
 them the ruins grade's **layers**, each a line across the whole map with its
 ways through: a wall inside the megastructure, a boundary outside it.
 
@@ -1902,7 +1902,10 @@ pick (`ruins-map-size` b): "The larger maps give us the more interesting
 exploration. The player needs to determine whether they still have the forces
 to continue." 200x112 at scattered, 280x168 (the full-strength map), 400x240
 (the colony map) and 560x336 at vast (Conquest's), at densities 0.55 to 0.85
-so the dead town fills the route and the layers cross ruins, not open country. The profile gives only the
+so the dead town fills the route and the layers cross ruins, not open country. A Raid's
+town takes the same two steps (`MapScale.forRaid`, the owner's pick
+`raid-map-size` b: 200x112, 280x168, 400x240), and its precinct plan derives at
+that size. The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
@@ -1913,7 +1916,7 @@ Every place has a stable name (`places()` lists them, `area(name)` answers one):
 
 | Name | What it is |
 |---|---|
-| `ruins.landing` | The cleared landing ground at the west end. Its arrival areas are the map's own `landingAreas` and `landingPads`, the only berths on the map; the company spawns on it. |
+| `ruins.landing` | The cleared landing ground toward the west end, a tenth of the map in from the edge (`RuinsDelveStage.landingLeft`), never on it (owner: "we don't need to keep landing zones at the edge of the map"): ruins or open ground lie behind it as well as ahead, and its berths are under open sky. Its arrival areas are the map's own `landingAreas` and `landingPads`, the only berths on the map; the company spawns on it. |
 | `ruins.vault` | The vault suite at the east end: its door, inner door, the approach cell outside the door, and the one source cell the breach is held on. The opposing anchor stands at the approach. |
 | `ruins.layer.N` | Layer N, from 1 nearest the landing: its holdable ground up to the next layer's line; a collapsed street, a breached wall or, inside the megastructure only, a sealed gate. |
 | `ruins.layer.N.way.M` | The ways through layer N: a gap, a breach, a sealed gate's span (open ground until the works shut it) or the side way round a gate, each with its span and a cell either side. |

@@ -52,10 +52,10 @@ import java.util.Random;
  */
 public final class RuinsDelveStage implements GenStage {
 
-    /** The landing ground runs from the west edge to this column. */
+    /** The landing ground's width in columns. */
     static final int LANDING_DEPTH = 16;
-    /** Berth centres stand on this column, deep enough into the ground that the approach is open air. */
-    static final int BERTH_COLUMN = 6;
+    /** Berth centres stand this many columns into the landing ground, deep enough that the approach is open air. */
+    static final int BERTH_COLUMN = 5;
     /** Half the lateral spread of one arrival area's berths, as the shipped arrival areas have it. */
     static final int BERTH_OFFSET = 4;
     static final int VAULT_WIDTH = 11, VAULT_HEIGHT = 9;
@@ -69,6 +69,16 @@ public final class RuinsDelveStage implements GenStage {
     static final int ROOMS_PER_LAYER = 2;
     /** The most ground a repair may wall in rather than join; more is a layout error, not a pocket. */
     static final int MAX_SEALED_POCKET = 60;
+
+    /**
+     * The landing ground's west column on a map {@code width} cells wide: a tenth of the way in, never at the
+     * edge (owner: "we don't need to keep landing zones at the edge of the map"). The dead settlement and open
+     * ground lie behind it as well as ahead, so the company lands among the ruins rather than at their rim; the
+     * delve still runs east from it to the vault.
+     */
+    static int landingLeft(int width) {
+        return Math.max(2, width / 10);
+    }
 
     static final String[] RUIN_WALLS = {"colony.masonry-wall", "colony.ceramic-wall", "colony.olive-wall"};
     static final String[] RUIN_FLOORS = {"colony.concrete", "colony.timber", "colony.terrazzo", "colony.terracotta"};
@@ -166,20 +176,23 @@ public final class RuinsDelveStage implements GenStage {
             endStreets();
             weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
-            Area landingGround = new Area(1, Math.max(1, landingY - 16), LANDING_DEPTH, Math.min(h - 2, landingY + 16));
+            int landingLeft = landingLeft(w);
+            Area landingGround = new Area(landingLeft, Math.max(1, landingY - 16), landingLeft + LANDING_DEPTH - 1,
+                    Math.min(h - 2, landingY + 16));
+            int berthX = landingLeft + BERTH_COLUMN;
             open(landingGround, null);
             reserve(landingGround, 0);
             List<LandingArea> landing = new ArrayList<>();
             int index = 1;
             for (int lateral : new int[]{landingY - 8, landingY + 8}) {
                 landing.add(new LandingArea("ruins-landing-" + index++,
-                        LandingPad.civilian(BERTH_COLUMN, lateral - BERTH_OFFSET, LandingPad.Approach.WEST),
-                        LandingPad.civilian(BERTH_COLUMN, lateral + BERTH_OFFSET, LandingPad.Approach.WEST)));
+                        LandingPad.civilian(berthX, lateral - BERTH_OFFSET, LandingPad.Approach.WEST),
+                        LandingPad.civilian(berthX, lateral + BERTH_OFFSET, LandingPad.Approach.WEST)));
             }
 
             int vaultY = clamp(h / 2 + rng.nextInt(h / 3 + 1) - h / 6, 10, h - 11);
             Vault vault = vault(vaultY);
-            int zoneStart = LANDING_DEPTH + 2;
+            int zoneStart = landingGround.right() + 2;
             int zoneEnd = vault.footprint().left() - FORECOURT - 1;
 
             int layers = plan.layers();
