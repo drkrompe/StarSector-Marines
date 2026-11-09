@@ -351,11 +351,13 @@ public final class QuadBatch {
     public void appendPatch(int sx,int sy,int sw,int sh,float cx,float cy,float w,float h,
                             float r,float g,float b,float a,float[] patch) {
         ensureCapacity(quadCount+1);int at=quadCount*8;
+        // Sixteen floats carry the tile UVs to sample after the positions; eight sample where they lie.
+        int tex=patch.length>=16?8:0;
         for(int i=0;i<8;i+=2) {
-            float x=patch[i],y=patch[i+1];
+            float x=patch[i],y=patch[i+1],u=patch[tex+i],v=patch[tex+i+1];
             posData[at+i]=cx+(x-.5f)*w;posData[at+i+1]=cy+(y-.5f)*h;
-            uvData[at+i]=(sx+x*sw)/sheetPxW*sheet.getTextureWidth();
-            uvData[at+i+1]=sheet.getTextureHeight()-(sy+(1-y)*sh)/sheetPxH*sheet.getTextureHeight();
+            uvData[at+i]=(sx+u*sw)/sheetPxW*sheet.getTextureWidth();
+            uvData[at+i+1]=sheet.getTextureHeight()-(sy+(1-v)*sh)/sheetPxH*sheet.getTextureHeight();
         }
         writeQuadColor(r,g,b,a);quadCount++;
     }
