@@ -33,6 +33,7 @@
         }
       },
       "render": {
+        "impactMark": "ROCKET",
         "projectileSprite": "graphics/missiles/missile_locust.png",
         "projectileVisualCells": 0.7
       },
@@ -215,6 +216,7 @@
         }
       },
       "render": {
+        "impactMark": "ROCKET",
         "projectileSprite": "graphics/missiles/missile_SRM.png",
         "projectileVisualCells": 0.7
       },
@@ -399,6 +401,7 @@
         "minRange": 10
       },
       "render": {
+        "impactMark": "FLAK",
         "projectileSprite": "graphics/missiles/phase_charge_base.png",
         "projectileVisualCells": 0.8
       },

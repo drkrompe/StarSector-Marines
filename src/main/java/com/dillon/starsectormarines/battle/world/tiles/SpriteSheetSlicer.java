@@ -102,4 +102,41 @@ public final class SpriteSheetSlicer {
 
         return new SpriteSheetFrames(w, h, frames);
     }
+
+    /**
+     * Cuts a sheet laid out as a grid of {@code cellPx} square cells into one frame per cell, counted along rows. Each
+     * frame is its cell cut to its content (pixels at {@link #ALPHA_THRESHOLD} or more), symmetric about the cell's
+     * centre, so a frame turned about its middle turns about the centre it was drawn round. An empty cell is a frame
+     * of no size.
+     */
+    public static SpriteSheetFrames sliceGrid(BufferedImage img, int cellPx) {
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int cols = w / cellPx;
+        int rows = h / cellPx;
+        int[] pixels = new int[w * h];
+        img.getRGB(0, 0, w, h, pixels, 0, w);
+        SpriteSheetFrames.Frame[] frames = new SpriteSheetFrames.Frame[cols * rows];
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                frames[row * cols + col] = centredCut(pixels, w, col * cellPx, row * cellPx, cellPx);
+            }
+        }
+        return new SpriteSheetFrames(w, h, frames);
+    }
+
+    private static SpriteSheetFrames.Frame centredCut(int[] pixels, int sheetWidth, int x0, int y0, int cellPx) {
+        int half = cellPx / 2;
+        int reachX = 0;
+        int reachY = 0;
+        for (int y = 0; y < cellPx; y++) {
+            int rowStart = (y0 + y) * sheetWidth + x0;
+            for (int x = 0; x < cellPx; x++) {
+                if (((pixels[rowStart + x] >>> 24) & 0xFF) < ALPHA_THRESHOLD) continue;
+                reachX = Math.max(reachX, x < half ? half - x : x + 1 - half);
+                reachY = Math.max(reachY, y < half ? half - y : y + 1 - half);
+            }
+        }
+        return new SpriteSheetFrames.Frame(x0 + half - reachX, y0 + half - reachY, reachX * 2, reachY * 2);
+    }
 }

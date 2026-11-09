@@ -1,0 +1,36 @@
+A sheet of sixteen bullet and shell-strike decals for a top-down tactical ground-combat game: the marks that
+kinetic rounds leave where they hit the ground or a wall.
+
+Rows, top to bottom (each row is one kind of mark; the four columns are variants of it):
+1. Small-arms strikes in the ground (rifle, SMG and light machine-gun rounds). Each round disc is a small, ragged dark
+   pocket kicked into the surface, not a neat round cup, with a broken ring of disturbed pale dust; the scattered dots are flecks of spat
+   dust and grit thrown out around it. Shallow, no rubble.
+2. Small-arms strikes on a hard wall. Each star shape is a bullet pock in concrete or masonry: a small near-black
+   hole at its centre and a ring of pale chipped spall around it, its jagged edge the flaked-off surface.
+3. Heavy-round gouges in the ground (anti-materiel rifle, heavy machine gun, autocannon). The round touched down at
+   the thin left end and ploughed to the right: a furrow torn into the surface, narrow and shallow at the left,
+   deepest and darkest near the right end, with a raised lip of torn material along both edges. The dots at the
+   right end are clods and chips thrown forward.
+4. Heavy-round strikes on a hard wall. The central shape is a deep, dark punched crater with broken pale spall
+   round its rim; the thin lines are cracks radiating out through the surface.
+
+Layout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each
+flat grey shape is the footprint of one decal (blurred grey means a soft, feathered edge). Fill every grey footprint
+with its decal, keeping its position, size, outline and orientation. Do not move, merge, add or remove marks. Keep
+every cell's empty space fully transparent. Marks that point sideways point along +x (to the right): the round
+travelled left to right.
+
+These decals are stamped at random onto every kind of ground and wall in the game: earth, grass, sand, concrete
+paving, metal deck, brick, cast concrete and olive-painted plate. So their colours must be neutral and work over
+any surface: soot and scorch near-black to charcoal, cavities dark, freshly exposed dust, chips and spall pale
+neutral grey, a faint warm brown only in soot falloff. Every outline is rough, ragged and organic, like real damage: never a regular geometric star, flower or
+perfect circle, even where the grey footprint is close to one. Never paint the surrounding ground or wall itself, and never
+tint a mark green, brick red or sand yellow.
+
+Style: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching
+reference 2. Read clearly at small size: strong dark centres, crisp light rims where material is chipped.
+
+Output: a true transparent background, including every gap between and inside marks; no ground, no floor, no wall
+tiles, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its own cell.
+
+Reference 2 is material and style only: blast damage overlays from the same game. Do not copy its layout or shapes.

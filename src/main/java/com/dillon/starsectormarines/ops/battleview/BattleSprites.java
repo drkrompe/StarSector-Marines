@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -1740,7 +1741,7 @@ public class BattleSprites {
         }
     }
 
-    /** Lazy-loads the decal sheet and auto-slices it into per-frame bounding boxes. Failure leaves both fields null and the decal pass becomes a no-op. */
+    /** Lazy-loads the decal sheet and cuts it into its grid of frames ({@link DecalKind}). Failure leaves both fields null and the decal pass becomes a no-op. */
     public void ensureDecalSheet() {
         if (decalSheetLoadAttempted) return;
         decalSheetLoadAttempted = true;
@@ -1758,9 +1759,9 @@ public class BattleSprites {
                     decalSheet = null;
                     return;
                 }
-                decalFrames = SpriteSheetSlicer.slice(img);
+                decalFrames = SpriteSheetSlicer.sliceGrid(img, DecalKind.CELL_PX);
                 TextureUsage.sliced(SPRITE_DECAL_SHEET);
-                LOG.info("BattleSprites: auto-sliced " + SPRITE_DECAL_SHEET
+                LOG.info("BattleSprites: cut " + SPRITE_DECAL_SHEET
                         + " — " + decalFrames.frames.length + " frames");
             }
         } catch (Exception e) {

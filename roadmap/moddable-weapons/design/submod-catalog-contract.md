@@ -139,6 +139,13 @@ disables the tail. A tail without `render.projectileSprite` is rejected. This
 is presentation over the resolved flight and does not change round velocity,
 contact, or arrival time.
 
+Any weapon may name the mark its rounds leave where they land with
+`render.impactMark`, an `ImpactMark` name (`SMALL_ARMS`, `HEAVY_ROUND`,
+`PULSE`, `BEAM`, `MELT`, `FRAG`, `FLAK`, `ROCKET`, `SHELL`, `HEAVY_SHELL`,
+`INCENDIARY`, `FLAME`, `ACID`, `UPHEAVAL` or `NONE`); an unknown name fails
+loading. Omitted, the mark is read from the weapon's kind and impact layers.
+Explosive marks are sized to `sim.aoeRadius`. The mark is presentation only.
+
 Such a weapon may also mark periodic **tracer rounds**: a positive whole
 `render.tracerEvery` N with a hex `render.tracerRoundColor` draws every Nth round a
 mount releases (the mount's own count, never the random stream or the frame rate)

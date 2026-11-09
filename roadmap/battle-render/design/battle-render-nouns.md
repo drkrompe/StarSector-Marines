@@ -352,6 +352,23 @@ replay is bounded by the simulation's retained decal list, while an already
 stamped live accumulator can retain older pixels after source eviction.
 Persistent cell-backed terrain scars do not depend on that decal retention.
 
+An **impact mark** is what a weapon's round leaves where it lands: the weapon's
+`render.impactMark` (`ImpactMark`), naming the calibre and kind of weapon that
+struck, never a frame. Small arms pock the ground and spall a wall; heavy
+rounds plough a furrow along their flight and punch a wall crater; pulse
+lasers scorch, beams sear a line, thermal lances melt a crater; fragmentation
+and flak pepper the ground; rockets leave a flat blast star; shells crater
+and throw debris, heavy shells over a burn; incendiaries and flame throwers
+burn the ground; spines throw up debris; ion, point defence and spores leave
+nothing. Each mark has a ground and a wall recipe drawing on the `DecalKind`
+families of the decal sheet, a few interchangeable variants each; a
+directional family is laid along the round's line of flight. A weapon that
+names no mark is read from what it is (a beam, an energy bolt) and how its
+impact is drawn, so content without the field still marks like its kind.
+Marks a weapon lays many times over one spot (a beam's pulses, a flame jet,
+small arms into the ground) lay only on a share of hits, so a long burst marks
+without carpeting.
+
 Projectile particle trails advance outside the draw collector. A fixed cadence
 on each shot's simulation clock determines emissions, with positions sampled
 along its traveled path. Live and headless hosts use the same emitter. A paused

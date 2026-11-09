@@ -16,6 +16,7 @@ final class DecalRenderSystem {
         for (Decal decal : decals) {
             if (decal.decalIndex < 0 || decal.decalIndex >= frames.frames.length) continue;
             var frame = frames.frames[decal.decalIndex];
+            if (frame.w <= 0 || frame.h <= 0) continue;
             float width = decal.scaleCells, height = width * frame.h / Math.max(1,frame.w);
             if (!view.visible(decal.x,decal.y,(float)Math.hypot(width,height)/2)) continue;
             out.addSheetQuad(RenderLayer.DECALS,sheet,frame.x,frame.y,frame.w,frame.h,

@@ -282,6 +282,7 @@ public final class DecalAccumulator {
             if (idx++ < skip) continue;
             if (d.decalIndex < 0 || d.decalIndex >= frames.frames.length) continue;
             SpriteSheetFrames.Frame f = frames.frames[d.decalIndex];
+            if (f.w <= 0 || f.h <= 0) continue;
 
             // Decal position in FBO pixel space — world-cell coords scaled by px/cell.
             float cx = d.x * resolvedPxPerCell;

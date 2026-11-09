@@ -5,11 +5,16 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 
 import java.util.Random;
+import java.util.function.Consumer;
 
 /**
- * Static spawn helpers for persistent impact decals: bullet holes, craters,
- * rubble, shell casings. Lives in the fx package so every caller that puts a
- * mark on the ground reaches the same recipes.
+ * Static spawn helpers for persistent impact decals: the marks rounds leave on the ground and on walls, shell
+ * casings and muzzle soot. Lives in the fx package so every caller that puts a mark on the ground reaches the same
+ * recipes.
+ *
+ * <p>A weapon's round leaves the mark of its {@link ImpactMark}: what calibre and what kind of weapon struck. Each
+ * mark has a recipe for the ground and one for a wall, drawn from the {@link DecalKind} families; a directional
+ * family is laid along the round's line of flight.
  *
  * <p>The decals themselves are stored on {@link BattleSimulation} so they
  * persist with the battle and reset cleanly on new missions.
@@ -18,113 +23,115 @@ public final class ImpactDecals {
 
     private ImpactDecals() {}
 
-    /** A weapon's authored mark is this share of its splash's radius across, never smaller than the minimum, cells. */
-    private static final float AUTHORED_SPLASH_SHARE = 0.6f, AUTHORED_MIN_CELLS = 0.5f;
-
     /**
-     * Drops a persistent decal at a weapon impact: the weapon's own authored mark
-     * ({@link WeaponDef#impactDecal()}) where it names one, otherwise the mark its
-     * effect layers pick ({@link #spawnWeaponImpact(BattleSimulation, Random, WeaponFxDef, float, float, boolean)}).
+     * The mark a weapon's rounds leave: its authored {@code render.impactMark}, otherwise one read off what it is
+     * and how its impact is drawn, so a weapon that names none still marks the ground like its kind. A beam burns, an
+     * energy bolt scorches, a shell-burst (explosion or ring layer) craters, a fire layer blasts, a lingering smoke
+     * layer is a heavy round, and anything else with an impact is small arms.
      */
-    public static void spawnWeaponImpact(BattleSimulation sim, Random rng, WeaponDef weapon,
-                                         WeaponFxDef fx, float x, float y, boolean isWall) {
-        if (!spawnAuthored(sim, rng, weapon, x, y)) spawnWeaponImpact(sim, rng, fx, x, y, isWall);
+    public static ImpactMark markOf(WeaponDef weapon, WeaponFxDef fx) {
+        if (weapon != null && weapon.impactMark() != null) return weapon.impactMark();
+        if (weapon != null && weapon.hitscanBeam()) return ImpactMark.BEAM;
+        if (weapon != null && weapon.energy) return ImpactMark.PULSE;
+        if (fx == null) return ImpactMark.NONE;
+        if (fx.hasHeavyImpact()) return ImpactMark.SHELL;
+        if (fx.hasExplosiveImpact()) return ImpactMark.ROCKET;
+        if (fx.hasKineticImpact()) return ImpactMark.HEAVY_ROUND;
+        return ImpactMark.SMALL_ARMS;
     }
 
     /**
-     * Drops the weapon's authored mark ({@link WeaponDef#impactDecal()}) at an impact, turned at random and sized to
-     * its splash; a splash of Spitter acid lands as either of its two spatters. Returns false, dropping
-     * nothing, when the weapon names no mark.
+     * Drops the decals of a weapon's mark ({@link #markOf}) where its round landed at ({@code x}, {@code y}), having
+     * flown from ({@code fromX}, {@code fromY}).
      */
-    public static boolean spawnAuthored(BattleSimulation sim, Random rng, WeaponDef weapon, float x, float y) {
-        DecalKind kind = weapon != null ? weapon.impactDecal() : null;
-        if (kind == null) return false;
-        if (kind == DecalKind.ACID_SPLASH && rng.nextBoolean()) kind = DecalKind.ACID_SPLASH_LONG;
-        float size = Math.max(AUTHORED_MIN_CELLS, weapon.aoeRadius * AUTHORED_SPLASH_SHARE);
-        sim.addDecal(new Decal(x, y, kind.index, rng.nextFloat() * 360f, size));
-        return true;
+    public static void spawnWeaponImpact(BattleSimulation sim, Random rng, WeaponDef weapon, WeaponFxDef fx,
+                                         float fromX, float fromY, float x, float y, boolean isWall) {
+        float heading = (float) Math.toDegrees(Math.atan2(y - fromY, x - fromX));
+        float splash = weapon != null ? weapon.aoeRadius : 0f;
+        spawnMark(sim::addDecal, rng, markOf(weapon, fx), x, y, isWall, heading, splash);
     }
 
     /**
-     * Drops a persistent decal at a weapon impact. The authored primitives
-     * supply the impact character: smoke-only strikes receive kinetic marks,
-     * fire receives explosive aftermath, and explosion/ring layers receive
-     * the heavier cannon scale.
+     * Hands {@code out} the decals of one {@link ImpactMark} at ({@code x}, {@code y}): on a wall cell when {@code isWall}, else
+     * on the ground. {@code headingDeg} is the round's line of flight (degrees, cell space, counter-clockwise from
+     * +x), which directional marks lie along; {@code splashCells} is its splash radius, which explosive marks are
+     * sized to.
      */
-    public static void spawnWeaponImpact(BattleSimulation sim, Random rng,
-                                         WeaponFxDef fx, float x, float y,
-                                         boolean isWall) {
-        if (fx == null) return;
-        if (fx.hasHeavyImpact()) {
-            spawnExplosiveImpact(sim, rng, x, y, true);
-        } else if (fx.hasExplosiveImpact()) {
-            spawnExplosiveImpact(sim, rng, x, y, false);
-        } else if (fx.hasKineticImpact()) {
-            spawnKineticImpact(sim, rng, x, y, isWall);
-        } else if (isWall) {
-            sim.addDecal(new Decal(x, y, DecalKind.BULLET_HOLE_SINGLE.index,
-                    rng.nextFloat() * 360f, 0.55f));
+    public static void spawnMark(Consumer<Decal> out, Random rng, ImpactMark mark, float x, float y,
+                                 boolean isWall, float headingDeg, float splashCells) {
+        switch (mark) {
+            case NONE -> { }
+            case SMALL_ARMS -> {
+                if (isWall) lay(out, rng, DecalKind.SMALL_ARMS_WALL, x, y, headingDeg, .5f);
+                else if (rng.nextFloat() < SMALL_ARMS_GROUND_CHANCE)
+                    lay(out, rng, DecalKind.SMALL_ARMS_GROUND, x, y, headingDeg, .5f);
+            }
+            case HEAVY_ROUND -> lay(out, rng, isWall ? DecalKind.HEAVY_WALL : DecalKind.HEAVY_GOUGE, x, y, headingDeg,
+                    isWall ? .8f : 1.1f);
+            case PULSE -> lay(out, rng, DecalKind.PULSE_SCORCH, x, y, headingDeg, .5f);
+            case BEAM -> {
+                if (rng.nextFloat() < BEAM_CHANCE) lay(out, rng, DecalKind.BEAM_BURN, x, y, headingDeg, .9f);
+            }
+            case MELT -> lay(out, rng, DecalKind.MELT_CRATER, x, y, headingDeg, Math.max(.8f, splashCells * .9f));
+            case FRAG -> lay(out, rng, DecalKind.FRAG, x, y, headingDeg, Math.max(1f, splashCells * 1.2f));
+            case FLAK -> lay(out, rng, DecalKind.FRAG, x, y, headingDeg, .9f);
+            case ROCKET -> {
+                float size = Math.max(.9f, splashCells);
+                lay(out, rng, DecalKind.BLAST, x, y, headingDeg, size);
+                if (!isWall && rng.nextFloat() < .25f) layNear(out, rng, DecalKind.DEBRIS, x, y, size * .6f);
+            }
+            case SHELL -> shell(out, rng, x, y, isWall, headingDeg, Math.max(1f, splashCells * .95f), .6f, 0f);
+            case HEAVY_SHELL -> shell(out, rng, x, y, isWall, headingDeg, Math.max(1.3f, splashCells), 1f, .35f);
+            case INCENDIARY -> lay(out, rng, DecalKind.FIRE_SCORCH, x, y, headingDeg,
+                    Math.max(1f, splashCells * 1.15f));
+            case FLAME -> {
+                if (rng.nextFloat() < FLAME_CHANCE)
+                    lay(out, rng, DecalKind.FLAME_SWEEP, x, y, headingDeg, Math.max(1f, splashCells));
+            }
+            case ACID -> lay(out, rng, rng.nextBoolean() ? DecalKind.ACID_SPLASH : DecalKind.ACID_SPLASH_LONG, x, y,
+                    headingDeg, Math.max(.5f, splashCells * .6f));
+            case UPHEAVAL -> lay(out, rng, DecalKind.DEBRIS, x, y, headingDeg, Math.max(.8f, splashCells * 1.1f));
         }
     }
 
-    /** Explicit kinetic decal recipe for non-weapon aerial strafing effects. */
-    public static void spawnKineticImpact(BattleSimulation sim, Random rng,
-                                          float x, float y, boolean isWall) {
-        float rot = rng.nextFloat() * 360f;
+    /**
+     * A shell's burst: on the ground, a crater with thrown debris ({@code debrisChance}) over a burn
+     * ({@code burnChance}); on a wall, a blast scorch round a punched hole.
+     */
+    private static void shell(Consumer<Decal> out, Random rng, float x, float y, boolean isWall, float headingDeg,
+                              float size, float debrisChance, float burnChance) {
         if (isWall) {
-            int idx = rng.nextBoolean()
-                    ? DecalKind.BULLET_HOLE_LARGE_SINGLE.index
-                    : DecalKind.BULLET_HOLE_LARGE_MULTI.index;
-            sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
-        } else {
-            int idx = rng.nextBoolean()
-                    ? DecalKind.CRATER_SMALL.index
-                    : DecalKind.CRATER_SMALL_ALT.index;
-            sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
+            lay(out, rng, DecalKind.BLAST, x, y, headingDeg, size);
+            lay(out, rng, DecalKind.HEAVY_WALL, x, y, headingDeg, size * .55f);
+            return;
         }
+        if (rng.nextFloat() < burnChance) lay(out, rng, DecalKind.FIRE_SCORCH, x, y, headingDeg, size * 1.2f);
+        lay(out, rng, DecalKind.SHELL_CRATER, x, y, headingDeg, size);
+        if (rng.nextFloat() < debrisChance) layNear(out, rng, DecalKind.DEBRIS, x, y, size * .85f);
     }
 
-    /** Explicit explosive decal recipe for non-weapon aerial detonations. */
-    public static void spawnExplosiveImpact(BattleSimulation sim, Random rng,
-                                            float x, float y, boolean heavy) {
-        float rotation = rng.nextFloat() * 360f;
-        if (heavy) {
-            spawnHeAftermath(sim, rng, x, y, rotation,
-                    1.65f, 1.35f, 0.45f, 0.35f);
-        } else {
-            spawnHeAftermath(sim, rng, x, y, rotation,
-                    1.30f, 1.10f, 0.35f, 0.20f);
-        }
+    /** Lays one frame of {@code kind}, a little over or under {@code size} cells, turned to the heading or at random. */
+    private static void lay(Consumer<Decal> out, Random rng, DecalKind kind, float x, float y, float headingDeg,
+                            float size) {
+        float rotation = kind.directional
+                ? headingDeg + (rng.nextFloat() * 2f - 1f) * DIRECTIONAL_SPREAD_DEG
+                : rng.nextFloat() * 360f;
+        float scale = size * (1f + (rng.nextFloat() * 2f - 1f) * SIZE_JITTER);
+        out.accept(new Decal(x, y, kind.frame(rng), rotation, scale));
     }
 
-    private static void spawnHeAftermath(BattleSimulation sim, Random rng,
-                                         float x, float y, float rotation,
-                                         float craterScale, float rubbleScale,
-                                         float rubbleJitter, float fireChance) {
-        int craterIdx = rng.nextBoolean()
-                ? DecalKind.CRATER_MEDIUM_A.index
-                : DecalKind.CRATER_MEDIUM_B.index;
-        sim.addDecal(new Decal(x, y, craterIdx, rotation, craterScale));
-        float jx = x + (rng.nextFloat() * 2f - 1f) * rubbleJitter;
-        float jy = y + (rng.nextFloat() * 2f - 1f) * rubbleJitter;
-        int rubbleIdx;
-        float fireRoll = rng.nextFloat();
-        if (fireRoll < fireChance) {
-            rubbleIdx = DecalKind.RUBBLE_FIRE.index;
-        } else if (fireRoll < fireChance + (1f - fireChance) * 0.5f) {
-            rubbleIdx = DecalKind.RUBBLE.index;
-        } else {
-            rubbleIdx = DecalKind.RUBBLE_ALT.index;
-        }
-        sim.addDecal(new Decal(jx, jy, rubbleIdx,
-                rng.nextFloat() * 360f, rubbleScale));
+    /** Lays one frame of {@code kind} just off ({@code x}, {@code y}), so debris does not sit dead on its crater. */
+    private static void layNear(Consumer<Decal> out, Random rng, DecalKind kind, float x, float y, float size) {
+        float reach = size * .25f;
+        lay(out, rng, kind, x + (rng.nextFloat() * 2f - 1f) * reach, y + (rng.nextFloat() * 2f - 1f) * reach, 0f,
+                size);
     }
 
     /**
      * Drops a small spent shell casing at the shooter's position with a bit
      * of jitter so successive shots from the same cell don't all land on the
-     * same pixel. Random pose (4 vs 5) and rotation give the eye some variety
-     * across burst clusters.
+     * same pixel. Random pose and rotation give the eye some variety across
+     * burst clusters.
      *
      * <p>Bails out when the shooter's cell already has {@link #CASINGS_PER_CELL_CAP}
      * casings — long SMG suppression runs would otherwise carpet the floor.
@@ -175,6 +182,16 @@ public final class ImpactDecals {
         sim.addDecal(new Decal(cx, cy, DecalKind.MUZZLE_SCORCH.index, rotation, length));
     }
 
+    /** Share of small-arms rounds into the ground that leave a pock: a long burst marks, without carpeting. */
+    private static final float SMALL_ARMS_GROUND_CHANCE = .6f;
+    /** Share of a beam's pulses that sear a line: a beam pulses many times a second over much the same spot. */
+    private static final float BEAM_CHANCE = .12f;
+    /** Share of a flame thrower's rounds that leave a sweep: its jet lands many times over the same ground. */
+    private static final float FLAME_CHANCE = .35f;
+    /** How far either side of the line of flight a directional mark may lie, in degrees. */
+    private static final float DIRECTIONAL_SPREAD_DEG = 8f;
+    /** How much over or under its recipe's size a mark may be drawn, as a share of it. */
+    private static final float SIZE_JITTER = .12f;
     /** How far either side of the gun's bearing a round's soot fan may lie, in degrees. */
     private static final float SCORCH_SPREAD_DEG = 6f;
     /** Fans centred within this share of their length of one another count as the same mark for the cap. */

@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -253,7 +254,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private void loadDecals() {
         try {
             decals = sprite(DECAL_SHEET);
-            decalFrames = slice(DECAL_SHEET);
+            TextureUsage.sliced(DECAL_SHEET);
+            decalFrames = SpriteSheetSlicer.sliceGrid(read(DECAL_SHEET), DecalKind.CELL_PX);
         } catch (IOException | RuntimeException missing) {
             decals = null;
             decalFrames = null;
