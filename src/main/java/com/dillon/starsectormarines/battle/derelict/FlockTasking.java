@@ -42,7 +42,7 @@ public final class FlockTasking {
     public static Order decide(Report flock, SecurityZone zone, boolean contingency, List<Contact> contacts,
                                List<Contact> haul, int stirX, int stirY) {
         if (flock.strength() < RETURN_STRENGTH) return homeward(flock, zone);
-        if (contingency && zone.nodeAlive() && !haul.isEmpty()) {
+        if (contingency && zone.online() && !haul.isEmpty()) {
             Contact target = nearest(haul, flock.cellX(), flock.cellY());
             return new Order(FlockTask.STRIKE, target.cellX(), target.cellY(), target.unitId());
         }

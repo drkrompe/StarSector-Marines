@@ -1,8 +1,8 @@
 # Derelict security network
 
 Status: IN PROGRESS — zones, the director over walkers and flocks, the
-derelict heavy line, spotting, the node and folded posts are built (What is
-built); repair drones, power branches and the looks are not. Feeds slice 5 of
+derelict heavy line, spotting, the node, folded posts and power branches are
+built (What is built); repair drones and the looks are not. Feeds slice 5 of
 `ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -196,6 +196,16 @@ Everything is in `battle.derelict`.
   emplacement power: the director powers it only while its zone is awake
   (`DerelictPost.unfolded`), so folded it neither slews, takes a target nor
   fires; it can still be shot, and damage to it wakes its zone.
+- **Power branches (slice 8).** `DerelictPower`: each zone is fed through
+  the ruins works junction of the layer its node stands in (the nearest layer
+  for the vault's zone), on the junction's way-on branch, the one that also
+  feeds the layer's gates and, at the last layer, the vault's seal. The feed
+  runs through the junctions whether or not the company has restarted the
+  hall. Thrown to its store, the zone goes dark (`SecurityZone.powerDown`):
+  dormant and deaf to every stir, relay and call, its posts folded, its
+  cradle not rebuilding; thrown back, it comes up dormant. So cutting a
+  branch buys a quiet way through a zone at the price of the gates and the
+  vault seal on it.
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
@@ -210,12 +220,11 @@ attack-move onto it; the siege frame engages from its post at twenty-odd
 cells.
 
 Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
-coming to a pin and the contingency; repair drones (6); power branches (8);
-looks for the walker, posts and node (3, 9; the cradle's look is
-`derelict-drone-flocks.md`'s). Strength is not tuned, and is not tuned from
-autopilot runs: it waits on the owner playing a derelict battle. Both fixtures
-fly the company's real lift (one Hermes, six twelve-seat trips, as
-playBattle's Veteran Company).
+coming to a pin and the contingency; repair drones (6); looks for the walker,
+posts and node (3, 9; the cradle's look is `derelict-drone-flocks.md`'s).
+Strength is not tuned, and is not tuned from autopilot runs: it waits on the
+owner playing a derelict battle. Both fixtures fly the company's real lift
+(one Hermes, six twelve-seat trips, as playBattle's Veteran Company).
 
 ## Constraints
 

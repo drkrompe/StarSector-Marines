@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Contact;
 import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Report;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Kind;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Order;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -62,6 +63,7 @@ public final class DerelictSecurityDirector {
     private final Map<Integer, Long> nodes = new TreeMap<>();
     private final Map<Integer, Float> nodeDurability = new TreeMap<>();
     private final Map<Long, Integer> posts = new TreeMap<>();
+    private final Map<Integer, Integer> junctions = new TreeMap<>();
     private final Map<Long, Float> postDurability = new TreeMap<>();
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
@@ -81,6 +83,11 @@ public final class DerelictSecurityDirector {
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
     public void standNode(int zoneId, long entityId) {
         nodes.put(zoneId, entityId);
+    }
+
+    /** Feeds a zone through a ruins works junction (slice 8): thrown to its store, the zone goes dark. */
+    public void feedThrough(int zoneId, int junction) {
+        junctions.put(zoneId, junction);
     }
 
     /** Stands a folded post of a zone (slice 7): powered only while the zone is awake. */
@@ -138,10 +145,12 @@ public final class DerelictSecurityDirector {
             network.stir(zone.id, tick);
             stirredAt.put(zone.id, new int[] {contact.cellX(), contact.cellY()});
         }
+        RuinsWorks works = sim.getRuinsWorks();
+        if (works != null && !junctions.isEmpty()) DerelictPower.apply(network, junctions, works.graph()::position);
         DerelictNode.watch(network, nodes, id -> sim.resolveUnit(id) != 0L);
         for (Map.Entry<Integer, Long> node : nodes.entrySet()) {
             SecurityZone zone = network.zone(node.getKey());
-            flocks.nodeStands(node.getKey(), zone.nodeAlive());
+            flocks.nodeStands(node.getKey(), zone.online());
             if (!zone.nodeAlive()) continue;
             // Damage to the node is damage to a unit of the zone: it wakes.
             float now = sim.world().hp(node.getValue()) + sim.world().armor(node.getValue());

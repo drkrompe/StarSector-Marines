@@ -188,6 +188,11 @@ public final class DerelictSecurity {
             director.standNode(plan.id(), node);
         }
         standPosts(sim, route, plans, network, delve, director);
+        if (delve != null && !delve.layers().isEmpty()) {
+            for (ZonePlan plan : plans) {
+                director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
+            }
+        }
         sim.installDerelictSecurity(director);
         return director;
     }
