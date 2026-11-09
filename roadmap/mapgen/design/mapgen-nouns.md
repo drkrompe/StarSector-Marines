@@ -1901,7 +1901,9 @@ ruined lot before the ordinary fill dispatch runs, so the burned-out footprints
 are the ruined-lot rule (City, station, and ship families) at work, not a
 special drawing. Nothing is claimed as a compound: a compound is a working
 facility. The only intact shells are the delve's own: the vault, the rooms and
-the works.
+the works. A ruins site is longer dead than a town's ruined lots, so its lots
+are weathered further (floors broken into rubble and earth, no olive sheet,
+most furniture gone), by a hash that draws nothing from the layout.
 
 **Nothing joins a ruin to the world.** No street is finished as a carriageway:
 the dead town's streets are broken into trodden earth and rubble bed, by a

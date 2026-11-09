@@ -1164,7 +1164,7 @@ tasks.register('playBattle', JavaExec) {
     System.properties.each { key, value ->
         if (key.toString().startsWith('marines.')) systemProperty key.toString(), value
     }
-    ['battle': 'play.battle', 'window': 'play.window', 'playUiScale': 'play.uiScale', 'volume': 'play.volume', 'playLoad': 'play.load', 'playProfile': 'play.profile'].each { argument, property ->
+    ['battle': 'play.battle', 'window': 'play.window', 'playUiScale': 'play.uiScale', 'volume': 'play.volume', 'playLoad': 'play.load', 'playProfile': 'play.profile', 'playStart': 'play.start'].each { argument, property ->
         def value = providers.gradleProperty(argument).getOrElse('').trim()
         if (!value.isBlank()) systemProperty property, value
     }

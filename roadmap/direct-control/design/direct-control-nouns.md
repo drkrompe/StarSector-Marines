@@ -502,9 +502,10 @@ silhouette-based hit roll, and treating every body as an incidental contact
 must not erase the weapon's accuracy. A moving shooter retains the existing
 moving-fire penalty. Structural stops, smoke, cover catches, friendly-fire
 contacts, damage delay, telemetry, sound, and effects follow the ordinary
-shot pipeline. A handheld primary burst retains the world point accepted at
-trigger pull for all its follow-up rounds; moving the cursor affects the next trigger, while moving the
-shooter changes its bearing to that frozen point. Follow-up spread uses the
+shot pipeline. A handheld primary burst follows the cursor: each follow-up round goes to the
+world point under the cursor as it leaves, so an SMG or machine gun sweeps with the mouse (owner,
+2026-11-09). A cursor the point path cannot fire at (on the shooter itself) keeps the last point
+rather than cancelling the burst. Follow-up spread uses the
 shooter’s actual applied movement. A held trigger cannot restart an unfinished
 burst. Releasing control cancels pending intent and burst work without
 resetting cooldown. A magazine-fed primary spends one round per release from
@@ -707,8 +708,9 @@ arcing rack (the LRM carrier's launcher, the fire-support APC's mortar) refused
 inside its manual minimum. A hull with no turret weapon (the supply truck, the
 scout car, the drone skimmer, whose drones keep their own tether) drives only,
 and its buttons do nothing. The held primary trigger uses the existing magazine, cooldown,
-burst spacing, minimum range, and firing alignment. Each burst retains its accepted world
-point until completion. Manual and autonomous fire share one turret tick; AI
+burst spacing, minimum range, and firing alignment. A burst under way sweeps with the
+cursor, slewing at the turret's traverse rate; the last accepted point stands in only while the cursor
+cannot aim. Manual and autonomous fire share one turret tick; AI
 acquisition and triggers are suppressed only for the controlled hull. Entry,
 exit, and input suspension clear target and queued burst work while preserving
 ammunition and cooldown. Point rounds use the actual hardpoint and barrel pose,

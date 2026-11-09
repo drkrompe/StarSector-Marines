@@ -3758,7 +3758,7 @@
     "openingBarracksCommandOpenTheHighlightedOfficerPortrait": "Open the highlighted officer portrait.",
     "openingBarracksCommandRaiseSquadJoins": "Joins {0}.",
     "openingBarracksCommandRaiseSquadNoSlot": "No officer has a free command slot.",
-    "openingBarracksCommandRaiseSquadNoBillets": "The barracks are full at {0} billets. Engineering can fit more bunkrooms.",
+    "openingBarracksCommandRaiseSquadNoBillets": "Barracks full at {0} billets. Engineering adds bunkrooms.",
     "openingBarracksCommandRaiseSquadCommandFull": "{0} has no free command slot.",
     "openingBarracksCommandStartWithRaiseSquadComeBackHere": "Start with the Raise Squad tile on the formation board.",
     "openingBarracksCommandUseMissionsWhenYouAreReadyFor": "Use Missions when you are ready for another job.",
