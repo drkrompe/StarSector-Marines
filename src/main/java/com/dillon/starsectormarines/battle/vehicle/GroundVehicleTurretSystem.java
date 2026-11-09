@@ -333,6 +333,10 @@ public final class GroundVehicleTurretSystem {
             turret.holdRounds = 0;
         }
 
+        // A burst under way sweeps with the cursor; the committed point stands in only while the cursor cannot aim.
+        if (turret.burstPointAim != null && cursor != null && cursor.validFrom(mountX, mountY)) {
+            turret.burstPointAim = cursor;
+        }
         PointFireAim aim = turret.burstPointAim != null ? turret.burstPointAim : cursor;
         if (aim != null && aim.validFrom(mountX, mountY)) {
             turret.facingDeg = TurretAim.slewToward(turret.facingDeg,

@@ -119,7 +119,7 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
-    void manualBurstFreezesAimAlternatesBarrelsAndOwnsOneClockAndMagazine() {
+    void manualBurstSweepsWithTheCursorAlternatesBarrelsAndOwnsOneClockAndMagazine() {
         Fixture f = new Fixture();
         PointFireAim north = f.north();
         long enemy = f.enemy(40, 20);
@@ -133,8 +133,8 @@ class GroundVehicleTurretSystemTest {
         assertEquals(f.weapon.cooldown, f.turret.cooldownTimer);
 
         int remainingTicks = 120;
-        PointFireAim east = new PointFireAim(60f, 20.5f);
-        while (f.turret.burstRemaining > 0 && remainingTicks-- > 0) f.tick(east, true);
+        PointFireAim swept = new PointFireAim(north.x() + 6f, north.y());
+        while (f.turret.burstRemaining > 0 && remainingTicks-- > 0) f.tick(swept, true);
         assertTrue(remainingTicks > 0);
         assertEquals(f.weapon.burstCount, f.shots.getActiveShots().size());
         assertEquals(f.mount.mount.ammoCapacity - f.weapon.burstCount, f.turret.ammo);
@@ -144,6 +144,8 @@ class GroundVehicleTurretSystemTest {
         List<ShotEvent> shots = f.shots.getActiveShots();
         assertTrue(shots.get(0).fromX < shots.get(1).fromX);
         for (ShotEvent shot : shots) assertTrue(shot.toY > shot.fromY + 20f);
+        assertTrue(shots.get(shots.size() - 1).toX > shots.get(0).toX + 1f,
+                "the follow-up rounds follow the cursor, not the point of the first");
         f.tick(north, false);
         assertEquals(f.weapon.cooldown - DT, f.turret.cooldownTimer, 0.00001f);
     }
@@ -283,9 +285,10 @@ class GroundVehicleTurretSystemTest {
         PointFireAim aim = f.north();
         f.tick(aim, true);
         f.body.x += 30f;
-        f.tick(new PointFireAim(60f, 20f), false);
-        f.tick(new PointFireAim(60f, 20f), false);
-        f.tick(new PointFireAim(60f, 20f), false);
+        // No cursor this time: the burst holds its last point, and the moved hull re-slews to it.
+        f.tick(null, false);
+        f.tick(null, false);
+        f.tick(null, false);
         assertEquals(1, f.shots.getActiveShots().size(), "ready burst round waits for the actual pose");
         assertSame(aim, f.turret.burstPointAim);
         int ticks = 60;
