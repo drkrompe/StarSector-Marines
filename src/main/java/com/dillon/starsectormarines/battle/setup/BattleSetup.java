@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
+import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
@@ -133,6 +135,7 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
@@ -1298,6 +1301,12 @@ public final class BattleSetup {
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
+            // The vault store: a find per layer at the vault, which comes out with the haul.
+            sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
+                    ruinsLayout.sourceX(), ruinsLayout.sourceY()));
+            // The Delve row's watch: its close readings are drawn from the occupant's readings pool.
+            RuinsSurvey.Pool readings = ruinsOccupant != null ? RuinsSurvey.poolFor(ruinsOccupant) : RuinsSurvey.NOBODY;
+            sim.installRuinsDelveWatch(RuinsDelveWatch.of(map.ruinsDelve, readings.readingKeys(), seed));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

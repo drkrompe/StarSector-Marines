@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A contract offered to the player. {@link #normalizedX}/{@link #normalizedY}
@@ -229,6 +230,8 @@ public final class Mission {
      * defenders; null for every other mission.
      */
     public final RuinsOccupant ruinsOccupant;
+    /** The ids of a ruins site's finds already brought home, left out of its battle ({@code RuinsSiteFinds}). */
+    public final Set<String> ruinsTakenFinds;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -329,6 +332,7 @@ public final class Mission {
         this.battleSeed       = b.battleSeed;
         this.ruinsGrade       = b.ruinsGrade;
         this.ruinsOccupant    = b.ruinsOccupant;
+        this.ruinsTakenFinds  = b.ruinsTakenFinds == null ? Set.of() : Set.copyOf(b.ruinsTakenFinds);
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -397,6 +401,7 @@ public final class Mission {
         private Long battleSeed;
         private RuinsGrade ruinsGrade;
         private RuinsOccupant ruinsOccupant;
+        private Set<String> ruinsTakenFinds = Set.of();
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -452,6 +457,7 @@ public final class Mission {
             this.battleSeed = m.battleSeed;
             this.ruinsGrade = m.ruinsGrade;
             this.ruinsOccupant = m.ruinsOccupant;
+            this.ruinsTakenFinds = m.ruinsTakenFinds;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -677,6 +683,12 @@ public final class Mission {
         /** @param ruinsOccupant who holds a ruins expedition's site ({@code ruins-expedition.md}, Occupants). */
         public Builder ruinsOccupant(RuinsOccupant ruinsOccupant) {
             this.ruinsOccupant = ruinsOccupant;
+            return this;
+        }
+
+        /** @param ruinsTakenFinds the ids of a ruins site's finds already brought home ({@code RuinsSiteFinds}). */
+        public Builder ruinsTakenFinds(Set<String> ruinsTakenFinds) {
+            this.ruinsTakenFinds = ruinsTakenFinds;
             return this;
         }
 

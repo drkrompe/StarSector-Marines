@@ -58,7 +58,8 @@ public final class RuinsPullOut {
         for (int i = 0; i < vault.liftPoints().size(); i++) {
             if (vault.liftPointAvailable(i)) held.add(new int[]{vault.liftPointCellX(i), vault.liftPointCellY(i)});
         }
-        return extractionPads(landing, vault.pullOutPointCellX(), vault.pullOutPointCellY(), held);
+        RuinsVaultObjective.PullOutPoint pullOut = vault.pullOutPoint();
+        return extractionPads(landing, pullOut.cellX(), pullOut.cellY(), held);
     }
 
     /**

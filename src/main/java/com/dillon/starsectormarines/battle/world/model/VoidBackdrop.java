@@ -32,6 +32,8 @@ import java.util.List;
  * @param atmosphere       the drop's lights and fog, or null for none
  * @param slips            dead-end lanes down a structure's canyons, craft flying in to berth at their heads and
  *                         back out; empty for none
+ * @param calls            craft due at a slip's berth at set times of the battle, as a mission schedules them; a
+ *                         slip with a call carries no other traffic. Empty for none
  */
 public record VoidBackdrop(String cityTexture, float depthMeters, float cityTileMeters,
                            float hazeR, float hazeG, float hazeB,
@@ -39,7 +41,15 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
                            String roofTexture, float roofTileMeters,
                            List<Tier> tiers, float eyeMeters,
                            List<String> craft, float craftMetersPerPx, List<Tower> neighbours,
-                           List<Skyway> skyways, Atmosphere atmosphere, List<Slip> slips) {
+                           List<Skyway> skyways, Atmosphere atmosphere, List<Slip> slips,
+                           List<Call> calls) {
+
+    /** This backdrop with {@code calls} scheduled at its slips. */
+    public VoidBackdrop withCalls(List<Call> calls) {
+        return new VoidBackdrop(cityTexture, depthMeters, cityTileMeters, hazeR, hazeG, hazeB, facadeTexture,
+                facadeTileMeters, roofTexture, roofTileMeters, tiers, eyeMeters, craft, craftMetersPerPx, neighbours,
+                skyways, atmosphere, slips, calls);
+    }
 
     /** A terrace: its roof stands {@code depthMeters} below the surface, {@code outsetMeters} out past its edge. */
     public record Tier(float depthMeters, float outsetMeters) { }
@@ -58,6 +68,16 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
      * {@code (x1, y1)}, {@code depthMeters} below the surface, as trains run into a terminus.
      */
     public record Slip(float x0, float y0, float x1, float y1, float depthMeters) { }
+
+    /**
+     * A craft due at slip {@code slip}'s berth: it flies in to stand there from {@code arriveSeconds} of the battle's
+     * own clock until {@code departSeconds}, then flies out. The hull is one of the backdrop's craft.
+     */
+    public record Call(int slip, String hull, float arriveSeconds, float departSeconds) {
+        public Call {
+            if (departSeconds <= arriveSeconds) throw new IllegalArgumentException("a call departs after it arrives");
+        }
+    }
 
     /**
      * The drop's light and air: the lights painted in the facade, roof and ground images lifted out as masks the
@@ -82,6 +102,7 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
     public VoidBackdrop {
         skyways = List.copyOf(skyways);
         slips = List.copyOf(slips);
+        calls = List.copyOf(calls);
         tiers = List.copyOf(tiers);
         craft = List.copyOf(craft);
         neighbours = List.copyOf(neighbours);

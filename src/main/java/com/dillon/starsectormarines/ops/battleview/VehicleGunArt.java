@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
@@ -56,13 +57,19 @@ final class VehicleGunArt {
         return vehicleDrawingPath(weapon);
     }
 
-    /** The weapon's drawing on a hull; null where the hull fires its own gun or the weapon has none. */
-    static LayeredSpriteCache sprite(BattleSprites sprites, VehicleType type, MechWeaponComponent weapon) {
+    /**
+     * The weapon's drawing on a hull; null where the hull fires its own gun or the weapon has none. A Hegemony-line hull
+     * draws a mech weapon in its paint's casing ({@link VehiclePaint#mechLivery}: tan, Independent blue-grey, pirate
+     * brown; owner: weapons take the faction's colours, not army green); any other hull in the base casing.
+     */
+    static LayeredSpriteCache sprite(BattleSprites sprites, VehicleType type, MechWeaponComponent weapon,
+                                     VehiclePaint paint) {
         if (weapon == null || VehicleGun.lengthCells(type, weapon) <= 0f) return null;
         String path = vehicleDrawingPath(type, weapon);
         LayeredSpriteCache own = path == null ? null : sprites.vehicleGunDrawing(path);
         if (own != null && own.sprite != null) return own;
-        LayeredMechAssets assets = sprites.layeredMechSprites();
+        LayeredMechAssets assets = paint != null && VehiclePaint.paints(type)
+                ? sprites.layeredMechSprites(paint.mechLivery()) : sprites.layeredMechSprites();
         if (assets == null) return null;
         LayeredSpriteCache sprite = LayeredMechComposer.weaponSprite(assets, weapon);
         return sprite != null && sprite.sprite != null ? sprite : null;

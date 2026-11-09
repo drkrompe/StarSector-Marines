@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.vehicle.FactionVehiclePoints;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -379,6 +381,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -729,6 +732,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvageSites = List.copyOf(sites);
     }
 
+    private Set<String> takenFinds = Set.of();
+
+    /** The ids of a ruins site's finds already brought home: placed as seeded, then left out (Law 6). */
+    public void setTakenFinds(Set<String> taken) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Name the site's taken finds before launch installs finds");
+        takenFinds = taken == null ? Set.of() : Set.copyOf(taken);
+    }
+
     /** An occupant's own spoil, found beside the field caches: a ruins crew's stash at its camp, or null. */
     public SalvageCache occupantStash() { return occupantStash; }
 
@@ -736,6 +748,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (salvageInstalled || simTickIndex != 0)
             throw new IllegalStateException("Place the occupant's stash before launch installs finds");
         occupantStash = stash;
+    }
+
+    private List<SalvageCache> vaultStore = List.of();
+
+    /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
+    public List<SalvageCache> vaultStore() { return vaultStore; }
+
+    public void setVaultStore(List<SalvageCache> store) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the vault's store before launch installs finds");
+        vaultStore = store == null ? List.of() : List.copyOf(store);
     }
 
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
@@ -746,7 +769,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
-        fieldSalvage = new FieldSalvage(finds);
+        fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
+        // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
+        vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;
@@ -1239,9 +1264,29 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SideObjectiveService getSideObjectives() { return sideObjectives; }
 
     private RuinsWorks ruinsWorks;
+    private final List<LockedDoor> lockedDoors = new ArrayList<>();
+
+    /** The battle's locked doors ({@code garrisonables.md}, Locked doors and hardened walls), for drawing. */
+    public List<LockedDoor> lockedDoors() { return Collections.unmodifiableList(lockedDoors); }
+
+    /** Registers a locked door as it installs. At setup. */
+    public void addLockedDoor(LockedDoor door) {
+        if (!lockedDoors.contains(door)) lockedDoors.add(door);
+    }
 
     /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
     public RuinsWorks getRuinsWorks() { return ruinsWorks; }
+
+    private RuinsDelveWatch ruinsDelveWatch;
+
+    /** What a Ruins battle's Delve row reads ({@code ruins-expedition.md}, Judging the forces), or null. */
+    public RuinsDelveWatch getRuinsDelveWatch() { return ruinsDelveWatch; }
+
+    /** Installs a Ruins battle's Delve row watch. At setup only. */
+    public void installRuinsDelveWatch(RuinsDelveWatch watch) {
+        if (simTickIndex != 0) throw new IllegalStateException("Install the delve watch at setup");
+        ruinsDelveWatch = watch;
+    }
 
     /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
     public void installRuinsWorks(RuinsWorks works) {
@@ -4394,6 +4439,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineHound != null) waylineHound.tick(this);
         if (ruinsWorks != null) ruinsWorks.tick(this);
         fieldSalvage.tick(this);
+        if (ruinsDelveWatch != null) {
+            RuinsVaultObjective vault = RuinsPullOut.vault(this);
+            if (vault != null) ruinsDelveWatch.tick(this, vault);
+        }
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);

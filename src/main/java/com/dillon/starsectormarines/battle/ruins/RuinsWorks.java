@@ -425,7 +425,11 @@ public final class RuinsWorks {
         }
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
-            if (isOpen(d) || door.hardened() || (door.store() && !read)) continue;
+            if (isOpen(d) || (door.store() && !read)) continue;
+            if (door.hardened()) {
+                lockedOffer(out, field, DOOR + door.id(), door);
+                continue;
+            }
             forceOffer(out, field, DOOR + door.id(), door, Strings.get("ruinsWorksDoorSealed"),
                     Strings.get("ruinsWorksForceDetail"));
         }
@@ -443,6 +447,14 @@ public final class RuinsWorks {
         }
         out.add(new Offer(key, m[0], m[1], SideTrigger.Interact.Layout.CARD, target.name(), tag, detail,
                 List.of(new OfferVerb(FORCE, Strings.get("ruinsWorksVerbForce"), ""))));
+    }
+
+    /** A hardened door's card: no verb, only what opens it. */
+    private void lockedOffer(List<Offer> out, SideField field, String key, SealDoor target) {
+        int[] m = target.middle();
+        if (field.nearest(SideField.Who.COMBATANT, m[0] + .5f, m[1] + .5f, PROMPT_CELLS) == 0L) return;
+        out.add(new Offer(key, m[0], m[1], SideTrigger.Interact.Layout.CARD, target.name(),
+                Strings.get("ruinsWorksDoorLocked"), Strings.get("ruinsWorksLockedDetail"), List.of()));
     }
 
     private static String seconds(float s) { return Strings.format("objectiveSeconds", Math.round(s * 10) / 10f); }
@@ -509,7 +521,7 @@ public final class RuinsWorks {
             if (door.store() && !read && !isOpen(d)) continue;
             int[] m = door.middle();
             String status = Strings.get(isForced(d) ? "ruinsWorksDoorForced" : isOpen(d) ? "ruinsWorksDoorOpen"
-                    : "ruinsWorksDoorSealed");
+                    : door.hardened() ? "ruinsWorksDoorLocked" : "ruinsWorksDoorSealed");
             markers.add(new Marker(KEY + door.id(), door.name(), m[0], m[1], status,
                     isOpen(d) ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }

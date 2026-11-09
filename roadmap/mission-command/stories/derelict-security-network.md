@@ -7,7 +7,8 @@ walker is its own four-legged chassis on placeholder art while picks
 `derelict-walker-look` and `derelict-walker-wall-reach` wait; the posts' and
 node's looks ship on the recommended candidates while picks
 `derelict-node-look` (redrawn) and `derelict-post-restyle` wait. Feeds slice 5 of
-`ruins-expedition-fork.md` through `ruins-occupants.md`.
+`ruins-expedition-fork.md` through the ruins occupant (`ruins-expedition.md`,
+Occupants).
 
 Written: 2026-11-09
 
@@ -322,6 +323,7 @@ playBattle's Veteran Company).
 
 ## Done
 
-A derelict expedition on each grade plays through `ruins-occupants.md` and the
+A derelict expedition on each grade plays through the ruins occupant
+(`ruins-expedition.md`, Occupants) and the
 owner has played one. Fold the director into `ruins-expedition.md`, the units
 into their noun docs, add a row to `shipped.md`, and delete this story.

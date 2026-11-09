@@ -3,7 +3,12 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +50,39 @@ class MissionObjectiveProjectionTest {
         var landing = item.markers().stream().filter(m -> m.name().equals("Landing area")).findFirst().orElseThrow();
         var court = item.markers().stream().filter(m -> m.name().equals("East court")).findFirst().orElseThrow();
         assertNotEquals(landing.status(), court.status(), "an unheld court is not shown as an open lift point");
+    }
+
+    @Test void theRuinsCardTakesTheEntranceFirstAndMovesThePullOutMarkerToTheEntry() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int y = 0; y < 20; y++) for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
+        try (BattleSimulation sim = new BattleSimulation(grid, new CellTopology(20, 20))) {
+            var vault = new RuinsVaultObjective("R", "vault haul", "The vault", sim.getZoneGraph().zoneIdAt(10, 10),
+                    100f, 10f, List.of(
+                    new RuinsVaultObjective.LiftPoint("Landing area", true, new int[]{10, 10, 2, 2}),
+                    new RuinsVaultObjective.LiftPoint("Entrance", RuinsVaultObjective.LiftPoint.Kind.ENTRANCE,
+                            new int[]{10, 10, 16, 16})));
+            var approach = MissionObjectiveProjection.payload(vault, IDLE);
+            assertTrue(approach.steps().startsWith("1 Entrance"), approach.steps());
+            assertEquals("TAKE THE ENTRANCE", approach.phase());
+            assertTrue(marker(approach, "Landing area").radius() > 0, "the approach pulls out at the landing");
+            assertEquals(0f, marker(approach, "Entrance").radius());
+
+            sim.spawn(new EntitySpec("pointman", Faction.MARINE, UnitType.MARINE, 16, 16));
+            vault.tick(sim);
+            assertTrue(MissionObjectiveProjection.payload(vault, IDLE).progressText().startsWith("Entrance"),
+                    "an apron being held shows its timer");
+            for (int i = 0; i < 200 && vault.entry() < 0; i++) vault.tick(sim);
+
+            var delve = MissionObjectiveProjection.payload(vault, IDLE);
+            assertEquals("ENTRY HELD", delve.phase());
+            assertTrue(delve.steps().startsWith("Entrance: done"), delve.steps());
+            assertEquals(0f, marker(delve, "Landing area").radius());
+            assertTrue(marker(delve, "Entrance").radius() > 0, "the delve pulls out at the entry");
+        }
+    }
+
+    private static MissionObjectiveSnapshot.Marker marker(MissionObjectiveSnapshot.Item item, String name) {
+        return item.markers().stream().filter(m -> m.name().equals(name)).findFirst().orElseThrow();
     }
 
     @Test void cohortReportsSimultaneousHoldsAndUsesTheMovingPayloadAsFocus() {

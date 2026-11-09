@@ -313,6 +313,7 @@ com.dillon.starsectormarines.battle.vehicle.VehicleColoursLookSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleSizesSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleLiveriesSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechLiveriesSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechActiveProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleDamageSmokeSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite
@@ -424,3 +425,5 @@ com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
+com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
+com.dillon.starsectormarines.ops.RuinsRailLookSuite

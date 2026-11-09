@@ -188,8 +188,11 @@ final class LayeredMechComposer {
                 ? 0.018f * LayeredMechAppearance.recoil(srmPhase) : 0f;
         float lrmKick = ((flags & LayeredMechAppearance.FLAG_LRM_ACTIVE) != 0)
                 ? 0.024f * LayeredMechAppearance.recoil(lrmPhase) : 0f;
+        // A shoulder rack stands on the shoulder, over the body (owner: the Warden's racks drawn under its hull read
+        // wrong); only the socketed variant tucks them under.
         boolean podsAboveChassis = chassis == LayeredMechAppearance.CHASSIS_CLEAN
-                || chassis == LayeredMechAppearance.CHASSIS_HOUND;
+                || chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_WARDEN;
         if (!podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
                     upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
@@ -309,8 +312,19 @@ final class LayeredMechComposer {
                     || gun == LayeredMechAppearance.ARMS_NOSE_AC_6_QS
                     || gun == LayeredMechAppearance.ARMS_AC_6_QS ? -0.02f : -0.05f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
-                    0f, pivot + MechHardpointGeometry.centrelineDrawingShift(gun) + recoil, 1f, 0f, alpha);
+                    0f, pivot + MechHardpointGeometry.centrelineDrawingShift(gun) + recoil,
+                    centrelineWidthScale(gun), 0f, alpha);
         }
+    }
+
+    /**
+     * How wide a centreline gun is drawn, as a share of its drawing: the chaingun's six-barrel drawing at full width is
+     * as broad as the Hound's whole nose (owner: ridiculously wide), so on the centreline it is drawn at the half width
+     * the Bulwark's arms draw it at; every other gun at its own width.
+     */
+    static float centrelineWidthScale(int gun) {
+        return gun == LayeredMechAppearance.ARMS_NOSE_CHAINGUN || gun == LayeredMechAppearance.ARMS_CHAINGUN
+                ? 0.5f : 1f;
     }
 
     private static MechSection armSection(MechMountSlot slot) {

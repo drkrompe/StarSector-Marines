@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c19e-dbbc-7c52-8123-10505a7eccb2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c19e-dbbc-7c52-8123-10505a7eccb2\\exec-2ae36e80-9559-4ab6-b456-0c31d750c796.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\locked-doors\\master-v1.png",
+    "sha256": "44bebeb7d75d8a6f19a10013fa51ea319b74966092e9480de168bf9d744e2345",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\locked-doors\\brief.txt",
+  "promptSha256": "fde8e571997e964f3272bb44a027639c6e52a9af8006d2a1f0bbae191ba091f4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: fill every box exactly, transparent elsewhere\nImage 2: Material/style only; not layout\n\nA sprite sheet of sliding blast doors for a top-down tactical game, seen straight down (orthographic, no perspective, no tilt), lit softly from the top-left.\n\nReference 1 is the geometry guide and the exact layout authority. Every grey box in it is one sprite: fill each box exactly, edge to edge, keeping its position, size and proportions. Do not move, resize, add or merge boxes. Everything outside the boxes stays fully transparent: a true transparent background, including the gutters between pieces; no ground, floor, shadow slab, border, label or text anywhere.\n\nReference 2 is material and style only, not layout: the game's existing fort door art. Match its painted, gritty, worn industrial metal look: gunmetal plates, rivets and bolts, chipped yellow-and-black hazard stripes, tiny status lamps, crisp dark outlines, readable at small size.\n\nEach long box is a shut door, lying across one wall cell, its length along the long side; the dark vertical line is the seam where its two leaves meet.\n\n- The lighter grey boxes (the 4-, 1-, 3- and 2-cell doors in the first two rows) are ordinary seal doors: two heavy sliding leaves of riveted gunmetal, each leaf banded with worn diagonal yellow-and-black hazard stripes, a dark steel frame round the whole door, and one small glowing red lamp on the seam at its middle. Old, dusty, scuffed, ancient ruin machinery.\n- The darker blue-grey boxes (the 1-cell door top right and the 2-cell door bottom left) are vault doors: massive armoured slabs, thick dark gunmetal with heavy reinforcing ribs across each leaf, interlocking locking bolts along the seam, a bright red lock bar across the seam with a glowing red lamp, and no yellow hazard stripes. They must look far heavier and more secure than the seal doors.\n- The narrow tall boxes are door jambs seen with the door open: a steel frame housing with the edge of the retracted leaf showing as the darker strip on one side, and one small glowing green lamp. The light grey jambs match the seal doors (a hint of hazard stripe on the leaf edge); the blue-grey jambs match the vault doors.\n\nNo floor, no wall, no people, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\locked-doors\\guide.png",
+      "sha256": "f16d7a9025400e6ce7ece694dd1b9648c59032147dc4a0466e2bfc12624a7b1b",
+      "dimensions": [
+        2176,
+        1216
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: fill every box exactly, transparent elsewhere"
+    },
+    {
+      "path": "art-source\\locked-doors\\material-reference.png",
+      "sha256": "5b6e7a47030f511cd9d7bb2f824d1eb945bb3e2e0536907f6e93629694762ae5",
+      "dimensions": [
+        1300,
+        640
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using the first image for exact geometry and the second for the worn metal style, with transparency outside every sprite.\n"
+  ],
+  "usage": {
+    "input_tokens": 46024,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 714,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.6
+}

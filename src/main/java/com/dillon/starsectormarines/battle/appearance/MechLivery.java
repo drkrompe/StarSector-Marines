@@ -27,6 +27,16 @@ public enum MechLivery {
         this.assetFolder = assetFolder;
     }
 
+    /**
+     * Whether this livery wears the low-tech bodies with legs to match, rather than the shared outlines repainted: the
+     * Hegemony's masters and the Independent and pirate paints of them, as the Hegemony vehicle line is painted
+     * (art-source/mech-modular-topdown/sources/lowtech). Its folder then holds a {@code foot.png} and a
+     * {@code thigh-bone.png}; every other livery walks on the shared legs.
+     */
+    public boolean ownsLegs() {
+        return this == HEGEMONY || this == INDEPENDENT || this == PIRATES;
+    }
+
     /** Folder below {@code factions/}, or {@code null} for the base assets. */
     public String assetFolder() {
         return assetFolder;

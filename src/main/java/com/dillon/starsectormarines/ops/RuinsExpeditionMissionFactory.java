@@ -3,11 +3,13 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSiteFinds;
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the battle in which the company goes into a world's ruins ({@code ruins-expedition.md}).
@@ -49,6 +51,15 @@ public final class RuinsExpeditionMissionFactory {
      */
     public static Mission create(int serial, String marketId, String planetName, RuinsGrade grade,
                                  RuinsOccupant occupant) {
+        return create(serial, marketId, planetName, grade, occupant, Set.of());
+    }
+
+    /**
+     * @param takenFinds the ids of the site's finds already brought home ({@link RuinsSiteFinds}), left out of the
+     *                   battle; the battle's seed is the site's, so every other find is where it was
+     */
+    public static Mission create(int serial, String marketId, String planetName, RuinsGrade grade,
+                                 RuinsOccupant occupant, Set<String> takenFinds) {
         if (serial <= 0 || marketId == null || planetName == null || grade == null || occupant == null) return null;
         OperationTier tier = tierFor(grade);
         String defenders = defenderFactionId(occupant);
@@ -70,6 +81,9 @@ public final class RuinsExpeditionMissionFactory {
                 // An uncolonized world's market has no owner to defend it: the occupant's side does.
                 .defenderFactionOverride(defenders)
                 .ruinsGrade(grade)
+                .ruinsTakenFinds(takenFinds == null ? Set.of() : takenFinds)
+                // The same ground on every expedition: retry meets the same ruins (ruins-expedition.md).
+                .battleSeed(RuinsSiteFinds.battleSeed(marketId))
                 .ruinsOccupant(occupant)
                 .contractId(-1L)
                 .build();

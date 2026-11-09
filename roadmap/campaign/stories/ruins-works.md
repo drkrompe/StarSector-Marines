@@ -5,7 +5,8 @@ hardened locked door and the scattered bunker's door. Open: a landing court's
 lift as a consumer (slice 1) and which works an occupied site keeps (slice 7);
 whether the chain plays well is the owner's playtest. Part of
 slice 5 of
-`ruins-expedition-fork.md`, beside `ruins-occupants.md`.
+`ruins-expedition-fork.md`, beside the occupants (`ruins-expedition.md`,
+Occupants).
 
 Written: 2026-11-09
 
@@ -96,7 +97,7 @@ one, and the sealed stores behind them are the reward.
    one before. Laid by hand on the stand-in ground first, then by
    the ruins ground's works sites (`mapgen-nouns.md`, Ruins ground).
 7. **Occupied sites.** Fewer works, all optional. The noise hook for the Rav
-   and derelict zones lands with `ruins-occupants.md`. The derelict branch
+   and derelict zones is built (`ruins-expedition.md`, Occupants). The derelict branch
    power-down is built (`derelict-security-network.md`, slice 8): each zone is
    fed by its node's layer's junction on the way-on branch, and throwing it
    to the store darkens the zone.

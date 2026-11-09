@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.TurretHead;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
@@ -36,6 +37,7 @@ import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -131,6 +133,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteSheetFrames urban3Frames;
     private final SpriteSheetFrames natureFrames;
     private final LayeredMechAssets mech;
+    private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
             new EnumMap<>(TurretMountStyle.class);
@@ -746,30 +749,57 @@ final class HeadlessBattleSprites extends BattleSprites {
     }
 
     private LayeredMechAssets loadMech() throws IOException {
-        return new LayeredMechAssets(layer(MECH_ROOT + "chassis.png"),
+        return loadMech(MECH_ROOT, MECH_ROOT);
+    }
+
+    /**
+     * A side's mech set in the livery a review suite bound it ({@link ReviewFactions}), loaded as the game loads one
+     * ({@code BattleSprites.loadMechLivery}); the base set when nothing is bound.
+     */
+    @Override public LayeredMechAssets layeredMechSprites(Faction side) {
+        MechLivery livery = ReviewFactions.mechLivery(side);
+        return layeredMechSprites(livery != null ? livery : MechLivery.BASE);
+    }
+
+    /** One livery's set off the resource roots, loaded once; the base set for the base livery. */
+    @Override public LayeredMechAssets layeredMechSprites(MechLivery livery) {
+        if (livery == null || livery == MechLivery.BASE) return mech;
+        return mechLiveries.computeIfAbsent(livery, l -> {
+            String root = MECH_ROOT + "factions/" + l.assetFolder() + "/";
+            try {
+                return loadMech(root, l.ownsLegs() ? root : MECH_ROOT);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    /** A mech set: chassis and weapons from {@code root}, legs from {@code legs}, the socketed variant and flash shared. */
+    private LayeredMechAssets loadMech(String root, String legs) throws IOException {
+        return new LayeredMechAssets(layer(root + "chassis.png"),
                 layer(MECH_ROOT + "chassis-socketed-variant.png"),
-                layer(MECH_ROOT + "chassis-hound.png"),
-                layer(MECH_ROOT + "chassis-warden.png"),
-                layer(MECH_ROOT + "foot.png"), layer(MECH_ROOT + "thigh-bone.png"),
-                layer(MECH_ROOT + "chaingun-arm.png"),
-                layer(MECH_ROOT + "hc-10.png"),
-                layer(MECH_ROOT + "hc-20.png"), layer(MECH_ROOT + "srm-rack.png"),
-                layer(MECH_ROOT + "lrm-rack.png"),
-                layer(MECH_ROOT + "ll-3.png"),
-                layer(MECH_ROOT + "pl-2-ap.png"),
-                layer(MECH_ROOT + "ac-6.png"),
-                  layer(MECH_ROOT + "dc-5.png"),
-                  layer(MECH_ROOT + "lions-guard-thermal-lance.png"),
-                  layer(MECH_ROOT + "ac-6-qs.png"),
-                  layer(MECH_ROOT + "dc-4-qs.png"),
-                  layer(MECH_ROOT + "srm-3-qs.png"),
-                  layer(MECH_ROOT + "light-machine-gun.png"),
-                  layer(MECH_ROOT + "bl-1.png"),
-                  layer(MECH_ROOT + "pl-3.png"),
-                  layer(MECH_ROOT + "bl-2.png"),
-                  layer(MECH_ROOT + "pl-3-sweep.png"),
-                  layer(MECH_ROOT + "pl-2.png"),
-                  layer(MECH_ROOT + "pl-1.png"),
+                layer(root + "chassis-hound.png"),
+                layer(root + "chassis-warden.png"),
+                layer(legs + "foot.png"), layer(legs + "thigh-bone.png"),
+                layer(root + "chaingun-arm.png"),
+                layer(root + "hc-10.png"),
+                layer(root + "hc-20.png"), layer(root + "srm-rack.png"),
+                layer(root + "lrm-rack.png"),
+                layer(root + "ll-3.png"),
+                layer(root + "pl-2-ap.png"),
+                layer(root + "ac-6.png"),
+                  layer(root + "dc-5.png"),
+                  layer(root + "lions-guard-thermal-lance.png"),
+                  layer(root + "ac-6-qs.png"),
+                  layer(root + "dc-4-qs.png"),
+                  layer(root + "srm-3-qs.png"),
+                  layer(root + "light-machine-gun.png"),
+                  layer(root + "bl-1.png"),
+                  layer(root + "pl-3.png"),
+                  layer(root + "bl-2.png"),
+                  layer(root + "pl-3-sweep.png"),
+                  layer(root + "pl-2.png"),
+                  layer(root + "pl-1.png"),
                   layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"),
                   new LayeredMechAssets.ActiveProtection(
                           optionalLayer(MECH_ROOT + "active-protection-bulwark.png"),

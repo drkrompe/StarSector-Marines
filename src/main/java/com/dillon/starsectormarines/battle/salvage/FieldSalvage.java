@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.List;
+import java.util.Set;
 
 /** Battle-local recovery ledger; no cargo, mission victory, or automatic squad-order authority. */
 public final class FieldSalvage {
@@ -16,6 +17,15 @@ public final class FieldSalvage {
         this.caches = List.copyOf(caches);
         if (caches.stream().map(c -> c.id).distinct().count() != caches.size())
             throw new IllegalArgumentException("Duplicate salvage identity");
+    }
+
+    /**
+     * The finds without those already taken: a ruins site's finds are placed as seeded and the ones an earlier
+     * expedition brought home are then left out, so every other find keeps its place and id.
+     */
+    public static List<SalvageCache> leavingOut(List<SalvageCache> finds, Set<String> taken) {
+        if (taken == null || taken.isEmpty()) return List.copyOf(finds);
+        return finds.stream().filter(find -> !taken.contains(find.id)).toList();
     }
 
     public List<SalvageCache> caches() { return caches; }
