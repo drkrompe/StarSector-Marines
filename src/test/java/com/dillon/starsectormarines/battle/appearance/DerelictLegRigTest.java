@@ -152,4 +152,46 @@ class DerelictLegRigTest {
         });
         assertTrue(runHeight[1] - runHeight[0] > walkHeight[1] - walkHeight[0], "the run bounces harder");
     }
+
+    @Test
+    void aLostLegNeverLiftsItsFootIsDraggedAndTheOthersStillStep() {
+        DerelictLegRig rig = new DerelictLegRig();
+        rig.advance(10f, 50.5f, EAST, DT, OPEN);
+        rig.legsLost(1 << 2, false);
+        boolean[] lifted = new boolean[4];
+        boolean[] dragged = {false};
+        walk(rig, 0.7f, 600, OPEN, () -> {
+            for (int i = 0; i < 4; i++) if (rig.stepping(i)) lifted[i] = true;
+            if (rig.dragging(2)) dragged[0] = true;
+        });
+        assertFalse(lifted[2], "the lost leg never lifts");
+        assertTrue(lifted[0] && lifted[1] && lifted[3], "the other three still step");
+        assertTrue(dragged[0], "its foot is dragged along");
+        assertFalse(rig.onWall(2));
+    }
+
+    @Test
+    void aLostLegGripsNoWallEvenBesideOne() {
+        DerelictLegRig rig = new DerelictLegRig();
+        DerelictLegRig.Solid north = (x, y) -> y >= 52;
+        rig.legsLost(0b1111, false);
+        rig.advance(10f, 50.5f, EAST, DT, north);
+        for (int i = 0; i < 4; i++) assertFalse(rig.onWall(i), "leg " + i);
+    }
+
+    @Test
+    void theBodySagsOnThreeLegsAndSinksWhenDowned() {
+        DerelictLegRig whole = new DerelictLegRig();
+        DerelictLegRig limping = new DerelictLegRig();
+        DerelictLegRig downed = new DerelictLegRig();
+        limping.legsLost(1, false);
+        downed.legsLost(0b11, true);
+        for (int t = 0; t < 120; t++) {
+            whole.advance(10f, 50.5f, EAST, DT, OPEN);
+            limping.advance(10f, 50.5f, EAST, DT, OPEN);
+            downed.advance(10f, 50.5f, EAST, DT, OPEN);
+        }
+        assertTrue(limping.bodyHeight() < whole.bodyHeight() - 0.05f, "it sags");
+        assertEquals(-DerelictLegRig.DOWNED_CELLS, downed.bodyHeight(), 0.02f, "downed, the torso is on the floor");
+    }
 }

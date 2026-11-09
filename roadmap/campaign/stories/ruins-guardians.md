@@ -152,9 +152,12 @@ Guardian strength does not read the prize's stakes; that waits on the owner.
    the Rav (the old sleeper and the deep bore), an empty site (the vault's own
    battery), as `ruins-guardian-kinds` (a) names them, each a story slice of
    its own once picked.
-8. **Legs shown.** The leg rig limps on three legs, drags the lost leg's
-   foot and grips nothing on that side; sparks at a lost knee; the LEGS pip
-   row; a downed walker drawn with its torso on the floor.
+8. **Legs shown (built).** The leg rig never lifts a lost leg, drags its
+   foot and grips nothing with it, and the body sags and tips toward it; the
+   lost knee bursts once, then throws sparks and is drawn burnt; the LEGS pip
+   row stands over a walker missing a knee; a downed walker's torso sinks to
+   the floor. Knees, feet and sparks read the hips' frame, as the legs hang
+   off the hips.
 
 ## What is built
 
@@ -175,10 +178,13 @@ Guardian strength does not read the prize's stakes; that waits on the owner.
 - `WalkerKnees` and `WalkerFootprint` (`battle.derelict`), worn by every
   derelict walker through `DerelictSecurityDirector.armWalkers`: knee hits
   through `HitScale`, speed through a unit modifier, and the feet-only
-  footprint through `SeparationSystem.Straddle`. Not yet drawn (slice 8).
+  footprint through `SeparationSystem.Straddle`. Drawn by `DerelictLegRig`
+  (`legsLost`) and `DerelictWalkerComposer` (burnt knee, `marker`); sparks
+  from the director. The look suite's `guardian-walker-knee` clip shows a
+  walker losing a knee, then a second.
 
 Tests: `HiveCradleTest`, `VaultFrameBraceTest`, `FlockSystemTest`,
-`WalkerKneesTest`, `WalkerFootprintTest`.
+`WalkerKneesTest`, `WalkerFootprintTest`, `DerelictLegRigTest`.
 
 ## Constraints
 

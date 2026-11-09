@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
+import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
@@ -386,6 +388,13 @@ public final class UnitRenderService implements RenderSystem {
     private final Map<Long, Float> layerAngles = new HashMap<>();
     /** Each derelict walker's leg rig, and the sim tick it was last advanced on. */
     private final Map<Long, DerelictLegRig> derelictRigs = new HashMap<>();
+
+    /** A walker's lost knees as a bit a leg, in the leg rig's order. */
+    static int lostMask(WalkerKnees knees) {
+        int mask = 0;
+        for (int i = 0; i < WalkerKnees.LEGS; i++) if (knees.lost(i)) mask |= 1 << i;
+        return mask;
+    }
     private final Map<Long, Integer> derelictRigTicks = new HashMap<>();
     private final Stratum footprints = new Stratum();
     private final Stratum turrets = new Stratum();
@@ -1722,11 +1731,15 @@ public final class UnitRenderService implements RenderSystem {
                     float dt = last == null ? 0f
                             : Math.min(0.25f, Math.max(0, tick - last) * BattleSimulation.TICK_DT);
                     NavigationGrid grid = ctx.sim.getGrid();
+                    DerelictSecurityDirector derelict = ctx.sim.derelictSecurity();
+                    WalkerKnees knees = derelict != null ? derelict.kneesOf(entityId) : null;
+                    if (knees != null) rig.legsLost(lostMask(knees), knees.downed());
                     rig.advance(rx[r], ry[r], mechHipFacing[r], dt,
                             (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
                             walkerArt, rig, cam, roster.renderScale(entityId), unitAlpha);
+                    DerelictWalkerComposer.marker(out, rig, cam, unitAlpha);
                     continue;
                 }
                 if (mechAssets != null) {
