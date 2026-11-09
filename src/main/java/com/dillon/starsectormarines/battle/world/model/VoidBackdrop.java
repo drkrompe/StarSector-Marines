@@ -28,6 +28,7 @@ import java.util.List;
  *                         stands on them, they fill the space between the surface and the ground below
  * @param skyways          straight lanes of traffic through the drop, each flown both ways; empty to let the
  *                         renderer cross the drop beside the structures instead
+ * @param atmosphere       the drop's lights and fog, or null for none
  */
 public record VoidBackdrop(String cityTexture, float depthMeters, float cityTileMeters,
                            float hazeR, float hazeG, float hazeB,
@@ -35,7 +36,7 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
                            String roofTexture, float roofTileMeters,
                            List<Tier> tiers, float eyeMeters,
                            List<String> craft, float craftMetersPerPx, List<Tower> neighbours,
-                           List<Skyway> skyways) {
+                           List<Skyway> skyways, Atmosphere atmosphere) {
 
     /** A terrace: its roof stands {@code depthMeters} below the surface, {@code outsetMeters} out past its edge. */
     public record Tier(float depthMeters, float outsetMeters) { }
@@ -48,6 +49,26 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
 
     /** A lane of traffic from {@code (x0, y0)} to {@code (x1, y1)} in cells, {@code depthMeters} below the surface. */
     public record Skyway(float x0, float y0, float x1, float y1, float depthMeters) { }
+
+    /**
+     * The drop's light and air: the lights painted in the facade, roof and ground images lifted out as masks the
+     * renderer lays over each after the depth haze, so they shine through it, and banks of fog.
+     *
+     * @param facadeGlow     the facade image's light mask, at its tiling; null for none
+     * @param roofGlow       the roof image's light mask; null for none
+     * @param cityGlow       the ground image's light mask; null for none
+     * @param fogTexture     a sheet of soft fog puffs, {@code fogSheetCells} across and down; null for no fog
+     * @param fogSheetCells  puffs to a side of the fog sheet
+     * @param fogDecks       the depths of the fog banks, metres below the surface
+     * @param fogAlpha       how thick a puff is at its thickest
+     * @param fogPuffMeters  how wide a puff is
+     */
+    public record Atmosphere(String facadeGlow, String roofGlow, String cityGlow, String fogTexture,
+                             int fogSheetCells, List<Float> fogDecks, float fogAlpha, float fogPuffMeters) {
+        public Atmosphere {
+            fogDecks = List.copyOf(fogDecks);
+        }
+    }
 
     public VoidBackdrop {
         skyways = List.copyOf(skyways);
