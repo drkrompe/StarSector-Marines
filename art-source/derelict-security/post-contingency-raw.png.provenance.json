@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c169-b565-7821-aa0a-2d7bf6751388",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c169-b565-7821-aa0a-2d7bf6751388\\exec-b5bff73c-dd2a-41a7-953b-5e34bb5e713f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\derelict-security\\post-contingency-raw.png",
+    "sha256": "c336924311b624850fbad4510989c9e31435996566900575907d3625aa35f3b3",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\derelict-security\\post-contingency-prompt.txt",
+  "promptSha256": "476617a234b71c56ed09b2a9004ac2f874bfa742988340788510d344c39a7909",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Livery, palette and wear reference only; not layout, subject or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of nine finished top-down game sprites: three alternative designs of a FOLDING GUN POST of an abandoned Tri-Tachyon black site whose automated defences are still carrying out an executive contingency order, an automated twin-machine-gun emplacement about one and a half metres across that sits powered down and retracted into the paving until its zone wakes, then rises and fires. Each row is one design; left column its BASE laid flush in the paving, middle column the post FOLDED (powered down, retracted, shut), right column the post UNFOLDED (its gun head risen, twin barrels pointing toward the TOP edge). Keep every drawing exactly where the guide puts it, at exactly its size and outline:\n- top row, POPUP: base a square floor plate with a round well ringed in caution striping; folded a flush round armoured iris hatch of six leaves; unfolded a round gun head with a twin machine-gun mount forward and a sensor lens.\n- middle row, CLAMSHELL: base a square floor plate with a rectangular dark slot; folded two armoured leaves closed over the slot with a seam down the middle; unfolded a boxy gun head with twin barrels between the two leaves folded open to either side.\n- bottom row, CUPOLA: base a square floor plate with an octagonal ring around a dark well; folded a low armoured dome turned so its gun slit faces down into the ring; unfolded the same dome turned up with twin barrels through a mantlet and a sensor lens.\nLivery and material: Tri-Tachyon high-tech, seamless composite shells and sealed panels in white and pale grey with graphite seams, but GONE DULL after decades unattended: yellowed, dust-greyed and scorched white, cracked panels, cyan status lights faded to a weak glow; where the guide has yellow put a thin dull cyan accent band, where it has red put a dim cyan sensor lens; smooth and sealed, nothing exposed. Image 2 is a structure of the same network in this livery (livery, palette and wear reference only, not layout or subject); this must read as the same family. Match the rendering scale and level of detail of image 3, an approved top-down turret head from this game (rendering style and detail only, not layout, palette or subject): grounded, believable, crisp and readable at small size, not glossy concept art.\nIn the guide pale grey is armour plate, mid grey is seams or deck plate, dark is wells, slots or gun barrels, red a sensor lens, yellow caution striping.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Keep each drawing exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between them. True transparent background with genuine alpha outside the silhouettes; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\derelict-security\\post-guide.png",
+      "sha256": "4ac14464bc3636b2f356e50a17cd0667728f180f88f3450decde9a352bc220e6",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "mod\\graphics\\battle\\drones\\cradle-contingency.png",
+      "sha256": "d3574407f94e5c418a2b325114201cad402bca43a072f7c63c052ab93f0d0609",
+      "dimensions": [
+        256,
+        145
+      ],
+      "mode": "RGBA",
+      "role": "Livery, palette and wear reference only; not layout, subject or scale"
+    },
+    {
+      "path": "mod\\graphics\\structures\\ground-turrets\\derelict\\heavy-head.png",
+      "sha256": "6f32ee5948daaf22ab8223e38d73824e240c9ecdde738064427f56b7a22a446d",
+      "dimensions": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using the guide’s exact geometry and the supplied material and rendering references."
+  ],
+  "usage": {
+    "input_tokens": 103544,
+    "cached_input_tokens": 93312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 884,
+    "reasoning_output_tokens": 34
+  },
+  "elapsedSeconds": 75.6
+}
