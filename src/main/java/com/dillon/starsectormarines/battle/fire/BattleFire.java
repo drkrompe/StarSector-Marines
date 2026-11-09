@@ -126,7 +126,7 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
     /** Ground cleared of anything to burn: bare earth and every paving. Sand and snow are left to their own biomes. */
     private static boolean cleared(CellTopology.GroundKind ground) {
         switch (ground) {
-            case DIRT: case STREET: case COURTYARD: case STONE: case BRICK: case SIDEWALK: case STRIPED:
+            case DIRT: case STREET: case COURTYARD: case STONE: case HARDPAN: case BRICK: case SIDEWALK: case STRIPED:
                 return true;
             default:
                 return false;

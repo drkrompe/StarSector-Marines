@@ -68,7 +68,7 @@ public final class ElevationBrush {
                 if (!layout.touched(x, y)) continue;
                 if (built != null && built[y * w + x] && !layout.isFace(x, y)) continue;
                 boolean natural = switch (topology.getGroundKind(x, y)) {
-                    case GRASS, DIRT, STONE, SAND, SNOW -> true;
+                    case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
                     default -> false;
                 };
                 if (!natural || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isWall(x, y)

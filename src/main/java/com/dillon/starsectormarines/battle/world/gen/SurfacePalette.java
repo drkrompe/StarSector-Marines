@@ -42,7 +42,17 @@ public enum SurfacePalette {
      * emitted by anything. It bears no open water: what water a frozen world
      * has is the ground.
      */
-    FROZEN(false, GroundKind.SNOW);
+    FROZEN(false, GroundKind.SNOW),
+
+    /**
+     * Scorched, bleached and glassed: cracked hardpan fused to glass in patches, with the dead husks of whatever
+     * stood on it. Rocks scatter; nothing grows.
+     *
+     * <p>Vanilla's {@code irradiated} type used to fall through to {@link #ROCK} and read as the same grey regolith
+     * as a barren moon. Hard radiation at the surface is a different picture: the ground has been burnt white and
+     * the light is pale and harsh. It bears no open water.
+     */
+    IRRADIATED(false, GroundKind.HARDPAN);
 
     private final boolean openWater;
     private final GroundKind approachGround;
@@ -95,6 +105,7 @@ public enum SurfacePalette {
             case ARID -> RockDamage.Biome.SANDSTONE;
             case ROCK -> RockDamage.Biome.BASALT;
             case FROZEN -> RockDamage.Biome.FROST;
+            case IRRADIATED -> RockDamage.Biome.GLASSED;
         };
     }
 }
