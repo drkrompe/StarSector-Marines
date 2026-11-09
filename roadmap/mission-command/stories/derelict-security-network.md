@@ -174,7 +174,8 @@ Everything is in `battle.derelict`.
   in the open it stands on the floor. Each leg is a thigh and a shin jointed at
   a drawn knee: `DerelictLegPose` solves the knee in three dimensions from the
   body's height, so a foot near the body raises the knee and a foot on a wall
-  stands higher. The torso still paths, collides and stands on floor cells, so
+  stands higher; seen from above the knee is held between three and five tenths of the
+  way from hip to foot, so it never reads over the hip or past the foot (owner, 2026-11-09). The torso still paths, collides and stands on floor cells, so
   pathing is untouched; moving over or along wall cells would need a
   passability view of its own, read by both the planner and terrain motion as
   `HoverSkirt` and `WallCrush` are, and is not built. The shipped parts are

@@ -2187,7 +2187,7 @@ alternate in patches, so the change reads as country thinning out rather than a
 line; the renderer draws the patches' outline as the continuous field the cells
 were sampled from (`SurfaceField.edge`, `battle-render-nouns.md`, basin edge),
 so it is not stepped either. The woods grow on the floor and thin out across the last stretch before
-the band (`SurfaceField.woods`); a desert rim grows open grey scrub instead,
+the band (`SurfaceField.woods`); a desert rim, and a desert with no basin at all, grows open grey scrub instead,
 about a third as thick, the same silhouettes and states drawn from the
 `dry-scrub-*` sheets (a placement's id carries `-dry`, `NaturalPropShape.DRY`,
 and every state, damage and creep blight follows that id). A brook keeps its water on the floor and

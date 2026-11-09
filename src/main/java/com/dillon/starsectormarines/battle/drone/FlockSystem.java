@@ -149,6 +149,49 @@ public final class FlockSystem {
         return flock;
     }
 
+    /**
+     * Puts a guardian's flock of {@code count} up in the light well at {@code (x, y)} (`ruins-guardians.md`): open sky
+     * inside a megastructure, ringed by roofed halls, which the flock is kept to for good, its field, threshold and
+     * launches all on the well's own open cells. Its housing ({@code housing}, given the cell it stands on) is the
+     * flock's cradle, and {@code hatch} launches its drones in place of the slow rebuild. Null when {@code (x, y)} is
+     * not open sky.
+     */
+    public Flock launchInWell(BattleSimulation sim, Faction side, float x, float y, int count, FlockWeights weights,
+                              float leashCells, FlockLivery livery, FlockHatch hatch, Housing housing) {
+        NavigationGrid grid = sim.getGrid();
+        FlockField.Open open = open(grid, sim.getTopology());
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        if (!open.open(cx, cy)) return null;
+        boolean[] well = body(grid.getWidth(), grid.getHeight(), open, cx, cy);
+        FlockField.Open inWell = within(open, well, grid.getWidth());
+        int[] site = FlockCradle.site(cx, cy, ground(grid, inWell), LAUNCH_SEARCH);
+        if (site != null) {
+            cx = site[0];
+            cy = site[1];
+        }
+        Flock flock = new Flock(nextFlock++, side, weights, cx + .5f, cy + .5f, leashCells);
+        flock.livery = livery;
+        flock.well = well;
+        flock.hatch = hatch;
+        flock.squadId = sim.mintSquad(side, UnitType.DRONE);
+        sim.getSquad(flock.squadId).droneAnchor = flock;
+        List<int[]> cells = openAround(cx, cy, inWell, count);
+        for (int i = 0; i < count && !cells.isEmpty(); i++) {
+            int[] cell = cells.get(i % cells.size());
+            spawnMember(sim, flock, cell[0], cell[1]);
+        }
+        flocks.add(flock);
+        flock.cradleId = sim.spawn(housing.at(cx, cy));
+        if (flock.cradleId != 0L) cradles.put(flock.cradleId, livery);
+        publish(flock, sim, true);
+        return flock;
+    }
+
+    /** A guardian's housing, stood on the cell its flock is homed at. */
+    public interface Housing {
+        EntitySpec at(int cellX, int cellY);
+    }
+
     /** The livery of the flock whose cradle is {@code unitId}, or null when that unit is no flock's cradle. */
     public FlockLivery cradleLivery(long unitId) {
         return cradles.get(unitId);
@@ -166,6 +209,10 @@ public final class FlockSystem {
 
     /** One rebuilt drone from the cradle joins the flock when its clock says so. */
     void rebuild(Flock flock, float dt, BattleSimulation sim) {
+        if (flock.hatch != null) {
+            launchFromHatch(flock, dt, sim);
+            return;
+        }
         boolean cradle = cradleStands(flock, sim);
         if (!flock.rebuild.advance(dt, cradle, flock.nodeStands(), home(flock), flock.size() + flock.aboard(),
                 flock.strength())) return;
@@ -174,8 +221,23 @@ public final class FlockSystem {
             flock.dock.board();
             return;
         }
-        int[] cell = nearestOpen(flock.homeX(), flock.homeY(), sky(sim), LAUNCH_SEARCH);
+        int[] cell = nearestOpen(flock.homeX(), flock.homeY(), sky(flock, sim), LAUNCH_SEARCH);
         if (cell != null) spawnMember(sim, flock, cell[0], cell[1]);
+    }
+
+    /**
+     * A hatch's tick: while its housing stands, it launches what its rhythm says at home and its housing's plate
+     * follows the hatch. A housing destroyed launches nothing more; the drones up fly on.
+     */
+    private void launchFromHatch(Flock flock, float dt, BattleSimulation sim) {
+        if (!cradleStands(flock, sim)) return;
+        int up = flock.hatch.tick(dt, flock.nodeStands(), flock.nodeStands(), flock.size());
+        sim.world().setArmorRating(flock.cradleId, flock.hatch.armorRating());
+        FlockField.Open open = sky(flock, sim);
+        for (int i = 0; i < up; i++) {
+            int[] cell = nearestOpen(flock.homeX(), flock.homeY(), open, LAUNCH_SEARCH);
+            if (cell != null) spawnMember(sim, flock, cell[0], cell[1]);
+        }
     }
 
     /**
@@ -228,10 +290,12 @@ public final class FlockSystem {
         for (Iterator<Flock> it = flocks.iterator(); it.hasNext(); ) {
             Flock flock = it.next();
             flock.members.removeIf(m -> sim.resolveUnit(m) == 0L);
-            dock(flock, dt, sim);
+            // A hatch's drones never dock: its bay is the hatch's own.
+            if (flock.hatch == null) dock(flock, dt, sim);
             rebuild(flock, dt, sim);
             if (flock.members.isEmpty()) {
-                if (flock.aboard() > 0) {
+                // A flock shot down to the last drone stays while drones are aboard or its hatch stands to relaunch.
+                if (flock.aboard() > 0 || (flock.hatch != null && cradleStands(flock, sim))) {
                     publish(flock, sim, false);
                     continue;
                 }
@@ -239,7 +303,8 @@ public final class FlockSystem {
                 it.remove();
                 continue;
             }
-            if (flock.task() != FlockTask.RETURN && (flock.size() + flock.aboard()) * 3 < flock.strength()) {
+            if (flock.hatch == null && flock.task() != FlockTask.RETURN
+                    && (flock.size() + flock.aboard()) * 3 < flock.strength()) {
                 flock.returnHome();
             }
             moveAnchor(flock, dt, sim);
@@ -308,7 +373,7 @@ public final class FlockSystem {
      */
     private int[] threshold(Flock flock, float tx, float ty, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        FlockField.Open open = sky(sim);
+        FlockField.Open open = sky(flock, sim);
         int cx = (int) Math.floor(tx), cy = (int) Math.floor(ty);
         if (open.open(cx, cy)) {
             flock.threshold = null;
@@ -349,7 +414,7 @@ public final class FlockSystem {
             vel[2 * i] = body != null ? body.vx : 0f;
             vel[2 * i + 1] = body != null ? body.vy : 0f;
         }
-        FlockField.Open open = sky(sim);
+        FlockField.Open open = sky(flock, sim);
         int[] source = nearestOpen(flock.anchorX(), flock.anchorY(), open, FIELD_RADIUS / 2);
         FlockField field = flock.field();
         int tick = sim.getSimTickIndex();
@@ -381,7 +446,8 @@ public final class FlockSystem {
     /**
      * Where a flock may be: open cells of the <b>outside</b>, the largest body of open ground on the map. A light well
      * or court inside a megastructure is open sky but reached only through its roofed halls, so it is not the
-     * outside, and a flock is never put up, stationed or held there.
+     * outside, and an ordinary flock is never put up, stationed or held there. A guardian's flock is the exception:
+     * {@link #launchInWell} shuts it in its own well for good ({@link #sky(Flock, BattleSimulation)}).
      */
     FlockField.Open sky(BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
@@ -395,6 +461,40 @@ public final class FlockSystem {
         boolean[] mask = outside;
         int width = grid.getWidth();
         return (x, y) -> open.open(x, y) && mask[y * width + x];
+    }
+
+    /** Where one flock may be: its own light well when it is shut in one, else the outside. */
+    FlockField.Open sky(Flock flock, BattleSimulation sim) {
+        if (flock.well == null) return sky(sim);
+        NavigationGrid grid = sim.getGrid();
+        return within(open(grid, sim.getTopology()), flock.well, grid.getWidth());
+    }
+
+    /** {@code open} kept to the cells of {@code mask}, a row-major grid {@code width} wide. */
+    static FlockField.Open within(FlockField.Open open, boolean[] mask, int width) {
+        return (x, y) -> open.open(x, y) && mask[y * width + x];
+    }
+
+    /** The cells of the 4-connected body of {@code open} cells holding {@code (x, y)}; none when it is closed. */
+    static boolean[] body(int width, int height, FlockField.Open open, int x, int y) {
+        boolean[] out = new boolean[width * height];
+        if (!open.open(x, y)) return out;
+        int[] queue = new int[width * height];
+        int head = 0, tail = 0;
+        out[y * width + x] = true;
+        queue[tail++] = y * width + x;
+        while (head < tail) {
+            int c = queue[head++], cx = c % width, cy = c / width;
+            int[][] steps = {{cx - 1, cy}, {cx + 1, cy}, {cx, cy - 1}, {cx, cy + 1}};
+            for (int[] s : steps) {
+                if (s[0] < 0 || s[1] < 0 || s[0] >= width || s[1] >= height) continue;
+                int n = s[1] * width + s[0];
+                if (out[n] || !open.open(s[0], s[1])) continue;
+                out[n] = true;
+                queue[tail++] = n;
+            }
+        }
+        return out;
     }
 
     /** The cells of the largest 4-connected body of {@code open} cells in a {@code width x height} grid. */

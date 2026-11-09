@@ -195,7 +195,8 @@ public final class DamageResolver {
         // What the part is worth: a head hit more, a limb less. Before mitigation and armour,
         // which stay whole-body layers, so penetration still meets the same plate.
         float partMultiplier = part != null ? part.damageMultiplier : 1f;
-        float postCoverDamage = damage * partMultiplier * (1f - dr) * world.damageTakenMult(targetId);
+        float postCoverDamage = damage * partMultiplier * (1f - dr) * world.damageTakenMult(targetId)
+                * roster.hitScale().scale(targetId, attackerId);
         // Stamped before mitigation and armour have their say: "a hit landed on
         // me" is true whatever eventually absorbed it, and a screen that ate the
         // whole round is still evidence somebody is shooting.

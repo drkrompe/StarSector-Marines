@@ -362,7 +362,6 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float floorMeters = field.depth[field.steps()];
         float alpha = drop.alpha();
         float cellPx = cam.cellPxSize();
-        float ccx = cam.panCellX() + NaturalVoidRenderSystem.MARGIN, ccy = cam.panCellY() + NaturalVoidRenderSystem.MARGIN;
         int seed = drop.seed();
         for (int c = 0; c < floorCount; c++) {
             int o = c * 5;
@@ -380,7 +379,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             float py = y + ((hsh >>> 12) & 15) / 15f + WIND_Y * drift + WIND_X * wob;
             float s = drop.scale(z);
             if (!drop.inView(px, py, s, cellPx)) continue;
-            if (z > 0f && hidden(field, ccx, ccy, px, py, z)) continue;
+            if (z > 0f && drop.hidden(px, py, z)) continue;
             float fade = (float) Math.pow(1f - t, 1.3f) * Math.min(1f, t * 12f);
             float twinkle = .7f + .3f * (float) Math.sin(time * 11f + hsh);
             float g = LavaVoidLook.lerp(.85f, .28f, t), b = LavaVoidLook.lerp(.45f, .05f, t);
@@ -391,22 +390,6 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             out.addAdditiveSprite(RenderLayer.GROUND, dot.sprite, qx, qy, size * 1.6f, size * 1.6f, 0f,
                     1f, g, b, fade * twinkle * alpha);
         }
-    }
-
-    /** Whether the rock stands between the eye, over {@code (ccx, ccy)}, and a point {@code z} metres down. */
-    private boolean hidden(NaturalVoidField field, float ccx, float ccy, float x, float y, float z) {
-        for (int k = 0; k <= 3; k++) {
-            float zk = z * k / 4f;
-            // The point on the line of sight at depth zk: where the eye's ray through the point passes it.
-            float f = drop.scale(z) / drop.scale(zk);
-            float rx = ccx + (x - ccx) * f, ry = ccy + (y - ccy) * f;
-            int ix = (int) Math.floor(rx), iy = (int) Math.floor(ry);
-            if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h) return true;
-            if (k == 0 && !field.open[iy * field.w + ix]) return true;
-            if (field.bridge[iy * field.w + ix] && zk < NaturalVoidField.DECK_METERS) return true;
-            if (field.depthAt(rx, ry) < zk - .01f) return true;
-        }
-        return false;
     }
 
     /**
@@ -438,7 +421,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 float y = j * step + dy + (((hsh >> 8) & 255) / 255f - .5f) * step;
                 // Smoke stands over the rift: where it came up from, upwind of here, and thins away from it.
                 float over = overRift(field, x - WIND_X * SMOKE_LAG_CELLS, y - WIND_Y * SMOKE_LAG_CELLS, low);
-                if (over <= 0f || nearBridge(field, x, y, puffCells * .75f)) continue;
+                if (over <= 0f || field.nearBridge(x, y, puffCells * .75f)) continue;
                 float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .21f, j * .21f, seed);
                 if (n < .38f) continue;
                 float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
@@ -462,23 +445,6 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         if (low) return overFloor[iy * field.w + ix] ? 1f : 0f;
         if (field.byBridge(x, y)) return 0f;
         return LavaVoidLook.smooth(-2.5f, 2f, field.sample(field.edge, x, y));
-    }
-
-    /**
-     * Whether a bridge's deck lies within {@code radius} cells of a point. A bridge is ground to the smoke: a puff
-     * that would spread over its deck is not drawn, so the deck never reads stained.
-     */
-    private static boolean nearBridge(NaturalVoidField field, float x, float y, float radius) {
-        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
-        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
-        for (int cy = Math.max(0, y0); cy <= Math.min(field.h - 1, y1); cy++) {
-            for (int cx = Math.max(0, x0); cx <= Math.min(field.w - 1, x1); cx++) {
-                if (!field.bridge[cy * field.w + cx]) continue;
-                float ex = Math.max(0f, Math.max(cx - x, x - (cx + 1))), ey = Math.max(0f, Math.max(cy - y, y - (cy + 1)));
-                if (ex * ex + ey * ey < radius * radius) return true;
-            }
-        }
-        return false;
     }
 
     /** Ash falling over everything in view, drifting on the wind, a few metres above the ground. */

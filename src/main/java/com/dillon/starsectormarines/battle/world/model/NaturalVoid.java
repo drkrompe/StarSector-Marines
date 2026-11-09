@@ -28,6 +28,11 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
         /** A volcanic rift: basalt walls lit orange from below by a river of molten rock crusting as it flows. */
         LAVA,
         /**
+         * A glacial crevasse on a frozen world: blue-white ice walls in layered strata, snow drifted on the
+         * ledges and blown off the lip, a cold mist in the deep blue below and a frozen meltwater floor.
+         */
+        ICE,
+        /**
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */

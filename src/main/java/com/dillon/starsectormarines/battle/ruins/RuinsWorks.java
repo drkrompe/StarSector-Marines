@@ -87,6 +87,8 @@ public final class RuinsWorks {
     static final int WORK_MARGIN = 3;
 
     private final PowerGraph graph;
+    /** The published ground the works were wired on; null for works built without one. */
+    private RuinsDelve delve;
     private final Site hall;
     private final List<Site> junctions;
     private final List<SealDoor> doors;
@@ -244,6 +246,7 @@ public final class RuinsWorks {
         }
         RuinsWorks works = new RuinsWorks(new PowerGraph(capacity(onwardBy, storeBy), initial, consumers), hall, junctions,
                 doors, stores, records, collapse);
+        works.delve = delve;
         works.vaultShell = box(vaultPlace.footprint());
         works.access = access;
         works.courts.addAll(courts);
@@ -301,6 +304,8 @@ public final class RuinsWorks {
     public List<SalvageCache> storeCaches() { return stores; }
 
     public PowerGraph graph() { return graph; }
+    /** The published ground the works were wired on; null for works built without one. */
+    public RuinsDelve delve() { return delve; }
     public List<SealDoor> doors() { return doors; }
     public boolean isOpen(int door) { return locks.get(door).isOpen(); }
     public boolean isForced(int door) { return locks.get(door).isForced(); }
