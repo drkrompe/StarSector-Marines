@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -101,6 +102,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     private int destination;
     private int entry = -1;
+    private float entrySeconds = -1f;
     private boolean powered;
     private boolean complete;
     private boolean failed;
@@ -164,6 +166,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     @Override
     public void tick(BattleView sim) {
         if (complete || failed) return;
+        if (entry >= 0) entrySeconds += BattleSimulation.TICK_DT;
         EscortedRoute haul = routes.get(destination);
         if (haul.index() == 0) {
             tickCourts(sim);
@@ -205,7 +208,10 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
             if (court == null || court.held()) continue;
             EscortedRoute route = routes.get(i);
             boolean taken = court.tick(sim, route.endX(), route.endY(), LIFT_RADIUS, -1);
-            if (taken && entry < 0 && liftPoints.get(i).entrance()) entry = i;
+            if (taken && entry < 0 && liftPoints.get(i).entrance()) {
+                entry = i;
+                entrySeconds = 0f;
+            }
         }
     }
 
@@ -322,15 +328,11 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     @Override public boolean isFailed() { return failed; }
     @Override public String displayName() { return "Breach " + vaultName + " and lift out " + haulName; }
 
-    // Pull-out point (slice 9 replaces these bodies; ruins-expedition.md, The entrance and the pull-out point).
-
     /** The pull-out point's cell: the landing's in phase A, the entry's apron in phase B. */
-    public int pullOutPointCellX() { return liftPointCellX(landingLiftPoint()); }
+    public int pullOutPointCellX() { return liftPointCellX(entry >= 0 ? entry : landing); }
 
-    public int pullOutPointCellY() { return liftPointCellY(landingLiftPoint()); }
+    public int pullOutPointCellY() { return liftPointCellY(entry >= 0 ? entry : landing); }
 
-    private int landingLiftPoint() {
-        for (int i = 0; i < liftPoints.size(); i++) if (liftPoints.get(i).landingArea()) return i;
-        return 0;
-    }
+    /** Seconds since the company took the entry, or {@code -1} in the approach. */
+    public float secondsSinceEntry() { return entrySeconds; }
 }

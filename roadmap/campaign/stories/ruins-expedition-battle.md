@@ -170,9 +170,9 @@ story's battle plays, it lifts the fork's development-only gate
    is the landing in the approach and the entry in the delve, with its
    extraction radius. `RuinsObjectiveFacts` gives the company the phase, the
    pull-out point and each entrance (apron cell, taken, entry, hold progress);
-   the occupant sees none of it. Interim: until the ground publishes each
-   entrance's apron, `RuinsGroundLayout.apronCell` takes the walkable cell
-   outside the interior's footprint nearest the entrance.
+   the occupant sees none of it. An entrance's lift point stands on its
+   apron's arrival area (`RuinsDelve.Apron.lift`), added only once taken; a
+   hand-built delve with no aprons falls back to `RuinsGroundLayout.apronCell`.
 10. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
     pulling out. The family's Retreat becomes **Pull out**: a confirmed
     retreat in a Ruins battle always resolves as pulled out, in either phase
@@ -221,6 +221,36 @@ story's battle plays, it lifts the fork's development-only gate
     sign) is drawn from the occupant's readings pool (`RuinsSurvey`), worded as
     a reading that names no unit or place, as part of the company's disclosure
     (slice 2).
+
+    *Built.* The vault's card (`MissionObjectiveProjection.vaultHaul`) reads
+    "Take the entrance" with the Entrance step in the approach, the apron
+    nearest done showing its hold timer on the card and on its marker, then
+    "Entry held" for `ENTRY_HELD_SECONDS`; the lift point that is the pull-out
+    point carries "Pull out here" and its circle, so the marker moves to the
+    entry. `RuinsDelveRow` is the row (a pure rule over its `Picture`), sorted
+    under the vault's card. A Ruins rail runs compact (the works' side
+    objective), so the row shows its heading ("Approach / pull out: landing",
+    "Delve / pull out: entry") and one line: the company at a glance, or a
+    fresh stand's tally for `STAND_REPORT_SECONDS`; the whole reading and the
+    close reading's sign are its instruction. `RuinsDelveWatch` keeps what it reads through the
+    battle: the company's combatants against every one landed, squads below
+    half, machines lost, finds secured, stores opened, the walking distance
+    from the farthest combatant back to the pull-out point, the deepest layer
+    reached and, once the company is on the vault's layer, the haul's route.
+    "In a circle" counts by `WithdrawalExtraction.extracts`, the rule the
+    pull-out's casualty roll uses. Taking the entry is the first stand; each
+    inner layer's works junction is the next, held as a court is
+    (`STAND_RADIUS`). A stand reports the losses, machines and finds since the
+    last one, the next layer's band (`RuinsDelveWatch.band`: quiet, held or
+    strongly held by the hostiles living in it, the vault's layer always
+    strongest) and a sign drawn from the occupant's readings pool
+    (`RuinsDelveWatch.sign` over `RuinsSurvey.poolFor`), and closes "Pull out,
+    or press on"; the PULL OUT itself is the Retreat control, which reads Pull
+    out in a Ruins battle (slice 10). Not built: charges left, since a
+    breaching charge is not yet a finite stock; banked finds are a count, not
+    yet by material; and on the compact rail the close reading shows only its
+    band, its sign waiting for a place to show (the comms feed, or the row
+    expanded). Look: `createSnapshots -Psnapshot=ruins-rail`.
 
 ## Constraints
 

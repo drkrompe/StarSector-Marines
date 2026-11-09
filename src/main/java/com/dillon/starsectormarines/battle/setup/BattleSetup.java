@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
+import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
@@ -1298,6 +1300,9 @@ public final class BattleSetup {
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve));
+            // The Delve row's watch: its close readings are drawn from the occupant's readings pool.
+            RuinsSurvey.Pool readings = ruinsOccupant != null ? RuinsSurvey.poolFor(ruinsOccupant) : RuinsSurvey.NOBODY;
+            sim.installRuinsDelveWatch(RuinsDelveWatch.of(map.ruinsDelve, readings.readingKeys(), seed));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
