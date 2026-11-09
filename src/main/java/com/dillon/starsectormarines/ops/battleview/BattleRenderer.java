@@ -335,6 +335,8 @@ public class BattleRenderer {
                 naturalVoid.fray(),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
                 naturalVoid.molten(),
+                // A glacial crevasse's cold breath, snow blown off its lip and snow falling, over the tiles and the fray.
+                naturalVoid.glacial(),
                 // A rise's talus at its foot and its shadow on the floor, over the tiles.
                 naturalRise.fray(),
                 // The land standing up from the walkable ground through a map's rise cells, a ravine's walls:
