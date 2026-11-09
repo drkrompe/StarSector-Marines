@@ -195,10 +195,10 @@ and reward rise together.
 
 | Grade | Map | Layers | Breach time (unpowered / powered) | Occupant strength | Field caches |
 | --- | --- | --- | --- | --- | --- |
-| Scattered | 144x80: a dead town across the route | 1 | 30 / 10 s | none or light | 2 |
-| Widespread | 200x112 | 2 | 45 / 15 s | light | 3 |
-| Extensive | 280x168 | 3 | 60 / 20 s | moderate | 4 |
-| Vast | 400x240, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
+| Scattered | 200x112: a dead town across the route | 1 | 30 / 10 s | none or light | 2 |
+| Widespread | 280x168 | 2 | 45 / 15 s | light | 3 |
+| Extensive | 400x240 | 3 | 60 / 20 s | moderate | 4 |
+| Vast | 560x336, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
 
 The numbers are starting points, tuned against a player giving orders, not the
 headless autopilot (`CLAUDE.md`, Balance missions against a player). Occupant
@@ -222,9 +222,10 @@ supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
 The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area at
 one end, the vault at the other, the grade's layers between with their side
 rooms, landing courts and works sites, every place published by name, built
-from mapgen's ruined-lot vocabulary. Its map grows with the grade, a step up
-the tier band so a site sits with the company's other maps: 144x80, 200x112,
-280x168 and 400x240 cells.
+from mapgen's ruined-lot vocabulary. Its map grows with the grade, two steps up
+the tier band, larger than a mission at the same tier, so the player must judge
+whether they still have the forces to go on (owner's pick): 200x112, 280x168,
+400x240 and 560x336 cells.
 `BattleSetup.createRuins` plays on it: the vault and every lift point come from
 the ground's published places, never from a search of the map.
 
@@ -535,9 +536,6 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
-- Ruins map size (`ruins-map-size`): the owner picked two steps up the tier
-  band, for "the more interesting exploration"; the grade table's sizes follow
-  when the ruins ground applies it (`mapgen-nouns.md`, Ruins ground).
 - Pressing on or pulling out: three owner picks are open (`ruins-pull-out`,
   `ruins-after-pull-out`, `ruins-vault-worth`); the section is written on
   option (a) of each.
