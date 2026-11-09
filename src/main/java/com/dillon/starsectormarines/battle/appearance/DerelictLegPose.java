@@ -25,10 +25,15 @@ public final class DerelictLegPose {
      * {@code out = {kneeX, kneeY, kneeHeight}}. A foot beyond the leg's reach leaves the leg straight toward it.
      */
     public static void knee(float hx, float hy, float fx, float fy, float footHeight, float[] out) {
+        knee(hx, hy, HIP_HEIGHT_CELLS, fx, fy, footHeight, out);
+    }
+
+    /** As {@link #knee(float, float, float, float, float, float[])}, the hip {@code hipHeight} off the floor. */
+    public static void knee(float hx, float hy, float hipHeight, float fx, float fy, float footHeight, float[] out) {
         float dx = fx - hx;
         float dy = fy - hy;
         float flat = (float) Math.sqrt(dx * dx + dy * dy);
-        float dz = footHeight - HIP_HEIGHT_CELLS;
+        float dz = footHeight - hipHeight;
         float reach = THIGH_CELLS + SHIN_CELLS;
         float span = (float) Math.sqrt(flat * flat + dz * dz);
         float d = Math.max(Math.abs(THIGH_CELLS - SHIN_CELLS) + 1e-3f, Math.min(reach - 1e-3f, span));
@@ -45,7 +50,7 @@ public final class DerelictLegPose {
             wz = -wz;
         }
         float kFlat = a * ux + h * wx;
-        float kZ = HIP_HEIGHT_CELLS + a * uz + h * wz;
+        float kZ = hipHeight + a * uz + h * wz;
         float dirX = flat > 1e-4f ? dx / flat : 0f;
         float dirY = flat > 1e-4f ? dy / flat : 1f;
         out[0] = hx + dirX * kFlat;

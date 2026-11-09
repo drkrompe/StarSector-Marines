@@ -1,6 +1,6 @@
 # Raid: a site per industry
 
-Status: IN PROGRESS. The heavy-industry site is built and unit-tested, with preview cards sent. The other industries' sites and the owner's pass remain.
+Status: IN PROGRESS. Heavy industry is accepted (owner: roll it out); mining is built and its cards sent; the other industries remain.
 
 Written: 2026-11-09
 
@@ -47,7 +47,10 @@ and the garrison beside the works. The seed and the market vary it.
 - [x] `storyMapPools` holds, since story maps are untouched.
 - [x] Heavy-industry preview cards, two seeds by two market sizes, sent to the
   parent.
-- [ ] The owner's verdict on the heavy-industry site.
+- [x] The owner's verdict on the heavy-industry site: roll it out (2026-11-09). The
+  garrison district and ground that matches the planet are a separate session's.
+- [x] Mining (`mining`, `techmining`): the head works, unit-tested, cards sent
+  (`createSnapshots -Psnapshot=raid-mine-site-look`).
 - [ ] A site for every industry a raid can name.
 
 ## Constraints

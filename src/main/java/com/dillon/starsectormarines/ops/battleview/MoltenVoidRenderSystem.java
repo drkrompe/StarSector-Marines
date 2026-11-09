@@ -92,7 +92,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             for (int x = 0; x < w; x++) {
                 int i = y * w + x;
                 float cx = x + .5f, cy = y + .5f;
-                if (field.open[i] && !field.bridge[i]) {
+                // Under a bridge too: the melt runs on beneath the deck and shows past its edge, scaled toward the eye.
+                if (field.open[i]) {
                     float in = field.sample(field.reach[n], cx, cy);
                     if (in <= 0f) continue;
                     overFloor[i] = true;
@@ -110,10 +111,12 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                     floor = grow(floor, floorCount * 5 + 5);
                     int o = floorCount++ * 5;
                     floor[o] = x; floor[o + 1] = y; floor[o + 2] = cover; floor[o + 3] = fx; floor[o + 4] = fy;
-                } else if (!field.open[i]) {
+                } else {
                     // A pool of light on each cell of ground at the lip; the pools overlap into one band.
                     float out = -field.sample(field.edge, cx, cy);
                     if (out < 0f || out > LIP_POOL_ROW_CELLS) continue;
+                    // A bridge's end is road onto the deck, not the lip: no pool of the melt's light there.
+                    if (field.byBridge(cx, cy)) continue;
                     lip = grow(lip, lipCount * 3 + 3);
                     int o = lipCount++ * 3;
                     lip[o] = cx; lip[o + 1] = cy; lip[o + 2] = LavaVoidLook.lipGlow(out, floorMeters);
@@ -435,7 +438,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 float y = j * step + dy + (((hsh >> 8) & 255) / 255f - .5f) * step;
                 // Smoke stands over the rift: where it came up from, upwind of here, and thins away from it.
                 float over = overRift(field, x - WIND_X * SMOKE_LAG_CELLS, y - WIND_Y * SMOKE_LAG_CELLS, low);
-                if (over <= 0f) continue;
+                if (over <= 0f || nearBridge(field, x, y, puffCells * .75f)) continue;
                 float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .21f, j * .21f, seed);
                 if (n < .38f) continue;
                 float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
@@ -457,7 +460,25 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         int ix = (int) Math.floor(x), iy = (int) Math.floor(y);
         if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h) return 0f;
         if (low) return overFloor[iy * field.w + ix] ? 1f : 0f;
+        if (field.byBridge(x, y)) return 0f;
         return LavaVoidLook.smooth(-2.5f, 2f, field.sample(field.edge, x, y));
+    }
+
+    /**
+     * Whether a bridge's deck lies within {@code radius} cells of a point. A bridge is ground to the smoke: a puff
+     * that would spread over its deck is not drawn, so the deck never reads stained.
+     */
+    private static boolean nearBridge(NaturalVoidField field, float x, float y, float radius) {
+        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
+        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
+        for (int cy = Math.max(0, y0); cy <= Math.min(field.h - 1, y1); cy++) {
+            for (int cx = Math.max(0, x0); cx <= Math.min(field.w - 1, x1); cx++) {
+                if (!field.bridge[cy * field.w + cx]) continue;
+                float ex = Math.max(0f, Math.max(cx - x, x - (cx + 1))), ey = Math.max(0f, Math.max(cy - y, y - (cy + 1)));
+                if (ex * ex + ey * ey < radius * radius) return true;
+            }
+        }
+        return false;
     }
 
     /** Ash falling over everything in view, drifting on the wind, a few metres above the ground. */
