@@ -110,6 +110,26 @@
         "plantPool": [],
         "rockPool": ["nature.rock-frost-small-1", "nature.rock-frost-small-2", "nature.rock-frost-medium-1", "nature.rock-frost-medium-2"]
       }
+    },
+    "IRRADIATED": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "HARDPAN", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.16,
+        "plantPool": [],
+        "rockPool": ["nature.rock-glassed-small-1", "nature.rock-glassed-small-2", "nature.rock-glassed-medium-1", "nature.rock-glassed-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "HARDPAN", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.18,
+        "plantPool": [],
+        "rockPool": ["nature.rock-glassed-small-1", "nature.rock-glassed-small-2", "nature.rock-glassed-medium-1", "nature.rock-glassed-medium-2"]
+      }
     }
   },
   "macroHeightMeters": {
