@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * The security network's flocks on the shipped flock model (`derelict-drone-flocks.md`): each zone's flock, launched
+ * The security network's flocks on the shipped flock model (`air-nouns.md`, Flocks): each zone's flock, launched
  * by {@code FlockSystem.launch} at its node, reported through its roster and {@link Flock#contacts()}, and tasked by
  * {@link Flock}'s own calls. An order that repeats the flock's standing task, point and target is not given again,
  * so a probe is not restarted every pulse.

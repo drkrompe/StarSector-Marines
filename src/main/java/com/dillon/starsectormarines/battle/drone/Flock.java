@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * A flock: a set of swarm drones that fly as one body, and the <b>anchor</b> its commander moves for it
- * (`derelict-drone-flocks.md`). The commander gives the flock one {@link FlockTask} with its point, route or target;
+ * (`air-nouns.md`, Flocks). The commander gives the flock one {@link FlockTask} with its point, route or target;
  * {@link FlockSystem} moves the anchor for that task and each member steers to it by flocking ({@link FlockFlight}).
  * No member is ever ordered on its own.
  *

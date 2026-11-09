@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A derelict flock of sixteen swarm drones ({@link Flock}), three loops (`derelict-drone-flocks.md`).
+ * A derelict flock of sixteen swarm drones ({@link Flock}), three loops (`air-nouns.md`, Flocks).
  *
  * <p>{@code split}: the flock probes a route straight through a roofed building; its members go round it by their own
  * sides and re-form beyond it. {@code strike-open}: it strikes a fire team of four riflemen standing in the open,

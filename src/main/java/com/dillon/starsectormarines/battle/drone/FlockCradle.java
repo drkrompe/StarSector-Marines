@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A flock's cradle (`derelict-drone-flocks.md`, slice 4): the launch housing at the flock's home that rebuilds its
+ * A flock's cradle (`air-nouns.md`, Flocks): the launch housing at the flock's home that rebuilds its
  * lost drones, one at a time and slowly, while the cradle stands, its control node stands, and the flock is home
  * to take them. It is the drone hub's structure ({@link UnitType#DRONE_HUB_STRUCTURE}, so it is targeted, armoured and
  * demolished as a hub is) with no hub behaviour of its own: the flock, not the cradle, decides where its drones fly.
@@ -47,7 +47,7 @@ public final class FlockCradle {
     public static final int CLEARANCE_CELLS = 1;
 
     /**
-     * Where a flock's cradle stands (`derelict-drone-flocks.md`, slice 7): the cell nearest {@code (homeX, homeY)},
+     * Where a flock's cradle stands (`air-nouns.md`, Flocks): the cell nearest {@code (homeX, homeY)},
      * within {@code reach} cells by the open ground, whose square of {@link #CLEARANCE_CELLS} round it is all open. A
      * flock homed at a doorway's threshold so keeps its cradle set back in the open: the housing never covers the door
      * or reaches into a wall or under a roof, and the entrance stays clear. A cradle never seals its cell, so ground

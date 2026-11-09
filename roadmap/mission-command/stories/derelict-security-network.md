@@ -40,7 +40,7 @@ swarm director, and it commands flocks as units.
    Unit-test the state rules on a zone alone.
 2. **The director.** The security-network director gives each woken zone's
    flock a task (probe, screen, strike, pursue to its leash, return) through
-   the flock model (`derelict-drone-flocks.md`), and holds each walker inside its
+   the flock model (`air-nouns.md`, Flocks), and holds each walker inside its
    perimeter at the layer's chokes and courts, sending it to what the flocks
    have pinned there. In the contingency every flock that can reach the haul's
    escort strikes it and the walkers walk to the egress route and hold it. It
@@ -68,8 +68,8 @@ swarm director, and it commands flocks as units.
 8. **Power branches.** At a site whose power hall feeds the network, a
    junction that cuts a branch powers down the zones on it (`ruins-works.md`).
 9. **Looks.** Domain and contingency looks for the posts and node
-   (`tech-families.md`), with picks. The cradle's look is the flocks' (slice 7
-   of `derelict-drone-flocks.md`).
+   (`tech-families.md`), with picks. The cradle's look is the flocks'
+   (`air-nouns.md`, Flocks).
 
 ## Interiors
 
@@ -80,8 +80,8 @@ the force split along the roofline:
 
 - **Flocks own the exterior and the approaches.** A flock never enters a
   roofed cell; a strike on a unit under a roof holds the threshold, the doorway
-  or breach where its way out meets open ground (`derelict-drone-flocks.md`,
-  Roofs are the flock's limit). The company indoors is out of the flocks'
+  or breach where its way out meets open ground (`air-nouns.md`,
+  Flocks). The company indoors is out of the flocks'
   reach, which is the counter the owner picked.
 - **Heavies and posts hold the interior.** Zones laid along the vault's route
   put the vault's zone, and at the larger grades the next, inside, so their
@@ -142,7 +142,7 @@ Everything is in `battle.derelict`.
   within `ESCORT_RADIUS` of the vault since the breach.
 - **The flock seam.** `FlockCommandPort` (reports in, task and anchor out) is
   the director's only view of flocks; `FlockSystemPort` implements it on the
-  shipped `FlockSystem` (`derelict-drone-flocks.md`), launching one `WASP`
+  shipped `FlockSystem` (`air-nouns.md`, Flocks), launching one `WASP`
   flock of `FLOCK_SIZE` per zone over its node with the zone's perimeter plus
   the leash, and not re-giving an order the flock already stands on.
 - **The heavy line (slice 3).** `MechVariant.SECURITY_WALKER` (`MG-40`, catalog
@@ -248,7 +248,7 @@ post, the vault frame stays).
 Not built yet: a `sceneEvidence` loop for a flock's leash (the flock
 model's own scenes cover its flight; `FlockTasking` is unit-tested); looks
 for the walker, posts and node (3, 9; the cradle's look is
-`derelict-drone-flocks.md`'s), and the repair drone's own look if it should
+`air-nouns.md`, Flocks), and the repair drone's own look if it should
 differ from the tender's. Strength is not tuned, and is not tuned from
 autopilot runs: it waits on the owner playing a derelict battle. Both
 fixtures fly the company's real lift (one Hermes, six twelve-seat trips, as

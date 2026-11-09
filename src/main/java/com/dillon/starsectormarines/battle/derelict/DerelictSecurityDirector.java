@@ -99,7 +99,7 @@ public final class DerelictSecurityDirector {
         this.vaultY = vaultY;
     }
 
-    /** Connects the flock model (`derelict-drone-flocks.md`, Seam). */
+    /** Connects the flock model (`air-nouns.md`, Flocks). */
     public void connectFlocks(FlockCommandPort port) {
         flocks = port == null ? FlockCommandPort.NONE : port;
     }
