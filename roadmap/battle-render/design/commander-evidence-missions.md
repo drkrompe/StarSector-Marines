@@ -43,7 +43,9 @@ stuck at the tick limit (default 27,000 ticks, `-PmaxTicks`). A setup failure
 or a stuck run fails the task. Ended means the haul boarded or lost, or the
 company beaten; which one is not reported. The company is Extraction's
 autopilot, not a player, so who wins and how long it takes say nothing about
-the mission (`ruins-expedition-battle.md`).
+the mission (`ruins-expedition-battle.md`). Other occupants have their own
+fixtures, played with `-Pfixture=<path>`: `ruins-derelict-<grade>-v1.json` and
+`ruins-rav-<grade>-v1.json` (extensive and vast).
 
 ## Colony Breach (`colony-breach`)
 

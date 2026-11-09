@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
+import com.dillon.starsectormarines.battle.evacuation.RuinsSleepers;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.HivePosture;
@@ -726,7 +727,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -760,23 +761,16 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
-        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants). Only the scavengers' side
-        // plays yet; each other occupant's side plugs in at its own case, and until it does that site plays the
-        // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
-        switch (occupant) {
-            case SCAVENGERS:
-            // Derelict security: its walkers under the security-network director (derelict-security-network.md).
-            case DOMAIN_SECURITY:
-            case CONTINGENCY_SECURITY:
-                break;
-            case NOBODY: // the works chain with no opposing side: ruins-works.md
-            case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
-                LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
-                break;
+        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants): the scavengers' crew,
+        // derelict security's walkers under the security-network director (derelict-security-network.md), or the
+        // Rav's sleepers under the swarm director (RuinsSleepers). An empty site's works chain (ruins-works.md) is
+        // not built, so it plays the scavengers' battle, and RuinsExpeditionMissionFactory names their faction.
+        if (occupant == RuinsOccupant.NOBODY) {
+            LOG.info("createRuins: NOBODY has no battle side yet; the scavengers' stand-in plays");
         }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
-                null, 1f, false, null, null, RuinsDelve.of(grade), occupant.isDerelict() ? grade : null);
+                null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant);
     }
 
     /**
@@ -1157,14 +1151,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null);
     }
 
     /**
@@ -1204,8 +1198,11 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
-            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade liveRuinGrade) {
-        boolean liveRuin = type == MissionType.RUINS && liveRuinGrade != null;
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
+            RuinsOccupant ruinsOccupant) {
+        boolean occupied = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null;
+        boolean liveRuin = occupied && ruinsOccupant.isDerelict();
+        boolean ravRuin = occupied && ruinsOccupant == RuinsOccupant.RAV;
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1344,8 +1341,8 @@ public final class BattleSetup {
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
         };
-        // A live ruin's opposition is its security alone: no posted squads or patrols.
-        if (!liveRuin) allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+        // A live ruin's opposition is its security alone, a Rav site's its sleepers: no posted squads or patrols.
+        if (!liveRuin && !ravRuin) allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                 assaultMobileMembers);
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -1412,7 +1409,8 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade, map.ruinsDelve);
+            if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve);
+            else if (ravRuin) RuinsSleepers.install(sim, map.ruinsDelve, ruinsGrade, seed);
             else sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
