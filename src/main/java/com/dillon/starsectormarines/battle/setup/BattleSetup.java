@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
@@ -750,13 +751,26 @@ public final class BattleSetup {
     /**
      * The Ruins Expedition ({@code ruins-expedition.md}): the vault at the far end of the ground, its breach time
      * from the ruins grade, and the haul out to the landing area. An abandoned site: no civilians, no staffed
-     * buildings and no reinforcements come.
+     * buildings and no reinforcements come. The site's occupant chooses who defends it.
      */
     public static BattleSimulation createRuins(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport, RuinsGrade grade) {
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants). Only the scavengers' side
+        // plays yet; each other occupant's side plugs in at its own case, and until it does that site plays the
+        // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
+        switch (occupant) {
+            case SCAVENGERS:
+                break;
+            case NOBODY: // the works chain with no opposing side: ruins-works.md
+            case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
+            case DOMAIN_SECURITY: // the security-network director: derelict-security-network.md
+            case CONTINGENCY_SECURITY:
+                LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
+                break;
+        }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade));

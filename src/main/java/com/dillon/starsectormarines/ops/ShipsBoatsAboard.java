@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -48,16 +50,32 @@ public final class ShipsBoatsAboard {
      * has no lift, and a briefing should say so plainly instead of quietly
      * finding transports somewhere else.
      */
-    public static List<FittedBoat> lift() {
+    /**
+     * Where the company's boats are berthed: the designated hull, or for fleet facilities the
+     * fleet's standard deck, whose berths are the ones its upgrades bought (`fleet-facilities.md`).
+     */
+    private record Home(String id, CompanyShip ship, String name) { }
+
+    private static Home home() {
+        if (FleetFacilities.inUse()) {
+            var fleet = CampaignBackend.playerFleet();
+            var flagship = fleet == null ? null : fleet.getFlagship();
+            return new Home(FleetFacilities.HOME_ID, FleetFacilities.ship(), flagship == null ? null : flagship.getShipName());
+        }
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        if (aboard == null) return List.of();
+        return aboard == null ? null : new Home(aboard.getId(), CompanyShipResolver.read(aboard), aboard.getShipName());
+    }
+
+    public static List<FittedBoat> lift() {
+        Home home = home();
+        if (home == null) return List.of();
 
         BoatDeck deck = deck();
         // A headless caller with no campaign behind it still has a hull and a
         // berth count, and the honest answer for it is the boats the hull comes
         // with — the same set a fresh deck would reconcile to.
         if (deck == null) {
-            CompanyShip ship = CompanyShipResolver.read(aboard);
+            CompanyShip ship = home.ship();
             return standardFit(ShipsBoats.carriedBy(ship),
                     ShipsBoats.aboard(ship).size());
         }
@@ -80,11 +98,11 @@ public final class ShipsBoatsAboard {
      */
     public static void reconcile(BoatDeck deck) {
         if (deck == null) return;
-        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        if (aboard == null) return;
-        CompanyShip ship = CompanyShipResolver.read(aboard);
+        Home home = home();
+        if (home == null) return;
+        CompanyShip ship = home.ship();
         deck.registerFoundingWrecks(CerberusCompanyStart.startingShipId());
-        deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship),
+        deck.reconcile(home.id(), ShipsBoats.carriedBy(ship),
                 ShipsBoats.aboard(ship).size());
     }
 
@@ -138,18 +156,18 @@ public final class ShipsBoatsAboard {
 
     /** Boat berths on the ship the company is aboard, flight-ready or not; 0 with no ship. */
     public static int berths() {
-        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        if (aboard == null) return 0;
+        Home home = home();
+        if (home == null) return 0;
         BoatDeck deck = deck();
-        if (deck == null) return ShipsBoats.aboard(CompanyShipResolver.read(aboard)).size();
+        if (deck == null) return ShipsBoats.aboard(home.ship()).size();
         reconcile(deck);
         return deck.berths();
     }
 
     /** The ship the lift comes off, for a screen that wants to name her. */
     public static String carrier() {
-        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        return aboard == null ? null : aboard.getShipName();
+        Home home = home();
+        return home == null ? null : home.name();
     }
 
     private static BoatDeck deck() {

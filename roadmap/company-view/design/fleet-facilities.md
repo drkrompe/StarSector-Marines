@@ -1,6 +1,6 @@
 # Fleet facilities: the company without a company ship
 
-Status: ACTIVE — direction. The fleet's receipts, neutral start and Engineering's standalone tree are implemented; the mock rooms, lift and dropping the ship choice are not.
+Status: ACTIVE — direction. The fleet's receipts, neutral start, Engineering's standalone tree, the mock rooms and their lift are implemented; dropping the ship choice is not.
 Written: 2026-11-09
 
 Players ask to run the company from their own ship rather than the Second Wind.
@@ -74,28 +74,34 @@ fleet orders yet, so tiers that need Fabrication I wait on them.
 
 ## Mock rooms
 
-The Mech Lab, the boat bay and the barracks are **authored rooms in fixed
-sizes**, drawn with the same room vocabulary and renderer as every facility,
-seen alone, with no ship outline around them. The upgrade tier picks the
-size; no hull shape ever has to fit them. Counts come straight from the tier,
-so lift, fabrication and billet limits stay exact.
+The Mech Lab, the boat bay and the barracks are cropped from one **standard
+deck** (`CompanyShip.fleet`, `DeckSizing.fleetPlan`): a small fixed program owed
+to no hull, holding only what the fleet has bought and the few rooms a company
+needs around them (bridge, plant, stores, machine shop, armory, crew quarters,
+mess). No screen shows it whole; Engineering draws no deck at all, and each room
+screen frames its own compartment. The deck is laid again when an upgrade
+changes a room. Counts come straight from the tier, so lift and fabrication
+limits stay exact. Three tracks exist on the fleet's tree alone
+(`RefitTrack.fleetOnly`), priced as the Second Wind's matching yard orders:
 
-- **Mech Lab.** Grows by gantries: one, two, then four, modelled on the
-  Second Wind's four-gantry lab. The first gantry is itself an upgrade
-  (owner, 2026-11-09), the cheapest node on its track, rather than a story
-  gate like Take Back the Depot.
-- **Boat bay.** Grows by berths; working berths are the company's lift.
-- **Barracks.** Grows by bunkrooms; billets with commanders bound the
-  company's size (owner, 2026-11-09).
+| Track | Neutral start | Restored | Improved I | Improved II |
+|---|---|---|---|---|
+| Mech gantries (Fabrication) | no Mech Lab | 1 gantry (5,000) | 2 (5,000) | 4, a full lance (10,000) |
+| Boat berths (Structure) | 1 berth | 1 berth | 2 (8,000) | 3 (12,000) |
+| Barracks (Structure) | 2 bunkrooms | 2 bunkrooms | 4 (4,000) | 6 (8,000) |
 
-The tier steps, the starting fit and the prices are open; the next section
-lists them.
+- **Mech Lab.** The four-pad lance bay appears with the first gantry; with none
+  bought the facility is absent, not empty. Unbought pads stand idle: closed to
+  work, never dressed as wrecks (owner, 2026-11-09: the first gantry is itself
+  an upgrade).
+- **Boat bay.** Each working berth is its own bay and one boat of lift; the
+  company's boats are kept under the fleet's id rather than a hull's.
+- **Barracks.** Nine billets per bunkroom; billets with commanders bound the
+  company's size (owner, 2026-11-09), though nothing yet caps the roster by
+  billets.
 
 ## Open questions
 
-- The tier steps for each room, and which tiers need which cores.
-- Whether a new sandbox company starts with one boat berth working, or must
-  buy it as it buys its first gantry.
 - What happens to an existing save whose company lives aboard a generated
   deck: keep its deck until it next moves, or convert it to fleet facilities
   at Restored with its working counts carried over.

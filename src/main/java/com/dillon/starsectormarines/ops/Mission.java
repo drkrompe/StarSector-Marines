@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
@@ -223,6 +224,11 @@ public final class Mission {
 
     /** A ruins expedition's grade, which sets its delve; null for every other mission. */
     public final RuinsGrade ruinsGrade;
+    /**
+     * Who holds a ruins expedition's site, the seeded draw ({@code RuinsOccupants}), which chooses the battle's
+     * defenders; null for every other mission.
+     */
+    public final RuinsOccupant ruinsOccupant;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -322,6 +328,7 @@ public final class Mission {
                 : Collections.unmodifiableList(new ArrayList<>(b.lanePaths));
         this.battleSeed       = b.battleSeed;
         this.ruinsGrade       = b.ruinsGrade;
+        this.ruinsOccupant    = b.ruinsOccupant;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -389,6 +396,7 @@ public final class Mission {
         private List<LanePath> lanePaths;
         private Long battleSeed;
         private RuinsGrade ruinsGrade;
+        private RuinsOccupant ruinsOccupant;
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -443,6 +451,7 @@ public final class Mission {
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.ruinsGrade = m.ruinsGrade;
+            this.ruinsOccupant = m.ruinsOccupant;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -662,6 +671,12 @@ public final class Mission {
         /** @param ruinsGrade a ruins expedition's grade ({@code ruins-expedition.md}). */
         public Builder ruinsGrade(RuinsGrade ruinsGrade) {
             this.ruinsGrade = ruinsGrade;
+            return this;
+        }
+
+        /** @param ruinsOccupant who holds a ruins expedition's site ({@code ruins-expedition.md}, Occupants). */
+        public Builder ruinsOccupant(RuinsOccupant ruinsOccupant) {
+            this.ruinsOccupant = ruinsOccupant;
             return this;
         }
 

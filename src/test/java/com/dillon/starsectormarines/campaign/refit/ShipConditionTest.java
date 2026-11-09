@@ -46,12 +46,25 @@ class ShipConditionTest {
         // Fabrication is the workshop chain's.
         for (RefitTrack track : RefitTrack.values())
             if (track != RefitTrack.FABRICATION)
-                assertNotNull(RefitOrder.after(track, track.start()), track.name());
+                assertNotNull(RefitOrder.after(track, track.fleetOnly ? track.fleetStart() : track.start()), track.name());
         assertNull(RefitOrder.after(RefitTrack.FABRICATION, RefitBand.DEFICIT));
     }
 
     @Test void theWholeTreeIsReachableFromTheBatteredStart() {
         var state = ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_II);
+        for (boolean progress = true; progress; ) {
+            progress = false;
+            for (RefitTrack track : RefitTrack.values()) {
+                RefitOrder next = state.next(track);
+                if (next != null && state.missing(next) == null) { state = state.with(track, next.band); progress = true; }
+            }
+        }
+        for (RefitTrack track : RefitTrack.values())
+            if (!track.fleetOnly) assertEquals(RefitOrder.ceiling(track), state.band(track), track.name());
+    }
+
+    @Test void theWholeFleetTreeIsReachableFromTheFleetStart() {
+        var state = FleetFacilities.fresh().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_II);
         for (boolean progress = true; progress; ) {
             progress = false;
             for (RefitTrack track : RefitTrack.values()) {
