@@ -24,7 +24,8 @@ import java.util.List;
  *
  * <p>The anchor moves at {@link #ANCHOR_SPEED}, slower than a member flies, and waits while the flock's centre is more
  * than {@link #LAG_CELLS} behind the open cell the field leads to, so a body split round a building is not left behind by its own anchor. On a
- * strike the anchor sits on the target. The field is integrated from the open cell nearest the anchor, so a target
+ * strike the anchor sits on the target, or on its threshold when the target is under a roof: the open cell where
+ * the target's way out meets open ground, so a flock waits at a doorway or breach and never goes in. The field is integrated from the open cell nearest the anchor, so a target
  * under a roof is wrapped from the open ground round it and never reached.
  */
 public final class FlockSystem {
@@ -121,7 +122,15 @@ public final class FlockSystem {
             if (flock.task() != FlockTask.RETURN && flock.size() * 3 < flock.strength()) flock.returnHome();
             moveAnchor(flock, dt, sim);
             publish(flock, sim, false);
-            if (scan) flock.publishContacts(seen(flock, sim));
+            if (scan) {
+                long[] seen = seen(flock, sim);
+                int[] cells = new int[2 * seen.length];
+                for (int i = 0; i < seen.length; i++) {
+                    cells[2 * i] = sim.world().cellX(seen[i]);
+                    cells[2 * i + 1] = sim.world().cellY(seen[i]);
+                }
+                flock.publishContacts(seen, cells, sim.getSimTickIndex());
+            }
         }
     }
 
@@ -140,7 +149,12 @@ public final class FlockSystem {
         }
         float[] goal = flock.goal(tx, ty);
         if (flock.task() == FlockTask.STRIKE) {
-            flock.moveAnchor(goal[0], goal[1]);
+            int[] hold = threshold(flock, tx, ty, sim);
+            if (hold != null) {
+                flock.moveAnchor(hold[0] + .5f, hold[1] + .5f);
+            } else {
+                flock.moveAnchor(goal[0], goal[1]);
+            }
             return;
         }
         // The lag is to where the members are actually flying: the field's source, the open cell nearest the anchor.
@@ -159,6 +173,30 @@ public final class FlockSystem {
         if (lag > LAG_CELLS) return;
         float step = Math.min(d, ANCHOR_SPEED * dt);
         flock.moveAnchor(flock.anchorX() + dx / d * step, flock.anchorY() + dy / d * step);
+    }
+
+    /**
+     * Where a strike on a target under a roof is held: the open cell where the target's way out by the ground meets
+     * open ground ({@link FlockField#threshold}). Null when the target stands in the open, or has no way out within
+     * the field's reach, when the anchor sits on it as on any strike.
+     */
+    private static int[] threshold(Flock flock, float tx, float ty, BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        FlockField.Open open = open(grid, sim.getTopology());
+        int cx = (int) Math.floor(tx), cy = (int) Math.floor(ty);
+        if (open.open(cx, cy)) {
+            flock.threshold = null;
+            flock.thresholdForX = cx;
+            flock.thresholdForY = cy;
+            return null;
+        }
+        if (cx != flock.thresholdForX || cy != flock.thresholdForY) {
+            flock.threshold = FlockField.threshold(cx, cy, FIELD_RADIUS,
+                    (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y), open);
+            flock.thresholdForX = cx;
+            flock.thresholdForY = cy;
+        }
+        return flock.threshold;
     }
 
     private static float[] centre(Flock flock, World world) {
@@ -195,8 +233,12 @@ public final class FlockSystem {
             field = FlockField.build(source[0], source[1], FIELD_RADIUS, open);
             flock.fieldTick = tick;
         }
-        long strike = flock.task() == FlockTask.STRIKE ? flock.target() : 0L;
-        flock.publish(ids, at, vel, field, strike);
+        boolean striking = flock.task() == FlockTask.STRIKE;
+        long target = striking || flock.task() == FlockTask.PURSUE ? flock.target() : 0L;
+        // A strike on a target under a roof is held at its threshold: members flock there and shoot what they see,
+        // with no orbit ring to fly round a room they cannot enter.
+        long strike = striking && flock.threshold == null ? target : 0L;
+        flock.publish(ids, at, vel, field, strike, target);
     }
 
     /** The open cell nearest {@code (x, y)} within {@code maxRadius} rings, or null. */

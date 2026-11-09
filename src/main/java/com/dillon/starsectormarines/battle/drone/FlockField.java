@@ -83,6 +83,46 @@ public final class FlockField {
         return field;
     }
 
+    /**
+     * The threshold of a target a flock cannot reach: from cell {@code (tx, ty)}, the nearest cell along the ground's
+     * own routes ({@code walk}, roofed or not) that is {@code open} to a low flier, the doorway, breach or gate where
+     * the target's way out meets open ground. The target's own cell when it is open; {@code null} when no open cell
+     * is within {@code radius} by ground. Steps as the field's, no corner cut.
+     */
+    public static int[] threshold(int tx, int ty, int radius, Open walk, Open open) {
+        if (open.open(tx, ty)) return new int[]{tx, ty};
+        if (!walk.open(tx, ty)) return null;
+        int size = 2 * radius + 1;
+        int[] dist = new int[size * size];
+        Arrays.fill(dist, UNREACHABLE);
+        int ox = tx - radius, oy = ty - radius;
+        PriorityQueue<long[]> frontier = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
+        int start = radius * size + radius;
+        dist[start] = 0;
+        frontier.add(new long[]{0L, start});
+        while (!frontier.isEmpty()) {
+            long[] head = frontier.poll();
+            int idx = (int) head[1];
+            if (head[0] > dist[idx]) continue;
+            int i = idx % size, j = idx / size;
+            if (idx != start && open.open(ox + i, oy + j)) return new int[]{ox + i, oy + j};
+            for (int k = 0; k < 8; k++) {
+                int ni = i + DX[k], nj = j + DY[k];
+                if (ni < 0 || nj < 0 || ni >= size || nj >= size) continue;
+                if (!walk.open(ox + ni, oy + nj)) continue;
+                boolean diagonal = k >= 4;
+                if (diagonal && (!walk.open(ox + ni, oy + j) || !walk.open(ox + i, oy + nj))) continue;
+                int n = nj * size + ni;
+                int d = dist[idx] + (diagonal ? DIAGONAL : STRAIGHT);
+                if (d < dist[n]) {
+                    dist[n] = d;
+                    frontier.add(new long[]{d, n});
+                }
+            }
+        }
+        return null;
+    }
+
     public int sourceX() { return sourceX; }
 
     public int sourceY() { return sourceY; }
