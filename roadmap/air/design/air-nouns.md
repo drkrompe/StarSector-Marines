@@ -1749,7 +1749,10 @@ swarm action, flown by `FlockFlight`.
   exterior and the approaches; a megastructure's interior belongs to what fits
   in it. **The outside** is the flock's ground: the largest body of open cells
   (`FlockSystem.sky`), so a light well reached only through roofed halls is
-  never a station or a home. **Any goal under a roof is held at its
+  never a station or a home. The one exception is a guardian's flock
+  (`ruins-guardians.md`): the hive cradle's flock is put up in its own well and
+  kept to it for good (`FlockSystem.launchInWell`), every goal outside held at
+  the well's own threshold. **Any goal under a roof is held at its
   threshold**, the open cell where its way out by the ground first meets open
   ground (`FlockField.threshold`): a strike target, a station, a probe point,
   a home. There the flock waits in a body and shoots what shows in the door; it
@@ -1776,6 +1779,10 @@ swarm action, flown by `FlockFlight`.
   node stand and the flock is home, the cradle rebuilds one lost drone every
   `FlockCradle.REBUILD_SECONDS`, aboard if the flock is docking. Drones aboard
   are lost with the cradle; a flock with none flying and none aboard is gone.
+  A cradle given a **hatch** (`FlockHatch`, the hive's `HiveCradle.Hatch`)
+  launches from its own bay on its own cadence instead: its flock never docks
+  or goes home, its housing's plate follows the hatch, and it stays while the
+  housing stands, even with no drone up.
 - **Countering it.** Nothing special: the counters fall out of the model. Area
   fire hits several members because they fly close (frags are thrown at a flock,
   led to where its drones will be: `FragGrenadeTactics.tryCommitFlockThrow`, even

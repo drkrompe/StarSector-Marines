@@ -569,9 +569,22 @@ makes it worth going in anyway, as deep as the company can, and coming back.
 ### The vault and its prize
 
 The owner: "vault theming around what the pickup will be as a hint. Example
-industrial upgrades for planets or gamma/beta/alpha cores". Built on the
-recommended options while picks `ruins-vault-prize`, `ruins-prize-hint` and
-`ruins-prize-forced` are open (`ruins-vault-prize.md`).
+industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
+`ruins-vault-prize` a, `ruins-prize-hint` a, `ruins-find-tiers` a,
+`ruins-prize-forced` a and `ruins-theme-defences` a. What is still owed is in
+`ruins-vault-prize.md`.
+
+**Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
+tier is set by where it lies, never rolled:
+
+- **Supply finds** are field salvage's commodity bundles, along the route.
+- **Tech caches** (`RuinsTechCache`) lie in sealed stores, in guardian rooms
+  and on the vault store's deepest layer, so the store always holds exactly one.
+  A cache holds the game's own equipment, never new items. Its contents roll at
+  settlement from one of vanilla's ruins drop groups, picked from the site and
+  the find alone: `weapons2` (weapons and fighter wings) five times
+  `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
+  salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
 
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one
 **prize**, drawn from the site alone like the occupant and never stored
@@ -596,8 +609,10 @@ points.
 **The site is built round its prize**, so reading it hints what is inside before
 the company commits. The prize's **theme** shows four ways:
 
-- **The survey's tell**: a line in the briefing in the occupant's instruments,
-  for example "cold racks humming below; repair drones at work in lit halls".
+- **The survey's tell** (`RuinsVaultPrizes.tellKeys`): the briefing's last
+  survey line, for example "Cold racks humming below; something keeps a hall
+  lit and its repair drones at work.", then for a core its hinted tier ("The
+  hall draws a steady load: likely a beta core.").
 - **The approach**: what the company sees outside.
 - **The interior's art.**
 - **The works' twist.**
@@ -626,10 +641,37 @@ deeper reserve and a faster stir (`ruins-pressure.md`) and a stronger guardian
 (the mini-boss design). So a server hall that hums loud is a harder site, and
 the player sees that coming.
 
-**A forced vault** (pick `ruins-prize-forced` a): a core or a colony item comes
-out whole only if the vault's seal was powered. Forced with charges, it breaks
-into tech caches. Goods and tech survive either way. The better the prize, the
-more the power puzzle is worth solving, and nothing is lost outright.
+**A forced vault** (`RuinsVaultPayout`, pick `ruins-prize-forced` a): a core
+or a colony item comes out whole only if power reached the vault's seal before
+the breach was held. Breached on the long unpowered hold, it breaks into tech
+caches, one more than its stake. Goods (three supply bundles) and tech (two tech
+caches) pay the same either way. The better the prize, the more the power
+puzzle is worth solving, and nothing is lost outright.
+
+**The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
+a). A site built round a core or a colony item keeps the guns that once kept
+it: one at a scattered site, one more per grade up to four at a vast one. They
+stand on the approach outside, wired to the power hall:
+
+- Dark while the hall is cold, so dark when the company lands.
+- Restarting the hall, which powers the vault, wakes them too, unless a junction
+  cuts their branch: power for the prize against guns on the way out.
+- The occupant never commands them.
+
+In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
+emplacement, standing 9 cells out from an entrance's apron toward the landing,
+on open ground outside the aprons and the interior. They hang on the first
+junction's way on, beside the first layer's gate. Throwing that junction to its
+store cuts the guns, but it also cuts the gate's power. The count rides the
+mission (`Mission.ruinsBatteries`) and the battle fixture. They stand on the
+defenders' side, so they fire on the company and its allies. Firing on the
+occupant too needs a side hostile to everyone, which the battle does not have
+yet. Dark and awake still look the same; a powered-down look is owed.
+The batteries are a works hazard, not a guardian (`ruins-guardians.md`). An
+occupied site with batteries keeps its vault guardian, and a layer guardian
+from extensive up. On an empty site the batteries count as the vault's own
+battery guardian, and nothing else is added.
+`createSnapshots -Psnapshot=ruins-themed-site-look` shows them.
 
 ## Occupants
 

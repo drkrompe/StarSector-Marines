@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
+import com.dillon.starsectormarines.battle.drone.FlockField;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
+import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -185,6 +187,7 @@ public final class DerelictSecurity {
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
                 vault.sourceCellX(), vault.sourceCellY());
         director.wearLook(DerelictLook.of(livery));
+        director.braceVaultFrames(sim);
         FlockSystemPort port = new FlockSystemPort();
         for (ZonePlan plan : plans) {
             int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
@@ -193,6 +196,7 @@ public final class DerelictSecurity {
                     FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS, livery);
             port.add(flock, plan.id());
         }
+        standHive(sim, grade, delve, plans, port, livery);
         director.connectFlocks(port);
         for (ZonePlan plan : plans) {
             int[] cell = nodeCell(route, plan, (x, y) -> sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y));
@@ -235,6 +239,45 @@ public final class DerelictSecurity {
             }
         }
         return out;
+    }
+
+    /**
+     * Stands the layer guardian, the hive cradle (`ruins-guardians.md`), in its court with its flock shut in the
+     * court's light well, answering to the zone whose node is nearest: that zone's node and branch quiet it as they
+     * quiet the zone. Null at a site without one ({@link HiveCradle#site}) or whose court has no open sky.
+     */
+    static Flock standHive(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve, List<ZonePlan> plans,
+                           FlockSystemPort port, FlockLivery livery) {
+        if (delve == null) return null;
+        RuinsDelve.Court court = HiveCradle.site(delve, grade);
+        if (court == null) return null;
+        RuinsDelve.Area ground = court.ground();
+        FlockField.Open open = FlockSystem.open(sim.getGrid(), sim.getTopology());
+        int[] cell = nearestIn(ground, ground.centreX(), ground.centreY(), open::open);
+        if (cell == null) return null;
+        float leash = Math.max(ground.right() - ground.left(), ground.top() - ground.bottom());
+        Flock flock = sim.flocks().launchInWell(sim, Faction.DEFENDER, cell[0] + 0.5f, cell[1] + 0.5f, FLOCK_SIZE,
+                FlockWeights.WASP, leash, livery, new HiveCradle.Hatch(),
+                (x, y) -> HiveCradle.create("derelict-hive", Faction.DEFENDER, x, y));
+        if (flock == null) return null;
+        port.add(flock, plans.get(nearestZone(plans, cell[0], cell[1])).id());
+        return flock;
+    }
+
+    /** The cell of {@code area} nearest {@code (x0, y0)} that {@code ok} accepts, or null. */
+    static int[] nearestIn(RuinsDelve.Area area, int x0, int y0, Walkable ok) {
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int y = area.bottom(); y <= area.top(); y++) {
+            for (int x = area.left(); x <= area.right(); x++) {
+                int d = (x - x0) * (x - x0) + (y - y0) * (y - y0);
+                if (d < bestDistance && ok.at(x, y)) {
+                    best = new int[] {x, y};
+                    bestDistance = d;
+                }
+            }
+        }
+        return best;
     }
 
     /** The zone whose node is nearest a cell. */

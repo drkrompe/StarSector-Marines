@@ -538,7 +538,13 @@ Laws):
      tag on the lip cells, written by the brush, so the battle never reads the
      style. Held for the owner (Open).
    First pass: a lip, two ledges of cooled basalt and the melt 40 m down,
-   camera 120 m, a daylight sun. Left: the owner's pick of depth; a dusk or
+   camera 120 m, a daylight sun. The owner settled the depth at 40 m
+   (2026-11-09): the style's standing depth, the look suite's default. A
+   bridge's ends are road onto the deck, not lip: the drop's fray, the lip's
+   light and the smoke over the rift all stop where the nearest open cell is a
+   bridge (`NaturalVoidField.byBridge`), for every natural style; no puff of
+   smoke spreads over a deck; and the crust runs on under a bridge, since the
+   melt 40 m down shows past the deck's edge. Left: a dusk or
    night sky, under which the glow would carry the picture (the night
    lighting draws over the ground layer, so the melt's light needs to stand
    in it as a light source); heat shimmer as true distortion (now a ripple of
