@@ -220,7 +220,8 @@ Laws):
    walls show only past the edge of the level the camera is over, so
    scale and movement carry the depth:
    - **Traffic** of vanilla hulls (the owner's suggestion: Hounds,
-     aeroshuttles and the like), planned by `VoidTraffic`: smooth paths
+     aeroshuttles and the like; four in five fly the backdrop's first two
+     hulls, the shuttle and the Hound), planned by `VoidTraffic`: smooth paths
      through control points, each flown now and then on an irregular
      schedule (owner, 2026-11-09: too much, too fast, too close, straight
      lines in a repeated pattern). Whether a slot is flown, when it sets
@@ -301,8 +302,9 @@ Laws):
      the sky; the deep one warm, lit by the city below, and thinner, so its
      lights show through.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
-     Each structure's roof takes a corner radius by its place (square, 6, 10
-     or 14 m), and each terrace below rounds on the same centres, its radius
+     Each structure's roof takes a corner radius hashed from its place
+     (square, 6, 10 or 14 m; a plain sum of its position put every tower of
+     the street grid on one radius once the map grew), and each terrace below rounds on the same centres, its radius
      grown by its outset, so every step is a ring of even width; the playing
      surface's own corners stay as the map lays them and only its terraces
      round. A rounded corner's wall is facets textured corner to corner; its
