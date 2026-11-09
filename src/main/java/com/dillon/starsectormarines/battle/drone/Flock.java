@@ -33,6 +33,7 @@ public final class Flock implements DroneAnchor {
     long cradleId;
     FlockLivery livery = FlockLivery.DOMAIN;
     final FlockCradle.Clock rebuild = new FlockCradle.Clock();
+    final FlockDock dock = new FlockDock();
     private volatile boolean nodeStands = true;
     /** Tick the field was last built, for the rebuild cadence. */
     int fieldTick = Integer.MIN_VALUE / 2;
@@ -96,6 +97,12 @@ public final class Flock implements DroneAnchor {
 
     /** Members flying now. */
     public int size() { return members.size(); }
+
+    /** Drones docked aboard the cradle, out of play. */
+    public int aboard() { return dock.aboard(); }
+
+    /** Whether the whole flock is docked: nothing flying and drones aboard. */
+    public boolean docked() { return members.isEmpty() && dock.aboard() > 0; }
 
     /** Members the flock was made with: its strength when whole. */
     public int strength() { return strength; }

@@ -19,9 +19,6 @@ import java.util.TreeMap;
  */
 final class FlockSystemPort implements FlockCommandPort {
 
-    /** Within this many cells of home a flock that is going home counts as docked. */
-    static final float DOCKED_CELLS = 2f;
-
     private final Map<Integer, Flock> flocks = new TreeMap<>();
     private final Map<Integer, Integer> zoneOf = new TreeMap<>();
     private final Map<Integer, float[]> station = new TreeMap<>();
@@ -35,19 +32,18 @@ final class FlockSystemPort implements FlockCommandPort {
     public List<Report> reports() {
         List<Report> out = new ArrayList<>();
         for (Flock flock : flocks.values()) {
-            if (flock.size() == 0) continue;
+            if (flock.size() == 0 && flock.aboard() == 0) continue;
             List<Contact> seen = new ArrayList<>();
             long[] units = flock.contacts();
             int[] cells = flock.contactCells();
             for (int i = 0; i < units.length && 2 * i + 1 < cells.length; i++) {
                 seen.add(new Contact(units[i], cells[2 * i], cells[2 * i + 1], flock.contactTick()));
             }
-            boolean home = Math.max(Math.abs(flock.anchorX() - flock.homeX()),
-                    Math.abs(flock.anchorY() - flock.homeY())) <= DOCKED_CELLS;
             long pinned = flock.task() == FlockTask.STRIKE && flock.target() != 0L ? flock.target() : -1L;
             out.add(new Report(flock.id(), zoneOf.get(flock.id()), (int) Math.floor(flock.anchorX()),
-                    (int) Math.floor(flock.anchorY()), flock.size() / (float) Math.max(1, flock.strength()),
-                    home && flock.task() == FlockTask.RETURN, seen, pinned));
+                    (int) Math.floor(flock.anchorY()),
+                    (flock.size() + flock.aboard()) / (float) Math.max(1, flock.strength()), flock.docked(), seen,
+                    pinned));
         }
         return out;
     }
