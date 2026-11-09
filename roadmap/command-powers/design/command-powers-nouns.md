@@ -4,7 +4,8 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-10-31 — A committed Onslaught brings Onslaught Drop, the debug launcher's stock-Onslaught call, paid in command points only, one at a time; damage lengthens its cooldown and losing it ends the power.
+Updated: 2026-11-09 — Mech Support is the company's own call in every mission: the machines in its bay, the lift its boats bring, and Conquest's provided heavy lift. No ship, employer or story grants it (owner).
+Earlier 2026-10-31 — A committed Onslaught brings Onslaught Drop, the debug launcher's stock-Onslaught call, paid in command points only, one at a time; damage lengthens its cooldown and losing it ends the power.
 Earlier 2026-10-29 — the company's own boats fly Mech Support everywhere but Conquest; no employer or story heavy lift. Earlier, 2026-10-26: Mech Support orders one machine at a time, free, through the shared lift queue; the picker pauses the battle and a queued drop can be cancelled.
 Earlier 2026-10-14 — Air Strike: a side's regenerating bomber/fighter pool, directed by comms operators (a pool request, not a card with charges).
 Earlier 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles overhead of targeted ground (law 9 gives it no campaign bridge).
@@ -86,11 +87,12 @@ commitment.
   revalidates it before anything is spent. A queued order is withdrawn through
   the service's drop-cancel request, which the simulation honours only while no
   craft has taken the job.
-  Valkyries and ground-support fittings are production sources; a story battle
-  that drops the company's own bay grants it for whatever the bay holds,
-  vehicles alone included, flown on the company's configured shuttles; the
-  mission offers no lift. It is the only power that brings the company's
-  vehicles down. The production
+  It is the company's own call in every mission, never a ship's or an
+  employer's (owner, 2026-11-09): it answers three things, the machines the
+  bay holds (vehicles alone included), the lift the company ship's boats bring
+  with their fitted parts, and the special case of a mission that provides
+  heavy lift (Conquest alone). An empty bay brings no card. It is the only
+  power that brings the company's vehicles down. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
   iteration support. Sources decide who may call; lift decides who flies: every
   carrier behind the budget (a committed cradled boat, or in Conquest alone the
@@ -111,7 +113,7 @@ commitment.
 ## Laws
 
 1. Fleet acquisition determines availability; command progression determines capacity. Do not turn a larger deck, CP pool, or cooldown curve into an alternate unlock path.
-2. Production powers come only from the committed player sources and the mission's employer offer. Debug grants are not a production authority.
+2. Production powers come only from the committed player sources and the mission's employer offer, save Mech Support, which comes from the company's own bay. Debug grants are not a production authority.
 3. Commitment precedes slotting. Holding back a source must remove its contributions before the deck is selected, and one source may contribute more than one capability.
 4. A deck can slot only available powers and must satisfy its budget at selection and again at launch. Unknown, stale, or over-budget selections never enter the battle roster.
 5. The battle's power roster is frozen at launch and contains no campaign fleet objects. Battle code must not rescan or mutate the campaign fleet to discover a power.

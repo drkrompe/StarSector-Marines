@@ -455,8 +455,8 @@ company's forces (owner, 2026-10-29); a mission that brings craft of its own fli
 its own people and cargo in them. Conquest alone, where the company commands
 hundreds, provides heavy lift behind the company's boats
 (`PowerCatalog.providesHeavyLift`), and only there does the row add a slot for the
-**mission lift**. With no boat that lifts a machine, the drop call stays and each
-machine reads no lift of its class. Every bay machine sits in the field inset
+**mission lift**. The bay is always the call (`command-powers-nouns.md`); with no
+boat that lifts a machine, each machine reads no lift of its class. Every bay machine sits in the field inset
 beside the squads, as a small damage doll under its chassis or vehicle type,
 carrying the wear its repair still leaves, and two stacked bricks: its weight,
 lit red when lift falls short of its class, and a warning, lit and slowly

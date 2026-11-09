@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,19 +37,22 @@ class CompanyLiftCatalogTest {
         byId.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT), true);
+        PowerCatalog.assignCompanyLift(byId, List.of(SEATED, MEDIUM, LIGHT), true);
 
         assertSame(LIGHT, ((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
     }
 
     @Test
-    void whereHeavyLiftIsProvidedAnEmployerOfferKeepsItsSyntheticCarrier() {
+    void whereHeavyLiftIsProvidedItStandsBehindTheCompanysBoat() {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
-        byId.put(MechSupport.ID, new MechSupport());
+        byId.put(MechSupport.ID, MechSupport.configured(List.of(
+                MechDeploymentSpec.standard(MechVariant.HOUND))));
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), true);
+        PowerCatalog.assignCompanyLift(byId, List.of(LIGHT), true);
 
-        assertNull(((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
+        MechSupport mech = (MechSupport) byId.get(MechSupport.ID);
+        assertSame(LIGHT, mech.companyCarrier());
+        assertTrue(mech.syntheticLift());
     }
 
     @Test
@@ -58,7 +60,7 @@ class CompanyLiftCatalogTest {
         Map<String, CommandPower> carried = new LinkedHashMap<>();
         carried.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
-        PowerCatalog.assignCompanyLift(carried, Set.of(), List.of(SEATED, LIGHT), false);
+        PowerCatalog.assignCompanyLift(carried, List.of(SEATED, LIGHT), false);
         MechSupport mech = (MechSupport) carried.get(MechSupport.ID);
         assertSame(LIGHT, mech.companyCarrier());
         assertFalse(mech.syntheticLift(), "no Valkyrie behind her");
@@ -66,7 +68,7 @@ class CompanyLiftCatalogTest {
         Map<String, CommandPower> unlifted = new LinkedHashMap<>();
         unlifted.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
-        PowerCatalog.assignCompanyLift(unlifted, Set.of(), List.of(SEATED), false);
+        PowerCatalog.assignCompanyLift(unlifted, List.of(SEATED), false);
         MechSupport stranded = (MechSupport) unlifted.get(MechSupport.ID);
         assertNull(stranded.companyCarrier());
         assertFalse(stranded.syntheticLift());
