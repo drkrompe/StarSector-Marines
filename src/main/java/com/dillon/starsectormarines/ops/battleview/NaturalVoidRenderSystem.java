@@ -68,6 +68,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private List<PitMachines.Machine> machines = List.of();
     /** The drop this instance draws is a glacial crevasse. */
     private boolean ice;
+    /** The drop this instance draws is a dry canyon. */
+    private boolean canyon;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -190,6 +192,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         pit = !rising && PitVoidLook.pit((NaturalVoid) look);
         belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
+        canyon = !rising && CanyonVoidLook.canyon((NaturalVoid) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -220,6 +223,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 else if (lava) LavaVoidLook.rock(band, q, k, seed, field, c);
                 else if (pit) PitVoidLook.rock(band, q, k, seed, c);
                 else if (ice) IceVoidLook.ice(band, q, k, seed, c);
+                else if (canyon) CanyonVoidLook.rock(band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
@@ -230,6 +234,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             if (lava) LavaVoidLook.rock(fray, q, 0, seed, field, frayColours);
             else if (pit) PitVoidLook.rock(fray, q, 0, seed, frayColours);
             else if (ice) IceVoidLook.ice(fray, q, 0, seed, frayColours);
+            else if (canyon) CanyonVoidLook.rock(fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
         ramps = pit ? PitVoidLook.ramps(field) : List.of();
@@ -425,8 +430,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             return;
         }
         float floorDepth = Math.max(1f, field.depth[field.steps()]);
-        float deepR = ice ? IceVoidLook.DEEP_R : DEEP_R, deepG = ice ? IceVoidLook.DEEP_G : DEEP_G;
-        float deepB = ice ? IceVoidLook.DEEP_B : DEEP_B;
+        float deepR = ice ? IceVoidLook.DEEP_R : canyon ? CanyonVoidLook.DEEP_R : DEEP_R;
+        float deepG = ice ? IceVoidLook.DEEP_G : canyon ? CanyonVoidLook.DEEP_G : DEEP_G;
+        float deepB = ice ? IceVoidLook.DEEP_B : canyon ? CanyonVoidLook.DEEP_B : DEEP_B;
         float margin = cam.cellPxSize() * 2f;
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
@@ -443,6 +449,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float r, g, b;
             if (floor && pit) {
                 float[] f = PitVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], at[o + 6], seed);
+                r = f[0]; g = f[1]; b = f[2];
+            } else if (floor && canyon) {
+                float[] f = CanyonVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], seed);
                 r = f[0]; g = f[1]; b = f[2];
             } else if (floor) {
                 float x = at[o], y = at[o + 1], light = at[o + 2], edge = at[o + 3];
@@ -528,7 +537,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 }
                 if (!rising && !ice) {
                     float tint = DEEP_MIX * zm / floorDepth;
-                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                    if (canyon) shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, CanyonVoidLook.DEEP_R,
+                            CanyonVoidLook.DEEP_G, CanyonVoidLook.DEEP_B, tint * alpha);
+                    else shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
                 }
                 if (lava) {
                     float glow = LavaVoidLook.wallGlow((floorDepth - (za + zb) / 2f) * gm);
