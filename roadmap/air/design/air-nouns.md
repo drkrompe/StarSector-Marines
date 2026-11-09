@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05): the two-gun pod is gone. Earlier 2026-10-31 — every based pool flies from laid airbases, the Cordon's air base among them (A based pool, Airbase). Earlier the same day, a falling hull goes up and comes down as a blast field spread evenly over its own shape; its crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, one airfield service holds several fields, each with its own owner, strip and crew; a field may rebuild its losses as crew work; a pool may be based on fields of its own on the map, its stock what stands ready there, one way for every field (A based pool; a laid airbase's bays rebuilt by its crew, Airbase); a based wing keeps a standing patrol; cover fighters hunt fliers. Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-11-09 — Flocks: the derelict swarm drones' flock model, folded from its shipped story. Earlier 2026-11-05 — a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05): the two-gun pod is gone. Earlier 2026-10-31 — every based pool flies from laid airbases, the Cordon's air base among them (A based pool, Airbase). Earlier the same day, a falling hull goes up and comes down as a blast field spread evenly over its own shape; its crash scales with its size: harder strikes and skids, secondaries along the keel, and fires along its length at rest. Earlier the same day, one airfield service holds several fields, each with its own owner, strip and crew; a field may rebuild its losses as crew work; a pool may be based on fields of its own on the map, its stock what stands ready there, one way for every field (A based pool; a laid airbase's bays rebuilt by its crew, Airbase); a based wing keeps a standing patrol; cover fighters hunt fliers. Earlier, 2026-10-29: only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1721,6 +1721,85 @@ all contribute through the same carrier commitment, one bay each. Each supported
 bay keeps its own battle airframe and ordnance, and first launches are staggered
 across the bays. Unsupported wings contribute nothing; bomber bays do not grant
 an extra air-support pool or bypass commitment.
+
+### Flocks
+
+A **flock** is a ground-battle unit of twelve to sixteen **swarm drones**: small,
+cheap, expendable low fliers with one light gun each, moving as one body. It is
+derelict security's signature (`derelict-lore-guide.md`, The force), and the
+model is general: nothing in it is derelict-only. A flock is a drone squad whose
+`DroneAnchor` is a `Flock`, so its members are ordinary drones on the shared
+swarm action, flown by `FlockFlight`.
+
+- **Members and anchor.** A commander moves the flock's **anchor**; each member
+  steers to it plus three terms over the flock's own members only:
+  **separation**, **alignment** and **cohesion** (`FlockSteering`). The weights
+  are flock data (`FlockWeights`: `WASP` tight and darting, the derelict
+  flock's), so a different flock is tuning, not code. Each member descends its
+  own route to the anchor over open cells (`FlockField`), so a wall between
+  member and anchor splits the flock by each member's side and cohesion
+  re-forms it past the wall.
+- **Low flight.** A swarm drone flies below the rooflines. It crosses low cover
+  (sandbags, fences, crates, barricades, a parked hull, water) and never a wall,
+  window, fixture, tree or rock, or the void (`FlockSystem.open`).
+- **Roofs are the flock's limit** (owner, `derelict-flock-counters`). A flock
+  never goes under an intact roof, on any map: the rule reads only the map's
+  own roof and walls, so it holds on ruins ground, a colony, a megastructure or
+  a bunker alike, and a roof brought down opens its cells. Flocks own the
+  exterior and the approaches; a megastructure's interior belongs to what fits
+  in it. **The outside** is the flock's ground: the largest body of open cells
+  (`FlockSystem.sky`), so a light well reached only through roofed halls is
+  never a station or a home. **Any goal under a roof is held at its
+  threshold**, the open cell where its way out by the ground first meets open
+  ground (`FlockField.threshold`): a strike target, a station, a probe point,
+  a home. There the flock waits in a body and shoots what shows in the door; it
+  does not wrap the building. A side's flocks take distinct entrances where
+  there are several and share a lone door. So the company's answer inside is to
+  keep out of a door's line, or shut it; coming out, it meets the flock at the
+  door.
+- **Tasks.** The commander gives a flock one task (`FlockTask`): **screen** a
+  station, **probe** a route, **strike** a target, **pursue** a contact to the
+  leash, **return** home. On a strike the anchor sits on the target and the
+  members fly turning orbit slots round it, firing a fixed gun as the nose comes
+  on, so the flock wraps the target rather than stacking on one side. No member
+  is ever ordered on its own.
+- **Sight.** Every member is a sensor; what any member sees is the flock's, and
+  the flock's is its commander's. No knowledge a member did not see.
+- **Loss, cradle and docking.** A member dies by the ordinary damage rules. A
+  flock under a third of its strength goes home. Its **cradle** is the launch
+  housing at its home (`FlockCradle`), a structure targeted and demolished as a
+  drone hub is, standing on the nearest ground cell whose surrounding square is
+  all open, so a flock homed at a doorway keeps its cradle set back in the open,
+  never over the door. A flock going home **docks** (`FlockDock`): each member
+  reaching the cradle lands and leaves the field; any other task puts them back
+  up one at a time, so a woken flock pours out. While the cradle and its zone's
+  node stand and the flock is home, the cradle rebuilds one lost drone every
+  `FlockCradle.REBUILD_SECONDS`, aboard if the flock is docking. Drones aboard
+  are lost with the cradle; a flock with none flying and none aboard is gone.
+- **Countering it.** Nothing special: the counters fall out of the model. Area
+  fire hits several members because they fly close (frags are thrown at a flock,
+  led to where its drones will be: `FragGrenadeTactics.tryCommitFlockThrow`, even
+  while the squad is surviving); a flock cannot reach shooters in a roofed room
+  out of the door's line; flak and point defence engage members as fliers.
+  Strength (size, drone structure, fire) is the owner's playtest, never a
+  session's mission run.
+- **Look and sound.** A flock wears its lineage's livery (`FlockLivery`):
+  Domain security's grey steel and hazard yellow, or contingency security's
+  Tri-Tachyon white gone dull. Owner picks: the dart drone
+  (`derelict-swarm-drone`), the carousel cradle (`derelict-flock-cradle`) and
+  the buzz whine (`derelict-swarm-whine`). The whine (`FlockAudio`) is one
+  placed loop on each of the nearest flocks, rising with the flock's speed and
+  thinning with its numbers. The art is painted from geometry guides
+  (`art-source/drones/swarm-drones/`), the voices are designed loops
+  (`asset-pipeline/.../audio/flock/`).
+- **Not the Rav.** A flock never uses the Rav's prey field or its spawning; its
+  numbers are its cradle's.
+
+The network commands its flocks through `FlockCommandPort`
+(`derelict-security-network.md`): a report per flock (anchor, strength
+counting drones aboard, docked, contacts as seen, strike pin) and one task with
+an anchor or target. Cost: four flocks of sixteen add about a quarter of a
+millisecond a tick (`profileFlockCost`, `evidence-tasks.md`).
 
 ### Air cover, and where a sortie is from
 

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.drone.FlockTask;
 import java.util.List;
 
 /**
- * The seam between the security network director and the flock model (`derelict-drone-flocks.md`, Seam;
+ * The seam between the security network director and the flock model (`air-nouns.md`, Flocks;
  * `derelict-security-network.md`, slice 2). The director reads what each flock reports and gives each a task with an
  * anchor; members, leash flying, re-forming and returning under a third of strength stay the flock model's. A battle
  * with no flocks uses {@link #NONE}.

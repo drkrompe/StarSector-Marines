@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The flock's counters measured (`derelict-drone-flocks.md`, slice 6): one derelict flock of sixteen strikes a fire
+ * The flock's counters measured (`air-nouns.md`, Flocks): one derelict flock of sixteen strikes a fire
  * team of six, four ways. {@code rifles}: field rifles in the open. {@code automatics}: squad automatics in the open.
  * {@code grenades}: rifles with frag grenades in the open. {@code indoors}: rifles in a roofed room whose door looks
  * onto the street the flock comes down.
