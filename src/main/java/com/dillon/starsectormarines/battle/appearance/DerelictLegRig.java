@@ -3,20 +3,26 @@ package com.dillon.starsectormarines.battle.appearance;
 import java.util.Arrays;
 
 /**
- * The derelict security walker's legs, seen from above (`derelict-security-network.md`, slice 9): a low torso slung
- * between four legs that reach out from a ring of hips and plant their feet. Presentation only, like the Rav
- * rigs: the walker moves as any mech does and nothing in the battle reads its feet back.
+ * The derelict security walker's legs and the body they carry, seen from above (`derelict-security-network.md`, The
+ * walker's legs): a heavy torso slung between four legs that reach out from a ring of hips and plant their feet.
+ * Presentation only, like the Rav rigs: the walker moves as any mech does and nothing in the battle reads its feet back.
  *
- * <p><b>Stepping.</b> Each foot stays planted where it landed while the torso moves over it. When the feet of a step
- * group have strayed past {@link #RESTEP_CELLS} from where they would rest, that group lifts and swings to new spots
- * over {@link #STEP_SECONDS}; the others hold. The legs step in diagonal pairs (front-left with back-right), so
- * the torso always stands on two feet.
+ * <p><b>Gait.</b> A gait clock runs on the distance the torso covers, a cycle each stride, so the cadence follows the
+ * speed. At a walk ({@link Gait#WALK}) the legs lift one at a time in a four-beat sequence (back, front on one side,
+ * then back, front on the other) and three feet always stand; at a run ({@link Gait#RUN}, above
+ * {@link #RUN_SPEED}) the diagonal pairs trot, each pair in the air a little longer than half the cycle so the machine
+ * leaves the ground between strides. A foot stays planted where it landed until its turn, then swings to land ahead of
+ * where the torso will be, so it pushes back under the body through its stance. Standing, the clock stops and a foot
+ * dragged out of place by a turn steps back alone.
  *
- * <p><b>Reaching to walls.</b> With {@link #wallReach()} a leg swings out sideways from its own line, up to
- * {@link #SPLAY_STEPS} steps of {@link #SPLAY_DEGREES}, to the first wall face within {@link #MAX_REACH_CELLS} and
- * plants its foot up on it, so in a hall the walker pulls itself along between the walls; with no wall in reach the
- * foot plants on the floor at {@link #REST_CELLS}. Without it a foot stays on the floor, tucked short of a wall in its
- * way. The torso itself keeps to floor cells either way.
+ * <p><b>Weight.</b> The drawn body is not the torso's path: it sways over the feet that stand (toward their middle, so
+ * away from a lifted leg), dips as a leg lifts its share of the weight, bounces twice a stride at the run and leans
+ * into its speed ({@link #bodyX()}, {@link #bodyHeight()}). The hips ride on the drawn body.
+ *
+ * <p><b>Reach.</b> Each leg chooses for itself: a wall face within {@link #GRIP_CELLS} along its line, or one splay
+ * step out to the side, takes the foot up on it, gripping; in the open the foot stands on the floor at
+ * {@link #REST_CELLS}, short of any wall in the way. So in a hall the walker pulls itself along between the walls,
+ * and in a chamber it walks. The torso itself keeps to floor cells.
  */
 public final class DerelictLegRig {
 
@@ -25,72 +31,91 @@ public final class DerelictLegRig {
         boolean at(int x, int y);
     }
 
+    public enum Gait { STAND, WALK, RUN }
+
     /** Hips sit on a ring this far from the torso's centre, cells. */
     public static final float HIP_CELLS = 0.55f;
     /** Where a foot rests on open floor, cells from the torso's centre. */
     public static final float REST_CELLS = 1.9f;
-    /** How far a leg reaches for a wall, cells from the torso's centre. */
-    public static final float MAX_REACH_CELLS = 3.0f;
-    /** A foot further than this from its rest spot steps. */
+    /** How far a leg reaches to grip a wall, cells from the torso's centre: further, it stands on the floor. */
+    public static final float GRIP_CELLS = 2.6f;
+    /** A torso that jumps further than this between frames stands fresh. */
+    public static final float JUMP_CELLS = 3.0f;
+    /** Standing, a foot further than this from its rest spot steps back. */
     public static final float RESTEP_CELLS = 0.8f;
-    public static final float STEP_SECONDS = 0.28f;
+    /** A standing step's length. */
+    public static final float STEP_SECONDS = 0.3f;
+    /** Below this the walker stands; above {@link #RUN_SPEED} it runs (cells a second). */
+    public static final float MOVING_SPEED = 0.12f;
+    public static final float RUN_SPEED = 1.6f;
+    /** Back to a walk below this, so the gait does not flicker at the threshold. */
+    static final float WALK_SPEED = 1.3f;
+    /** Distance a full gait cycle covers, cells. */
+    public static final float WALK_STRIDE = 1.5f;
+    public static final float RUN_STRIDE = 2.8f;
+    /** The share of a cycle a leg spends in the air. */
+    static final float WALK_SWING = 0.22f;
+    static final float RUN_SWING = 0.56f;
+    /** Each leg's place in the cycle: the walk's four beats, and the trot's two pairs. */
+    private static final float[] WALK_OFFSET = {0.25f, 0f, 0.5f, 0.75f};
+    private static final float[] RUN_OFFSET = {0f, 0.5f, 0f, 0.5f};
+    /** How far the body sways toward the middle of its standing feet, as a share of the way. */
+    static final float SWAY = 0.30f;
+    /** How far the body sinks for each leg in the air, cells. */
+    static final float DIP_CELLS = 0.07f;
+    /** The run's bounce, cells, twice a cycle. */
+    static final float RUN_BOUNCE_CELLS = 0.10f;
+    /** How far the body leans into its speed, cells per cell a second, at most {@link #LEAN_MAX_CELLS}. */
+    static final float LEAN = 0.06f;
+    static final float LEAN_MAX_CELLS = 0.20f;
+    /** The body's pose settles toward its target over this many seconds. */
+    static final float SETTLE_SECONDS = 0.10f;
+    /** Speed is read over this many seconds. */
+    static final float SPEED_SECONDS = 0.25f;
     /** A foot on a wall's face stands this far off it, cells, so it reads as gripping the face, not inside it. */
     static final float FACE_OFFSET = 0.08f;
     /** A floor foot stops this far short of a wall in its way. */
     static final float TUCK_CELLS = 0.35f;
-    /** A reaching leg swings out sideways in steps of this many degrees, up to {@link #SPLAY_STEPS}, to find a wall. */
-    static final float SPLAY_DEGREES = 15f;
-    static final int SPLAY_STEPS = 2;
+    /** A leg looking for a wall swings out sideways by this much, once. */
+    static final float SPLAY_DEGREES = 20f;
     private static final float MARCH = 0.05f;
+    private static final int LEGS = 4;
 
-    private final int legs;
-    private final boolean wallReach;
     /** Each leg's direction from the torso's facing, sprite degrees (counter-clockwise from forward). */
-    private final float[] hipAngle;
-    private final int[] group;
-    private final int groups;
-    private final float[] footX;
-    private final float[] footY;
-    private final float[] fromX;
-    private final float[] fromY;
-    private final float[] toX;
-    private final float[] toY;
-    private final boolean[] toWall;
-    private final boolean[] onWall;
+    private final float[] hipAngle = {45f, 135f, 225f, 315f};
+    /** Diagonal pairs: 45 with 225, 135 with 315. */
+    private final int[] pair = {0, 1, 0, 1};
+    private final float[] footX = new float[LEGS];
+    private final float[] footY = new float[LEGS];
+    private final float[] fromX = new float[LEGS];
+    private final float[] fromY = new float[LEGS];
+    private final boolean[] onWall = new boolean[LEGS];
     /** Swing progress 0..1 while lifted, -1 while planted. */
-    private final float[] swing;
+    private final float[] swing = new float[LEGS];
     private boolean posed;
-    private float bodyX;
-    private float bodyY;
+    private float pathX;
+    private float pathY;
     private float facing;
+    private float velX;
+    private float velY;
+    private float phase;
+    private Gait gait = Gait.STAND;
+    private float offX;
+    private float offY;
+    private float height;
 
-    /**
-     * @param wallReach whether legs reach out to plant on walls
-     */
-    public DerelictLegRig(boolean wallReach) {
-        this.legs = 4;
-        this.wallReach = wallReach;
-        hipAngle = new float[] {45f, 135f, 225f, 315f};
-        // Front-left (45) with back-right (225), then back-left (135) with front-right (315).
-        group = new int[] {0, 1, 0, 1};
-        groups = 2;
-        footX = new float[legs];
-        footY = new float[legs];
-        fromX = new float[legs];
-        fromY = new float[legs];
-        toX = new float[legs];
-        toY = new float[legs];
-        toWall = new boolean[legs];
-        onWall = new boolean[legs];
-        swing = new float[legs];
+    public DerelictLegRig() {
         Arrays.fill(swing, -1f);
     }
 
-    public int legs() { return legs; }
-    public boolean wallReach() { return wallReach; }
+    public int legs() { return LEGS; }
     public boolean posed() { return posed; }
-    public float bodyX() { return bodyX; }
-    public float bodyY() { return bodyY; }
+    public Gait gait() { return gait; }
+    /** The drawn body: the torso's path plus its sway and lean. */
+    public float bodyX() { return pathX + offX; }
+    public float bodyY() { return pathY + offY; }
+    /** The drawn body's rise above its rest height, cells: below zero as it dips. */
+    public float bodyHeight() { return height; }
     public float facing() { return facing; }
     public float footX(int leg) { return footX[leg]; }
     public float footY(int leg) { return footY[leg]; }
@@ -100,23 +125,31 @@ public final class DerelictLegRig {
     public float lift(int leg) {
         return swing[leg] < 0f ? 0f : (float) Math.sin(Math.PI * swing[leg]);
     }
-    public float hipX(int leg) { return bodyX + dirX(facing + hipAngle[leg]) * HIP_CELLS; }
-    public float hipY(int leg) { return bodyY + dirY(facing + hipAngle[leg]) * HIP_CELLS; }
+    public float hipX(int leg) { return bodyX() + dirX(facing + hipAngle[leg]) * HIP_CELLS; }
+    public float hipY(int leg) { return bodyY() + dirY(facing + hipAngle[leg]) * HIP_CELLS; }
+    /** Whether leg {@code i} is lifted in a step. */
+    public boolean stepping(int leg) { return swing[leg] >= 0f; }
+    /** Leg {@code i}'s diagonal pair: the pair a run lifts together. */
+    public int pair(int leg) { return pair[leg]; }
 
     /** Moves the torso to {@code (x, y)} facing {@code facingDegrees} and steps the legs over {@code dt} seconds. */
     public void advance(float x, float y, float facingDegrees, float dt, Solid solid) {
-        // A torso that jumped further than a leg reaches (a lift, a teleport) stands fresh rather than dragging its feet.
-        if (posed && (x - bodyX) * (x - bodyX) + (y - bodyY) * (y - bodyY) > MAX_REACH_CELLS * MAX_REACH_CELLS) {
+        float moved = distance(x, y, pathX, pathY);
+        if (posed && moved > JUMP_CELLS) {
+            // A lift, a teleport: stand fresh rather than drag the feet across the map.
             posed = false;
-            Arrays.fill(swing, -1f);
         }
-        bodyX = x;
-        bodyY = y;
         facing = facingDegrees;
-        float[] spot = new float[3];
         if (!posed) {
-            for (int i = 0; i < legs; i++) {
-                rest(i, solid, spot);
+            pathX = x;
+            pathY = y;
+            velX = velY = 0f;
+            offX = offY = height = 0f;
+            gait = Gait.STAND;
+            Arrays.fill(swing, -1f);
+            float[] spot = new float[3];
+            for (int i = 0; i < LEGS; i++) {
+                rest(i, pathX, pathY, solid, spot);
                 footX[i] = spot[0];
                 footY[i] = spot[1];
                 onWall[i] = spot[2] > 0f;
@@ -124,84 +157,163 @@ public final class DerelictLegRig {
             posed = true;
             return;
         }
-        boolean stepping = false;
-        for (int i = 0; i < legs; i++) {
+        if (dt > 0f) {
+            float k = 1f - (float) Math.exp(-dt / SPEED_SECONDS);
+            velX += ((x - pathX) / dt - velX) * k;
+            velY += ((y - pathY) / dt - velY) * k;
+        }
+        pathX = x;
+        pathY = y;
+        float speed = (float) Math.sqrt(velX * velX + velY * velY);
+        gait = speed < MOVING_SPEED ? Gait.STAND
+                : speed > RUN_SPEED || (gait == Gait.RUN && speed > WALK_SPEED) ? Gait.RUN : Gait.WALK;
+        if (gait == Gait.STAND) stand(dt, solid);
+        else stride(moved, speed, solid);
+        pose(dt, speed);
+    }
+
+    /** Moving: the clock runs on distance and each leg swings in its window of the cycle. */
+    private void stride(float moved, float speed, Solid solid) {
+        boolean run = gait == Gait.RUN;
+        float strideCells = run ? RUN_STRIDE : WALK_STRIDE;
+        float swingShare = run ? RUN_SWING : WALK_SWING;
+        float[] offset = run ? RUN_OFFSET : WALK_OFFSET;
+        phase = (phase + moved / strideCells) % 1f;
+        float hx = speed > 1e-4f ? velX / speed : 0f;
+        float hy = speed > 1e-4f ? velY / speed : 0f;
+        float[] spot = new float[3];
+        for (int i = 0; i < LEGS; i++) {
+            float local = ((phase - offset[i]) % 1f + 1f) % 1f;
+            if (local >= swingShare) {
+                if (swing[i] >= 0f) land(i, solid);
+                continue;
+            }
+            if (swing[i] < 0f) {
+                fromX[i] = footX[i];
+                fromY[i] = footY[i];
+                onWall[i] = false;
+            }
+            float t = local / swingShare;
+            swing[i] = t;
+            // Land ahead of where the torso will be at touchdown, by half the stance, so the foot passes under it.
+            float ahead = strideCells * (1f - t) * swingShare + strideCells * (1f - swingShare) / 2f;
+            rest(i, pathX + hx * ahead, pathY + hy * ahead, solid, spot);
+            float e = t * t * (3f - 2f * t);
+            footX[i] = fromX[i] + (spot[0] - fromX[i]) * e;
+            footY[i] = fromY[i] + (spot[1] - fromY[i]) * e;
+        }
+    }
+
+    /** A foot at the end of its swing comes down where it was going, on the floor or up a wall. */
+    private void land(int i, Solid solid) {
+        float[] spot = new float[3];
+        swing[i] = -1f;
+        rest(i, pathX, pathY, solid, spot);
+        // It keeps where it came down; only whether it holds a wall is read from the ground under it.
+        onWall[i] = spot[2] > 0f && distance(spot[0], spot[1], footX[i], footY[i]) < RESTEP_CELLS;
+    }
+
+    /** Standing: the clock stops; a swinging foot finishes its step, and a foot dragged out of place steps back. */
+    private void stand(float dt, Solid solid) {
+        float[] spot = new float[3];
+        boolean anySwinging = false;
+        for (int i = 0; i < LEGS; i++) {
             if (swing[i] < 0f) continue;
+            anySwinging = true;
             swing[i] = Math.min(1f, swing[i] + dt / STEP_SECONDS);
+            rest(i, pathX, pathY, solid, spot);
             float t = swing[i];
-            footX[i] = fromX[i] + (toX[i] - fromX[i]) * t;
-            footY[i] = fromY[i] + (toY[i] - fromY[i]) * t;
+            footX[i] = fromX[i] + (spot[0] - fromX[i]) * t;
+            footY[i] = fromY[i] + (spot[1] - fromY[i]) * t;
             if (t >= 1f) {
                 swing[i] = -1f;
-                onWall[i] = toWall[i];
-            } else {
-                stepping = true;
+                onWall[i] = spot[2] > 0f;
             }
         }
-        if (stepping) return;
+        if (anySwinging) return;
         int worst = -1;
         float worstStrain = RESTEP_CELLS;
-        for (int g = 0; g < groups; g++) {
-            float strain = 0f;
-            for (int i = 0; i < legs; i++) {
-                if (group[i] != g) continue;
-                rest(i, solid, spot);
-                strain = Math.max(strain, distance(footX[i], footY[i], spot[0], spot[1]));
-            }
+        for (int i = 0; i < LEGS; i++) {
+            rest(i, pathX, pathY, solid, spot);
+            float strain = distance(footX[i], footY[i], spot[0], spot[1]);
             if (strain > worstStrain) {
                 worstStrain = strain;
-                worst = g;
+                worst = i;
             }
         }
         if (worst < 0) return;
-        for (int i = 0; i < legs; i++) {
-            if (group[i] != worst) continue;
-            rest(i, solid, spot);
-            fromX[i] = footX[i];
-            fromY[i] = footY[i];
-            toX[i] = spot[0];
-            toY[i] = spot[1];
-            toWall[i] = spot[2] > 0f;
-            onWall[i] = false;
-            swing[i] = 0f;
+        fromX[worst] = footX[worst];
+        fromY[worst] = footY[worst];
+        onWall[worst] = false;
+        swing[worst] = 0f;
+    }
+
+    /** The body's weight on its feet: sway over the standing feet, dip for lifted ones, the run's bounce, the lean. */
+    private void pose(float dt, float speed) {
+        float sx = 0f;
+        float sy = 0f;
+        int standing = 0;
+        float lifted = 0f;
+        for (int i = 0; i < LEGS; i++) {
+            if (swing[i] < 0f) {
+                sx += footX[i];
+                sy += footY[i];
+                standing++;
+            } else {
+                lifted += lift(i);
+            }
         }
+        float tx = 0f;
+        float ty = 0f;
+        if (standing > 0) {
+            tx = (sx / standing - pathX) * SWAY;
+            ty = (sy / standing - pathY) * SWAY;
+        }
+        float th = -DIP_CELLS * lifted;
+        if (gait != Gait.STAND && speed > 1e-4f) {
+            float lean = Math.min(LEAN_MAX_CELLS, LEAN * speed);
+            tx += velX / speed * lean;
+            ty += velY / speed * lean;
+        }
+        if (gait == Gait.RUN) th += RUN_BOUNCE_CELLS * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        float k = dt <= 0f ? 1f : 1f - (float) Math.exp(-dt / SETTLE_SECONDS);
+        offX += (tx - offX) * k;
+        offY += (ty - offY) * k;
+        height += (th - height) * k;
     }
 
     /**
-     * Where leg {@code i}'s foot would rest now, as {@code {x, y, onWall}}: on the first wall face along its line within
-     * reach when it reaches for walls, else on the floor at {@link #REST_CELLS}, short of any wall in between.
+     * Where leg {@code i}'s foot would rest for a torso at {@code (cx, cy)}, as {@code {x, y, onWall}}: up the face of
+     * a wall within {@link #GRIP_CELLS} along its line or one splay out, gripping; else on the floor at
+     * {@link #REST_CELLS}, short of any wall in between.
      */
-    void rest(int i, Solid solid, float[] out) {
+    void rest(int i, float cx, float cy, Solid solid, float[] out) {
         float own = facing + hipAngle[i];
-        if (wallReach) {
-            // Swing the leg out toward the walker's side, a SPLAY step at a time, until it finds a wall face in reach.
-            float side = sideOf(hipAngle[i]);
-            for (int k = 0; k <= SPLAY_STEPS; k++) {
-                float angle = own + side * k * SPLAY_DEGREES;
-                float hit = wallDistance(angle, MAX_REACH_CELLS, solid);
-                if (hit > 0f) {
-                    float at = hit - FACE_OFFSET;
-                    out[0] = bodyX + dirX(angle) * at;
-                    out[1] = bodyY + dirY(angle) * at;
-                    out[2] = 1f;
-                    return;
-                }
+        float side = sideOf(hipAngle[i]);
+        for (int k = 0; k <= 1; k++) {
+            float angle = own + side * k * SPLAY_DEGREES;
+            float hit = wallDistance(cx, cy, angle, GRIP_CELLS, solid);
+            if (hit > 0f) {
+                float at = hit - FACE_OFFSET;
+                out[0] = cx + dirX(angle) * at;
+                out[1] = cy + dirY(angle) * at;
+                out[2] = 1f;
+                return;
             }
         }
-        // On the floor: at rest, or tucked in short of a wall in the way.
-        float hit = wallDistance(own, REST_CELLS, solid);
+        float hit = wallDistance(cx, cy, own, REST_CELLS, solid);
         float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
-        out[0] = bodyX + dirX(own) * at;
-        out[1] = bodyY + dirY(own) * at;
+        out[0] = cx + dirX(own) * at;
+        out[1] = cy + dirY(own) * at;
         out[2] = 0f;
     }
 
-    /** How far from the torso's centre a ray at {@code angle} meets a wall, within reach; 0 when it meets none. */
-    private float wallDistance(float angle, float reach, Solid solid) {
+    /** How far from (cx, cy) a ray at {@code angle} meets a wall, within reach; 0 when it meets none. */
+    private static float wallDistance(float cx, float cy, float angle, float reach, Solid solid) {
         float dx = dirX(angle);
         float dy = dirY(angle);
         for (float d = HIP_CELLS + MARCH; d <= reach + 1e-4f; d += MARCH) {
-            if (solid.at((int) Math.floor(bodyX + dx * d), (int) Math.floor(bodyY + dy * d))) return d;
+            if (solid.at((int) Math.floor(cx + dx * d), (int) Math.floor(cy + dy * d))) return d;
         }
         return 0f;
     }
@@ -211,16 +323,6 @@ public final class DerelictLegRig {
         float a = ((hipAngle % 360f) + 360f) % 360f;
         if (a < 90f || (a >= 180f && a < 270f)) return 1f;
         return -1f;
-    }
-
-    /** Whether leg {@code i} is lifted in a step. */
-    public boolean stepping(int leg) {
-        return swing[leg] >= 0f;
-    }
-
-    /** Leg {@code i}'s step group: legs of one group lift together. */
-    public int group(int leg) {
-        return group[leg];
     }
 
     private static float distance(float ax, float ay, float bx, float by) {

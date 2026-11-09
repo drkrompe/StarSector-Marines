@@ -63,6 +63,13 @@ def torso(d, cx, cy, design, s):
         d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=RAISED, outline=EDGE, width=4)
         d.rectangle([cx - 0.07 * s, cy - 0.95 * s, cx + 0.07 * s, cy - 0.40 * s], fill=DARK, outline=EDGE, width=3)
         d.rectangle([cx - 0.30 * s, cy + 0.50 * s, cx + 0.30 * s, cy + 0.66 * s], fill=DARK, outline=EDGE, width=3)
+    elif design == "sentinel":
+        # A hunched spine: a sensor head forward, a segmented back, a power pack behind.
+        d.ellipse([cx - 0.30 * s, cy - 0.95 * s, cx + 0.30 * s, cy - 0.40 * s], fill=RAISED, outline=EDGE, width=4)
+        for k, (w, y0, y1) in enumerate([(1.10, -0.45, -0.05), (1.25, -0.05, 0.35), (1.05, 0.35, 0.70)]):
+            poly(d, octagon(cx, cy + (y0 + y1) / 2 * s, w * s, (y1 - y0) * s, 0.12 * s), PLATE if k != 1 else RAISED)
+        d.rectangle([cx - 0.35 * s, cy + 0.70 * s, cx + 0.35 * s, cy + 0.92 * s], fill=DARK, outline=EDGE, width=3)
+        d.rectangle([cx - 0.05 * s, cy - 1.10 * s, cx + 0.05 * s, cy - 0.80 * s], fill=DARK, outline=EDGE, width=3)
     else:  # prow
         pts = [(cx, cy - 0.95 * s), (cx + 0.62 * s, cy - 0.45 * s), (cx + 0.66 * s, cy + 0.55 * s),
                (cx + 0.40 * s, cy + 0.85 * s), (cx - 0.40 * s, cy + 0.85 * s), (cx - 0.66 * s, cy + 0.55 * s),
@@ -127,7 +134,7 @@ def guide(design):
 def main():
     out = os.path.join(HERE, "guides")
     os.makedirs(out, exist_ok=True)
-    for design in ("crab", "dome", "prow"):
+    for design in ("crab", "dome", "prow", "sentinel"):
         guide(design).save(os.path.join(out, design + "-guide.png"))
     with open(os.path.join(out, "parts.json"), "w") as f:
         json.dump({"canvas": [W, H], "cell": CELL, "parts": PARTS, "thighCells": THIGH_LEN, "shinCells": SHIN_LEN,

@@ -45,6 +45,17 @@ class NaturalVoidFieldTest {
     }
 
     @Test
+    void theBankAtABridgesEndIsRoadNotLip() {
+        NaturalVoidField field = new NaturalVoidField(W, H, gorge(), look(), -.7f, -.7f, .8f);
+        assertTrue(field.byBridge(15.5f, 5.5f), "the bank where the bridge leaves it");
+        assertFalse(field.byBridge(5.5f, 5.5f), "the bank above the drop");
+        for (int q = 0; q < field.fray.count; q++) {
+            float x = field.fray.attrs[q * 8], y = field.fray.attrs[q * 8 + 1];
+            assertFalse(x > 14.6f && x < 16.4f && y > 4f && y < 6f, "no lip frays across the road onto the deck");
+        }
+    }
+
+    @Test
     void theDropNeverRisesAndTheGroundStandsAtTheSurface() {
         NaturalVoidField field = new NaturalVoidField(W, H, gorge(), look(), -.7f, -.7f, .8f);
         for (int k = 1; k < field.steps(); k++) {
