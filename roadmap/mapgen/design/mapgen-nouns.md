@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-31 — a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -1882,6 +1882,47 @@ Where the settlement stands and how far it reaches is the precinct model's
 business — see `precincts.md`, which also owns the **lane**: the path a
 Conquest's ladder of places stands on, and the walkable route between them that
 the map records for the command layer to read.
+
+## Ruins ground
+
+A ruins site's map (`ruins-ground.md`) is a grown settlement that died: the
+same growth at a density the mission states, `SettlementLink.NONE`, and every
+lot a ruin. It is laid as a **delve**: a cleared landing ground at the west
+end, a vault at the east end, and between them the ruins grade's **layers**,
+each a wall line across the whole map with its ways through. A mission asks for
+it with a `RuinsGroundPlan` (the layer count, 1 to 4) through
+`MapGenerator.generateRuins`, and reads `MapResult.ruinsDelve`: every place by
+a stable name (`ruins.landing`, `ruins.vault`, `ruins.layer.N`, its ways, rooms
+and court, and the works sites `ruins.works.*`). Five rules hold it together.
+
+**The ruins are a value, not a branch.** The recipe relabels every lot as a
+ruined lot before the ordinary fill dispatch runs, so the burned-out footprints
+are the ruined-lot rule (City, station, and ship families) at work, not a
+special drawing. Nothing is claimed as a compound: a compound is a working
+facility. The only intact shells are the delve's own: the vault, the rooms and
+the works.
+
+**Nothing joins a ruin to the world.** The dead streets end in rubble six cells
+short of every edge, trunks included, so the road graph has no perimeter node
+and no ground reinforcement can be offered. The landing's berths are the only
+berths on the map; a court's arrival area is the delve's, not the map's.
+
+**A layer never closes the route.** Every layer line runs edge to edge, so the
+ways are the only crossings, and a way is open ground across the line. Scattered
+ruins may be crossed by one way; every layer at a larger grade has at least two,
+and blocking any single one still leaves the vault reachable. The collapse is a
+way of its own kind, choked and breachable, never counted among the open ones.
+
+**No ground is stranded.** A line laid across the dead town can pocket ground
+against a ruin's standing wall. The pocket is joined back through a wall that is
+not the delve's own; a pocket of a few cells nothing can join is walled in; a
+larger one is a generation error.
+
+**The laws are checked on the finished map.** `DelveCheck` walks the finished
+grid one cardinal step at a time, stricter than the pathfinder, from the
+landing to the vault's source, every way, room, court berth and works cell, and
+generation throws on any failure. There is no fallback map: the site's seed
+names the ground, so the same ruins come back on a second expedition.
 
 ## Rural country
 
