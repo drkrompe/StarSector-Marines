@@ -1223,7 +1223,7 @@ public final class BattleSetup {
         // A scavenger crew is on the pirate roster, whoever once owned the world.
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
-        MapScale scale = MapScale.forTier(tier);
+        MapScale scale = type == MissionType.RAID ? MapScale.forRaid(tier) : MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
