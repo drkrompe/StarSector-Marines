@@ -208,6 +208,8 @@ public final class GroundParallaxPipeline {
             + "uniform float shadowStrength;\n"
             + "uniform float shadowSoftnessMeters;\n"
             + "uniform vec3 shadowTint;\n"
+            + "uniform vec4 worldWash;\n"
+            + "uniform float worldDesaturation;\n"
             + "uniform float eyeHeight;\n"
             + "uniform float structureStrength;\n"
             + "uniform float surfaceStrength;\n"
@@ -298,6 +300,10 @@ public final class GroundParallaxPipeline {
             + "    }\n"
             // Shadow multiplies the sunlit image; event lights are added AFTER,
             // so a muzzle flash still lights the ground it is standing on.
+            // The world's light (WorldLight.grade): bleach toward luma, then wash toward the glare.
+            + "    float worldLuma = dot(color.rgb, vec3(0.299, 0.587, 0.114));\n"
+            + "    color.rgb = mix(color.rgb, vec3(worldLuma), worldDesaturation);\n"
+            + "    color.rgb = mix(color.rgb, worldWash.rgb, worldWash.a);\n"
             + "    color.rgb *= mix(vec3(1.0), shadowTint, shadow * shadowStrength);\n"
             + "    vec3 addedLight = vec3(0.0);\n"
             + "    for (int i = 0; i < " + GroundLightService.MAX_SHADER_LIGHTS + "; i++) {\n"
@@ -629,7 +635,10 @@ public final class GroundParallaxPipeline {
             shader.set1f("shadowRangeCells", shadowRangeCells());
             shader.set1f("shadowStrength", waterOnly ? 0f : sun.shadowStrength());
             shader.set1f("shadowSoftnessMeters", SHADOW_SOFTNESS_METERS);
-            shader.set3f("shadowTint", SunLight.TINT_R, SunLight.TINT_G, SunLight.TINT_B);
+            WorldLight world = WorldLight.forPalette(rc.sim == null ? null : rc.sim.surface());
+            shader.set3f("shadowTint", world.shadowR(), world.shadowG(), world.shadowB());
+            shader.set4f("worldWash", world.washR(), world.washG(), world.washB(), waterOnly ? 0f : world.washAmount());
+            shader.set1f("worldDesaturation", waterOnly ? 0f : world.desaturation());
             shader.set1f("aspect", fboPxW / (float) fboPxH);
             shader.set1f("lightingStrength", waterOnly ? 0f : lightingStrength);
             uploadLights(rc.camera);

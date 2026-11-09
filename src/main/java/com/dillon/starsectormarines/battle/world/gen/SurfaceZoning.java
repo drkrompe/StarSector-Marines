@@ -52,8 +52,12 @@ public final class SurfaceZoning {
                 || id.contains("cold")) {
             return SurfacePalette.FROZEN;
         }
+        // Hard radiation at the surface: scorched, glassed, bleached ground.
+        if (id.contains("irradiated")) {
+            return SurfacePalette.IRRADIATED;
+        }
         // Everything else the Sector actually fights over: barren, rocky,
-        // toxic, irradiated, lava.
+        // toxic, lava.
         return SurfacePalette.ROCK;
     }
 }
