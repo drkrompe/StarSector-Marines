@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 /**
  * The Ruins rail ({@code ruins-expedition.md}, The rail shows the phase) through the look preset with the mission beacons and
@@ -99,7 +100,13 @@ public final class RuinsRailLookSuite implements SnapshotSuite {
 
     static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name,
                                          float x, float y, float cellsAcross) throws Exception {
-        MissionObjectiveSnapshot picture = MissionObjectiveProjection.capture(sim);
+        return shot(context, sim, name, x, y, cellsAcross, UnaryOperator.identity());
+    }
+
+    /** As the plain shot, the rail redrawn by {@code redraw} first: a picks card's variant of a row. */
+    static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name, float x, float y,
+                                 float cellsAcross, UnaryOperator<MissionObjectiveSnapshot> redraw) throws Exception {
+        MissionObjectiveSnapshot picture = redraw.apply(MissionObjectiveProjection.capture(sim));
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
         model.updateProjected(1f, List.of());

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.objective.RuinsDelveRow.Pictu
 import com.dillon.starsectormarines.battle.command.objective.RuinsDelveRow.Stand;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective.RuinsPhase;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
@@ -161,7 +162,20 @@ public final class RuinsDelveWatch {
                 && (sim.getSimTickIndex() - standAt) * BattleSimulation.TICK_DT < STAND_REPORT_SECONDS;
         return new Picture(vault.ruinsPhase(), insideCircle, effectives, landed.size(), squadsBelowHalf,
                 machines.size() - machinesAlive, finds(sim), stores, routeBack, deepest + 1, layers, vaultRoute, stand,
-                fresh);
+                fresh, stir(sim));
+    }
+
+    /** The site's stir as the row reads it, or null on a site with none. */
+    static RuinsDelveRow.Stir stir(BattleSimulation sim) {
+        RuinsPressure pressure = sim.ruinsPressure();
+        if (pressure == null) return null;
+        String reserve = switch (pressure.reserveBand()) {
+            case FULL -> "ruinsDelveRowReserveFull";
+            case THINNED -> "ruinsDelveRowReserveThinned";
+            case SPENT -> "ruinsDelveRowReserveSpent";
+        };
+        boolean held = pressure.fielded() != null && pressure.fielded().wayBackHeld(sim);
+        return new RuinsDelveRow.Stir(pressure.level().key, pressure.towardNext(), reserve, pressure.dugIn(), held);
     }
 
     /** Takes a stand: the tally since the last one, and the close reading of {@code next} if a layer lies there. */
