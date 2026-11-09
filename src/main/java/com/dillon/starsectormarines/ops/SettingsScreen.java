@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.nexerelin.InvasionForkSetting;
 import com.dillon.starsectormarines.campaign.nexerelin.Nexerelin;
 import com.dillon.starsectormarines.campaign.raid.RaidForkSetting;
+import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.impl.campaign.rulecmd.MarineRuinsCMD;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -45,7 +47,7 @@ public final class SettingsScreen implements Screen {
         context = ctx;
         this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
-        if (viewModel == null) viewModel = new SettingsViewModel(reactor, settings(), Nexerelin::isEnabled);
+        if (viewModel == null) viewModel = new SettingsViewModel(reactor, settings());
         else viewModel.refresh();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -53,8 +55,9 @@ public final class SettingsScreen implements Screen {
     }
 
     /**
-     * The voice-over, and whether the raid and invasion forks ask. Each fork's answer is made every time it is
-     * offered; turning one off hands that action to the game (or Nexerelin) untouched.
+     * The voice-over, and whether the raid, invasion and ruins forks ask. Each fork's answer is made every time it
+     * is offered; turning one off hands that action to the game (or Nexerelin) untouched. The invasion key shows only
+     * with Nexerelin, and the ruins key only where this build offers the ruins fork.
      */
     private static List<SettingsViewModel.Setting> settings() {
         return List.of(
@@ -62,7 +65,11 @@ public final class SettingsScreen implements Screen {
                 new SettingsViewModel.Setting("raidFork",
                         () -> RaidForkSetting.asks(state()), on -> RaidForkSetting.setAsks(state(), on)),
                 new SettingsViewModel.Setting("invasionFork",
-                        () -> InvasionForkSetting.asks(state()), on -> InvasionForkSetting.setAsks(state(), on)));
+                        () -> InvasionForkSetting.asks(state()), on -> InvasionForkSetting.setAsks(state(), on),
+                        Nexerelin::isEnabled),
+                new SettingsViewModel.Setting("ruinsFork",
+                        () -> RuinsForkSetting.asks(state()), on -> RuinsForkSetting.setAsks(state(), on),
+                        MarineRuinsCMD::offered));
     }
 
     private static CampaignState state() {

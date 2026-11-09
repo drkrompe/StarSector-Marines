@@ -4,7 +4,7 @@ Status: IN PROGRESS — slices 1 and 2 built and unit-tested; development builds
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — slice 2 (commit path) built.
+Updated: 2026-11-09 — the fork asks every time; the Settings page turns it off (no "always" answer).
 
 Read `ruins-expedition.md` in full first, then `raid-resolution.md`, whose
 fork this mirrors.
@@ -18,11 +18,11 @@ fork and commit path can ship before ruins mapgen exists.
 
 ## Slices
 
-1. **Fork and preference.** A `rules.csv` row on `DialogOptionSelected`,
+1. **Fork and fork setting.** A `rules.csv` row on `DialogOptionSelected`,
    `$option == salExplore`, the market has ruins and is not a gas giant, scored
-   just ahead of vanilla's. It shows Send the company / Send a salvage team,
-   each with an "always" variant, plus an "Ask again" planet-menu row when the
-   preference is set, as the raid fork has. The standard path re-fires
+   just ahead of vanilla's. It shows Send the company / Send a salvage team and
+   Go back, chosen every time; the Settings page's "Ask before exploring ruins"
+   key turns the fork off, as the raid fork's key does. The standard path re-fires
    `salExplore` with a one-shot bypass. Unit-test the route decision the way
    the raid fork's route is tested.
 
@@ -62,7 +62,8 @@ fork and commit path can ship before ruins mapgen exists.
 6. **Live pass.** In the game, on each grade: standard path unchanged; won
    expedition shows vanilla's loot and marks the site explored; lost one leaves
    it unexplored; a hostile fleet nearby still disables the option; derelict
-   ship salvage never shows the fork; preference and "Ask again" work.
+   ship salvage never shows the fork; turning "Ask before exploring ruins" off
+   sends the salvage team without asking, across save and reload.
 
 ## Constraints
 

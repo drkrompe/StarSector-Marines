@@ -4,7 +4,7 @@ Status: ACTIVE — direction. No part of this is implemented; `ship-interiors-no
 
 Written: 2026-08-27
 
-Updated: 2026-10-20 — the founding Second Wind is the one company ship that is never lost for good; see `ship-interiors-nouns.md`.
+Updated: 2026-11-09 — direction changed: outside the Second Wind there is no company ship; `fleet-facilities.md` replaces this model for sandbox companies.
 
 Earlier 2026-08-27 — separated form from state: refits change the deck, battle
 damage marks it. An earlier draft let d-mods resize the program, which quietly

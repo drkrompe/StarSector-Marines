@@ -4,8 +4,7 @@ import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
-import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionPreference;
-import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionPreferenceLedger;
+import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsRoute;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -42,14 +41,12 @@ import java.util.Map;
  *
  * <p>Sub-commands:
  * <ul>
- *   <li>{@code intercept}: condition. The site is one an expedition can fight on and the save's preference is not
- *       standard. When false, vanilla's row handles the selection untouched.</li>
- *   <li>{@code fork}: under Ask, shows the choice; under Marine Operations, opens the expedition at once.</li>
- *   <li>{@code marine} / {@code marineAlways}: open the expedition; the second also remembers the choice.</li>
- *   <li>{@code standard} / {@code standardAlways}: hand the selection back to vanilla's salvage team; the second also
- *       remembers the choice.</li>
- *   <li>{@code back}: return to the planet menu with nothing done.</li>
- *   <li>{@code resetAvailable} / {@code addReset} / {@code reset}: the planet menu's way back to Ask.</li>
+ *   <li>{@code intercept}: condition. The site is one an expedition can fight on and the save's
+ *       {@link RuinsForkSetting} is on. When false, vanilla's row handles the selection untouched.</li>
+ *   <li>{@code fork}: shows the choice. It is made every time; nothing is remembered.</li>
+ *   <li>{@code marine}: opens the expedition.</li>
+ *   <li>{@code standard}: hands the selection back to vanilla's salvage team.</li>
+ *   <li>{@code back}: returns to the planet menu with nothing done.</li>
  * </ul>
  *
  * <p>Choosing the company opens the expedition's briefing. When the Marine Operations panel closes, a won expedition
@@ -68,11 +65,8 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
     /** The vanilla option this intercepts. */
     static final String OPTION_EXPLORE = "salExplore";
     static final String OPTION_MARINE = "smRuinsMarine";
-    static final String OPTION_MARINE_ALWAYS = "smRuinsMarineAlways";
     static final String OPTION_STANDARD = "smRuinsStandard";
-    static final String OPTION_STANDARD_ALWAYS = "smRuinsStandardAlways";
     static final String OPTION_BACK = "smRuinsBack";
-    static final String OPTION_RESET = "smRuinsReset";
     /** One-shot local flag that lets a re-fired selection through to vanilla's own row. */
     static final String BYPASS_FLAG = "$smRuinsBypass";
 
@@ -93,31 +87,13 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
                 if (bypassed(memoryMap)) return false;
                 return route(dialog, state) != RuinsRoute.STANDARD;
             case "fork":
-                if (route(dialog, state) == RuinsRoute.MARINE_OPERATIONS) return open(dialog);
                 showFork(dialog);
                 return true;
             case "marine":
                 return open(dialog);
-            case "marineAlways":
-                RuinsExpeditionPreferenceLedger.write(state, RuinsExpeditionPreference.MARINE_OPERATIONS);
-                return open(dialog);
             case "standard":
                 return toStandard(dialog, memoryMap);
-            case "standardAlways":
-                RuinsExpeditionPreferenceLedger.write(state, RuinsExpeditionPreference.STANDARD);
-                return toStandard(dialog, memoryMap);
             case "back":
-                refreshMenu(dialog);
-                return true;
-            case "resetAvailable":
-                return offered() && supported(dialog)
-                        && RuinsExpeditionPreferenceLedger.read(state) != RuinsExpeditionPreference.ASK;
-            case "addReset":
-                dialog.getOptionPanel().addOption(Strings.get("ruinsResetOption"), OPTION_RESET);
-                return true;
-            case "reset":
-                RuinsExpeditionPreferenceLedger.write(state, RuinsExpeditionPreference.ASK);
-                dialog.getTextPanel().addPara(Strings.get("ruinsResetDone"));
                 refreshMenu(dialog);
                 return true;
             default:
@@ -126,14 +102,17 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         }
     }
 
-    /** Whether this build offers the fork at all: always once the expedition exists, before that only in development. */
-    private static boolean offered() {
+    /**
+     * Whether this build offers the fork at all: always once the expedition exists, before that only in development.
+     * The Settings page shows the fork's key only then.
+     */
+    public static boolean offered() {
         return EXPEDITION_BUILT || DevConfig.DEV_MODE;
     }
 
     private static RuinsRoute route(InteractionDialogAPI dialog, CampaignState state) {
         boolean supported = state != null && offered() && supported(dialog);
-        return RuinsRoute.choose(RuinsExpeditionPreferenceLedger.read(state), supported);
+        return RuinsRoute.choose(RuinsForkSetting.asks(state), supported);
     }
 
     /** An uncolonized world with a ruins condition, not a gas giant. */
@@ -173,8 +152,6 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         options.clearOptions();
         options.addOption(Strings.get("ruinsForkMarine"), OPTION_MARINE);
         options.addOption(Strings.get("ruinsForkStandard"), OPTION_STANDARD);
-        options.addOption(Strings.get("ruinsForkMarineAlways"), OPTION_MARINE_ALWAYS);
-        options.addOption(Strings.get("ruinsForkStandardAlways"), OPTION_STANDARD_ALWAYS);
         options.addOption(Strings.get("ruinsForkBack"), OPTION_BACK);
         options.setShortcut(OPTION_BACK, Keyboard.KEY_ESCAPE, false, false, false, true);
     }

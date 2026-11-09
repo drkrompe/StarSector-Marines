@@ -619,9 +619,9 @@ public final class CampaignState implements Serializable {
     // ---------- Exploring an uncolonized world's ruins (see ruins-expedition.md) ----------
 
     /*
-     * How Explore the ruins is carried out in this save, as a RuinsExpeditionPreference
-     * ordinal: 0 is Ask, which a save written before the column existed loads as.
-     * RuinsExpeditionPreferenceLedger is the one reader and writer.
+     * Whether Explore the ruins offers the company or a salvage team in this save: 2 is
+     * off, anything else asks (a retired "always send the company" answer, 1, asks too).
+     * RuinsForkSetting is the one reader and writer.
      *
      * The expedition serials make one commit exactly once: every briefing draws the next
      * issued serial, Results records the battle against it, and the planet dialog takes it

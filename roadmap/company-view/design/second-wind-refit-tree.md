@@ -2,7 +2,7 @@
 
 Status: ACTIVE — direction. The band model, the cores, the mess track, the Mech Lab tracks and their mech passives, the reserve hangar, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review. The range, gym, sick bay and lounge reserves are opened by their facility tracks and carry passives through both Improved tiers. Improved-tier dressing of the cores and the reserves (the Mech Lab's included) is not built.
 Written: 2026-10-20
-Updated: 2026-10-31 — Alpha scope: only upgrades that make the company stronger are offered.
+Updated: 2026-11-09 — sandbox companies run this tree with no ship, from Restored; see `fleet-facilities.md`.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab

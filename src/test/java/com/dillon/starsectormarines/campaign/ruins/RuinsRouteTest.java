@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.campaign.ruins;
 
 import org.junit.jupiter.api.Test;
 
+import com.dillon.starsectormarines.campaign.CampaignState;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,19 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RuinsRouteTest {
 
     @Test
-    void anUnsupportedSiteAlwaysGetsTheSalvageTeam() {
-        for (RuinsExpeditionPreference preference : RuinsExpeditionPreference.values()) {
-            assertEquals(RuinsRoute.STANDARD, RuinsRoute.choose(preference, false));
-        }
-    }
-
-    @Test
-    void aSupportedSiteFollowsThePreference() {
-        assertEquals(RuinsRoute.FORK, RuinsRoute.choose(RuinsExpeditionPreference.ASK, true));
-        assertEquals(RuinsRoute.FORK, RuinsRoute.choose(null, true));
-        assertEquals(RuinsRoute.MARINE_OPERATIONS,
-                RuinsRoute.choose(RuinsExpeditionPreference.MARINE_OPERATIONS, true));
-        assertEquals(RuinsRoute.STANDARD, RuinsRoute.choose(RuinsExpeditionPreference.STANDARD, true));
+    void onlyASupportedSiteWithTheForkOnAsks() {
+        assertEquals(RuinsRoute.FORK, RuinsRoute.choose(true, true));
+        assertEquals(RuinsRoute.STANDARD, RuinsRoute.choose(false, true));
+        assertEquals(RuinsRoute.STANDARD, RuinsRoute.choose(true, false));
     }
 
     @Test
@@ -43,8 +36,12 @@ class RuinsRouteTest {
     }
 
     @Test
-    void anUnreadableSavedPreferenceAsks() {
-        assertEquals(RuinsExpeditionPreference.ASK, RuinsExpeditionPreference.of(-1));
-        assertEquals(RuinsExpeditionPreference.ASK, RuinsExpeditionPreference.of(99));
+    void aSaveAsksUntilTheSettingIsTurnedOff() {
+        CampaignState state = new CampaignState();
+        assertTrue(RuinsForkSetting.asks(state));
+        RuinsForkSetting.setAsks(state, false);
+        assertFalse(RuinsForkSetting.asks(state));
+        state.ruinsExpeditionPreference = 1;
+        assertTrue(RuinsForkSetting.asks(state), "a retired always-send-the-company answer asks");
     }
 }

@@ -21,7 +21,7 @@ This feature does not own a second salvage system. The game's own ruins salvage
 decides what the ruins hold. The battle decides whether the company reaches it,
 and adds only what the company recovers along the way.
 
-Read `raid-resolution.md` first. This design follows its fork, preference and
+Read `raid-resolution.md` first. This design follows its fork, fork setting and
 commit-once shape on purpose. Also read `loot-nouns.md` (field finds and
 settlement) and `campaign-nouns.md` (authority boundaries).
 
@@ -42,10 +42,12 @@ settlement) and `campaign-nouns.md` (authority boundaries).
 - The **ruins fork** is the choice offered when the player selects Explore the
   ruins: send the company (an expedition) or the salvage team (standard
   exploration).
-- The **ruins preference** is the save's standing answer: ask, Marine
-  Operations, or standard. A new save asks. It is separate from the raid and
-  invasion preferences. The planet menu offers a way back to asking whenever
-  it is set.
+- The **ruins fork setting** is the Settings page's "Ask before exploring
+  ruins" key, saved with the game and shown only where the build offers the
+  fork. On (a new save's default), every supported site asks; off, vanilla's
+  salvage team goes untouched. The fork has no "always" answer: the player
+  chooses each time (owner). It is separate from the raid and invasion fork
+  settings.
 - A **ruins expedition** is the battle: the company lands in the ruins, fights
   or slips past whatever holds them, reaches the **vault** and gets out. It has
   no contract and no employer.
@@ -95,9 +97,9 @@ settlement) and `campaign-nouns.md` (authority boundaries).
 ## Flow
 
 1. The player opens a surveyed ruins world and selects Explore the ruins.
-2. The fork's row fires ahead of vanilla's. Under the standard preference, or
-   for an unsupported site, it steps aside and vanilla's salvage runs. Under
-   Ask it shows the fork; under Marine Operations it opens the briefing.
+2. The fork's row fires ahead of vanilla's. With the fork setting off, or for
+   an unsupported site, it steps aside and vanilla's salvage runs. Otherwise it
+   shows the fork.
 3. The briefing shows the ruins grade, what the survey suggests about the
    occupant, and the expected haul range. It may launch understrength.
 4. The battle plays: land, push through the ruins, reach and hold the vault,
