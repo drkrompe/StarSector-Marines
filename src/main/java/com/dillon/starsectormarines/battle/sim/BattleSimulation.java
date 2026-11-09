@@ -753,6 +753,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         occupantStash = stash;
     }
 
+    private final List<SalvageCache> guardianCaches = new ArrayList<>();
+
+    /**
+     * Adds a guardian room's tech cache ({@code RuinsFindTier.Place.GUARDIAN_ROOM}): a field find held like any other,
+     * which nobody secures while its guardian's side stands over it.
+     */
+    public void addGuardianCache(SalvageCache cache) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place a guardian's cache before launch installs finds");
+        guardianCaches.add(cache);
+    }
+
     private List<SalvageCache> vaultStore = List.of();
 
     /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
@@ -772,6 +784,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
+        finds.addAll(guardianCaches);
         fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
         // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
         vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
