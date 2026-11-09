@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
+import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
@@ -1302,6 +1304,9 @@ public final class BattleSetup {
             // The vault store: a find per layer at the vault, which comes out with the haul.
             sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
                     ruinsLayout.sourceX(), ruinsLayout.sourceY()));
+            // The Delve row's watch: its close readings are drawn from the occupant's readings pool.
+            RuinsSurvey.Pool readings = ruinsOccupant != null ? RuinsSurvey.poolFor(ruinsOccupant) : RuinsSurvey.NOBODY;
+            sim.installRuinsDelveWatch(RuinsDelveWatch.of(map.ruinsDelve, readings.readingKeys(), seed));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

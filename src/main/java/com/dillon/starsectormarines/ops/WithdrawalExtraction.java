@@ -13,7 +13,7 @@ import java.util.List;
  * cleanly. The battle draws the same circles while Retreat is being confirmed,
  * so what the player sees is exactly what is tested here.
  */
-final class WithdrawalExtraction {
+public final class WithdrawalExtraction {
 
     /** Cells beyond a pad's footprint that still count as at the landing zone. */
     static final int EXTRACTION_MARGIN_CELLS = 10;
@@ -35,7 +35,7 @@ final class WithdrawalExtraction {
         return Math.max(pad.halfWidth, pad.halfHeight) + 0.5f + EXTRACTION_MARGIN_CELLS;
     }
 
-    static boolean extracts(List<LandingPad> pads, float x, float y) {
+    public static boolean extracts(List<LandingPad> pads, float x, float y) {
         if (Float.isNaN(x) || Float.isNaN(y)) return false;
         for (LandingPad pad : pads) {
             float dx = x - centreX(pad);

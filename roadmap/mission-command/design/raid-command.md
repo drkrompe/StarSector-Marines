@@ -6,7 +6,8 @@ Written: 2026-08-27
 
 Updated: 2026-10-12 — public objective markers and checklist distinguish seizure from return; indoor target selection excludes exterior fallback anchors.
 
-Read `mission-command-nouns.md` for the shared architecture.
+Read `mission-command-nouns.md` for the shared architecture and `raid-mission.md`
+for what a Raid is for: its intent (steal or break), security and scaling.
 
 Raid is an objective strike with withdrawal pressure, not a smaller
 Assault and not Sabotage with a different label. Its intended command shape is
