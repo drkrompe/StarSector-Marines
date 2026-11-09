@@ -163,24 +163,26 @@ Everything is in `battle.derelict`.
 - **The walker's legs.** A torso on four reaching legs (owner, 2026-11-09:
   "a central torso on 3-4 legs that reach out and walk or pull along walls";
   pick `derelict-walker-legs`, four). `DerelictLegRig` is the drawn rig,
-  render-only: hips on a ring about the torso, each foot planted until it
-  strays `RESTEP_CELLS` from where it would rest, then stepping over
-  `STEP_SECONDS` with its diagonal pair; a torso that jumps further than a leg
-  reaches stands fresh. With wall reach a leg swings out sideways from its
-  line to the first wall face within `MAX_REACH_CELLS` and plants up on it;
-  without, a foot stays on the floor, tucked short of a wall. Each leg is a
-  thigh and a shin: `DerelictLegPose` solves the knee in three dimensions
-  (the hip held up, the knee bending up), so a foot near the body raises the
-  knee and a foot on a wall stands higher, and `DerelictWalkerComposer` draws
-  a higher part a little larger. The torso still paths, collides and stands on
-  floor cells, so pathing is untouched; moving over or along wall cells would
-  need a passability view of its own, read by both the planner and terrain
-  motion as `HoverSkirt` and `WallCrush` are, and is not built. The shipped
-  parts are placeholders (`art-source/derelict-walker/placeholder.py`) while
-  the owner's `derelict-walker-look` pick is open; its candidates are painted
-  after the vanilla Domain derelict drone ships over `guide.py`'s geometry and
-  cut by `export.py`. Wall reach waits on `derelict-walker-wall-reach`, behind
-  the temporary switch `battle.derelictWalker.wallReach` (on).
+  render-only. A gait clock runs on the distance covered: at a walk the legs
+  lift one at a time in a four-beat sequence, three feet always down; above
+  `RUN_SPEED` the diagonal pairs trot with a moment of suspension. A foot stays
+  planted until its turn, then lands ahead of where the body will be;
+  standing, a foot dragged out of place steps back alone, and a torso that
+  jumps stands fresh. The drawn body carries its weight (owner: it looked to
+  hover): it sways over the standing feet, dips as a leg lifts, bounces at a
+  run and leans into its speed. Each leg chooses its ground (owner's wall-reach
+  answer, "mix"): a wall face within `GRIP_CELLS` takes the foot up on it, and
+  in the open it stands on the floor. Each leg is a thigh and a shin jointed at
+  a drawn knee: `DerelictLegPose` solves the knee in three dimensions from the
+  body's height, so a foot near the body raises the knee and a foot on a wall
+  stands higher. The torso still paths, collides and stands on floor cells, so
+  pathing is untouched; moving over or along wall cells would need a
+  passability view of its own, read by both the planner and terrain motion as
+  `HoverSkirt` and `WallCrush` are, and is not built. The shipped parts are
+  placeholders (`art-source/derelict-walker/placeholder.py`) while
+  `derelict-walker-look` is open: candidates painted after the vanilla Domain
+  derelict ships over `guide.py`'s geometry (sentinel, cupola, crab, `-v3`)
+  and cut by `export.py`.
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none

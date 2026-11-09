@@ -14,7 +14,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Shipped px per cell: the shipped mech sprites draw about 120 px a cell, so the parts keep detail at close zoom.
@@ -42,7 +42,9 @@ def cut(rgba, box, sx, sy, trim_rows):
         rows = np.where(part[..., 3].max(axis=1) > 24)[0]
         part = part[rows[0]:rows[-1] + 1]
     img = Image.fromarray(part, "RGBA")
-    return img.resize((max(1, round(img.width * SCALE)), max(1, round(img.height * SCALE))), Image.LANCZOS)
+    small = img.resize((max(1, round(img.width * SCALE)), max(1, round(img.height * SCALE))), Image.LANCZOS)
+    # Downscaling softens the plating's hard edges; a light unsharp mask gives them back, as the vanilla sprites read.
+    return small.filter(ImageFilter.UnsharpMask(radius=1.2, percent=70, threshold=2))
 
 
 def joint(shin):
