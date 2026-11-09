@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -53,6 +54,18 @@ class RuinsExpeditionMissionFactoryTest {
         assertTrue(turns.get(0).speaker().isBlank(), "the stakes are unvoiced prose");
         assertTrue(turns.get(1).text().contains(Strings.get("ruinsSurveyBandHeavy")), "the assessment carries the band");
         assertEquals(Strings.get("ruinsSurveyScavengersHeat"), turns.get(3).text());
+    }
+
+    @Test
+    void everyExpeditionToASiteMeetsTheSameGroundWithoutItsTakenFinds() {
+        Mission first = RuinsExpeditionMissionFactory.create(3, "m", "Ossuary", RuinsGrade.VAST,
+                RuinsOccupant.SCAVENGERS);
+        Mission again = RuinsExpeditionMissionFactory.create(4, "m", "Ossuary", RuinsGrade.VAST,
+                RuinsOccupant.SCAVENGERS, Set.of("field-cache-1"));
+
+        assertEquals(first.battleSeed, again.battleSeed);
+        assertEquals(Set.of("field-cache-1"), again.ruinsTakenFinds);
+        assertTrue(first.ruinsTakenFinds.isEmpty());
     }
 
     @Test

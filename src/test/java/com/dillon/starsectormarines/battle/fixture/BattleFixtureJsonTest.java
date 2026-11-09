@@ -157,6 +157,15 @@ class BattleFixtureJsonTest {
         assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
     }
 
+    @Test void ruinsRoundTripKeepsTheSitesTakenFinds() throws Exception {
+        var fixture = new RuinsBattleFixture(31L, List.of(new ShuttleAssignment(ShuttleType.HERMES, 2)),
+                false, OperationTier.VETERAN, RiskLevel.MEDIUM, TargetProfile.NEUTRAL, List.of(), List.of(),
+                RuinsGrade.EXTENSIVE, RuinsOccupant.SCAVENGERS, List.of("sealed-store-1", "field-cache-0"));
+        var decoded = (RuinsBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
+        assertEquals(fixture, decoded);
+        assertEquals(List.of("field-cache-0", "sealed-store-1"), decoded.takenFinds());
+    }
+
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
         var base = new AssaultBattleFixture(201827786L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4)),
                 false, OperationTier.ESTABLISHED, RiskLevel.HIGH, TargetProfile.NEUTRAL,

@@ -729,6 +729,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvageSites = List.copyOf(sites);
     }
 
+    private Set<String> takenFinds = Set.of();
+
+    /** The ids of a ruins site's finds already brought home: placed as seeded, then left out (Law 6). */
+    public void setTakenFinds(Set<String> taken) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Name the site's taken finds before launch installs finds");
+        takenFinds = taken == null ? Set.of() : Set.copyOf(taken);
+    }
+
     /** An occupant's own spoil, found beside the field caches: a ruins crew's stash at its camp, or null. */
     public SalvageCache occupantStash() { return occupantStash; }
 
@@ -736,6 +745,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (salvageInstalled || simTickIndex != 0)
             throw new IllegalStateException("Place the occupant's stash before launch installs finds");
         occupantStash = stash;
+    }
+
+    private List<SalvageCache> vaultStore = List.of();
+
+    /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
+    public List<SalvageCache> vaultStore() { return vaultStore; }
+
+    public void setVaultStore(List<SalvageCache> store) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the vault's store before launch installs finds");
+        vaultStore = store == null ? List.of() : List.copyOf(store);
     }
 
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
@@ -746,7 +766,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
-        fieldSalvage = new FieldSalvage(finds);
+        fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
+        // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
+        vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;

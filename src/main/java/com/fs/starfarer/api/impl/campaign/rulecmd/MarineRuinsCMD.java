@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsRoute;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSiteFinds;
 import com.dillon.starsectormarines.campaign.ruins.SectorRuinsOccupants;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
@@ -162,7 +163,8 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         MarketAPI market = planet.getMarket();
         int serial = RuinsExpeditionLedger.issue(state());
         Mission mission = RuinsExpeditionMissionFactory.create(serial, market.getId(), planet.getName(), grade(market),
-                SectorRuinsOccupants.of(market));
+                SectorRuinsOccupants.of(market),
+                RuinsSiteFinds.parse(market.getMemoryWithoutUpdate().getString(RuinsSiteFinds.MEMORY_KEY)));
         if (mission == null) return false;
         LOG.info("MarineRuinsCMD: opening expedition briefing " + mission.id + " (" + mission.ruinsOccupant + ")");
         dialog.hideTextPanel();
@@ -184,7 +186,10 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
      * sealed, the site unexplored), or returns to the choice.
      */
     private static void afterPanel(InteractionDialogAPI dialog, MarketAPI market, int serial) {
-        RuinsExpeditionLedger.Pending pending = RuinsExpeditionLedger.take(state(), serial);
+        // Takes the outcome once and writes the finds it brought home into the site's memory (Law 6).
+        MemoryAPI site = market.getMemoryWithoutUpdate();
+        RuinsExpeditionLedger.Pending pending = RuinsSiteFinds.commit(state(), serial,
+                () -> site.getString(RuinsSiteFinds.MEMORY_KEY), value -> site.set(RuinsSiteFinds.MEMORY_KEY, value));
         if (pending == RuinsExpeditionLedger.Pending.NONE) {
             showFork(dialog);
             return;
