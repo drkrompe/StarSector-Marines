@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import org.junit.jupiter.api.Test;
 
@@ -62,5 +63,30 @@ class NaturalVoidFieldTest {
         assertEquals(20f, field.depthAt(15.5f, 10f), "the floor under the bridge");
         assertEquals(0f, field.sunlit(15.5f, 10f, 20f, 0f, -1f, 8f), "under the deck");
         assertEquals(1f, field.sunlit(5.5f, 10f, 20f, 0f, -1f, 8f), "the open floor");
+    }
+
+    /** The same band as a ridge: rise cells in rows 6..13, a pass through it in columns 14..16. */
+    static NaturalVoidField ridge(float sunX, float sunY, float rise) {
+        NaturalRise look = new NaturalRise(NaturalRise.Style.RAVINE_WALL,
+                List.of(new NaturalRise.Step(10f, .7f), new NaturalRise.Step(20f, 1.8f)), 120f, null, 14f, 3);
+        return new NaturalVoidField(W, H, gorge(), NaturalVoidField.Shape.of(look), sunX, sunY, rise);
+    }
+
+    @Test
+    void aRiseClimbsToItsTopAndAPassThroughItIsNoBridge() {
+        NaturalVoidField field = ridge(-.7f, -.7f, .8f);
+        assertTrue(field.rising);
+        assertEquals(-20f, field.depthAt(5.5f, 10f), "the middle of the ridge stands at its top");
+        assertEquals(0f, field.depthAt(5.5f, 2.5f), "the floor beside it");
+        assertFalse(field.bridge[9 * W + 15], "the pass is floor, not a span");
+    }
+
+    @Test
+    void aRiseShadesTheFloorOnItsSideAwayFromTheSun() {
+        // The sun from the north at 45 degrees: the floor south of the ridge lies in its shadow.
+        NaturalVoidField field = ridge(0f, -1f, 1f);
+        assertEquals(0f, field.sunlit(5.5f, 16f, 0f, 0f, -1f, 1f), "the floor under the ridge's south face");
+        assertEquals(1f, field.sunlit(5.5f, 3f, 0f, 0f, -1f, 1f), "the floor north of it, toward the sun");
+        assertTrue(field.floorShade.count > 0, "the shadow is laid on the floor");
     }
 }
