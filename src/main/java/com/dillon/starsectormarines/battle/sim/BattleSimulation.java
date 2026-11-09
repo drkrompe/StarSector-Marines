@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.drone.DroneBaySystem;
+import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -617,6 +618,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SupplyTruckSystem supplyTrucks;
     private final HullSightings hullSightings = new HullSightings();
     private final DroneBaySystem droneBays = new DroneBaySystem();
+    private final FlockSystem flocks = new FlockSystem();
     private final VehicleDustEmitter vehicleDust = new VehicleDustEmitter();
     private final VehicleDamageFxSystem vehicleDamageFx = new VehicleDamageFxSystem();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
@@ -2726,6 +2728,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The drone skimmers' tethered flights. */
     public DroneBaySystem droneBays() { return droneBays; }
+
+    /** The flocks of swarm drones on the field and the anchors their commanders move. */
+    public FlockSystem flocks() { return flocks; }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
@@ -4076,6 +4081,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
         droneBays.tick(TICK_DT, this);
+        flocks.tick(TICK_DT, this);
         vehicleDust.tick(simTickIndex, convoy(), topology, effects);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);

@@ -1,9 +1,13 @@
 # Derelict drone flocks
 
-Status: PLANNED — owner direction ("heavy emphasis on drone swarms (flocking
-behaviors) and heavy mechs"); nothing built.
+Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
+behaviors) and heavy mechs"). Slices 1 and 2 built; slice 3's flock unit and
+strike built, its other tasks' scenes and the network's use of them to come.
 
 Written: 2026-11-09
+
+Updated: 2026-11-09 — the flock built on the drone squad's anchor seam: steering,
+open-ground field, low flight, the flock unit with its tasks, and the strike.
 
 Read `derelict-lore-guide.md` (The flock, The flock and the Rav) first, then
 `air-nouns.md` (the air body, fighters and drones), `tender-ship.md` (the wing
@@ -51,6 +55,64 @@ derelict-only.
   they are close together; a flock cannot reach shooters in a roofed room; flak
   and point defence engage members as fliers. The counters fall out of the
   model; none is a rule.
+
+## Built
+
+Everything is in the drone package; a flock is a drone squad whose
+`DroneAnchor` is a `Flock`, so its members are ordinary drones on the shipped
+swarm action, which hands them to `FlockFlight` (`DroneAnchor.flock()`).
+
+- `FlockSteering`: the pure rule. A member's velocity is the capped, weighted
+  sum of the `DroneSeparation` push, its neighbours' mean velocity, their
+  centre, and its own way to the anchor (fading over the last few cells), all
+  over the flock's own members only. `FlockWeights` holds the weights and
+  distances; `WASP` is the derelict flock (tight, darting), `MURMURATION` a
+  loose alternative nobody ships.
+- `FlockField`: each member's own route to the anchor. One distance field from
+  the open cell nearest the anchor, over cells a low flier may be in
+  (`FlockSystem.open`: walkable and not under an intact roof), bounded to
+  `FIELD_RADIUS` round the anchor, no diagonal cutting a corner. Members on
+  either side of a wall descend it by their own sides, which is the split;
+  cohesion closes the body again.
+- `FlockFlight`: one member's tick. Its way (strike slot, else down the field,
+  else straight), the flocking velocity turned into a short look-ahead goal
+  for the shipped `AirSteeringSystem`, a slide that never lets it into a wall
+  or a roofed cell, and its fixed gun fired through `TurretAim`'s fire arc, so
+  it shoots only as its nose comes on. A swarm drone flies faster and turns
+  harder than a hub drone (`FlockFlight.HANDLING`), carries 10 structure, a
+  12-cell gun, a 0.8-cell air sight radius (walls are walls to it) and 30
+  cells of sight, and is drawn small (`DroneLook.SWARM`, the shipped drone's
+  art until slice 7).
+- `Flock` and `FlockTask`: members, home, leash, task (screen, probe, strike,
+  pursue, return) and the published roster, field and contacts. Screen and
+  pursue are held on the leash; strike is not (the commander orders it
+  knowing where the target is). `contacts()` is what any member sees.
+- `FlockSystem` (ticked after the drone bays): forgets the dead, sends a flock
+  under a third of its strength home, moves the anchor at `ANCHOR_SPEED` for
+  its task and waits while the body is more than `LAG_CELLS` behind the open
+  cell the field leads to, rebuilds the field when that cell changes, and
+  publishes. `launch` puts a flock up; `BattleSimulation.flocks()` reaches it.
+- On a strike the anchor sits on the target and each member flies its slot on
+  a turning ring (`FlockFlight.orbitSlot`), pushed out to open ground when the
+  ring crosses a wall (`openSlot`).
+
+The seam with the network (`derelict-security-network.md`): the director calls
+`FlockSystem.launch` with the zone's cradle point as home and its leash, then
+gives each flock a task from what `contacts()` reports. It never touches a
+member.
+
+Evidence: `FlockSteeringTest`, `FlockFieldTest`, `FlockFlightTest`; the
+`derelict-flock` scene (`sceneEvidence -Pscene=derelict-flock`): `split`
+(probes through a roofed building, splits round it, re-forms past it),
+`strike-open` (wraps a fire team on all four sides and strafes),
+`strike-indoors` (the team in a roofed room; no member ever under the roof).
+`createSnapshots -Psnapshot=derelict-flock` adds the look shot `flock-strike`
+on generated colony ground.
+
+Not built yet: crossing low cover (the field reads walkable cells, so sandbags
+and fences are walls to a flock for now); screen, probe, pursue and return
+scenes; cradles (slice 4); the cost profile (slice 5); counters (slice 6);
+the look (slice 7).
 
 ## Slices
 
