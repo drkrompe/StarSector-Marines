@@ -110,11 +110,13 @@ story's battle plays, it lifts the fork's development-only gate
    sends two to stand round the camp, and both at once split two and one.
    Trouble means a fresh contact within rifle reach (26 cells) of the place.
    The stash is one Supplies find at the camp (`BattleSimulation.occupantStash`),
-   beside the grade's caches. Played on an extensive fixture: the crew held the
-   dig against the company's first squad, and the camp and patrols met the
-   landing. Interim: until slice 5's ground, the vault is Extraction's source
-   pick, so the route can be short and the camp close to the landing. The
-   budgets are untuned against a player.
+   beside the grade's caches. A derelict site keeps its own security instead.
+   Played on the ruins ground (`ruins-scavengers-extensive-v1`): both patrols
+   stood to at the camp as the company passed, the dig post held the vault
+   until the company's lead squads came in force, and the dig alarm rose each
+   time the company pressed it. The camp stands on the vault route, not yet in
+   a layer's side room the ground publishes. The budgets are untuned against a
+   player.
 5. **Stand-in ground.** The existing map nearest a ruin (decivilized or
    low-density, `SettlementLink.NONE`), the vault at the far end by route
    length, one landing court placed by hand. A ruins map that cannot place a
