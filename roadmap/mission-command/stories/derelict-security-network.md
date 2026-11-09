@@ -1,8 +1,8 @@
 # Derelict security network
 
 Status: IN PROGRESS — zones, the director over walkers and flocks, the
-derelict heavy line and spotting are built (What is built); the node, repair
-drones, waking posts, power branches and every look are not. Feeds slice 5 of
+derelict heavy line, spotting, the node and folded posts are built (What is
+built); repair drones, power branches and the looks are not. Feeds slice 5 of
 `ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -180,10 +180,29 @@ Everything is in `battle.derelict`.
   first unroofed cell of the route from its node toward the landing
   (`openSkyHome`), so a flock whose zone lies indoors waits at the doorway
   rather than under the roof.
+- **The node (slice 5).** `DerelictNode` is each zone's control node, an
+  armoured, unarmed structure (a drone hub's structure until its look is
+  picked), stood by `install` on the nearest cell to the zone's node cell
+  that is off the route, against a wall and leaves three open cells across
+  (`nodeCell`), so it never narrows a corridor below a walker's width. The
+  director watches it each pulse (`DerelictNode.watch`): damage to it wakes
+  its zone; destroyed, the zone loses its node (no relay either way, out of
+  the contingency's call) and its flock's cradle stops rebuilding
+  (`FlockCommandPort.nodeStands`).
+- **Posts that wake (slice 7).** `DerelictPost`: each zone stands
+  `PER_ZONE` folded gun posts (the Vulcan emplacement until the post's look
+  and gun are picked), anchored at the interior's entrances and then its
+  chambers that the zone keeps, else beside the zone's route posts, each on a
+  wall cell off the route (`besideRoute`) and kept apart. A post's gate is its
+  emplacement power: the director powers it only while its zone is awake
+  (`DerelictPost.unfolded`), so folded it neither slews, takes a target nor
+  fires; it can still be shot, and damage to it wakes its zone.
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
-`ruins-derelict-extensive-v1`; `createSnapshots
+`ruins-derelict-extensive-v1`; `sceneEvidence -Pscene=derelict-post` (a
+post holds fire with a fire team in its sight until its zone wakes, then
+fires; unseen, it stays folded); `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
 from the first walker contact, then the vast site's vault frame and a line
 frame at their interior posts with the roof lifted). Played headless through `battleProbe`: line
@@ -192,14 +211,12 @@ attack-move onto it; the siege frame engages from its post at twenty-odd
 cells.
 
 Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
-coming to a pin and the contingency; the node (slice 5); repair drones (6);
-waking posts (7); power branches (8); looks for the walker, cradles, posts and
-node (3, 9). Balance is not tuned. Both fixtures fly the company's real lift
-(one Hermes, six twelve-seat trips, as playBattle's Veteran Company). On it
-the company outlasts the flocks at the landing and the walkers decide the
-fight: on the extensive site the flocks are gone by ninety seconds, and the
-three walkers, none lost, beat the company at 255 s; on the vast site one
-two walkers of five fall, and one marine is left at ten minutes.
+coming to a pin and the contingency; repair drones (6); power branches (8);
+looks for the walker, posts and node (3, 9; the cradle's look is
+`derelict-drone-flocks.md`'s). Strength is not tuned, and is not tuned from
+autopilot runs: it waits on the owner playing a derelict battle. Both fixtures
+fly the company's real lift (one Hermes, six twelve-seat trips, as
+playBattle's Veteran Company).
 
 ## Constraints
 

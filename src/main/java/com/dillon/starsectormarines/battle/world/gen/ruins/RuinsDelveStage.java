@@ -460,15 +460,7 @@ public final class RuinsDelveStage implements GenStage {
                     d.lineRight = Math.max(d.lineRight, x);
                 }
             }
-            if (d.kind == LayerKind.COLLAPSED_STREET) {
-                for (int y = 1; y < h - 1; y++) {
-                    for (int dx : new int[]{-1, 1, -2, 2}) {
-                        int x = lx[y] + dx;
-                        if (grid.inBounds(x, y) && grid.isWalkable(x, y) && !reserved[i(x, y)]
-                                && rng.nextInt(Math.abs(dx) == 1 ? 2 : 4) == 0) ground(x, y, GroundKind.RUBBLE);
-                    }
-                }
-            }
+            skirt(lx, d.kind == LayerKind.COLLAPSED_STREET ? 4 : 3);
 
             int number = 1;
             for (int k = 0; k < spans.size(); k++) {
@@ -506,6 +498,28 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             return d;
+        }
+
+        /**
+         * The rubble a standing line has shed: a bed of it against both faces, thinning out to {@code reach}
+         * cells, and scrap where sections came down, so a line reads as an old wall gone to ruin rather than a
+         * clean one drawn across the ground. A collapsed street sheds the most. Only open ground is touched.
+         */
+        void skirt(int[] lx, int reach) {
+            for (int y = 1; y < h - 1; y++) {
+                for (int side : new int[]{-1, 1}) {
+                    for (int step = 1; step <= reach; step++) {
+                        int x = lx[y] + side * step;
+                        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || reserved[i(x, y)]) continue;
+                        // Near the face nearly always, then patchier: chance falls by a quarter a cell.
+                        if (hash(x, y / 2, 0x5C1) % 100 < 95 - step * 22) ground(x, y, GroundKind.RUBBLE);
+                    }
+                }
+                if (hash(lx[y], y, 0x5C2) % 11 == 0) {
+                    int side = hash(y, lx[y], 0x5C3) % 2 == 0 ? -1 : 1;
+                    loose(SCRAP, lx[y] + side, y);
+                }
+            }
         }
 
         Integer pickRow(int lo, int hi, List<Integer> taken, int collapseY) {

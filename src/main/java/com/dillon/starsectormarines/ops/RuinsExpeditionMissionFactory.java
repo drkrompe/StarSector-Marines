@@ -14,8 +14,8 @@ import java.util.List;
  *
  * <p>It is the Ruins family's battle ({@link MissionType#RUINS}): the vault, its breach time from the grade, and the
  * haul out to a lift point. It carries the site's seeded occupant ({@code RuinsOccupants}) for the battle to choose its
- * defenders by; the tier is set by the grade. Until an occupant's own side plays in battle, its defenders are the
- * scavengers' pirates ({@code BattleSetup.createRuins}), so the mission names that faction.
+ * defenders by ({@code RuinsDefence}); the tier is set by the grade. The mission names the occupant's faction, or none
+ * for an empty site or the Rav.
  *
  * <p>The briefing is the stakes, then the orbital survey ({@link RuinsSurvey}): the assessment naming the occupant,
  * the grade's strength band, and the site's survey readings.
@@ -75,26 +75,14 @@ public final class RuinsExpeditionMissionFactory {
                 .build();
     }
 
-    /**
-     * Whether the occupant's own side plays in battle ({@code BattleSetup.createRuins}): every occupant but nobody,
-     * whose works chain is not built yet. An empty site's battle is the scavengers' stand-in, so its defenders and its
-     * survey are the scavengers' too; when its side plugs in there, it joins this list and both follow.
-     */
-    static boolean fieldsOwnSide(RuinsOccupant occupant) {
-        return occupant != RuinsOccupant.NOBODY;
-    }
-
-    /** The faction the battle's defenders are drawn from; none for the Rav, which no campaign faction stands for. */
+    /** The faction the battle's defenders are drawn from; none for nobody or the Rav, which no faction stands for. */
     static String defenderFactionId(RuinsOccupant occupant) {
-        return fieldsOwnSide(occupant) ? occupant.factionId : RuinsOccupant.SCAVENGERS.factionId;
+        return occupant.factionId;
     }
 
-    /**
-     * The readings the briefing draws from: the occupant's own ({@link RuinsSurvey#poolFor}), or the scavengers' while
-     * they stand in for it, so the survey stays true of the battle the company meets.
-     */
+    /** The readings the briefing draws from: the occupant's own, since its own side (or no one) is what is met. */
     static RuinsSurvey.Pool surveyPool(RuinsOccupant occupant) {
-        return RuinsSurvey.poolFor(fieldsOwnSide(occupant) ? occupant : RuinsOccupant.SCAVENGERS);
+        return RuinsSurvey.poolFor(occupant);
     }
 
     /** Larger ruins hold a stronger occupant, no lower than the family's own floor. */

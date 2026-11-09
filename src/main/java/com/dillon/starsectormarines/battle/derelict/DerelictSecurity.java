@@ -7,8 +7,10 @@ import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -16,15 +18,17 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Stands a derelict site's security up in a ruins battle (`derelict-security-network.md`): its zones laid along the
  * ground between the vault and the way out, its walkers posted in them by the grade's strength
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
  * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
- * up over its node (`derelict-drone-flocks.md`); cradles, posts and nodes are their own slices and are not stood up
- * here.
+ * up from its open-sky home (`derelict-drone-flocks.md`, which stands its cradle) and stands its node
+ * ({@link DerelictNode}) and its folded posts ({@link DerelictPost}).
  */
 public final class DerelictSecurity {
 
@@ -185,6 +189,12 @@ public final class DerelictSecurity {
             port.add(flock, plan.id());
         }
         director.connectFlocks(port);
+        for (ZonePlan plan : plans) {
+            int[] cell = nodeCell(route, plan, (x, y) -> sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y));
+            long node = sim.spawn(DerelictNode.create("derelict-node-" + plan.id(), Faction.DEFENDER, cell[0], cell[1]));
+            director.standNode(plan.id(), node);
+        }
+        standPosts(sim, route, plans, network, delve, director);
         sim.installDerelictSecurity(director);
         return director;
     }
@@ -228,6 +238,96 @@ public final class DerelictSecurity {
             }
         }
         return best;
+    }
+
+    /** Stands each zone's folded posts ({@link DerelictPost}) beside its anchors, powered down. */
+    private static void standPosts(BattleSimulation sim, int[] route, List<ZonePlan> plans, SecurityNetwork network,
+                                   RuinsDelve delve, DerelictSecurityDirector director) {
+        NavigationGrid grid = sim.getGrid();
+        Walkable walkable = (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y);
+        Set<Long> taken = new HashSet<>();
+        int n = 0;
+        for (ZonePlan plan : plans) {
+            int placed = 0;
+            for (int[] anchor : DerelictPost.anchors(network.zone(plan.id()), plan.posts(), delve)) {
+                if (placed == DerelictPost.PER_ZONE) break;
+                int[] cell = besideRoute(route, anchor[0], anchor[1], walkable, taken);
+                if (cell == null) continue;
+                long post = standPost(sim, "derelict-post-" + n++, plan.id(), cell[0], cell[1], director);
+                if (post == 0L) continue;
+                // Posts keep apart, so two never close a passage between them.
+                for (int dy = -2; dy <= 2; dy++) {
+                    for (int dx = -2; dx <= 2; dx++) {
+                        taken.add(((long) (cell[0] + dx) << 32) | ((cell[1] + dy) & 0xffffffffL));
+                    }
+                }
+                placed++;
+            }
+        }
+    }
+
+    /** Spawns one folded post of a zone at a cell, as an emplacement is stood, its power cut; 0 when it cannot. */
+    static long standPost(BattleSimulation sim, String name, int zoneId, int x, int y,
+                          DerelictSecurityDirector director) {
+        long post = sim.spawn(MapTurret.create(name, Faction.DEFENDER, DerelictPost.STAND_IN_STRUCTURE, x, y));
+        if (post == 0L) return 0L;
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        grid.recomputeCoverAt(x + 1, y);
+        grid.recomputeCoverAt(x - 1, y);
+        grid.recomputeCoverAt(x, y + 1);
+        grid.recomputeCoverAt(x, y - 1);
+        sim.turretState().cutPower(post);
+        director.standPost(zoneId, post);
+        return post;
+    }
+
+    /** Whether a cell can be walked. */
+    interface Walkable {
+        boolean at(int x, int y);
+    }
+
+    /** How far from its zone's node cell a node may stand, cells. */
+    static final int NODE_SEARCH_CELLS = 6;
+
+    /**
+     * Where a zone's node stands: the nearest cell to the node cell, off the route, set against a wall, with at least
+     * two open cells left across from it, so the structure never narrows the route or a corridor below a walker's
+     * width. The node cell itself when no such cell is near.
+     */
+    static int[] nodeCell(int[] route, ZonePlan plan, Walkable walkable) {
+        int[] cell = besideRoute(route, plan.nodeX(), plan.nodeY(), walkable, Set.of());
+        return cell != null ? cell : new int[] {plan.nodeX(), plan.nodeY()};
+    }
+
+    /**
+     * The nearest cell to {@code (x0, y0)}, within {@link #NODE_SEARCH_CELLS}, that is off the route, not taken, set
+     * against a wall and leaves three open cells across from it; null when there is none.
+     */
+    static int[] besideRoute(int[] route, int x0, int y0, Walkable walkable, Set<Long> taken) {
+        Set<Long> onRoute = new HashSet<>();
+        for (int i = 0; i + 1 < route.length; i += 2) onRoute.add(((long) route[i] << 32) | (route[i + 1] & 0xffffffffL));
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int ring = 1; ring <= NODE_SEARCH_CELLS; ring++) {
+            for (int dy = -ring; dy <= ring; dy++) {
+                for (int dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                    int x = x0 + dx;
+                    int y = y0 + dy;
+                    long key = ((long) x << 32) | (y & 0xffffffffL);
+                    if (!walkable.at(x, y) || onRoute.contains(key) || taken.contains(key)) continue;
+                    for (int[] d : dirs) {
+                        if (!walkable.at(x - d[0], y - d[1]) && walkable.at(x + d[0], y + d[1])
+                                && walkable.at(x + 2 * d[0], y + 2 * d[1])
+                                && walkable.at(x + 3 * d[0], y + 3 * d[1])) {
+                            return new int[] {x, y};
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /** Whether a cell is under an intact roof. */

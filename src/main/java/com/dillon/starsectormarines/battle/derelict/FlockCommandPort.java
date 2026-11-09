@@ -39,6 +39,10 @@ public interface FlockCommandPort {
     /** Gives a flock its task and anchor cell; {@code targetUnitId} is the strike or pursuit target, -1 for none. */
     void order(int flockId, FlockTask task, int anchorCellX, int anchorCellY, long targetUnitId);
 
+    /** Whether a zone's node stands, which its flocks' cradles need to rebuild drones. */
+    default void nodeStands(int zoneId, boolean stands) {
+    }
+
     /** A network with no flocks: it reports nothing and takes no orders. */
     FlockCommandPort NONE = new FlockCommandPort() {
         @Override
