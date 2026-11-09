@@ -200,11 +200,17 @@ final class PlayCompany {
         restore(state);
     }
 
+    /**
+     * Whether the run plays a sandbox start on fleet facilities rather than the Second Wind start
+     * ({@code -PplayStart=fleet}, `fleet-facilities.md`): no start ship recorded, and no company ship.
+     */
+    static final boolean FLEET_START = "fleet".equalsIgnoreCase(System.getProperty("play.start", "").strip());
+
     /** The campaign a run with no save starts on. */
     private static PlaySaves.State veteran() {
         MarineRoster company = DebugCompany.seeded(DebugCompanyStage.VETERAN_COMPANY,
                 DebugCompanyStage.VETERAN_COMPANY.squads, 1L);
-        company.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
+        if (!FLEET_START) company.setCompanyShip(SHIP_ID, SHIP_NAME, Math.round(CARGO));
         return campaign(company);
     }
 
@@ -214,7 +220,7 @@ final class PlayCompany {
         state.roster = company;
         state.campaign = new CampaignStateScript();
         state.saved = new HashMap<>();
-        state.saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
+        if (!FLEET_START) state.saved.put(CerberusCompanyStart.SHIP_KEY, SHIP_ID);
         state.saved.put(CerberusCompanyStart.START_PORT_KEY, WORLDS.get(0).getMarket().getId());
         state.docked = WORLDS.get(0).getId();
         state.credits = CREDITS;
