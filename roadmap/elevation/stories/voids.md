@@ -263,6 +263,10 @@ Laws):
      and a six-cell skybridge a vehicle could cross, ten neighbours from
      45 m to 180 m down. `-Dsnapshot.skyPort.layout=deck` keeps the single
      roof deck.
+   - The cluster ships as a diagnostic battle (`SkyPortClusterSetup`): **Sky
+     Port Towers** on the debug missions' Diagnostics tab, and
+     `playBattle -Pbattle=sky-port`. Two squads land on tower A; no enemy
+     and no end. The look suite and the scene lay the same ground.
    - **Walkway routing** is proved by the `walkway-crossing` behaviour scene
      (`sceneEvidence -Pscene=walkway-crossing`) on the same cluster: a rifle
      squad sent from A to B crosses the catwalk and no other walkway, A to C
