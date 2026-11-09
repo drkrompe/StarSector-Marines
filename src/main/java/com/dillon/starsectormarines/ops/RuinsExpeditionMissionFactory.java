@@ -76,15 +76,15 @@ public final class RuinsExpeditionMissionFactory {
     }
 
     /**
-     * Whether the occupant's own side plays in battle ({@code BattleSetup.createRuins}): the scavengers and derelict
-     * security do. Every other occupant's battle is the scavengers' stand-in, so its defenders and its survey are the
-     * scavengers' too; when its side plugs in there, it joins this list and both follow.
+     * Whether the occupant's own side plays in battle ({@code BattleSetup.createRuins}): every occupant but nobody,
+     * whose works chain is not built yet. An empty site's battle is the scavengers' stand-in, so its defenders and its
+     * survey are the scavengers' too; when its side plugs in there, it joins this list and both follow.
      */
     static boolean fieldsOwnSide(RuinsOccupant occupant) {
-        return occupant == RuinsOccupant.SCAVENGERS || occupant.isDerelict();
+        return occupant != RuinsOccupant.NOBODY;
     }
 
-    /** The faction the battle's defenders are drawn from. */
+    /** The faction the battle's defenders are drawn from; none for the Rav, which no campaign faction stands for. */
     static String defenderFactionId(RuinsOccupant occupant) {
         return fieldsOwnSide(occupant) ? occupant.factionId : RuinsOccupant.SCAVENGERS.factionId;
     }

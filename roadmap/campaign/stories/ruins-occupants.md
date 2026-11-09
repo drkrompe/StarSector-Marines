@@ -1,8 +1,8 @@
 # Ruins occupants
 
-Status: IN PROGRESS — the draw (1), derelict security (4) and the briefing (5)
-built; nobody (2) and the Rav (3) still play the scavengers' stand-in. Slice 5
-of `ruins-expedition-fork.md`.
+Status: IN PROGRESS — the draw (1), the Rav (3), derelict security (4) and the
+briefing (5) built; nobody (2) waits on `ruins-works.md` and plays the
+scavengers' stand-in. Slice 5 of `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
 
@@ -31,8 +31,9 @@ of the occupant's own kind.
   `Mission.ruinsOccupant`; `MissionLaunch` puts it on `RuinsBattleFixture`
   (serialized as `occupant`, read as scavengers when absent) and the fixture on
   `BattleSetup.createRuins`.
-- **The seam**: `BattleSetup.createRuins` switches on the occupant; nobody and
-  the Rav log and play the scavengers' stand-in. When an occupant's side plugs
+- **The seam**: `BattleSetup.createRuins` hands the occupant to
+  `createPlaceholder`, which installs derelict security or the Rav in place of
+  the generic squads; nobody logs and plays the scavengers' stand-in. When an occupant's side plugs
   in there, it joins `RuinsExpeditionMissionFactory.fieldsOwnSide`, and the
   mission's defending faction (`targetFactionId` and
   `defenderFactionOverride`, since an uncolonized world's market has no owner)
@@ -47,6 +48,20 @@ of the occupant's own kind.
   `ruins-briefing` snapshot suite renders a briefing per occupant from its own
   pool.
 
+- **The Rav** are `RuinsSleepers`: the grade's closed bores (two to five) sit
+  in the deeper layers' side rooms and middles, deepest layer first and spread
+  apart, held dormant, with the director run from the bores alone
+  (`configureSwarmFromBores`: no mother, harvest or cohort). Each closed bore
+  stirs with time below, with company gunfire it hears (16 cells) and, fast,
+  with a breach under way; past its threshold (staggered per bore) it opens and
+  surges. The breach opens every bore still closed and lifts the director's
+  pressure share from 0.6 to full, so the egress is the peak. A bore's tier is
+  capped by grade (`SwarmBores.capTier`): runners only at scattered, brutes and
+  spitters from widespread, the maw's heavy strains at extensive and vast. The
+  mission names no faction for the Rav. Rule tests: `RuinsSleepersTest`;
+  played headless in `commanderEvidence -Pmission=ruins` with
+  `ruins-rav-<grade>-v1.json`.
+
 ## Slices
 
 1. **The draw.** (Built.) A pure function from the sector seed, the market id, the ruins
@@ -57,7 +72,8 @@ of the occupant's own kind.
    world draws the Rav one time in two, and the theme modifiers.
 2. **Nobody.** An empty site plays the expedition with no opposing side, its
    way to the vault through the works chain (`ruins-works.md`).
-3. **Rav.** The swarm director's ruins profile: closed bores in the deeper
+3. **Rav.** (Built; a `sceneEvidence` scene was not added, as the bore-opening
+   rule is unit-tested where it is decided.) The swarm director's ruins profile: closed bores in the deeper
    layers that noise and time open, no mother bore, no harvest, no cohort, late
    strains only at the larger grades, pressure peaking on the egress. It never
    touches the campaign bloom or the reservoir's rest. `sceneEvidence` for the

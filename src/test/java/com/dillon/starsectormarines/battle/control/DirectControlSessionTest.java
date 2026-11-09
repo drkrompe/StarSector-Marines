@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -123,6 +124,23 @@ class DirectControlSessionTest {
         assertFalse(session.intent().firing());
         session.exit();
         assertEquals(ManualIntent.NEUTRAL, session.intent());
+    }
+
+    @Test
+    void aBurstUnderWayFollowsTheCursor() {
+        long marine = spawn(Faction.MARINE, UnitType.MARINE);
+        session.enter(marine);
+        roster.combat().beginPointBurst(marine, new PointFireAim(18, 5));
+        assertTrue(roster.combat().burstRemaining(marine) > 0);
+        session.submit(new ManualIntent(0, 0, 12, 9, true));
+        session.tick();
+        assertEquals(new PointFireAim(12, 9), roster.combat().burstPointAim(marine));
+        float x = roster.world().renderX(marine);
+        float y = roster.world().renderY(marine);
+        session.submit(new ManualIntent(0, 0, x, y, true));
+        session.tick();
+        assertEquals(new PointFireAim(12, 9), roster.combat().burstPointAim(marine),
+                "a cursor on the Marine keeps the last point instead of cancelling the burst");
     }
 
     @Test

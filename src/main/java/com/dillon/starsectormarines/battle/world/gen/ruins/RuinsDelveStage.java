@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Lays a ruins site's delve over the dead settlement ({@code ruins-ground.md}): the cleared landing ground at the
+ * Lays a ruins site's delve over the dead settlement ({@code mapgen-nouns.md}, Ruins ground): the cleared landing ground at the
  * west end, the vault suite at the east end, the grade's layers across the route between them with their ways
  * through, and, behind each layer, its small ruined rooms, its landing court (every layer past the first) and the
  * works sites; the vault's end is the interior, a roofed megastructure carved out of hull (a bunker round the
@@ -92,6 +92,17 @@ public final class RuinsDelveStage implements GenStage {
     static final String HULL_WALL = "installation.dark-concrete-wall";
     static final String HULL_FLOOR = "installation.concrete-floor";
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
+    /** The vault room's floor: the installation's command floor, so the heart of the site reads apart. */
+    static final String VAULT_ROOM_FLOOR = "installation.command-floor";
+    static final String HAUL = "doodad.industrial-crate-stack";
+    /** The dead town's furniture and stores, as the ruined-lot filler leaves them; weathering takes most away. */
+    static final String[] FURNISHINGS = {"doodad.shelf-dam-1", "doodad.shelf-dam-2", "doodad.desk-dam",
+            "doodad.box-dam", "doodad.chair-s-yellow-dam", "doodad.chair-s-green-dam",
+            "doodad.industrial-pallet-stack", "doodad.industrial-crate-stack", "doodad.industrial-drum-cluster",
+            "doodad.industrial-cable-reel"};
+    /** The ruined-lot wall that reads as a hedge from above; a long-dead town's walls are masonry. */
+    static final String HEDGE_WALL = "colony.olive-wall";
+    static final String DEAD_WALL = "colony.masonry-wall";
     /** Hull cells per chamber tried in an interior layer's band, besides its published rooms; at least four. UNTUNED. */
     static final int HULL_PER_CHAMBER = 220;
 
@@ -130,6 +141,8 @@ public final class RuinsDelveStage implements GenStage {
         /** The interior's footprint, and the hull face's column per row (null for the bunker). */
         Area interiorBox;
         int[] faceLx;
+        /** The power hall when it stands inside, laid with its band before the spine. */
+        PowerHall innerHall;
         /** Each interior layer's court, laid with its band so the spine runs through it. */
         final Map<Integer, Court> wells = new HashMap<>();
 
@@ -151,6 +164,7 @@ public final class RuinsDelveStage implements GenStage {
 
         RuinsDelve lay() {
             endStreets();
+            weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
             Area landingGround = new Area(1, Math.max(1, landingY - 16), LANDING_DEPTH, Math.min(h - 2, landingY + 16));
             open(landingGround, null);
@@ -179,17 +193,17 @@ public final class RuinsDelveStage implements GenStage {
             for (int i = 0; i < layers; i++) drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1));
 
             int firstInside = layers - plan.interiorLayers();
+            // The power hall stands in a layer before the last; inside, when the interior has one.
+            int hallLayer = layers == 1 ? 0 : plan.interiorLayers() == 2 ? layers - 2 : rng.nextInt(layers - 1);
             List<Area> entrances = new ArrayList<>();
             if (firstInside == layers) entrances.add(bunker(vaultY));
-            else entrances.addAll(enclose(drafts, firstInside, zoneEnd));
+            else entrances.addAll(enclose(drafts, firstInside, zoneEnd, hallLayer));
 
             List<Layer> laid = new ArrayList<>();
             List<Junction> junctions = new ArrayList<>();
             List<Area> chambers = new ArrayList<>();
             PowerHall hall = null;
             RecordsTerminal records = null;
-            // The power hall stands in a layer before the last; inside, when the interior has one.
-            int hallLayer = layers == 1 ? 0 : plan.interiorLayers() == 2 ? layers - 2 : rng.nextInt(layers - 1);
             for (int i = 0; i < layers; i++) {
                 LayerDraft d = drafts.get(i);
                 boolean in = i >= firstInside;
@@ -200,10 +214,7 @@ public final class RuinsDelveStage implements GenStage {
                 if (i > 0) {
                     court = in ? wells.get(i) : court(i, region);
                 }
-                if (i == hallLayer) {
-                    hall = hall(i, region);
-                    if (in) connect(outside(hall.footprint(), hall.door()), i, null);
-                }
+                if (i == hallLayer) hall = in ? innerHall : hall(i, region);
                 if (i == 0) records = records(region);
                 List<SideRoom> rooms = new ArrayList<>();
                 for (int r = 0; r < ROOMS_PER_LAYER; r++) {
@@ -260,6 +271,66 @@ public final class RuinsDelveStage implements GenStage {
             }
         }
 
+        /**
+         * A ruins site has been dead for a long time, longer than a town's freshly ruined lots: its floors are
+         * broken into rubble and earth with patches of the old floor showing through, its standing walls are
+         * masonry (the olive sheet reads as a hedge from above), most of its furniture and stores are gone, and a
+         * share of what went is left as scrap. Runs over the dead settlement before the delve is laid, so
+         * the delve's own shells are untouched; a coordinate hash, drawing nothing from the layout's stream.
+         */
+        void weather() {
+            int dirtFloor = topology.surfaceIndex(TRODDEN);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (HEDGE_WALL.equals(topology.getSurfaceId(x, y)) && !grid.isWalkable(x, y)) {
+                        topology.setSurface(x, y, topology.surfaceIndex(DEAD_WALL));
+                    }
+                    WallRemnant remnant = topology.getWallRemnant(x, y);
+                    if (remnant != null && HEDGE_WALL.equals(remnant.materialId())) {
+                        topology.setWallRemnant(x, y, new WallRemnant(DEAD_WALL, remnant.groundKind(),
+                                remnant.groundSurfaceId(), remnant.exposedFaces()));
+                    }
+                    if (topology.getGroundKind(x, y) != GroundKind.COURTYARD || !grid.isWalkable(x, y)
+                            || remnant != null) continue;
+                    // Patches about three cells across, their edges jittered a cell so they never read as a grid;
+                    // a fifth of the old floor shows through.
+                    int px = (x + hash(x, y, 0x11) % 2) / 3, py = (y + hash(x, y, 0x22) % 2) / 3;
+                    int roll = hash(px, py, 0x5EED) % 20;
+                    if (roll < 11) ground(x, y, GroundKind.RUBBLE);
+                    else if (roll < 16) {
+                        topology.setGroundKind(x, y, GroundKind.DIRT);
+                        if (dirtFloor != 0) topology.setSurface(x, y, dirtFloor);
+                    }
+                }
+            }
+            List<int[]> scrap = new ArrayList<>();
+            for (int k = ctx.doodads.size() - 1; k >= 0; k--) {
+                Doodad d = ctx.doodads.get(k);
+                // Only loose pieces: a blocking store would leave its cell blocked with nothing drawn on it.
+                if (!furnishing(d.definitionId()) || !grid.isWalkable(d.cellX, d.cellY)) continue;
+                int roll = hash(d.cellX, d.cellY, 0xF0) % 3;
+                if (roll == 0) continue;
+                ctx.doodads.remove(k);
+                if (roll == 1) scrap.add(new int[]{d.cellX, d.cellY});
+            }
+            for (int[] at : scrap) loose(SCRAP, at[0], at[1]);
+        }
+
+        static boolean furnishing(String id) {
+            if (id == null) return false;
+            for (String f : FURNISHINGS) if (f.equals(id)) return true;
+            return false;
+        }
+
+        /** A non-negative hash of a cell and the seed, for dressing that must not draw from the layout's stream. */
+        int hash(int x, int y, int salt) {
+            long v = x * 73_856_093L ^ y * 19_349_663L ^ (ctx.seed + salt) * 83_492_791L;
+            v ^= (v >>> 13);
+            v *= 0x5bd1e995L;
+            v ^= (v >>> 15);
+            return (int) Math.floorMod(v, 1_000_003L);
+        }
+
         /** Whether a dead street's cell is rubble rather than earth: patches about three cells across, a third of it. */
         boolean broken(int x, int y) {
             long hash = (x / 3) * 73_856_093L ^ (y / 3) * 19_349_663L ^ ctx.seed * 83_492_791L;
@@ -282,11 +353,31 @@ public final class RuinsDelveStage implements GenStage {
             door(x0, cy);
             door(partition, cy);
             Cell source = new Cell((partition + 1 + x1 - 1) / 2, cy);
+            dressVault(x0, y0, x1, y1, partition, cy);
             Cell approach = new Cell(x0 - 1, cy);
             vaultPoi = new PointOfInterest(PointOfInterest.Kind.DEPOT, x0, y0, x1, y1,
                     approach.x(), approach.y(), source.x(), source.y());
             ctx.pois.add(vaultPoi);
             return new Vault(new Area(x0, y0, x1, y1), new Cell(x0, cy), new Cell(partition, cy), approach, source);
+        }
+
+        /**
+         * The vault as the site's hardened heart rather than a plain box: buttresses stand out from its corners and
+         * along its faces (never on the door's face but at its corners), the vault room is floored apart in the
+         * command floor, the haul stands crated in its corners, and a console stands in the antechamber.
+         */
+        void dressVault(int x0, int y0, int x1, int y1, int partition, int cy) {
+            int[][] buttresses = {{x0 - 1, y0 - 1}, {x0 - 1, y1 + 1}, {x1 + 1, y0 - 1}, {x1 + 1, y1 + 1},
+                    {x0 + 3, y0 - 1}, {x0 + 3, y1 + 1}, {x0 + 7, y0 - 1}, {x0 + 7, y1 + 1},
+                    {x1 + 1, cy - 2}, {x1 + 1, cy + 2}};
+            for (int[] b : buttresses) wall(b[0], b[1], VAULT_WALL, BuildingKind.FORTIFIED);
+            int room = topology.surfaceIndex(VAULT_ROOM_FLOOR);
+            for (int y = y0 + 1; y < y1; y++) for (int x = partition + 1; x < x1; x++) topology.setSurface(x, y, room);
+            prop(HAUL, x1 - 1, y0 + 1);
+            prop(HAUL, x1 - 1, y1 - 1);
+            prop(HAUL, partition + 1, y0 + 1);
+            prop(HAUL, partition + 1, y1 - 1);
+            prop(CONSOLE, x0 + 2, y1 - 1);
         }
 
         // ---- layers --------------------------------------------------------------------------
@@ -765,7 +856,7 @@ public final class RuinsDelveStage implements GenStage {
          * way into it and out of it, and two doors from the last band into the vault's hall (the apron, roofed).
          * Returns the entrances: the first interior layer's open ways.
          */
-        List<Area> enclose(List<LayerDraft> drafts, int first, int zoneEnd) {
+        List<Area> enclose(List<LayerDraft> drafts, int first, int zoneEnd, int hallLayer) {
             LayerDraft face = drafts.get(first);
             faceLx = face.lx;
             interiorBox = new Area(face.lineLeft, 0, w - 1, h - 1);
@@ -800,16 +891,21 @@ public final class RuinsDelveStage implements GenStage {
             for (int k = first; k < drafts.size(); k++) {
                 int left = drafts.get(k).lineRight + 2;
                 int right = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 2 : apron.left() - 2;
-                // The band's court first, a light well the spine runs through, so the corridor never has to
-                // squeeze past it.
+                // The band's big pieces first, while the whole band is free: the power hall, then the court,
+                // a light well the spine runs through. The spine is laid after them, clear of the hall, so neither
+                // has to squeeze in beside the corridor.
                 int regionLeft = drafts.get(k).lineRight + 3;
                 int regionRight = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 4 : zoneEnd;
-                Court well = court(k, new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3));
+                Area region = new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3);
+                if (k == hallLayer) innerHall = hall(k, region);
+                Court well = court(k, region);
                 wells.put(k, well);
-                int spine = clamp(well.ground().centreX(), left + 1, right - 1);
+                int spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 for (int y = 2; y <= h - 3; y++) for (int x = spine - 1; x <= spine + 1; x++) carve(x, y, k);
                 for (Way way : drafts.get(k).ways) connect(way.far(), k, null);
                 if (k + 1 < drafts.size()) for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null);
+                if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
+                connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
             }
             int last = drafts.size() - 1;
             connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron);
@@ -872,6 +968,24 @@ public final class RuinsDelveStage implements GenStage {
             if (rng.nextBoolean()) loose(WRECKAGE[rng.nextInt(WRECKAGE.length)], room.left() + 1, room.bottom() + 1);
             else loose(SCRAP, room.right() - 1, room.top() - 1);
             return room;
+        }
+
+        /**
+         * The column a band's spine runs down: through the court, as near its middle as it can (else anywhere clear of the hall), three cells wide
+         * and clear of the power hall and the ring of open floor round it, within {@code lo..hi}.
+         */
+        int spineColumn(Court well, PowerHall hall, int lo, int hi, int band) {
+            int best = -1, centre = well.ground().centreX();
+            for (int x = Math.max(lo, well.ground().left() + 1); x <= Math.min(hi, well.ground().right() - 1); x++) {
+                if (hall != null && x + 1 >= hall.footprint().left() - 2 && x - 1 <= hall.footprint().right() + 2) continue;
+                if (best < 0 || Math.abs(x - centre) < Math.abs(best - centre)) best = x;
+            }
+            // A court straight above or below the hall: the spine runs clear of the hall, the court is joined to it.
+            for (int x = lo; best < 0 && x <= hi; x++) {
+                if (hall == null || x + 1 < hall.footprint().left() - 2 || x - 1 > hall.footprint().right() + 2) best = x;
+            }
+            if (best < 0) throw new IllegalStateException(RuinsDelve.layerName(band) + " has no room for its spine");
+            return best;
         }
 
         /** The open cell straight out from a shell's door. */

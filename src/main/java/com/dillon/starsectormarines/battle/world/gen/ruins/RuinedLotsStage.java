@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Every lot of a dead settlement is a ruin ({@code ruins-ground.md}, slice 1): each labelled leaf becomes a
+ * Every lot of a dead settlement is a ruin ({@code mapgen-nouns.md}, Ruins ground): each labelled leaf becomes a
  * {@link BlockKind#WASTELAND_RUBBLE} lot, which the ruined-lot filler draws as a burned-out footprint (standing
  * wall runs, rubble stubs, a collapsed corner, wrecked furniture), or a rubble heap where the lot is too small.
  * Open country stays country. Nothing is claimed as a compound: a compound is a working facility, and nothing on

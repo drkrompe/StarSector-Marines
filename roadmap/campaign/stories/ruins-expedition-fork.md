@@ -55,7 +55,7 @@ fork and commit path can ship before ruins mapgen exists.
 3. **Stand-in battle.** The Ruins Expedition mission on an existing map against
    scavengers sized by grade: `ruins-expedition-battle.md`.
 4. **Ruins ground.** The ruined-settlement delve for mapgen
-   (`SettlementLink.NONE`): `ruins-ground.md`.
+   (`SettlementLink.NONE`): `mapgen-nouns.md`, Ruins ground.
 5. **Occupants.** The seeded occupant per site and its briefing line:
    `ruins-occupants.md`, with derelict security in
    `derelict-security-network.md`.

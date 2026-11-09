@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
 /**
- * What a mission asks of a ruins site's ground ({@code ruins-ground.md}): how deep the delve is. A ruins site's map
+ * What a mission asks of a ruins site's ground ({@code mapgen-nouns.md}, Ruins ground): how deep the delve is. A ruins site's map
  * is an abandoned settlement laid from a landing area at its west end to a vault at its east end through
  * {@link #layers} bands of ruined ground. Everything else (the map's size, how much of it the dead settlement
  * covered) follows from the depth, the way the ruins grade's table in {@code ruins-expedition.md} reads it.
@@ -44,14 +44,14 @@ public record RuinsGroundPlan(int layers, int width, int height, float density) 
 
     /**
      * Ways through each layer that stay open: scattered ruins may be crossed by one, and every layer of a larger
-     * site has at least two, so no single blocked way closes the route ({@code ruins-ground.md}, slice 3).
+     * site has at least two, so no single blocked way closes the route ({@code mapgen-nouns.md}, Ruins ground).
      */
     public int minOpenWays() {
         return layers == 1 ? 1 : 2;
     }
 
     /**
-     * Layers at the vault's end that are inside the site's megastructure ({@code ruins-ground.md}, Interior):
+     * Layers at the vault's end that are inside the site's megastructure ({@code mapgen-nouns.md}, Ruins ground):
      * none on scattered ground, where only a bunker encloses the vault; the last layer at widespread; the last two
      * at extensive and vast. The landing and the layers before the interior stay outside.
      */
