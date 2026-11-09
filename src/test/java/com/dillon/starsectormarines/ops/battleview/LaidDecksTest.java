@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.FleetRooms;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +63,18 @@ class LaidDecksTest {
                 "the same hull in another company is laid out to another seed");
         assertSame(read, LaidDecks.known(boat(20), SEED),
                 "and an equal hull at the same seed is the same deck");
+    }
+
+    @Test
+    @DisplayName("fleet facilities bought bigger are a different deck")
+    void fleetRoomsAreGeneratedFrom() {
+        ShipInterior read = LaidDecks.aboard(CompanyShip.fleet(new FleetRooms(0, 1, 4)), SEED);
+
+        assertNull(LaidDecks.known(CompanyShip.fleet(new FleetRooms(0, 2, 4)), SEED),
+                "a second boat berth owes a second bay");
+        assertNull(LaidDecks.known(CompanyShip.fleet(new FleetRooms(0, 1, 6)), SEED),
+                "more bunkrooms owe more rooms");
+        assertSame(read, LaidDecks.known(CompanyShip.fleet(new FleetRooms(0, 1, 4)), SEED));
     }
 
     @Test

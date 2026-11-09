@@ -1427,7 +1427,7 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade);
+            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade, map.ruinsDelve);
             else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
                     ExtractionDefenderCommandDisclosure.INSTANCE);

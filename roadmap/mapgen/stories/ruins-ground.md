@@ -1,11 +1,12 @@
 # Ruins ground
 
-Status: IN PROGRESS — slices 1-6 built (6 is the interior); the battle story
+Status: IN PROGRESS — slices 1-7 built (6 the interior, 7 the dressing); the battle story
 plays on it but has not been tuned on it. Slice 4 of `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — the interior is built: the vault's end of the delve is a
+Updated: 2026-11-09 — the dead town is weathered and the vault dressed (slice
+7). Earlier: the interior is built: the vault's end of the delve is a
 roofed megastructure (a bunker on scattered ground). Earlier the same day: Ruins
 battles play on this ground, and dead streets break up into earth and rubble;
 the ground is generated at every grade and keeps the delve's laws on every
@@ -94,13 +95,18 @@ mission's to decide (`ruins-works.md`).
 6. **Interior.** Built: the megastructure, or the bunker, at the vault's end
    (Interior, below). The battle's look frames, with an interior frame with its
    roofs off, are `createSnapshots -Psnapshot=ruins-battle-look`.
-7. **Building dressing.** Next (owner: interior first, dressing after it). The
-   dead town's buildings still read as lived in: whole coloured roofs, green
-   hedge borders and furniture inside, and the vault is a plain slab. Dress
-   them as ruins: broken or missing roofs, no hedges, wreckage in place of
-   furniture, and a vault that reads as the site's hardened heart. Reuse the
-   ruined-lot materials and roof damage; any new roof or wall set is a picks
-   decision.
+7. **Building dressing.** Built. A ruins site is longer dead than a town's
+   freshly ruined lots, so `RuinsDelveStage` weathers the dead settlement
+   before laying the delve, by a coordinate hash: the lots' floors (the
+   coloured footprints that read as roofs from above) break into rubble and
+   earth in jittered patches about three cells across, a fifth of the old floor
+   showing through; standing walls and stubs in the olive sheet, which reads as
+   a hedge, become masonry; two loose furnishings or stores in three are gone,
+   half of those left as scrap. The vault is dressed as the site's hardened
+   heart: buttresses at its corners and along its faces, the vault room in the
+   command floor, the haul crated in its corners, a console in the
+   antechamber. Interior rooms are built of the hull (slice 6). Weeds were
+   tried and dropped: a loose tuft is not drawn on rubble.
 
 ## Open
 

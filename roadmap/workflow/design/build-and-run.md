@@ -107,7 +107,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   mod (the settings' mod manager then reports Nexerelin enabled), plus
   `src/test/resources/play/rules.csv` for Leave. Ossuary, an uncolonized world with
   extensive ruins listed after the colonies, plays the ruins fork
-  (`ruins-expedition.md`) over vanilla's own ruins and salvage rows, through to
+  (`ruins-expedition.md`), held by Domain security (Arcadia carries vanilla's
+  derelict theme, so its occupant draw gives derelict security), over vanilla's own ruins and salvage rows, through to
   the post-salvage row that marks the ruins explored, with toggles for ruins
   already explored and a hostile fleet nearby; it has no port, so the fleet
   never docks there. Until the expedition battle exists the fork needs
@@ -139,6 +140,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   control by its markup id, to pixel clicks: it waits for the control, respects
   modals and fails naming what could be pressed. `ids` prints that list.
   Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
+- **`-PplayStart=fleet`** plays the stand-in company on fleet facilities instead of
+  the Second Wind: no company ship, Engineering as the systems tree alone, and the
+  mock rooms its upgrades size (`fleet-facilities.md`). Quote each `-P` argument
+  in PowerShell, or a script path ending `.txt` is read as a task name.
 - **`-PplayUiScale=<scale>`** runs the window at a Starsector UI scale (in PowerShell,
   quote it: `"-PplayUiScale=1.5"`). The script step `audit <label>` reports every
   clickable control cut off by the page or a non-scrolling clip, and every label wider or taller
