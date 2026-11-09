@@ -33,6 +33,8 @@ class LockedDoorTest {
             LockedDoor door = door(true);
             door.install(sim);
             assertFalse(sim.getGrid().isWalkable(DOOR_X, DOOR_Y));
+            assertTrue(door.spansX(), "in a wall running along x, its passage north-south");
+            assertTrue(sim.lockedDoors().contains(door), "registered for drawing");
             assertFalse(sim.damageCell(DOOR_X, DOOR_Y, 1_000_000), "a charge does not open it");
             door.settle(sim, false);
             assertFalse(door.isOpen());

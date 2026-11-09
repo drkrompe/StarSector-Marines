@@ -25,6 +25,7 @@ public final class LockedDoor {
     private final int[] keep;
     private final boolean hardened;
     private MapEditor.PassageRecord[] shut;
+    private boolean spansX;
     private boolean open;
     private boolean forced;
 
@@ -51,10 +52,15 @@ public final class LockedDoor {
     /** Whether a breach forced it open for good; never for a hardened door. */
     public boolean isForced() { return forced; }
     public boolean hardened() { return hardened; }
+    /** The door's cells, {x, y} each; read only. */
+    public int[][] cells() { return cells; }
+    /** Whether the door runs along x (a passage through it runs north-south); known once installed. */
+    public boolean spansX() { return spansX; }
 
     /** Shuts the door, locked, as the nearest wall to each of its cells. At setup. */
     public void install(BattleSimulation sim) {
         if (shut != null) return;
+        spansX = spansX(sim, cells);
         MapEditor editor = sim.mapEditor();
         shut = new MapEditor.PassageRecord[cells.length];
         for (int c = 0; c < cells.length; c++) {
@@ -63,6 +69,14 @@ public final class LockedDoor {
             shut[c] = wall;
         }
         close(sim);
+        sim.addLockedDoor(this);
+    }
+
+    /** A span runs along its cells; a single open cell runs across the passage its floor continues. */
+    static boolean spansX(BattleSimulation sim, int[][] cells) {
+        if (cells.length > 1) return cells[0][1] == cells[cells.length - 1][1];
+        int x = cells[0][0], y = cells[0][1];
+        return sim.getGrid().isWalkable(x, y + 1) || sim.getGrid().isWalkable(x, y - 1);
     }
 
     /**

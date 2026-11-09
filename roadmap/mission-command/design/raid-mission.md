@@ -1,0 +1,144 @@
+# Raid mission: what the player came to do
+
+Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal's shape waits on `raid-steal-scaling`; the map generator waits on `raid-mapgen`. The first slice is `raid-wreck-the-works.md`.
+
+Written: 2026-11-09
+
+Read `raid-command.md` (how the two commanders play a Raid), `raid-resolution.md`
+(the raid fork and how a led raid commits) and `mission-tier-nouns.md` first.
+This document owns what a Raid is to the player: its intent, its objective, and
+how it scales. `raid-command.md` keeps the command laws.
+
+## What a raid is to the player
+
+The player chose the raid from the market's Take Hostile Action menu, and
+chose its purpose there: take the market's valuables, or break one of its
+industries for a while. The battle is about that choice. The player expects:
+
+- the thing they chose on the map, looking like what it is;
+- a short trip in, because the company lands inset into the town
+  (`precincts.md`, owner pick `raid-landing`);
+- pressure that builds: the alarm goes up, and the garrison comes;
+- a choice between greed and safety, where what they do changes what they take
+  home;
+- a way out that matters;
+- results that match the battle.
+
+A Raid is never a conquest: the company does not clear the town, and it
+succeeds without eliminating the defender.
+
+## Vocabulary
+
+- **Intent** is what the raid is for. **Steal** is a raid for valuables
+  (`MarketCMD.RaidType.VALUABLE`): the goods the player picked, each a raid
+  objective with its kind (commodity, ship weapons, blueprint, AI core, special
+  item, credits) and the industry it comes from. **Break** is a raid to disrupt
+  an industry (`RaidType.DISRUPT`): the one industry the player named. The intent
+  is read from the raid record's type and nothing else. A contract's Strike is a
+  break on the industry its contract names. A story chapter states its own
+  objective and keeps it.
+- The **works** is the named industry laid on the map as a place of its own:
+  its buildings and yards, its **machines** and its way in. A refinery's works
+  is its tank farm, a mine's its headframes and mills, a factory's its lines.
+- A **machine** is one part of the works a charge can wreck. Wrecking a machine
+  takes a settled Marine combatant holding its pocket uncontested for its
+  charge time; it cannot be undone.
+- The **stores** are where a market keeps its goods: warehouses for
+  commodities, the depot for weapons, the laboratory for blueprints, the
+  admin vault for AI cores and credits. The **bonded vault** is one walled,
+  guarded store that holds everything worth stealing.
+- A **load** is one picked good made portable: carried by a squad, slowed, and
+  taken out by the boat.
+- **Security** is how hard the market keeps its prize (below).
+- **Lift** is the company's boats: one Hermes to start, 12 seats, one squad a
+  trip, back for the next; berths 2 and 3 once bought (`fleet-facilities.md`).
+  A mission never draws more boats than the company has.
+
+## Security: one scaling rule
+
+The market already exposes how well it is defended
+(`TargetProfile`): `defenseLevel` (0 to 7, a blend of ground defences, heavy
+batteries, the orbital station's tier, high command and a planetary shield),
+whether it has the ground-defence network and heavy batteries, and its
+garrison estimate's strength, quality and readiness.
+
+**Security** grades that into three steps:
+
+| Security | Reads | Steal | Break |
+|---|---|---|---|
+| **Open** | `defenseLevel` 0-1, no ground defences | goods in their own stores, scattered: strip what you can reach | the works stands open: yards, fences, a few posted guards |
+| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines |
+| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it |
+
+One rule covers both intents: **security sets how concentrated and how walled
+the prize is.** A soft market spreads its prize out to be picked over; a hard
+one gathers it behind a wall. The steal row is the owner's question
+`raid-steal-scaling`; the break row follows it.
+
+Security never changes how many defenders there are: that is the tier's share
+of the garrison (`raid-resolution.md`, law 7). It changes where they stand.
+
+## Tier: how big the raid is
+
+The tier comes from the garrison's whole headcount, no lower than Raid's floor
+(`MarketRaidMissionFactory.tierFor`); a contract states its own.
+
+| Tier | Map (`MapScale.forRaid`) | Squads recommended | Trips, one Hermes | Machines in the works |
+|---|---|---|---|---|
+| First contract | 200x112 | 2 | 2 | 3 |
+| Established | 280x168 | 3 | 3 | 4 |
+| Veteran | 280x168 | 4 | 4 | 4 |
+| Reinforced | 400x240 | 6 | 6 (2 a boat with three) | 5 |
+| Full strength | 400x240 | 8 | 8 (3 a boat with three) | 5 |
+
+- **Defenders** are the tier's share of the market's garrison, posted at their
+  stations and in a held mobile pool (`raid-command.md`).
+- **Alarm waves.** The first charge or the first store broken raises the
+  alarm. Each wave is at most three mobile squads; a bigger garrison has more
+  waves, not bigger ones, so a company that lingers meets more of them.
+- **The landing is a cadence, not a block.** With one boat the company comes
+  down a squad at a time; a bought berth halves the wait. Squads recommended
+  rise with the tier faster than berths can be bought, so a full-strength raid
+  with one boat is a long build-up: buying berths is what makes big raids
+  fast. The way out is the same in reverse.
+- **Machines** rise slowly with the tier; each one is a fixed share of the
+  disruption, so a bigger industry takes more work to break fully.
+
+The map's shape at each size is the open question `raid-mapgen`.
+
+## Break: wreck the works (owner pick)
+
+- The works stands where the industry would: laid from the market's economy
+  and walled by its security. Until the map generator places one (`raid-mapgen`),
+  the map's own industrial ground stands in.
+- Its **machines** are the objective. Each takes a charge: a settled Marine
+  combatant holding the machine's pocket, uncontested, for the charge time. An
+  interrupted charge starts again. The first charge raises the alarm.
+- **Leaving is the player's call.** Once one machine is wrecked the way out is
+  open: a Marine combatant settled at the Hermes' berth ends the raid. The player
+  can stay to wreck more or pull out with what they have done.
+- **What it is worth.** The raid command's own disruption
+  (`DisruptIndustryRaidObjectivePluginImpl`: days from the marines it was set
+  up with, times the raid's effectiveness) is committed at the effectiveness
+  the command computed, times the **share wrecked** (machines wrecked over
+  machines in the works). Every machine wrecked adds days. Wrecking none is a
+  loss: the raid is on record and breaks nothing.
+- It is loud, unlike Sabotage (`sabotage-command.md`): no stealth, no field
+  presence limit beyond Raid's own, and the alarm is up from the first charge.
+
+## Steal
+
+Waiting on `raid-steal-scaling`. The model so far: each picked good is a load in
+its store (or in the bonded vault, by security); a squad loads it, carries it
+slowed and the boat takes it up between squad trips; the take is the value
+share of the loads that reach the boat, committed as the raid's effectiveness
+times that share.
+
+## Open questions
+
+- `raid-steal-scaling` (the steal row of the security table) and `raid-mapgen`
+  (the Raid's own map generator) are on the owner's picks page.
+- Whether leaving needs every surviving squad aboard, or one at the berth as
+  today. Today's law (one settled survivor at egress completes) stands for the
+  first slice.
+- How a contract's Strike reads intent beyond the industry it names.
