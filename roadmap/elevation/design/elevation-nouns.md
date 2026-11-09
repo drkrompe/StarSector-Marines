@@ -393,6 +393,10 @@ draws.
   square blocks to the sun, and its shadow and lit faces step along every
   diagonal of its outline. The shadow's reach counts the highest tier as well
   as the tallest building, or a raised ground's shadow is cut short.
+- **Built stairs.** A ramp laid on built ground (a surface override: deck,
+  grating, a walkway) has no cliff art; `BuiltStairRenderSystem` cuts each of
+  its cells into treads across its climb, a dark riser and a lit nosing each,
+  the lower treads darker, inside the ground's colour target.
 - **Ramps** (the tile look) are a floor of the talus material laid over the ramp's corridor,
   clipped to its sides, in the cap layers so it covers the cliff bands its cut
   would otherwise show.
