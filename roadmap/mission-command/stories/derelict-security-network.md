@@ -2,8 +2,9 @@
 
 Status: IN PROGRESS — every mechanics slice is built (What is built): zones,
 the director over walkers and flocks, the derelict heavy line, spotting, the
-node, repair drones, folded posts and power branches. The looks for the
-walker, posts and node wait on owner picks, and slice 2's scenes for a wake,
+node, repair drones, folded posts and power branches. The posts' and node's
+looks ship on the recommended candidates while picks `derelict-post-look` and
+`derelict-node-look` wait; the walker's own chassis is not built, and slice 2's scenes for a wake,
 a relay, a leash, a heavy coming to a pin and the contingency are not built.
 Feeds slice 5 of `ruins-expedition-fork.md` through `ruins-occupants.md`.
 
@@ -183,8 +184,8 @@ Everything is in `battle.derelict`.
   (`openSkyHome`), so a flock whose zone lies indoors waits at the doorway
   rather than under the roof.
 - **The node (slice 5).** `DerelictNode` is each zone's control node, an
-  armoured, unarmed structure (a drone hub's structure until its look is
-  picked), stood by `install` on the nearest cell to the zone's node cell
+  armoured, unarmed structure (a drone hub's structure, drawn as its
+  lineage's relay structure: Looks), stood by `install` on the nearest cell to the zone's node cell
   that is off the route, against a wall and leaves three open cells across
   (`nodeCell`), so it never narrows a corridor below a walker's width. The
   director watches it each pulse (`DerelictNode.watch`): damage to it wakes
@@ -203,8 +204,8 @@ Everything is in `battle.derelict`.
   spent, it stays home. It can be shot down. It flies over walls and roofs,
   unlike a flock.
 - **Posts that wake (slice 7).** `DerelictPost`: each zone stands
-  `PER_ZONE` folded gun posts (the Vulcan emplacement until the post's look
-  and gun are picked), anchored at the interior's entrances and then its
+  `PER_ZONE` folded gun posts (the Vulcan emplacement's gun and durability,
+  drawn as its lineage's folding post: Looks), anchored at the interior's entrances and then its
   chambers that the zone keeps, else beside the zone's route posts, each on a
   wall cell off the route (`besideRoute`) and kept apart. A post's gate is its
   emplacement power: the director powers it only while its zone is awake
@@ -220,6 +221,20 @@ Everything is in `battle.derelict`.
   cradle not rebuilding; thrown back, it comes up dormant. So cutting a
   branch buys a quiet way through a zone at the price of the gates and the
   vault seal on it.
+- **Looks (slice 9, posts and node).** `DerelictLook` is the network's
+  lineage look, set by `install` from the ruin's occupant (Domain security's
+  grey and hazard yellow, contingency security's Tri-Tachyon white gone
+  dull); the director carries it and the renderer reads it, never the
+  battle. A post draws its lineage's base in the paving and, while its power
+  is cut, its shut head square to the map; powered, its gun head turning
+  with the mount, with no recoil layer. A node draws its lineage's relay
+  structure in the hub pass, `NODE_VISUAL_CELLS` long, as the cradle draws
+  its housing. Art from ImageGen geometry guides, three post and four node
+  designs a sheet per lineage (`art-source/derelict-security`); the
+  recommended pop-up post and mast node ship while picks
+  `derelict-post-look` and `derelict-node-look` wait. The walker's look is
+  not in this slice: the owner is redesigning it as a legged chassis of its
+  own.
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
@@ -231,14 +246,17 @@ node-down: it stays home; under-fire: hit, it breaks off home, stays while it
 stands down, then goes out again); `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
 from the first walker contact, then the vast site's vault frame and a line
-frame at their interior posts with the roof lifted). Played headless through `battleProbe`: line
+frame at their interior posts with the roof lifted); `createSnapshots
+-Psnapshot=derelict-security-look` (a post folded and unfolded and a node, in
+either lineage, the look candidates through `-Dsnapshot.artOverlay`). Played headless through `battleProbe`: line
 frames hold their posts until a pin falls inside their perimeter and then
 attack-move onto it; the siege frame engages from its post at twenty-odd
 cells.
 
 Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
-coming to a pin and the contingency; looks for the walker, posts and node
-(3, 9; the cradle's look is `derelict-drone-flocks.md`'s), and the repair
+coming to a pin and the contingency; the walker's own chassis and look
+(3; the owner is redesigning it as a legged chassis; the cradle's look is
+`derelict-drone-flocks.md`'s), the post's own gun, and the repair
 drone's own look if it should differ from the tender's. Strength is not
 tuned, and is not tuned from autopilot runs: it waits on the owner playing a
 derelict battle. Both fixtures fly the company's real lift (one Hermes, six
