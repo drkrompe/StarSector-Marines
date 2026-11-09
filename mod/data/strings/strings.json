@@ -5295,6 +5295,11 @@
 		"battleLoadingAtlases":   "Building atlases",
 		"battleVictory":          "Victory",
 		"battleDefeat":           "Defeat",
+		"battlePulledOut":        "Pulled out",
+		"ruinsPullOut":           "Pull out",
+		"ruinsPullOutConfirm":    "Pull out of the ruins?",
+		"ruinsPullOutBanked":     "Brings home {0}. The vault stays sealed; troops outside the circles may not make it home.",
+		"ruinsPullOutNothingBanked": "Nothing banked yet. The vault stays sealed; troops outside the circles may not make it home.",
 		"battleContinue":         "Continue",
 
 		# Results screen
@@ -5580,6 +5585,7 @@
 		"ruinsSurveyContingencyCodes": "The site's emissions carry Tri-Tachyon codes.",
 		"ruinsSurveyContingencyLockdown": "Every approach reads sealed, the way a site locks down for a breach.",
 		"ruinsExpeditionCommitWon": "The company holds the ruins long enough to bring the salvage team down behind it.",
+		"ruinsExpeditionCommitPulledOut": "The company pulls out of the ruins with what it recovered on the way. The vault stays sealed, and the ruins stay as they were for another try.",
 		"ruinsExpeditionCommitLost": "The company is driven out of the ruins. Nothing is taken, and the ruins stay as they were for another try.",
 
 		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog

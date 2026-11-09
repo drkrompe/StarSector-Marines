@@ -161,6 +161,18 @@ story's battle plays, it lifts the fork's development-only gate
    The **pull-out point** is the landing in phase A and the entry in phase B.
    Unit-test the phase change and the pull-out point on the objective's own
    inputs.
+
+   *Built.* Each interior entrance is a lift point of kind `ENTRANCE`
+   (`RuinsVaultObjective.LiftPoint.Kind`), its route from the vault ending on
+   its apron, and is taken as a court is (`UncontestedHold`,
+   `COURT_HOLD_SECONDS`), for good. The first entrance taken is the `entry()`;
+   `ruinsPhase()` is `APPROACH` until then and `DELVE` after. `pullOutPoint()`
+   is the landing in the approach and the entry in the delve, with its
+   extraction radius. `RuinsObjectiveFacts` gives the company the phase, the
+   pull-out point and each entrance (apron cell, taken, entry, hold progress);
+   the occupant sees none of it. Interim: until the ground publishes each
+   entrance's apron, `RuinsGroundLayout.apronCell` takes the walkable cell
+   outside the interior's footprint nearest the entrance.
 10. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
     pulling out. The family's Retreat becomes **Pull out**: a confirmed
     retreat in a Ruins battle always resolves as pulled out, in either phase
@@ -173,6 +185,18 @@ story's battle plays, it lifts the fork's development-only gate
     those circles. The fork's commit path reads pulled out as it reads lost for
     the vault (nothing salvaged, site unexplored). Unit-test the resolution
     and which circles count in phase A and phase B.
+
+    *Built.* `RuinsPullOut.resolve` is the rule: won when the haul boards,
+    pulled out on any confirmed retreat, lost otherwise. `MissionOutcome.pulledOut`
+    carries it: `LootGenerator` banks the field finds, Results reads **Pulled
+    out** and lists them as coming home, `RuinsExpeditionLedger` records
+    `PULLED_OUT` and `MarineRuinsCMD` commits it as it does a loss for the
+    vault, with its own line. `BattleSimulation.withdrawalPads` adds the
+    pull-out point (`RuinsVaultObjective.pullOutPointCellX/Y`) and every held
+    lift point to the landing's circles, for the casualty roll and the circles
+    drawn. In a Ruins battle Retreat reads Pull out and its confirmation lists
+    the banked finds (`RuinsPullOutWording`). Until slice 9 lands, the pull-out
+    point is the landing. Not yet seen in a played battle.
 11. **What the site remembers.** The finds recovered at a won or pulled-out
     commit are written once to the site's market as a set of find ids (Law 6).
     A later expedition's placement leaves them out; the occupant, works and

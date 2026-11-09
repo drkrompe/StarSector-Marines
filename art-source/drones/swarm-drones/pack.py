@@ -1,4 +1,4 @@
-"""Cuts the painted swarm-drone and cradle sheets into the sprites the game draws (`derelict-drone-flocks.md`, slice 7).
+"""Cuts the painted swarm-drone and cradle sheets into the sprites the game draws (`air-nouns.md`, Flocks).
 
     python pack.py --drone disc --cradle rack                      # the picked designs, into mod/
     python pack.py --drone quad --cradle silo --root <overlay dir>  # a look candidate, outside mod/

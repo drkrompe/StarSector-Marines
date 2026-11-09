@@ -49,6 +49,11 @@ final class BattleRetreatOverlay {
                 Strings.get("battleRetreatConfirmAction")));
     }
 
+    /** The mission's own wording for leaving the battle, or null for the ordinary Retreat. */
+    void wording(BattleRetreatOverlayModel.Wording wording) {
+        model.wording(wording);
+    }
+
     /** {@code centreX/Y} is where the Victory/Defeat banner is centred: the end panel hangs below it. */
     void attach(PositionAPI nextPosition, float nextCentreX, float nextCentreY,
                 BattleRetreatOverlayModel.Phase phase, BattleRetreatOverlayModel.RetryOffer offer) {

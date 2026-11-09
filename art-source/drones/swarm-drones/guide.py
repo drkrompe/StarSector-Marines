@@ -1,4 +1,4 @@
-"""Deterministic geometry guide for the derelict swarm drone's look candidates (`derelict-drone-flocks.md`, slice 7).
+"""Deterministic geometry guide for the derelict swarm drone's look candidates (`air-nouns.md`, Flocks).
 
 Writes swarm-guide.png beside this script: a 1024x1024 sheet of four 512x512 panels, each one candidate design of the
 same small expendable flier, every drone facing LEFT (nose to -x) in strict overhead orthographic, centred on its

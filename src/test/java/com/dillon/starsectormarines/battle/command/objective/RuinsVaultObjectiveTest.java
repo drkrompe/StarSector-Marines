@@ -104,6 +104,51 @@ class RuinsVaultObjectiveTest {
         }
     }
 
+    /** An entrance of the interior, its apron at (16, 16). */
+    private static final LiftPoint ENTRANCE = new LiftPoint("Entrance", LiftPoint.Kind.ENTRANCE,
+            new int[]{10, 10, 12, 12, 14, 14, 16, 16});
+
+    @Test
+    void takingAnEntranceStartsTheDelveAndMovesThePullOutPointToIt() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsVaultObjective vault = vault(sim, 100f, DT, List.of(LANDING, ENTRANCE));
+            assertEquals(RuinsVaultObjective.RuinsPhase.APPROACH, vault.ruinsPhase());
+            assertEquals(0, vault.pullOutPoint().liftPoint(), "the approach pulls out from the landing");
+            assertFalse(vault.liftPointAvailable(1), "an untaken entrance is no lift point");
+
+            sim.spawn(new EntitySpec("pointman", Faction.MARINE, UnitType.MARINE, 16, 16));
+            holdFor(sim, vault, RuinsVaultObjective.COURT_HOLD_SECONDS);
+
+            assertEquals(RuinsVaultObjective.RuinsPhase.DELVE, vault.ruinsPhase());
+            assertEquals(1, vault.entry());
+            assertEquals(1, vault.pullOutPoint().liftPoint(), "the delve pulls out from the entry");
+            assertEquals(16, vault.pullOutPoint().cellX());
+            assertTrue(vault.liftPointAvailable(1), "a held entrance is a lift point");
+        }
+    }
+
+    @Test
+    void nothingRetakesTheEntryOnceTheCompanyHasTakenIt() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsVaultObjective vault = vault(sim, 100f, DT, List.of(LANDING, ENTRANCE));
+            long pointman = sim.spawn(new EntitySpec("pointman", Faction.MARINE, UnitType.MARINE, 16, 16));
+            holdFor(sim, vault, RuinsVaultObjective.COURT_HOLD_SECONDS);
+            sim.world().setCellPos(pointman, 2, 2);
+            sim.spawn(new EntitySpec("scavenger", Faction.DEFENDER, UnitType.MILITIA, 16, 16));
+
+            holdFor(sim, vault, RuinsVaultObjective.COURT_HOLD_SECONDS);
+
+            assertEquals(1, vault.pullOutPoint().liftPoint(), "the entry stays the pull-out point");
+            assertEquals(RuinsVaultObjective.RuinsPhase.DELVE, vault.ruinsPhase());
+            assertTrue(vault.liftPointAvailable(1), "a hostile on an empty apron does not retake the entry");
+        }
+    }
+
+    /** Ticks the vault for at least {@code seconds}. */
+    private static void holdFor(BattleSimulation sim, RuinsVaultObjective vault, float seconds) {
+        for (int i = 0; i <= Math.ceil(seconds / DT); i++) vault.tick(sim);
+    }
+
     /** Keeps the escort on the haul until it reaches its lift point, then holds there until it boards. */
     private static void walkTheHaulHome(BattleSimulation sim, RuinsVaultObjective vault, long marine) {
         while (!vault.isComplete() && !vault.isFailed()) {

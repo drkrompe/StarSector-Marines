@@ -1,4 +1,4 @@
-"""Deterministic, original swarm-whine sound design for derelict flocks (`derelict-drone-flocks.md`, slice 7).
+"""Deterministic, original swarm-whine sound design for derelict flocks (`air-nouns.md`, Flocks).
 
     python generate.py
 

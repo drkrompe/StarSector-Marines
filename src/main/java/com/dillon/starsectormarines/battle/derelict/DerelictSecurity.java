@@ -31,7 +31,7 @@ import java.util.Set;
  * ground between the vault and the way out, its walkers posted in them by the grade's strength
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
  * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
- * up from its open-sky home (`derelict-drone-flocks.md`, which stands its cradle) and stands its node
+ * up from its open-sky home (`air-nouns.md`, Flocks, which stands its cradle there) and stands its node
  * ({@link DerelictNode}), its repair drone ({@link RepairDrone}) and its folded posts ({@link DerelictPost}).
  */
 public final class DerelictSecurity {
@@ -365,7 +365,7 @@ public final class DerelictSecurity {
 
     /**
      * Where a zone's flock is homed: its node, or where the node is under a roof, the first route cell from the node
-     * toward the landing that is open to the sky. A flock never enters a roofed cell (`derelict-drone-flocks.md`), so
+     * toward the landing that is open to the sky. A flock never enters a roofed cell (`air-nouns.md`, Flocks), so
      * an interior zone's flock keeps its doorway.
      */
     static int[] openSkyHome(int[] route, ZonePlan plan, Roofed roofed) {

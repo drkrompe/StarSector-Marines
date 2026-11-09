@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -34,5 +36,32 @@ class FlockSystemTest {
         assertEquals(14, cells.size(), "the yard beyond the alley gives the rest of the cells");
         assertEquals(0, cells.get(0)[0]);
         assertEquals(0, cells.get(0)[1]);
+    }
+
+    @Test
+    void aLowFlierCrossesLowCoverButNeverAWallATreeOrARoof() {
+        NavigationGrid grid = new NavigationGrid(8, 1);
+        CellTopology topology = new CellTopology(8, 1);
+        for (int x = 0; x < 8; x++) {
+            grid.setWalkableFloor(x, 0);
+            topology.setGroundKind(x, 0, CellTopology.GroundKind.DIRT);
+        }
+        grid.setWalkable(1, 0, false);                                   // sandbags: closed to walking, nothing else
+        grid.setWalkable(2, 0, false);
+        topology.setWall(2, 0, true);                                    // a wall
+        grid.setWalkable(3, 0, false);
+        grid.setTag(3, 0, NavigationGrid.CellTag.NATURAL_SOLID, true);   // a tree
+        topology.setBuildingId(4, 0, 7);                                 // under an intact roof
+        grid.setWalkable(5, 0, false);
+        topology.setGroundKind(5, 0, CellTopology.GroundKind.VOID);      // off the map's ground
+        FlockField.Open open = FlockSystem.open(grid, topology);
+        assertTrue(open.open(0, 0), "open ground");
+        assertTrue(open.open(1, 0), "low cover is flown over");
+        assertFalse(open.open(2, 0), "a wall is not");
+        assertFalse(open.open(3, 0), "a tree is not");
+        assertFalse(open.open(4, 0), "a roof is not");
+        assertFalse(open.open(5, 0), "the void is not");
+        assertFalse(FlockSystem.ground(grid, open).open(1, 0), "a cradle never stands on the low cover");
+        assertTrue(FlockSystem.ground(grid, open).open(0, 0));
     }
 }

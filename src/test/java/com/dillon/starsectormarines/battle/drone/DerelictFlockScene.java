@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A derelict flock of sixteen swarm drones ({@link Flock}), three loops (`derelict-drone-flocks.md`).
+ * A derelict flock of sixteen swarm drones ({@link Flock}), three loops (`air-nouns.md`, Flocks).
  *
  * <p>{@code split}: the flock probes a route straight through a roofed building; its members go round it by their own
  * sides and re-form beyond it. {@code strike-open}: it strikes a fire team of four riflemen standing in the open,
@@ -30,7 +30,8 @@ import java.util.Set;
  * behind a partition that hides them from it; the flock holds at the door, the threshold of the team's way out, and
  * never comes in.
  *
- * <p>{@code rebuild}: a flock cut to half strength goes home and its cradle rebuilds it, a drone at a time;
+ * <p>{@code rebuild}: a flock cut to half strength goes home, docks in its cradle, and its cradle rebuilds it aboard,
+ * a drone at a time;
  * {@code rebuild-no-cradle} is the control with the cradle destroyed.
  *
  * <p>Each verdict is the mechanism: no member ever in a closed cell, members on both sides of the building at once,
@@ -205,27 +206,32 @@ public final class DerelictFlockScene implements BehaviorScene {
         if (!cradle) sim.applyExternalDamage(flock.cradle(), 1.0e6f, 1.0e6f);
         int[] lowest = {Integer.MAX_VALUE};
         int[] homeTick = {-1};
+        int[] dockedTick = {-1};
         SceneRun.of(world).observe((s, tick) -> {
                     if (tick == 240) flock.returnHome();
-                    lowest[0] = Math.min(lowest[0], flock.size());
+                    lowest[0] = Math.min(lowest[0], flock.size() + flock.aboard());
+                    if (dockedTick[0] < 0 && flock.docked()) dockedTick[0] = tick;
                     if (homeTick[0] < 0 && tick > 240 && Math.hypot(flock.anchorX() - flock.homeX(),
                             flock.anchorY() - flock.homeY()) <= FlockCradle.HOME_CELLS) homeTick[0] = tick;
                 })
                 .frames(frames, loop, frameEvery, tick -> loop + " / tick " + tick + " / " + flock.task() + ", "
-                        + flock.size() + " of " + flock.strength())
+                        + flock.size() + " up, " + flock.aboard() + " aboard of " + flock.strength())
                 .run(REBUILD_TICKS);
         sim.close();
-        int rebuilt = flock.size() - lowest[0];
+        int rebuilt = flock.size() + flock.aboard() - lowest[0];
         List<Verdict> v = new ArrayList<>();
         if (cradle) {
+            v.add(Verdict.of("docks-at-home", dockedTick[0] > 0,
+                    "every drone aboard the cradle at tick " + dockedTick[0]));
             v.add(Verdict.of("rebuilds-at-home", homeTick[0] > 0 && rebuilt >= 2,
-                    rebuilt + " drones rebuilt after the flock came home at tick " + homeTick[0]));
+                    rebuilt + " drones rebuilt aboard after the flock came home at tick " + homeTick[0]));
         } else {
             v.add(Verdict.of("no-cradle-no-rebuild", rebuilt == 0, rebuilt + " drones rebuilt with the cradle down"));
         }
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("lowest", lowest[0]);
-        m.put("final", flock.size());
+        m.put("final", flock.size() + flock.aboard());
+        m.put("dockedTick", dockedTick[0]);
         m.put("homeTick", homeTick[0]);
         return new SceneReport(id(), loop, REBUILD_TICKS, v, m);
     }
