@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelveStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsKeys;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsLandingStage;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsRoofStage;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -514,6 +515,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new RuinsDelveStage(),                      // landing, layers, rooms, courts, works, vault
                 new TacticalLinkStage(),
                 new FinalizeStage(),
+                new RuinsRoofStage(),                       // one roof over the interior's solid hull
                 new DoorwayClearanceStage(),
                 new TacticalRegionStage(),
                 new SpawnAnchorStage(),
