@@ -336,6 +336,7 @@ public final class RuinsWorks {
     private static void loud(BattleSimulation sim, int x, int y) {
         if (sim.ruinsSleepers() != null) sim.ruinsSleepers().loud(x + 0.5f, y + 0.5f);
         if (sim.derelictSecurity() != null) sim.derelictSecurity().network().loud(x, y, sim.getSimTickIndex());
+        if (sim.ruinsPressure() != null) sim.ruinsPressure().loud(RuinsPressure.HALL_RESTART);
     }
 
     private static float required(String key) {
