@@ -20,7 +20,8 @@ import java.util.List;
  * @param eyeMeters        how high above the surface the camera looks down from, in metres, at every zoom: higher
  *                         flattens the drop (a long lens), lower deepens it (a wide one)
  * @param craft            sprite paths of the hulls that fly in and out of the structure's bays, cross the
- *                         skyways below and stand parked on its terraces; empty for none
+ *                         skyways below and stand parked on its terraces, the first two the common ones that
+ *                         fly most of the traffic; empty for none
  * @param craftMetersPerPx how many metres one pixel of a hull's sprite spans below the surface: the battle's
  *                         own craft are drawn small to sit beside infantry, and the structure's traffic is
  *                         sized to the structure instead

@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops.battleview;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,5 +63,20 @@ class VoidBackdropTowersTest {
 
     private static int at(int x, int y) {
         return y * MW + x;
+    }
+
+    @Test
+    void towersOnARegularGridStillTakeEveryCornerRadius() {
+        Set<Integer> radii = new HashSet<>();
+        // Footprints starting on a 60-cell pitch in a mask 480 wide: the old sum fell on one radius for all.
+        for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) radii.add(VoidBackdropRenderSystem.roofRadius((y * 60) * 480 + x * 60));
+        assertEquals(VoidBackdropRenderSystem.ROOF_RADII.length, radii.size());
+    }
+
+    @Test
+    void mostTrafficFliesTheFirstTwoHulls() {
+        int common = 0;
+        for (int n = 0; n < 1000; n++) if (VoidBackdropRenderSystem.flyingHull(VoidTraffic.hash(n, 3), 7) < 2) common++;
+        assertTrue(common > 750 && common < 900, common + " of 1000 on the first two hulls");
     }
 }
