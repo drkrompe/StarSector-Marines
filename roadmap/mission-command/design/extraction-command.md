@@ -266,3 +266,13 @@ source-recovery branch without invented boarding state.
 `silent-colony-expedition-branches.md` own the open command work. The shipped
 Rescue migration is retained in `shipped.md`; live pressure tuning remains in
 `roadmap/campaign/living-world/stories/rescue-pressure-acceptance.md`.
+
+## Ruins Expedition
+
+Planned (`ruins-expedition.md`). A ruins expedition is a generic recovery: the
+vault is the source, the haul the abstract package, the first landing area the
+egress, and the ruins grade sets the breach time the vault must be held. It has
+no employer and no allies. Scavengers are the generic conventional defenders;
+the Rav are the swarm director under a ruins profile; derelict security is the
+security-network director, built for ruins in `derelict-security-network.md`,
+which Silent Colony may later adopt.

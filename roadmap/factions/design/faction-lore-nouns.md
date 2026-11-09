@@ -20,7 +20,8 @@ faction-shaped art and sound are drawn and voiced in.
 origins, credible circulation, and deliberate faction absences.
 
 The guide catalog covers the human factions most likely to own a market, hire the
-player, or field ground forces, plus Remnants as a distinct non-human adversary and the Colony Breach swarm, a
+player, or field ground forces, plus Remnants as a distinct non-human adversary, derelict security as the
+automated occupant of ruins, and the Colony Breach swarm, a
 mod-invented biological weapon with no vanilla identity.
 Lion's Guard is treated inside the Sindrian Diktat guide because it is an elite
 institution of that polity rather than a general fallback faction.
@@ -59,6 +60,7 @@ inventing a definitive answer.
 | `pirates` | `pirates-lore-guide.md` |
 | `independent`, `mercenary` | `independents-lore-guide.md` |
 | `remnant` | `remnants-lore-guide.md` |
+| `derelict` (ground presence is mod direction) | `derelict-lore-guide.md` |
 | none (mod-invented; the Rav Bloom, Colony Breach) | `swarm-lore-guide.md` |
 
 Unknown or modded factions use the Independent gameplay fallback unless merged

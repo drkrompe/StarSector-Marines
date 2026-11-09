@@ -40,16 +40,13 @@ fork and commit path can ship before ruins mapgen exists.
    `PostSalvagePerform` run as vanilla's and the site is marked explored. A
    loss or withdrawal returns to the planet menu with the site unexplored.
    Backing out of the briefing returns to the fork.
-3. **Stand-in battle.** A recovery mission on an existing abandoned-looking map:
-   land, reach and hold the vault, lift out. Field caches settle as field finds.
-   The occupant is scavengers from an existing pirate roster, sized by ruins
-   grade.
-4. **Ruins ground.** A ruined-settlement place for mapgen
-   (`SettlementLink.NONE`), its size and depth set by grade. It is a mapgen
-   story of its own when this slice is reached.
-5. **Occupants.** Seeded occupant per site: none, scavengers, automated
-   security, Rav on a reservoir world. The briefing shows what the survey
-   suggests.
+3. **Stand-in battle.** The Ruins Expedition mission on an existing map against
+   scavengers sized by grade: `ruins-expedition-battle.md`.
+4. **Ruins ground.** The ruined-settlement delve for mapgen
+   (`SettlementLink.NONE`): `ruins-ground.md`.
+5. **Occupants.** The seeded occupant per site and its briefing line:
+   `ruins-occupants.md`, with derelict security in
+   `derelict-security-network.md`.
 6. **Live pass.** In the game, on each grade: standard path unchanged; won
    expedition shows vanilla's loot and marks the site explored; lost one leaves
    it unexplored; a hostile fleet nearby still disables the option; derelict
