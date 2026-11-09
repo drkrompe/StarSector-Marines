@@ -23,6 +23,14 @@ package com.dillon.starsectormarines.battle.turret;
  *   round, shield up or down, and holds fire once they pass its high mark until they bleed down to its low one.</li>
  * </ul>
  *
+ * <p><b>Pooled.</b> A mech's shield ({@link #pooled}) has no capacitors of its own: it runs on the mech's one flux
+ * pool, which its guns fire from too ({@link FluxPool}, {@code MechFlux}). A blocked round and the upkeep
+ * {@link FluxPool#charge charge}
+ * the pool, which sheds flux at its own rate; filling it overloads the mech, shield and guns together, for
+ * {@link FluxShieldSpec#overloadSeconds}. The shield cannot be held while the guns' heat has the pool venting: it
+ * folds away, and the mech stands open until the vent is done. The spec's capacity, dissipation, per-round cost and
+ * gun draw are not read.
+ *
  * <p>Bearings are degrees in map space ({@code atan2(dy, dx)}). Not thread-safe beyond this: the serial passes
  * tick, block and read it; the gun's own update may call {@link #noteRound} for itself.
  */
@@ -46,10 +54,23 @@ public final class FluxShield {
     private final float[] hitWeight = new float[HIT_MEMORY];
     private int hitCount;
     private boolean gunHeld;
+    /** The mech's pool this shield runs on, or null for a shield with capacitors of its own. */
+    private final FluxPool pool;
 
     public FluxShield(FluxShieldSpec spec, float facingDegrees) {
+        this(spec, facingDegrees, null);
+    }
+
+    private FluxShield(FluxShieldSpec spec, float facingDegrees, FluxPool pool) {
         this.spec = spec;
         this.facingDegrees = facingDegrees;
+        this.pool = pool;
+    }
+
+    /** A shield of {@code spec} with no capacitors of its own, run on a mech's flux {@code pool}. */
+    public static FluxShield pooled(FluxShieldSpec spec, float facingDegrees, FluxPool pool) {
+        if (pool == null) throw new IllegalArgumentException("A pooled shield needs its pool");
+        return new FluxShield(spec, facingDegrees, pool);
     }
 
     /**
@@ -67,6 +88,10 @@ public final class FluxShield {
             facingDegrees = turnToward(facingDegrees, threatBearing, spec.turnDegPerSecond() * dt);
         } else {
             sinceThreat += dt;
+        }
+        if (pool != null) {
+            tickPooled(dt);
+            return;
         }
         if (overloadLeft > 0f) {
             overloadLeft = Math.max(0f, overloadLeft - dt);
@@ -89,9 +114,21 @@ public final class FluxShield {
         }
     }
 
+    /** The pooled shield's tick: the pool vents and overloads itself; this raises, lowers and pays upkeep. */
+    private void tickPooled(float dt) {
+        if (pool.overloaded()) {
+            extent = 0f;
+            return;
+        }
+        boolean wantUp = sinceThreat <= spec.lingerSeconds() && !pool.venting();
+        if (wantUp) extent = Math.min(1f, extent + dt / spec.raiseSeconds());
+        else extent = Math.max(0f, extent - dt / spec.lowerSeconds());
+        if (extent > 0f && pool.charge(spec.upkeepPerSecond() * dt)) overload();
+    }
+
     /** Whether a round arriving on {@code bearing} from the gun meets the shield. */
     public boolean covers(float bearing) {
-        if (overloadLeft > 0f || extent <= 0f) return false;
+        if (overloaded() || extent <= 0f) return false;
         return Math.abs(angleBetween(bearing, facingDegrees)) <= halfArcDegrees();
     }
 
@@ -102,8 +139,12 @@ public final class FluxShield {
     public boolean absorb(float bearing, float damage) {
         if (!covers(bearing)) return false;
         float added = Math.max(0f, damage) * spec.fluxPerDamage();
+        rememberHit(bearing, Math.min(1f, 0.35f + added / (0.08f * capacity())));
+        if (pool != null) {
+            if (pool.charge(added)) overload();
+            return true;
+        }
         flux += added;
-        rememberHit(bearing, Math.min(1f, 0.35f + added / (0.08f * spec.fluxCapacity())));
         if (flux >= spec.fluxCapacity()) overload();
         return true;
     }
@@ -113,7 +154,7 @@ public final class FluxShield {
      * energy gun's draw ({@link FluxShieldSpec#gunDraw}) is charged on top, shield up or down.
      */
     public void noteRound() {
-        if (overloadLeft > 0f) return;
+        if (overloadLeft > 0f || pool != null) return;
         if (extent > 0f) pendingRoundFlux += spec.fluxPerRound();
         if (spec.gunDraw() != null) pendingRoundFlux += spec.gunDraw().perRound();
     }
@@ -123,7 +164,7 @@ public final class FluxShield {
      * guns and shield draw on one pool. Nothing is charged while overloaded, when the guns are silent.
      */
     public void noteRound(float flux) {
-        if (overloadLeft > 0f || !(flux > 0f)) return;
+        if (overloadLeft > 0f || pool != null || !(flux > 0f)) return;
         pendingRoundFlux += flux;
     }
 
@@ -133,20 +174,29 @@ public final class FluxShield {
     }
 
     private void overload() {
-        flux = spec.fluxCapacity();
         extent = 0f;
-        overloadLeft = spec.overloadSeconds();
         sinceBreak = 0f;
+        if (pool != null) {
+            pool.overload(spec.overloadSeconds());
+            return;
+        }
+        flux = spec.fluxCapacity();
+        overloadLeft = spec.overloadSeconds();
     }
 
     /** Whether the shield is overloaded: down, and its gun silent. */
     public boolean overloaded() {
-        return overloadLeft > 0f;
+        return pool != null ? pool.overloaded() : overloadLeft > 0f;
     }
 
     /** Share of the overload still to run, {@code [0, 1]}; zero when not overloaded. */
     public float overloadShare() {
-        return overloadLeft / spec.overloadSeconds();
+        return pool != null ? pool.overloadShare() : overloadLeft / spec.overloadSeconds();
+    }
+
+    /** What the capacitors hold when full: the pool's capacity for a pooled shield. */
+    private float capacity() {
+        return pool != null ? pool.capacity() : spec.fluxCapacity();
     }
 
     /** How far the arc has grown in, {@code [0, 1]}: zero folded away, one fully raised. */
@@ -161,11 +211,11 @@ public final class FluxShield {
 
     /** Share of the capacitors filled, {@code [0, 1]}. */
     public float fluxShare() {
-        return Math.min(1f, flux / spec.fluxCapacity());
+        return Math.min(1f, flux() / capacity());
     }
 
     public float flux() {
-        return flux;
+        return pool != null ? pool.value() : flux;
     }
 
     /** The bearing the arc faces, in degrees. */

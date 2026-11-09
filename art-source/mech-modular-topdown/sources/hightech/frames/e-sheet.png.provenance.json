@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c29e-77ae-7a91-a660-95e58345e275",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c29e-77ae-7a91-a660-95e58345e275\\exec-cade8913-182f-474b-b08e-5ed8033b1e66.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\hightech\\frames\\e-sheet.png",
+    "sha256": "0658e10ec67f626ddefe2acb47ad29e06f6949a1cb328b9f64f6e891090cd4f4",
+    "dimensions": [
+      1983,
+      793
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\hightech\\frames\\e.prompt.txt",
+  "promptSha256": "28edabedf4ea32d9a685f40ca52fcf007a901c1d574270ba4a641e6dca815545",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/style only; not layout\n\nAsset type: concept sheet for a top-down game: the three machines of a new Tri-Tachyon HIGH-TECH combat walker row, light, medium and heavy, drawn whole (body, locomotion and weapons together) in the design language of Starsector's high-tech warships.\n\nThe row is SKIMMERS, with no legs at all. Each machine floats a hand's breadth off the ground on grav-lift drives: round recessed lift rings sunk into the underside edges, seen from above as glowing blue rings peeking out past the hull rim, plus a ribbed thruster bank at the stern. The hulls are low, flat and streamlined like the Tempest seen from above. LIGHT: a slim dart, a single small energy gun in a round socket at the nose and a shield emitter bulb just behind it. MEDIUM: a broad manta-ray shape with two round drone cradles (empty docking rings) sunk into its wings and a short energy gun at the nose. HEAVY: a long, heavy hull with a big lance laser built into its spine, the barrel running down the centre line past the nose, and a large shield emitter bulb at the prow.\n\nLayout: one wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale so the heavy is clearly the biggest (about twice the light's length). Every machine faces the TOP edge of the sheet. Each machine is symmetric about its own vertical centre line.\n\nThe reference image is material and style reference only, never layout: Starsector's high-tech hulls, the Tempest, Aurora, Medusa and Paragon. Match their finish: pale steel-blue and blue-grey armour shells with cool blue shading, rounded, bulging and layered like carapace, set over dark, busy, finely detailed gunmetal machinery (ribbed conduits, actuators, heat-sink fins, small blue-lit ports) showing in the gaps; round recessed mounts sunk into the shells; small blue glow slots; a little wear and grime in the recesses; light from the upper left. These are compact ground machines about the size of a tank, not starships: no hangar bays, no bridge towers, no long ship hulls.\n\nStrict 90-degree zenith orthographic top-down view of the machines' top surfaces. True transparent background, including all negative space between legs and parts; no ground, shadow slab, cast shadow, halo, border, text, labels or logos. Paint at full resolution as crisp, detailed game-sprite concept art, not pixel art.\n\nAvoid: a two-legged walker with a broad torso and box missile racks on its shoulders, clean white plastic, flat untextured panels, long glowing light strips, tan or olive paint, a cockpit canopy, a pilot figure, perspective, side view, isometric view, cropped machines, more or fewer than three machines, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent concept sheet with the three skimmers, using the reference for material and finish only."
+  ],
+  "usage": {
+    "input_tokens": 41467,
+    "cached_input_tokens": 36224,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 762,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.5
+}
