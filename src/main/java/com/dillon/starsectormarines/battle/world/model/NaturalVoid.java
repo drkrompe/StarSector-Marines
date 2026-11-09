@@ -17,9 +17,11 @@ import java.util.List;
  * @param seed           the wander of the edges and ledges, so two drops never break alike
  * @param belts          ore conveyors on gantries out of an open pit, each from its floor up over the rim to the
  *                       works it feeds; empty for every other drop
+ * @param marks          where the drop deepens and shallows along its length; empty for a drop as deep as its
+ *                       {@code steps} everywhere. An open pit's benches are cut level, and it ignores them
  */
 public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture,
-                          float wallTileMeters, int seed, List<Belt> belts) {
+                          float wallTileMeters, int seed, List<Belt> belts, List<DepthMark> marks) {
 
     /** A natural void style: what the walls and the floor are, and where a generator lays it. */
     public enum Style {
@@ -49,18 +51,42 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
     /** A ledge: its depth below the surface, and how far into the void from the edge it begins. */
     public record Step(float depthMeters, float insetCells) { }
 
+    /**
+     * How deep the drop is at one place along it: at map cell {@code (x, y)} its floor lies {@code floorMeters} down,
+     * and every ledge above stands at the same share of its own depth there as on the {@code steps}. Between marks
+     * the depth blends smoothly, each mark weighing most near itself; a single mark sets the whole drop's depth.
+     * Only the depth changes: where the lip, the ledges and the floor lie across the drop is the steps' insets.
+     */
+    public record DepthMark(float x, float y, float floorMeters) {
+        public DepthMark {
+            if (!(floorMeters > 0f)) throw new IllegalArgumentException("a drop's floor lies below its surface");
+        }
+    }
+
+    /** A drop with conveyors, as deep as its steps everywhere. */
+    public NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture, float wallTileMeters,
+                       int seed, List<Belt> belts) {
+        this(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, List.of());
+    }
+
     /** A drop with no conveyors. */
     public NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture, float wallTileMeters,
                        int seed) {
-        this(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, List.of());
+        this(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, List.of(), List.of());
+    }
+
+    /** This drop deepening and shallowing along its length as {@code marks} say. */
+    public NaturalVoid withMarks(List<DepthMark> marks) {
+        return new NaturalVoid(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, marks);
     }
 
     public NaturalVoid {
         steps = List.copyOf(steps);
         belts = belts == null ? List.of() : List.copyOf(belts);
+        marks = marks == null ? List.of() : List.copyOf(marks);
         if (steps.isEmpty()) throw new IllegalArgumentException("a natural void needs at least its floor");
     }
 
-    /** How deep the floor lies, in metres below the surface. */
+    /** How deep the floor lies on the {@code steps}, in metres below the surface: everywhere, without marks. */
     public float floorMeters() { return steps.get(steps.size() - 1).depthMeters(); }
 }
