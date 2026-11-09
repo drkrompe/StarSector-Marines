@@ -126,8 +126,8 @@ story's battle plays, it lifts the fork's development-only gate
 6. **Deeper caches.** The grade's cache count (2 to 5) on the existing
    field-cache placement, weighted to the far half of the route.
 7. **Briefing.** The assessment, the grade's strength band and the scavengers'
-   readings pool (`ruins-expedition.md`, Briefing); the other pools are
-   `ruins-occupants.md`'s.
+   readings pool (`ruins-expedition.md`, Briefing); the other occupants' pools
+   are in the same section.
 
    *Slices 6 and 7 built.* A Ruins battle hands the field-cache placement a
    `SalvagePlacement.Delve`: the grade's `RuinsDelve.fieldCaches` and the vault
