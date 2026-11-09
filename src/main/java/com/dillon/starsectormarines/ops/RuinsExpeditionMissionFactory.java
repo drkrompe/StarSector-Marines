@@ -76,22 +76,25 @@ public final class RuinsExpeditionMissionFactory {
     }
 
     /**
-     * The faction the battle's defenders are drawn from. The scavengers and derelict security play their own sides
-     * ({@code BattleSetup.createRuins}); every other occupant's battle is the scavengers' stand-in, so it fields
-     * pirates too. When an occupant's own side plugs in there, this returns its {@link RuinsOccupant#factionId}.
+     * Whether the occupant's own side plays in battle ({@code BattleSetup.createRuins}): the scavengers and derelict
+     * security do. Every other occupant's battle is the scavengers' stand-in, so its defenders and its survey are the
+     * scavengers' too; when its side plugs in there, it joins this list and both follow.
      */
+    static boolean fieldsOwnSide(RuinsOccupant occupant) {
+        return occupant == RuinsOccupant.SCAVENGERS || occupant.isDerelict();
+    }
+
+    /** The faction the battle's defenders are drawn from. */
     static String defenderFactionId(RuinsOccupant occupant) {
-        return occupant.isDerelict() ? occupant.factionId : RuinsOccupant.SCAVENGERS.factionId;
+        return fieldsOwnSide(occupant) ? occupant.factionId : RuinsOccupant.SCAVENGERS.factionId;
     }
 
     /**
-     * The readings the briefing draws from. An occupant whose own side does not play in battle yet reads as the
-     * scavengers it stands in for ({@link #defenderFactionId}), so the survey stays true of the battle the company
-     * meets; when that occupant's side plugs in, its own pool does too ({@link RuinsSurvey#poolFor}).
+     * The readings the briefing draws from: the occupant's own ({@link RuinsSurvey#poolFor}), or the scavengers' while
+     * they stand in for it, so the survey stays true of the battle the company meets.
      */
     static RuinsSurvey.Pool surveyPool(RuinsOccupant occupant) {
-        RuinsSurvey.Pool own = RuinsSurvey.poolFor(occupant);
-        return own != null ? own : RuinsSurvey.SCAVENGERS;
+        return RuinsSurvey.poolFor(fieldsOwnSide(occupant) ? occupant : RuinsOccupant.SCAVENGERS);
     }
 
     /** Larger ruins hold a stronger occupant, no lower than the family's own floor. */
