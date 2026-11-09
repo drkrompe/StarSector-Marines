@@ -749,7 +749,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     }
 
     private LayeredMechAssets loadMech() throws IOException {
-        return loadMech(MECH_ROOT, MECH_ROOT + "foot.png");
+        return loadMech(MECH_ROOT, MECH_ROOT);
     }
 
     /**
@@ -758,24 +758,29 @@ final class HeadlessBattleSprites extends BattleSprites {
      */
     @Override public LayeredMechAssets layeredMechSprites(Faction side) {
         MechLivery livery = ReviewFactions.mechLivery(side);
+        return layeredMechSprites(livery != null ? livery : MechLivery.BASE);
+    }
+
+    /** One livery's set off the resource roots, loaded once; the base set for the base livery. */
+    @Override public LayeredMechAssets layeredMechSprites(MechLivery livery) {
         if (livery == null || livery == MechLivery.BASE) return mech;
         return mechLiveries.computeIfAbsent(livery, l -> {
             String root = MECH_ROOT + "factions/" + l.assetFolder() + "/";
             try {
-                return loadMech(root, l.ownsFoot() ? root + "foot.png" : MECH_ROOT + "foot.png");
+                return loadMech(root, l.ownsLegs() ? root : MECH_ROOT);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         });
     }
 
-    /** A mech set: chassis and weapons from {@code root}, the socketed variant, legs and flash shared. */
-    private LayeredMechAssets loadMech(String root, String foot) throws IOException {
+    /** A mech set: chassis and weapons from {@code root}, legs from {@code legs}, the socketed variant and flash shared. */
+    private LayeredMechAssets loadMech(String root, String legs) throws IOException {
         return new LayeredMechAssets(layer(root + "chassis.png"),
                 layer(MECH_ROOT + "chassis-socketed-variant.png"),
                 layer(root + "chassis-hound.png"),
                 layer(root + "chassis-warden.png"),
-                layer(foot), layer(MECH_ROOT + "thigh-bone.png"),
+                layer(legs + "foot.png"), layer(legs + "thigh-bone.png"),
                 layer(root + "chaingun-arm.png"),
                 layer(root + "hc-10.png"),
                 layer(root + "hc-20.png"), layer(root + "srm-rack.png"),
