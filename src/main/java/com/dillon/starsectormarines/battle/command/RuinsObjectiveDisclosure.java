@@ -54,8 +54,8 @@ public final class RuinsObjectiveDisclosure {
             if (point.landingArea()) approach = reversed(point.route());
             if (point.entrance()) {
                 entrances.add(new RuinsObjectiveFacts.Entrance(point.name(), i, vault.liftPointCellX(i),
-                        vault.liftPointCellY(i), vault.entranceTaken(i), vault.liftPointAvailable(i),
-                        vault.entry() == i, vault.apronHoldProgress(i), RuinsVaultObjective.COURT_HOLD_SECONDS));
+                        vault.liftPointCellY(i), vault.liftPointAvailable(i), vault.entry() == i,
+                        vault.courtHoldProgress(i), RuinsVaultObjective.COURT_HOLD_SECONDS));
             }
         }
         RuinsVaultObjective.PullOutPoint pullOut = vault.pullOutPoint();
@@ -72,7 +72,7 @@ public final class RuinsObjectiveDisclosure {
                 vault.alarmActive(), vault.alarmRaisedTick(), vault.controllingSquadId(), vault.escortPresent(),
                 vault.contested(), vault.isComplete(), vault.isFailed(), vault.failureReason(), found,
                 vault.ruinsPhase().name(), new RuinsObjectiveFacts.PullOut(pullOut.name(), pullOut.liftPoint(),
-                pullOut.cellX(), pullOut.cellY(), pullOut.radius(), pullOut.held()), entrances);
+                pullOut.cellX(), pullOut.cellY(), pullOut.radius()), entrances);
     }
 
     private static RuinsObjectiveFacts occupant(RuinsVaultObjective vault) {

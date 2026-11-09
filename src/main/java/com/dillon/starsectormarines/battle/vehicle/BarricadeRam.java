@@ -77,7 +77,8 @@ public final class BarricadeRam {
 
     /** {@link #rammable(NavigationGrid, CellTopology, DoodadService, int, int)} for a piece of at most {@code most}. */
     static boolean rammable(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y, int most) {
-        if (!grid.inBounds(x, y) || grid.isWalkable(x, y) || grid.hasTag(x, y, CellTag.WORKS)) return false;
+        if (!grid.inBounds(x, y) || grid.isWalkable(x, y) || grid.hasTag(x, y, CellTag.WORKS)
+                || grid.hasTag(x, y, CellTag.HARDENED)) return false;
         int structure = grid.getWallHp(x, y);
         return structure > 0 && structure <= most && doodads != null && doodads.barricadeAt(x, y, topology);
     }

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -17,15 +16,15 @@ import java.util.List;
  * unattended, abandoned if nobody escorts it for long. It boards at a lift point under the hold rule. These are
  * Extraction's own rules ({@link UncontestedHold}, {@link EscortedRoute}), shared rather than copied.
  *
- * <p>A lift point is the landing area, always, a landing court once the company has held it, or an entrance of the
- * interior while the company holds its apron. Until the haul leaves the vault, it is bound for the available lift
+ * <p>A lift point is the landing area, always, or a landing court or an entrance of the interior once the company has
+ * held it (an entrance is held on its apron); once held, it stays the company's. Until the haul leaves the vault, it is bound for the available lift
  * point with the shortest route; once it moves, it keeps that one.
  *
  * <p>The mission plays in two {@link RuinsPhase phases} ({@code ruins-expedition.md}, The entrance and the pull-out
  * point). In the {@link RuinsPhase#APPROACH} the company fights up to the interior; taking an entrance's apron
- * ({@link ApronHold}) makes it the <em>entry</em> and starts the {@link RuinsPhase#DELVE} for good. The
- * {@link #pullOutPoint() pull-out point} is the landing in the approach and the entry in the delve, held while the
- * company holds the entry's apron; the occupant can retake it, and the company take it back.
+ * makes it the <em>entry</em> and starts the {@link RuinsPhase#DELVE} for good. The {@link #pullOutPoint() pull-out
+ * point} is the landing in the approach and the entry in the delve. Nothing retakes an entrance: in the delve the
+ * occupant is inside, and the danger lies between the company and the entry.
  *
  * <p>Won when the haul boards. Lost when it is lost or abandoned; a wiped-out or withdrawn company loses through the
  * battle's ordinary defeat.
@@ -40,10 +39,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     public static final float BOARDING_SECONDS = ExtractionObjective.DEFAULT_BOARDING_DURATION;
     public static final float LOSS_SECONDS = ExtractionObjective.DEFAULT_LOSS_DURATION;
     public static final float ABANDONMENT_SECONDS = ExtractionObjective.DEFAULT_ABANDONMENT_DURATION;
-    /**
-     * How long the company holds a landing court before the boat may come down there; an entrance's apron is taken,
-     * and retaken, in the same time.
-     */
+    /** How long the company holds a landing court, or an entrance's apron, before it is the company's. */
     public static final float COURT_HOLD_SECONDS = 3f;
 
     /** The two phases of a ruins battle: outside up to the interior, then inside from the entry. */
@@ -59,16 +55,15 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
      *
      * @param liftPoint the index in {@link #liftPoints()}
      * @param radius    the extraction circle round {@code cellX, cellY}
-     * @param held      whether the company holds it now; the landing always, the entry until the occupant retakes it
      */
-    public record PullOutPoint(String name, int liftPoint, int cellX, int cellY, int radius, boolean held) { }
+    public record PullOutPoint(String name, int liftPoint, int cellX, int cellY, int radius) { }
 
     /**
      * A place the haul can board.
      *
      * @param name  what the map and rail call it
-     * @param kind  the landing area (a lift point from the start), a landing court (once held) or an entrance of the
-     *              interior (while its apron is held)
+     * @param kind  the landing area (a lift point from the start), a landing court or an entrance of the interior
+     *              (each once held, an entrance on its apron)
      * @param route the walkable route from the vault (its first cell) to this point (its last), as cell pairs; an
      *              entrance's route ends on its apron
      */
@@ -100,7 +95,6 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     private final List<LiftPoint> liftPoints;
     private final List<EscortedRoute> routes = new ArrayList<>();
     private final List<UncontestedHold> courts = new ArrayList<>();
-    private final List<ApronHold> aprons = new ArrayList<>();
     private final int landing;
     private final UncontestedHold breach;
     private final UncontestedHold boarding = new UncontestedHold(BOARDING_SECONDS);
@@ -108,7 +102,6 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     private int destination;
     private int entry = -1;
     private boolean powered;
-    private boolean sealForced;
     private boolean complete;
     private boolean failed;
     private Failure failure = Failure.NONE;
@@ -152,8 +145,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
         for (LiftPoint point : this.liftPoints) {
             routes.add(new EscortedRoute(point.route(), SECONDS_PER_ROUTE_CELL, LOSS_SECONDS, ABANDONMENT_SECONDS,
                     ESCORT_RADIUS, INTERDICTION_RADIUS));
-            courts.add(point.kind() == LiftPoint.Kind.COURT ? new UncontestedHold(COURT_HOLD_SECONDS) : null);
-            aprons.add(point.entrance() ? new ApronHold(COURT_HOLD_SECONDS) : null);
+            courts.add(point.landingArea() ? null : new UncontestedHold(COURT_HOLD_SECONDS));
         }
         int found = 0;
         while (!this.liftPoints.get(found).landingArea()) found++;
@@ -163,31 +155,15 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
 
-    /**
-     * Routes power to the vault's seal: the breach takes the powered time from now on, unless the seal was forced.
-     * Set by the site's works.
-     */
+    /** Routes power to the vault's seal: the breach takes the powered time from now on. Set by the site's works. */
     public void setVaultPowered(boolean powered) {
         this.powered = powered;
-        if (!breach.held()) breach.setDuration(powered && !sealForced ? poweredBreachSeconds : breachSeconds);
+        if (!breach.held()) breach.setDuration(powered ? poweredBreachSeconds : breachSeconds);
     }
-
-    /**
-     * The vault's seal was forced with a charge ({@code ruins-works.md}): the breach keeps the unpowered time for good,
-     * whatever power reaches the seal afterwards. Set by the site's works.
-     */
-    public void forceSeal() {
-        sealForced = true;
-        setVaultPowered(powered);
-    }
-
-    /** Whether the vault's seal was forced rather than powered open. */
-    public boolean sealForced() { return sealForced; }
 
     @Override
     public void tick(BattleView sim) {
         if (complete || failed) return;
-        tickAprons(sim);
         EscortedRoute haul = routes.get(destination);
         if (haul.index() == 0) {
             tickCourts(sim);
@@ -220,31 +196,16 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     }
 
     /**
-     * Entrances change hands on their aprons, all battle long: the first the company takes becomes the entry and
-     * starts the delve.
+     * Landing courts and entrances the company holds become lift points, its own for the rest of the battle. The first
+     * entrance taken is the entry and starts the delve.
      */
-    private void tickAprons(BattleView sim) {
-        for (int i = 0; i < liftPoints.size(); i++) {
-            ApronHold apron = aprons.get(i);
-            if (apron == null) continue;
-            EscortedRoute route = routes.get(i);
-            int x = route.endX();
-            int y = route.endY();
-            boolean settled = EscortPresence.nearestMarine(sim, x, y, LIFT_RADIUS, -1).present();
-            boolean company = EscortPresence.combatantPresent(sim, Faction.MARINE, x, y, LIFT_RADIUS, -1);
-            boolean hostile = EscortPresence.combatantPresent(sim, Faction.DEFENDER, x, y, LIFT_RADIUS, -1);
-            apron.tick(settled, company, hostile, BattleSimulation.TICK_DT);
-            if (apron.held() && entry < 0) entry = i;
-        }
-    }
-
-    /** Landing courts the company holds become lift points. */
     private void tickCourts(BattleView sim) {
         for (int i = 0; i < liftPoints.size(); i++) {
             UncontestedHold court = courts.get(i);
             if (court == null || court.held()) continue;
             EscortedRoute route = routes.get(i);
-            court.tick(sim, route.endX(), route.endY(), LIFT_RADIUS, -1);
+            boolean taken = court.tick(sim, route.endX(), route.endY(), LIFT_RADIUS, -1);
+            if (taken && entry < 0 && liftPoints.get(i).entrance()) entry = i;
         }
     }
 
@@ -260,9 +221,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     private boolean available(int liftPoint) {
         UncontestedHold court = courts.get(liftPoint);
-        if (court != null) return court.held();
-        ApronHold apron = aprons.get(liftPoint);
-        return apron == null || apron.held();
+        return court == null || court.held();
     }
 
     private void report(boolean contested, boolean escortPresent, int controllingSquadId) {
@@ -287,22 +246,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     public PullOutPoint pullOutPoint() {
         int point = entry >= 0 ? entry : landing;
         return new PullOutPoint(liftPoints.get(point).name(), point, liftPointCellX(point), liftPointCellY(point),
-                LIFT_RADIUS, available(point));
-    }
-
-    /** Whether the company has ever taken this entrance; false for a lift point that is no entrance. */
-    public boolean entranceTaken(int liftPoint) {
-        ApronHold apron = aprons.get(liftPoint);
-        return apron != null && apron.everTaken();
-    }
-
-    /**
-     * How far the side pressing an entrance's apron has got: the company while it does not hold it, the occupant
-     * while it does; 0 for a lift point that is no entrance.
-     */
-    public float apronHoldProgress(int liftPoint) {
-        ApronHold apron = aprons.get(liftPoint);
-        return apron == null ? 0f : apron.progress();
+                LIFT_RADIUS);
     }
 
     /** Whether the boat may come down at this lift point now. */
@@ -327,7 +271,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     /** The end cell of a lift point's route: where the boat comes down. */
     public int liftPointCellX(int liftPoint) { return routes.get(liftPoint).endX(); }
     public int liftPointCellY(int liftPoint) { return routes.get(liftPoint).endY(); }
-    /** How long the company has held an unopened landing court, or 0 for the landing area. */
+    /** How long the company has held an untaken landing court or entrance apron, or 0 for the landing area. */
     public float courtHoldProgress(int liftPoint) {
         UncontestedHold court = courts.get(liftPoint);
         return court == null ? 0f : court.progress();

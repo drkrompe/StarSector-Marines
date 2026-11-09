@@ -43,16 +43,6 @@ class RuinsVaultObjectiveTest {
     }
 
     @Test
-    void aForcedSealKeepsTheUnpoweredBreachTimeWhateverPowerFollows() {
-        try (BattleSimulation sim = simulation()) {
-            RuinsVaultObjective vault = vault(sim, DT * 20f, DT * 2f, List.of(LANDING));
-            vault.forceSeal();
-            vault.setVaultPowered(true);
-            assertEquals(DT * 20f, vault.breachDuration(), 1e-6f);
-        }
-    }
-
-    @Test
     void theHaulBoardsAtTheLandingAreaAndWins() {
         try (BattleSimulation sim = simulation()) {
             RuinsVaultObjective vault = vault(sim, DT, DT, List.of(LANDING, COURT));
@@ -124,7 +114,6 @@ class RuinsVaultObjectiveTest {
             RuinsVaultObjective vault = vault(sim, 100f, DT, List.of(LANDING, ENTRANCE));
             assertEquals(RuinsVaultObjective.RuinsPhase.APPROACH, vault.ruinsPhase());
             assertEquals(0, vault.pullOutPoint().liftPoint(), "the approach pulls out from the landing");
-            assertTrue(vault.pullOutPoint().held());
             assertFalse(vault.liftPointAvailable(1), "an untaken entrance is no lift point");
 
             sim.spawn(new EntitySpec("pointman", Faction.MARINE, UnitType.MARINE, 16, 16));
@@ -134,13 +123,12 @@ class RuinsVaultObjectiveTest {
             assertEquals(1, vault.entry());
             assertEquals(1, vault.pullOutPoint().liftPoint(), "the delve pulls out from the entry");
             assertEquals(16, vault.pullOutPoint().cellX());
-            assertTrue(vault.pullOutPoint().held());
             assertTrue(vault.liftPointAvailable(1), "a held entrance is a lift point");
         }
     }
 
     @Test
-    void theOccupantRetakesAnEmptyEntryAndTheDelveKeepsGoing() {
+    void nothingRetakesTheEntryOnceTheCompanyHasTakenIt() {
         try (BattleSimulation sim = simulation()) {
             RuinsVaultObjective vault = vault(sim, 100f, DT, List.of(LANDING, ENTRANCE));
             long pointman = sim.spawn(new EntitySpec("pointman", Faction.MARINE, UnitType.MARINE, 16, 16));
@@ -150,10 +138,9 @@ class RuinsVaultObjectiveTest {
 
             holdFor(sim, vault, RuinsVaultObjective.COURT_HOLD_SECONDS);
 
-            assertFalse(vault.pullOutPoint().held(), "the occupant holds the entry");
             assertEquals(1, vault.pullOutPoint().liftPoint(), "the entry stays the pull-out point");
-            assertEquals(RuinsVaultObjective.RuinsPhase.DELVE, vault.ruinsPhase(), "a lost entry is still the delve");
-            assertFalse(vault.liftPointAvailable(1));
+            assertEquals(RuinsVaultObjective.RuinsPhase.DELVE, vault.ruinsPhase());
+            assertTrue(vault.liftPointAvailable(1), "a hostile on an empty apron does not retake the entry");
         }
     }
 

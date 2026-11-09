@@ -63,24 +63,22 @@ public record RuinsObjectiveFacts(
      * Where the company pulls out from: the landing in the approach, the entry in the delve.
      *
      * @param liftPoint the index in {@code liftPoints}
-     * @param held      whether the company holds it now
+     * @param radius    its extraction circle
      */
-    public record PullOut(String name, int liftPoint, int cellX, int cellY, int radius, boolean held) { }
+    public record PullOut(String name, int liftPoint, int cellX, int cellY, int radius) { }
 
     /**
      * An entrance of the interior as the company sees it: the map shows the megastructure's outline and its entrances
      * from the start, never what is inside.
      *
      * @param liftPoint    the index in {@code liftPoints}
-     * @param cellX        its apron, where it is held
-     * @param taken        whether the company has ever taken it
-     * @param held         whether the company holds it now
+     * @param cellX        its apron, where it is taken
+     * @param taken        whether the company has taken it; once taken it stays the company's
      * @param entry        whether it is the entry, the first taken
-     * @param holdProgress how far the side pressing the apron has got: the company while not held, the occupant while
-     *                     held
+     * @param holdProgress how long the company has held the apron toward taking it
      */
-    public record Entrance(String name, int liftPoint, int cellX, int cellY, boolean taken, boolean held,
-                           boolean entry, float holdProgress, float holdDuration) { }
+    public record Entrance(String name, int liftPoint, int cellX, int cellY, boolean taken, boolean entry,
+                           float holdProgress, float holdDuration) { }
 
     /** A field cache the company has found and not yet secured. */
     public record Cache(String id, int cellX, int cellY) { }
