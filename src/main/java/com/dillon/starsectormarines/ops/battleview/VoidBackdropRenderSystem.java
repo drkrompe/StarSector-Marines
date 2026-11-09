@@ -70,6 +70,15 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     static final float SPAN_METERS = 2.5f;
     /** The least width of terrace a freighter is parked on, in metres. */
     static final float PARK_REACH = 20f;
+    /**
+     * The roof radius a structure's corners are rounded to, picked per structure: a square corner, or a round one
+     * of these metres. The terraces below round on the same centres, so each step is a ring of even width.
+     */
+    static final int[] ROOF_RADII = {0, 6, 10, 14};
+    /** Wall facets to a rounded corner's quarter turn. */
+    static final int CORNER_FACETS = 5;
+    /** Marker lights down a skyway's edges: their spacing in metres and how often they blink. */
+    static final float LANE_LIGHT_SPACING = 22f, LANE_LIGHT_HZ = .7f;
 
     private final BattleSprites sprites;
     private SunLight sun;
@@ -88,6 +97,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private final List<float[]> shadow = new ArrayList<>();
     /** Paths craft fly: {@code {count, speed, spacing, x0, y0, z0, x1, y1, z1, ...}}, looping from first to last. */
     private final List<float[]> routes = new ArrayList<>();
+    /** The skyways' marker lights: {@code {x, y, z, distance along the lane}}. */
+    private final List<float[]> laneLights = new ArrayList<>();
 
     // The frame being drawn.
     private DrawList out;
@@ -95,9 +106,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private VoidBackdrop backdrop;
     private float eye, cx, cy, alpha;
 
-    /** One thing drawn at one depth: a band of wall, a girder side, a roof or a freight bay. */
-    private record Item(float depth, int kind, Level level, float[] run, float z0, float z1, float[] mouth) {
-        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3;
+    /**
+     * One thing drawn at one depth: a band of wall, a girder side, a roof, a freight bay or a band of a rounded
+     * corner. {@code piece} is the bay or the corner; a corner's {@code run} is its chord, for culling and order.
+     */
+    private record Item(float depth, int kind, Level level, float[] run, float z0, float z1, float[] piece) {
+        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3, CORNER = 4;
     }
 
     /** Everything the structures draw, deepest first: the painter's order before the camera's far-first pass. */
@@ -117,8 +131,20 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         boolean span;
         /** Each edge run: {@code {x0, y0, x1, y1, normalX, normalY}} in cells along a cell boundary. */
         final List<float[]> runs = new ArrayList<>();
-        /** The footprint as rectangles in cells. */
+        /** The footprint as rectangles in cells, less its rounded corners' squares. */
         final List<float[]> roofs = new ArrayList<>();
+        /**
+         * Rounded corners: {@code {centreX, centreY, radius, hX, hY, vX, vY}}, the arc a quarter turn from
+         * {@code centre + radius * h} to {@code centre + radius * v}, {@code h} and {@code v} the outward normals of
+         * the two runs it joins.
+         */
+        final List<float[]> corners = new ArrayList<>();
+        /**
+         * The roof's curved pieces, as convex quads (a triangle repeats a point):
+         * {@code {boxX0, boxY0, boxX1, boxY1, x0, y0, x1, y1, x2, y2, x3, y3}}, the box the corner square its roof
+         * texture is laid over.
+         */
+        final List<float[]> fans = new ArrayList<>();
         /** Freight bay mouths in this level's walls: {@code {runIndex, centre along the run}}. */
         final List<float[]> mouths = new ArrayList<>();
         /** Freight lanes on this level's roof, from the bays above: rectangles in cells. */
@@ -164,7 +190,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
         drawGround(cellPx);
         drawShadow();
-        fly(ctx.animationTimeSeconds);
+        // A host that keeps no animation clock (the game itself) passes NaN: fly by the wall clock then, or every
+        // craft's place along its route is NaN and none is drawn.
+        fly(FireLight.clock(ctx.animationTimeSeconds));
         float px = cam.panCellX(), py = cam.panCellY();
         List<float[]> flying = new ArrayList<>();
         for (Level level : levels) flying.addAll(level.flying);
@@ -176,10 +204,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             float depth = items.get(i).depth();
             int j = i;
             while (j < items.size() && items.get(j).depth() == depth) j++;
-            while (craft < flying.size() && flying.get(craft)[2] > depth) {
-                float[] c = flying.get(craft++);
-                drawCraft(c[0], c[1], c[2], c[3], (int) c[4], c[5]);
-            }
+            while (craft < flying.size() && flying.get(craft)[2] > depth) drawFlying(flying.get(craft++));
             List<Item> slice = items.subList(i, j);
             if (slice.size() > 1) {
                 slice = new ArrayList<>(slice);
@@ -188,14 +213,17 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             for (Item item : slice) if (onScreen(item)) draw(item);
             i = j;
         }
-        while (craft < flying.size()) {
-            float[] c = flying.get(craft++);
-            drawCraft(c[0], c[1], c[2], c[3], (int) c[4], c[5]);
-        }
+        while (craft < flying.size()) drawFlying(flying.get(craft++));
         for (float[] run : rails) drawRail(run);
         // The surface's own backing, which the ground system leaves off on a map with a backdrop: wall art is
         // not opaque everywhere, and through it the structure under the surface would show.
         for (float[] r : surface) rect(r[0], r[1], r[2], r[3], 0f, BACKING_R, BACKING_G, BACKING_B, alpha);
+    }
+
+    /** A craft, or a lane light where its hull is negative. */
+    private void drawFlying(float[] c) {
+        if (c[4] < 0f) drawLaneLight(c[0], c[1], c[2], c[5]);
+        else drawCraft(c[0], c[1], c[2], c[3], (int) c[4], c[5]);
     }
 
     // ----- projection -----
@@ -412,10 +440,11 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             case Item.WALL -> drawWallBand(item.run(), item.z0(), item.z1());
             case Item.GIRDER -> drawGirder(item.run());
             case Item.ROOF -> drawRoof(item.level());
+            case Item.CORNER -> drawCornerBand(item.piece(), item.z0(), item.z1());
             default -> {
                 float[] run = item.run();
                 boolean horizontal = run[1] == run[3];
-                drawMouth(item.level(), horizontal, horizontal ? run[1] : run[0], item.mouth()[1]);
+                drawMouth(item.level(), horizontal, horizontal ? run[1] : run[0], item.piece()[1]);
             }
         }
     }
@@ -450,6 +479,17 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 while (z < level.bottom - .01f) {
                     float z1 = Math.min(level.bottom, (float) (Math.floor(z / BAND_METERS) + 1) * BAND_METERS);
                     items.add(new Item((z + z1) / 2f, Item.WALL, level, run, z, z1, null));
+                    z = z1;
+                }
+            }
+            for (float[] corner : level.corners) {
+                float[] chord = arc(corner)[0];
+                float[] last = arc(corner)[CORNER_FACETS];
+                float[] run = {chord[0], chord[1], last[0], last[1], 0f, 0f};
+                float z = level.top;
+                while (z < level.bottom - .01f) {
+                    float z1 = Math.min(level.bottom, (float) (Math.floor(z / BAND_METERS) + 1) * BAND_METERS);
+                    items.add(new Item((z + z1) / 2f, Item.CORNER, level, run, z, z1, corner));
                     z = z1;
                 }
             }
@@ -497,6 +537,89 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             band(horizontal, line, a, b, s0, s1, sm, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(),
                     haze * alpha);
         }
+    }
+
+    /**
+     * One band of a rounded corner, between two depths: each facet of its arc a slanted quad, its facade laid along
+     * it, under the haze at its depth.
+     */
+    private void drawCornerBand(float[] corner, float z, float z1) {
+        float[][] arc = arc(corner);
+        float s0 = scale(z), s1 = scale(z1), sm = scale((z + z1) / 2f);
+        ShuttleSpriteCache facade = backdrop.facadeTexture() == null ? null
+                : sprites.spriteByPath(backdrop.facadeTexture());
+        float tile = backdrop.facadeTileMeters();
+        float haze = hazeAt((z + z1) / 2f);
+        PolyMesh under = poly();
+        PolyMesh shade = poly();
+        PolyMesh veil = poly();
+        float u = 0f;
+        for (int k = 0; k < CORNER_FACETS; k++) {
+            float[] a = arc[k], b = arc[k + 1];
+            float nx = (a[2] + b[2]) / 2f, ny = (a[3] + b[3]) / 2f;
+            float toSun = sun == null ? 0f : nx * sun.dirX() + ny * sun.dirY();
+            float lit = .82f + .18f * toSun;
+            float ax0 = sx(a[0], s0), ay0 = sy(a[1], s0), bx0 = sx(b[0], s0), by0 = sy(b[1], s0);
+            float ax1 = sx(a[0], s1), ay1 = sy(a[1], s1), bx1 = sx(b[0], s1), by1 = sy(b[1], s1);
+            float g = .19f * lit;
+            under.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, g, g * .98f, g * .96f, alpha);
+            veil.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, backdrop.hazeR(), backdrop.hazeG(),
+                    backdrop.hazeB(), haze * alpha);
+            float length = (float) Math.hypot(b[0] - a[0], b[1] - a[1]);
+            if (facade != null && facade.pxW > 0 && length > 0f) {
+                // The facet's piece of facade, its corners pinned to the facet's four: shallow edge at the top.
+                int pw = facade.pxW, ph = facade.pxH;
+                float fu = (float) (u / tile - Math.floor(u / tile));
+                float fz = (float) (z / tile - Math.floor(z / tile));
+                int srcW = Math.max(1, Math.min(pw, Math.round(length / tile * pw)));
+                int srcX = Math.min(Math.round(fu * pw), pw - srcW);
+                int srcY = Math.round(fz * ph), srcH = Math.max(1, Math.round((z1 - z) / tile * ph));
+                srcH = Math.min(srcH, ph - srcY);
+                float minX = Math.min(Math.min(ax0, bx0), Math.min(ax1, bx1));
+                float maxX = Math.max(Math.max(ax0, bx0), Math.max(ax1, bx1));
+                float minY = Math.min(Math.min(ay0, by0), Math.min(ay1, by1));
+                float maxY = Math.max(Math.max(ay0, by0), Math.max(ay1, by1));
+                float w = maxX - minX, h = maxY - minY;
+                if (srcH > 0 && w > 0f && h > 0f) {
+                    out.addPoly(RenderLayer.GROUND, under);
+                    under = poly();
+                    float[] patch = {
+                            (ax0 - minX) / w, (ay0 - minY) / h, (bx0 - minX) / w, (by0 - minY) / h,
+                            (bx1 - minX) / w, (by1 - minY) / h, (ax1 - minX) / w, (ay1 - minY) / h,
+                            0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f};
+                    out.addSheetPatch(RenderLayer.GROUND, facade.sprite, srcX, srcY, srcW, srcH,
+                            minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
+                    // The patch takes no tint: the facet's turn from the sun is a shade laid over it.
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, (1f - lit) * alpha);
+                }
+            }
+            u += length;
+        }
+        out.addPoly(RenderLayer.GROUND, under);
+        out.addPoly(RenderLayer.GROUND, shade);
+        out.addPoly(RenderLayer.GROUND, veil);
+    }
+
+    /**
+     * A rounded corner's arc: {@link #CORNER_FACETS} + 1 points a quarter turn round its centre, each
+     * {@code {x, y, normalX, normalY}}.
+     */
+    private static float[][] arc(float[] corner) {
+        float[][] points = new float[CORNER_FACETS + 1][];
+        for (int k = 0; k <= CORNER_FACETS; k++) {
+            double t = Math.PI / 2 * k / CORNER_FACETS;
+            float c = (float) Math.cos(t), sn = (float) Math.sin(t);
+            float nx = corner[3] * c + corner[5] * sn, ny = corner[4] * c + corner[6] * sn;
+            points[k] = new float[]{corner[0] + corner[2] * nx, corner[1] + corner[2] * ny, nx, ny};
+        }
+        return points;
+    }
+
+    /** The square a rounded corner cuts from its footprint: {@code {x0, y0, x1, y1}} in cells. */
+    private static float[] cornerSquare(float[] corner) {
+        float px = corner[0] + corner[2] * (corner[3] + corner[5]), py = corner[1] + corner[2] * (corner[4] + corner[6]);
+        return new float[]{Math.min(px, corner[0]), Math.min(py, corner[1]), Math.max(px, corner[0]),
+                Math.max(py, corner[1])};
     }
 
     /**
@@ -642,6 +765,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 }
             }
         }
+        for (float[] fan : level.fans) drawFan(fan, s, roof, tile);
         for (float[] lane : level.lanes) {
             rect(lane[0], lane[1], lane[2], lane[3], depth, .07f, .07f, .08f, .88f * alpha);
             boolean alongX = lane[2] - lane[0] > lane[3] - lane[1];
@@ -692,11 +816,68 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             if (horizontal) rect(run[0], run[1] - run[5] * w, run[2], run[1], depth, .44f, .42f, .39f, .7f * alpha);
             else rect(run[0] - run[4] * w, run[1], run[0], run[3], depth, .44f, .42f, .39f, .7f * alpha);
         }
+        // The lip round each rounded corner, facet by facet.
+        if (!level.corners.isEmpty()) {
+            PolyMesh lip = poly();
+            for (float[] corner : level.corners) {
+                float[][] arc = arc(corner);
+                for (int k = 0; k < CORNER_FACETS; k++) {
+                    float[] a = arc[k], b = arc[k + 1];
+                    lip.appendQuad(sx(a[0], s), sy(a[1], s), sx(b[0], s), sy(b[1], s),
+                            sx(b[0] - b[2] * .6f, s), sy(b[1] - b[3] * .6f, s),
+                            sx(a[0] - a[2] * .6f, s), sy(a[1] - a[3] * .6f, s), .44f, .42f, .39f, .7f * alpha);
+                }
+            }
+            out.addPoly(RenderLayer.GROUND, lip);
+        }
         float haze = hazeAt(depth);
         for (float[] r : level.roofs) {
             rect(r[0], r[1], r[2], r[3], depth, 0f, 0f, 0f, ROOF_VEIL * alpha);
             rect(r[0], r[1], r[2], r[3], depth, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(), haze * alpha);
         }
+        if (!level.fans.isEmpty()) {
+            PolyMesh veil = poly();
+            for (float[] fan : level.fans) {
+                float x0 = sx(fan[4], s), y0 = sy(fan[5], s), x1 = sx(fan[6], s), y1 = sy(fan[7], s);
+                float x2 = sx(fan[8], s), y2 = sy(fan[9], s), x3 = sx(fan[10], s), y3 = sy(fan[11], s);
+                veil.appendQuad(x0, y0, x1, y1, x2, y2, x3, y3, 0f, 0f, 0f, ROOF_VEIL * alpha);
+                veil.appendQuad(x0, y0, x1, y1, x2, y2, x3, y3, backdrop.hazeR(), backdrop.hazeG(),
+                        backdrop.hazeB(), haze * alpha);
+            }
+            out.addPoly(RenderLayer.GROUND, veil);
+        }
+    }
+
+    /**
+     * One quad of a roof's curved piece, cut from the roof texture laid over its corner square as the
+     * rectangles are laid over theirs.
+     */
+    private void drawFan(float[] fan, float s, ShuttleSpriteCache roof, float tile) {
+        float bx0 = sx(fan[0], s), bx1 = sx(fan[2], s), by0 = sy(fan[1], s), by1 = sy(fan[3], s);
+        float minX = Math.min(bx0, bx1), minY = Math.min(by0, by1);
+        float w = Math.abs(bx1 - bx0), h = Math.abs(by1 - by0);
+        if (w <= 0f || h <= 0f) return;
+        if (Math.max(bx0, bx1) < cam.vpX() || minX > cam.vpX() + cam.vpW()
+                || Math.max(by0, by1) < cam.vpY() || minY > cam.vpY() + cam.vpH()) return;
+        float[] patch = new float[8];
+        for (int k = 0; k < 4; k++) {
+            patch[2 * k] = (sx(fan[4 + 2 * k], s) - minX) / w;
+            patch[2 * k + 1] = (sy(fan[5 + 2 * k], s) - minY) / h;
+        }
+        if (roof == null || roof.pxW <= 0) {
+            PolyMesh mesh = poly();
+            mesh.appendQuad(sx(fan[4], s), sy(fan[5], s), sx(fan[6], s), sy(fan[7], s), sx(fan[8], s),
+                    sy(fan[9], s), sx(fan[10], s), sy(fan[11], s), .30f, .29f, .28f, alpha);
+            out.addPoly(RenderLayer.GROUND, mesh);
+            return;
+        }
+        int pw = roof.pxW, ph = roof.pxH;
+        int srcW = Math.max(1, Math.min(pw, Math.round((fan[2] - fan[0]) / tile * pw)));
+        int srcH = Math.max(1, Math.min(ph, Math.round((fan[3] - fan[1]) / tile * ph)));
+        int srcX = Math.min(pw - srcW, Math.round((float) (fan[0] / tile - Math.floor(fan[0] / tile)) * pw));
+        int srcY = Math.min(ph - srcH, Math.round((float) (fan[1] / tile - Math.floor(fan[1] / tile)) * ph));
+        out.addSheetPatch(RenderLayer.GROUND, roof.sprite, srcX, srcY, srcW, srcH,
+                minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
     }
 
     // ----- traffic -----
@@ -733,6 +914,25 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 if (band != null && z < backdrop.depthMeters()) band.flying.add(new float[]{x, y, z, heading, hull, fade});
             }
         }
+        // The lane lights run a chase along each lane, so the lane reads as a lane between the craft.
+        for (float[] light : laneLights) {
+            double run = time * LANE_LIGHT_HZ - light[3] / (LANE_LIGHT_SPACING * 6f);
+            float phase = (float) (run - Math.floor(run));
+            float glow = phase < .25f ? 1f : .35f;
+            Level band = null;
+            for (Level level : levels) if (level.top <= light[2] && (band == null || level.top > band.top)) band = level;
+            if (band != null) band.flying.add(new float[]{light[0], light[1], light[2], 0f, -1f, glow});
+        }
+    }
+
+    /** A skyway's marker light, {@code glow} bright, under the haze at its depth. */
+    private void drawLaneLight(float x, float y, float z, float glow) {
+        float s = scale(z);
+        float qx = sx(x, s), qy = sy(y, s);
+        if (qx < cam.vpX() || qx > cam.vpX() + cam.vpW() || qy < cam.vpY() || qy > cam.vpY() + cam.vpH()) return;
+        float a = glow * (1f - hazeAt(z) * .5f) * alpha;
+        rect(x - .35f, y - .35f, x + .35f, y + .35f, z, .55f, .85f, 1f, a);
+        rect(x - .9f, y - .9f, x + .9f, y + .9f, z, .3f, .6f, 1f, .22f * a);
     }
 
     private static float segment(float[] route, int k) {
@@ -779,6 +979,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      */
     private void plotTraffic(VoidBackdrop backdrop) {
         routes.clear();
+        laneLights.clear();
         if (backdrop.craft().isEmpty()) return;
         int bay = 0;
         for (List<Level> structure : structures) for (int i = 0; i + 1 < structure.size(); i++) {
@@ -828,6 +1029,13 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                         {way.x0() + nx, way.y0() + ny, z}, {way.x1() + nx, way.y1() + ny, z}}));
                 routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING, new float[][]{
                         {way.x1() - nx, way.y1() - ny, z}, {way.x0() - nx, way.y0() - ny, z}}));
+                // Marker lights down both edges of the lane.
+                float ex = nx * 1.7f, ey = ny * 1.7f;
+                for (float t = LANE_LIGHT_SPACING / 2f; t < length; t += LANE_LIGHT_SPACING) {
+                    float px = way.x0() + dx * t / length, py = way.y0() + dy * t / length;
+                    laneLights.add(new float[]{px + ex, py + ey, z, t});
+                    laneLights.add(new float[]{px - ex, py - ey, z, t});
+                }
             }
             return;
         }
@@ -985,6 +1193,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         for (VoidBackdrop.Tier tier : backdrop.tiers()) if (tier.depthMeters() > top) tiers.add(tier);
         List<Level> structure = new ArrayList<>();
         boolean[] above = null;
+        List<float[]> aboveCorners = List.of();
+        // The roof's corner radius, by the structure's place: the playing surface's own corners stay as the map
+        // lays them, and only its terraces round.
+        int first = 0;
+        while (first < footprint.length && !footprint[first]) first++;
+        int roofRadius = top <= 0f ? 0 : ROOF_RADII[Math.floorMod(first * 31 + first / mw * 17, ROOF_RADII.length)];
         for (int i = 0; i <= tiers.size(); i++) {
             Level level = new Level();
             level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
@@ -993,16 +1207,52 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             level.surface = i == 0 && top <= 0f;
             boolean[] mask = i == 0 ? footprint : dilate(footprint, mw, mh, Math.round(level.outset));
             findRuns(mask, mw, mh, m, level.runs);
+            // Rounded on the roof's centres: each terrace's radius grows by its outset, so the step is even.
+            int radius = level.surface || (roofRadius == 0 && i == 0) ? 0 : roofRadius + Math.round(level.outset);
+            roundCorners(level.runs, radius, level.corners);
             // A terrace's roof is only the ring left open round the level above: the part under that level is
             // never seen, and drawn whole it would lay the roof, its veil and its haze over the walls above
-            // wherever they lean toward the view's centre.
-            boolean[] open = mask;
-            if (above != null) {
-                open = mask.clone();
-                for (int k = 0; k < open.length; k++) open[k] &= !above[k];
+            // wherever they lean toward the view's centre. Its own rounded corners' squares come out too, and
+            // their curved pieces go in as triangles: the quarter disc inside its own arc, and the sliver
+            // between the level above's arc and that level's square corner.
+            boolean[] open = mask.clone();
+            if (above != null) for (int k = 0; k < open.length; k++) open[k] &= !above[k];
+            List<float[]> slivers = new ArrayList<>(aboveCorners);
+            for (float[] corner : level.corners) {
+                float[] box = cornerSquare(corner);
+                for (int y = Math.round(box[1]); y < Math.round(box[3]); y++) {
+                    for (int x = Math.round(box[0]); x < Math.round(box[2]); x++) open[(y + m) * mw + x + m] = false;
+                }
+                // Round the level above's corner on the same centre, the roof here is the ring between the arcs;
+                // the level above's square corner lies inside this one's square, so its sliver is in the ring.
+                float inner = 0f;
+                for (float[] up : aboveCorners) {
+                    if (up[0] == corner[0] && up[1] == corner[1] && up[3] == corner[3] && up[6] == corner[6]) {
+                        inner = up[2];
+                        slivers.remove(up);
+                    }
+                }
+                float[][] arc = arc(corner);
+                for (int k = 0; k < CORNER_FACETS; k++) {
+                    float[] a = arc[k], b = arc[k + 1];
+                    float ax = corner[0] + a[2] * inner, ay = corner[1] + a[3] * inner;
+                    float bx = corner[0] + b[2] * inner, by = corner[1] + b[3] * inner;
+                    level.fans.add(new float[]{box[0], box[1], box[2], box[3], ax, ay, a[0], a[1], b[0], b[1], bx, by});
+                }
+            }
+            for (float[] corner : slivers) {
+                float[] box = cornerSquare(corner);
+                float px = corner[0] + corner[2] * (corner[3] + corner[5]);
+                float py = corner[1] + corner[2] * (corner[4] + corner[6]);
+                float[][] arc = arc(corner);
+                for (int k = 0; k < CORNER_FACETS; k++) {
+                    level.fans.add(new float[]{box[0], box[1], box[2], box[3], px, py,
+                            arc[k][0], arc[k][1], arc[k + 1][0], arc[k + 1][1], px, py});
+                }
             }
             mergeRects(open, mw, mh, 1, -m, -m, level.roofs);
             above = mask;
+            aboveCorners = level.corners;
             if (i > 0) {
                 level.footings = structure.get(i - 1).runs;
                 level.reach = level.outset - structure.get(i - 1).outset;
@@ -1010,6 +1260,49 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             structure.add(level);
         }
         structures.add(structure);
+    }
+
+    /**
+     * Rounds the convex corners of a footprint's runs to {@code radius} cells, or less where a run is too short to
+     * take it: each run meeting a convex corner is cut back by the corner's radius, and the corner is added to
+     * {@code into} as {@code {centreX, centreY, radius, hX, hY, vX, vY}}. Concave corners stay square.
+     */
+    static void roundCorners(List<float[]> runs, int radius, List<float[]> into) {
+        if (radius <= 0) return;
+        // Every convex corner first, from the runs as found; then the cuts, so a run with two ends rounded is
+        // measured whole for both.
+        List<float[][]> found = new ArrayList<>();
+        List<int[]> ends = new ArrayList<>();
+        for (float[] h : runs) {
+            if (h[1] != h[3]) continue;
+            for (int he = 0; he < 2; he++) {
+                float px = he == 0 ? h[0] : h[2], py = h[1];
+                float ix = he == 0 ? 1f : -1f;
+                for (float[] v : runs) {
+                    if (v[0] != v[2] || v[0] != px) continue;
+                    int ve;
+                    if (v[1] == py) ve = 0;
+                    else if (v[3] == py) ve = 1;
+                    else continue;
+                    float iy = ve == 0 ? 1f : -1f;
+                    // Convex: each run leaves the corner toward the inside of the other.
+                    if (ix != -v[4] || iy != -h[5]) continue;
+                    int r = Math.min(radius, (int) Math.floor(Math.min(h[2] - h[0], v[3] - v[1]) / 2f));
+                    if (r < 2) continue;
+                    found.add(new float[][]{h, v, {px + ix * r, py + iy * r, r, 0f, h[5], v[4], 0f}});
+                    ends.add(new int[]{he, ve});
+                }
+            }
+        }
+        for (int k = 0; k < found.size(); k++) {
+            float[] h = found.get(k)[0], v = found.get(k)[1], corner = found.get(k)[2];
+            float r = corner[2];
+            if (ends.get(k)[0] == 0) h[0] += r;
+            else h[2] -= r;
+            if (ends.get(k)[1] == 0) v[1] += r;
+            else v[3] -= r;
+            into.add(corner);
+        }
     }
 
     /**
