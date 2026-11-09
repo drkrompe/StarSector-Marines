@@ -19,14 +19,18 @@ import org.junit.jupiter.api.Test;
 class ShipSystemsTreeTest {
     @Test
     void everyTrackHangsInTheTreeExactlyOnce() {
-        var seen = new ArrayList<RefitTrack>();
-        for (var branch : ShipSystemsTree.BRANCHES.entrySet()) {
-            assertEquals(RefitTrack.Group.CORE, branch.getKey().group, branch.getKey() + " is not a core");
-            seen.add(branch.getKey());
-            seen.addAll(branch.getValue());
+        for (boolean fleet : new boolean[]{false, true}) {
+            var seen = new ArrayList<RefitTrack>();
+            for (var branch : ShipSystemsTree.branches(fleet).entrySet()) {
+                assertEquals(RefitTrack.Group.CORE, branch.getKey().group, branch.getKey() + " is not a core");
+                seen.add(branch.getKey());
+                seen.addAll(branch.getValue());
+            }
+            var expected = EnumSet.allOf(RefitTrack.class);
+            if (!fleet) expected.removeIf(track -> track.fleetOnly);
+            assertEquals(expected.size(), seen.size(), "fleet " + fleet);
+            assertEquals(expected, EnumSet.copyOf(seen), "the fleet's rooms hang on the fleet's tree alone");
         }
-        assertEquals(RefitTrack.values().length, seen.size());
-        assertEquals(EnumSet.allOf(RefitTrack.class), EnumSet.copyOf(seen));
     }
 
     @Test

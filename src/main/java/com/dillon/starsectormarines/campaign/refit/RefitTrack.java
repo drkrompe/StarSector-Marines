@@ -28,7 +28,15 @@ public enum RefitTrack {
     /** Campaign-side: repair clocks and the spares rack, read when an order is quoted. */
     MECH_REPAIR(Group.FACILITY, null),
     /** A sealed corner of the hangar where whole machines are set aside; capacity, no passive. */
-    RESERVE_HANGAR(Group.FACILITY, null);
+    RESERVE_HANGAR(Group.FACILITY, null),
+    // Fleet facilities only (`fleet-facilities.md`): the mock rooms' sizes. The Second Wind's rooms
+    // are her drawn deck's, repaired through her own orders, so her tree never shows these.
+    /** Working gantries in the fleet's Mech Lab: none until the first is bought. */
+    MECH_GANTRIES(Group.FACILITY, null, true),
+    /** Working boat berths in the fleet's bay: the company's lift. */
+    BOAT_BERTHS(Group.FACILITY, null, true),
+    /** Bunkrooms in the fleet's barracks. */
+    BARRACKS(Group.FACILITY, null, true);
 
     public enum Group { CORE, FACILITY }
 
@@ -39,10 +47,19 @@ public enum RefitTrack {
     /** The sealed compartment this facility track opens, or null for a track that is not a reserve. */
     public final ReservedFacility reserve;
 
-    RefitTrack(Group group, ShipCore core) { this.group = group; this.core = core; this.reserve = null; }
+    /** Whether only fleet facilities carry this track: it sizes a mock room the Second Wind draws instead. */
+    public final boolean fleetOnly;
+
+    RefitTrack(Group group, ShipCore core) { this(group, core, false); }
+
+    RefitTrack(Group group, ShipCore core, boolean fleetOnly) {
+        this.group = group; this.core = core; this.reserve = null; this.fleetOnly = fleetOnly;
+    }
 
     /** A facility whose Restored tier unseals one of the hull's reserved compartments. */
-    RefitTrack(ReservedFacility reserve) { this.group = Group.FACILITY; this.core = null; this.reserve = reserve; }
+    RefitTrack(ReservedFacility reserve) {
+        this.group = Group.FACILITY; this.core = null; this.reserve = reserve; this.fleetOnly = false;
+    }
 
     /** The track that opens {@code reserve}, or null for a reserve no order opens (the brig). */
     public static RefitTrack forReserve(ReservedFacility reserve) {
@@ -60,6 +77,6 @@ public enum RefitTrack {
      * {@code fleet-facilities.md}.
      */
     public RefitBand fleetStart() {
-        return reserve != null || this == RESERVE_HANGAR ? RefitBand.DEFICIT : RefitBand.RESTORED;
+        return reserve != null || this == RESERVE_HANGAR || this == MECH_GANTRIES ? RefitBand.DEFICIT : RefitBand.RESTORED;
     }
 }

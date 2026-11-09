@@ -312,8 +312,8 @@ public final class ShipConditionModel {
         m.put("workshopClasses", "hidden");
         m.put("detailClasses", "condition-detail");
         m.put("systemsClasses", "systems-view");
-        m.put("systemsProgress", Strings.format("openingRefitSystemsProgress", tiersDone(refitState, start), tiersOffered(start)));
-        m.put("cores", ShipSystemsTree.cores(refitState, track, this::trackSelection));
+        m.put("systemsProgress", Strings.format("openingRefitSystemsProgress", tiersDone(refitState, true), tiersOffered(true)));
+        m.put("cores", ShipSystemsTree.cores(refitState, track, this::trackSelection, true));
         m.put("title", Strings.get("openingRefitSystemsTitle"));
         m.put("backLabel", Strings.get("openingRefitSystemsBackFleet"));
         var card = refitCard(m, refitState, track, true);
@@ -404,21 +404,31 @@ public final class ShipConditionModel {
     private static String slug(String name) { return name.toLowerCase(Locale.ROOT).replace('_', '-'); }
 
     /** Tiers bought or earned above the battered start, out of every tier the tree offers. */
-    static int tiersDone(ShipCondition state) { return tiersDone(state, RefitTrack::start); }
+    static int tiersDone(ShipCondition state) { return tiersDone(state, false); }
 
-    /** Tiers bought above each track's {@code start}, which is the battered start or the fleet's neutral one. */
-    static int tiersDone(ShipCondition state, Function<RefitTrack, RefitBand> start) {
+    /**
+     * Tiers bought above each track's start: the battered start on the Second Wind, the neutral one
+     * for fleet facilities, whose tree alone carries the fleet-only tracks.
+     */
+    static int tiersDone(ShipCondition state, boolean fleet) {
         int done = 0;
-        for (RefitTrack t : RefitTrack.values())
-            done += Math.max(0, Math.min(state.band(t).ordinal(), RefitOrder.ceiling(t).ordinal()) - start.apply(t).ordinal());
+        for (RefitTrack t : RefitTrack.values()) {
+            if (t.fleetOnly && !fleet) continue;
+            RefitBand start = fleet ? t.fleetStart() : t.start();
+            done += Math.max(0, Math.min(state.band(t).ordinal(), RefitOrder.ceiling(t).ordinal()) - start.ordinal());
+        }
         return done;
     }
 
-    static int tiersOffered() { return tiersOffered(RefitTrack::start); }
+    static int tiersOffered() { return tiersOffered(false); }
 
-    static int tiersOffered(Function<RefitTrack, RefitBand> start) {
+    static int tiersOffered(boolean fleet) {
         int offered = 0;
-        for (RefitTrack t : RefitTrack.values()) offered += Math.max(0, RefitOrder.ceiling(t).ordinal() - start.apply(t).ordinal());
+        for (RefitTrack t : RefitTrack.values()) {
+            if (t.fleetOnly && !fleet) continue;
+            RefitBand start = fleet ? t.fleetStart() : t.start();
+            offered += Math.max(0, RefitOrder.ceiling(t).ordinal() - start.ordinal());
+        }
         return offered;
     }
 

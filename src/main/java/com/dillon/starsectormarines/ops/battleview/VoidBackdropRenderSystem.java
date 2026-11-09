@@ -59,11 +59,19 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     static final float BAY_REACH = 8f;
     /** A roof below the surface is veiled this dark at least, so no roof in the drop reads as walkable. */
     static final float ROOF_VEIL = .28f;
-    /** Craft flying in and out of a bay: how far out they come from, how fast, how many to a bay. */
-    static final float APPROACH_METERS = 170f, BAY_SPEED = 16f;
-    static final int BAY_CRAFT = 2;
-    /** Skyways crossing the drop: their length, the spacing of craft along them, and their speed. */
-    static final float SKYWAY_METERS = 1600f, SKYWAY_SPACING = 70f, SKYWAY_SPEED = 28f;
+    /**
+     * Craft flying in and out of a bay: how far out they come from, about how fast they fly, and about how many
+     * seconds pass between one arriving (or leaving) and the next.
+     */
+    static final float APPROACH_METERS = 170f, BAY_SPEED = 7f, BAY_INTERVAL = 80f;
+    /**
+     * Skyways: the length of one crossing a drop with no streets, about how fast craft fly them, and about how
+     * many seconds between one craft and the next on a route.
+     */
+    static final float SKYWAY_METERS = 1600f, SKYWAY_SPEED = 9f, SKYWAY_INTERVAL = 20f;
+    /** Street routes: how many at most and to a skyway, how far right of a street's middle they keep, and a turn's reach. */
+    static final int STREET_ROUTES_MAX = 40, STREET_ROUTES_PER_SKYWAY = 5;
+    static final float STREET_LANE_OFFSET = 4f, TURN_METERS = 22f;
     /** How wide ground must be to stand on a tower of its own; anything narrower is a walkway. */
     static final int SPAN_CELLS = 7;
     /** How deep a walkway's girders run under its deck, in metres. */
@@ -97,7 +105,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** Wall facets to a rounded corner's quarter turn. */
     static final int CORNER_FACETS = 5;
     /** Marker lights down a skyway's edges: their spacing in metres and how often they blink. */
-    static final float LANE_LIGHT_SPACING = 22f, LANE_LIGHT_HZ = .7f;
+    static final float LANE_LIGHT_SPACING = 34f, LANE_LIGHT_HZ = .7f;
 
     private final BattleSprites sprites;
     private SunLight sun;
@@ -115,7 +123,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private String shadowKey;
     private final List<float[]> shadow = new ArrayList<>();
     /** Paths craft fly: {@code {count, speed, spacing, x0, y0, z0, x1, y1, z1, ...}}, looping from first to last. */
-    private final List<float[]> routes = new ArrayList<>();
+    private final VoidTraffic traffic = new VoidTraffic();
+    /** This frame's craft in the air, reused frame to frame. */
+    private final List<float[]> aloft = new ArrayList<>();
     /** The skyways' marker lights: {@code {x, y, z, distance along the lane}}. */
     private final List<float[]> laneLights = new ArrayList<>();
 
@@ -1123,37 +1133,19 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
     // ----- traffic -----
 
-    /** Places every craft on its route at {@code time}, in the band of depth of the level it flies beside. */
+    /** Places every craft in the air at {@code time}, in the band of depth of the level it flies beside. */
     private void fly(float time) {
         for (Level level : levels) level.flying.clear();
         if (backdrop.craft().isEmpty()) return;
-        for (int r = 0; r < routes.size(); r++) {
-            float[] route = routes.get(r);
-            int count = (int) route[0];
-            float speed = route[1], spacing = route[2];
-            int points = (route.length - 3) / 3;
-            float total = 0f;
-            for (int k = 1; k < points; k++) total += segment(route, k);
-            if (total <= 0f) continue;
-            float cycle = Math.max(total, count * spacing);
-            for (int c = 0; c < count; c++) {
-                float d = (float) ((time * speed + c * spacing + r * 37f) % cycle);
-                if (d > total) continue;
-                int k = 1;
-                float along = d;
-                while (k < points - 1 && along > segment(route, k)) along -= segment(route, k++);
-                float len = segment(route, k), t = len <= 0f ? 0f : Math.min(1f, along / len);
-                int a = 3 + (k - 1) * 3, b = a + 3;
-                float x = route[a] + (route[b] - route[a]) * t, y = route[a + 1] + (route[b + 1] - route[a + 1]) * t;
-                float z = route[a + 2] + (route[b + 2] - route[a + 2]) * t;
-                float heading = (float) Math.atan2(route[b + 1] - route[a + 1], route[b] - route[a]);
-                // Craft fade in at the start of a path and out at its end, into a bay's dark or the haze.
-                float fade = Math.min(1f, Math.min(d, total - d) / 25f);
-                int hull = Math.floorMod(r * 5 + c * 3 + r / 3, backdrop.craft().size());
-                Level band = null;
-                for (Level level : levels) if (level.top <= z && (band == null || level.top > band.top)) band = level;
-                if (band != null && z < backdrop.depthMeters()) band.flying.add(new float[]{x, y, z, heading, hull, fade});
-            }
+        aloft.clear();
+        traffic.place(time, aloft);
+        for (float[] c : aloft) {
+            float z = c[2];
+            if (z >= backdrop.depthMeters()) continue;
+            Level band = null;
+            for (Level level : levels) if (level.top <= z && (band == null || level.top > band.top)) band = level;
+            c[4] = (int) c[4] % backdrop.craft().size();
+            if (band != null) band.flying.add(c);
         }
         // The lane lights run a chase along each lane, so the lane reads as a lane between the craft.
         for (float[] light : laneLights) {
@@ -1174,12 +1166,6 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         float a = glow * (1f - hazeAt(z) * .5f) * alpha;
         rect(x - .35f, y - .35f, x + .35f, y + .35f, z, .55f, .85f, 1f, a);
         rect(x - .9f, y - .9f, x + .9f, y + .9f, z, .3f, .6f, 1f, .22f * a);
-    }
-
-    private static float segment(float[] route, int k) {
-        int a = 3 + (k - 1) * 3, b = a + 3;
-        float dx = route[b] - route[a], dy = route[b + 1] - route[a + 1], dz = route[b + 2] - route[a + 2];
-        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     /**
@@ -1214,12 +1200,13 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     }
 
     /**
-     * The paths craft fly: in from far out over each bay's lane and into the bay (every other bay outbound), and
-     * skyways crossing the drop beside the structure at several depths, two streams apiece, opposite ways. And
-     * the hulls parked on each terrace, between its bays, along the wall above.
+     * The paths craft fly, each on its own irregular schedule ({@link VoidTraffic}): into each bay, swooping in
+     * from one side and slowing to the mouth, and out of it, gathering speed away to the other; down the city's
+     * skyways, turning at a crossing onto the street across (climbing or sinking to its depth on the turn) or
+     * running a street's length, keeping to the right; and the hulls parked on each terrace, between its bays.
      */
     private void plotTraffic(VoidBackdrop backdrop) {
-        routes.clear();
+        traffic.clear();
         laneLights.clear();
         if (backdrop.craft().isEmpty()) return;
         int bay = 0;
@@ -1230,14 +1217,26 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 float[] run = level.runs.get((int) mouth[0]);
                 boolean horizontal = run[1] == run[3];
                 float wx = horizontal ? mouth[1] : run[0], wy = horizontal ? run[1] : mouth[1];
-                float nx = run[4], ny = run[5];
+                float nx = run[4], ny = run[5], tx = horizontal ? 1f : 0f, ty = horizontal ? 0f : 1f;
                 float zIn = level.bottom - MOUTH_H / 2f - 1f;
-                float[] far = {wx + nx * (reach + APPROACH_METERS), wy + ny * (reach + APPROACH_METERS),
-                        Math.max(4f, level.bottom - 50f)};
-                float[] edge = {wx + nx * reach, wy + ny * reach, level.bottom - 8f};
-                float[] in = {wx, wy, zIn};
-                float[][] path = bay++ % 2 == 0 ? new float[][]{far, edge, in} : new float[][]{in, edge, far};
-                routes.add(route(BAY_CRAFT, BAY_SPEED, 90f, path));
+                bay++;
+                for (int way = 0; way < 2; way++) {
+                    // Arrivals swoop in from one side, departures leave toward the other; how far by the bay.
+                    float side = ((bay + way) % 2 == 0 ? 1f : -1f) * (.6f + VoidTraffic.hash(bay, way) % 100 / 100f);
+                    float[] far = {wx + nx * (reach + APPROACH_METERS) + tx * side * 70f,
+                            wy + ny * (reach + APPROACH_METERS) + ty * side * 70f, level.bottom - 30f};
+                    float[] mid = {wx + nx * (reach + 45f) + tx * side * 18f, wy + ny * (reach + 45f) + ty * side * 18f,
+                            level.bottom - 16f};
+                    float[] edge = {wx + nx * reach, wy + ny * reach, level.bottom - 7f};
+                    float[] in = {wx, wy, zIn};
+                    if (way == 0) {
+                        traffic.add(new float[][]{far, mid, edge, in}, BAY_SPEED, BAY_INTERVAL,
+                                VoidTraffic.Pace.ARRIVE, bay * 2);
+                    } else {
+                        traffic.add(new float[][]{in, edge, mid, far}, BAY_SPEED, BAY_INTERVAL,
+                                VoidTraffic.Pace.DEPART, bay * 2 + 1);
+                    }
+                }
             }
             // Parked hulls between the bays, a third of the way out across the terrace, nose along the wall.
             if (reach < PARK_REACH) continue;
@@ -1256,27 +1255,27 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 }
             }
         }
-        if (!backdrop.skyways().isEmpty()) {
-            // Skyways the backdrop names, down the city's streets: two streams apiece, opposite ways, either side
-            // of the street's middle.
-            for (VoidBackdrop.Skyway way : backdrop.skyways()) {
+        List<VoidBackdrop.Skyway> ways = backdrop.skyways();
+        if (!ways.isEmpty()) {
+            for (VoidBackdrop.Skyway way : ways) {
                 float dx = way.x1() - way.x0(), dy = way.y1() - way.y0();
                 float length = (float) Math.hypot(dx, dy);
                 if (length <= 0f) continue;
-                float nx = -dy / length * 4f, ny = dx / length * 4f;
-                int count = Math.max(1, Math.round(length / SKYWAY_SPACING));
-                float z = way.depthMeters();
-                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING, new float[][]{
-                        {way.x0() + nx, way.y0() + ny, z}, {way.x1() + nx, way.y1() + ny, z}}));
-                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING, new float[][]{
-                        {way.x1() - nx, way.y1() - ny, z}, {way.x0() - nx, way.y0() - ny, z}}));
                 // Marker lights down both edges of the lane.
-                float ex = nx * 1.7f, ey = ny * 1.7f;
+                float ex = -dy / length * 7f, ey = dx / length * 7f;
                 for (float t = LANE_LIGHT_SPACING / 2f; t < length; t += LANE_LIGHT_SPACING) {
                     float px = way.x0() + dx * t / length, py = way.y0() + dy * t / length;
-                    laneLights.add(new float[]{px + ex, py + ey, z, t});
-                    laneLights.add(new float[]{px - ex, py - ey, z, t});
+                    laneLights.add(new float[]{px + ex, py + ey, way.depthMeters(), t});
+                    laneLights.add(new float[]{px - ex, py - ey, way.depthMeters(), t});
                 }
+            }
+            // Routes picked until there are enough, skipping a pick with no room for its turn.
+            int count = Math.min(STREET_ROUTES_MAX, ways.size() * STREET_ROUTES_PER_SKYWAY);
+            for (int r = 0, made = 0; made < count && r < count * 4; r++) {
+                float[][] controls = streetRoute(ways, r);
+                if (controls == null) continue;
+                traffic.add(controls, SKYWAY_SPEED, SKYWAY_INTERVAL, VoidTraffic.Pace.CRUISE, 1000 + r);
+                made++;
             }
             return;
         }
@@ -1297,22 +1296,75 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             for (int lane = 0; lane < 2; lane++) {
                 float off = side * (clear + lane * 12f);
                 float ox = mx - dy * off, oy = my + dx * off;
+                // A long, gentle bend rather than a ruled line: the middle pushed off to one side.
+                float bend = (lane == 0 ? 1f : -1f) * 60f;
                 float[] a = {ox - dx * SKYWAY_METERS / 2f, oy - dy * SKYWAY_METERS / 2f, z};
+                float[] m = {ox - dy * bend, oy + dx * bend, z + 15f};
                 float[] b = {ox + dx * SKYWAY_METERS / 2f, oy + dy * SKYWAY_METERS / 2f, z};
-                int count = Math.round(SKYWAY_METERS / SKYWAY_SPACING);
-                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING,
-                        lane == 0 ? new float[][]{a, b} : new float[][]{b, a}));
+                traffic.add(lane == 0 ? new float[][]{a, m, b} : new float[][]{b, m, a}, SKYWAY_SPEED,
+                        SKYWAY_INTERVAL, VoidTraffic.Pace.CRUISE, 2000 + k * 2 + lane);
             }
         }
     }
 
-    private static float[] route(int count, float speed, float spacing, float[][] points) {
-        float[] route = new float[3 + points.length * 3];
-        route[0] = count;
-        route[1] = speed;
-        route[2] = spacing;
-        for (int k = 0; k < points.length; k++) System.arraycopy(points[k], 0, route, 3 + k * 3, 3);
-        return route;
+    /**
+     * Street route {@code r} through the skyways: along one street, keeping to its right, and, for most routes, a
+     * rounded turn at a crossing onto the street across, to that street's end; the depth eases from one street's
+     * to the other's through the turn. Null when there is no room for the route picked.
+     */
+    static float[][] streetRoute(List<VoidBackdrop.Skyway> ways, int r) {
+        int h = VoidTraffic.hash(r, 77);
+        VoidBackdrop.Skyway a = ways.get(h % ways.size());
+        boolean forward = (h >>> 8 & 1) == 0;
+        float ax0 = forward ? a.x0() : a.x1(), ay0 = forward ? a.y0() : a.y1();
+        float ax1 = forward ? a.x1() : a.x0(), ay1 = forward ? a.y1() : a.y0();
+        float la = (float) Math.hypot(ax1 - ax0, ay1 - ay0);
+        if (la <= 0f) return null;
+        float dax = (ax1 - ax0) / la, day = (ay1 - ay0) / la;
+        // Keep right: the lane's offset from the street's middle, to the right of the way it is flown.
+        float rax = -day * STREET_LANE_OFFSET, ray = dax * STREET_LANE_OFFSET;
+        float za = a.depthMeters();
+        List<VoidBackdrop.Skyway> crossings = new ArrayList<>();
+        for (VoidBackdrop.Skyway b : ways) if (b != a && crosses(a, b) != null) crossings.add(b);
+        if (crossings.isEmpty() || (h >>> 9) % 4 == 0) {
+            float[] start = {ax0 + rax, ay0 + ray, za}, end = {ax1 + rax, ay1 + ray, za};
+            float[] mid = {(ax0 + ax1) / 2f + rax, (ay0 + ay1) / 2f + ray, za};
+            return new float[][]{start, mid, end};
+        }
+        VoidBackdrop.Skyway b = crossings.get((h >>> 11) % crossings.size());
+        float[] p = crosses(a, b);
+        // The turn needs room before it on this street and after it on the next.
+        float before = (p[0] - ax0) * dax + (p[1] - ay0) * day;
+        if (before < TURN_METERS * 2f) return null;
+        boolean bForward = (h >>> 20 & 1) == 0;
+        float bx1 = bForward ? b.x1() : b.x0(), by1 = bForward ? b.y1() : b.y0();
+        float lb = (float) Math.hypot(bx1 - p[0], by1 - p[1]);
+        if (lb < TURN_METERS * 2f) {
+            bx1 = bForward ? b.x0() : b.x1();
+            by1 = bForward ? b.y0() : b.y1();
+            lb = (float) Math.hypot(bx1 - p[0], by1 - p[1]);
+        }
+        if (lb < TURN_METERS * 2f) return null;
+        float dbx = (bx1 - p[0]) / lb, dby = (by1 - p[1]) / lb;
+        float rbx = -dby * STREET_LANE_OFFSET, rby = dbx * STREET_LANE_OFFSET;
+        float zb = b.depthMeters();
+        float[] start = {ax0 + rax, ay0 + ray, za};
+        float[] in = {p[0] - dax * TURN_METERS + rax, p[1] - day * TURN_METERS + ray, za};
+        float[] corner = {p[0] + (rax + rbx) * .5f, p[1] + (ray + rby) * .5f, (za + zb) / 2f};
+        float[] out = {p[0] + dbx * TURN_METERS + rbx, p[1] + dby * TURN_METERS + rby, zb};
+        float[] end = {bx1 + rbx, by1 + rby, zb};
+        return new float[][]{start, in, corner, out, end};
+    }
+
+    /** Where two skyways cross, within both their lengths, or null where they do not. */
+    private static float[] crosses(VoidBackdrop.Skyway a, VoidBackdrop.Skyway b) {
+        boolean aAlongX = a.y0() == a.y1(), bAlongX = b.y0() == b.y1();
+        if (aAlongX == bAlongX) return null;
+        VoidBackdrop.Skyway h = aAlongX ? a : b, v = aAlongX ? b : a;
+        float x = v.x0(), y = h.y0();
+        if (x < Math.min(h.x0(), h.x1()) || x > Math.max(h.x0(), h.x1())) return null;
+        if (y < Math.min(v.y0(), v.y1()) || y > Math.max(v.y0(), v.y1())) return null;
+        return new float[]{x, y};
     }
 
     /** A railing along the surface's edge, on the void side: a lit rail over its own dark shadow line. */

@@ -1,0 +1,182 @@
+package com.dillon.starsectormarines.battle.world.gen.ruins;
+
+import com.dillon.starsectormarines.battle.world.gen.LandingArea;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A ruins site's ground as a mission reads it ({@code ruins-ground.md}): the delve from the landing area at the
+ * map's west end to the vault at its east end, the layers the route crosses, their side rooms and landing courts,
+ * and the sites of the ruins' works ({@code ruins-works.md}). Every place carries a stable name; {@link #area}
+ * answers any of them, so a mission can say "the second layer" or "the power hall" without searching the map.
+ *
+ * <p>Published names, in order:
+ * <ul>
+ *   <li>{@code ruins.landing}: the cleared landing ground; its arrival areas are {@link #landing}, and are also the
+ *       map's own {@code landingAreas}.</li>
+ *   <li>{@code ruins.vault}: the vault, with its door, the approach cell outside it and its one source cell.</li>
+ *   <li>{@code ruins.layer.N} (N from 1, nearest the landing first): a layer's holdable ground, its wall line and
+ *       the ground behind it up to the next layer.</li>
+ *   <li>{@code ruins.layer.N.way.M}: the ways through layer N, from the map's low y edge to its high one.</li>
+ *   <li>{@code ruins.layer.N.room.M}: the small ruined rooms off layer N.</li>
+ *   <li>{@code ruins.layer.N.court}: the open landing court of layer N, for every layer but the first.</li>
+ *   <li>{@code ruins.works.power-hall}, {@code ruins.works.junction.N} (one per layer), {@code ruins.works.records}
+ *       and {@code ruins.works.collapse} (the choked short way, itself also a way of its layer).</li>
+ * </ul>
+ * Lift points are the landing area and every court ({@link #liftPoints}). Courts are not in the map's
+ * {@code landingAreas}: the company's own lift comes down on the landing area, and a court is somewhere the boat
+ * is called to.
+ */
+public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> landing, Vault vault,
+                         List<Layer> layers, PowerHall powerHall, List<Junction> junctions,
+                         RecordsTerminal records, Collapse collapse) {
+
+    public static final String LANDING = "ruins.landing";
+    public static final String VAULT = "ruins.vault";
+    public static final String POWER_HALL = "ruins.works.power-hall";
+    public static final String RECORDS = "ruins.works.records";
+    public static final String COLLAPSE = "ruins.works.collapse";
+
+    public RuinsDelve {
+        landing = List.copyOf(landing);
+        layers = List.copyOf(layers);
+        junctions = List.copyOf(junctions);
+    }
+
+    /** The name of layer {@code index} (0-based, nearest the landing first). */
+    public static String layerName(int index) { return "ruins.layer." + (index + 1); }
+
+    /** The name of junction {@code index} (0-based). */
+    public static String junctionName(int index) { return "ruins.works.junction." + (index + 1); }
+
+    /** One rectangle of cells, inclusive; {@code bottom} is the low y and {@code top} the high y, as on {@link LandingArea}. */
+    public record Area(int left, int bottom, int right, int top) {
+        public Area {
+            if (right < left || top < bottom) throw new IllegalArgumentException("empty area");
+        }
+        public boolean contains(int x, int y) { return x >= left && x <= right && y >= bottom && y <= top; }
+        public int centreX() { return (left + right) / 2; }
+        public int centreY() { return (bottom + top) / 2; }
+        public int width() { return right - left + 1; }
+        public int height() { return top - bottom + 1; }
+    }
+
+    /** One cell. */
+    public record Cell(int x, int y) {}
+
+    /**
+     * The vault: one hardened suite, an antechamber and the vault room behind an inner door. {@code door} is its
+     * one outer door, {@code approach} the open cell straight out from it, and {@code source} the cell the breach
+     * is held on, inside the vault room.
+     */
+    public record Vault(Area footprint, Cell door, Cell innerDoor, Cell approach, Cell source) {}
+
+    /** What a layer is made of. */
+    public enum LayerKind {
+        /** A street choked by fallen frontage, with rubble-strewn gaps. */
+        COLLAPSED_STREET,
+        /** A standing wall with breaches torn through it. */
+        BREACHED_WALL,
+        /** A built barrier with a gate span in it and a side way round it. */
+        SEALED_GATE
+    }
+
+    /** What a way through a layer is. Every kind but {@link #COLLAPSE} is open ground on the finished map. */
+    public enum WayKind {
+        /** A gap in a collapsed street. */
+        GAP,
+        /** A breach in a standing wall. */
+        BREACH,
+        /** A sealed gate's span: open ground until the works shut it ({@code ruins-works.md}, Seal doors). */
+        GATE,
+        /** The way round a sealed gate. */
+        SIDE,
+        /** The short way, choked by a breachable run of rubble wall; a charge clears it. */
+        COLLAPSE
+    }
+
+    /**
+     * One way through a layer: {@code span}, its cells on the layer's wall line (one column, a few rows), and an
+     * open cell either side of it, {@code near} on the landing's side and {@code far} on the vault's.
+     */
+    public record Way(String name, WayKind kind, Area span, Cell near, Cell far) {
+        /** Whether the way is open ground now; a collapse is closed until it is cleared. */
+        public boolean open() { return kind != WayKind.COLLAPSE; }
+        /** Rows across the way. */
+        public int width() { return span.height(); }
+    }
+
+    /** A small ruined room off a layer, entered by one door; where field caches and sealed stores stand. */
+    public record SideRoom(String name, Area footprint, Cell door, Cell interior) {}
+
+    /** An open court in a layer where the boat can set down: a lift point once held. */
+    public record Court(String name, Area ground, LandingArea area) {}
+
+    /**
+     * One band of ruined ground the route must get through. {@code ground} is the holdable band, from just in
+     * front of its wall line to the next layer's; {@code lineLeft..lineRight} is the column range the wall line
+     * jogs through.
+     */
+    public record Layer(String name, int index, LayerKind kind, Area ground, int lineLeft, int lineRight,
+                        List<Way> ways, List<SideRoom> rooms, Court court) {
+        public Layer {
+            ways = List.copyOf(ways);
+            rooms = List.copyOf(rooms);
+        }
+
+        /** The ways that are open ground now. */
+        public List<Way> openWays() {
+            List<Way> open = new ArrayList<>();
+            for (Way way : ways) if (way.open()) open.add(way);
+            return open;
+        }
+    }
+
+    /** The site's generator hall: its console is where infantry restart it. In layer {@code layer} (0-based). */
+    public record PowerHall(String name, Area footprint, Cell door, Cell console, int layer) {}
+
+    /** A junction box on a layer's wall line: {@code stand} is the cell infantry work it from. */
+    public record Junction(String name, Cell stand, int layer) {}
+
+    /** The records terminal, in its own small office: {@code console} is where infantry read it. */
+    public record RecordsTerminal(String name, Area footprint, Cell door, Cell console, int layer) {}
+
+    /** The collapse across the short way of layer {@code layer}; the layer's open ways are the long way round. */
+    public record Collapse(String name, int layer, Way shortWay) {}
+
+    /** Where the haul may board: the landing area's arrival areas, then each court's, nearest the landing first. */
+    public List<LandingArea> liftPoints() {
+        List<LandingArea> out = new ArrayList<>(landing);
+        for (Layer layer : layers) if (layer.court() != null) out.add(layer.court().area());
+        return out;
+    }
+
+    /** Every published place by name, in the order the class documentation lists them. */
+    public Map<String, Area> places() {
+        Map<String, Area> out = new LinkedHashMap<>();
+        out.put(LANDING, landingGround);
+        out.put(VAULT, vault.footprint());
+        for (Layer layer : layers) {
+            out.put(layer.name(), layer.ground());
+            for (Way way : layer.ways()) out.put(way.name(), way.span());
+            for (SideRoom room : layer.rooms()) out.put(room.name(), room.footprint());
+            if (layer.court() != null) out.put(layer.court().name(), layer.court().ground());
+        }
+        out.put(POWER_HALL, powerHall.footprint());
+        for (Junction junction : junctions) {
+            out.put(junction.name(), new Area(junction.stand().x(), junction.stand().y(),
+                    junction.stand().x(), junction.stand().y()));
+        }
+        out.put(RECORDS, records.footprint());
+        out.put(COLLAPSE, collapse.shortWay().span());
+        return out;
+    }
+
+    /** The area of a published place, or null when this delve has none by that name. */
+    public Area area(String name) {
+        return places().get(name);
+    }
+}

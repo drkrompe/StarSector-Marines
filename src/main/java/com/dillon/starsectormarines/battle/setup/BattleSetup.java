@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
@@ -752,13 +754,26 @@ public final class BattleSetup {
     /**
      * The Ruins Expedition ({@code ruins-expedition.md}): the vault at the far end of the ground, its breach time
      * from the ruins grade, and the haul out to the landing area. An abandoned site: no civilians, no staffed
-     * buildings and no reinforcements come.
+     * buildings and no reinforcements come. The site's occupant chooses who defends it.
      */
     public static BattleSimulation createRuins(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport, RuinsGrade grade) {
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants). Only the scavengers' side
+        // plays yet; each other occupant's side plugs in at its own case, and until it does that site plays the
+        // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
+        switch (occupant) {
+            case SCAVENGERS:
+                break;
+            case NOBODY: // the works chain with no opposing side: ruins-works.md
+            case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
+            case DOMAIN_SECURITY: // the security-network director: derelict-security-network.md
+            case CONTINGENCY_SECURITY:
+                LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
+                break;
+        }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade));
@@ -1194,21 +1209,26 @@ public final class BattleSetup {
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
+        // A ruins site is a dead settlement laid as a delve, never a living town (ruins-ground.md).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         ColdAccountForce.FORTIFICATION)
+                : type == MissionType.RUINS
+                ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers()))
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
         if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
+        // Nobody parks a vehicle or mans an emplacement on a dead site.
+        boolean ruins = type == MissionType.RUINS;
+        List<Doodad> vehiclePlacements = ruins ? new ArrayList<>() : stampVehicles(map, rng);
         List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
         // A fortified place stated its own emplacements, so the setup-time
         // scatter is skipped: a second random layer on top of an authored
         // fortification was never a decision anybody made.
-        if (defensePosts.isEmpty()) {
+        if (defensePosts.isEmpty() && !ruins) {
             DefensePostStamper.stampNonConquest(map.grid, map.topology,
                     RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                     map.pointsOfInterest, map.doodads, defensePosts, rng);
@@ -1224,8 +1244,9 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
                 ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
-        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION || type == MissionType.RUINS
+        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
+        RuinsGroundLayout ruinsLayout = ruins ? RuinsGroundLayout.of(map) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
@@ -1246,13 +1267,11 @@ public final class BattleSetup {
                     raidTargetName == null ? raidLayout.targetName() : raidTargetName, raidLayout.targetCellX(),
                     raidLayout.targetCellY(), targetZone,
                     raidLayout.egressCellX(), raidLayout.egressCellY()));
-        } else if (extractionLayout != null && type == MissionType.RUINS) {
-            int vaultZone = sim.getZoneGraph().zoneIdAt(
-                    extractionLayout.sourceCellX(), extractionLayout.sourceCellY());
+        } else if (ruinsLayout != null) {
+            int vaultZone = sim.getZoneGraph().zoneIdAt(ruinsLayout.sourceX(), ruinsLayout.sourceY());
             sim.addObjective(new RuinsVaultObjective(RUINS_HAUL_ID, RUINS_HAUL_NAME, RUINS_VAULT_NAME,
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
-                    List.of(new RuinsVaultObjective.LiftPoint(RUINS_LANDING_NAME, true,
-                            extractionLayout.route()))));
+                    ruinsLayout.liftPoints()));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

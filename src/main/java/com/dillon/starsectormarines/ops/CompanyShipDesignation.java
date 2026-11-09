@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
@@ -71,6 +72,8 @@ public final class CompanyShipDesignation {
      * chosen. Null outside campaign, or for a fleet with nothing to live on.
      */
     public static FleetMemberAPI aboard() {
+        // Fleet facilities belong to no hull: there is no home to be aboard, lose or be displaced from.
+        if (FleetFacilities.inUse()) return null;
         MarineRoster roster = roster();
         String chosen = roster == null ? null : roster.companyShipId();
         if (chosen == null) return null;
@@ -198,7 +201,7 @@ public final class CompanyShipDesignation {
      * having picked one.
      */
     public static boolean quartered() {
-        return aboard() != null;
+        return FleetFacilities.inUse() || aboard() != null;
     }
 
     /**
@@ -218,6 +221,7 @@ public final class CompanyShipDesignation {
      */
     public static boolean designate(FleetMemberAPI member) {
         MarineRoster roster = roster();
+        if (FleetFacilities.inUse()) return false;
         if (roster == null || member == null || CerberusCompanyStart.conversionRequired()) return false;
         if (!candidates().contains(member) || !quarters(member)) return false;
         if (CompanyPreparation.required(roster)) {
