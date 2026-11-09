@@ -3,11 +3,12 @@
 Status: IN PROGRESS — every mechanics slice is built, with its scenes (What
 is built): zones, the director over walkers and flocks, the derelict heavy
 line, spotting, the node, repair drones, folded posts and power branches. The
-walker is its own legged chassis on placeholder art while picks
-`derelict-walker-legs` and `derelict-walker-wall-reach` wait; the posts' and
+walker is its own four-legged chassis on placeholder art while picks
+`derelict-walker-look` and `derelict-walker-wall-reach` wait; the posts' and
 node's looks ship on the recommended candidates while picks
-`derelict-post-look` and `derelict-node-look` wait. Feeds slice 5 of
-`ruins-expedition-fork.md` through `ruins-occupants.md`.
+`derelict-node-look` (redrawn) and `derelict-post-restyle` wait. Feeds slice 5 of
+`ruins-expedition-fork.md` through the ruins occupant (`ruins-expedition.md`,
+Occupants).
 
 Written: 2026-11-09
 
@@ -160,23 +161,27 @@ Everything is in `battle.derelict`.
   and numbers, all UNTUNED. Its arm guns sit in two side ports of the torso
   and its racks on its back; shared systems (movement, weapon components, mech
   doctrine and targeting) are the mechs' own.
-- **The walker's legs.** A torso on reaching legs (owner, 2026-11-09:
-  "a central torso on 3-4 legs that reach out and walk or pull along walls").
-  `DerelictLegRig` is the drawn rig, render-only: hips on a ring about the
-  torso, each foot planted until it strays `RESTEP_CELLS` from where it would
-  rest, then stepping over `STEP_SECONDS` with its gait group (four legs in
-  diagonal pairs, three one at a time); a torso that jumps further than a leg
-  reaches stands fresh. With wall reach a leg marches out along its line up to
-  `MAX_REACH_CELLS` and grips the first wall face it meets, and rests on the
-  floor where none is in reach. The torso still paths, collides and stands on
+- **The walker's legs.** A torso on four reaching legs (owner, 2026-11-09:
+  "a central torso on 3-4 legs that reach out and walk or pull along walls";
+  pick `derelict-walker-legs`, four). `DerelictLegRig` is the drawn rig,
+  render-only: hips on a ring about the torso, each foot planted until it
+  strays `RESTEP_CELLS` from where it would rest, then stepping over
+  `STEP_SECONDS` with its diagonal pair; a torso that jumps further than a leg
+  reaches stands fresh. With wall reach a leg swings out sideways from its
+  line to the first wall face within `MAX_REACH_CELLS` and plants up on it;
+  without, a foot stays on the floor, tucked short of a wall. Each leg is a
+  thigh and a shin: `DerelictLegPose` solves the knee in three dimensions
+  (the hip held up, the knee bending up), so a foot near the body raises the
+  knee and a foot on a wall stands higher, and `DerelictWalkerComposer` draws
+  a higher part a little larger. The torso still paths, collides and stands on
   floor cells, so pathing is untouched; moving over or along wall cells would
   need a passability view of its own, read by both the planner and terrain
-  motion as `HoverSkirt` and `WallCrush` are, and is not built.
-  `DerelictWalkerComposer` draws it from placeholder parts
-  (`art-source/derelict-walker/placeholder.py`). The leg count and wall reach
-  wait on the owner's `derelict-walker-legs` and `derelict-walker-wall-reach`
-  picks, behind the temporary switches `battle.derelictWalker.legs` (4) and
-  `battle.derelictWalker.wallReach` (on).
+  motion as `HoverSkirt` and `WallCrush` are, and is not built. The shipped
+  parts are placeholders (`art-source/derelict-walker/placeholder.py`) while
+  the owner's `derelict-walker-look` pick is open; its candidates are painted
+  after the vanilla Domain derelict drone ships over `guide.py`'s geometry and
+  cut by `export.py`. Wall reach waits on `derelict-walker-wall-reach`, behind
+  the temporary switch `battle.derelictWalker.wallReach` (on).
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none
@@ -261,8 +266,16 @@ Everything is in `battle.derelict`.
   its housing. Art from ImageGen geometry guides, three post and four node
   designs a sheet per lineage (`art-source/derelict-security`); the
   recommended pop-up post and mast node ship while picks
-  `derelict-post-look` and `derelict-node-look` wait. The walker is drawn
-  by its own leg rig (The walker's legs).
+  `derelict-post-look` and `derelict-node-look` wait. The owner rejected
+  that node as off-style (photo-real steel, stencilled text); the second
+  round (`-v2b` sheets) redraws after Starsector's own derelict ship
+  sprites (owner's style target: greebled sage-green and khaki plates,
+  hazard yellow, brass, rust), no text or emblems, both lineages on one
+  sheet: three node designs
+  (cabinet, array, junction) for `derelict-node-look` and the pop-up post
+  restyled on its own geometry for `derelict-post-restyle`, carded in game
+  beside a company Hound. The walker is drawn by its own leg rig (The
+  walker's legs).
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
@@ -283,7 +296,9 @@ post, the vault frame stays); `DerelictLegRigTest`;
 `createSnapshots -Psnapshot=derelict-heavies-look
 -Dsnapshot.derelict.interiorOnly=true` with the two walker switches (the
 interior stills alone, closer, and the vault frame stood in a three-cell
-hall: the walker-legs picks); `createSnapshots
+hall: the walker-legs picks); `DerelictLegPoseTest`; `createSnapshots -Psnapshot=derelict-walker-look`
+(the vault frame in a hall of the vast ruin beside a company Bulwark, then a
+recording of it walking the hall, the walk scripted); `createSnapshots
 -Psnapshot=derelict-security-look` (a post folded and unfolded and a node, in
 either lineage, the look candidates through `-Dsnapshot.artOverlay`).
 
@@ -308,6 +323,7 @@ playBattle's Veteran Company).
 
 ## Done
 
-A derelict expedition on each grade plays through `ruins-occupants.md` and the
+A derelict expedition on each grade plays through the ruins occupant
+(`ruins-expedition.md`, Occupants) and the
 owner has played one. Fold the director into `ruins-expedition.md`, the units
 into their noun docs, add a row to `shipped.md`, and delete this story.

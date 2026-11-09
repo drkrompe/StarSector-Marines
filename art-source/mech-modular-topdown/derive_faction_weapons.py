@@ -190,13 +190,22 @@ def base_paint_pixel(rgb: tuple[int, int, int], alpha: int) -> bool:
             and max(red, green, blue) <= 238)
 
 
+# Liveries whose chassis are the low-tech bodies rather than a repaint of the base outlines (sources/lowtech/build.py):
+# their pixels do not line up with the base's, so their paint is read from every opaque pixel, and the dominant cluster
+# keeps the plate colour and drops the glass, pipes and hardware.
+OWN_BODIES = ("hegemony", "independent", "pirates")
+
+
 def target_samples(faction: str) -> list[tuple[float, float, float]]:
     samples: list[tuple[float, float, float]] = []
     for chassis in CHASSIS:
         base = Image.open(ROOT / chassis).convert("RGBA")
         target = Image.open(ROOT / "factions" / faction / chassis).convert("RGBA")
         for source_pixel, target_pixel in zip(base.getdata(), target.getdata()):
-            if not base_paint_pixel(source_pixel[:3], source_pixel[3]):
+            if faction in OWN_BODIES:
+                if target_pixel[3] < 160:
+                    continue
+            elif not base_paint_pixel(source_pixel[:3], source_pixel[3]):
                 continue
             lab = rgb_to_oklab(target_pixel[:3])
             if 0.10 <= lab[0] <= 0.94:

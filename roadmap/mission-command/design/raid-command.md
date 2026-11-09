@@ -6,7 +6,8 @@ Written: 2026-08-27
 
 Updated: 2026-10-12 — public objective markers and checklist distinguish seizure from return; indoor target selection excludes exterior fallback anchors.
 
-Read `mission-command-nouns.md` for the shared architecture.
+Read `mission-command-nouns.md` for the shared architecture and `raid-mission.md`
+for what a Raid is for: its intent (steal or break), security and scaling.
 
 Raid is an objective strike with withdrawal pressure, not a smaller
 Assault and not Sabotage with a different label. Its intended command shape is
@@ -25,6 +26,13 @@ combatant in the seven-cell-diameter egress pocket completes the mission. Raid
 therefore succeeds without eliminating the defender. The defender retains a
 separate elimination objective, and campaign loot/disruption consumes ordinary
 Marine victory rather than becoming battle-time objective input.
+
+A raid may serve its target only within a **service window**
+(`RaidObjective.ServiceWindow`), as a freighter stands at its berth only so long
+(`sky-port-heist.md`): before the window opens the target cannot be served and no
+service tick raises the alarm; a window that closes with the target not seized
+fails the raid. Once seized, the window no longer matters. The checklist reads the
+window as a clock: until it opens, then until it closes.
 
 The abstract package deliberately has no individual carrier. Carrier identity,
 transfer, and death would create a second hidden objective contract; a later

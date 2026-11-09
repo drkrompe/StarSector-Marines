@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c18b-d592-78a3-a062-51ba9aaa9e91",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c18b-d592-78a3-a062-51ba9aaa9e91\\exec-9a8f745f-f534-443e-b970-98b50c87d442.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\foot\\foot-master.png",
+    "sha256": "756499b97b9c026776319e9ca344a9bdc98b656415106509f5cb5252a5511f22",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\foot\\foot.prompt.txt",
+  "promptSha256": "36edf82717343ae95b244c02f94e47372ee3849f308287b3ee3a8056df1c4576",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Family identity: finish only; not layout\n\nAsset type: production-source master for a top-down game sprite: the FOOT PAD of a walking machine in the old, low-tech Hegemony armour line, seen straight from above. It is drawn under the machine's body, so mostly its front edge shows as the leg steps.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize or add to its shape, and keep all empty canvas empty. The wide upper part is the front of the pad; the stepped lower part is the heel where the leg meets it.\n\nImage 2 is family identity reference only, never layout: the accepted low-tech Hegemony Hound this foot belongs to. Match its finish: warm tan and khaki riveted plate, dark gunmetal working parts, rivet rows, worn bright edges, grime, crisp painted game-sprite finish, light from the upper left. Draw a heavy, flat cast foot: a riveted tan toe plate with a worn steel grip edge along the front, a dark ankle bearing at the heel, perhaps one small orange hazard strip on a corner.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, cast shadow, halo, border, text or labels.\n\nAvoid: a leg, a second foot, glowing lights, blue or cyan, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\foot\\guide.png",
+      "sha256": "84e399629881c3c3ba121a69cc4b22f2ccb42d4081d25820f6e12b21df5f6124",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-1-master.png",
+      "sha256": "93c71ce7ce33d191178a7ac3ba39053d6e8efbfa8919e127f09c6d698882d298",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Family identity: finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one foot-pad image using the exact blockout silhouette and the Hound’s armor finish."
+  ],
+  "usage": {
+    "input_tokens": 42467,
+    "cached_input_tokens": 36480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 522,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.0
+}

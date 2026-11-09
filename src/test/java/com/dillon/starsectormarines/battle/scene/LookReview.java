@@ -139,10 +139,20 @@ public final class LookReview {
      * One camera on a shot: {@code focus} answers {@code {centreX, centreY, cellsAcross}} in map cells for the frame
      * being drawn, so a view may follow its subject.
      */
-    public record View(String name, Function<BattleSimulation, float[]> focus) {
+    public record View(String name, Function<BattleSimulation, float[]> focus, boolean roofs) {
         public View {
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(focus, "focus");
+        }
+
+        /** A view that draws roofs as the game screen fades them. */
+        public View(String name, Function<BattleSimulation, float[]> focus) {
+            this(name, focus, true);
+        }
+
+        /** This view with every roof lifted, for a subject indoors that the company is not inside with. */
+        public View withoutRoofs() {
+            return new View(name, focus, false);
         }
 
         /** A fixed camera at play zoom ({@link BattleReviewFrameRenderer#PLAY_ZOOM_CELLS} cells across). */
@@ -325,8 +335,9 @@ public final class LookReview {
             }
             for (View view : views) {
                 float[] f = view.focus().apply(sim);
-                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2])
-                        .selecting(selection).highlighting(placement.highlights()));
+                BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1],
+                        f[2]).selecting(selection).highlighting(placement.highlights());
+                renderers.add(view.roofs() ? renderer : renderer.withoutRoofs());
                 frames.add(!mp4 || raw ? new CompressedFrameList() : List.of());
                 candidates.add(new StillCandidates(shot.stillFrames(), shot.stills(), gap));
                 if (mp4) {

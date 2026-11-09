@@ -1,7 +1,8 @@
 # Ruins expedition: going into a world's ruins with the company
 
-Status: DRAFT — proposed by the owner; nothing is built. The first work is
-`ruins-expedition-fork.md`.
+Status: DRAFT — the fork, the Ruins mission family and its occupants are built
+and offered only in development builds; the owner's live pass is
+`ruins-expedition-fork.md`'s.
 
 Written: 2026-11-09
 
@@ -179,7 +180,9 @@ rule (uncontested presence for a time releases the package), the escorted
 package with its leash, loss and abandonment, boarding at an egress, the
 payload projection's shape (so the rail and map show the haul like any
 package), and the family's disclosure law: the company knows the vault, its
-lift points and the haul; the occupant's layout is never disclosed.
+lift points and the haul; the occupant's layout is never disclosed. It borrows
+them as shared code, never a copy, and a change the family needs in a shared
+rule is raised against `extraction-command.md` first.
 
 **What it does not borrow:** the single corridor and its corridor commander;
 the fixed egress (a lift point can be any held court); the generic defenders'
@@ -195,7 +198,9 @@ is always an opposing commander.
   layer at a time with a lead element ahead of the body, sends a squad to a
   cache or a works task when its layer is quiet, forms the breach hold on the
   vault, and after the breach screens the haul to the nearest lift point it
-  holds. It plans from the same frozen frame as every commander.
+  holds. It plans from the same frozen frame as every commander. It is
+  deferred (owner: planning the company's run is a waste for now), so
+  Extraction's company commander plays the company headless (Open questions).
 - **The occupant's side** is the occupant's own: the **crew commander** for
   scavengers (a conventional squad commander over a camp and a dig), the swarm
   director under a ruins profile for the Rav, and the **security-network
@@ -237,7 +242,10 @@ behind their own gate in `loot-nouns.md`.
 **Retry meets the same ruins.** The map, the occupant, its strength and the
 works are all seeded from the site and never stored, so a second expedition
 meets the same ground at full strength and its works reset. Nothing the first
-expedition opened, powered or destroyed stays that way.
+expedition opened, powered or destroyed stays that way. The one exception is
+the finds it brought home (Law 6): every find keeps its seeded place and
+identity from visit to visit, so a find once taken is left out, and everything
+else is placed as before.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
 supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
@@ -512,12 +520,23 @@ The draw, as starting weights:
 - **Only a scattered site can hold nobody.** Anything larger was settled enough
   to leave somebody, or something, behind.
 
+The derelict lineage is part of the occupant (Domain security or contingency
+security), so the briefing and the network read it directly.
+
+**A site fields its occupant's side and nothing else.** No ruins site gets the
+generic garrison, patrols, emplacements or air: the scavengers field their
+crew, derelict security its network, the Rav their sleepers, and an empty site
+no one. The mission names the occupant's faction as the defender, and none for
+an empty site or the Rav, which no campaign faction stands for.
+
 ### Nobody
 
-The ruins are empty, and the expedition is the site's works: a short chain of
-a power hall, junctions, a collapse and seal doors that ends at the vault, with
-two sealed stores off it (Works). The briefing's readings say the site is quiet
-and hint at the chain.
+The ruins are empty and field no one, and the expedition is the site's works: a
+short chain of a power hall, junctions, a collapse and seal doors that ends at
+the vault, with two sealed stores off it (Works). Every expedition gives
+gameplay and a reward (owner): here the puzzle is the gameplay and the stores
+are the reward. The briefing says the site is quiet and names the chain
+(Briefing).
 
 ### Scavengers
 
@@ -528,7 +547,13 @@ are a pirate's priorities). It uses the pirate ground roster
 borrows the generic Extraction defenders' pieces (`extraction-command.md`):
 posted squads at the camp and the dig, a patrol pool, and the identity-free
 alarm that mobilizes at most three squads. What is its own is the two places it
-answers for, the dig first and the stash second.
+answers for, the dig first and the stash second: one squad always walks the
+dig, an alarm there takes all three, trouble at the camp alone sends two, and
+both at once split two and one. The crew's strength comes from the grade
+alone, a budget spent on its heavy first and then on infantry, whoever owned
+the world. A share of the infantry is posted at the dig and a smaller one at
+the camp, which stands on the vault route nearer the landing; the rest walk
+patrol along the route with the heavy.
 Its stash is the one occupant spoil. Independent salvage crews are not
 occupants: shooting a licensed crew would carry a reputation meaning this
 feature does not own.
@@ -541,7 +566,19 @@ the deeper layers that noise (gunfire, a breach under way) and time spent below
 open one by one, each feeding the director's waves. The breach is the loudest
 thing the company does, so pressure peaks on the egress and follows the haul to
 the lift. There is no mother bore, no harvest (nobody lives here) and no
-cohort; the late strains appear only at the larger grades. The expedition never
+cohort; the late strains appear only at the larger grades.
+
+- **Bores by grade:** two at scattered, rising to five at vast, sleeping in the
+  deeper layers (every layer but the landing's), spread apart.
+- **Waking:** each closed bore stirs with time spent below, with company
+  gunfire it hears, and fast while the breach is under way; past its own
+  threshold, staggered so they open one by one, it opens and surges. The breach
+  opens every bore still closed and brings the field to full strength.
+- **Strains by grade:** a bore grows no further than its grade allows: runners
+  only at scattered ruins, brutes and spitters from widespread, the maw's heavy
+  strains at extensive and vast.
+- Restarting the power hall is loud, and wakes the nearest closed bore (Works).
+ The expedition never
 wakes, feeds or ends a campaign bloom and never touches the reservoir's rest
 (Boundaries).
 
@@ -592,15 +629,16 @@ place on the map or a unit count.
 
 | Occupant | Kind of reading | Draft readings |
 | --- | --- | --- |
-| Nobody | Quiet, with structure and power | No lifesigns, no movement, no emissions. Residual charge in a buried power hall. The vault seal reads unpowered. A collapse across the main approach. |
+| Nobody | Quiet, with structure and power | The whole chain, in order, never a draw: residual charge in a buried power hall; the vault seal reads unpowered; a collapse chokes the short way in; sealed rooms, and a records system that still knows what is in them. |
 | Scavengers | Comms, heat and traces | Comms chatter on an unlicensed band. Cooking heat and a generator in the ruins. Fresh landing scars; a transponder-dark boat on the ground. Vehicle tracks to the vault. |
 | Rav | Biological lifesigns | Faint lifesigns below the ruins, clustered, too many and too cold to be people. Seismic chatter under the deep layers. Warm spots that move between scans. |
-| Derelict security | Movement and power | Movement on fixed patrol paths. Power draw from buried halls. Active sensor sweeps that answer the survey's ping. A contingency site's emissions carry Tri-Tachyon codes. |
+| Derelict security | Movement and power | Movement on fixed patrol paths. Power draw from buried halls. Active sensor sweeps that answer the survey's ping. A contingency site names Tri-Tachyon in its assessment, and its emissions carry Tri-Tachyon codes. |
 
 The strength band reads through the same instruments: the lifesign count, the
 power draw, the chatter's volume. An empty site's readings are its puzzle's
-first hints: they say there is a power hall, a dead seal and a collapse, and
-leave the wiring to the records terminal.
+first hints, so it reads its whole chain rather than a draw: a power hall, a
+dead seal, a collapse and the sealed stores, each laid on every ruins ground, so
+the hints are always true. The wiring is left to the records terminal.
 
 The haul range is the Flow's (step 3), and the battle never changes it.
 
@@ -616,6 +654,15 @@ The haul range is the Flow's (step 3), and the battle never changes it.
 
 ## Open questions
 
+- **The delve commander** (deferred, owner). Take it up only once ruins ground
+  has settled, and only if headless evidence needs more than Extraction's
+  company commander. It reads the layers and the vault route from what setup
+  publishes, never open streets: a layer may be inside, behind a threshold or
+  a seal door.
+- Still owed on the rail and the vault: breaching charges left, once a charge
+  is a finite stock; the banked finds by material rather than a count; the
+  close reading's sign on the compact rail, which shows only the band (the
+  comms feed or the row expanded); and the vault store drawn at the vault.
 - Should an occupant also block standard exploration (vanilla's team turned
   back by an armed occupant), or only shape the expedition? Blocking would make
   the fork more than an option, so the default is no.

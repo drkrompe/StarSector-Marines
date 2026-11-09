@@ -1,0 +1,55 @@
+package com.dillon.starsectormarines.battle.appearance;
+
+/**
+ * Where a derelict walker leg's knee stands, solved in three dimensions and seen from above: the hip is held
+ * {@link #HIP_HEIGHT_CELLS} off the floor, the thigh ({@link #THIGH_CELLS}) and shin ({@link #SHIN_CELLS}) are rigid,
+ * and the knee bends up, in the upright plane through hip and foot. A foot near the hip raises the knee high, so both
+ * segments look short from above; a foot far out flattens the leg. A foot gripping a wall stands
+ * {@link #WALL_FOOT_HEIGHT_CELLS} up its face. Presentation only.
+ */
+public final class DerelictLegPose {
+
+    public static final float HIP_HEIGHT_CELLS = 0.70f;
+    public static final float THIGH_CELLS = 1.30f;
+    public static final float SHIN_CELLS = 1.60f;
+    /** How far up a wall's face a gripping foot stands. */
+    public static final float WALL_FOOT_HEIGHT_CELLS = 0.80f;
+    /** How high a stepping foot lifts at the top of its step. */
+    public static final float STEP_LIFT_CELLS = 0.45f;
+
+    private DerelictLegPose() {
+    }
+
+    /**
+     * The knee for a hip at (hx, hy) and a foot at (fx, fy) standing {@code footHeight} off the floor, as
+     * {@code out = {kneeX, kneeY, kneeHeight}}. A foot beyond the leg's reach leaves the leg straight toward it.
+     */
+    public static void knee(float hx, float hy, float fx, float fy, float footHeight, float[] out) {
+        float dx = fx - hx;
+        float dy = fy - hy;
+        float flat = (float) Math.sqrt(dx * dx + dy * dy);
+        float dz = footHeight - HIP_HEIGHT_CELLS;
+        float reach = THIGH_CELLS + SHIN_CELLS;
+        float span = (float) Math.sqrt(flat * flat + dz * dz);
+        float d = Math.max(Math.abs(THIGH_CELLS - SHIN_CELLS) + 1e-3f, Math.min(reach - 1e-3f, span));
+        // Along the hip-to-foot line, a; up off it, h (the knee bends away from the floor).
+        float a = (THIGH_CELLS * THIGH_CELLS - SHIN_CELLS * SHIN_CELLS + d * d) / (2f * d);
+        float h = (float) Math.sqrt(Math.max(0f, THIGH_CELLS * THIGH_CELLS - a * a));
+        // Unit vectors in the upright plane: u along the line (flat, dz), w perpendicular to it, pointing up.
+        float ux = span > 1e-4f ? flat / span : 1f;
+        float uz = span > 1e-4f ? dz / span : 0f;
+        float wx = -uz;
+        float wz = ux;
+        if (wz < 0f) {
+            wx = -wx;
+            wz = -wz;
+        }
+        float kFlat = a * ux + h * wx;
+        float kZ = HIP_HEIGHT_CELLS + a * uz + h * wz;
+        float dirX = flat > 1e-4f ? dx / flat : 0f;
+        float dirY = flat > 1e-4f ? dy / flat : 1f;
+        out[0] = hx + dirX * kFlat;
+        out[1] = hy + dirY * kFlat;
+        out[2] = kZ;
+    }
+}

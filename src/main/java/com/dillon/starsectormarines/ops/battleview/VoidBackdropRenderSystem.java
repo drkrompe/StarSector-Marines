@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
@@ -39,7 +40,8 @@ import java.util.TreeMap;
  * running from its roof down to the next terrace or the ground. Every tower's levels, the walkways' and the
  * neighbouring towers' are drawn in one order, deepest roof first.
  *
- * <p>Presentation only. It reads the map's void cells and its {@link VoidBackdrop}, never the battle.
+ * <p>Presentation only. It reads the map's void cells and its {@link VoidBackdrop}, never the battle but for its
+ * clock, which places the craft a mission has called to a berth.
  */
 final class VoidBackdropRenderSystem implements RenderSystem {
 
@@ -71,6 +73,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * many seconds between one craft and the next on a route.
      */
     static final float SKYWAY_METERS = 1600f, SKYWAY_SPEED = 9f, SKYWAY_INTERVAL = 20f;
+    /** A called craft: how long it flies in or out, and how long it takes to turn for the way out. */
+    static final float CALL_FLIGHT_SECONDS = 40f, CALL_TURN_SECONDS = 8f;
     /** Slips: about how fast craft fly in and out of one, and about how many seconds between one and the next. */
     static final float SLIP_SPEED = 8f, SLIP_INTERVAL = 70f;
     /** Street routes: how many at most and to a skyway, how far right of a street's middle they keep, and a turn's reach. */
@@ -132,6 +136,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private final VoidTraffic traffic = new VoidTraffic();
     /** This frame's craft in the air, reused frame to frame. */
     private final List<float[]> aloft = new ArrayList<>();
+    /** The battle's own clock this frame, in seconds, for the calls. */
+    private float battleSeconds;
     /** The skyways' marker lights: {@code {x, y, z, distance along the lane}}. */
     private final List<float[]> laneLights = new ArrayList<>();
 
@@ -230,6 +236,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         // A host that keeps no animation clock (the game itself) passes NaN: fly by the wall clock then, or every
         // craft's place along its route is NaN and none is drawn.
         this.time = FireLight.clock(ctx.animationTimeSeconds);
+        // A call keeps the battle's own clock, not the presentation's: the freighter stands at its berth while the
+        // mission says it does.
+        this.battleSeconds = ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         fly(time);
         float px = cam.panCellX(), py = cam.panCellY();
         List<float[]> flying = new ArrayList<>();
@@ -1153,6 +1162,15 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             c[4] = flyingHull((int) c[4], backdrop.craft().size());
             if (band != null) band.flying.add(c);
         }
+        for (VoidBackdrop.Call call : backdrop.calls()) {
+            if (call.slip() < 0 || call.slip() >= backdrop.slips().size()) continue;
+            float[] c = callCraft(call, backdrop.slips().get(call.slip()), battleSeconds);
+            if (c == null) continue;
+            c[4] = Math.max(0, backdrop.craft().indexOf(call.hull()));
+            Level band = null;
+            for (Level level : levels) if (level.top <= c[2] && (band == null || level.top > band.top)) band = level;
+            if (band != null) band.flying.add(c);
+        }
         // The lane lights run a chase along each lane, so the lane reads as a lane between the craft.
         for (float[] light : laneLights) {
             double run = time * LANE_LIGHT_HZ - light[3] / (LANE_LIGHT_SPACING * 6f);
@@ -1201,8 +1219,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         // An engine's glow at the tail, warm against the haze.
         float tx = x - (float) Math.cos(heading) * length * .5f, ty = y - (float) Math.sin(heading) * length * .5f;
         float g = Math.max(.2f, length * .035f);
-        rect(tx - g, ty - g, tx + g, ty + g, z, 1f, .78f, .45f, .9f * a);
-        rect(tx - g * 2.2f, ty - g * 2.2f, tx + g * 2.2f, ty + g * 2.2f, z, 1f, .55f, .2f, .25f * a);
+        // Round, as the lamps are: a square of light read as a block stuck to the hull.
+        lamp(tx, ty, z, 1f, .62f, .3f, g * 1.4f, .9f * a);
     }
 
     /**
@@ -1264,6 +1282,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         // Slips: craft fly in down a canyon to berth at its head, slowing, and back out, gathering speed.
         int slip = 0;
         for (VoidBackdrop.Slip berth : backdrop.slips()) {
+            boolean called = false;
+            for (VoidBackdrop.Call call : backdrop.calls()) called |= call.slip() == slip;
             float dx = berth.x1() - berth.x0(), dy = berth.y1() - berth.y0();
             float length = (float) Math.hypot(dx, dy);
             if (length <= 0f) continue;
@@ -1275,6 +1295,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 laneLights.add(new float[]{px - ex, py - ey, berth.depthMeters(), t});
             }
             float z = berth.depthMeters();
+            if (called) {
+                slip++;
+                continue;
+            }
             // Arrivals keep the right of the canyon, departures the other side; both come down from above it.
             for (int way = 0; way < 2; way++) {
                 float side = way == 0 ? 2.5f : -2.5f;
@@ -1599,6 +1623,49 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             structure.add(level);
         }
         structures.add(structure);
+    }
+
+    /**
+     * Where a called craft is at {@code seconds} of the battle, as {@code {x, y, z, heading, hull, fade}} with the
+     * hull left for the caller, or null while it is not in the air or at its berth: it flies in over {@link
+     * #CALL_FLIGHT_SECONDS}, slowing, to stand at the berth from its arrival, and out again from its departure,
+     * gathering speed, turning to face the way out as it goes.
+     */
+    static float[] callCraft(VoidBackdrop.Call call, VoidBackdrop.Slip berth, float seconds) {
+        float s, turn;
+        if (seconds < call.arriveSeconds() - CALL_FLIGHT_SECONDS || seconds >= call.departSeconds() + CALL_FLIGHT_SECONDS) {
+            return null;
+        } else if (seconds < call.arriveSeconds()) {
+            float u = 1f - (call.arriveSeconds() - seconds) / CALL_FLIGHT_SECONDS;
+            s = 1f - (1f - u) * (1f - u);
+            turn = 0f;
+        } else if (seconds < call.departSeconds()) {
+            s = 1f;
+            turn = 0f;
+        } else {
+            float u = (seconds - call.departSeconds()) / CALL_FLIGHT_SECONDS;
+            s = 1f - u * u;
+            turn = Math.min(1f, u * CALL_FLIGHT_SECONDS / CALL_TURN_SECONDS);
+        }
+        float dx = berth.x1() - berth.x0(), dy = berth.y1() - berth.y0();
+        float length = (float) Math.hypot(dx, dy);
+        float ux = length > 0f ? dx / length : 1f, uy = length > 0f ? dy / length : 0f;
+        // From far out over the drop, down to the canyon's mouth, then along it to the berth.
+        float approach = APPROACH_METERS, along = approach + length;
+        float d = s * along, x, y, z;
+        if (d < approach) {
+            float k = d / approach;
+            x = berth.x0() - ux * (approach - d);
+            y = berth.y0() - uy * (approach - d);
+            z = berth.depthMeters() - 25f * (1f - k);
+        } else {
+            x = berth.x0() + ux * (d - approach);
+            y = berth.y0() + uy * (d - approach);
+            z = berth.depthMeters();
+        }
+        float heading = (float) Math.atan2(uy, ux) + turn * (float) Math.PI;
+        float fade = Math.min(1f, d / (approach * .3f));
+        return new float[]{x, y, z, heading, 0f, fade};
     }
 
     /**

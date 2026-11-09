@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Where a Ruins battle's vault and lift points stand on its ground ({@code mapgen-nouns.md}, Ruins ground): the vault's
  * source cell as the ground published it, and a lift point at the landing area, at every landing court and at every
- * entrance of the interior (its apron), each with its route from the vault. Read off {@link MapResult#ruinsDelve},
+ * entrance of the interior (its apron's arrival area), each with its route from the vault. Read off {@link MapResult#ruinsDelve},
  * never searched for.
  *
  * @param sourceX    the vault's source cell, where the breach is held
@@ -44,19 +44,26 @@ record RuinsGroundLayout(int sourceX, int sourceY, List<LiftPoint> liftPoints) {
         RuinsDelve.Interior interior = delve.interior();
         if (interior != null) {
             List<RuinsDelve.Area> entrances = interior.entrances();
+            List<RuinsDelve.Apron> aprons = interior.aprons();
             for (int i = 0; i < entrances.size(); i++) {
-                RuinsDelve.Cell apron = apronCell(map.grid, entrances.get(i), interior.footprint());
                 String name = entrances.size() == 1 ? ENTRANCE_NAME : ENTRANCE_NAME + " " + (i + 1);
-                lifts.add(new LiftPoint(name, LiftPoint.Kind.ENTRANCE,
-                        route(map, source.x(), source.y(), apron.x(), apron.y())));
+                int[] route;
+                if (i < aprons.size()) {
+                    // The ground publishes each entrance's apron with its own arrival area.
+                    route = route(map, source.x(), source.y(), aprons.get(i).lift().berth(0));
+                } else {
+                    RuinsDelve.Cell apron = apronCell(map.grid, entrances.get(i), interior.footprint());
+                    route = route(map, source.x(), source.y(), apron.x(), apron.y());
+                }
+                lifts.add(new LiftPoint(name, LiftPoint.Kind.ENTRANCE, route));
             }
         }
         return new RuinsGroundLayout(source.x(), source.y(), List.copyOf(lifts));
     }
 
     /**
-     * Where an entrance's apron is held: the walkable cell outside the interior's footprint nearest the entrance, by
-     * walking out from its middle. Provisional until the ground publishes each entrance's apron itself.
+     * Where an entrance's apron is held when the ground published none (a hand-built delve): the walkable cell outside
+     * the interior's footprint nearest the entrance, by walking out from its middle.
      */
     static RuinsDelve.Cell apronCell(NavigationGrid grid, RuinsDelve.Area entrance, RuinsDelve.Area footprint) {
         int startX = entrance.centreX();

@@ -13,8 +13,8 @@ weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
 can carry matching equipment or one deliberately centered rack. Feet and arms
 remain beneath the chassis layer. Shoulder-rack order is authored per hull:
-Bulwark and Hound expose their racks above the armor, while Warden's paired
-LRMs remain tucked under its broad hull. Rear/anchor regions are intentionally
+Every chassis exposes its racks above the armor (owner: the Warden's racks
+tucked under its hull read wrong). Rear/anchor regions are intentionally
 buried so motion exposes only a toe tip and recoil exposes no arm joint.
 
 Current hull-relative authored sizes are approximately 30% width for each
@@ -34,6 +34,12 @@ full-resolution ImageGen sources live in `sources/`, including
 Cannon sprites are named for their parts (`<Family>-<N>`, mechs-nouns.md): `hc-20.png` and `hc-10.png` the HC cannons,
 `ac-6.png` and `ac-6-qs.png` the autocannons, `dc-5.png` and `dc-4-qs.png` the demolition cannons. The
 retained generated linkage source is `sources/thigh-bone.png`.
+
+The Hegemony wears bodies of its own, the low-tech family under
+`art-source/mech-modular-topdown/sources/lowtech/` (packed by its `build.py`,
+with a `foot.png` and `thigh-bone.png` of its own), and Independents and
+pirates wear the blue and red paints of it the Hegemony vehicles wear; their
+weapon casings take that plate.
 
 `factions/<family>/` contains appearance-only chassis skins for Hegemony,
 Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,

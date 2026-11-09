@@ -359,7 +359,11 @@ public class BattleSprites {
 
     /** Complete livery selected for one tactical side, with the base set as fail-safe. */
     public LayeredMechAssets layeredMechSprites(Faction side) {
-        MechLivery livery = mechLiveryBySide.getOrDefault(side, MechLivery.BASE);
+        return layeredMechSprites(mechLiveryBySide.getOrDefault(side, MechLivery.BASE));
+    }
+
+    /** One livery's complete set, loaded on first ask if the battle did not plan it, with the base set as fail-safe. */
+    public LayeredMechAssets layeredMechSprites(MechLivery livery) {
         LayeredMechAssets selected = layeredMechLiveries.get(livery);
         if (selected == null && layeredMechSpritesLoadAttempted && livery != MechLivery.BASE
                 && !liveriesAttempted.contains(livery)) {
@@ -571,6 +575,10 @@ public class BattleSprites {
         }
         if (set == null || set.ravRigs()) steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureRavRigs));
         Set<MechLivery> liveries = set != null ? liveriesWornBy(set.mechSides()) : EnumSet.allOf(MechLivery.class);
+        // A Hegemony-line hull draws its fitted weapon in its paint's livery (VehicleGunArt), whatever its side's mechs wear.
+        if (set != null && set.vehicles().stream().anyMatch(VehiclePaint::paints)) {
+            for (Faction side : Faction.values()) liveries.add(vehiclePaint(side).mechLivery());
+        }
         steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureLayeredMechSprites(Set.of())));
         for (MechLivery livery : liveries) {
             steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureMechLivery(livery)));
@@ -1555,9 +1563,12 @@ public class BattleSprites {
                     + " incomplete; actors using it keep the complete base set");
             return;
         }
+        LayeredSpriteCache liveryFoot = livery.ownsLegs() ? loadLayeredSprite(root + "foot.png") : null;
+        LayeredSpriteCache liveryThigh = livery.ownsLegs() ? loadLayeredSprite(root + "thigh-bone.png") : null;
         layeredMechLiveries.put(livery, new LayeredMechAssets(
                 chassis, socketedChassis, houndChassis, wardenChassis,
-                foot, thighBone, arm, hc10, hc20,
+                liveryFoot != null ? liveryFoot : foot, liveryThigh != null ? liveryThigh : thighBone,
+                arm, hc10, hc20,
                 srm, lrm, ll3, pl2Ap, ac6,
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,

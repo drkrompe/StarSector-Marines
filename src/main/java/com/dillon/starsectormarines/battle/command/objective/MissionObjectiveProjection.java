@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
+import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective.LiftPoint;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Cell;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.SquadActivity;
@@ -128,6 +129,14 @@ public final class MissionObjectiveProjection {
             }
         }
         items.sort(Comparator.comparing(Item::id));
+        // The Ruins family's Delve row sits under the vault's card.
+        RuinsVaultObjective vault = RuinsPullOut.vault(sim);
+        if (vault != null && sim.getRuinsDelveWatch() != null) {
+            int at = 0;
+            while (at < items.size() && !items.get(at).id().equals(vault.payloadId())) at++;
+            items.add(Math.min(at + 1, items.size()),
+                    RuinsDelveRow.item(vault.payloadId(), sim.getRuinsDelveWatch().picture(sim, vault)));
+        }
         // Side objectives follow the mission's own rows, in offer order.
         items.addAll(SideObjectiveRows.items(sim.getSideObjectives(), SideField.of(sim)));
         if (sim.getRuinsWorks() != null) items.add(sim.getRuinsWorks().item());
@@ -316,7 +325,22 @@ public final class MissionObjectiveProjection {
         String measure;
         String blocker = "";
         float progress;
-        if (atVault) {
+        boolean entrances = hasEntrance(vault);
+        boolean approach = entrances && vault.ruinsPhase() == RuinsVaultObjective.RuinsPhase.APPROACH;
+        if (atVault && approach && state == State.ACTIVE) {
+            // Phase A: the card's first step is taking an entrance; the apron nearest done shows its timer.
+            phase = Strings.get("objectiveVaultTakeEntrance");
+            float held = 0f;
+            for (int i = 0; i < vault.liftPoints().size(); i++) {
+                if (vault.liftPoints().get(i).entrance()) held = Math.max(held, vault.courtHoldProgress(i));
+            }
+            instruction = Strings.format("objectiveVaultTakeEntranceHold", seconds(RuinsVaultObjective.COURT_HOLD_SECONDS));
+            progress = held / RuinsVaultObjective.COURT_HOLD_SECONDS;
+            measure = held > 0 ? MissionObjectiveFamilies.timed(Strings.get("objectiveVaultEntranceTimer"), held,
+                    RuinsVaultObjective.COURT_HOLD_SECONDS) : Strings.get("objectiveVaultEntranceUnheld");
+        } else if (atVault) {
+            if (entrances && vault.breachProgress() <= 0f && vault.secondsSinceEntry() >= 0f
+                    && vault.secondsSinceEntry() < ENTRY_HELD_SECONDS) phase = Strings.get("objectiveVaultEntryHeld");
             instruction = Strings.format(vault.vaultPowered() ? "objectiveVaultHoldPowered" : "objectiveVaultHold",
                     seconds(vault.breachDuration()));
             progress = vault.breachProgress() / vault.breachDuration();
@@ -357,13 +381,19 @@ public final class MissionObjectiveProjection {
         markers.add(new Marker(id + "-source", vault.sourceName(), vault.sourceMarkerX(), vault.sourceMarkerY(),
                 atVault ? phase : Strings.get("objectiveVaultBreached"), atVault ? state : State.COMPLETE));
         String focus = id + "-source";
+        int pullOut = vault.pullOutPoint().liftPoint();
         for (int i = 0; i < vault.liftPoints().size(); i++) {
             boolean bound = i == vault.destination();
+            boolean entrance = vault.liftPoints().get(i).entrance();
             String status = bound && state != State.ACTIVE ? phase
+                    : entrance && !vault.liftPointAvailable(i) ? entranceStatus(vault.courtHoldProgress(i))
                     : !vault.liftPointAvailable(i) ? Strings.get("objectiveVaultCourtUnheld")
                     : bound ? Strings.get("objectiveVaultLiftBound") : Strings.get("objectiveVaultLiftOpen");
+            // The pull-out marker: the landing in the approach, the entry in the delve, with its circle.
+            if (i == pullOut && state == State.ACTIVE) status = Strings.format("objectiveVaultPullOutHere", status);
             markers.add(new Marker(id + (bound ? "-pickup" : "-lift-" + i), vault.liftPoints().get(i).name(),
-                    vault.liftPointCellX(i), vault.liftPointCellY(i), status, bound ? state : State.ACTIVE));
+                    vault.liftPointCellX(i), vault.liftPointCellY(i), status, bound ? state : State.ACTIVE, List.of(),
+                    i == pullOut && state == State.ACTIVE ? vault.pullOutPoint().radius() : 0));
         }
         if (!atVault && state == State.ACTIVE) {
             focus = id + "-pickup";
@@ -375,12 +405,28 @@ public final class MissionObjectiveProjection {
                 focus = id + "-payload";
             }
         }
-        String steps = atVault ? Strings.get("objectiveVaultSteps")
-                : state == State.COMPLETE ? Strings.get("objectiveVaultStepsDone")
-                : stage == ExtractionPayloadObjective.Phase.BOARDING ? Strings.get("objectiveVaultStepsBoard")
-                : Strings.get("objectiveVaultStepsEscort");
+        String steps = atVault && approach ? Strings.get("objectiveVaultEntranceSteps")
+                : atVault ? Strings.get(entrances ? "objectiveVaultEntranceStepsBreach" : "objectiveVaultSteps")
+                : state == State.COMPLETE ? Strings.get(entrances ? "objectiveVaultEntranceStepsDone" : "objectiveVaultStepsDone")
+                : stage == ExtractionPayloadObjective.Phase.BOARDING
+                ? Strings.get(entrances ? "objectiveVaultEntranceStepsBoard" : "objectiveVaultStepsBoard")
+                : Strings.get(entrances ? "objectiveVaultEntranceStepsEscort" : "objectiveVaultStepsEscort");
         return new Item(id, vault.payloadName(), state, phase, steps, instruction, measure,
                 Math.max(0, Math.min(1, progress)), blocker, markers, focus);
+    }
+
+    /** How long the vault's card reads "Entry held" once the company takes the entry. */
+    static final float ENTRY_HELD_SECONDS = 4f;
+
+    private static boolean hasEntrance(RuinsVaultObjective vault) {
+        for (LiftPoint point : vault.liftPoints()) if (point.entrance()) return true;
+        return false;
+    }
+
+    /** An untaken entrance's map label, with its apron's hold timer while the company holds it. */
+    private static String entranceStatus(float held) {
+        return held > 0f ? Strings.format("objectiveVaultEntranceHolding", seconds(held),
+                seconds(RuinsVaultObjective.COURT_HOLD_SECONDS)) : Strings.get("objectiveVaultEntranceMarker");
     }
 
     private static String seconds(float value) { return MissionObjectiveFamilies.seconds(value); }

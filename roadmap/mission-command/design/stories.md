@@ -53,11 +53,12 @@ Design: `assault-command.md`
 
 ## Raid
 
-Design: `raid-command.md`
+Design: `raid-mission.md` (what a Raid is for), `raid-command.md` (command)
 
 | Story | State | Intent |
 |---|---|---|
 | `raid-objective-and-command-contract.md` | IN PROGRESS | Canonical-duration and live-accept the shipped primary-target objective, paired command duel, and diagnostics. |
+| `raid-wreck-the-works.md` | IN PROGRESS | A disrupting raid wrecks the named industry's machines; the share wrecked sets the days down. |
 
 ## Extraction
 

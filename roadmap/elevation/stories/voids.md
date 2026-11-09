@@ -261,7 +261,11 @@ Laws):
      a stair bridge down; and staggered footbridges across the track
      canyons between the platforms. Craft fly into the canyons to berth at
      the platforms' heads, as trains run into a terminus
-     (`VoidBackdrop.slips`), slowing in and gathering speed out.
+     (`VoidBackdrop.slips`), slowing in and gathering speed out. A mission
+     may **call** a craft to a slip's berth for a set time of the battle
+     (`VoidBackdrop.Call`): the renderer flies it in on the battle's own
+     clock, stands it at the berth while it is due and flies it out, and the
+     slip carries no other traffic (`sky-port-heist.md`).
    - **Towers and walkways by shape.** The renderer opens the surface by a
      walkway's width (7 cells): whatever survives stands on a tower, the
      pieces on one tier together one structure, so where their terraces
