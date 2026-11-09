@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
@@ -63,10 +64,10 @@ public final class RaidSiteTemplate {
     /**
      * A mine's open pit: ground held beside the head works, at the deep end, as a {@link Site} of
      * {@link SitePurpose#GROUND} on the plan's {@link PrecinctPlan#layout() layout}. Nothing grows on it (no road,
-     * building, field or works), so the stage that cuts the pit finds it clear; read it with
+     * building, field or works), so {@link OpenPit} finds it clear and cuts the pit there; read it with
      * {@code plan.layout().find(PIT)}.
      */
-    public static final String PIT = "pit";
+    public static final String PIT = OpenPit.SITE;
     /** The road from the works' near gate to its industrial district: how the works' output leaves for the town. */
     public static final String HAUL_ROAD = "haul-road";
     /**
