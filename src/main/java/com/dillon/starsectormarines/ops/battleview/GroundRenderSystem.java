@@ -313,6 +313,9 @@ public final class GroundRenderSystem implements RenderSystem {
      */
     /** The basin edge of {@link #basinEdgeOf}, built once per map: its corners are a whole map of noise. */
     private BasinEdge basinEdge;
+    /** The wall corners {@link #cornersOf} was built with, fixed at its first draw ({@link WallCorners.AsBuilt}). */
+    private WallCorners.AsBuilt cornersAsBuilt;
+    private CellTopology cornersOf;
     private CellTopology basinEdgeOf;
 
     private void emitTerrain(RenderContext ctx, NavigationGrid grid,
@@ -330,6 +333,10 @@ public final class GroundRenderSystem implements RenderSystem {
         // Every sub-layer this system knows how to draw. The mesh holds all of
         // them; the streamed path below draws the same array cell by cell.
         BaseTerrain base = new BaseTerrain(grid, topology);
+        if (WallCorners.enabled() && cornersOf != topology) {
+            cornersOf = topology;
+            cornersAsBuilt = WallCorners.AsBuilt.of(topology.getWidth(), topology.getHeight(), base.cornerCells);
+        }
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
@@ -722,7 +729,7 @@ public final class GroundRenderSystem implements RenderSystem {
 
         // ---- rounded corners (WallCorners) ----------------------------------
 
-        private final WallCorners.Cells cornerCells = new WallCorners.Cells() {
+        final WallCorners.Cells cornerCells = new WallCorners.Cells() {
             @Override public boolean wall(int x, int y) {
                 return topology.inBounds(x, y) && topology.isWall(x, y) && !topology.isWindow(x, y);
             }
@@ -758,9 +765,10 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         private WallCorners.Piece[] cornerPieces(int x, int y, int q) {
-            if (WallCorners.outside(cornerCells, x, y, q)) return WallCorners.outsidePieces(q);
+            if (cornersAsBuilt == null) return null;
+            if (cornersAsBuilt.outside(cornerCells, x, y, q)) return WallCorners.outsidePieces(q);
             // A fillet bends the face art of a full-cell wall set; a legacy perimeter wall keeps its corner.
-            if (WallCorners.inside(cornerCells, x, y, q) && facesLook(x, y + WallCorners.SY[q]) != null) {
+            if (cornersAsBuilt.inside(cornerCells, x, y, q) && facesLook(x, y + WallCorners.SY[q]) != null) {
                 return WallCorners.insidePieces(q);
             }
             return null;

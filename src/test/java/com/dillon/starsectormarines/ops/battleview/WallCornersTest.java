@@ -58,6 +58,39 @@ class WallCornersTest {
     }
 
     @Test
+    void aBreachLeavesItsNewWallEndsSquare() {
+        WallCorners.Cells built = grid(
+                ".......",
+                ".#####.",
+                ".......");
+        WallCorners.AsBuilt asBuilt = WallCorners.AsBuilt.of(7, 3, built);
+        WallCorners.Cells breached = grid(
+                ".......",
+                ".##.##.",
+                ".......");
+        assertTrue(WallCorners.outside(breached, 2, 1, WallCorners.NE), "the rule alone would round it");
+        assertFalse(asBuilt.outside(breached, 2, 1, WallCorners.NE));
+        assertFalse(asBuilt.outside(breached, 4, 1, WallCorners.SW));
+        assertTrue(asBuilt.outside(breached, 1, 1, WallCorners.NW), "an untouched corner stays round");
+    }
+
+    @Test
+    void aFallenWallTakesItsCornersWithIt() {
+        WallCorners.AsBuilt asBuilt = WallCorners.AsBuilt.of(4, 4, grid(
+                "####",
+                "#..#",
+                "#..#",
+                "####"));
+        WallCorners.Cells fallen = grid(
+                "###.",
+                "#..#",
+                "#..#",
+                "####");
+        assertFalse(asBuilt.inside(fallen, 2, 2, WallCorners.NE));
+        assertTrue(asBuilt.inside(fallen, 1, 1, WallCorners.SW));
+    }
+
+    @Test
     void everyPieceSamplesInsideItsTile() {
         for (int q = 0; q < 4; q++) {
             for (WallCorners.Piece[] pieces : new WallCorners.Piece[][]{

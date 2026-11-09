@@ -112,6 +112,55 @@ final class WallCorners {
                 && cells.wall(x + sx, y + sy);
     }
 
+    /**
+     * The corners a battle's walls were built with, fixed the first time its ground is drawn.
+     *
+     * <p>Damage takes corners away but never makes them. A corner draws only while it was
+     * there as built and its rule still holds now, so a fallen wall stops its own rounding and
+     * any fillet that leaned on it, and the fresh wall ends either side of a breach stay square:
+     * a shell hole reads as torn, not as designed.
+     */
+    static final class AsBuilt {
+        private final int width;
+        private final int height;
+        /** Per cell: bit {@code q} an outside corner in quarter {@code q}, bit {@code 4 + q} an inside one. */
+        private final byte[] bits;
+
+        private AsBuilt(int width, int height) {
+            this.width = width;
+            this.height = height;
+            this.bits = new byte[width * height];
+        }
+
+        static AsBuilt of(int width, int height, Cells cells) {
+            AsBuilt built = new AsBuilt(width, height);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int mask = 0;
+                    for (int q = 0; q < 4; q++) {
+                        if (WallCorners.outside(cells, x, y, q)) mask |= 1 << q;
+                        if (WallCorners.inside(cells, x, y, q)) mask |= 1 << (4 + q);
+                    }
+                    built.bits[y * width + x] = (byte) mask;
+                }
+            }
+            return built;
+        }
+
+        boolean outside(Cells now, int x, int y, int q) {
+            return was(x, y, q) && WallCorners.outside(now, x, y, q);
+        }
+
+        boolean inside(Cells now, int x, int y, int q) {
+            return was(x, y, 4 + q) && WallCorners.inside(now, x, y, q);
+        }
+
+        private boolean was(int x, int y, int bit) {
+            if (x < 0 || y < 0 || x >= width || y >= height) return false;
+            return (bits[y * width + x] & (1 << bit)) != 0;
+        }
+    }
+
     static Piece[] outsidePieces(int q) {
         return OUTSIDE[q];
     }
