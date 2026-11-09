@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
-import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
-import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -32,8 +30,8 @@ import java.util.List;
 /**
  * The owner's question on the vault's seal ({@code ruins-works.md}), through the look preset at 1920x1080 on an empty
  * scattered site, the company landed and the vault unbreached: (a) the vault's inner door shut as a seal door, as the
- * works shut a store, so power or a charge is the way in; (b) the vault as it stands now, open, its seal only the
- * breach's length. The seal is shut through the works' own install. Opt-in: {@code -Psnapshot=ruins-vault-seal-options}.
+ * works now shut it, so power or a charge is the way in; (b) the vault as it stood before, open, its seal only the
+ * breach's length. Opt-in: {@code -Psnapshot=ruins-vault-seal-options}.
  */
 public final class RuinsVaultSealOptionsSuite implements SnapshotSuite {
 
@@ -59,7 +57,9 @@ public final class RuinsVaultSealOptionsSuite implements SnapshotSuite {
             try (BattleSimulation sim = BattleSetup.createRuins(SEED, BattleSetup.defaultManifest(), false,
                     OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, profile(), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                     grade, RuinsOccupant.NOBODY)) {
-                if (sealed) seal(sim, vault.innerDoor().x(), vault.innerDoor().y(), vault.source().x(), vault.source().y());
+                // The works seal the inner door at setup; the open option opens it again as the vault stood before.
+                if (!sealed) sim.mapEditor().openPassage(vault.innerDoor().x(), vault.innerDoor().y(), vault.source().x(),
+                        vault.source().y());
                 for (int t = 0; t < Math.round(5f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
                 String name = sealed ? "a-sealed.png" : "b-open-as-now.png";
                 out.add(new SnapshotArtifact(name, BattleReviewFrameRenderer.look(context.modRoot(), W, H,
@@ -68,16 +68,6 @@ public final class RuinsVaultSealOptionsSuite implements SnapshotSuite {
             }
         }
         return out;
-    }
-
-    /** Shuts the inner door as the works shut any seal door, on a works of its own that is never powered. */
-    private static void seal(BattleSimulation sim, int x, int y, int sourceX, int sourceY) {
-        SealDoor door = new SealDoor(RuinsWorks.VAULT_SEAL, "vault seal", new int[][]{{x, y}}, sourceX, sourceY,
-                new int[]{x, y, x, y}, false);
-        new RuinsWorks(new PowerGraph(1, List.of(Branch.ONWARD), List.of(new Consumer(RuinsWorks.VAULT_SEAL, 0,
-                Branch.ONWARD))), new RuinsWorks.Site(RuinsWorks.HALL, "hall", 0, 0),
-                List.of(new RuinsWorks.Site(RuinsWorks.JUNCTION + 0, "junction", 0, 0)), List.of(door), List.of(),
-                null, null).install(sim);
     }
 
     private static TargetProfile profile() {

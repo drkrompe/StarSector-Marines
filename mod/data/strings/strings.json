@@ -2205,6 +2205,8 @@
 		"ruinsWorksDoorSealed": "SEALED",
 		"ruinsWorksDoorOpen": "OPEN",
 		"ruinsWorksDoorForced": "FORCED",
+		"ruinsWorksVaultSealName": "Vault seal",
+		"ruinsWorksBunkerName": "Bunker door",
 		"ruinsWorksVerbForce": "SET CHARGE",
 		"ruinsWorksForceDetail": "Sealed. A satchel charge forces it open for good.",
 		"ruinsWorksCollapseName": "Collapse",

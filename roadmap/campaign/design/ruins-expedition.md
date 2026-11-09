@@ -271,6 +271,9 @@ feeds either that layer's sealed store or the way on: the layer's seal gate, and
 at the last layer the vault's seal. Junctions start on the way on, and the
 capacity is the way on's load plus one, so one store at a time can be fed
 beside it. An overloaded hall powers nothing until a junction sheds load.
+The vault's seal is its inner door, and on scattered ground the bunker's door is
+sealed too, both on the last layer's way on; once the vault is breached they
+stay open.
 A seal door or the collapse is forced through its prompt: a satchel carrier
 brought within reach sets the charge.
 

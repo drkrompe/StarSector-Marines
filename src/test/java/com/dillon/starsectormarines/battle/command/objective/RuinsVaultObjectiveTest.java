@@ -43,6 +43,16 @@ class RuinsVaultObjectiveTest {
     }
 
     @Test
+    void aForcedSealKeepsTheUnpoweredBreachTimeWhateverPowerFollows() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsVaultObjective vault = vault(sim, DT * 20f, DT * 2f, List.of(LANDING));
+            vault.forceSeal();
+            vault.setVaultPowered(true);
+            assertEquals(DT * 20f, vault.breachDuration(), 1e-6f);
+        }
+    }
+
+    @Test
     void theHaulBoardsAtTheLandingAreaAndWins() {
         try (BattleSimulation sim = simulation()) {
             RuinsVaultObjective vault = vault(sim, DT, DT, List.of(LANDING, COURT));

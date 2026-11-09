@@ -100,6 +100,25 @@ class RuinsWorksTest {
         }
     }
 
+    @Test
+    void aCollapseIsClearedOnceAnyOfItsCellsIsCut() {
+        try (BattleSimulation sim = simulation()) {
+            SealDoor rubble = new SealDoor("collapse", "collapse", new int[][]{{5, 6}, {5, 7}}, 6, 7,
+                    new int[]{5, 6, 5, 7}, false);
+            RuinsWorks works = new RuinsWorks(new PowerGraph(1, List.of(Branch.ONWARD), List.of()),
+                    new RuinsWorks.Site(RuinsWorks.HALL, "hall", 2, 2),
+                    List.of(new RuinsWorks.Site(RuinsWorks.JUNCTION + 0, "junction", 12, 2)), List.of(), List.of(),
+                    null, rubble);
+            sim.installRuinsWorks(works);
+            works.settle(sim);
+            assertFalse(works.collapseCleared());
+
+            sim.mapEditor().openPassage(5, 7, 4, 7);
+            works.settle(sim);
+            assertTrue(works.collapseCleared());
+        }
+    }
+
     private static boolean marked(RuinsWorks works, String door) {
         return works.item().markers().stream().anyMatch(m -> m.id().endsWith(door));
     }
