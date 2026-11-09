@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 
 import java.util.ArrayList;
@@ -125,6 +126,15 @@ public final class DerelictSecurity {
      * to the next along the route. Returns the director, or null when the battle has no vault to lay zones from.
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade) {
+        return install(sim, grade, null);
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, RuinsGrade)}, on ruins ground whose places are known: where the site has an
+     * interior, its walkers are posted by {@link #interiorPosts} rather than along the route, each in the zone that
+     * keeps its post.
+     */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve) {
         RuinsVaultObjective vault = null;
         for (Objective objective : sim.getObjectives()) {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
@@ -140,10 +150,17 @@ public final class DerelictSecurity {
         List<DerelictWalkerFrame> heavies = heavies(grade);
         int[] zoneOf = zoneOf(heavies, plans.size());
         int[] postsUsed = new int[plans.size()];
+        int[][] inside = interiorPosts(heavies, delve);
         List<DerelictSecurityDirector.Walker> walkers = new ArrayList<>();
         for (int i = 0; i < heavies.size(); i++) {
             ZonePlan plan = plans.get(zoneOf[i]);
-            int[] post = plan.posts().get(postsUsed[zoneOf[i]]++ % plan.posts().size());
+            int[] post;
+            if (inside != null) {
+                post = inside[i];
+                plan = plans.get(nearestZone(plans, post[0], post[1]));
+            } else {
+                post = plan.posts().get(postsUsed[zoneOf[i]]++ % plan.posts().size());
+            }
             int squad = spawn(sim, heavies.get(i), post[0], post[1]);
             if (squad < 0) continue;
             sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
@@ -154,13 +171,81 @@ public final class DerelictSecurity {
                 vault.sourceCellX(), vault.sourceCellY());
         FlockSystemPort port = new FlockSystemPort();
         for (ZonePlan plan : plans) {
-            Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, plan.nodeX() + 0.5f, plan.nodeY() + 0.5f,
+            int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
+                    && sim.getTopology().isRoofIntact(x, y));
+            Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, home[0] + 0.5f, home[1] + 0.5f,
                     FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS);
             port.add(flock, plan.id());
         }
         director.connectFlocks(port);
         sim.installDerelictSecurity(director);
         return director;
+    }
+
+    /**
+     * Where each heavy stands on a site with an interior (`derelict-security-network.md`, Interiors): the vault frame
+     * on the vault's approach, inside its forecourt; the siege frame just inside the first entrance; line frames in
+     * the interior's chambers in turn (the entrances when it has none). Null when the ground has no interior, and the
+     * route's posts serve.
+     */
+    public static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve) {
+        if (delve == null || delve.interior() == null || delve.vault() == null) return null;
+        RuinsDelve.Interior interior = delve.interior();
+        List<RuinsDelve.Area> rooms = interior.chambers().isEmpty() ? interior.entrances() : interior.chambers();
+        int[][] out = new int[heavies.size()][];
+        int nextRoom = 0;
+        for (int i = 0; i < heavies.size(); i++) {
+            DerelictWalkerFrame frame = heavies.get(i);
+            if (frame == DerelictWalkerFrame.VAULT || rooms.isEmpty()) {
+                out[i] = new int[] {delve.vault().approach().x(), delve.vault().approach().y()};
+            } else if (frame == DerelictWalkerFrame.SIEGE && !interior.entrances().isEmpty()) {
+                RuinsDelve.Area entrance = interior.entrances().get(0);
+                out[i] = new int[] {entrance.centreX(), entrance.centreY()};
+            } else {
+                RuinsDelve.Area room = rooms.get(nextRoom++ % rooms.size());
+                out[i] = new int[] {room.centreX(), room.centreY()};
+            }
+        }
+        return out;
+    }
+
+    /** The zone whose node is nearest a cell. */
+    static int nearestZone(List<ZonePlan> plans, int x, int y) {
+        int best = 0;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int i = 0; i < plans.size(); i++) {
+            int distance = WalkerPosture.chebyshev(x, y, plans.get(i).nodeX(), plans.get(i).nodeY());
+            if (distance < bestDistance) {
+                best = i;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    /** Whether a cell is under an intact roof. */
+    interface Roofed {
+        boolean at(int x, int y);
+    }
+
+    /**
+     * Where a zone's flock is homed: its node, or where the node is under a roof, the first route cell from the node
+     * toward the landing that is open to the sky. A flock never enters a roofed cell (`derelict-drone-flocks.md`), so
+     * an interior zone's flock keeps its doorway.
+     */
+    static int[] openSkyHome(int[] route, ZonePlan plan, Roofed roofed) {
+        int cells = route.length / 2;
+        int start = 0;
+        for (int i = 0; i < cells; i++) {
+            if (route[i * 2] == plan.nodeX() && route[i * 2 + 1] == plan.nodeY()) {
+                start = i;
+                break;
+            }
+        }
+        for (int i = start; i < cells; i++) {
+            if (!roofed.at(route[i * 2], route[i * 2 + 1])) return new int[] {route[i * 2], route[i * 2 + 1]};
+        }
+        return new int[] {plan.nodeX(), plan.nodeY()};
     }
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
