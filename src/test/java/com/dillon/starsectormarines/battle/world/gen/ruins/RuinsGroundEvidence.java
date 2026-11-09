@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Layer;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import org.junit.jupiter.api.Tag;
@@ -23,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Ruins ground over every grade and surface ({@code ruins-ground.md}, slice 5): each map generates, keeps every
- * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it and it has
- * no berth but its own landing and courts. Writes {@code build/reports/ruins-ground/summary.md} with each map's
+ * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it, its streets
+ * end short of every edge, and it has no berth but its own landing's. Writes {@code build/reports/ruins-ground/summary.md} with each map's
  * layers, ways, rooms and route length.
  */
 @Tag("generated-space-evidence")
@@ -57,6 +58,17 @@ class RuinsGroundEvidence {
                     RuinsDelve delve = map.ruinsDelve;
                     if (!map.roadGraph.perimeterNodes().isEmpty()) {
                         failures.add(layers + "/" + surface + "/" + seed + ": a road leaves the ruin");
+                    }
+                    int edgeStreets = 0;
+                    for (int y = 0; y < plan.height(); y++) {
+                        for (int x = 0; x < plan.width(); x++) {
+                            int edge = Math.min(Math.min(x, plan.width() - 1 - x), Math.min(y, plan.height() - 1 - y));
+                            if (edge < RuinedLotsStage.STREET_FALLOFF
+                                    && map.topology.getGroundKind(x, y) == GroundKind.STREET) edgeStreets++;
+                        }
+                    }
+                    if (edgeStreets > 0) {
+                        failures.add(layers + "/" + surface + "/" + seed + ": " + edgeStreets + " street cells by the edge");
                     }
                     if (map.landingPads.size() != 2 * delve.landing().size()) {
                         failures.add(layers + "/" + surface + "/" + seed + ": berths beyond the landing");

@@ -68,6 +68,8 @@ public final class RuinsDelveStage implements GenStage {
 
     static final String[] RUIN_WALLS = {"colony.masonry-wall", "colony.ceramic-wall", "colony.olive-wall"};
     static final String[] RUIN_FLOORS = {"colony.concrete", "colony.timber", "colony.terrazzo", "colony.terracotta"};
+    /** A layer line's wall: the ruined-lot walls that read as masonry from above; the olive wall reads as a hedge. */
+    static final String[] LINE_WALLS = {"colony.masonry-wall", "colony.ceramic-wall"};
     static final String GATE_WALL = "installation.dark-concrete-wall";
     static final String VAULT_WALL = "installation.dark-concrete-wall";
     static final String VAULT_FLOOR = "installation.concrete-floor";
@@ -121,6 +123,7 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         RuinsDelve lay() {
+            endStreets();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
             Area landingGround = new Area(1, Math.max(1, landingY - 16), LANDING_DEPTH, Math.min(h - 2, landingY + 16));
             open(landingGround, null);
@@ -184,6 +187,21 @@ public final class RuinsDelveStage implements GenStage {
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse);
         }
 
+        /**
+         * The dead streets die out short of the map edge: street ground (the frame between lots, which never was in
+         * the road mask) becomes trodden earth near the edge, with a lip of rubble where each street ends.
+         */
+        void endStreets() {
+            int falloff = RuinedLotsStage.STREET_FALLOFF;
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int edge = Math.min(Math.min(x, w - 1 - x), Math.min(y, h - 1 - y));
+                    if (edge >= falloff || topology.getGroundKind(x, y) != GroundKind.STREET) continue;
+                    ground(x, y, edge == falloff - 1 ? GroundKind.RUBBLE : GroundKind.DIRT);
+                }
+            }
+        }
+
         // ---- vault ---------------------------------------------------------------------------
 
         Vault vault(int cy) {
@@ -227,7 +245,7 @@ public final class RuinsDelveStage implements GenStage {
             int open = plan.layers() == 1 ? 1 + rng.nextInt(2) : 2 + rng.nextInt(2);
             LayerKind[] kinds = LayerKind.values();
             d.kind = open == 1 ? kinds[rng.nextInt(2)] : kinds[rng.nextInt(kinds.length)];
-            String material = d.kind == LayerKind.SEALED_GATE ? GATE_WALL : RUIN_WALLS[rng.nextInt(RUIN_WALLS.length)];
+            String material = d.kind == LayerKind.SEALED_GATE ? GATE_WALL : LINE_WALLS[rng.nextInt(LINE_WALLS.length)];
 
             List<Integer> centres = new ArrayList<>();
             int lo = 6, hi = h - 7;
