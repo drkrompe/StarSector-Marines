@@ -220,17 +220,23 @@ Laws):
    walls show only past the edge of the level the camera is over, so
    scale and movement carry the depth:
    - **Traffic** of vanilla hulls (the owner's suggestion: Hounds,
-     aeroshuttles and the like): two craft to a bay fly in from far out over
-     its lane and into the mouth, or out the other way, and skyways cross
-     the drop beside the structure at four depths, two streams apiece,
-     opposite ways. Craft move on the presentation clock (the wall clock in
-     the game, which passes none), are drawn in the
-     painter's order of their depth, fade into the haze, and show an engine
-     glow.
+     aeroshuttles and the like), planned by `VoidTraffic`: smooth paths
+     through control points, each flown now and then on an irregular
+     schedule (owner, 2026-11-09: too much, too fast, too close, straight
+     lines in a repeated pattern). Whether a slot is flown, when it sets
+     off, its speed and its weave off the line all come from a hash of the
+     slot, so nothing repeats; a craft's place is a function of the clock
+     alone. Bays take arrivals swooping in from one side and slowing to the
+     mouth, and departures gathering speed away to the other; street
+     routes keep right, and most turn at a crossing onto the street
+     across, easing to its depth through the turn. Craft move on the
+     presentation clock (the wall clock in the game, which passes none),
+     about 9 m a second down the streets, are drawn in the painter's order
+     of their depth, fade into the haze, and show an engine glow.
    - **Parked freighters** stand on the terraces between the bays, on their
      own shadows.
    - Hulls below the surface are sized to the structure (`craftMetersPerPx`,
-     0.11 m a pixel in the cluster (owner, 2026-11-09: smaller), not to the battle's own craft,
+     0.09 m a pixel in the cluster (owner, 2026-11-09: smaller), not to the battle's own craft,
      which are drawn small to sit beside infantry; the bays and lanes are
      sized for them.
    - **The deck surface** is the sky port's own tileset (`sky-port-deck`),
@@ -261,9 +267,10 @@ Laws):
      the battle stands on, roofs deeper the farther from the port. Its
      towers take two bold setbacks rather than many slight ones, which read
      as slivers. **Skyways** (`VoidBackdrop.skyways`) fly down the streets
-     clear of the port, three stacked in each street's canyon above the deep
-     terraces that narrow it, two streams apiece, the cross streets at other
-     depths; marker lights run a chase down each lane's edges.
+     clear of the port, one to a street, 95 to 160 m down its canyon above
+     the deep terraces that narrow it, each street at its own depth and
+     the cross streets at others; marker lights run a chase down each
+     lane's edges.
    - **Dusk and light** (owner, 2026-11-09: a sickly grey city devoid of
      light). The drop fades into a deep slate blue, not grey, and the
      lights already painted in the facade, roof and ground art (windows,

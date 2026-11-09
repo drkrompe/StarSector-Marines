@@ -48,8 +48,8 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
     static final int PX0 = DX1, PY0 = OY + 20, PX1 = DX1 + 20, PY1 = OY + 34;
     static final float PLAY = 60f;
     static final int PAN_FRAMES = 240;
-    /** Where the presentation clock stands for the stills, so the traffic is caught mid-flight. */
-    static final float REVIEW_CLOCK = 40f;
+    /** Where the presentation clock stands for the stills ({@code -Dsnapshot.skyPort.clock}), so traffic is caught mid-flight. */
+    static final float REVIEW_CLOCK = Float.parseFloat(System.getProperty("snapshot.skyPort.clock", "40"));
 
     /** The industrial hive sky port: a stepped pyramid of terraces down to the hive city (owner: direction C). */
     static VoidBackdrop industrial(float depth, float eye) {
