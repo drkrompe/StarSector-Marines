@@ -13,10 +13,11 @@ import java.util.List;
  *   <li>In an awake zone a <b>line frame</b> comes to the nearest unit a flock has pinned inside its own perimeter,
  *       and otherwise holds its post; it never follows past the perimeter.</li>
  *   <li>A <b>vault frame</b> comes only to a pin within {@link #VAULT_REACH_CELLS} of its post: the vault's last
- *       guard does not leave the vault.</li>
+ *       guard, an interior guardian, does not leave the vault, in the contingency either.</li>
  *   <li>A <b>siege frame</b> holds its post and fires on the freshest contact the flocks see within its reach.</li>
- *   <li>In the <b>contingency</b> a line or vault frame whose node stands walks to the egress cell nearest its post
- *       and holds it, through its own ground and past its perimeter; a siege frame fires on the haul's escort first.
+ *   <li>In the <b>contingency</b> a line frame whose node stands walks to the egress cell nearest its post and holds
+ *       it, through its own ground and past its perimeter; a siege frame fires on the haul's escort first; the vault
+ *       frame stays on the vault and fights what comes into its reach.
  *       A zone whose node is dead is out of the call and keeps its own posture.</li>
  * </ul>
  */
@@ -69,11 +70,11 @@ public final class WalkerPosture {
             return spot == null ? Order.hold(postX, postY)
                     : new Order(Kind.FIRE, spot.cellX(), spot.cellY(), spot.unitId());
         }
-        if (called && !egress.isEmpty()) {
+        if (called && frame != DerelictWalkerFrame.VAULT && !egress.isEmpty()) {
             int[] best = nearest(egress, postX, postY);
             return new Order(Kind.HOLD_EGRESS, best[0], best[1], -1L);
         }
-        if (zone.state() != SecurityZone.State.AWAKE) return Order.hold(postX, postY);
+        if (zone.state() != SecurityZone.State.AWAKE && !called) return Order.hold(postX, postY);
         Contact pin = null;
         int pinDistance = Integer.MAX_VALUE;
         for (Contact contact : pins) {
