@@ -3,8 +3,7 @@
 Status: IN PROGRESS — every mechanics slice is built, with its scenes (What
 is built): zones, the director over walkers and flocks, the derelict heavy
 line, spotting, the node, repair drones, folded posts and power branches. The
-walker is its own four-legged chassis on placeholder art while picks
-`derelict-walker-look` and `derelict-walker-wall-reach` are reworked; the
+walker is its own four-legged chassis in its picked sentinel body, and the
 posts and nodes ship their picked looks. Feeds slice 5 of
 `ruins-expedition-fork.md` through the ruins occupant (`ruins-expedition.md`,
 Occupants).
@@ -179,10 +178,10 @@ Everything is in `battle.derelict`.
   pathing is untouched; moving over or along wall cells would need a
   passability view of its own, read by both the planner and terrain motion as
   `HoverSkirt` and `WallCrush` are, and is not built. The shipped parts are
-  placeholders (`art-source/derelict-walker/placeholder.py`) while
-  `derelict-walker-look` is open: candidates painted after the vanilla Domain
-  derelict ships over `guide.py`'s geometry (sentinel, cupola, crab, `-v3`)
-  and cut by `export.py`.
+  the sentinel body (owner, 2026-11-09: pick `derelict-walker-look-v3`,
+  sentinel), painted after the vanilla Domain derelict ships over `guide.py`'s
+  geometry and cut by `export.py` (`walker-sentinel-v3`); the cupola and crab
+  candidates stay in `art-source/derelict-walker/`. The vault frame shares it.
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none
@@ -292,17 +291,16 @@ engages; pin-outside: one past its perimeter is held for; contingency: the
 line frame walks to the egress and holds it, the siege frame fires from its
 post, the vault frame stays); `DerelictLegRigTest`;
 `createSnapshots -Psnapshot=derelict-heavies-look
--Dsnapshot.derelict.interiorOnly=true` with the two walker switches (the
-interior stills alone, closer, and the vault frame stood in a three-cell
-hall: the walker-legs picks); `DerelictLegPoseTest`; `createSnapshots -Psnapshot=derelict-walker-look`
-(the vault frame in a hall of the vast ruin beside a company Bulwark, then a
-recording of it walking the hall, the walk scripted); `createSnapshots
+-Dsnapshot.derelict.interiorOnly=true` (the interior stills alone, closer); `DerelictLegPoseTest`; `createSnapshots -Psnapshot=derelict-walker-look`
+(the vault frame close and in a hall of the vast ruin beside a company
+Bulwark, then recordings of it walking and running a route through narrow
+hall and open floor, the pace scripted); `createSnapshots
 -Psnapshot=derelict-security-look` (a post folded and unfolded and a node, in
 either lineage, the look candidates through `-Dsnapshot.artOverlay`).
 
 Not built yet: a `sceneEvidence` loop for a flock's leash (the flock
 model's own scenes cover its flight; `FlockTasking` is unit-tested); the
-walker's finished art and sound (after the legs picks), movement over or
+walker's sound, movement over or
 along wall cells, the post's own gun, and the repair drone's own look if it
 should differ from the tender's (the cradle's look is
 `air-nouns.md`, Flocks). Strength is not tuned, and is not tuned from
