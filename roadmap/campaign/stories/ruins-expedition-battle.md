@@ -202,6 +202,17 @@ story's battle plays, it lifts the fork's development-only gate
     A later expedition's placement leaves them out; the occupant, works and
     every other find are seeded as before. Unit-test the placement filter and
     the exactly-once write.
+
+    *Built.* A ruins expedition's battle seed is the site's
+    (`RuinsSiteFinds.battleSeed`), so every expedition meets the same ground
+    and the same find ids. `MissionResolver` records the ids brought home with
+    the outcome; `RuinsSiteFinds.commit` takes it from the ledger and merges
+    them into the market's memory (`RuinsSiteFinds.MEMORY_KEY`) on a won or
+    pulled-out take, so the write rides the take's exactly-once. The briefing
+    passes the set to `Mission.ruinsTakenFinds`, the fixture carries it as
+    `takenFinds`, and `BattleSimulation.setTakenFinds` has
+    `FieldSalvage.leavingOut` drop them after seeded placement. Not yet seen in
+    a played battle.
 12. **The vault store.** One find per layer of the delve, placed at the vault,
     recovered when the haul boards and settled with the banked finds. It is
     left behind on a pull-out, and is subject to slice 11 like any find.
