@@ -2188,7 +2188,11 @@ basin on a desert keeps its green floor. Lawn on every world used to be the law,
 read as a colony that shipped the soil in; on a desert it was most of what the
 player saw of the town, and it read as a mistake (owner). Cells that carry an
 authored surface — a farm's crop rows and pasture — draw that surface and are
-left as laid. Only the ground kind changes, so walkability, props and random
+left as laid. The town's open dirt lots — industrial yards and waste ground laid
+as bare earth with no surface of their own — settle the same way, so a dead world's
+town is not patched with olive squares (owner). Worked earth keeps its dirt: made
+ground and cells drawn as `floors.dirt` (trench floors, sandbag aprons, fort
+yards) are dug, not lots. Only the ground kind changes, so walkability, props and random
 streams do not move, and a living world's map is the map it was.
 
 **A settlement adapts to its climate.** The palette says what the ground is
