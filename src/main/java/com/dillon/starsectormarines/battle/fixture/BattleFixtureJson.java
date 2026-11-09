@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
@@ -227,7 +228,7 @@ public final class BattleFixtureJson {
             root.put("enemyFighterSupport",
                     wingsToJson(ruins.enemyFighterSupport()));
             root.put("grade", ruins.grade().name());
-            if (ruins.derelictSecurity()) root.put("derelictSecurity", true);
+            root.put("occupant", ruins.occupant().name());
             return root;
         }
         if (fixture instanceof BloomHeartBattleFixture heart) {
@@ -466,7 +467,10 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 enumValue(RuinsGrade.class, root.getString("grade"), "grade"),
-                root.optBoolean("derelictSecurity", false));
+                // Fixtures written before the occupant was carried were all the scavengers' stand-in.
+                root.has("occupant")
+                        ? enumValue(RuinsOccupant.class, root.getString("occupant"), "occupant")
+                        : RuinsOccupant.SCAVENGERS);
     }
 
     private static void encodeCommon(

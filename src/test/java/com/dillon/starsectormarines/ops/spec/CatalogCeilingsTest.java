@@ -82,10 +82,11 @@ class CatalogCeilingsTest {
     }
 
     @Test
-    void mechCeilingsAreTheEnumsOwnMaxima() {
+    void mechCeilingsAreTheMaximaOfTheChassisTheCompanyFields() {
         float structure = 1f;
         for (MechVariant variant : MechVariant.values()) {
-            structure = Math.max(structure, variant.maxStructure);
+            // An automated line (mech-lines.md, Outside the grid) is never on a company card, so it sets no ceiling.
+            if (!variant.automated()) structure = Math.max(structure, variant.maxStructure);
         }
         assertEquals(structure, CatalogCeilings.mechStructure(), 0.0001f);
         assertEquals(MechVariant.HOUND.moveSpeed, CatalogCeilings.mechMoveSpeed(), 0.0001f);

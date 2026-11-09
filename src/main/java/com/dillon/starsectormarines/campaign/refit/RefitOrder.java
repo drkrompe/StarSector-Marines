@@ -106,7 +106,25 @@ public enum RefitOrder {
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     /** Four, racked two high on cradles the machine shop cuts. */
     RESERVE_HANGAR_I(RefitTrack.RESERVE_HANGAR, RefitBand.IMPROVED_I, 20_000,
-            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED);
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    // Fleet facilities' mock rooms, priced as the Second Wind's matching yard orders: a berth
+    // 5,000, the second bay 8,000, the bunkrooms 4,000.
+    /** The first gantry: the company's first machine needs somewhere to stand. */
+    MECH_GANTRIES_FIRST(RefitTrack.MECH_GANTRIES, RefitBand.RESTORED, 5_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_GANTRIES_PAIR(RefitTrack.MECH_GANTRIES, RefitBand.IMPROVED_I, 5_000,
+            RefitTrack.FABRICATION, RefitBand.RESTORED),
+    /** The rest of the lance: two more gantries, run off the overhauled plant. */
+    MECH_GANTRIES_LANCE(RefitTrack.MECH_GANTRIES, RefitBand.IMPROVED_II, 10_000,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    BOAT_BERTHS_SECOND(RefitTrack.BOAT_BERTHS, RefitBand.IMPROVED_I, 8_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    BOAT_BERTHS_THIRD(RefitTrack.BOAT_BERTHS, RefitBand.IMPROVED_II, 12_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    BARRACKS_FOUR(RefitTrack.BARRACKS, RefitBand.IMPROVED_I, 4_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    BARRACKS_SIX(RefitTrack.BARRACKS, RefitBand.IMPROVED_II, 8_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED);
 
     public final RefitTrack track;
     public final RefitBand band;

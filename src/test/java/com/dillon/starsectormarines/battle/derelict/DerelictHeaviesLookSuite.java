@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.derelict;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -17,13 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Derelict security's heavies in a live ruin (`derelict-security-network.md`): the vast-grade fixture played under
- * autonomous command, recorded through the look preset twice: the walkers at their posts before the company comes,
+ * Derelict security's heavies in a live ruin (`derelict-security-network.md`): the extensive-grade fixture (eight
+ * boats) played under autonomous command, recorded through the look preset twice: the walkers at their posts before the company comes,
  * and from the first tick a walker takes a target, following the walkers through the fight. Opt-in.
  */
 public final class DerelictHeaviesLookSuite implements SnapshotSuite {
 
-    static final String FIXTURE = "src/test/resources/battle-fixtures/ruins-derelict-vast-v1.json";
+    static final String FIXTURE = "src/test/resources/battle-fixtures/ruins-derelict-extensive-v1.json";
     /** The latest tick a walker's first target is waited for. */
     static final int CONTACT_BY = 6000;
     static final int RECORD_TICKS = 600;
@@ -41,10 +40,10 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
                     StandardCharsets.UTF_8));
             int contact = firstContact(fixture);
             List<SnapshotArtifact> out = new ArrayList<>(LookReview.record(context.modRoot(),
-                    shot("derelict-posts", fixture, 1, 90, 22f)));
+                    shot("derelict-posts", fixture, 1, 90, 30f)));
             out.addAll(LookReview.record(context.modRoot(),
                     shot("derelict-fight", fixture, Math.max(1, contact - 60), RECORD_TICKS,
-                            BattleReviewFrameRenderer.PLAY_ZOOM_CELLS)));
+                            44f)));
             return out;
         }
     }
@@ -79,14 +78,22 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
         }, placement -> List.of(walkersView(cellsAcross)), ticks, 3, 4);
     }
 
-    /** A camera on the middle of the living walkers; it holds where they last were once none stands. */
+    /**
+     * A camera on the middle of the walkers holding a target, or on the last walker posted before one does; it holds
+     * where they last were once none stands.
+     */
     static LookReview.View walkersView(float cellsAcross) {
         float[] last = {Float.NaN, Float.NaN};
         return new LookReview.View("walkers", sim -> {
             float sx = 0f;
             float sy = 0f;
             int n = 0;
-            for (long walker : walkers(sim)) {
+            List<Long> shown = new ArrayList<>();
+            for (long walker : walkers(sim)) if (sim.targetOf(walker) != 0L) shown.add(walker);
+            // The walkers in the fight, or before one is, the last posted (the siege frame beside a line frame).
+            List<Long> all = walkers(sim);
+            if (shown.isEmpty() && !all.isEmpty()) shown = List.of(all.get(all.size() - 1));
+            for (long walker : shown) {
                 sx += sim.world().renderX(walker);
                 sy += sim.world().renderY(walker);
                 n++;

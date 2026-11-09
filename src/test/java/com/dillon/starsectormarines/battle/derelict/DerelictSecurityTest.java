@@ -32,6 +32,8 @@ class DerelictSecurityTest {
             assertTrue(a.perimeterCells() + b.perimeterCells() >= b.nodeX() - a.nodeX(), "no gap between zones");
         }
         for (int[] post : zones.get(1).posts()) assertEquals(50, post[1], "posts are on the route");
+        assertEquals(DerelictSecurity.POSTS_PER_ZONE, zones.get(0).posts().stream().mapToInt(p -> p[0]).distinct()
+                .count(), "the vault zone's posts are distinct though the route starts there");
     }
 
     @Test

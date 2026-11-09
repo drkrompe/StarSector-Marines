@@ -1,7 +1,10 @@
 # Derelict security lore guide
 
 Status: DRAFT — implementation reference for derelict security, the automated
-occupant of a ruins expedition (`ruins-expedition.md`). Nothing is built.
+occupant of a ruins expedition (`ruins-expedition.md`). The zones, the
+director, the flocks and the heavy line play in battle
+(`derelict-security-network.md`, What is built); nodes, posts, cradles, repair
+drones and every look are not built.
 
 Written: 2026-11-09
 

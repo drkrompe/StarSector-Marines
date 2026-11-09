@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckSizing;
+import com.dillon.starsectormarines.battle.world.gen.ship.FleetRooms;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -36,5 +41,23 @@ class FleetFacilitiesTest {
         assertEquals(RefitBand.IMPROVED_I, read.band(RefitTrack.MESS));
         assertEquals(RefitBand.DEFICIT, read.band(RefitTrack.SICK_BAY), "surgery cannot count before the bay is opened");
         assertEquals(RefitBand.DEFICIT, read.band(RefitTrack.GYM), "a hull's receipt is not the fleet's");
+    }
+
+    @Test void aFreshFleetHasNoMechLabOneBerthAndTwoBunkrooms() {
+        assertEquals(new FleetRooms(0, 1, 2), FleetFacilities.rooms(FRESH));
+        var bought = FRESH.with(RefitTrack.MECH_GANTRIES, RefitBand.IMPROVED_II).with(RefitTrack.BOAT_BERTHS, RefitBand.IMPROVED_I)
+                .with(RefitTrack.BARRACKS, RefitBand.IMPROVED_II);
+        assertEquals(new FleetRooms(4, 2, 6), FleetFacilities.rooms(bought));
+        assertEquals(RefitOrder.MECH_GANTRIES_FIRST, FRESH.next(RefitTrack.MECH_GANTRIES), "the first gantry is an upgrade");
+    }
+
+    @Test void theFleetDeckOwesExactlyTheBoughtRooms() {
+        var none = DeckSizing.fleetPlan(new FleetRooms(0, 1, 2), 0.45f).rooms();
+        assertTrue(none.stream().noneMatch(r -> r.purpose() == RoomPurpose.VEHICLE_BAY), "no gantry, no Mech Lab");
+        var full = CompanyShip.fleet(new FleetRooms(4, 3, 6));
+        assertEquals(1, full.deckPlan().rooms().stream().filter(r -> r.purpose() == RoomPurpose.VEHICLE_BAY).count());
+        assertEquals(6, full.deckPlan().rooms().stream().filter(r -> r.purpose() == RoomPurpose.BARRACKS).count());
+        assertEquals(3, ShipsBoats.aboard(full).size(), "each berth is a boat of lift");
+        assertEquals(2, CompanyShip.fleet(new FleetRooms(2, 1, 2)).restoration().workingMechBerths());
     }
 }

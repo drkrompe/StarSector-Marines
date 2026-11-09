@@ -189,6 +189,35 @@ public final class DeckSizing {
      * is four hundred to fly and five hundred aboard and has no such cargo.
      * Reading only {@code max crew} makes those two ships the same ship.
      */
+    /**
+     * Fleet facilities' standard deck (`fleet-facilities.md`): the rooms the fleet has bought and
+     * the few a company needs around them, sized like any deck but owed to no hull. With no gantry
+     * bought there is no Mech Lab at all, so the absent facility reads as absent rather than empty.
+     */
+    public static DeckPlan fleetPlan(FleetRooms bought, float aspect) {
+        List<RoomRecipe> rooms = new ArrayList<>();
+        rooms.add(RoomRecipe.COMMAND);
+        rooms.add(RoomRecipe.ENGINE_ROOM);
+        rooms.add(RoomRecipe.ENGINEERING);
+        rooms.add(RoomRecipe.PROVISIONS);
+        rooms.add(RoomRecipe.MACHINE_SHOP);
+        rooms.add(RoomRecipe.ARMORY);
+        rooms.add(RoomRecipe.CREW_BERTHING);
+        rooms.add(RoomRecipe.WASHROOM);
+        rooms.add(RoomRecipe.MESS);
+        add(rooms, RoomRecipe.TROOP_BERTHING, bought.bunkrooms());
+        add(rooms, RoomRecipe.BOAT_BAY, bought.boatBerths());
+        if (bought.gantries() > 0) rooms.add(RoomRecipe.LANCE_VEHICLE_BAY);
+        int roomArea = 0;
+        for (RoomRecipe room : rooms) roomArea += room.area();
+        float needed = roomArea * CIRCULATION * DENSITY * DENSITY;
+        float shape = Math.max(0.08f, aspect);
+        int frames = Math.round((float) Math.sqrt(needed / (shape * HULL_FILL)));
+        int height = Math.round(frames * shape);
+        return new DeckPlan(Math.max(frames, minimumFrames(rooms)), Math.max(height, minimumHeight(rooms)), rooms,
+                ShipsBoats.carriedBy(HullRole.FREIGHTER));
+    }
+
     public static List<RoomRecipe> programFor(HullClass hullClass, HullRole role,
                                               int minCrew, int maxCrew, int cargo) {
         return programFor(hullClass, role, minCrew, maxCrew, cargo, false);

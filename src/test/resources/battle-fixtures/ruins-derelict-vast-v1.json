@@ -22,5 +22,5 @@
   "marineFighterSupport": [],
   "enemyFighterSupport": [],
   "grade": "VAST",
-  "derelictSecurity": true
+  "occupant": "DOMAIN_SECURITY"
 }

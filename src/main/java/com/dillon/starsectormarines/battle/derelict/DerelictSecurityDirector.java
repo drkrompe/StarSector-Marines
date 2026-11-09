@@ -28,9 +28,9 @@ import java.util.TreeSet;
  * were hurt, calls the contingency when the vault is breached, then gives each walker its posture
  * ({@link WalkerPosture}) and each flock its task ({@link FlockTasking}).
  *
- * <p>With no flocks connected ({@link FlockCommandPort#NONE}), or none reporting, the network's own units stand in
- * for them: walkers come to and siege frames fire on what the zone's walkers see. That is the same knowledge the
- * flocks would relay, reached by fewer eyes.
+ * <p>A zone with no flock up (none connected, {@link FlockCommandPort#NONE}, or its flock destroyed) is its walkers'
+ * own eyes: they come to and siege frames fire on what the network's units hold, not only what flocks pin and see.
+ * That is the same knowledge the flocks would relay, reached by fewer eyes.
  */
 public final class DerelictSecurityDirector {
 
@@ -105,9 +105,8 @@ public final class DerelictSecurityDirector {
             if (pinned != null) pins.add(pinned);
         }
         List<Contact> all = merge(own, flockSeen);
-        boolean flocksUp = !reports.isEmpty();
-        List<Contact> spotted = flocksUp ? flockSeen : own;
-        if (!flocksUp) pins = own;
+        Set<Integer> flocked = new TreeSet<>();
+        for (Report report : reports) flocked.add(report.homeZoneId());
 
         for (Contact contact : all) {
             SecurityZone zone = network.zoneAt(contact.cellX(), contact.cellY());
@@ -139,8 +138,11 @@ public final class DerelictSecurityDirector {
         for (Walker walker : walkers) {
             if (sim.squadMemberCount(walker.squadId()) <= 0) continue;
             SecurityZone zone = network.zone(walker.zoneId());
+            // A zone whose flock is gone is its walkers' own eyes: they come to and fire on what they hold.
+            boolean blind = !flocked.contains(walker.zoneId());
             Order order = WalkerPosture.decide(walker.frame(), zone, network.contingency(),
-                    walker.postX(), walker.postY(), pins, spotted, haulIds, egress, walker.frame().maxWeaponRange());
+                    walker.postX(), walker.postY(), blind ? merge(pins, own) : pins,
+                    blind ? all : flockSeen, haulIds, egress, walker.frame().maxWeaponRange());
             apply(sim, walker, order, tick);
         }
         for (Report report : reports) {

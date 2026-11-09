@@ -128,6 +128,7 @@ com.dillon.starsectormarines.battle.warship.MirrorDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HullDurabilitySceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.SecondWindLanceSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ship.FleetFacilitiesSnapshotSuite
 com.dillon.starsectormarines.tools.terrainauthoring.ShepherdBasinSnapshotSuite
 com.dillon.starsectormarines.ops.SalvageRightsSnapshotSuite
 com.dillon.starsectormarines.ops.SelectionSnapshotSuite
@@ -407,4 +408,7 @@ com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleStandsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.RouteStallSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SkyPortVoidLookSuite
+com.dillon.starsectormarines.battle.drone.DerelictFlockSceneSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsBattleLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite

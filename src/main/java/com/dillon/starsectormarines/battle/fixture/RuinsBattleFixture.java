@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -14,8 +15,8 @@ import java.util.Objects;
 
 /**
  * Authored inputs to the Ruins Expedition battle ({@code ruins-expedition-battle.md}): Extraction's inputs plus the
- * ruins grade, which sets the delve's depth and the vault's breach time, and whether the site is a live ruin held by
- * derelict security ({@code derelict-security-network.md}).
+ * ruins grade, which sets the delve's depth and the vault's breach time, and the site's occupant, which chooses the
+ * defenders ({@code ruins-expedition.md}, Occupants).
  */
 public record RuinsBattleFixture(
         long seed,
@@ -27,7 +28,7 @@ public record RuinsBattleFixture(
         List<FighterWingCommitment> marineFighterSupport,
         List<FighterWingCommitment> enemyFighterSupport,
         RuinsGrade grade,
-        boolean derelictSecurity) implements BattleFixture {
+        RuinsOccupant occupant) implements BattleFixture {
 
     public static final String KIND = "RUINS";
 
@@ -41,28 +42,20 @@ public record RuinsBattleFixture(
         enemyFighterSupport = List.copyOf(Objects.requireNonNull(
                 enemyFighterSupport, "enemyFighterSupport"));
         grade = Objects.requireNonNull(grade, "grade");
-    }
-
-    /** A ruins battle whose occupant is not derelict security. */
-    public RuinsBattleFixture(long seed, List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
-                              OperationTier tier, RiskLevel risk, TargetProfile targetProfile,
-                              List<FighterWingCommitment> marineFighterSupport,
-                              List<FighterWingCommitment> enemyFighterSupport, RuinsGrade grade) {
-        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile, marineFighterSupport,
-                enemyFighterSupport, grade, false);
+        occupant = Objects.requireNonNull(occupant, "occupant");
     }
 
     public static RuinsBattleFixture fromFactoryInputs(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport, RuinsGrade grade) {
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
         return new RuinsBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                grade);
+                grade, occupant);
     }
 
     @Override public String kind() { return KIND; }
@@ -72,6 +65,6 @@ public record RuinsBattleFixture(
         return BattleSetup.createRuins(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport), grade, derelictSecurity);
+                FighterWingCommitment.toRoster(enemyFighterSupport), grade, occupant);
     }
 }

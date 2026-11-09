@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.derelict;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.drone.Flock;
+import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -18,8 +20,9 @@ import java.util.List;
  * Stands a derelict site's security up in a ruins battle (`derelict-security-network.md`): its zones laid along the
  * ground between the vault and the way out, its walkers posted in them by the grade's strength
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
- * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security; flocks, posts, cradles
- * and nodes are their own slices and are not stood up here.
+ * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
+ * up over its node (`derelict-drone-flocks.md`); cradles, posts and nodes are their own slices and are not stood up
+ * here.
  */
 public final class DerelictSecurity {
 
@@ -29,6 +32,11 @@ public final class DerelictSecurity {
             posts = List.copyOf(posts);
         }
     }
+
+    /** Swarm drones in each zone's flock (`derelict-lore-guide.md`: twelve to sixteen). UNTUNED. */
+    public static final int FLOCK_SIZE = 14;
+    /** Distinct posts each zone offers its walkers along the route. */
+    static final int POSTS_PER_ZONE = 5;
 
     private DerelictSecurity() {
     }
@@ -73,8 +81,11 @@ public final class DerelictSecurity {
             int index = Math.round(i * step);
             int perimeter = Math.max(8, spacing * 3 / 4 + 2);
             List<int[]> posts = new ArrayList<>();
-            for (int offset : new int[] {0, -4, 4, -8, 8}) {
+            List<Integer> used = new ArrayList<>();
+            for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
                 int at = Math.max(0, Math.min(cells - 1, index + offset));
+                if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
+                used.add(at);
                 posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
             }
             out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, posts));
@@ -141,6 +152,13 @@ public final class DerelictSecurity {
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
                 vault.sourceCellX(), vault.sourceCellY());
+        FlockSystemPort port = new FlockSystemPort(sim);
+        for (ZonePlan plan : plans) {
+            Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, plan.nodeX() + 0.5f, plan.nodeY() + 0.5f,
+                    FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS);
+            port.add(flock, plan.id());
+        }
+        director.connectFlocks(port);
         sim.installDerelictSecurity(director);
         return director;
     }
