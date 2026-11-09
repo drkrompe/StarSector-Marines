@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
@@ -1276,6 +1277,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** A ruins site's works ({@code ruins-expedition.md}, Works), or null on every other battle. */
     public RuinsWorks getRuinsWorks() { return ruinsWorks; }
+
+    private RuinsPressure ruinsPressure;
+
+    /** An occupied ruins site's stir ({@code ruins-pressure.md}), or null on every other battle. */
+    public RuinsPressure ruinsPressure() { return ruinsPressure; }
+
+    /** Installs an occupied ruins site's stir. At setup only. */
+    public void installRuinsPressure(RuinsPressure pressure) {
+        if (ruinsPressure != null || simTickIndex != 0) throw new IllegalStateException("Install the stir once at setup");
+        ruinsPressure = pressure;
+    }
 
     private RuinsDelveWatch ruinsDelveWatch;
 
@@ -4438,6 +4450,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         if (ruinsWorks != null) ruinsWorks.tick(this);
+        // After the works, so a hall restarted this tick is heard on it.
+        if (ruinsPressure != null) ruinsPressure.tick(this);
         fieldSalvage.tick(this);
         if (ruinsDelveWatch != null) {
             RuinsVaultObjective vault = RuinsPullOut.vault(this);

@@ -136,6 +136,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
+import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
@@ -1326,6 +1327,10 @@ public final class BattleSetup {
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
+            // An occupied site stirs while the company is inside (ruins-pressure.md); an empty site's threat is time.
+            if (ruinsDefence != null && ruinsDefence != RuinsDefence.NONE) {
+                sim.installRuinsPressure(RuinsPressure.of(ruinsGrade, map.ruinsDelve));
+            }
             // The vault store: a find per layer at the vault, which comes out with the haul.
             sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
                     ruinsLayout.sourceX(), ruinsLayout.sourceY()));

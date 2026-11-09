@@ -263,122 +263,222 @@ public final class RaidMapgenReviewSuite implements SnapshotSuite {
 
     private static float mh(Shot s) { return s.map().grid.getHeight(); }
 
+    /** Security grade of a mock compound (raid-mission.md, Security): how hard its edge is. */
+    private enum Grade { OPEN, GUARDED, FORTIFIED }
+
+    /** The district fills and edges used on every card: one districting model, built three ways. */
+    private static final Color RES_FILL = new Color(90, 240, 120, 55);
+    private static final Color GOV_FILL = new Color(90, 150, 255, 70);
+    private static final Color GOV = new Color(120, 175, 255);
+    private static final Color PORT_FILL = new Color(255, 214, 40, 60);
+    private static final Color IND_FILL = new Color(255, 140, 30, 70);
+    private static final Color GAR_FILL = new Color(235, 50, 40, 80);
+    private static final Color BUFFER = new Color(214, 196, 150, 150);
+
     /**
-     * Direction 1: a Raid-only plan seeded from the target. The works the player named at the deep end, the garrison
-     * precinct beside it, a market town between, one Hermes lot inset into the town's near side, open country round
-     * the edge. Mock-up: blocks drawn over today's map.
+     * Direction 1: a Raid-only plan seeded from the target. Districts by role (homes, government, port, industry,
+     * garrison), each prize a compound with a buffer of open ground round its edge, set in its district apart from
+     * the homes; the works the player named at the deep end, the garrison beside it, the town between, one Hermes
+     * lot inset into the town. Mock-up: blocks drawn over today's map.
      */
     private static BufferedImage targetFirst(Shot shot) {
-        BufferedImage img = dim(shot.image(), 0.55f);
+        BufferedImage img = dim(shot.image(), 0.5f);
         Graphics2D g = graphics(img);
         Frame f = shot.frame();
         float w = mw(shot), h = mh(shot);
-        // country round the edge
-        zone(g, f, 0, 0, w, h, new Color(120, 150, 90, 40), null, null);
-        // town between
-        blob(g, f, w * 0.20f, h * 0.14f, w * 0.60f, h * 0.80f, new Color(90, 240, 120, 70), GREEN,
-                "MARKET TOWN: main street, homes, shops");
-        // garrison precinct where today's map put it, its own wall
-        blob(g, f, w * 0.65f, h * 0.40f, w * 0.99f, h * 0.88f, new Color(235, 50, 40, 90), RED,
-                "GARRISON precinct (alarm waves)");
-        // the works (the industry named in the raid menu), beside the garrison at the deep end
-        blob(g, f, w * 0.62f, h * 0.04f, w * 0.97f, h * 0.36f, new Color(255, 140, 30, 95), ORANGE,
-                "THE WORKS: heavy industry (Break target)");
-        machine(g, f, w * 0.70f, h * 0.16f, "forge press");
-        machine(g, f, w * 0.84f, h * 0.10f, "power plant");
-        machine(g, f, w * 0.86f, h * 0.25f, "assembly hall");
-        // stores of goods (Steal)
-        crate(g, f, w * 0.40f, h * 0.62f, "admin vault");
-        crate(g, f, w * 0.58f, h * 0.44f, "depot");
-        crate(g, f, w * 0.56f, h * 0.22f, "warehouses");
-        // boat lot inset into town
+        districts(g, f, w, h);
+        // the works (the industry named in the raid menu): the biggest compound, at the deep end
+        compound(g, f, w * 0.68f, h * 0.09f, w * 0.93f, h * 0.31f, w * 0.025f, Grade.GUARDED, ORANGE,
+                "THE WORKS compound (Break)");
+        machine(g, f, w * 0.73f, h * 0.15f, "forge press");
+        machine(g, f, w * 0.86f, h * 0.13f, "power plant");
+        machine(g, f, w * 0.83f, h * 0.26f, "assembly hall");
+        // port: the cargo terminal's bonded store
+        compound(g, f, w * 0.45f, h * 0.14f, w * 0.57f, h * 0.29f, w * 0.018f, Grade.GUARDED, GOLD,
+                "cargo terminal (bulk goods)");
+        crate(g, f, w * 0.51f, h * 0.21f, "");
+        // government: the administration compound with the vault
+        compound(g, f, w * 0.45f, h * 0.63f, w * 0.55f, h * 0.80f, w * 0.018f, Grade.FORTIFIED, GOV,
+                "admin compound (vault: AI cores, blueprints)");
+        crate(g, f, w * 0.50f, h * 0.71f, "");
+        // the garrison, walled
+        compound(g, f, w * 0.72f, h * 0.52f, w * 0.95f, h * 0.84f, w * 0.02f, Grade.FORTIFIED, RED,
+                "GARRISON");
         float bx = w * 0.27f, by = h * 0.42f;
         pad(g, f, bx, by, "Hermes lot (1 boat, 2 bought)");
-        // approaches
-        arrow(g, f.x(bx + 8), f.y(by - 2), f.x(w * 0.68f), f.y(h * 0.18f), GOLD, false);
-        arrow(g, f.x(bx + 8), f.y(by + 2), f.x(w * 0.39f), f.y(h * 0.60f), GOLD, false);
-        // alarm waves out of the garrison
-        arrow(g, f.x(w * 0.80f), f.y(h * 0.46f), f.x(w * 0.80f), f.y(h * 0.30f), RED, true);
-        arrow(g, f.x(w * 0.68f), f.y(h * 0.56f), f.x(w * 0.46f), f.y(h * 0.52f), RED, true);
+        arrow(g, f.x(bx + 8), f.y(by - 2), f.x(w * 0.67f), f.y(h * 0.20f), GOLD, false);
+        arrow(g, f.x(bx + 8), f.y(by + 2), f.x(w * 0.44f), f.y(h * 0.70f), GOLD, false);
+        arrow(g, f.x(w * 0.80f), f.y(h * 0.51f), f.x(w * 0.80f), f.y(h * 0.34f), RED, true);
+        arrow(g, f.x(w * 0.71f), f.y(h * 0.62f), f.x(w * 0.57f), f.y(h * 0.70f), RED, true);
+        securityStrip(g);
         mockStamp(g);
-        banner(g, "1. Target first: works, garrison, town between (recommended)",
-                "Raid-only plan: seed the named works at the deep end and the garrison beside it, grow the town "
-                        + "between, inset the boat lot in the town. Shared generator gets one new program kind.");
+        banner(g, "1. Target first: districts, compounds with buffers (recommended)",
+                "Raid-only plan: the named works' compound at the deep end, garrison beside it, government and port "
+                        + "compounds in their own districts, homes apart; the Hermes lot in the town.");
         g.dispose();
         return img;
     }
 
     /**
-     * Direction 2: a compact market town grown from the economy's districts, every function its own district round a
-     * main street, country beyond. Shared: the town character all precinct maps take.
+     * Direction 2: a compact market town grown from the economy's districts round a main street, the same compounds
+     * with buffers in each district, country beyond. Shared: the town character all precinct maps take.
      */
     private static BufferedImage economyTown(Shot shot) {
-        BufferedImage img = dim(shot.image(), 0.55f);
+        BufferedImage img = dim(shot.image(), 0.5f);
         Graphics2D g = graphics(img);
         Frame f = shot.frame();
         float w = mw(shot), h = mh(shot);
-        // the town draws in: what was streets beyond it is country
         zone(g, f, 0, 0, w, h, new Color(70, 95, 50, 150), null, null);
         float cx = w * 0.52f, cy = h * 0.50f;
-        // main street through the middle
         g.setColor(GREEN);
         g.setStroke(new BasicStroke(10f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        g.drawLine(f.x(cx - w * 0.20f), f.y(cy), f.x(cx + w * 0.20f), f.y(cy));
+        g.drawLine(f.x(cx - w * 0.22f), f.y(cy), f.x(cx + w * 0.22f), f.y(cy));
         tag(g, f.x(cx - w * 0.10f), f.y(cy) - 14, "main street", GREEN);
-        blob(g, f, cx - w * 0.24f, cy + h * 0.03f, cx - w * 0.02f, cy + h * 0.30f, new Color(255, 140, 30, 95),
-                ORANGE, "HEAVY INDUSTRY district");
-        blob(g, f, cx + w * 0.02f, cy + h * 0.03f, cx + w * 0.26f, cy + h * 0.30f, new Color(255, 214, 40, 80),
-                GOLD, "SPACEPORT district");
-        blob(g, f, cx - w * 0.22f, cy - h * 0.28f, cx - w * 0.01f, cy - h * 0.03f, new Color(90, 240, 120, 70),
-                GREEN, "homes + civic core");
-        blob(g, f, cx + w * 0.02f, cy - h * 0.30f, cx + w * 0.24f, cy - h * 0.03f, new Color(235, 50, 40, 90),
-                RED, "MILITARY: garrison");
-        machine(g, f, cx - w * 0.15f, cy + h * 0.14f, "key machine");
-        crate(g, f, cx + w * 0.10f, cy + h * 0.12f, "cargo terminal");
-        crate(g, f, cx - w * 0.12f, cy - h * 0.16f, "admin vault");
-        pad(g, f, cx - w * 0.30f, cy - h * 0.02f, "Hermes lot");
-        tag(g, f.x(w * 0.04f), f.y(h * 0.08f), "country: farms, scrub, roads out", new Color(200, 230, 170));
+        blob(g, f, cx - w * 0.24f, cy + h * 0.03f, cx - w * 0.02f, cy + h * 0.32f, IND_FILL, ORANGE, "INDUSTRY");
+        blob(g, f, cx + w * 0.02f, cy + h * 0.03f, cx + w * 0.26f, cy + h * 0.32f, PORT_FILL, GOLD, "PORT");
+        blob(g, f, cx - w * 0.24f, cy - h * 0.32f, cx - w * 0.02f, cy - h * 0.03f, RES_FILL, GREEN, "HOMES");
+        blob(g, f, cx + w * 0.02f, cy - h * 0.32f, cx + w * 0.14f, cy - h * 0.03f, GOV_FILL, GOV, "GOVERNMENT");
+        blob(g, f, cx + w * 0.15f, cy - h * 0.32f, cx + w * 0.28f, cy - h * 0.03f, GAR_FILL, RED, "GARRISON");
+        compound(g, f, cx - w * 0.19f, cy + h * 0.10f, cx - w * 0.06f, cy + h * 0.26f, w * 0.015f, Grade.GUARDED,
+                ORANGE, "works");
+        machine(g, f, cx - w * 0.13f, cy + h * 0.17f, "");
+        compound(g, f, cx + w * 0.07f, cy + h * 0.10f, cx + w * 0.19f, cy + h * 0.24f, w * 0.015f, Grade.GUARDED,
+                GOLD, "cargo terminal");
+        compound(g, f, cx + w * 0.04f, cy - h * 0.26f, cx + w * 0.12f, cy - h * 0.12f, w * 0.012f,
+                Grade.FORTIFIED, GOV, "vault");
+        pad(g, f, cx - w * 0.32f, cy - h * 0.02f, "Hermes lot");
+        tag(g, f.x(w * 0.04f), f.y(h * 0.86f), "country: farms, scrub, roads out", new Color(200, 230, 170));
+        securityStrip(g);
         mockStamp(g);
         banner(g, "2. Compact market town grown from its economy",
-                "Shared: every economic function becomes its own district round one main street; the town is "
-                        + "smaller and denser, country beyond. Changes Assault and Sabotage too; re-pool story maps.");
+                "Shared: every function its own district round one main street, the same compounds and buffers; "
+                        + "smaller and denser. Changes Assault and Sabotage too; re-pool story maps.");
         g.dispose();
         return img;
     }
 
     /**
      * Direction 3: an authored site skeleton per industry (a Raid site template), varied by seed: fixed relations
-     * between the works, the town strip, the garrison and the lot, the members drawn from the set-piece kit.
+     * between the lot, the town strip, the district compounds and the garrison, the members drawn from the set-piece
+     * kit, each compound with its buffer.
      */
     private static BufferedImage siteTemplates(Shot shot) {
-        BufferedImage img = dim(shot.image(), 0.55f);
+        BufferedImage img = dim(shot.image(), 0.5f);
         Graphics2D g = graphics(img);
         Frame f = shot.frame();
         float w = mw(shot), h = mh(shot);
         zone(g, f, 0, 0, w, h, new Color(120, 150, 90, 40), null, null);
-        // a road spine from the lot through the town, forking to the works and the garrison gate
         g.setColor(new Color(220, 220, 220));
         g.setStroke(new BasicStroke(9f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g.drawLine(f.x(w * 0.12f), f.y(h * 0.50f), f.x(w * 0.60f), f.y(h * 0.50f));
         g.drawLine(f.x(w * 0.60f), f.y(h * 0.50f), f.x(w * 0.74f), f.y(h * 0.30f));
-        g.drawLine(f.x(w * 0.60f), f.y(h * 0.50f), f.x(w * 0.70f), f.y(h * 0.62f));
-        zone(g, f, w * 0.08f, h * 0.36f, w * 0.22f, h * 0.62f, new Color(255, 214, 40, 70), GOLD, "LANDING LOT");
-        zone(g, f, w * 0.24f, h * 0.26f, w * 0.58f, h * 0.74f, new Color(90, 240, 120, 70), GREEN, "TOWN STRIP");
-        zone(g, f, w * 0.66f, h * 0.04f, w * 0.97f, h * 0.32f, new Color(255, 140, 30, 95), ORANGE,
+        g.drawLine(f.x(w * 0.60f), f.y(h * 0.50f), f.x(w * 0.74f), f.y(h * 0.66f));
+        zone(g, f, w * 0.08f, h * 0.38f, w * 0.20f, h * 0.62f, new Color(255, 214, 40, 70), GOLD, "LANDING LOT");
+        zone(g, f, w * 0.22f, h * 0.26f, w * 0.50f, h * 0.74f, RES_FILL, GREEN, "TOWN STRIP (homes)");
+        compound(g, f, w * 0.52f, h * 0.58f, w * 0.62f, h * 0.76f, w * 0.015f, Grade.FORTIFIED, GOV, "vault");
+        compound(g, f, w * 0.68f, h * 0.08f, w * 0.94f, h * 0.30f, w * 0.025f, Grade.GUARDED, ORANGE,
                 "WORKS TEMPLATE (per industry)");
-        zone(g, f, w * 0.68f, h * 0.44f, w * 0.97f, h * 0.86f, new Color(235, 50, 40, 90), RED, "GARRISON TEMPLATE");
-        machine(g, f, w * 0.72f, h * 0.12f, "key machine");
-        machine(g, f, w * 0.84f, h * 0.20f, "key machine");
-        machine(g, f, w * 0.90f, h * 0.10f, "key machine");
-        crate(g, f, w * 0.40f, h * 0.60f, "vault");
-        tag(g, f.x(w * 0.04f), f.y(h * 0.08f), "one skeleton per industry, mirrored/rotated per seed",
+        compound(g, f, w * 0.72f, h * 0.52f, w * 0.95f, h * 0.84f, w * 0.02f, Grade.FORTIFIED, RED,
+                "GARRISON TEMPLATE");
+        machine(g, f, w * 0.74f, h * 0.14f, "");
+        machine(g, f, w * 0.84f, h * 0.22f, "");
+        machine(g, f, w * 0.89f, h * 0.12f, "");
+        tag(g, f.x(w * 0.04f), f.y(h * 0.86f), "one skeleton per industry, mirrored/rotated per seed",
                 new Color(230, 230, 230));
+        securityStrip(g);
         mockStamp(g);
         banner(g, "3. Authored Raid site per industry",
-                "Raid-only: a hand-laid skeleton per economic function (works, town strip, garrison, lot) "
-                        + "filled from the set-piece kit and varied by seed. Most legible, least variety, most authoring.");
+                "Raid-only: a hand-laid skeleton per function (lot, town strip, district compounds, garrison) "
+                        + "filled from the set-piece kit, varied by seed. Most legible, least variety, most authoring.");
         g.dispose();
         return img;
+    }
+
+    /** The districting model's areas: homes, government, port, industry and the garrison, each apart. */
+    private static void districts(Graphics2D g, Frame f, float w, float h) {
+        zone(g, f, 0, 0, w, h, new Color(120, 150, 90, 40), null, null);
+        blob(g, f, w * 0.16f, h * 0.16f, w * 0.40f, h * 0.84f, RES_FILL, GREEN, "HOMES");
+        blob(g, f, w * 0.41f, h * 0.56f, w * 0.60f, h * 0.90f, GOV_FILL, GOV, "GOVERNMENT");
+        blob(g, f, w * 0.41f, h * 0.06f, w * 0.61f, h * 0.38f, PORT_FILL, GOLD, "PORT");
+        blob(g, f, w * 0.63f, h * 0.03f, w * 0.98f, h * 0.38f, IND_FILL, ORANGE, "INDUSTRY");
+        blob(g, f, w * 0.66f, h * 0.46f, w * 0.99f, h * 0.92f, GAR_FILL, RED, "MILITARY");
+    }
+
+    /**
+     * A compound: its buffer of open ground (sand) round the edge, then the edge itself, graded by security. Open is
+     * a fence with wide gates; guarded a wall with gatehouses; fortified a wall with towers on the corners and a
+     * wider buffer.
+     */
+    private static void compound(Graphics2D g, Frame f, float x0, float y0, float x1, float y1, float buffer,
+                                 Grade grade, Color line, String label) {
+        float b = grade == Grade.FORTIFIED ? buffer * 1.5f : buffer;
+        int bx0 = f.x(x0 - b), bx1 = f.x(x1 + b), by0 = f.y(y1 + b), by1 = f.y(y0 - b);
+        g.setColor(BUFFER);
+        g.fillRect(bx0, by0, bx1 - bx0, by1 - by0);
+        int px0 = f.x(x0), px1 = f.x(x1), py0 = f.y(y1), py1 = f.y(y0);
+        g.setColor(new Color(line.getRed(), line.getGreen(), line.getBlue(), 110));
+        g.fillRect(px0, py0, px1 - px0, py1 - py0);
+        g.setColor(line);
+        g.setStroke(switch (grade) {
+            case OPEN -> new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{8f, 6f}, 0f);
+            case GUARDED -> new BasicStroke(5f);
+            case FORTIFIED -> new BasicStroke(8f);
+        });
+        g.drawRect(px0, py0, px1 - px0, py1 - py0);
+        if (grade == Grade.FORTIFIED) {
+            for (int[] c : new int[][]{{px0, py0}, {px1, py0}, {px0, py1}, {px1, py1}}) {
+                g.setColor(line);
+                g.fillRect(c[0] - 9, c[1] - 9, 18, 18);
+                g.setColor(Color.BLACK);
+                g.setStroke(new BasicStroke(2f));
+                g.drawRect(c[0] - 9, c[1] - 9, 18, 18);
+            }
+        }
+        // a gate on the side facing the town
+        g.setColor(Color.WHITE);
+        g.fillRect(px0 - 4, (py0 + py1) / 2 - 8, 8, 16);
+        if (label != null && !label.isEmpty()) tag(g, bx0, by1 + 22, label, line);
+    }
+
+    /** The security grades as compound edges, the steal shape each holds, bottom left. */
+    private static void securityStrip(Graphics2D g) {
+        int x = 24, y = H - 250, cw = 210, ch = 190;
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(x - 10, y - 40, 3 * cw + 40, ch + 56);
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        g.setColor(Color.WHITE);
+        g.drawString("Security grades every compound (owner pick: graded)", x, y - 14);
+        String[] names = {"Open", "Guarded", "Fortified"};
+        String[] notes = {"fence, wide gates", "wall, gatehouses", "wall, towers, wide buffer"};
+        String[] steal = {"goods in their stores", "best goods in the vault", "all in the bonded vault"};
+        for (int i = 0; i < 3; i++) {
+            int cx = x + i * (cw + 10);
+            int buf = 10 + i * 6;
+            g.setColor(BUFFER);
+            g.fillRect(cx + 30 - buf, y + 10 - buf, 120 + 2 * buf, 80 + 2 * buf);
+            g.setColor(new Color(255, 140, 30, 140));
+            g.fillRect(cx + 30, y + 10, 120, 80);
+            g.setColor(ORANGE);
+            g.setStroke(i == 0 ? new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f,
+                    new float[]{8f, 6f}, 0f) : new BasicStroke(i == 1 ? 5f : 8f));
+            g.drawRect(cx + 30, y + 10, 120, 80);
+            if (i == 2) {
+                for (int[] c : new int[][]{{cx + 30, y + 10}, {cx + 150, y + 10}, {cx + 30, y + 90}, {cx + 150, y + 90}}) {
+                    g.fillRect(c[0] - 7, c[1] - 7, 14, 14);
+                }
+            }
+            for (int k = 0; k < i + 1; k++) {
+                g.setColor(CYAN);
+                g.fillOval(cx + 40 + k * 22, y + 98 + (i == 2 ? 6 : 0), 12, 12);
+            }
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+            g.setColor(Color.WHITE);
+            g.drawString(names[i], cx + 30, y + 140);
+            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
+            g.drawString(notes[i], cx + 30, y + 160);
+            g.setColor(GOLD);
+            g.drawString(steal[i], cx + 30, y + 178);
+        }
     }
 
     // ---- drawing ----
@@ -436,7 +536,7 @@ public final class RaidMapgenReviewSuite implements SnapshotSuite {
         g.drawLine(px - 12, py - 12, px + 12, py + 12);
         g.drawLine(px - 12, py + 12, px + 12, py - 12);
         ring(g, px, py, 18, ORANGE, 3f);
-        tag(g, px + 22, py + 6, label, ORANGE);
+        if (!label.isEmpty()) tag(g, px + 22, py + 6, label, ORANGE);
     }
 
     private static void crate(Graphics2D g, Frame f, float x, float y, String label) {
@@ -446,7 +546,7 @@ public final class RaidMapgenReviewSuite implements SnapshotSuite {
         g.setColor(Color.WHITE);
         g.setStroke(new BasicStroke(2f));
         g.drawRect(px - 10, py - 10, 20, 20);
-        tag(g, px + 16, py + 6, label, VIOLET);
+        if (!label.isEmpty()) tag(g, px + 16, py + 6, label, VIOLET);
     }
 
     private static void pad(Graphics2D g, Frame f, float x, float y, String label) {

@@ -431,3 +431,4 @@ com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite
 com.dillon.starsectormarines.ops.RuinsRailLookSuite
 com.dillon.starsectormarines.battle.setup.RaidMapgenReviewSuite
+com.dillon.starsectormarines.ops.battleview.RavineRiseLookSuite
