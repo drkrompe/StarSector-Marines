@@ -1,9 +1,7 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.Arrays;
@@ -31,19 +29,10 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     private final String payloadName;
     private final int sourceZoneId;
     private final int[] route;
-    private final float secureDuration;
-    private final float secondsPerRouteCell;
-    private final float boardingDuration;
-    private final float lossDuration;
-    private final float abandonmentDuration;
+    private final UncontestedHold source;
+    private final EscortedRoute transit;
+    private final UncontestedHold boarding;
 
-    private int routeIndex;
-    private float secureProgress;
-    private float travelProgress;
-    private float boardingProgress;
-    private float lossProgress;
-    private float abandonmentProgress;
-    private boolean secured;
     private boolean complete;
     private boolean failed;
     private Failure failure = Failure.NONE;
@@ -79,11 +68,10 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
         this.payloadName = payloadName;
         this.sourceZoneId = sourceZoneId;
         this.route = Arrays.copyOf(route, route.length);
-        this.secureDuration = secureDuration;
-        this.secondsPerRouteCell = secondsPerRouteCell;
-        this.boardingDuration = boardingDuration;
-        this.lossDuration = lossDuration;
-        this.abandonmentDuration = abandonmentDuration;
+        this.source = new UncontestedHold(secureDuration);
+        this.transit = new EscortedRoute(route, secondsPerRouteCell, lossDuration, abandonmentDuration,
+                ESCORT_RADIUS, INTERDICTION_RADIUS);
+        this.boarding = new UncontestedHold(boardingDuration);
     }
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
@@ -91,11 +79,11 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     @Override
     public void tick(BattleView sim) {
         if (complete || failed) return;
-        if (!secured) {
+        if (!source.held()) {
             tickSourceControl(sim);
             return;
         }
-        if (routeIndex < Paths.cellCount(route) - 1) {
+        if (!transit.arrived()) {
             tickTransit(sim);
             return;
         }
@@ -107,136 +95,31 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
         // rebuilding renumbers zones, so the source's zone is read where it stands now. Comparing
         // against the id frozen at setup left every escort in "another" zone for the whole battle.
         int zone = sim.getZoneGraph().zoneIdAt(sourceCellX(), sourceCellY());
-        int sourceZone = zone >= 0 ? zone : sourceZoneId;
-        Escort escort = nearestMarineEscort(sim, sourceCellX(), sourceCellY(),
-                SOURCE_RADIUS, sourceZone);
-        boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                sourceCellX(), sourceCellY(), SOURCE_RADIUS, sourceZone);
-        contested = defenderPresent;
-        escortPresent = escort.present() && !defenderPresent;
-        controllingSquadId = escortPresent ? escort.squadId() : -1;
-        if (!escortPresent) {
-            secureProgress = 0f;
-            return;
-        }
-        if (alarmTick < 0) alarmTick = sim.getSimTickIndex();
-        secureProgress += BattleSimulation.TICK_DT;
-        if (secureProgress >= secureDuration) {
-            secureProgress = secureDuration;
-            secured = true;
-        }
+        source.tick(sim, sourceCellX(), sourceCellY(), SOURCE_RADIUS, zone >= 0 ? zone : sourceZoneId);
+        contested = source.contested();
+        escortPresent = source.escortPresent();
+        controllingSquadId = source.controllingSquadId();
+        if (escortPresent && alarmTick < 0) alarmTick = sim.getSimTickIndex();
     }
 
     private void tickTransit(BattleView sim) {
-        int x = payloadCellX();
-        int y = payloadCellY();
-        Escort escort = nearestMarineEscort(sim, x, y, ESCORT_RADIUS, -1);
-        boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                x, y, INTERDICTION_RADIUS, -1);
-        contested = defenderPresent;
-        escortPresent = escort.present();
-        controllingSquadId = escortPresent ? escort.squadId() : -1;
-
-        if (!escortPresent) {
-            travelProgress = 0f;
-            if (defenderPresent) {
-                lossProgress += BattleSimulation.TICK_DT;
-                abandonmentProgress = 0f;
-                if (lossProgress >= lossDuration) fail(Failure.LOST);
-            } else {
-                abandonmentProgress += BattleSimulation.TICK_DT;
-                lossProgress = 0f;
-                if (abandonmentProgress >= abandonmentDuration) {
-                    fail(Failure.ABANDONED);
-                }
-            }
-            return;
-        }
-        lossProgress = 0f;
-        abandonmentProgress = 0f;
-        if (defenderPresent) {
-            travelProgress = 0f;
-            return;
-        }
-        travelProgress += BattleSimulation.TICK_DT;
-        while (travelProgress >= secondsPerRouteCell
-                && routeIndex < Paths.cellCount(route) - 1) {
-            travelProgress -= secondsPerRouteCell;
-            routeIndex++;
-        }
+        Failure result = transit.tick(sim);
+        contested = transit.contested();
+        escortPresent = transit.escortPresent();
+        controllingSquadId = transit.controllingSquadId();
+        if (result != Failure.NONE) fail(result);
     }
 
     private void tickBoarding(BattleView sim) {
-        Escort escort = nearestMarineEscort(sim, egressCellX(), egressCellY(),
-                EGRESS_RADIUS, -1);
-        boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                egressCellX(), egressCellY(), EGRESS_RADIUS, -1);
-        contested = defenderPresent;
-        escortPresent = escort.present() && !defenderPresent;
-        controllingSquadId = escortPresent ? escort.squadId() : -1;
-        if (!escortPresent) {
-            boardingProgress = 0f;
-            return;
-        }
-        boardingProgress += BattleSimulation.TICK_DT;
-        if (boardingProgress >= boardingDuration) {
-            boardingProgress = boardingDuration;
+        boolean boarded = boarding.tick(sim, egressCellX(), egressCellY(), EGRESS_RADIUS, -1);
+        contested = boarding.contested();
+        escortPresent = boarding.escortPresent();
+        controllingSquadId = boarding.controllingSquadId();
+        if (boarded) {
             complete = true;
             escortPresent = false;
             controllingSquadId = -1;
         }
-    }
-
-    private Escort nearestMarineEscort(BattleView sim, int x, int y,
-                                       int radius, int requiredZone) {
-        int radiusSquared = radius * radius;
-        int selectedSquad = Integer.MAX_VALUE;
-        long selectedUnit = Long.MAX_VALUE;
-        boolean found = false;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != Faction.MARINE
-                    || !sim.identity().type(unit).combatant
-                    || !sim.movement().settled(unit)) continue;
-            int unitX = sim.world().cellX(unit);
-            int unitY = sim.world().cellY(unit);
-            int dx = unitX - x;
-            int dy = unitY - y;
-            if (dx * dx + dy * dy > radiusSquared) continue;
-            if (requiredZone >= 0 && sim.getZoneGraph().zoneIdAt(unitX, unitY)
-                    != requiredZone) continue;
-            Squad squad = sim.squadOf(unit);
-            int squadId = squad != null ? squad.id : -1;
-            int sortSquad = squadId >= 0 ? squadId : Integer.MAX_VALUE;
-            if (!found || sortSquad < selectedSquad
-                    || (sortSquad == selectedSquad && unit < selectedUnit)) {
-                found = true;
-                selectedSquad = sortSquad;
-                selectedUnit = unit;
-            }
-        }
-        return found ? new Escort(true,
-                selectedSquad != Integer.MAX_VALUE ? selectedSquad : -1)
-                : Escort.NONE;
-    }
-
-    private static boolean combatantPresent(BattleView sim, Faction faction,
-                                             int x, int y, int radius,
-                                             int requiredZone) {
-        int radiusSquared = radius * radius;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != faction
-                    || !sim.identity().type(unit).combatant) continue;
-            int unitX = sim.world().cellX(unit);
-            int unitY = sim.world().cellY(unit);
-            int dx = unitX - x;
-            int dy = unitY - y;
-            if (dx * dx + dy * dy > radiusSquared) continue;
-            if (requiredZone < 0 || sim.getZoneGraph().zoneIdAt(unitX, unitY)
-                    == requiredZone) return true;
-        }
-        return false;
     }
 
     private void fail(Failure reason) {
@@ -247,17 +130,17 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     }
 
     public boolean contested() { return contested; }
-    public float lossDuration() { return lossDuration; }
-    public float abandonmentDuration() { return abandonmentDuration; }
+    public float lossDuration() { return transit.lossDuration(); }
+    public float abandonmentDuration() { return transit.abandonmentDuration(); }
 
-    public float secureProgress() { return secureProgress; }
-    public float secureDuration() { return secureDuration; }
-    public float boardingProgress() { return boardingProgress; }
-    public float boardingDuration() { return boardingDuration; }
-    public float lossProgress() { return lossProgress; }
-    public float abandonmentProgress() { return abandonmentProgress; }
-    public int routeCellCount() { return Paths.cellCount(route); }
-    public int routeIndex() { return routeIndex; }
+    public float secureProgress() { return source.progress(); }
+    public float secureDuration() { return source.duration(); }
+    public float boardingProgress() { return boarding.progress(); }
+    public float boardingDuration() { return boarding.duration(); }
+    public float lossProgress() { return transit.lossProgress(); }
+    public float abandonmentProgress() { return transit.abandonmentProgress(); }
+    public int routeCellCount() { return transit.cellCount(); }
+    public int routeIndex() { return transit.index(); }
 
     @Override public String payloadId() { return payloadId; }
     @Override public String payloadName() { return payloadName; }
@@ -270,14 +153,14 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     @Override public int egressCellY() {
         return Paths.cellY(route, Paths.cellCount(route) - 1);
     }
-    @Override public int payloadCellX() { return Paths.cellX(route, routeIndex); }
-    @Override public int payloadCellY() { return Paths.cellY(route, routeIndex); }
+    @Override public int payloadCellX() { return transit.cellX(); }
+    @Override public int payloadCellY() { return transit.cellY(); }
     @Override public int corridorGuideCellX() {
-        int guide = Math.min(routeIndex + 6, routeCellCount() - 1);
+        int guide = Math.min(routeIndex() + 6, routeCellCount() - 1);
         return Paths.cellX(route, guide);
     }
     @Override public int corridorGuideCellY() {
-        int guide = Math.min(routeIndex + 6, routeCellCount() - 1);
+        int guide = Math.min(routeIndex() + 6, routeCellCount() - 1);
         return Paths.cellY(route, guide);
     }
     @Override public int initialElements() { return 1; }
@@ -288,19 +171,18 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     @Override public int lostElements() { return failure == Failure.LOST ? 1 : 0; }
     @Override public float normalizedProgress() {
         if (complete) return 1f;
-        if (!secured) return 0.15f * secureProgress / secureDuration;
+        if (!source.held()) return 0.15f * source.progress() / source.duration();
         int travelCells = Math.max(1, routeCellCount() - 1);
-        if (routeIndex < routeCellCount() - 1) {
-            return 0.15f + 0.75f * routeIndex / travelCells;
+        if (!transit.arrived()) {
+            return 0.15f + 0.75f * routeIndex() / travelCells;
         }
-        return 0.9f + 0.1f * boardingProgress / boardingDuration;
+        return 0.9f + 0.1f * boarding.progress() / boarding.duration();
     }
     @Override public Phase extractionPhase() {
         if (complete) return Phase.COMPLETE;
         if (failed) return Phase.FAILED;
-        if (!secured) return secureProgress > 0f ? Phase.SECURING : Phase.AT_SOURCE;
-        return routeIndex < routeCellCount() - 1
-                ? Phase.IN_TRANSIT : Phase.BOARDING;
+        if (!source.held()) return source.progress() > 0f ? Phase.SECURING : Phase.AT_SOURCE;
+        return !transit.arrived() ? Phase.IN_TRANSIT : Phase.BOARDING;
     }
     @Override public Failure failureReason() { return failure; }
     @Override public boolean alarmActive() { return alarmTick >= 0; }
@@ -311,9 +193,5 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     @Override public boolean isFailed() { return failed; }
     @Override public String displayName() {
         return "Recover " + payloadName + " and extract";
-    }
-
-    private record Escort(boolean present, int squadId) {
-        private static final Escort NONE = new Escort(false, -1);
     }
 }

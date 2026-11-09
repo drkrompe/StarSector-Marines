@@ -52,4 +52,14 @@ public enum RefitTrack {
 
     /** Every track of the battered start begins at a deficit; nothing starts improved. */
     public RefitBand start() { return RefitBand.DEFICIT; }
+
+    /**
+     * Where a fleet-facilities company starts this track: at neutral, with no deficit to buy
+     * back. A reserved room and the reserve hangar are neutral while sealed, so they start
+     * shut and their opening is bought; every other track starts restored. See
+     * {@code fleet-facilities.md}.
+     */
+    public RefitBand fleetStart() {
+        return reserve != null || this == RESERVE_HANGAR ? RefitBand.DEFICIT : RefitBand.RESTORED;
+    }
 }
