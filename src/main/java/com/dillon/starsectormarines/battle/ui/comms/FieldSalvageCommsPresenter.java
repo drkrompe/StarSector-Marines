@@ -21,13 +21,13 @@ public final class FieldSalvageCommsPresenter {
             if (cache.secured() && secured.add(cache.id)) {
                 discovered.add(cache.id);
                 feed.post(new BattleCommsFeed.Notice(Strings.get("battleCommsSalvageSecuredTitle"),
-                        Strings.format("battleCommsSalvageSecuredBody", cache.quantity, cache.resource.displayName),
+                        Strings.format("battleCommsSalvageSecuredBody", cache.label()),
                         BattleCommsFeed.Tone.GOOD_NEWS, 6));
                 return;
             }
             if (cache.discovered() && discovered.add(cache.id)) {
                 feed.post(new BattleCommsFeed.Notice(Strings.get("battleCommsSalvageFoundTitle"),
-                        Strings.format("battleCommsSalvageFoundBody", cache.quantity, cache.resource.displayName),
+                        Strings.format("battleCommsSalvageFoundBody", cache.label()),
                         BattleCommsFeed.Tone.STATUS, 8));
                 return;
             }

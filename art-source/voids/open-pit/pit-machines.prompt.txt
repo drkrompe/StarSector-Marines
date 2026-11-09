@@ -1,0 +1,18 @@
+Use case: style-transfer. Asset type: production transparent sprite sheet of six heavy open-cut mining machines for a gritty science-fiction overhead tactical game, seen from far above inside an ore pit.
+
+Image 1 is the authoritative geometry guide and edit target: paint onto these SIX exact overhead silhouettes, keeping the 3 columns x 2 rows layout, each machine's position, size, outline and heading (every machine's front faces east, to the right). Do not move, rotate, enlarge or shrink anything.
+Image 2 is material and rendering finish only (the game's existing painted vehicle sprites): not content, layout or palette.
+
+Six machines in reading order:
+1. Ultra-class mining haul truck, LOADED: huge dump body heaped with broken rust-brown and grey ore, a canopy reaching forward over the small cab on its left front corner, six giant tyres showing only their tread tops at both sides.
+2. The same haul truck EMPTY: ribbed steel dump body floor, scuffed and dusty, the same canopy and cab.
+3. Hydraulic face shovel on crawler tracks: rotating house with counterweight at the back and the cab at the front left, a heavy boom and stick reaching forward to a toothed front-shovel bucket.
+4. Blasthole drill rig on crawler tracks, mast lowered along the machine for tramming: a long steel lattice mast running forward past the front, the power pack at the rear, a small cab beside the mast.
+5. Large crawler bulldozer: wide curved blade at the front, cab in the middle, a single ripper shank at the back.
+6. Articulated wheel loader: engine and rear frame behind, cab at the joint, lift arms and a wide bucket at the front, four big tyres seen as tread tops.
+
+Livery: worn mining yellow and ochre, sun-faded, chipped to grey primer and rust at edges, coated in pale rock dust and ore grime toward the tracks and tyres; dark steel buckets and teeth, blackened tread. Credible heavy machinery detail: engine grilles, handrails and walkways, ladders, exhaust stacks, hydraulic rams and hoses, hazard striping on edges, recessed panel seams, bolts.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight DOWN at the roofs and decks: no visible vertical side walls, no circular wheel hubs, no front grille faces, no isometric or perspective view. Tyres and tracks show only their tread tops. Grounded painted Starsector-style sprite aesthetic matching image 2: no chunky pixel-art outlines, no cartoon style. Keep broad readable forms at small game scale. Soft neutral overhead light, shallow local contact shading only, no cast shadow.
+
+True alpha transparency around each machine, including the gaps between tracks, boom and body; no ground, no dirt patch, no shadow slab, no background, no border, no labels, no text, no watermark. Paint only the six machines; nothing outside their silhouettes.

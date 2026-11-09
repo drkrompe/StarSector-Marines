@@ -65,6 +65,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     /** An open pit's haul road, and the conveyors it draws over the ground. */
     private List<PitVoidLook.Ramp> ramps = List.of();
     private List<NaturalVoid.Belt> belts = List.of();
+    private List<PitMachines.Machine> machines = List.of();
     /** The drop this instance draws is a glacial crevasse. */
     private boolean ice;
     private SunLight sun;
@@ -147,8 +148,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         }
         for (int k = n; k >= 0; k--) {
             drawBand(field.bands.get(k), k == n, time);
+            if (pit) drawMachines(k, -1);
             if (k >= 1) drawWalls(field.walls.get(k - 1));
-            if (k >= 1 && pit) drawRamps(k - 1);
+            if (k >= 1 && pit) {
+                drawRamps(k - 1);
+                drawMachines(k, k - 1);
+            }
         }
         drawBridgeSides();
     }
@@ -228,6 +233,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             else albedo(fray, q, 0, seed, frayColours);
         }
         ramps = pit ? PitVoidLook.ramps(field) : List.of();
+        machines = pit ? PitMachines.place(field, ramps, seed) : List.of();
     }
 
     /**
@@ -587,6 +593,37 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     sx(p[6], s2), sy(p[7], s2), sx(p[9], s3), sy(p[10], s3), r, g, b, alpha);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+    }
+
+    /**
+     * The machines working an open pit ({@link PitMachines}) that rest on band {@code step}: those on the haul road
+     * down face {@code rampWall}, or with {@code rampWall} -1 those standing on the band itself. Each is its frame of
+     * the sheet, turned to its heading and drawn at its depth's scale, shaded as deep rock is; one the rock hides
+     * from the eye is not drawn.
+     */
+    private void drawMachines(int step, int rampWall) {
+        if (machines.isEmpty()) return;
+        ShuttleSpriteCache sheet = sprites.spriteByPath(PitMachines.SHEET);
+        if (sheet == null || sheet.pxW < 3 || sheet.pxH < 2) return;
+        int fw = sheet.pxW / 3, fh = sheet.pxH / 2;
+        float cell = cam.cellPxSize();
+        float margin = cell * 4f;
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        float lit = sun == null ? .9f : .8f + .2f * Math.min(1f, sun.risePerCell());
+        for (PitMachines.Machine m : machines) {
+            if (m.step() != step || m.rampWall() != rampWall) continue;
+            float s = scale(m.depth());
+            if (!inView(m.x(), m.y(), s, margin) || hidden(m.x(), m.y(), m.depth())) continue;
+            float px = sx(m.x(), s), py = sy(m.y(), s);
+            float angle = (float) Math.toDegrees(Math.atan2(sy(m.y() + m.headingY(), s) - py,
+                    sx(m.x() + m.headingX(), s) - px));
+            float w = PitMachines.FRAME_W_METERS * PitMachines.CELLS_PER_METER * cell * s;
+            float h = PitMachines.FRAME_H_METERS * PitMachines.CELLS_PER_METER * cell * s;
+            float shade = lit * (1f - DEEP_MIX * m.depth() / floorDepth);
+            int frame = m.kind().ordinal();
+            out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (frame % 3) * fw, (frame / 3) * fh, fw, fh,
+                    px, py, w, h, angle, shade, shade, shade * .97f, alpha);
+        }
     }
 
     /**

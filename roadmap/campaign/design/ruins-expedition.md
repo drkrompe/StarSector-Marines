@@ -582,6 +582,8 @@ tier is set by where it lies, never rolled:
 - **Supply finds** are field salvage's commodity bundles, along the route.
 - **Tech caches** (`RuinsTechCache`) lie in sealed stores, in guardian rooms
   and on the vault store's deepest layer, so the store always holds exactly one.
+  The layer guardian's room is its court: the hive's cache is held from the
+  court and cannot be secured while the flock stands over it.
   A cache holds the game's own equipment, never new items. Its contents roll at
   settlement from one of vanilla's ruins drop groups, picked from the site and
   the find alone: `weapons2` (weapons and fighter wings) five times
@@ -682,6 +684,13 @@ was held (`RuinsVaultObjective.vaultPoweredAtBreach`, carried on
 - Goods as supply bundles.
 - Each tech cache as one roll of its drop group through vanilla's salvage
   roller, rerolled past `nothing`.
+
+The tech caches found along the delve settle the same way
+(`RuinsPrizeSettlement.payTechFinds`), on a win or a pull-out, beside the
+commodity finds. They never enter the loot manifest, which holds only the
+commodity finds. The results screen lists each one as a tech cache and gives
+the prize its own row: whole, broken into tech caches, or left sealed in the
+vault.
 
 **The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
 a). A site built round a core or a colony item keeps the guns that once kept
@@ -889,8 +898,6 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   lost (`pirates-lore-guide.md`)? The first battle slice has no break rule.
 - Should holding a node, rather than destroying it, put its zone back to sleep?
   The first derelict slice only destroys nodes.
-- Should a sealed store be the first place an equipment cache appears, once
-  `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
 - Ruins ground tuning waits on played battles: the dead town's densities,

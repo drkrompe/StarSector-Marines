@@ -1,0 +1,13 @@
+Paint image 1, a flat grey geometry guide, as a finished top-down game sprite of the medium skimmer, a broad manta-shaped drone carrier with no gun of its own: two large round drone cradles (empty docking rings with clamp teeth) sunk into its wings where the concept shows them. It is a Tri-Tachyon HIGH-TECH SKIMMER, a combat hover vehicle that floats a hand's breadth off the ground on grav-lift drives, with no wheels, tracks, legs or skirt: round lift rings sunk into the underside edges show past the hull rim as soft blue glowing rings, and a ribbed thruster bank sits at the stern.
+
+Image 1 is the exact silhouette authority: fill each grey shape exactly, never move, rotate, rescale or add to it; you may only smooth its stepped edges into clean curves. Keep the empty canvas empty.
+
+Image 2 is the IDENTITY reference: the same machine from the owner's chosen concept, with its gun painted in. Copy its design (armour lobe layout, sockets, glow rings, engine bank) onto the guide's outline, but draw NO gun, barrel, lance or turret anywhere on the hull: the vehicle is modular and every weapon is a separate layer.
+
+Image 3 is material and style reference only, never layout: Starsector's high-tech hulls (Tempest, Aurora, Medusa, Paragon). Match their finish: pale steel-blue and blue-grey armour shells, rounded, bulging and layered like carapace, over dark busy gunmetal machinery (ribbed conduits, actuators, heat-sink fins, small blue-lit ports) in the gaps; small blue glow slots; a little wear and grime in the recesses; light from the upper left. Grounded and believable, a tank-sized ground machine.
+
+The right panel is the same skimmer WRECKED: armour scorched and blackened, a burn-through hole, a cracked lobe, machinery exposed and charred, every glow dark and cold, no lights.
+
+Strict 90-degree overhead orthographic view, no perspective tilt. Both machines face LEFT (nose toward the left edge), exactly where the guide puts them, at exactly the guide's size. True transparent background with genuine alpha outside the silhouettes; no ground, cast-shadow slab, halo, labels, text, border or checkerboard. Same canvas size and 2:1 aspect as the guide.
+
+Avoid: any gun, barrel or turret on the hull, a cockpit canopy, a pilot, clean white plastic, long glowing light strips, tan or olive paint, perspective, side view.

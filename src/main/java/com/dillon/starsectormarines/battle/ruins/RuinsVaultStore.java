@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ruins;
 
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
+import com.dillon.starsectormarines.campaign.ruins.RuinsFindTier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,13 +20,17 @@ public final class RuinsVaultStore {
 
     private RuinsVaultStore() {}
 
-    /** One find per layer of a delve with {@code layers} layers, at the vault's cell; resources take turns. */
+    /**
+     * One find per layer of a delve with {@code layers} layers, at the vault's cell; resources take turns. The deepest
+     * layer's find is a tech cache ({@link RuinsFindTier#vaultStoreTier}).
+     */
     public static List<SalvageCache> of(int layers, int vaultX, int vaultY) {
         List<SalvageCache> store = new ArrayList<>();
         SalvageResource[] resources = SalvageResource.values();
         for (int i = 0; i < layers; i++) {
             SalvageResource resource = resources[i % resources.length];
-            store.add(new SalvageCache(ID_PREFIX + (i + 1), vaultX, vaultY, resource, resource.cacheQuantity));
+            SalvageCache find = new SalvageCache(ID_PREFIX + (i + 1), vaultX, vaultY, resource, resource.cacheQuantity);
+            store.add(RuinsFindTier.vaultStoreTier(i + 1, layers) == RuinsFindTier.TECH ? find.asTechCache() : find);
         }
         return List.copyOf(store);
     }
