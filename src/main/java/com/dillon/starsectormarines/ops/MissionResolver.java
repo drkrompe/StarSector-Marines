@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidMissionKey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsPullOut;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
@@ -571,8 +572,11 @@ public final class MissionResolver {
             // nothing further back.
             RuinsExpeditionLedger.Pending fought = outcome.victory ? RuinsExpeditionLedger.Pending.WON
                     : outcome.pulledOut ? RuinsExpeditionLedger.Pending.PULLED_OUT : RuinsExpeditionLedger.Pending.LOST;
+            // The finds brought home are what the site will remember as taken (ruins-expedition.md, Law 6).
+            List<String> broughtHome = outcome.victory || outcome.pulledOut
+                    ? outcome.fieldSalvage.stream().map(SalvageCache.Recovered::id).toList() : List.of();
             if (key == null || !RuinsExpeditionLedger.record(
-                    script != null ? script.state() : null, key.serial(), fought)) {
+                    script != null ? script.state() : null, key.serial(), fought, broughtHome)) {
                 LOG.info("MarineOps: ruins expedition " + outcome.missionId + " already recorded — no writeback");
                 return;
             }

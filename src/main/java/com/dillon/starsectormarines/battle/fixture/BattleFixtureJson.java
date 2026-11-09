@@ -229,6 +229,7 @@ public final class BattleFixtureJson {
                     wingsToJson(ruins.enemyFighterSupport()));
             root.put("grade", ruins.grade().name());
             root.put("occupant", ruins.occupant().name());
+            if (!ruins.takenFinds().isEmpty()) root.put("takenFinds", new JSONArray(ruins.takenFinds()));
             return root;
         }
         if (fixture instanceof BloomHeartBattleFixture heart) {
@@ -470,7 +471,17 @@ public final class BattleFixtureJson {
                 // Fixtures written before the occupant was carried were all the scavengers' stand-in.
                 root.has("occupant")
                         ? enumValue(RuinsOccupant.class, root.getString("occupant"), "occupant")
-                        : RuinsOccupant.SCAVENGERS);
+                        : RuinsOccupant.SCAVENGERS,
+                takenFindsFromJson(root));
+    }
+
+    /** A ruins site's finds already brought home; none when the fixture names none. */
+    private static List<String> takenFindsFromJson(JSONObject root) throws Exception {
+        if (!root.has("takenFinds")) return List.of();
+        JSONArray array = root.getJSONArray("takenFinds");
+        List<String> ids = new ArrayList<>(array.length());
+        for (int i = 0; i < array.length(); i++) ids.add(array.getString(i));
+        return ids;
     }
 
     private static void encodeCommon(
