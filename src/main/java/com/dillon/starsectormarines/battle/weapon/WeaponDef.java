@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.weapon;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
-import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactMark;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
@@ -113,13 +113,13 @@ public final class WeaponDef {
     /** A mech rotary gun's spin and belt, or {@code null} for a weapon fired a trigger pull at a time. */
     private RotaryFeedDef rotary;
 
-    private static DecalKind parseDecal(JSONObject render, String id) throws JSONException {
-        String name = render != null ? emptyToNull(render.optString("impactDecal", null)) : null;
+    private static ImpactMark parseImpactMark(JSONObject render, String id) throws JSONException {
+        String name = render != null ? emptyToNull(render.optString("impactMark", null)) : null;
         if (name == null) return null;
         try {
-            return DecalKind.valueOf(name);
+            return ImpactMark.valueOf(name);
         } catch (IllegalArgumentException e) {
-            throw new JSONException("Weapon '" + id + "' names unknown render.impactDecal '" + name + "'");
+            throw new JSONException("Weapon '" + id + "' names unknown render.impactMark '" + name + "'");
         }
     }
 
@@ -172,12 +172,12 @@ public final class WeaponDef {
     public boolean tracksFliers() { return tracksFliers; }
 
     /**
-     * The weapon's own mark on the ground where a round lands ({@code render.impactDecal}, a {@link DecalKind} name),
-     * in place of the crater or hole its effect layers would otherwise pick; null for that default.
+     * The kind of mark the weapon's rounds leave where they land ({@code render.impactMark}, an {@link ImpactMark}
+     * name); null when the weapon names none, and its effect layers stand in for it.
      */
-    private DecalKind impactDecal;
+    private ImpactMark impactMark;
 
-    public DecalKind impactDecal() { return impactDecal; }
+    public ImpactMark impactMark() { return impactMark; }
 
     /**
      * Whether a lobbed round of this weapon casts a shadow on the ground under it as it flies ({@code
@@ -471,7 +471,7 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + id + "' declares sim.blast without a splash (aoeRadius)");
         }
         def.tracksFliers = sim.optBoolean("tracksFliers", false);
-        def.impactDecal = parseDecal(render, id);
+        def.impactMark = parseImpactMark(render, id);
         def.groundShadow = render != null && render.optBoolean("groundShadow", false);
         def.tracerRound = parseTracerRound(render, def);
         def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);

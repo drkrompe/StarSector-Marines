@@ -17,8 +17,8 @@ SCALE of the canvas into mod/graphics/battle/rav-spitter/.
 
 The acid sheet (raw/acid.png) has four items in its quarters: the glob in flight (turned to travel up, as projectile
 sprites do), two splashes and a pool. The glob ships as the acid weapon's projectile sprite; the splashes and the
-pool are appended to the decal strip mod/graphics/decals/decals.png as
-DecalKind ACID_SPLASH, ACID_SPLASH_LONG and ACID_POOL (a rerun rebuilds them from the strip's first 2048 columns).
+pool are written to art-source/impact-decals/singles/ as DecalKind ACID_SPLASH, ACID_SPLASH_LONG and ACID_POOL, which
+the decal sheet's exporter (art-source/impact-decals/export.py) lays in their cells.
 """
 import argparse
 from pathlib import Path
@@ -31,7 +31,7 @@ REPO = HERE.parents[2]
 RAW = HERE / "raw"
 ACID = RAW / "acid.png"
 OUT = REPO / "mod" / "graphics" / "battle" / "rav-spitter"
-DECALS = REPO / "mod" / "graphics" / "decals" / "decals.png"
+DECAL_SINGLES = REPO / "art-source" / "impact-decals" / "singles"
 SCALE = 0.25
 
 # Canvas pixel geometry (1024 x 1536, facing up), mirrored about CENTRE_COL.
@@ -44,7 +44,6 @@ TAIL_SEAMS = tuple(round(TAIL_TOP + (TAIL_TIP - TAIL_TOP) * i / TAIL_SLICES) for
 TAIL_OVERLAP = 14                         # each slice reaches this far past its seams, so a bend shows no gap
 TAIL_COLS = (400, 624)
 DECAL_HEIGHT = 160
-ORIGINAL_DECAL_WIDTH = 2048
 
 
 def keyed(path):
@@ -128,21 +127,12 @@ def acid_items():
     return items
 
 
-def append_decals(splats):
-    """The splats appended to the decal strip after its original frames, each fitted to the strip's height."""
-    strip = Image.open(DECALS).convert("RGBA")
-    base = strip.crop((0, 0, ORIGINAL_DECAL_WIDTH, strip.height))
-    frames = [shrink(s, (DECAL_HEIGHT - 8) / max(s.width, s.height)) for s in splats]
-    gap = 8
-    width = ORIGINAL_DECAL_WIDTH + sum(f.width + gap for f in frames)
-    out = Image.new("RGBA", (width, DECAL_HEIGHT), (0, 0, 0, 0))
-    out.alpha_composite(base, (0, 0))
-    x = ORIGINAL_DECAL_WIDTH + gap
-    for f in frames:
-        out.alpha_composite(f, (x, (DECAL_HEIGHT - f.height) // 2))
-        x += f.width + gap
-    out.save(DECALS, optimize=True)
-    return width
+def write_decals(splats):
+    """The splats as the decal sheet's single frames, each fitted inside DECAL_HEIGHT."""
+    names = ("acid-splash", "acid-splash-long", "acid-pool")
+    for name, splat in zip(names, splats):
+        shrink(splat, (DECAL_HEIGHT - 8) / max(splat.width, splat.height)).save(DECAL_SINGLES / f"{name}.png",
+                                                                                optimize=True)
 
 
 def main():
@@ -157,8 +147,8 @@ def main():
         shrink(to_image(rgba).crop(box)).save(OUT / f"{name}.png", optimize=True)
     glob, splash, splash_long, pool = acid_items()
     shrink(glob, 96 / max(glob.size)).save(OUT / "acid-glob.png", optimize=True)
-    width = append_decals([splash, splash_long, pool])
-    print("boxes", {k: v[1] for k, v in layers.items()}, "decal strip", width)
+    write_decals([splash, splash_long, pool])
+    print("boxes", {k: v[1] for k, v in layers.items()}, "- re-run art-source/impact-decals/export.py")
     if args.preview:
         sheet = Image.new("RGBA", whole.shape[1::-1], (60, 74, 54, 255))
         sheet.alpha_composite(to_image(whole))

@@ -462,8 +462,10 @@ public final class SwarmBores {
         bores.add(bore);
         sprout(sim, bore, bore.tier(), bore.tier().sporeColonies);
         float cx = cell[0] + 0.5f, cy = cell[1] + 0.5f;
-        sim.addDecal(new Decal(cx, cy, DecalKind.CRATER_MEDIUM_A.index, rotation(number, 1), mother ? 2.6f : 2.1f));
-        sim.addDecal(new Decal(cx, cy, DecalKind.RUBBLE.index, rotation(number, 2), mother ? 2.2f : 1.7f));
+        sim.addDecal(new Decal(cx, cy, DecalKind.SHELL_CRATER.index + number % DecalKind.SHELL_CRATER.variants,
+                rotation(number, 1), mother ? 2.6f : 2.1f));
+        sim.addDecal(new Decal(cx, cy, DecalKind.DEBRIS.index + number % DecalKind.DEBRIS.variants,
+                rotation(number, 2), mother ? 2.2f : 1.7f));
         cues.add(BoreCues.Kind.ERUPTED, bore, tick);
         declareGoal(sim);
         return bore;
@@ -547,8 +549,8 @@ public final class SwarmBores {
             if (sim.resolveUnit(outpost) != 0L) sim.applyDamage(outpost, WITHER_DAMAGE, WITHER_DAMAGE);
         }
         float cx = bore.x() + 0.5f, cy = bore.y() + 0.5f;
-        sim.addDecal(new Decal(cx, cy, DecalKind.CRATER_MEDIUM_B.index, rotation(bore.number(), 3),
-                bore.mother() ? 2.8f : 2.3f));
+        sim.addDecal(new Decal(cx, cy, DecalKind.SHELL_CRATER.index + (bore.number() + 1) % DecalKind.SHELL_CRATER.variants,
+                rotation(bore.number(), 3), bore.mother() ? 2.8f : 2.3f));
         events.add(new Event(tick, EventKind.COLLAPSED, bore, bore.tier()));
         cues.add(BoreCues.Kind.COLLAPSED, bore, tick);
     }

@@ -1534,7 +1534,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
-            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.toX, s.toY, isWall);
+            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.fromX, s.fromY, s.toX, s.toY,
+                    isWall);
             playImpactCue(s, rng, zeroVel);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
@@ -1545,7 +1546,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             playImpactCue(s, rng, zeroVel);
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
-            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.toX, s.toY, isWall);
+            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.fromX, s.fromY, s.toX, s.toY,
+                    isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
         // Warheads a point-defence emplacement stopped come apart in the air.

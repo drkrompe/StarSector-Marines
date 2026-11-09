@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c11e-3614-7fd3-8239-d1849afda95a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c11e-3614-7fd3-8239-d1849afda95a\\exec-b3f3495f-7072-44a7-99bb-7f16f0277118.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\impact-decals\\master-explosive.png",
+    "sha256": "ea8b777f645cf6cf07c6fc4e2e70e31746cd6d8c49b69089eb45165d9732a10e",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\impact-decals\\prompt-explosive.txt",
+  "promptSha256": "73283d5c757a4b8a46ab947f195cae74c22fc10afff3c88665ca08d22b1424ae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact 4x4 grid, positions, sizes, outlines and orientations of the sixteen decals\nImage 2: Material/style only; not layout\n\nA sheet of sixteen explosion decals for a top-down tactical ground-combat game: what grenades, rockets, mortar and\ncannon shells leave on the ground after they burst.\n\nRows, top to bottom (each row is one kind of mark; the four columns are variants of it):\n1. Fragmentation. The small central shape is a shallow soot-blackened blast spot; the many scattered dots are\n   fragment strikes peppered around it, each a tiny dark pit with a pale chipped fleck. No crater.\n2. Rocket and grenade blasts. A shallow scorched blast patch, black at its centre fading out through charcoal, with\n   soot thrown out in the radiating streaks. Flat: a scorch and a scuff, not a pit.\n3. Shell craters (mortar and cannon). A real crater: a dark bowl with a churned, deeper centre and a raised rim of\n   broken pale material lit from the upper left, with ejecta thrown out along the radiating streaks.\n4. Thrown debris. Each shape is a separate lump of broken material lying on the surface: rubble, chunks of broken\n   concrete and clods, mixed pale grey and dark, each with a small contact shadow. Loose debris, no crater, no fire.\n\nLayout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each\nflat grey shape is the footprint of one decal (blurred grey means a soft, feathered edge). Fill every grey footprint\nwith its decal, keeping its position, size, outline and orientation. Do not move, merge, add or remove marks. Keep\nevery cell's empty space fully transparent. Marks that point sideways point along +x (to the right): the round\ntravelled left to right.\n\nThese decals are stamped at random onto every kind of ground and wall in the game: earth, grass, sand, concrete\npaving, metal deck, brick, cast concrete and olive-painted plate. So their colours must be neutral and work over\nany surface: soot and scorch near-black to charcoal, cavities dark, freshly exposed dust, chips and spall pale\nneutral grey, a faint warm brown only in soot falloff. Every outline is rough, ragged and organic, like real damage: never a regular geometric star, flower or\nperfect circle, even where the grey footprint is close to one. Never paint the surrounding ground or wall itself, and never\ntint a mark green, brick red or sand yellow.\n\nStyle: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching\nreference 2. Read clearly at small size: strong dark centres, crisp light rims where material is chipped.\n\nOutput: a true transparent background, including every gap between and inside marks; no ground, no floor, no wall\ntiles, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its own cell.\n\nReference 2 is material and style only: blast damage overlays from the same game. Do not copy its layout or shapes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\impact-decals\\guide-explosive.png",
+      "sha256": "85a621b1c146d973a1faacc7088e327d7bfbd411b4f6a6d4f5620c3e97f56464",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the exact 4x4 grid, positions, sizes, outlines and orientations of the sixteen decals"
+    },
+    {
+      "path": "art-source\\tilesets\\terrain-blast.raw.png",
+      "sha256": "1dc5860f04d31e1912458728ef2a119e23f9c87287334cb86174ed7fb87b2e1d",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent decal sheet using the first image’s exact layout and the second image’s material style."
+  ],
+  "usage": {
+    "input_tokens": 48136,
+    "cached_input_tokens": 36736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 651,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 84.3
+}

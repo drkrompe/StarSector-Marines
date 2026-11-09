@@ -1,9 +1,9 @@
 """Derive the muzzle-scorch frame of the shipped decal sheet.
 
 A heavy gun that fires near the ground leaves soot fanned forward from its
-muzzle (`TurretFx`, `render.scorch`). The decal sheet is one auto-sliced strip
-(`SpriteSheetSlicer`), so the scorch is frame 13, in the free slot at the
-strip's right end; this script clears that slot and paints the frame there.
+muzzle (`TurretFx`, `render.scorch`). This script writes the frame to
+art-source/impact-decals/singles/muzzle-scorch.png; the decal sheet's exporter
+(art-source/impact-decals/export.py) lays it in its cell, DecalKind.MUZZLE_SCORCH.
 
 The fan points along +x with the muzzle at the frame's left edge, symmetric
 about its axis, so `ImpactDecals.spawnMuzzleScorch` can put the decal's centre
@@ -27,13 +27,10 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-SHEET = ROOT / "mod" / "graphics" / "decals" / "decals.png"
+OUT = ROOT / "art-source" / "impact-decals" / "singles" / "muzzle-scorch.png"
 
-"""The free slot after the last authored frame (which ends at column 1903).
-Six clear columns either side keep the slicer's four-column gap."""
-SLOT_X0 = 1910
-SLOT_X1 = 2042
-SLOT_W = SLOT_X1 - SLOT_X0
+"""Frame width; the variants set its height."""
+SLOT_W = 132
 """Soot, not black: a warm near-black so it sits on sand and grass alike."""
 SOOT = (24, 20, 17)
 
@@ -149,18 +146,15 @@ def main():
 
     alpha = VARIANTS[args.variant](np.random.default_rng(13))
     h, w = alpha.shape
-    sheet = Image.open(SHEET).convert("RGBA")
-    pixels = np.array(sheet)
-    pixels[:, SLOT_X0 - 6:, :] = 0
-    y0 = (pixels.shape[0] - h) // 2
-    frame = pixels[y0:y0 + h, SLOT_X0:SLOT_X0 + w]
+    pixels = np.zeros((h, w, 4), np.uint8)
+    frame = pixels
     frame[..., 0], frame[..., 1], frame[..., 2] = SOOT
-    # The slicer bounds a frame by its pixels at alpha 16 or more, and soot fades out well below that, so a
+    # The sheet's cut bounds a frame by its pixels at alpha 16 or more, and soot fades out well below that, so a
     # plain falloff would be cropped inside itself and stamp as a hard rectangle. The faint tail is dithered
     # instead: below 16 a pixel is either 0 or 16, with the odds that keep its average. The frame then spans the
     # whole fade (muzzle at the left edge, axis on the centre line), and filtering averages the dither away.
     # Below three levels the tail is dropped, and so is any speck the dither leaves out past the fade on its own,
-    # which the slicer would otherwise read as a frame of its own.
+    # which would otherwise widen the frame's cut.
     value = alpha * 255.0
     faint = value < 16.0
     value[faint] = np.where(np.random.default_rng(29).random(value.shape)[faint] < value[faint] / 16.0, 16.0, 0.0)
@@ -170,10 +164,10 @@ def main():
     rows = np.flatnonzero((value >= 16.0).any(axis=1))
     cols = np.flatnonzero((value >= 16.0).any(axis=0))
     border = max(alpha[0].max(), alpha[-1].max(), alpha[:, -1].max())
-    Image.fromarray(pixels, "RGBA").save(SHEET, optimize=True)
-    print(f"{SHEET.relative_to(ROOT)}: muzzle scorch '{args.variant}' at x {SLOT_X0}..{SLOT_X0 + w - 1}, "
-          f"{w}x{h}, peak alpha {alpha.max():.2f}, alpha at the border {border:.3f}; sliced frame columns "
-          f"{cols[0]}..{cols[-1]}, rows {rows[0]}..{rows[-1]}")
+    Image.fromarray(pixels, "RGBA").save(OUT, optimize=True)
+    print(f"{OUT.relative_to(ROOT)}: muzzle scorch '{args.variant}', {w}x{h}, peak alpha {alpha.max():.2f}, "
+          f"alpha at the border {border:.3f}; cut columns {cols[0]}..{cols[-1]}, rows {rows[0]}..{rows[-1]}. "
+          f"Re-run art-source/impact-decals/export.py.")
 
 
 if __name__ == "__main__":

@@ -108,6 +108,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -1944,11 +1945,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (applyingInitialDamage) return;
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
-            int rubbleIdx = rng.nextFloat() < 0.5f
-                    ? com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE.index
-                    : com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE_ALT.index;
-            effects.addDecal(new com.dillon.starsectormarines.battle.combat.fx.Decal(
-                    jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
+            effects.addDecal(new Decal(jx, jy, DecalKind.DEBRIS.frame(rng), rng.nextFloat() * 360f, 1.10f));
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
