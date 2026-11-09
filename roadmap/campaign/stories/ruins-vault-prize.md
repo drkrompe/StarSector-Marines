@@ -7,6 +7,8 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
 - The draw and the tell in the briefing.
 - The payout and find-tier rules.
 - The batteries.
+- The prize carried on the mission and fixture, its stake read by the pressure
+  and named on the battle for the guardians.
 
 The slices below are what is left.
 
@@ -38,17 +40,12 @@ the ruins and guesses what is inside before committing the company.
      equipment-cache gate for ruins.
 
    Unit-test the settlement.
-2. **Stakes read by pressure and guardians.** Publish `RuinsVaultPrize.stakes`
-   on the mission for `ruins-pressure.md`'s reserve and stir rate and for the
-   guardian seam (`ruins-guardians.md`). Guardian strength does not scale with
-   the stake until the owner's playtest. Whether waking the batteries adds stir
-   is still with the pressure session.
-3. **The batteries, finished.**
+2. **The batteries, finished.**
    - A side hostile to everyone, so the guns fire on the occupant too.
    - A powered-down look, so dark and awake read apart.
-4. **The tell in the occupant's voice.** Each tell is one line today; word it
+3. **The tell in the occupant's voice.** Each tell is one line today; word it
    through the occupant's own instruments (`RuinsSurvey`).
-5. **Themed ground and works.** The ruins ground lays the theme's interior set
+4. **Themed ground and works.** The ruins ground lays the theme's interior set
    and the works' twist (heat valves, magnet gates, coolant junctions), one
    theme at a time, through picks with look shots. That is mapgen and art.
 

@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
-import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrizes;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
@@ -85,16 +83,16 @@ class RuinsExpeditionMissionFactoryTest {
     }
 
     @Test
-    void aSiteKeepsTheBatteriesItsPrizeCallsFor() {
+    void theVaultsPrizeIsDrawnBesideTheOccupant() {
         for (int i = 0; i < 50; i++) {
             String market = "site_" + i;
             Mission mission = RuinsExpeditionMissionFactory.create(3, market, "Ossuary", RuinsGrade.VAST,
                     RuinsOccupant.DOMAIN_SECURITY, Set.of(), 9L);
-            RuinsVaultPrize prize = RuinsVaultPrizes.draw(9L, market, RuinsGrade.VAST, RuinsOccupant.DOMAIN_SECURITY);
-            assertEquals(RuinsBatteries.count(RuinsGrade.VAST, prize), mission.ruinsBatteries);
+            assertEquals(RuinsVaultPrizes.draw(9L, market, RuinsGrade.VAST, RuinsOccupant.DOMAIN_SECURITY),
+                    mission.ruinsPrize);
         }
-        assertEquals(0, RuinsExpeditionMissionFactory.create(3, "m", "Ossuary", RuinsGrade.VAST,
-                RuinsOccupant.SCAVENGERS).ruinsBatteries);
+        assertNull(RuinsExpeditionMissionFactory.create(3, "m", "Ossuary", RuinsGrade.VAST,
+                RuinsOccupant.SCAVENGERS).ruinsPrize);
     }
 
     @Test

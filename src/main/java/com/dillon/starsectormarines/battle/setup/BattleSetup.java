@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.evacuation.RuinsSleepers;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
@@ -802,13 +804,26 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        return createRuins(seed, manifest, enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, grade, occupant, null);
+    }
+
+    /**
+     * @param prize the vault's prize ({@code RuinsVaultPrizes.draw}); its stake feeds the stir and the guardians, and
+     *              a core or colony item stands the old colony's batteries. Null for none.
+     */
+    public static BattleSimulation createRuins(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant, RuinsVaultPrize prize) {
         // The occupant alone chooses the defenders (RuinsDefence): the scavengers' crew, derelict security's walkers
         // under the security-network director (derelict-security-network.md), the Rav's sleepers under the swarm
         // director (RuinsSleepers), or, on an empty site, no one: its works are the expedition (ruins-expedition.md, Works).
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                ruinsCrew(occupant, grade), 0);
+                ruinsCrew(occupant, grade), 0, null, prize);
     }
 
     /** A ruins site's scavenger crew: its grade's, for a scavenger site only; null for every other occupant. */
@@ -1285,6 +1300,21 @@ public final class BattleSetup {
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, alliedGarrisonFactionId, alliedGarrisonStrengthMult, coldAccount,
+                raidTargetName, raidTargetKind, ruinsDelve, ruinsGrade, ruinsOccupant, ruinsCrew, raidWorks, raidSite,
+                null);
+    }
+
+    /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes}), null for none or another mission */
+    private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
+            TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
+            PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
+            float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite,
+            RuinsVaultPrize ruinsPrize) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1380,9 +1410,15 @@ public final class BattleSetup {
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
             // An occupied site stirs while the company is inside (ruins-pressure.md); an empty site's threat is time.
+            // The vault's prize: its stake deepens the reserve and quickens the stir, and the guardians read it.
+            sim.setRuinsPrize(ruinsPrize);
             if (ruinsDefence != null && ruinsDefence != RuinsDefence.NONE) {
-                sim.installRuinsPressure(RuinsPressure.of(ruinsGrade, map.ruinsDelve));
+                sim.installRuinsPressure(RuinsPressure.of(ruinsGrade, ruinsPrize != null ? ruinsPrize.stakes() : 0,
+                        map.ruinsDelve));
             }
+            // The old colony's guns on the approach, on the site's power (ruins-expedition.md, The vault and its prize).
+            int batteries = RuinsBatteries.count(ruinsGrade, ruinsPrize);
+            if (batteries > 0) sim.installRuinsBatteries(batteries);
             // The vault store: a find per layer at the vault, which comes out with the haul.
             sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
                     ruinsLayout.sourceX(), ruinsLayout.sourceY()));

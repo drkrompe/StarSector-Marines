@@ -635,6 +635,13 @@ the company commits. The prize's **theme** shows four ways:
 true, and so is a colony item, since the item is the site. A core's tier reads
 as "likely": right three times in four, else one step off.
 
+**The prize rides the mission.** `RuinsExpeditionMissionFactory` draws it
+beside the occupant as `Mission.ruinsPrize`, and the battle fixture carries it
+under the `prize` key. It goes into `BattleSetup.createRuins`, which:
+- passes its stake to `RuinsPressure.of`,
+- names it on the battle (`BattleSimulation.getRuinsPrize`) for the guardians,
+- stands its batteries.
+
 **Stakes.** A prize carries a stake from 0 (goods) to 3 (an alpha core, a
 pristine nanoforge), for the other systems to read. A higher stake means a
 deeper reserve and a faster stir (`ruins-pressure.md`) and a stronger guardian
@@ -662,8 +669,8 @@ In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
 emplacement, standing 9 cells out from an entrance's apron toward the landing,
 on open ground outside the aprons and the interior. They hang on the first
 junction's way on, beside the first layer's gate. Throwing that junction to its
-store cuts the guns, but it also cuts the gate's power. The count rides the
-mission (`Mission.ruinsBatteries`) and the battle fixture. They stand on the
+store cuts the guns, but it also cuts the gate's power. The count comes from
+the prize. They stand on the
 defenders' side, so they fire on the company and its allies. Firing on the
 occupant too needs a side hostile to everyone, which the battle does not have
 yet. Dark and awake still look the same; a powered-down look is owed.
