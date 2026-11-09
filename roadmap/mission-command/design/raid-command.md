@@ -27,6 +27,13 @@ therefore succeeds without eliminating the defender. The defender retains a
 separate elimination objective, and campaign loot/disruption consumes ordinary
 Marine victory rather than becoming battle-time objective input.
 
+A raid may serve its target only within a **service window**
+(`RaidObjective.ServiceWindow`), as a freighter stands at its berth only so long
+(`sky-port-heist.md`): before the window opens the target cannot be served and no
+service tick raises the alarm; a window that closes with the target not seized
+fails the raid. Once seized, the window no longer matters. The checklist reads the
+window as a clock: until it opens, then until it closes.
+
 The abstract package deliberately has no individual carrier. Carrier identity,
 transfer, and death would create a second hidden objective contract; a later
 story may add that only with explicit presentation and recovery law.

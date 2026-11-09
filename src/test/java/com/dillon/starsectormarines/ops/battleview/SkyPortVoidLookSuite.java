@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
+import com.dillon.starsectormarines.battle.setup.SkyPortHeistSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -85,6 +86,12 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                     out.add(shot(context, sim, tag + "-8-station.png", 170f, 120f, 170f));
                     if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 36f, 119f, 230f, 105f));
                 }
+                // The heist's freighter at its berth: called to stand there from before the stills' battle clock.
+                try (BattleSimulation sim = cluster(depth, eye, List.of(new VoidBackdrop.Call(SkyPortHeistSetup.SLIP,
+                        SkyPortHeistSetup.HULL, -1f, 600f)))) {
+                    out.add(shot(context, sim, tag + "-9-freighter-berthed.png", SkyPortHeistSetup.TARGET_X + 14f,
+                            SkyPortHeistSetup.TARGET_Y + 4f, PLAY));
+                }
             }
             return out;
         }
@@ -128,8 +135,13 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
 
     /** The tower cluster under a backdrop at {@code depth} and {@code eye}, a rifle squad on the catwalk for scale. */
     static BattleSimulation cluster(float depth, float eye) {
+        return cluster(depth, eye, List.of());
+    }
+
+    /** The same, with {@code calls} at the station's slips. */
+    static BattleSimulation cluster(float depth, float eye, List<VoidBackdrop.Call> calls) {
         SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(true);
-        ground.topology().setVoidBackdrop(SkyPortClusterSetup.backdrop(depth, eye));
+        ground.topology().setVoidBackdrop(SkyPortClusterSetup.backdrop(depth, eye).withCalls(calls));
         SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false);
         builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
                 .inFile(54, 140, 1, 0)
