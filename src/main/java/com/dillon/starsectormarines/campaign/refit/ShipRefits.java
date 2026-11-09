@@ -35,22 +35,23 @@ public final class ShipRefits {
 
     /** Receipts count only while contiguous from the track's start, so no tier is ever skipped. */
     static ShipCondition read(Map<String, Object> data, String shipId, RefitBand fabrication) {
-        return read(data, KEY + shipId, RefitTrack::start, fabrication);
+        return read(data, KEY + shipId, RefitTrack::start, fabrication, false);
     }
 
     /** The same reading for receipts saved under {@code prefix}, each track counted on from {@code start}. */
     static ShipCondition read(Map<String, Object> data, String prefix, Function<RefitTrack, RefitBand> start,
-                              RefitBand fabrication) {
+                              RefitBand fabrication, boolean fleet) {
         var bands = new EnumMap<RefitTrack, RefitBand>(RefitTrack.class);
         for (RefitTrack track : RefitTrack.values()) {
             RefitBand band = start.apply(track);
-            for (RefitOrder order = RefitOrder.after(track, band); order != null
-                    && Boolean.TRUE.equals(data.get(prefix + order.receipt)); order = RefitOrder.after(track, band))
+            for (RefitOrder order = RefitOrder.after(track, band, fleet); order != null
+                    && Boolean.TRUE.equals(data.get(prefix + order.receipt)); order = RefitOrder.after(track, band, fleet))
                 band = order.band;
             bands.put(track, band);
         }
-        bands.put(RefitTrack.FABRICATION, fabrication);
-        return new ShipCondition(true, bands);
+        // A hull's fabrication is its workshop chain's; the fleet's is counted from its own receipts.
+        if (fabrication != null) bands.put(RefitTrack.FABRICATION, fabrication);
+        return new ShipCondition(true, bands, fleet);
     }
 
     /**

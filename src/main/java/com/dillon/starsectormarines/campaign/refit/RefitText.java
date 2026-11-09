@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import java.util.Set;
+import java.util.EnumSet;
 import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MechFieldRepair;
@@ -23,6 +25,17 @@ public final class RefitText {
 
     /** Castle on how the system works aboard her, for the systems tree. */
     public static String lore(RefitTrack track) { return Strings.get("openingRefitLore" + track.name()); }
+
+    /** Tracks whose lore speaks of the Second Wind herself, and so are told again for a fleet. */
+    private static final Set<RefitTrack> SHIP_LORE = EnumSet.of(RefitTrack.POWER, RefitTrack.LIFE_SUPPORT,
+            RefitTrack.STRUCTURE, RefitTrack.COMPUTE, RefitTrack.FABRICATION, RefitTrack.GYM, RefitTrack.SICK_BAY,
+            RefitTrack.REC_LOUNGE, RefitTrack.RANGE, RefitTrack.RESERVE_HANGAR, RefitTrack.MECH_CALIBRATION,
+            RefitTrack.MECH_COOLANT);
+
+    /** The lore for the fleet's tree when {@code fleet}: no hull, so nothing about her (`fleet-facilities.md`). */
+    public static String lore(RefitTrack track, boolean fleet) {
+        return fleet && SHIP_LORE.contains(track) ? Strings.get("openingRefitFleetLore" + track.name()) : lore(track);
+    }
 
     public static String band(RefitBand band) { return Strings.get("openingRefitBand" + band.name()); }
 

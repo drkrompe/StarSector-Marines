@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -35,6 +36,7 @@ public final class BarracksViewModel {
         if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
         command = new BarracksCommandModel(reactor, roster, resources, foundingResources, cargoMarines, reinforce,
                 currentDay);
+        command.billets(FleetFacilities::billets);
     }
 
     public BarracksCommandModel command() { return command; }

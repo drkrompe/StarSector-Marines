@@ -43,12 +43,22 @@ class FleetFacilitiesTest {
         assertEquals(RefitBand.DEFICIT, read.band(RefitTrack.GYM), "a hull's receipt is not the fleet's");
     }
 
-    @Test void aFreshFleetHasNoMechLabOneBerthAndTwoBunkrooms() {
-        assertEquals(new FleetRooms(0, 1, 2), FleetFacilities.rooms(FRESH));
+    @Test void aFreshFleetHasNoMechLabOneBerthAndFourBunkrooms() {
+        assertEquals(new FleetRooms(0, 1, 4), FleetFacilities.rooms(FRESH));
         var bought = FRESH.with(RefitTrack.MECH_GANTRIES, RefitBand.IMPROVED_II).with(RefitTrack.BOAT_BERTHS, RefitBand.IMPROVED_I)
                 .with(RefitTrack.BARRACKS, RefitBand.IMPROVED_II);
-        assertEquals(new FleetRooms(4, 2, 6), FleetFacilities.rooms(bought));
+        assertEquals(new FleetRooms(4, 2, 8), FleetFacilities.rooms(bought));
         assertEquals(RefitOrder.MECH_GANTRIES_FIRST, FRESH.next(RefitTrack.MECH_GANTRIES), "the first gantry is an upgrade");
+    }
+
+    @Test void theFleetBuysItsOwnMachineShopAndTheSecondWindNeverSeesIt() {
+        assertEquals(RefitBand.RESTORED, FRESH.band(RefitTrack.FABRICATION));
+        assertEquals(RefitOrder.FABRICATION_TOOLING, FRESH.next(RefitTrack.FABRICATION));
+        assertNull(ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.RESTORED).next(RefitTrack.FABRICATION),
+                "her fabrication is the workshop chain's");
+        Map<String, Object> data = new HashMap<>();
+        data.put(FleetFacilities.RECEIPTS + RefitOrder.FABRICATION_TOOLING.receipt, true);
+        assertEquals(RefitBand.IMPROVED_I, FleetFacilities.read(data).band(RefitTrack.FABRICATION));
     }
 
     @Test void theFleetDeckOwesExactlyTheBoughtRooms() {

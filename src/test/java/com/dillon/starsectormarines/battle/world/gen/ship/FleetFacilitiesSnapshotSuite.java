@@ -34,7 +34,7 @@ public final class FleetFacilitiesSnapshotSuite implements SnapshotSuite {
     @Override public String label() { return "Fleet facilities' mock rooms"; }
 
     private static final List<FleetRooms> SIZES = List.of(
-            new FleetRooms(0, 1, 2), new FleetRooms(1, 1, 2), new FleetRooms(2, 2, 4), new FleetRooms(4, 3, 6));
+            new FleetRooms(0, 1, 4), new FleetRooms(1, 1, 4), new FleetRooms(2, 2, 6), new FleetRooms(4, 3, 8));
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         ShipDeckSnapshotSuite.installTileRegistry();
