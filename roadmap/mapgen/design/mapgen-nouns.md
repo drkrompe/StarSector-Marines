@@ -2173,6 +2173,27 @@ authored surface — a farm's crop rows and pasture — draw that surface and ar
 left as laid. Only the ground kind changes, so walkability, props and random
 streams do not move, and a living world's map is the map it was.
 
+**A settlement adapts to its climate.** The palette says what the ground is
+made of; `Climate` says what the weather and air do to the people living on it,
+distilled from the market's conditions by `ClimateZoning` at the same boundary
+(storms, airless, toxic, radiation, quakes). Vanilla has no dust-storm condition,
+so storms are read from the ground as well as the sky: a desert with any air is a
+dust world, a frozen world in extreme cold is a blizzard world, and extreme
+weather storms anywhere; an airless world has no weather at all. A battle with no
+market behind it — a fixture, a story map, a preview — has `Climate.NONE`, so it
+never grows weather it did not ask for.
+
+A storm world drifts its own ground against its town (`StormDrift`): on the
+face of every wall toward the seed's wind (`StormWind`), one to four cells of
+sand (desert, or dust on a rock) or snow (frozen), its depth a slow coordinate
+noise. A drift is a surface skin (`floors.sand`, `floors.snow`), never ground:
+the cell keeps its ground kind, so walkability, cover, fire and every placement
+that reads pavement are unchanged, and it crosses a street only on the apron
+against the wall. A living world's storms pile up nothing. The other hazards are
+carried for adaptations still to come (storm banks, sealed habitats, hardened
+buildings); a bank round the town rarely has room on maps whose town fills the
+frame, and the rest need art the game does not have yet.
+
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's
 half-axes, the world's own palette (the rim) beyond it. Rav Bloom country on a

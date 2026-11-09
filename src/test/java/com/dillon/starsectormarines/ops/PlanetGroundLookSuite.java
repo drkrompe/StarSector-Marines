@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.RaidWorksLayout;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -24,7 +25,8 @@ import java.util.Locale;
  * One settled map on every surface palette: the size-4 heavy-industry Raid site (seed 7) built on a rock, a desert,
  * a frozen and a living world, so the colony's own ground can be judged against the planet's
  * ({@code mapgen-nouns.md}, cultivated ground). Each palette is framed whole ({@code <palette>-whole.png}) and at
- * play zoom on the town by the landing ({@code <palette>-town.png}), look preset. Nothing is played.
+ * play zoom on the town by the landing ({@code <palette>-town.png}), look preset; a desert and a frozen world under
+ * storms add {@code <palette>-storm-*} with their drifts. Nothing is played.
  */
 public final class PlanetGroundLookSuite implements SnapshotSuite {
 
@@ -41,16 +43,25 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            for (SurfacePalette palette : SurfacePalette.values()) {
-                TargetProfile market = new TargetProfile(4, 5, 3, 2, "independent",
+            List<Object[]> cases = new ArrayList<>();
+            for (SurfacePalette palette : SurfacePalette.values()) cases.add(new Object[] {palette, Climate.NONE, ""});
+            Climate storms = new Climate(EnumSet.of(Climate.Hazard.STORMS));
+            cases.add(new Object[] {SurfacePalette.ARID, storms, "-storm"});
+            cases.add(new Object[] {SurfacePalette.FROZEN, storms, "-storm"});
+            for (Object[] k : cases) {
+                SurfacePalette palette = (SurfacePalette) k[0];
+                long seed = k.length > 3 ? (Long) k[3] : SEED;
+                int size = k.length > 3 ? (Integer) k[4] : 4, defence = k.length > 3 ? (Integer) k[5] : 3;
+                OperationTier tier = k.length > 3 ? (OperationTier) k[6] : OperationTier.ESTABLISHED;
+                TargetProfile market = new TargetProfile(size, 5, defence, 2, "independent",
                         EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
                                 EconomicFunction.HABITATION),
-                        palette, SettlementLink.ROAD);
-                try (BattleSimulation sim = BattleSetup.createRaidWorks(SEED, BattleSetup.defaultManifest(),
-                        false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, market, FlybyRoster.EMPTY,
-                        FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(OperationTier.ESTABLISHED),
+                        palette, SettlementLink.ROAD).withClimate((Climate) k[1]);
+                try (BattleSimulation sim = BattleSetup.createRaidWorks(seed, BattleSetup.defaultManifest(),
+                        false, tier, RiskLevel.MEDIUM, market, FlybyRoster.EMPTY,
+                        FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier),
                         "heavyindustry")) {
-                    String name = palette.name().toLowerCase(Locale.ROOT);
+                    String name = palette.name().toLowerCase(Locale.ROOT) + k[2];
                     int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
                     out.add(new SnapshotArtifact(name + "-whole.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)

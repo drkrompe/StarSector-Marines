@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
+import com.dillon.starsectormarines.battle.world.gen.Climate;
+import com.dillon.starsectormarines.battle.world.gen.ClimateZoning;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrisonEstimate;
@@ -19,6 +21,7 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.impl.campaign.ids.Conditions;
@@ -96,7 +99,18 @@ public final class TargetProfileResolver {
                 hasGroundDefences(market),
                 hasHeavyBatteries(market),
                 hasPlanetaryShield(market))
-                .withGarrison(garrison(market, groundDefence, stationed));
+                .withGarrison(garrison(market, groundDefence, stationed))
+                .withClimate(climate(market));
+    }
+
+    /**
+     * Distill the world's weather and air to the campaign-decoupled {@link Climate}. {@link ClimateZoning} owns what
+     * each condition id means; this only lists them.
+     */
+    private static Climate climate(MarketAPI m) {
+        List<String> ids = new ArrayList<>();
+        if (m.getConditions() != null) for (MarketConditionAPI condition : m.getConditions()) ids.add(condition.getId());
+        return ClimateZoning.forConditions(ids, surface(m));
     }
 
     /**
