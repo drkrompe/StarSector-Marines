@@ -656,6 +656,7 @@ public final class MechLabViewModel {
             case HOUND -> Strings.get("gearCatalogHoundDescription");
             case WARDEN -> Strings.get("gearCatalogWardenDescription");
             case BULWARK -> Strings.get("gearCatalogBulwarkDescription");
+            case SECURITY_WALKER -> Strings.get("gearCatalogSecurityWalkerDescription");
             default -> "";
         };
     }
@@ -2820,7 +2821,9 @@ public final class MechLabViewModel {
 
     private static float maximum(VariantMetric metric) {
         float max = 0f;
-        for (MechVariant variant : MechVariant.values()) max = Math.max(max, metric.value(variant));
+        for (MechVariant variant : MechVariant.values()) {
+            if (!variant.automated()) max = Math.max(max, metric.value(variant));
+        }
         return max;
     }
 

@@ -76,6 +76,7 @@ public final class BattleForceScore {
         return switch (variant) {
             case BULWARK -> 24f;
             case HOUND, WARDEN -> 18f;
+            case SECURITY_WALKER -> 30f;
         };
     }
 
