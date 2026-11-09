@@ -407,3 +407,4 @@ com.dillon.starsectormarines.ops.ReplayCompletedSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleStandsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.RouteStallSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SkyPortVoidLookSuite
+com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite

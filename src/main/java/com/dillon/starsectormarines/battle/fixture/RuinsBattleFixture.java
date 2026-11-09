@@ -14,7 +14,8 @@ import java.util.Objects;
 
 /**
  * Authored inputs to the Ruins Expedition battle ({@code ruins-expedition-battle.md}): Extraction's inputs plus the
- * ruins grade, which sets the delve's depth and the vault's breach time.
+ * ruins grade, which sets the delve's depth and the vault's breach time, and whether the site is a live ruin held by
+ * derelict security ({@code derelict-security-network.md}).
  */
 public record RuinsBattleFixture(
         long seed,
@@ -25,7 +26,8 @@ public record RuinsBattleFixture(
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
         List<FighterWingCommitment> enemyFighterSupport,
-        RuinsGrade grade) implements BattleFixture {
+        RuinsGrade grade,
+        boolean derelictSecurity) implements BattleFixture {
 
     public static final String KIND = "RUINS";
 
@@ -39,6 +41,15 @@ public record RuinsBattleFixture(
         enemyFighterSupport = List.copyOf(Objects.requireNonNull(
                 enemyFighterSupport, "enemyFighterSupport"));
         grade = Objects.requireNonNull(grade, "grade");
+    }
+
+    /** A ruins battle whose occupant is not derelict security. */
+    public RuinsBattleFixture(long seed, List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
+                              OperationTier tier, RiskLevel risk, TargetProfile targetProfile,
+                              List<FighterWingCommitment> marineFighterSupport,
+                              List<FighterWingCommitment> enemyFighterSupport, RuinsGrade grade) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile, marineFighterSupport,
+                enemyFighterSupport, grade, false);
     }
 
     public static RuinsBattleFixture fromFactoryInputs(
@@ -61,6 +72,6 @@ public record RuinsBattleFixture(
         return BattleSetup.createRuins(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport), grade);
+                FighterWingCommitment.toRoster(enemyFighterSupport), grade, derelictSecurity);
     }
 }

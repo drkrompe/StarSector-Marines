@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.BodyService;
@@ -64,7 +65,42 @@ public final class MechTargeting {
 
         long traversable = closestBelievedEngageableInArc(
                 mech, hipFacing, attackRange, squad, sim);
-        return traversable;
+        if (traversable != 0L) return traversable;
+        return spottedForIndirectFire(mech, hipFacing, squad, sim);
+    }
+
+    /** How long a relayed sighting may stand before indirect fire stops being laid on it. UNTUNED (2 s). */
+    static final int SPOTTED_FRESH_TICKS = 60;
+
+    /**
+     * A target a spotter relays and the mech's indirect mounts can reach without a line of sight
+     * (`derelict-security-network.md`, slice 4): only a {@link BeliefSource#SPOTTED} belief seen within
+     * {@link #SPOTTED_FRESH_TICKS}, within an indirect mount's range and the hips' traverse; nearest wins.
+     * Zero for a mech with no indirect mount or no such belief.
+     */
+    private static long spottedForIndirectFire(long mech, float hipFacing, Squad squad, BattleView sim) {
+        if (squad == null || !sim.world().hasMechLoadout(mech)) return 0L;
+        float reach = 0f;
+        for (MechWeaponMount mount : sim.world().mechLoadout(mech).mounts()) {
+            if (mount != null && mount.weaponDef().indirectFire) reach = Math.max(reach, mount.weaponDef().range);
+        }
+        if (reach <= 0f) return 0L;
+        int now = sim.getSimTickIndex();
+        long best = 0L;
+        float bestDistance = Float.MAX_VALUE;
+        for (BelievedContact belief : squad.believedContacts()) {
+            if (belief.source() != BeliefSource.SPOTTED || now - belief.lastSeenTick() > SPOTTED_FRESH_TICKS) continue;
+            long candidate = belief.unitId();
+            if (!isBeliefLegal(mech, candidate, squad, sim)) continue;
+            if (!sim.getTacticalScoring().mayEngage(mech, candidate)) continue;
+            float dx = sim.world().x(candidate) - sim.world().x(mech);
+            float dy = sim.world().y(candidate) - sim.world().y(mech);
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            if (distance > reach || distance >= bestDistance || !withinTraverse(hipFacing, dx, dy)) continue;
+            best = candidate;
+            bestDistance = distance;
+        }
+        return best;
     }
 
     /**

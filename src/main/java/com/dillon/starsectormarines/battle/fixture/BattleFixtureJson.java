@@ -227,6 +227,7 @@ public final class BattleFixtureJson {
             root.put("enemyFighterSupport",
                     wingsToJson(ruins.enemyFighterSupport()));
             root.put("grade", ruins.grade().name());
+            if (ruins.derelictSecurity()) root.put("derelictSecurity", true);
             return root;
         }
         if (fixture instanceof BloomHeartBattleFixture heart) {
@@ -464,7 +465,8 @@ public final class BattleFixtureJson {
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
-                enumValue(RuinsGrade.class, root.getString("grade"), "grade"));
+                enumValue(RuinsGrade.class, root.getString("grade"), "grade"),
+                root.optBoolean("derelictSecurity", false));
     }
 
     private static void encodeCommon(

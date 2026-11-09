@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
@@ -723,7 +724,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -757,9 +758,23 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade) {
+        return createRuins(seed, manifest, enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, grade, false);
+    }
+
+    /**
+     * The Ruins Expedition with its occupant stated: {@code derelictSecurity} makes the site a live ruin, whose
+     * opposition is derelict security's walkers under the security network director ({@link DerelictSecurity})
+     * instead of the generic posted squads and patrols.
+     */
+    public static BattleSimulation createRuins(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, boolean derelictSecurity) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
-                null, 1f, false, null, null, RuinsDelve.of(grade));
+                null, 1f, false, null, null, RuinsDelve.of(grade), derelictSecurity ? grade : null);
     }
 
     /**
@@ -1140,14 +1155,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null);
     }
 
     /**
@@ -1187,7 +1202,8 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
-            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve) {
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade liveRuinGrade) {
+        boolean liveRuin = type == MissionType.RUINS && liveRuinGrade != null;
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1319,7 +1335,8 @@ public final class BattleSetup {
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
         };
-        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+        // A live ruin's opposition is its security alone: no posted squads or patrols.
+        if (!liveRuin) allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                 assaultMobileMembers);
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -1386,7 +1403,8 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            sim.setAutonomousCommander(Faction.DEFENDER,
+            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade);
+            else sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
         }

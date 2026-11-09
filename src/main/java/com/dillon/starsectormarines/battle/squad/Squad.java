@@ -1084,6 +1084,17 @@ public final class Squad {
                 simTick, confidence, BeliefSource.AUDIO));
     }
 
+    /**
+     * Records a contact a spotter relays to this squad (`derelict-security-network.md`, slice 4): never over a direct
+     * sighting of the same tick, and at the spotter's confidence.
+     */
+    public void observeSpottedContact(long unitId, int cellX, int cellY, int simTick, float confidence) {
+        BelievedContact old = contactMemory.get(unitId);
+        if (old != null && old.lastSeenTick() == simTick && old.source() == BeliefSource.DIRECT) return;
+        contactMemory.put(unitId, new BelievedContact(unitId, cellX, cellY,
+                simTick, confidence, BeliefSource.SPOTTED));
+    }
+
     /** Records the strongest localized hostile noise heard on the newest tick. */
     void observeAudibleBearing(int cellX, int cellY, int simTick,
                                float confidence, long sourceUnitId,
