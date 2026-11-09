@@ -40,6 +40,12 @@ public final class Flock implements DroneAnchor {
 
     private volatile float x, y;
     private volatile long strikeTarget;
+    private volatile long focus;
+    private volatile int[] contactCells = new int[0];
+    private volatile int contactTick = -1;
+    /** The roofed target's cell and threshold last found, so a target standing still is not searched again. */
+    int thresholdForX = Integer.MIN_VALUE, thresholdForY = Integer.MIN_VALUE;
+    int[] threshold;
     private volatile FlockField field;
     private volatile long[] ids = NO_IDS;
     private volatile float[] positions = NO_POSITIONS;
@@ -83,6 +89,15 @@ public final class Flock implements DroneAnchor {
 
     /** Hostiles any member saw on the last scan: what the flock tells its commander. */
     public long[] contacts() { return contacts; }
+
+    /** Where each of {@link #contacts()} was when seen, as {@code x0, y0, x1, y1, ...} cells. */
+    public int[] contactCells() { return contactCells; }
+
+    /** The tick of the scan {@link #contacts()} came from, or -1 before the first. */
+    public int contactTick() { return contactTick; }
+
+    /** Whether the strike is held at a threshold: its target is under a roof the flock never goes under. */
+    public boolean holdingThreshold() { return target != 0L && strikeTarget == 0L && task == FlockTask.STRIKE; }
 
     /** The field the members descend to the anchor, or null before the first is built. */
     public FlockField field() { return field; }
@@ -163,7 +178,8 @@ public final class Flock implements DroneAnchor {
         y = ay;
     }
 
-    void publish(long[] ids, float[] positions, float[] velocities, FlockField field, long strikeTarget) {
+    void publish(long[] ids, float[] positions, float[] velocities, FlockField field, long strikeTarget, long focus) {
+        this.focus = focus;
         this.ids = ids;
         this.positions = positions;
         this.velocities = velocities;
@@ -171,8 +187,10 @@ public final class Flock implements DroneAnchor {
         this.strikeTarget = strikeTarget;
     }
 
-    void publishContacts(long[] seen) {
+    void publishContacts(long[] seen, int[] cells, int tick) {
         contacts = seen;
+        contactCells = cells;
+        contactTick = tick;
     }
 
     void disband() {
@@ -203,8 +221,11 @@ public final class Flock implements DroneAnchor {
     /** The members' velocities when the roster was published, as {@code vx0, vy0, vx1, vy1, ...}. */
     public float[] escortVelocities() { return velocities; }
 
-    /** The unit the members wrap, or {@code 0L} when the flock is not striking. */
+    /** The unit the members wrap, or {@code 0L} when the flock is not striking or holds its threshold. */
     public long strikeTarget() { return strikeTarget; }
+
+    /** The unit the members shoot at when they see it: the strike or pursuit target, or {@code 0L}. */
+    @Override public long focusTarget() { return focus; }
 
     @Override public Flock flock() { return this; }
 

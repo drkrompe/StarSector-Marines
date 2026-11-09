@@ -26,8 +26,9 @@ import java.util.Set;
  *
  * <p>{@code split}: the flock probes a route straight through a roofed building; its members go round it by their own
  * sides and re-form beyond it. {@code strike-open}: it strikes a fire team of four riflemen standing in the open,
- * wraps them and strafes in passes. {@code strike-indoors}: the same team inside a roofed room with an open door; the
- * flock wraps the building and never comes in.
+ * wraps them and strafes in passes. {@code strike-indoors}: the same team inside a roofed room with an open door,
+ * behind a partition that hides them from it; the flock holds at the door, the threshold of the team's way out, and
+ * never comes in.
  *
  * <p>Each verdict is the mechanism: no member ever in a closed cell, members on both sides of the building at once,
  * the body together again past it, the strike ring round the target on several sides, rounds fired. Who wins is a
@@ -48,6 +49,11 @@ public final class DerelictFlockScene implements BehaviorScene {
     static final int FLOCK_SIZE = 16;
     static final float LAUNCH_X = 12.5f, LAUNCH_Y = 28.5f;
     static final float LEASH = 90f;
+    /** Just outside the room's door, where an indoors strike is held. */
+    static final float DOOR_X = R_X0 - .5f, DOOR_Y = 24.5f;
+    static final float THRESHOLD_CELLS = 6f;
+    /** Ticks the flock is given to arrive at the door before its hold is counted. */
+    static final int ARRIVE_TICKS = 300;
 
     private static final int SPLIT_TICKS = 1200;
     private static final int STRIKE_TICKS = 1200;
@@ -67,7 +73,7 @@ public final class DerelictFlockScene implements BehaviorScene {
 
     @Override public String label() {
         return "Derelict flock: sixteen swarm drones split round a roofed building and re-form, wrap and strafe a "
-                + "fire team in the open, and never enter the room a team holds";
+                + "fire team in the open, and wait at the door of the room a team holds without going in";
     }
 
     @Override public int frameDelayMillis() { return 70; }
@@ -130,10 +136,12 @@ public final class DerelictFlockScene implements BehaviorScene {
     private SceneReport strike(String loop, boolean indoors, FrameSink frames) {
         SceneBuilder b = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         // In the open, on the flock's line; indoors, in the room's far corner, out of the open door's line.
-        int teamX = indoors ? 62 : 60, teamY = indoors ? 32 : 27;
+        int teamX = indoors ? 62 : 60, teamY = indoors ? 33 : 27;
         if (indoors) {
             b.wall(R_X0, R_Y0, R_X1, R_Y0).wall(R_X0, R_Y1, R_X1, R_Y1)
-                    .wall(R_X1, R_Y0, R_X1, R_Y1).wall(R_X0, R_Y0, R_X0, 26).wall(R_X0, 30, R_X0, R_Y1);
+                    .wall(R_X1, R_Y0, R_X1, R_Y1).wall(R_X0, R_Y0, R_X0, R_Y0).wall(R_X0, 26, R_X0, R_Y1)
+                    // A partition between the door and the team's corner, so nothing at the door sees them.
+                    .wall(60, R_Y0, 60, 31);
         }
         b.squad("team").faction(Faction.MARINE).size(4).inFile(teamX, teamY, 1, 0).primary(RIFLE).stationary().done();
         holdouts(b);
@@ -155,8 +163,10 @@ public final class DerelictFlockScene implements BehaviorScene {
         v.add(Verdict.of("never-indoors", trace.closedTicks == 0,
                 trace.closedTicks + " member-ticks in a wall or under the roof"));
         if (indoors) {
-            v.add(Verdict.of("wraps-the-building", trace.bestQuadrants >= 3,
-                    "at best " + trace.bestQuadrants + " sides of the room held by members round it"));
+            boolean held = trace.holdTicks > 0 && trace.atThresholdTicks * 100 >= trace.holdTicks * 80;
+            v.add(Verdict.of("holds-the-threshold", held,
+                    trace.atThresholdTicks + " of " + trace.holdTicks + " ticks after arriving, holding its threshold, had "
+                            + "the flock's centre within " + (int) THRESHOLD_CELLS + " cells of the door"));
         } else {
             v.add(Verdict.of("wraps", trace.bestQuadrants == 4,
                     "at best " + trace.bestQuadrants + " of 4 quadrants round the target held by members on the ring"));
@@ -174,7 +184,7 @@ public final class DerelictFlockScene implements BehaviorScene {
         final long target;
         final Set<Long> members = new HashSet<>();
         long[] team = new long[0];
-        int closedTicks, splitTicks, bestQuadrants, rounds, firstRoundTick = -1;
+        int closedTicks, splitTicks, bestQuadrants, rounds, firstRoundTick = -1, holdTicks, atThresholdTicks;
         float endSpread, endCentreX, centreX, centreY;
         int alive, teamAlive;
         float targetX, targetY;
@@ -230,6 +240,10 @@ public final class DerelictFlockScene implements BehaviorScene {
                 spread = Math.max(spread, (float) Math.hypot(sim.world().x(m) - centreX, sim.world().y(m) - centreY));
             }
             endSpread = spread;
+            if (tick >= ARRIVE_TICKS && flock.holdingThreshold()) {
+                holdTicks++;
+                if (Math.hypot(centreX - DOOR_X, centreY - DOOR_Y) <= THRESHOLD_CELLS) atThresholdTicks++;
+            }
             endCentreX = centreX;
             for (ShotEvent shot : sim.getShotsThisFrame()) {
                 if (members.contains(shot.shooterId)) {
@@ -249,6 +263,8 @@ public final class DerelictFlockScene implements BehaviorScene {
             m.put("splitTicks", splitTicks);
             m.put("bestQuadrants", bestQuadrants);
             m.put("rounds", rounds);
+            m.put("holdTicks", holdTicks);
+            m.put("atThresholdTicks", atThresholdTicks);
             m.put("firstRoundTick", firstRoundTick);
             m.put("endSpread", round(endSpread));
             m.put("teamLeft", teamAlive);
