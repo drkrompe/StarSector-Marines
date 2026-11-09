@@ -7,35 +7,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The preference, Nexerelin's presence and the entry point choose where an Invade goes. */
+/** The fork setting, Nexerelin's presence and the entry point choose where an Invade goes. */
 class InvasionRouteTest {
 
     @Test
-    void thePreferenceChoosesForASupportedInvasionUnderNexerelin() {
-        assertEquals(InvasionRoute.FORK, InvasionRoute.choose(GroundCombatPreference.ASK, true, true));
-        assertEquals(InvasionRoute.MARINE_OPERATIONS,
-                InvasionRoute.choose(GroundCombatPreference.MARINE_OPERATIONS, true, true));
-        assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(GroundCombatPreference.NEXERELIN, true, true));
-        assertEquals(InvasionRoute.FORK, InvasionRoute.choose(null, true, true), "no preference asks");
+    void onlyASupportedInvasionUnderNexerelinWithTheForkOnAsks() {
+        assertEquals(InvasionRoute.FORK, InvasionRoute.choose(true, true, true));
+        assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(false, true, true));
+        assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(true, false, true));
+        assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(true, true, false));
     }
 
     @Test
-    void anUnsupportedEntryPointOrNoNexerelinIsAlwaysNexerelins() {
-        for (GroundCombatPreference preference : GroundCombatPreference.values()) {
-            assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(preference, true, false));
-            assertEquals(InvasionRoute.NEXERELIN, InvasionRoute.choose(preference, false, true));
-        }
-    }
-
-    @Test
-    void aSaveStartsAtAskAndKeepsWhatIsChosen() {
+    void aSaveAsksUntilTheSettingIsTurnedOff() {
         CampaignState state = new CampaignState();
-        assertEquals(GroundCombatPreference.ASK, GroundCombatPreferenceLedger.read(state));
-        GroundCombatPreferenceLedger.write(state, GroundCombatPreference.NEXERELIN);
-        assertEquals(GroundCombatPreference.NEXERELIN, GroundCombatPreferenceLedger.read(state));
-        state.groundCombatPreference = 99;
-        assertEquals(GroundCombatPreference.ASK, GroundCombatPreferenceLedger.read(state), "unreadable asks");
-        assertEquals(GroundCombatPreference.ASK, GroundCombatPreferenceLedger.read(null));
+        assertTrue(InvasionForkSetting.asks(state));
+        InvasionForkSetting.setAsks(state, false);
+        assertFalse(InvasionForkSetting.asks(state));
+        state.groundCombatPreference = 1;
+        assertTrue(InvasionForkSetting.asks(state), "a retired always-fight answer asks");
+        assertTrue(InvasionForkSetting.asks(null));
     }
 
     @Test

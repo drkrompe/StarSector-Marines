@@ -1,4 +1,4 @@
-<template props="missionsAction,missionsClasses,voiceOverLabel,voiceOverClasses,voiceOverAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,settingsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,settingsClasses,shopAction,shopClasses">
+<template props="missionsAction,missionsClasses,voiceOverLabel,voiceOverClasses,voiceOverAction,raidForkLabel,raidForkClasses,raidForkAction,invasionForkLabel,invasionForkClasses,invasionForkAction,nexerelinCardClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,settingsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,settingsClasses,shopAction,shopClasses">
   <div id="settings-root" class="settings-root">
     <div id="settings-bar" class="panel settings-bar console-header">
       <img id="settings-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -16,6 +16,26 @@
         </div>
         <div id="settings-voice-over-detail" class="label settings-card-detail">{i18n.openingUiSettingsVoiceOverDetail}</div>
       </div>
+      <div id="settings-raid-fork" class="settings-card">
+        <div id="settings-raid-fork-heading" class="settings-card-heading">
+          <div id="settings-raid-fork-name" class="label heading tone-accent settings-card-name">{i18n.openingUiSettingsRaidFork}</div>
+          <button id="settings-raid-fork-key" class="{raidForkClasses}" onclick="{raidForkAction}">
+            <div id="settings-raid-fork-signal" class="console-command-signal" />
+            <div id="settings-raid-fork-legend" class="console-key-legend">{raidForkLabel}</div>
+          </button>
+        </div>
+        <div id="settings-raid-fork-detail" class="label settings-card-detail">{i18n.openingUiSettingsRaidForkDetail}</div>
+      </div>
+      <div id="settings-invasion-fork" class="{nexerelinCardClasses}">
+        <div id="settings-invasion-fork-heading" class="settings-card-heading">
+          <div id="settings-invasion-fork-name" class="label heading tone-accent settings-card-name">{i18n.openingUiSettingsInvasionFork}</div>
+          <button id="settings-invasion-fork-key" class="{invasionForkClasses}" onclick="{invasionForkAction}">
+            <div id="settings-invasion-fork-signal" class="console-command-signal" />
+            <div id="settings-invasion-fork-legend" class="console-key-legend">{invasionForkLabel}</div>
+          </button>
+        </div>
+        <div id="settings-invasion-fork-detail" class="label settings-card-detail">{i18n.openingUiSettingsInvasionForkDetail}</div>
+      </div>
     </div>
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" missionsAction="{missionsAction}" missionsClasses="{missionsClasses}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" settingsAction="{settingsAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" settingsClasses="{settingsClasses}" />
   </div>
@@ -28,6 +48,7 @@
   #settings-copy { width: 0px; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
   .settings-main { display: grid; height: 0px; flex-grow: 1; padding: 14px; gap: 10px; border-width: 2px; overflow: scroll; }
   .settings-card { flex-direction: column; width: 360px; height: 94px; padding: 10px 12px; gap: 8px; border-width: 1px; border-color: #2c485a; background-color: #0a171d; }
+  .settings-card-hidden { display: none; }
   .settings-card-heading { flex-direction: row; align-items: center; height: 24px; gap: 12px; }
   .settings-card-name { width: 0px; flex-grow: 1; height: 20px; }
   .settings-card-detail { height: auto; white-space: normal; }

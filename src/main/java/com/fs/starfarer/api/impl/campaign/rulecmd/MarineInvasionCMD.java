@@ -2,8 +2,7 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
-import com.dillon.starsectormarines.campaign.nexerelin.GroundCombatPreference;
-import com.dillon.starsectormarines.campaign.nexerelin.GroundCombatPreferenceLedger;
+import com.dillon.starsectormarines.campaign.nexerelin.InvasionForkSetting;
 import com.dillon.starsectormarines.campaign.nexerelin.InvasionRoute;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionLedger;
 import com.dillon.starsectormarines.campaign.nexerelin.Nexerelin;
@@ -35,14 +34,13 @@ import java.util.Map;
  *
  * <p>Sub-commands:
  * <ul>
- *   <li>{@code intercept} — condition: Nexerelin is enabled, this is a supported invasion, and the save's preference
- *       is not Nexerelin. When false, Nexerelin's own row handles Invade untouched.</li>
- *   <li>{@code fork} — under Ask, shows the choice; under Marine Operations, opens the briefing at once.</li>
- *   <li>{@code marine} / {@code marineAlways} — open the invasion briefing; the second also remembers the choice.</li>
- *   <li>{@code nex} / {@code nexAlways} — hand this Invade back to Nexerelin's own row; the second also remembers
- *       the choice. The selection is re-fired with a one-shot bypass, so this mod's rules never name a Nexerelin
- *       command and Nexerelin's row runs exactly as it would have.</li>
- *   <li>{@code resetAvailable} / {@code addReset} / {@code reset} — the market menu's way back to Ask.</li>
+ *   <li>{@code intercept} — condition: Nexerelin is enabled, this is a supported invasion, and the save's
+ *       {@link InvasionForkSetting} is on. When false, Nexerelin's own row handles Invade untouched.</li>
+ *   <li>{@code fork} — shows the choice. It is made every invasion; nothing is remembered.</li>
+ *   <li>{@code marine} — opens the invasion briefing.</li>
+ *   <li>{@code nex} — hands this Invade back to Nexerelin's own row. The selection is re-fired with a one-shot
+ *       bypass, so this mod's rules never name a Nexerelin command and Nexerelin's row runs exactly as it would
+ *       have.</li>
  * </ul>
  *
  * <p>Nexerelin's own gating stays authoritative: its Invade option only exists, enabled, where Nexerelin allows an
@@ -53,10 +51,7 @@ public class MarineInvasionCMD extends BaseCommandPlugin {
     private static final Logger LOG = Global.getLogger(MarineInvasionCMD.class);
 
     static final String OPTION_MARINE = "smInvadeMarine";
-    static final String OPTION_MARINE_ALWAYS = "smInvadeMarineAlways";
     static final String OPTION_NEXERELIN = "smInvadeNex";
-    static final String OPTION_NEXERELIN_ALWAYS = "smInvadeNexAlways";
-    static final String OPTION_RESET = "smInvadeReset";
     /** Nexerelin's Invade option, which this intercepts. */
     static final String OPTION_NEXERELIN_INVADE = "nex_mktInvade";
     /** One-shot local flag that lets a re-fired Invade through to Nexerelin's own row. */
@@ -75,30 +70,12 @@ public class MarineInvasionCMD extends BaseCommandPlugin {
                 if (bypassed(memoryMap)) return false;
                 return route(dialog, state) != InvasionRoute.NEXERELIN;
             case "fork":
-                if (route(dialog, state) == InvasionRoute.MARINE_OPERATIONS) return open(dialog);
                 showFork(dialog);
                 return true;
             case "marine":
                 return open(dialog);
-            case "marineAlways":
-                GroundCombatPreferenceLedger.write(state, GroundCombatPreference.MARINE_OPERATIONS);
-                return open(dialog);
             case "nex":
                 return toNexerelin(dialog, memoryMap);
-            case "nexAlways":
-                GroundCombatPreferenceLedger.write(state, GroundCombatPreference.NEXERELIN);
-                return toNexerelin(dialog, memoryMap);
-            case "resetAvailable":
-                return Nexerelin.isEnabled()
-                        && GroundCombatPreferenceLedger.read(state) != GroundCombatPreference.ASK;
-            case "addReset":
-                dialog.getOptionPanel().addOption(Strings.get("nexInvadeResetOption"), OPTION_RESET);
-                return true;
-            case "reset":
-                GroundCombatPreferenceLedger.write(state, GroundCombatPreference.ASK);
-                dialog.getTextPanel().addPara(Strings.get("nexInvadeResetDone"));
-                refreshMenu(dialog);
-                return true;
             default:
                 LOG.warn("MarineInvasionCMD: unknown sub-command '" + sub + "'");
                 return false;
@@ -112,7 +89,7 @@ public class MarineInvasionCMD extends BaseCommandPlugin {
     private static InvasionRoute route(InteractionDialogAPI dialog, CampaignState state) {
         boolean supported = dialog.getInteractionTarget() instanceof PlanetAPI planet
                 && planet.getMarket() != null && state != null;
-        return InvasionRoute.choose(GroundCombatPreferenceLedger.read(state), Nexerelin.isEnabled(), supported);
+        return InvasionRoute.choose(InvasionForkSetting.asks(state), Nexerelin.isEnabled(), supported);
     }
 
     /** Re-fires the Invade selection with the bypass set, so Nexerelin's own row takes it. */
@@ -138,8 +115,6 @@ public class MarineInvasionCMD extends BaseCommandPlugin {
         options.clearOptions();
         options.addOption(Strings.get("nexInvadeForkMarine"), OPTION_MARINE);
         options.addOption(Strings.get("nexInvadeForkNexerelin"), OPTION_NEXERELIN);
-        options.addOption(Strings.get("nexInvadeForkMarineAlways"), OPTION_MARINE_ALWAYS);
-        options.addOption(Strings.get("nexInvadeForkNexerelinAlways"), OPTION_NEXERELIN_ALWAYS);
         options.addOption(Strings.get("nexInvadeForkBack"), OPTION_NEXERELIN_BACK);
         options.setShortcut(OPTION_NEXERELIN_BACK, Keyboard.KEY_ESCAPE, false, false, false, true);
     }

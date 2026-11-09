@@ -32,10 +32,12 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
   are not; they always resolve the standard way.
 - The **raid fork** is the choice offered at the confirm: lead the raid with
   Marine Operations, or launch it as usual (the **standard resolution**).
-- The **raid preference** is the save's standing answer: ask, Marine
-  Operations, or standard. A new save asks. It is separate from the Nexerelin
-  invasion preference, so a player may fight invasions by hand and let raids
-  roll. The market menu offers a way back to asking whenever it is set.
+- The **raid fork setting** is the Settings page's "Ask before raids" key,
+  saved with the game. On (a new save's default), every supported raid asks;
+  off, every raid resolves the standard way untouched. The fork itself has no
+  "always" answer: the player chooses each raid (owner). It is separate from
+  the Nexerelin invasion fork setting, so a player may fight invasions by hand
+  and let raids roll.
 - A **led raid** is a supported raid fought as a Marine Operations Raid
   against the market's garrison, with no contract and no employer.
 
@@ -77,9 +79,9 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 
 1. The player sets up a raid (valuables, or an industry to disrupt) and selects
    Launch raid.
-2. The fork's row fires ahead of the command's. Under the standard preference,
-   or for an unsupported raid, it steps aside and the command confirms the raid.
-   Under Ask it shows the fork; under Marine Operations it opens the briefing.
+2. The fork's row fires ahead of the command's. With the fork setting off, or
+   for an unsupported raid, it steps aside and the command confirms the raid.
+   Otherwise it shows the fork.
 3. The briefing is an ordinary Raid against the market, targeting the industry
    for a disrupting raid. It may launch understrength.
 4. The battle plays and settles through Results, which records won or lost.

@@ -1,29 +1,30 @@
 package com.dillon.starsectormarines.campaign.raid;
 
+import com.dillon.starsectormarines.campaign.CampaignState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RaidRouteTest {
 
     @Test
-    void anUnsupportedRaidIsAlwaysStandard() {
-        for (RaidResolutionPreference preference : RaidResolutionPreference.values()) {
-            assertEquals(RaidRoute.STANDARD, RaidRoute.choose(preference, false));
-        }
+    void onlyASupportedRaidWithTheForkOnAsks() {
+        assertEquals(RaidRoute.FORK, RaidRoute.choose(true, true));
+        assertEquals(RaidRoute.STANDARD, RaidRoute.choose(false, true));
+        assertEquals(RaidRoute.STANDARD, RaidRoute.choose(true, false));
     }
 
     @Test
-    void aSupportedRaidFollowsThePreference() {
-        assertEquals(RaidRoute.FORK, RaidRoute.choose(RaidResolutionPreference.ASK, true));
-        assertEquals(RaidRoute.FORK, RaidRoute.choose(null, true));
-        assertEquals(RaidRoute.MARINE_OPERATIONS, RaidRoute.choose(RaidResolutionPreference.MARINE_OPERATIONS, true));
-        assertEquals(RaidRoute.STANDARD, RaidRoute.choose(RaidResolutionPreference.STANDARD, true));
-    }
-
-    @Test
-    void anUnreadableSavedPreferenceAsks() {
-        assertEquals(RaidResolutionPreference.ASK, RaidResolutionPreference.of(-1));
-        assertEquals(RaidResolutionPreference.ASK, RaidResolutionPreference.of(99));
+    void aSaveAsksUntilTheSettingIsTurnedOff() {
+        CampaignState state = new CampaignState();
+        assertTrue(RaidForkSetting.asks(state));
+        RaidForkSetting.setAsks(state, false);
+        assertFalse(RaidForkSetting.asks(state));
+        RaidForkSetting.setAsks(state, true);
+        assertTrue(RaidForkSetting.asks(state));
+        state.raidResolutionPreference = 1;
+        assertTrue(RaidForkSetting.asks(state), "a retired always-lead answer asks");
     }
 }

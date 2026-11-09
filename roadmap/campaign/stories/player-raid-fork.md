@@ -36,8 +36,9 @@ Run each with Nexerelin enabled, then again with it disabled.
 5. **Nexerelin listeners.** With a Nexerelin disrupt-a-competitor mission
    active, a won led raid on its target completes the mission; a lost one does
    not.
-6. **Preference.** The two "always" answers skip the fork next time; the
-   market menu's "Ask again" returns to it.
+6. **Setting.** Turn "Ask before raids" off on the Settings page: the next
+   raid launches as usual without the fork, across save and reload. Turn it
+   back on: the fork returns.
 7. **Unsupported.** A raid from a station's market, and the story-point secret
    raid, never show the fork.
 8. **Rule precedence.** The fork's row (score 3) wins over Nexerelin's (2) and
