@@ -1902,8 +1902,10 @@ special drawing. Nothing is claimed as a compound: a compound is a working
 facility. The only intact shells are the delve's own: the vault, the rooms and
 the works.
 
-**Nothing joins a ruin to the world.** The dead streets end in rubble six cells
-short of every edge, trunks included, so the road graph has no perimeter node
+**Nothing joins a ruin to the world.** No street is finished as a carriageway:
+the dead town's streets are broken into trodden earth and rubble bed, by a
+coordinate hash that draws nothing from the layout's stream, and end in rubble
+six cells short of every edge, trunks included, so the road graph has no perimeter node
 and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
 
