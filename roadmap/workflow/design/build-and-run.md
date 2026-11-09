@@ -68,8 +68,9 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
 - **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
   generated colony map, and a third of medium tanks with each rotary gun, the green and red Scorpion
-  and Onager and a laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, with no
-  enemy and no end, for feeling how machines drive (`ProvingGroundSetup`; options
+  and Onager and a laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, and behind
+  them a squad for each Marine primary at service grade whose seats carry every special, with no
+  enemy and no end, for feeling how machines drive and firing every weapon (`ProvingGroundSetup`; options
   `surface=` and `seed=`). Click one, Tab to take it over. Debug Missions lists the
   same battle under Diagnostics, where a company of one squad lands with it.
 - **Controls** are the screens' own. In a catalog mission F9 leaves the battle for

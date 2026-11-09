@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -702,6 +703,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private FieldSalvage fieldSalvage = new FieldSalvage(List.of());
     private boolean salvageInstalled;
     private List<SalvagePlacement.Site> fieldSalvageSites = List.of();
+    private SalvageCache occupantStash;
 
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
     public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
@@ -723,11 +725,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvageSites = List.copyOf(sites);
     }
 
+    /** An occupant's own spoil, found beside the field caches: a ruins crew's stash at its camp, or null. */
+    public SalvageCache occupantStash() { return occupantStash; }
+
+    public void setOccupantStash(SalvageCache stash) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the occupant's stash before launch installs finds");
+        occupantStash = stash;
+    }
+
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
     public void installFieldSalvage() {
         if (salvageInstalled) return;
         if (simTickIndex != 0) throw new IllegalStateException("Salvage must be installed before battle");
-        fieldSalvage = new FieldSalvage(SalvagePlacement.forBattle(this, generationSeed));
+        List<SalvageCache> finds = new ArrayList<>(SalvagePlacement.forBattle(this, generationSeed));
+        if (occupantStash != null) finds.add(occupantStash);
+        fieldSalvage = new FieldSalvage(finds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;

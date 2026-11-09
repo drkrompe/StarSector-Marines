@@ -133,6 +133,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.world.gen.ReliefCheckpoint;
@@ -229,6 +230,7 @@ import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -727,7 +729,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null, null, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null, null, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -770,7 +772,9 @@ public final class BattleSetup {
         }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
-                null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant);
+                null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
+                occupant == RuinsOccupant.SCAVENGERS || occupant == RuinsOccupant.NOBODY
+                        ? RuinsCrew.of(grade, GroundRosterRegistry.resolve(RuinsCrew.FACTION_ID)) : null);
     }
 
     /**
@@ -1151,14 +1155,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null, null);
     }
 
     /**
@@ -1199,12 +1203,13 @@ public final class BattleSetup {
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
-            RuinsOccupant ruinsOccupant) {
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew) {
         boolean occupied = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null;
         boolean liveRuin = occupied && ruinsOccupant.isDerelict();
         boolean ravRuin = occupied && ruinsOccupant == RuinsOccupant.RAV;
-        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
-                profile != null ? profile.factionId() : "");
+        // A scavenger crew is on the pirate roster, whoever once owned the world.
+        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
+                ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         // A ruins site is a dead settlement laid as a delve, never a living town (ruins-ground.md).
@@ -1233,8 +1238,10 @@ public final class BattleSetup {
         }
         // Cold Account's installation is authored whole: its force and every emplacement stand
         // whatever lift the company brought, as Conquest's do.
+        // A ruins crew is its grade's budget and nothing else: no emplacements, no air, whatever the company brings.
         DefenderForcePlan defenders = coldAccount
                 ? new DefenderForcePlan(ColdAccountForce.roster(risk), List.copyOf(defensePosts), FlybyRoster.EMPTY)
+                : ruinsCrew != null ? new DefenderForcePlan(ruinsCrew.roster(), List.of(), FlybyRoster.EMPTY)
                 : defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
@@ -1342,8 +1349,15 @@ public final class BattleSetup {
             default -> 0;
         };
         // A live ruin's opposition is its security alone, a Rav site's its sleepers: no posted squads or patrols.
-        if (!liveRuin && !ravRuin) allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
-                assaultMobileMembers);
+        // A scavenger crew posts at its dig and its camp.
+        int[] ruinsCamp = ruinsCrew != null ? RuinsCrew.camp(ruinsLayout.liftPoints().get(0).route()) : null;
+        if (ruinsCrew != null) {
+            allocateRuinsCrew(sim, map, ruinsCrew, groundRoster, rng,
+                    ruinsLayout.liftPoints().get(0).route(), ruinsCamp);
+        } else if (!liveRuin && !ravRuin) {
+            allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+                    assaultMobileMembers);
+        }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
         Set<Integer> raidMobileSquads = type == MissionType.RAID
@@ -1411,6 +1425,9 @@ public final class BattleSetup {
                     ExtractionCommandDisclosure.INSTANCE);
             if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve);
             else if (ravRuin) RuinsSleepers.install(sim, map.ruinsDelve, ruinsGrade, seed);
+            else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
+                    new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
+                    ExtractionDefenderCommandDisclosure.INSTANCE);
             else sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
@@ -5330,6 +5347,85 @@ public final class BattleSetup {
             }
             if (squad != null) squad.originalSize = spawned;
         }
+    }
+
+    /**
+     * A ruins crew on its ground ({@code ruins-expedition.md}, Scavengers): a post at the dig, on the vault, and one at
+     * the camp, which keeps the crew's stash; the rest walk patrol from points along the vault route, its heavies with
+     * them. The posts are garrisons, the patrols the crew commander's pool ({@link RuinsCrewCommand}). The stash is one
+     * extra field find at the camp.
+     *
+     * @param route the vault route, from the vault (its first cell) to the landing (its last)
+     * @param camp  the crew's camp on that route
+     */
+    private static void allocateRuinsCrew(BattleSimulation sim, MapResult map, RuinsCrew crew,
+                                          GroundRosterProfile groundRoster, Random rng, int[] route, int[] camp) {
+        DefenderObserverIssue observers = DefenderObserverIssue.of(sim);
+        DefenderRoster roster = crew.roster();
+        Deque<GroundRosterProfile.ForceTier> infantry = new ArrayDeque<>(roster.infantryOrder());
+        int[] named = {0};
+        TacticalNode dig = crewNode(route[0], route[1], crew.digPost(), map.grid);
+        TacticalNode campPost = crewNode(camp[0], camp[1], crew.campPost(), map.grid);
+        spawnCrewSquad(sim, map, dig, GARRISON_SPAWN_RADIUS, crew.digPost(), infantry, UnitRole.GARRISON,
+                roster, groundRoster, rng, observers, named);
+        spawnCrewSquad(sim, map, campPost, GARRISON_SPAWN_RADIUS, crew.campPost(), infantry, UnitRole.GARRISON,
+                roster, groundRoster, rng, observers, named);
+        List<TacticalNode> beats = new ArrayList<>();
+        for (float share : RuinsCrew.PATROL_BEATS_FROM_LANDING) {
+            int[] at = RuinsCrew.along(route, share);
+            beats.add(crewNode(at[0], at[1], roster.patrolSquadSize, map.grid));
+        }
+        Deque<MechVariant> heavies = new ArrayDeque<>(roster.mechVariants);
+        for (int beat = 0; !heavies.isEmpty() && beat < beats.size(); beat++) {
+            named[0] += spawnPlacedDefenderMechs(sim, mechNodeCandidates(sim, beats.get(beat), GARRISON_SPAWN_RADIUS + 2),
+                    heavies, heavies.size(), roster, groundRoster, rng, beats.get(beat), UnitRole.PATROL, named[0]);
+        }
+        for (int beat = 0, misses = 0; !infantry.isEmpty() && misses < beats.size(); beat++) {
+            int spawned = spawnCrewSquad(sim, map, beats.get(beat % beats.size()), GARRISON_SPAWN_RADIUS + 2,
+                    roster.patrolSquadSize, infantry, UnitRole.PATROL, roster, groundRoster, rng, observers, named);
+            misses = spawned > 0 ? 0 : misses + 1;
+        }
+        int[] stash = pickSpawnCluster(map.grid, camp[0], camp[1], 1).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("A ruins crew's camp has no ground for its stash"));
+        sim.setOccupantStash(new SalvageCache(RuinsCrew.STASH_ID, stash[0], stash[1], RuinsCrew.STASH_RESOURCE,
+                RuinsCrew.STASH_RESOURCE.cacheQuantity));
+    }
+
+    private static TacticalNode crewNode(int x, int y, int size, NavigationGrid grid) {
+        return new TacticalNode(TacticalNode.Kind.OBJECTIVE, x, y,
+                clamp(x - 3, 0, grid.getWidth() - 1), clamp(y - 3, 0, grid.getHeight() - 1),
+                clamp(x + 3, 0, grid.getWidth() - 1), clamp(y + 3, 0, grid.getHeight() - 1),
+                Faction.DEFENDER, 50, Math.max(1, size));
+    }
+
+    /** One infantry squad of up to {@code count} drawn from the crew, at a node; returns how many stood up. */
+    private static int spawnCrewSquad(BattleSimulation sim, MapResult map, TacticalNode node, int radius, int count,
+                                      Deque<GroundRosterProfile.ForceTier> infantry, UnitRole role,
+                                      DefenderRoster roster, GroundRosterProfile groundRoster, Random rng,
+                                      DefenderObserverIssue observers, int[] named) {
+        if (count <= 0 || infantry.isEmpty()) return 0;
+        Squad squad = null;
+        int spawned = 0;
+        for (int[] cell : pickCellsForNode(map.grid, sim.getZoneGraph(), node, radius, count)) {
+            if (infantry.isEmpty()) break;
+            GroundRosterProfile.ForceTier tier = infantry.poll();
+            UnitType type = groundRoster.unitType(tier);
+            EntitySpec unit = makeDefender("d" + named[0]++, type, cell[0], cell[1], roster.risk, groundRoster,
+                    tier, rng, null);
+            unit.role(role);
+            if (role == UnitRole.GARRISON) unit.home(cell[0], cell[1]);
+            if (squad == null) {
+                squad = sim.getSquad(sim.mintSquad(Faction.DEFENDER, type));
+                squad.assignedNode = node;
+                squad.holdsFireUntilKillZone = role == UnitRole.GARRISON;
+            }
+            observers.issue(unit, true, spawned == 0);
+            unit.squad(squad.id);
+            sim.spawn(unit);
+            spawned++;
+        }
+        if (squad != null) squad.originalSize = spawned;
+        return spawned;
     }
 
     /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). Composition follows the roster: mechs first, then red marines, then militia. */
