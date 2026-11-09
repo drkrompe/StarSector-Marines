@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidMissionKey;
+import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
+import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -555,6 +557,20 @@ public final class MissionResolver {
                 return;
             }
             LOG.info("MarineOps: market raid " + outcome.missionId + " recorded as "
+                    + (outcome.victory ? "won" : "lost"));
+        }
+        if (outcome.missionSource == MissionSource.RUINS_EXPEDITION) {
+            CampaignStateScript script = CampaignStateScript.getInstance();
+            RuinsExpeditionMissionKey key = RuinsExpeditionMissionKey.parse(outcome.missionId);
+            // Exactly-once: the planet dialog takes this record into vanilla's own salvage
+            // when the panel closes. A replayed result records nothing further and writes
+            // nothing further back.
+            if (key == null || !RuinsExpeditionLedger.record(
+                    script != null ? script.state() : null, key.serial(), outcome.victory)) {
+                LOG.info("MarineOps: ruins expedition " + outcome.missionId + " already recorded — no writeback");
+                return;
+            }
+            LOG.info("MarineOps: ruins expedition " + outcome.missionId + " recorded as "
                     + (outcome.victory ? "won" : "lost"));
         }
         CargoAPI cargo = CampaignBackend.playerFleet() != null

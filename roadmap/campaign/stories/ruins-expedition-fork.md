@@ -1,10 +1,10 @@
 # Ruins expedition fork
 
-Status: IN PROGRESS — slice 1 built and unit-tested; development builds only until slice 3.
+Status: IN PROGRESS — slices 1 and 2 built and unit-tested; development builds only until slice 3.
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — slice 1 (fork and preference) built.
+Updated: 2026-11-09 — slice 2 (commit path) built.
 
 Read `ruins-expedition.md` in full first, then `raid-resolution.md`, whose
 fork this mirrors.
@@ -40,6 +40,18 @@ fork and commit path can ship before ruins mapgen exists.
    `PostSalvagePerform` run as vanilla's and the site is marked explored. A
    loss or withdrawal returns to the planet menu with the site unexplored.
    Backing out of the briefing returns to the fork.
+
+   *Built.* `RuinsExpeditionLedger` and `RuinsExpeditionMissionKey` (the raid
+   fork's two-step exactly-once pattern on their own `CampaignState` columns),
+   `MissionSource.RUINS_EXPEDITION` recorded in `MissionResolver`, and
+   `MarineRuinsCMD` opening the briefing. A won expedition rebuilds the planet
+   menu, so vanilla's ruins row seeds its salvage as on arrival, then re-fires
+   `salExplore` through the bypass. The battle behind it is a stand-in until
+   slice 3: `RuinsExpeditionMissionFactory` builds a Raid against pirates,
+   tiered by grade, with no contract and no employer boats. Played in
+   `playBattle` on Ossuary: backing out returns to the fork, a forced win
+   goes through vanilla's salvage to explored, and a confirmed retreat leaves
+   Explore the ruins on the menu.
 3. **Stand-in battle.** The Ruins Expedition mission on an existing map against
    scavengers sized by grade: `ruins-expedition-battle.md`.
 4. **Ruins ground.** The ruined-settlement delve for mapgen

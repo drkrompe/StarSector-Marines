@@ -5427,7 +5427,11 @@
 		"ruinsForkBack": "Go back",
 		"ruinsResetOption": "Ask again who explores ruins",
 		"ruinsResetDone": "Ruins will ask again whether to send the company or a salvage team.",
-		"ruinsExpeditionNotReady": "The expedition battle is not built yet. This choice is shown only in a development build; send a salvage team instead.",
+		"ruinsExpeditionMissionName": "Ruins — {0}",
+		"ruinsExpeditionRequirements": "Company detachment and lift",
+		"ruinsExpeditionFlavor": "The company lands in the ruins of {0} to reach what is worth taking and get out. Win and the salvage goes ahead. Retreat or lose and the ruins stay as they were.",
+		"ruinsExpeditionCommitWon": "The company holds the ruins long enough to bring the salvage team down behind it.",
+		"ruinsExpeditionCommitLost": "The company is driven out of the ruins. Nothing is taken, and the ruins stay as they were for another try.",
 
 		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog
 		# ids in jangala_arrival_hail.json (hail and Castle's lines alike) and must match its text.

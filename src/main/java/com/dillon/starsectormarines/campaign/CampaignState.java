@@ -622,9 +622,17 @@ public final class CampaignState implements Serializable {
      * How Explore the ruins is carried out in this save, as a RuinsExpeditionPreference
      * ordinal: 0 is Ask, which a save written before the column existed loads as.
      * RuinsExpeditionPreferenceLedger is the one reader and writer.
+     *
+     * The expedition serials make one commit exactly once: every briefing draws the next
+     * issued serial, Results records the battle against it, and the planet dialog takes it
+     * once into vanilla's salvage. RuinsExpeditionLedger owns all four.
      */
 
     public int ruinsExpeditionPreference = 0;
+    public int ruinsExpeditionIssued = 0;
+    public int ruinsExpeditionRecorded = 0;
+    public boolean ruinsExpeditionRecordedVictory = false;
+    public int ruinsExpeditionCommitted = 0;
 
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
