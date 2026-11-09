@@ -15,15 +15,17 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Stands a derelict site's security up in a ruins battle (`derelict-security-network.md`): its zones laid along the
  * ground between the vault and the way out, its walkers posted in them by the grade's strength
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
  * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
- * up over its node (`derelict-drone-flocks.md`); cradles, posts and nodes are their own slices and are not stood up
- * here.
+ * up from its open-sky home (`derelict-drone-flocks.md`, which stands its cradle) and stands its node
+ * ({@link DerelictNode}).
  */
 public final class DerelictSecurity {
 
@@ -178,6 +180,11 @@ public final class DerelictSecurity {
             port.add(flock, plan.id());
         }
         director.connectFlocks(port);
+        for (ZonePlan plan : plans) {
+            int[] cell = nodeCell(route, plan, (x, y) -> sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y));
+            long node = sim.spawn(DerelictNode.create("derelict-node-" + plan.id(), Faction.DEFENDER, cell[0], cell[1]));
+            director.standNode(plan.id(), node);
+        }
         sim.installDerelictSecurity(director);
         return director;
     }
@@ -221,6 +228,43 @@ public final class DerelictSecurity {
             }
         }
         return best;
+    }
+
+    /** Whether a cell can be walked. */
+    interface Walkable {
+        boolean at(int x, int y);
+    }
+
+    /** How far from its zone's node cell a node may stand, cells. */
+    static final int NODE_SEARCH_CELLS = 6;
+
+    /**
+     * Where a zone's node stands: the nearest cell to the node cell, off the route, set against a wall, with at least
+     * two open cells left across from it, so the structure never narrows the route or a corridor below a walker's
+     * width. The node cell itself when no such cell is near.
+     */
+    static int[] nodeCell(int[] route, ZonePlan plan, Walkable walkable) {
+        Set<Long> onRoute = new HashSet<>();
+        for (int i = 0; i + 1 < route.length; i += 2) onRoute.add(((long) route[i] << 32) | (route[i + 1] & 0xffffffffL));
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int ring = 1; ring <= NODE_SEARCH_CELLS; ring++) {
+            for (int dy = -ring; dy <= ring; dy++) {
+                for (int dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                    int x = plan.nodeX() + dx;
+                    int y = plan.nodeY() + dy;
+                    if (!walkable.at(x, y) || onRoute.contains(((long) x << 32) | (y & 0xffffffffL))) continue;
+                    for (int[] d : dirs) {
+                        if (!walkable.at(x - d[0], y - d[1]) && walkable.at(x + d[0], y + d[1])
+                                && walkable.at(x + 2 * d[0], y + 2 * d[1])
+                                && walkable.at(x + 3 * d[0], y + 3 * d[1])) {
+                            return new int[] {x, y};
+                        }
+                    }
+                }
+            }
+        }
+        return new int[] {plan.nodeX(), plan.nodeY()};
     }
 
     /** Whether a cell is under an intact roof. */
