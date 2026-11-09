@@ -35,11 +35,17 @@ public final class ShipRefits {
 
     /** Receipts count only while contiguous from the track's start, so no tier is ever skipped. */
     static ShipCondition read(Map<String, Object> data, String shipId, RefitBand fabrication) {
+        return read(data, KEY + shipId, RefitTrack::start, fabrication);
+    }
+
+    /** The same reading for receipts saved under {@code prefix}, each track counted on from {@code start}. */
+    static ShipCondition read(Map<String, Object> data, String prefix, Function<RefitTrack, RefitBand> start,
+                              RefitBand fabrication) {
         var bands = new EnumMap<RefitTrack, RefitBand>(RefitTrack.class);
         for (RefitTrack track : RefitTrack.values()) {
-            RefitBand band = track.start();
+            RefitBand band = start.apply(track);
             for (RefitOrder order = RefitOrder.after(track, band); order != null
-                    && Boolean.TRUE.equals(data.get(KEY + shipId + order.receipt)); order = RefitOrder.after(track, band))
+                    && Boolean.TRUE.equals(data.get(prefix + order.receipt)); order = RefitOrder.after(track, band))
                 band = order.band;
             bands.put(track, band);
         }
@@ -47,8 +53,12 @@ public final class ShipRefits {
         return new ShipCondition(true, bands);
     }
 
-    /** The current company home's condition, for a launch to freeze; neutral off the active founding hull. */
+    /**
+     * The current company's condition, for a launch to freeze: the fleet's facilities for a
+     * company with no founding hull, otherwise the active founding hull's, and neutral off her.
+     */
     public static ShipCondition aboard() {
+        if (FleetFacilities.inUse()) return FleetFacilities.condition();
         var ship = CompanyShipDesignation.aboard();
         if (ship == null || ship.isMothballed() || !MercenaryCompanyConversion.installed(ship)) return ShipCondition.NONE;
         return condition(ship);
@@ -85,17 +95,22 @@ public final class ShipRefits {
     }
 
     public static Offer offer(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
-        var condition = condition(ship);
+        var fleet = CampaignBackend.playerFleet();
+        boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
+                && fleet.getFleetData().getMembersListCopy().contains(ship);
+        return quote(condition(ship), order, home,
+                ship != null && !ship.isMothballed() && MercenaryCompanyConversion.installed(ship),
+                roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId));
+    }
+
+    /** A review of {@code order} against {@code condition}, reading the fleet's credits, cores and dock. */
+    static Offer quote(ShipCondition condition, RefitOrder order, boolean home, boolean active, boolean reliefComplete) {
         var fleet = CampaignBackend.playerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
         var cargo = new LinkedHashMap<String, Integer>();
         for (String commodity : order.cores().keySet())
             cargo.put(commodity, fleet == null ? 0 : (int) fleet.getCargo().getCommodityQuantity(commodity));
-        boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
-                && fleet.getFleetData().getMembersListCopy().contains(ship);
-        return new Offer(condition, credits, Map.copyOf(cargo), refusal(order, condition, home,
-                ship != null && !ship.isMothballed() && MercenaryCompanyConversion.installed(ship),
-                roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId),
+        return new Offer(condition, credits, Map.copyOf(cargo), refusal(order, condition, home, active, reliefComplete,
                 CompanyYard.dockedMarket() != null, credits, cargo, CampaignCommodityPresentation.INSTANCE::commodityName));
     }
 
@@ -103,11 +118,16 @@ public final class ShipRefits {
     public static String purchase(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
         var offer = offer(ship, roster, order);
         if (offer.refusal() != null) return offer.refusal();
+        pay(order, KEY + ship.getId());
+        ship.updateStats();
+        return null;
+    }
+
+    /** Takes the order's credits and cores from the fleet and saves its receipt under {@code prefix}. */
+    static void pay(RefitOrder order, String prefix) {
         var fleetCargo = CampaignBackend.playerFleet().getCargo();
         fleetCargo.getCredits().subtract(order.price);
         for (var need : order.cores().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
-        CampaignBackend.savedData().put(KEY + ship.getId() + order.receipt, true);
-        ship.updateStats();
-        return null;
+        CampaignBackend.savedData().put(prefix + order.receipt, true);
     }
 }
