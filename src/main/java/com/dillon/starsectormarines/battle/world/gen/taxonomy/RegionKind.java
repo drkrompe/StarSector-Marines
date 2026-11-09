@@ -54,6 +54,7 @@ public enum RegionKind {
             case DIRT:
             case SAND:
             case SNOW:
+            case HARDPAN:
                 return OPEN_GROUND;
             case RUBBLE:
                 return RUBBLE;
