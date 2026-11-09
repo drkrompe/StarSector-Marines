@@ -538,6 +538,14 @@ cell. The distance is measured along the traversal axis, between the attacker
 region's objective-facing side and the objective precinct's claim boundary on
 the attacker-facing side.
 
+`INSET` is the one standoff that is a depth rather than a walk: the band slides
+40 cells in from the edge it arrived across, whatever the claim, and the landing
+stage refuses any arrival area touching the objective's claim instead. A Raid
+states it (owner: "we don't need to keep landing zones at the edge of the map"),
+because its prize is wherever the search finds it rather than the garrison, and
+a garrison's claim often runs down beside the arrival band with no gap to
+measure. The choice is on the picks page as `raid-landing`.
+
 **Cells, not a fraction of the map.** A standoff is a walk, and a walk does not
 scale with the map: doubling the map should not double the minutes before first
 contact. `STANDARD` is roughly the approach the 280x168 map had — the attacker
@@ -591,7 +599,7 @@ none, and the nearest-edge fallback would hand a southern approach a side it
 never had, so the approach comes off the *stated* band and the berths are
 scanned inward from the region's side that faces it.
 
-Only Conquest consults one; everything else passes `FAR`. Measured on the two
+Only Conquest and Raid (`INSET`) consult one; everything else passes `FAR`. Measured on the two
 canonical Conquest fixtures at 560x336, same seed and same map, only the landing
 moved:
 

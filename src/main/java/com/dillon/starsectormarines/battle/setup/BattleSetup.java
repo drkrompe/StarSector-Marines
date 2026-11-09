@@ -929,13 +929,14 @@ public final class BattleSetup {
         if (type == MissionType.RAID && resolved == PrecinctPlan.Sprawl.REMOTE) {
             resolved = PrecinctPlan.Sprawl.BALANCED;
         }
-        // FAR is the beachhead on the map edge, which is the only approach these
-        // maps have ever had. Nothing about a search-and-strike mission has been
-        // measured against a shorter one, so it keeps what it was measured on.
+        // A Raid lands a set depth into the town (Standoff.INSET; owner: "we don't
+        // need to keep landing zones at the edge of the map"). FAR is the
+        // beachhead on the map edge, which is the only approach the other
+        // missions have had, and they keep what they were measured on.
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT))
-                .withStandoff(Standoff.FAR);
+                .withStandoff(type == MissionType.RAID ? Standoff.INSET : Standoff.FAR);
     }
 
     /**
