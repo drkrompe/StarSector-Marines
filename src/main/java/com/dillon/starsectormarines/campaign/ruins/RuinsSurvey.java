@@ -11,9 +11,8 @@ import java.util.Random;
  * site alone, so a revisit reads the same.
  *
  * <p>Each occupant reads through its own instruments, so each has a {@link Pool}, which {@link #poolFor} names: the
- * scavengers' comms, heat and traces are {@link #SCAVENGERS}. The other occupants' pools (nobody's quiet structure and
- * power, the Rav's lifesigns, derelict security's movement and power, the contingency lineage's own reading) are
- * {@code ruins-occupants.md}'s, added as further pools and cases there.
+ * scavengers' comms, heat and traces; an empty site's quiet, whose structure and power hint at its works; the Rav's
+ * biological lifesigns; derelict security's movement and power, its contingency lineage with Tri-Tachyon codes.
  *
  * <p>This class holds string keys only; the briefing resolves them.
  */
@@ -77,6 +76,46 @@ public final class RuinsSurvey {
                     "ruinsSurveyScavengersTracks",
                     "ruinsSurveyScavengersSpoil"));
 
+    /** An empty site: quiet, with the structure and power that hint at its works ({@code ruins-works.md}). */
+    public static final Pool NOBODY = new Pool(
+            "ruinsSurveyNobodyAssessment",
+            "ruinsSurveyNobodyBand",
+            List.of("ruinsSurveyNobodySilent",
+                    "ruinsSurveyNobodyPowerHall",
+                    "ruinsSurveyNobodySeal",
+                    "ruinsSurveyNobodyCollapse",
+                    "ruinsSurveyNobodyRecords"));
+
+    /** An old seeding site's sleepers: biological lifesigns. */
+    public static final Pool RAV = new Pool(
+            "ruinsSurveyRavAssessment",
+            "ruinsSurveyRavBand",
+            List.of("ruinsSurveyRavLifesigns",
+                    "ruinsSurveyRavSeismic",
+                    "ruinsSurveyRavWarm",
+                    "ruinsSurveyRavDark",
+                    "ruinsSurveyRavBores"));
+
+    /** Domain security, a live ruin: movement and power. */
+    public static final Pool DOMAIN_SECURITY = new Pool(
+            "ruinsSurveyDerelictAssessment",
+            "ruinsSurveyDerelictBand",
+            List.of("ruinsSurveyDerelictPatrols",
+                    "ruinsSurveyDerelictPower",
+                    "ruinsSurveyDerelictPing",
+                    "ruinsSurveyDerelictRelays",
+                    "ruinsSurveyDerelictFlock"));
+
+    /** Contingency security: the same instruments, with the lineage's own codes and its lockdown. */
+    public static final Pool CONTINGENCY_SECURITY = new Pool(
+            "ruinsSurveyContingencyAssessment",
+            "ruinsSurveyDerelictBand",
+            List.of("ruinsSurveyContingencyCodes",
+                    "ruinsSurveyContingencyLockdown",
+                    "ruinsSurveyDerelictPatrols",
+                    "ruinsSurveyDerelictPower",
+                    "ruinsSurveyDerelictFlock"));
+
     /**
      * A site's briefing, as string keys.
      *
@@ -93,12 +132,15 @@ public final class RuinsSurvey {
 
     private RuinsSurvey() {}
 
-    /** The occupant's own pool, or null while it has none. */
+    /** The occupant's own pool; null for no occupant. */
     public static Pool poolFor(RuinsOccupant occupant) {
         if (occupant == null) return null;
         return switch (occupant) {
+            case NOBODY -> NOBODY;
             case SCAVENGERS -> SCAVENGERS;
-            case NOBODY, RAV, DOMAIN_SECURITY, CONTINGENCY_SECURITY -> null;
+            case RAV -> RAV;
+            case DOMAIN_SECURITY -> DOMAIN_SECURITY;
+            case CONTINGENCY_SECURITY -> CONTINGENCY_SECURITY;
         };
     }
 
