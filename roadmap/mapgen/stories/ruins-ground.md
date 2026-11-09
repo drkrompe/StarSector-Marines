@@ -5,8 +5,10 @@ yet. Slice 4 of `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — the ground is generated at every grade and keeps the
-delve's laws on every surface; the published places and the request are below.
+Updated: 2026-11-09 — Ruins battles play on this ground; dead streets break up
+into earth and rubble; the owner's hybrid direction (land outside, explore an
+interior) is the next slice. Earlier the same day: the ground is generated at
+every grade and keeps the delve's laws on every surface.
 
 Read `mapgen-nouns.md` (Grown settlements, Ruins ground, Authored damage
 layers, and the ruined-lot rule), `settlement-off-map-link.md`, and
@@ -35,6 +37,11 @@ RuinsDelve delve = map.ruinsDelve;
 - The seed is the site's: the same site makes the same ground every time
   (`ruins-expedition.md`, Retry meets the same ruins).
 - A ground that breaks a delve law throws; there is no fallback map.
+- `BattleSetup.createRuins` does exactly this (the campaign's `RuinsDelve.layers`
+  is the count), and `RuinsGroundLayout` reads the vault's source and a lift
+  point per landing area and court, each with its route from the vault, into
+  `RuinsVaultObjective`. No parked vehicles and no emplacement scatter on a
+  dead site.
 
 ## Published places
 
@@ -89,11 +96,34 @@ mission's to decide (`ruins-works.md`).
   end is open country with a few rooms; at extensive and vast the vault stands
   deep in the ruins. Growing the settlement toward the vault is the lever if
   the owner wants ruins round it at every grade.
-- **The streets keep their markings.** Ruined lots are drawn as ruins, but the
-  streets between them are finished as live asphalt with lane markings. Worn or
-  broken street finishes would be a new art set (picks).
 - Layer and room sizes, densities and court counts are first guesses
   (UNTUNED), to be tuned once the battle plays on the ground.
+
+## Interior: outside, then inside
+
+Owner, 2026-11-09: some ruin sites are megastructures or bunkers the company
+explores. The company lands outside, works into roofed rooms, corridors and
+seal doors with the vault deep inside, and brings the haul back out.
+
+- **What grows with the grade.** The interior is the delve's far end, sized by
+  the layer count: scattered ruins have a small bunker round the vault (the
+  vault suite and an antechamber or two behind one seal door); at widespread
+  the last layer is inside; at extensive and vast the last two. The landing,
+  every court and the layers before the interior stay outside, so every lift
+  point is open sky.
+- **Built from what exists.** The station recipe already carves rooms and
+  corridors out of a solid hull (`RoomCarveStage`, `CorridorStage`, with its
+  room graph); the delve would carve that inside a megastructure footprint at
+  the east end, in the installation's concrete, rather than a new wall set.
+  Roofed cells, doors and the building flood fill are what make it an
+  interior to flocks, fire and fog.
+- **Its places.** An interior layer publishes the same names (ways become
+  doors and seal doors, rooms are rooms), plus `ruins.interior` for its
+  footprint and its entrances as ways of the first interior layer. The works'
+  seal doors and power hall stand inside.
+- **Laws.** The delve laws hold through the interior: no single blocked door
+  closes the route at the larger grades, and every interior room is reachable
+  from an entrance.
 
 ## Constraints
 

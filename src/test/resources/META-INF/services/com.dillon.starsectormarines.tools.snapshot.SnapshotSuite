@@ -409,3 +409,4 @@ com.dillon.starsectormarines.battle.vehicle.VehicleStandsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.RouteStallSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SkyPortVoidLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsBattleLookSuite
