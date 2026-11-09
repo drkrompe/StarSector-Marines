@@ -93,6 +93,10 @@ public final class DroneSwarmAction implements Action {
         // once and thread it through the per-mode helpers + the cell/render sync.
         AirBody body = sim.world().kinematics(id);
 
+        // A flock's member flies by flocking to its anchor, not by the hub's patrol and orbit.
+        Flock flock = squad.droneAnchor == null ? null : squad.droneAnchor.flock();
+        if (flock != null && body != null) return FlockFlight.execute(member, squad, flock, body, sim);
+
         int slotIdx = resolveSlotIndex(squad, member);
         int slotCount = Math.max(1, slotMemberCount(squad));
 

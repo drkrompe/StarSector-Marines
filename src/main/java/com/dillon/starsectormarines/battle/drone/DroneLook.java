@@ -22,7 +22,12 @@ public enum DroneLook {
     /** Tri-Tachyon's point-defence drone: one lift fan ringed by three small laser turrets. */
     TT_HALO("graphics/battle/drones/tt-halo.png", .85f),
     /** Tri-Tachyon's strike drone: a dart-shaped warhead pushed by a tail fan. */
-    TT_STRIKE("graphics/battle/drones/tt-strike.png", 1.1f);
+    TT_STRIKE("graphics/battle/drones/tt-strike.png", 1.1f),
+    /**
+     * A flock's swarm drone ({@link Flock}): small, so a flock of sixteen reads as a body of little machines. Drawn
+     * with the shipped drone's art until its own look is picked (`derelict-drone-flocks.md`, slice 7).
+     */
+    SWARM(Drone.SPRITE_PATH, .55f);
 
     private final String spritePath;
     private final float heightCells;

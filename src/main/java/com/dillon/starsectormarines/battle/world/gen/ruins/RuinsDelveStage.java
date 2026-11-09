@@ -188,18 +188,31 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
-         * The dead streets die out short of the map edge: street ground (the frame between lots, which never was in
-         * the road mask) becomes trodden earth near the edge, with a lip of rubble where each street ends.
+         * A dead town has no live streets. Street and pavement ground (the frame between lots, which never was in the
+         * road mask) is broken up into trodden earth and rubble bed, so nothing is finished as a carriageway with
+         * lane markings; near the map edge it is earth alone, with a lip of rubble where each street ends. The mix
+         * is a coordinate hash: it draws nothing from the layout's random stream.
          */
         void endStreets() {
             int falloff = RuinedLotsStage.STREET_FALLOFF;
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
+                    GroundKind kind = topology.getGroundKind(x, y);
+                    if (kind != GroundKind.STREET && kind != GroundKind.SIDEWALK) continue;
                     int edge = Math.min(Math.min(x, w - 1 - x), Math.min(y, h - 1 - y));
-                    if (edge >= falloff || topology.getGroundKind(x, y) != GroundKind.STREET) continue;
-                    ground(x, y, edge == falloff - 1 ? GroundKind.RUBBLE : GroundKind.DIRT);
+                    boolean rubble = edge < falloff ? edge == falloff - 1 : broken(x, y);
+                    ground(x, y, rubble ? GroundKind.RUBBLE : GroundKind.DIRT);
                 }
             }
+        }
+
+        /** Whether a dead street's cell is rubble rather than earth: patches about three cells across, a third of it. */
+        boolean broken(int x, int y) {
+            long hash = (x / 3) * 73_856_093L ^ (y / 3) * 19_349_663L ^ ctx.seed * 83_492_791L;
+            hash ^= (hash >>> 13);
+            hash *= 0x5bd1e995L;
+            hash ^= (hash >>> 15);
+            return Math.floorMod(hash, 3) == 0;
         }
 
         // ---- vault ---------------------------------------------------------------------------
