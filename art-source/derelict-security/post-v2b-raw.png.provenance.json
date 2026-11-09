@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c196-3f1b-76d2-bc96-280c06ff13e5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c196-3f1b-76d2-bc96-280c06ff13e5\\exec-715fc3d4-8bfe-45ea-b698-39a6ac7a58e5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\derelict-security\\post-v2b-raw.png",
+    "sha256": "157891b345aef1acc9f0e32e14555254868e4247cf0214f91e5558d1236ce0c1",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\derelict-security\\post-v2b-prompt.txt",
+  "promptSha256": "b0fba4cbd0af204345db1c36540f68cf7226c67ec88fd82f31a2376cd6bfcad7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Material, palette, weathering and greeble style only (vanilla derelict_rampart, 4x Lanczos); not layout, shape or subject\nImage 3: Material, palette, weathering and greeble style only (vanilla derelict_bastillon, 4x Lanczos); not layout, shape or subject\nImage 4: Material and detail density at small size, round turret mount style only (vanilla derelict_sentry, 4x Lanczos); not layout, shape or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of six finished top-down 2D game sprites: the three parts (the three columns) of a pop-up gun post of an abandoned automated security network, each painted twice, once per livery (the two rows).\n- column 1, BASE: the post's square armoured floor plate laid in the paving, a hazard-striped ring round a dark round well the gun rises out of.\n- column 2, FOLDED: the gun head retracted and powered down, seen as a round armoured hatch shut under six iris leaves meeting at a small central hub.\n- column 3, UNFOLDED: the gun head risen and armed, a round armoured turret head with a small sensor block and a red sensor eye at its front, and twin short gun barrels pointing UP (toward the top of the canvas), lying flat in the ground plane; the camera sees the top of the barrels, never their bores.\n\nStyle and material: match images 2, 3 and 4, ship sprites of Starsector's derelict drone faction, upscaled (material, palette, weathering and detail style only; not their shape, layout or subject). That look is kitbashed, densely greebled machinery: pale sage-green and khaki armour plates with diagonal yellow hazard stripes, bone-white and brass segments and pipework between the plates, rust-brown machinery and grime in the recesses, round turret mounts and small red sensor eyes, mottled weathering on every plate, painted crisply as a game sprite lit from the upper left. The base plate's corners and the head's rim carry the greebles; keep the well dark and the iris leaves readable.\nTop row, DOMAIN SECURITY livery: exactly that derelict palette (pale sage-green and khaki plates, yellow hazard stripes, bone-white and brass segments, rust-brown machinery, a small glowing red eye where the guide has red).\nBottom row, CONTINGENCY SECURITY livery: the same three parts with identical shapes and the same density of detail, but the armour plates are Tri-Tachyon corporate white gone dull and greyish with age, trim pale grey-blue instead of yellow hazard stripes, the eye a small glowing pale cyan; the machinery stays dark gunmetal and dull brass.\nAbsolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, eagles, insignia or symbols anywhere.\n\nIn the guide pale grey is armour plate, mid grey is seams and the iris leaf joins, the darker grey block is the sensor block, near-black is the well and the barrels, the black lines mark silhouette and plate edges, red is the sensor eye, yellow is hazard striping.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Keep each drawing exactly where the guide puts it, at exactly its size, position and outline, centred on the same point; never move, rotate, rescale or recompose anything, and add nothing between them. True transparent background with genuine alpha outside the silhouettes; no ground, cast-shadow slab, labels, text, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\derelict-security\\post-guide-v2.png",
+      "sha256": "b6ee1fa6769addba58c53f2d03ea2042f402ccc11055cef4835205f577786a8d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_rampart-x4.png",
+      "sha256": "b06e2077778ae9b11dc4d2d68ea065d0934e10ac28ede9d964e43f14c62b99d8",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette, weathering and greeble style only (vanilla derelict_rampart, 4x Lanczos); not layout, shape or subject"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_bastillon-x4.png",
+      "sha256": "e73b8be3f10da896bc03bd98de0892e2d9d57667002458f93049d0557fa26439",
+      "dimensions": [
+        656,
+        560
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette, weathering and greeble style only (vanilla derelict_bastillon, 4x Lanczos); not layout, shape or subject"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_sentry-x4.png",
+      "sha256": "8aa7d9476a30e3975b73cb75bdd2a59fc1c01c0367c64ec685cc6f813f819831",
+      "dimensions": [
+        208,
+        200
+      ],
+      "mode": "RGBA",
+      "role": "Material and detail density at small size, round turret mount style only (vanilla derelict_sentry, 4x Lanczos); not layout, shape or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the six sprites, preserving the guide’s geometry and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 85513,
+    "cached_input_tokens": 68992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1211,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 70.0
+}
