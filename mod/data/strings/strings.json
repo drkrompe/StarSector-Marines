@@ -5422,6 +5422,17 @@
 		"marketRaidFlavorValuables": "The company lands on {0} to strip its stores and get out. Win the ground and the raid takes what it came for. Retreat or lose and it takes nothing.",
 		"marketRaidFlavorDisrupt": "The company lands on {0} to put an industry out of action. Win the ground and the raid disrupts its target. Retreat or lose and the target keeps running.",
 
+		# Exploring a world's ruins: send the company, or vanilla's salvage team (ruins-expedition.md).
+		"ruinsForkText": "Who goes down into the ruins? Marine Operations lands the company to push through whatever holds them and reach what is worth taking: win and the salvage goes ahead, with whatever the company picks up on the way, lose and the ruins stay as they were. Sent as usual, a salvage team searches the ruins for anything of immediate value.",
+		"ruinsForkMarine": "Send the company into the ruins",
+		"ruinsForkStandard": "Send a salvage team as usual",
+		"ruinsForkMarineAlways": "Always send the company into ruins",
+		"ruinsForkStandardAlways": "Always send a salvage team into ruins",
+		"ruinsForkBack": "Go back",
+		"ruinsResetOption": "Ask again who explores ruins",
+		"ruinsResetDone": "Ruins will ask again whether to send the company or a salvage team.",
+		"ruinsExpeditionNotReady": "The expedition battle is not built yet. This choice is shown only in a development build; send a salvage team instead.",
+
 		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog
 		# ids in jangala_arrival_hail.json (hail and Castle's lines alike) and must match its text.
 		"jangalaArrivalSpeakerApproach": "JANGALA APPROACH",
