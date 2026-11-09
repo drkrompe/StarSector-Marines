@@ -39,6 +39,11 @@ public interface FlockCommandPort {
     /** Gives a flock its task and anchor cell; {@code targetUnitId} is the strike or pursuit target, -1 for none. */
     void order(int flockId, FlockTask task, int anchorCellX, int anchorCellY, long targetUnitId);
 
+    /** The cradles of a zone's flocks, for its repair drone to tend. */
+    default List<Long> cradles(int zoneId) {
+        return List.of();
+    }
+
     /** Whether a zone's node stands, which its flocks' cradles need to rebuild drones. */
     default void nodeStands(int zoneId, boolean stands) {
     }

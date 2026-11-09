@@ -1,9 +1,11 @@
 # Derelict security network
 
-Status: IN PROGRESS — zones, the director over walkers and flocks, the
-derelict heavy line, spotting, the node, folded posts and power branches are
-built (What is built); repair drones and the looks are not. Feeds slice 5 of
-`ruins-expedition-fork.md` through `ruins-occupants.md`.
+Status: IN PROGRESS — every mechanics slice is built (What is built): zones,
+the director over walkers and flocks, the derelict heavy line, spotting, the
+node, repair drones, folded posts and power branches. The looks for the
+walker, posts and node wait on owner picks, and slice 2's scenes for a wake,
+a relay, a leash, a heavy coming to a pin and the contingency are not built.
+Feeds slice 5 of `ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
 
@@ -189,6 +191,17 @@ Everything is in `battle.derelict`.
   its zone; destroyed, the zone loses its node (no relay either way, out of
   the contingency's call) and its flock's cradle stops rebuilding
   (`FlockCommandPort.nodeStands`).
+- **Repair drones (slice 6).** `RepairDrone`: each zone puts up one
+  unarmed builder drone (the tender's look) over its node. Each pulse it
+  picks the most worn of its zone's posts, cradle and walkers below
+  `MEND_BELOW`, flies to it in a straight line and, within reach, lays
+  `MEND_PER_SECOND` from a `STOCK` for the battle: plate then structure on a
+  post or cradle, plate only on a walker (`MechSections.mendArmor`, on the
+  most worn standing section; a lost section stays lost). Hit, or with a
+  hostile the network holds within `THREAT_CELLS`, it breaks off home and
+  stands down `STAND_DOWN_TICKS`; with its node down or dark, or its stock
+  spent, it stays home. It can be shot down. It flies over walls and roofs,
+  unlike a flock.
 - **Posts that wake (slice 7).** `DerelictPost`: each zone stands
   `PER_ZONE` folded gun posts (the Vulcan emplacement until the post's look
   and gun are picked), anchored at the interior's entrances and then its
@@ -212,7 +225,10 @@ Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
 `ruins-derelict-extensive-v1`; `sceneEvidence -Pscene=derelict-post` (a
 post holds fire with a fire team in its sight until its zone wakes, then
-fires; unseen, it stays folded); `createSnapshots
+fires; unseen, it stays folded); `sceneEvidence -Pscene=derelict-repair`
+(mend: the drone flies twenty cells and works a post from 50 to 134 of 140;
+node-down: it stays home; under-fire: hit, it breaks off home, stays while it
+stands down, then goes out again); `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
 from the first walker contact, then the vast site's vault frame and a line
 frame at their interior posts with the roof lifted). Played headless through `battleProbe`: line
@@ -221,11 +237,12 @@ attack-move onto it; the siege frame engages from its post at twenty-odd
 cells.
 
 Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
-coming to a pin and the contingency; repair drones (6); looks for the walker,
-posts and node (3, 9; the cradle's look is `derelict-drone-flocks.md`'s).
-Strength is not tuned, and is not tuned from autopilot runs: it waits on the
-owner playing a derelict battle. Both fixtures fly the company's real lift
-(one Hermes, six twelve-seat trips, as playBattle's Veteran Company).
+coming to a pin and the contingency; looks for the walker, posts and node
+(3, 9; the cradle's look is `derelict-drone-flocks.md`'s), and the repair
+drone's own look if it should differ from the tender's. Strength is not
+tuned, and is not tuned from autopilot runs: it waits on the owner playing a
+derelict battle. Both fixtures fly the company's real lift (one Hermes, six
+twelve-seat trips, as playBattle's Veteran Company).
 
 ## Constraints
 

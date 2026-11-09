@@ -53,6 +53,17 @@ final class FlockSystemPort implements FlockCommandPort {
     }
 
     @Override
+    public List<Long> cradles(int zoneId) {
+        List<Long> out = new ArrayList<>();
+        for (Map.Entry<Integer, Flock> entry : flocks.entrySet()) {
+            if (zoneOf.get(entry.getKey()) == zoneId && entry.getValue().cradle() != 0L) {
+                out.add(entry.getValue().cradle());
+            }
+        }
+        return out;
+    }
+
+    @Override
     public void nodeStands(int zoneId, boolean stands) {
         for (Map.Entry<Integer, Flock> entry : flocks.entrySet()) {
             if (zoneOf.get(entry.getKey()) == zoneId) entry.getValue().nodeStands(stands);

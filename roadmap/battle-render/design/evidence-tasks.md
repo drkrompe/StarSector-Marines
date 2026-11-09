@@ -42,7 +42,7 @@ catalog in `snapshot-suites.md`.
 Runs the selected mission's documented construction-fixture matrix in a
 zero-input simulation and writes canonical traces plus `summary.json` /
 `summary.md` under `build/reports/commander/<mission>/`. Missions: `conquest`,
-`conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `ruins`, `relief`,
+`conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`,
 `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`,
 `supply-route`, `corvus`, `colony-breach`, `cordon-line`, `cordon-road`,
 `heart`, and the story missions `yard-owners`, `water-under-seal`,
