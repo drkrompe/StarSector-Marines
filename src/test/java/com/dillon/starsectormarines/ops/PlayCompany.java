@@ -26,6 +26,7 @@ import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
 import com.fs.starfarer.api.loading.IndustrySpecAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
@@ -87,6 +88,13 @@ final class PlayCompany {
             newWorld("corvus_IIIb", "Warion", OpeningPort.CORVUS, "barren", "graphics/planets/barren00.jpg"),
             newWorld("corvus_IIIa", "Garnir", OpeningPort.CORVUS, "cryovolcanic", "graphics/planets/cryovolcanic01.jpg"),
             newWorld("agreus", "Agreus", ARCADIA, "barren", "graphics/planets/barren02.jpg"));
+    /**
+     * Uncolonized worlds with ruins, for the planet menu's ruins fork ({@code ruins-expedition.md}). They have no port,
+     * so the fleet never docks at one and they have no mission board; their only door is the planet menu.
+     */
+    private static final List<PlanetAPI> RUINS_SITES = List.of(
+            newRuinsSite("play_ruins_extensive", "Ossuary", ARCADIA, "graphics/planets/barren03.jpg",
+                    "ruins_extensive"));
     private static volatile PlanetAPI docked = WORLDS.get(0);
     private static final MutableValue HELD_CREDITS = new MutableValue(CREDITS);
     private static final List<FleetMemberAPI> MEMBERS = new ArrayList<>();
@@ -320,6 +328,11 @@ final class PlayCompany {
         return WORLDS;
     }
 
+    /** The uncolonized ruins worlds a run can open the planet menu over, but never dock at. */
+    static List<PlanetAPI> ruinsSites() {
+        return RUINS_SITES;
+    }
+
     /** Where the fleet is docked, whose store and yard are open. */
     static PlanetAPI docked() {
         return docked;
@@ -382,6 +395,42 @@ final class PlayCompany {
             answers.put("getPlanets", neighbours);
             return stub(StarSystemAPI.class, answers);
         }));
+        return world;
+    }
+
+    /**
+     * An uncolonized world: a condition-only market whose one condition is its ruins, as vanilla gives a surveyed
+     * world before anyone settles it. Not among its system's planets, so no board or map lists it.
+     */
+    private static PlanetAPI newRuinsSite(String id, String name, String system, String skin, String ruins) {
+        Map<String, Object> condition = new HashMap<>();
+        condition.put("getId", ruins);
+        Map<String, Object> site = new HashMap<>();
+        site.put("getId", id + "_market");
+        site.put("getName", name);
+        site.put("getFactionId", "neutral");
+        site.put("isPlanetConditionMarketOnly", true);
+        site.put("getConditions", List.of(stub(MarketConditionAPI.class, condition)));
+        site.put("hasCondition", (Answer) args -> ruins.equals(args[0]));
+        site.put("getMemoryWithoutUpdate", stub(MemoryAPI.class, Map.of()));
+        MarketAPI market = stub(MarketAPI.class, site);
+
+        Map<String, Object> planet = new HashMap<>();
+        planet.put("getId", id);
+        planet.put("getName", name);
+        planet.put("getTypeId", "barren");
+        planet.put("getMarket", market);
+        planet.put("getSpec", stub(PlanetSpecAPI.class, Map.of("getTexture", skin)));
+        planet.put("getStarSystem", SYSTEMS.computeIfAbsent(system, known -> {
+            Map<String, Object> answers = new HashMap<>();
+            answers.put("getBaseName", known);
+            answers.put("getName", known);
+            answers.put("getPlanets", PLANETS.computeIfAbsent(known, unused -> new ArrayList<>()));
+            return stub(StarSystemAPI.class, answers);
+        }));
+        PlanetAPI world = stub(PlanetAPI.class, planet);
+        site.put("getPlanetEntity", world);
+        site.put("getPrimaryEntity", world);
         return world;
     }
 

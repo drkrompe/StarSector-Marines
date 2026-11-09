@@ -261,7 +261,8 @@ public final class PlayBattleMain {
                 visiting = null;
                 menu.detach();
                 UiSpriteCache.shared().leave(menuImages);
-                PlayCompany.dockAt(world);
+                // An uncolonized world has no port: its planet menu opens from orbit, and the fleet stays docked where it was.
+                if (!world.getMarket().isPlanetConditionMarketOnly()) PlayCompany.dockAt(world);
                 visit(world, new PlayMarket.Toggles());
             }
             if (reopening != null) {

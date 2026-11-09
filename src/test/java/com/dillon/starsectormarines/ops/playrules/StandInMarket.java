@@ -14,7 +14,7 @@ public final class StandInMarket {
 
     /** Every stand-in command, named so the planet menu's compile pulls them in; they are looked up by name. */
     public static final List<Class<?>> COMMANDS = List.of(MarketCMD.class, Nex_MarketCMD.class,
-            ShowDefaultVisual.class);
+            ShowDefaultVisual.class, SalvageGenFromSeed.class, HostileFleetNearbyAndAware.class, SalvageEntity.class);
 
     private StandInMarket() {}
 
@@ -32,6 +32,9 @@ public final class StandInMarket {
         boolean cooldown();
 
         void cooldown(boolean running);
+
+        /** A hostile fleet nearby is tracking the player, which keeps vanilla from exploring ruins. */
+        boolean hostileFleet();
 
         /** Writes one line of what the game's command would commit. */
         void report(String line);
