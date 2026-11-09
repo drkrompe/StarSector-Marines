@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The three mech chassis in a faction's livery, in their stock fits: one shot for the Hegemony, whose low-tech bodies
- * are its own (art-source/mech-modular-topdown/sources/lowtech), and one for Tri-Tachyon, a repaint of the shared
- * outlines, to compare them against. Owner-facing look frames only; there is no verdict.
+ * The three mech chassis in a faction's livery, in their stock fits: a shot each for the Hegemony, Independents and
+ * pirates, who wear the low-tech bodies (art-source/mech-modular-topdown/sources/lowtech), and one for Tri-Tachyon, a
+ * repaint of the shared outlines, to compare them against. Owner-facing look frames only; there is no verdict.
  */
 public final class MechLiveriesSnapshotSuite implements SnapshotSuite {
 
@@ -27,13 +27,13 @@ public final class MechLiveriesSnapshotSuite implements SnapshotSuite {
 
     @Override public String id() { return "mech-liveries"; }
 
-    @Override public String label() { return "The Bulwark, Hound and Warden in the Hegemony and Tri-Tachyon liveries"; }
+    @Override public String label() { return "The Bulwark, Hound and Warden in the low-tech liveries and Tri-Tachyon's"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
-        for (String faction : new String[] {"hegemony", "tritachyon"}) {
+        for (String faction : new String[] {"hegemony", "independent", "pirates", "tritachyon"}) {
             try (ReviewFactions ignored = ReviewFactions.bind(faction, "pirates")) {
                 out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-" + faction)));
             }

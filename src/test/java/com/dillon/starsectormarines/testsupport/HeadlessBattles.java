@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.ProvingGroundSetup;
 import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
+import com.dillon.starsectormarines.battle.setup.SkyPortHeistSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
@@ -62,7 +63,7 @@ public final class HeadlessBattles {
     /**
      * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]},
      * {@code salvage-rights|cold-start|working-passage[:seed=N,squads=N,machines]},
-     * {@code proving-ground[:surface=VERDANT,seed=N]}, {@code sky-port[:seed=N]} or
+     * {@code proving-ground[:surface=VERDANT,seed=N]}, {@code sky-port[:seed=N]}, {@code sky-port-heist[:seed=N]} or
      * {@code cordon[:variant=line|road,density=rural|town|urban,biome=VERDANT,seed=N]}.
      */
     public static BattleSimulation build(String source) throws Exception {
@@ -93,6 +94,7 @@ public final class HeadlessBattles {
                         options.optLong("seed", ProvingGroundSetup.SEED));
             }
             case "sky-port" -> SkyPortClusterSetup.create(options(rest).optLong("seed", SkyPortClusterSetup.SEED));
+            case "sky-port-heist" -> SkyPortHeistSetup.create(options(rest).optLong("seed", SkyPortClusterSetup.SEED));
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };
     }

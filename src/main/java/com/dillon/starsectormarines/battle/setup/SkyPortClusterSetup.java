@@ -228,7 +228,7 @@ public final class SkyPortClusterSetup {
                 .20f, .24f, .34f,
                 "graphics/battle/voids/industrial-facade.png", 32f,
                 "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .09f, neighbours, skyways,
-                air, slips);
+                air, slips, List.of());
     }
 
     /**

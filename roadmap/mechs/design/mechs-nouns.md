@@ -25,9 +25,10 @@ increasing an encounter's total armored threat.
   It may change paint, plate-face material, wear, and non-readable markings,
   but it is not a hardware variant and owns no geometry, mount, loadout,
   durability, movement, doctrine, or faction-wide bonus. A livery may instead
-  wear **bodies of its own**: the Hegemony's low-tech family (owner), drawn in
-  the Hegemony armour line's riveted tan plate with a faceted pilot canopy
-  and a matching foot pad (`MechLivery.ownsFoot`;
+  wear **bodies of its own**: the low-tech family (owner), drawn in the
+  Hegemony armour line's riveted tan plate with a faceted pilot canopy and
+  legs to match, worn by the Hegemony and, in the vehicle line's blue and red
+  paints of it, by Independents and pirates (`MechLivery.ownsLegs`;
   art-source/mech-modular-topdown/sources/lowtech). Its outlines differ from
   the shared ones, but every mount, the chassis square and the runtime scale
   are the shared chassis's, so it still owns no hardware. Its weapon casings

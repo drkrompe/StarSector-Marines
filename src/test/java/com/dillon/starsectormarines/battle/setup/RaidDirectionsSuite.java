@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.ServiceLane;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -122,6 +123,10 @@ public final class RaidDirectionsSuite implements SnapshotSuite {
                     stealCallIn(context, sim, copy(base), frame, map, pads, places)));
             out.add(new SnapshotArtifact("b1-wreck.png", breakWreck(context, sim, copy(base), frame, map, pads)));
             out.add(new SnapshotArtifact("b2-hold.png", breakHold(context, sim, copy(base), frame, map, pads)));
+            for (String rule : List.of("graded", "switch", "both")) {
+                out.add(new SnapshotArtifact("scale-" + rule + ".png",
+                        stealScaling(base, frame, map, pads, places, rule)));
+            }
         }
         return out;
     }
@@ -169,6 +174,179 @@ public final class RaidDirectionsSuite implements SnapshotSuite {
                         + "berths. Neither the goods chosen nor the industry reach the map.");
         g.dispose();
         return img;
+    }
+
+    // ---- steal scaling (raid-steal-scaling) ----
+
+    /** One step of a market's security, as a steal shape: which goods sit in their stores and which in the vault. */
+    private enum Step { OPEN, GUARDED, FORTIFIED }
+
+    private static BufferedImage stealScaling(BufferedImage base, Frame f, MapResult map, List<LandingPad> pads,
+                                              Places places, String rule) {
+        List<Step> steps;
+        String title, line;
+        switch (rule) {
+            case "graded" -> {
+                steps = List.of(Step.OPEN, Step.GUARDED, Step.FORTIFIED);
+                title = "Security grades the steal (recommended)";
+                line = "Open: strip the stores. Guarded: bulk goods in the stores, the best in the vault. "
+                        + "Fortified: everything in the bonded vault. Break follows the same rule (walls, guards).";
+            }
+            case "switch" -> {
+                steps = List.of(Step.OPEN, Step.FORTIFIED);
+                title = "One threshold: stores or the vault";
+                line = "Below a defence level the goods are in their stores; above it, all of them are in the bonded "
+                        + "vault. Simple to read; nothing in between.";
+            }
+            default -> {
+                steps = List.of(Step.OPEN, Step.GUARDED, Step.FORTIFIED);
+                title = "Always both; defences harden the vault";
+                line = "Every market has stores and a vault with its best goods; defences add guards, walls and "
+                        + "emplacements at the vault, and the stores stay open.";
+            }
+        }
+        BufferedImage out = new BufferedImage(W, H, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = graphics(out);
+        g.setColor(new Color(16, 18, 22));
+        g.fillRect(0, 0, W, H);
+        int pw = 600, ph = 760, gap = (W - steps.size() * pw) / (steps.size() + 1);
+        int[] crop = crop(f, map, pads, places);
+        for (int i = 0; i < steps.size(); i++) {
+            BufferedImage panel = copy(base);
+            Graphics2D pg = graphics(panel);
+            boolean always = !rule.equals("graded") && !rule.equals("switch");
+            drawStep(pg, f, map, pads, places, steps.get(i), always);
+            pg.dispose();
+            BufferedImage sub = panel.getSubimage(crop[0], crop[1], crop[2], crop[3]);
+            int x = gap + i * (pw + gap), y = 170;
+            g.drawImage(sub.getScaledInstance(pw, ph, Image.SCALE_SMOOTH), x, y, null);
+            g.setColor(Color.WHITE);
+            g.setStroke(new BasicStroke(2f));
+            g.drawRect(x, y, pw, ph);
+            String name = switch (steps.get(i)) {
+                case OPEN -> "Open market (defence 0-1)";
+                case GUARDED -> "Guarded (defence 2-4, ground defences)";
+                case FORTIFIED -> "Fortified (defence 5+, heavy batteries)";
+            };
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+            g.drawString(name, x, y + ph + 40);
+        }
+        banner(g, title, line);
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
+        g.setColor(GOLD);
+        g.drawString("Yellow: a load to carry out. Orange wall: the bonded vault. Cyan: posted guards. "
+                + "Red: the market's emplacements. One Hermes at the berth.", 28, H - 30);
+        g.dispose();
+        return out;
+    }
+
+    private static void drawStep(Graphics2D g, Frame f, MapResult map, List<LandingPad> pads, Places places,
+                                 Step step, boolean always) {
+        CordonedFacility vault = map.cordonedFacilities.isEmpty() ? null : map.cordonedFacilities.get(0);
+        boolean vaultUsed = always || step != Step.OPEN;
+        boolean bulkInStores = always ? true : step != Step.FORTIFIED;
+        boolean bestInStores = always ? false : step == Step.OPEN;
+        int guards = switch (step) {
+            case OPEN -> always ? 1 : 0;
+            case GUARDED -> 2;
+            case FORTIFIED -> 4;
+        };
+        if (vault != null && vaultUsed) {
+            facility(g, f, vault, "");
+            int vx = f.x((vault.left() + vault.right() + 1) / 2f), vy = f.y((vault.top() + vault.bottom() + 1) / 2f);
+            int n = 0;
+            if (!bestInStores) n += 2;
+            if (!bulkInStores) n += 3;
+            for (int i = 0; i < n; i++) crate(g, vx - 40 + (i % 3) * 40, vy - 20 + (i / 3) * 40, 3);
+            for (int i = 0; i < guards; i++) guard(g, vx - 60 + i * 40, vy + 70);
+            if (step == Step.FORTIFIED) {
+                for (DefensePost post : map.defensePosts) {
+                    if (Math.hypot(post.anchorX - (vault.left() + vault.right()) / 2f,
+                            post.anchorY - (vault.top() + vault.bottom()) / 2f) < 60) {
+                        emplacement(g, f.x(post.anchorX + 0.5f), f.y(post.anchorY + 0.5f));
+                    }
+                }
+            }
+        }
+        if (bestInStores) {
+            storeLoad(g, f, places.vault());
+            storeLoad(g, f, places.lab());
+        }
+        if (bulkInStores) {
+            storeLoad(g, f, places.armoury());
+            for (float[] wh : places.warehouses()) crate(g, f.x(wh[0]), f.y(wh[1]), 3);
+            if (step != Step.OPEN && !always) {
+                if (places.armoury() != null) {
+                    guard(g, f.x(places.armoury().interiorAnchorX) + 30, f.y(places.armoury().interiorAnchorY));
+                }
+            }
+        }
+        drawPads(g, f, List.of(pads.get(0)), GOLD);
+    }
+
+    private static void storeLoad(Graphics2D g, Frame f, PointOfInterest p) {
+        if (p == null) return;
+        crate(g, f.x(p.interiorAnchorX + 0.5f), f.y(p.interiorAnchorY + 0.5f), 3);
+    }
+
+    private static void guard(Graphics2D g, int x, int y) {
+        g.setColor(CYAN);
+        g.fillOval(x - 11, y - 11, 22, 22);
+        g.setColor(Color.BLACK);
+        g.setStroke(new BasicStroke(2f));
+        g.drawOval(x - 11, y - 11, 22, 22);
+    }
+
+    private static void emplacement(Graphics2D g, int x, int y) {
+        g.setColor(RED);
+        g.fillRect(x - 12, y - 12, 24, 24);
+        g.setColor(Color.BLACK);
+        g.setStroke(new BasicStroke(2f));
+        g.drawRect(x - 12, y - 12, 24, 24);
+    }
+
+    /** One crop for every panel of a card, round the stores, the vault and the berth, at the panel's aspect. */
+    private static int[] crop(Frame f, MapResult map, List<LandingPad> pads, Places places) {
+        List<int[]> pts = new ArrayList<>();
+        pts.add(new int[]{f.x(pads.get(0).centerX), f.y(pads.get(0).centerY)});
+        for (PointOfInterest p : new PointOfInterest[]{places.vault(), places.armoury(), places.lab()}) {
+            if (p != null) pts.add(new int[]{f.x(p.interiorAnchorX), f.y(p.interiorAnchorY)});
+        }
+        for (float[] wh : places.warehouses()) pts.add(new int[]{f.x(wh[0]), f.y(wh[1])});
+        if (!map.cordonedFacilities.isEmpty()) {
+            CordonedFacility c = map.cordonedFacilities.get(0);
+            pts.add(new int[]{f.x(c.left()), f.y(c.top())});
+            pts.add(new int[]{f.x(c.right()), f.y(c.bottom())});
+        }
+        int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+        for (int[] p : pts) {
+            x0 = Math.min(x0, p[0]);
+            y0 = Math.min(y0, p[1]);
+            x1 = Math.max(x1, p[0]);
+            y1 = Math.max(y1, p[1]);
+        }
+        int m = 80;
+        x0 -= m;
+        y0 -= m;
+        x1 += m;
+        y1 += m;
+        // Grow to the panel's aspect (600:760), then clamp inside the frame.
+        float aspect = 600f / 760f;
+        int w = x1 - x0, h = y1 - y0;
+        if ((float) w / h < aspect) {
+            int nw = Math.round(h * aspect);
+            x0 -= (nw - w) / 2;
+            w = nw;
+        } else {
+            int nh = Math.round(w / aspect);
+            y0 -= (nh - h) / 2;
+            h = nh;
+        }
+        w = Math.min(w, W);
+        h = Math.min(h, H);
+        x0 = Math.max(0, Math.min(x0, W - w));
+        y0 = Math.max(0, Math.min(y0, H - h));
+        return new int[]{x0, y0, w, h};
     }
 
     // ---- steal ----

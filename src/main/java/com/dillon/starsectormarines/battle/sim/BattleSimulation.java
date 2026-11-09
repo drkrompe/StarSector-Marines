@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.vehicle.FactionVehiclePoints;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
@@ -1275,6 +1276,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
     public RuinsWorks getRuinsWorks() { return ruinsWorks; }
+
+    private RuinsDelveWatch ruinsDelveWatch;
+
+    /** What a Ruins battle's Delve row reads ({@code ruins-expedition.md}, Judging the forces), or null. */
+    public RuinsDelveWatch getRuinsDelveWatch() { return ruinsDelveWatch; }
+
+    /** Installs a Ruins battle's Delve row watch. At setup only. */
+    public void installRuinsDelveWatch(RuinsDelveWatch watch) {
+        if (simTickIndex != 0) throw new IllegalStateException("Install the delve watch at setup");
+        ruinsDelveWatch = watch;
+    }
 
     /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
     public void installRuinsWorks(RuinsWorks works) {
@@ -4427,6 +4439,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineHound != null) waylineHound.tick(this);
         if (ruinsWorks != null) ruinsWorks.tick(this);
         fieldSalvage.tick(this);
+        if (ruinsDelveWatch != null) {
+            RuinsVaultObjective vault = RuinsPullOut.vault(this);
+            if (vault != null) ruinsDelveWatch.tick(this, vault);
+        }
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);

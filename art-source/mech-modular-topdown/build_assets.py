@@ -24,7 +24,7 @@ REPOSITORY = HERE.parent.parent
 SOURCES = HERE / "sources"
 ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
 PREVIEWS = REPOSITORY / "build" / "sprite-previews" / "mech"
-# The repainted liveries; the Hegemony wears bodies of its own (sources/lowtech/build.py).
+# The repainted liveries; the Hegemony, Independents and pirates wear the low-tech bodies (sources/lowtech/build.py).
 FACTION_SKINS = (
     "tri-tachyon",
     "persean-league",
@@ -33,8 +33,6 @@ FACTION_SKINS = (
     "luddic-path",
     "sindrian-diktat",
     "lions-guard",
-    "pirates",
-    "independent",
 )
 
 
