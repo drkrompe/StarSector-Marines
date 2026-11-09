@@ -193,8 +193,12 @@ cells.
 Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
 coming to a pin and the contingency; the node (slice 5); repair drones (6);
 waking posts (7); power branches (8); looks for the walker, cradles, posts and
-node (3, 9). Balance is not tuned: on the vast fixture the flocks alone wipe a
-four-boat company at the landing, outside every zone.
+node (3, 9). Balance is not tuned. Both fixtures fly the company's real lift
+(one Hermes, six twelve-seat trips, as playBattle's Veteran Company). On it
+the company outlasts the flocks at the landing and the walkers decide the
+fight: on the extensive site the flocks are gone by ninety seconds, and the
+three walkers, none lost, beat the company at 255 s; on the vast site one
+two walkers of five fall, and one marine is left at ten minutes.
 
 ## Constraints
 
