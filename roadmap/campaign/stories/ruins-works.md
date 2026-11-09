@@ -1,6 +1,8 @@
 # Ruins works
 
-Status: PLANNED — owner direction; nothing built. Part of slice 5 of
+Status: IN PROGRESS — slices 1 to 3 built (power routed and a seal door opened
+in a played battle); collapses, the records terminal, the noise hook and the
+evidence scenes are next. Part of slice 5 of
 `ruins-expedition-fork.md`, beside `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -23,13 +25,32 @@ one, and the sealed stores behind them are the reward.
    vault's seal, a landing court's lift). Pure state, unit-tested: a consumer
    is powered when its branch is fed and capacity allows; throwing a junction
    re-feeds at once.
+   *Built* (`PowerGraph`): the wiring is fixed from the delve, one junction per
+   layer at its stand; a junction feeds either its layer's first side room
+   (STORE) or the way on (ONWARD: the layer's seal gate, and at the last layer
+   the vault's seal). Every junction starts ONWARD, and the capacity is the
+   onward load plus one, so the player can feed exactly one store at a time on
+   top of the way on. An overloaded hall powers nothing until load is shed;
+   shedding brings it back without a second restart. No lift consumer yet.
 2. **Seal doors.** A door span that stays shut and locked until its consumer is
    powered, built on the sally door's opening span. A breaching charge forces
    it open for good. A forced vault seal keeps the unpowered breach time.
+   *Built* (`SealDoor`, `RuinsWorks`): each layer's first side room is a sealed
+   store and each GATE way a seal gate, shut at setup as a copy of the nearest
+   wall cell through `MapEditor`. A door opens while powered and shuts again
+   once nobody stands in it or the room it keeps, dropping routes through it.
+   Any breach of a shut door (any cell walkable again) forces it open for good.
+   Not yet: the bunker door, and a forced vault seal reading the charge rule.
 3. **The power hall and junctions.** Mission-owned interactions on the main
    path, drawn with the side objective's world prompt: infantry hold the hall's
    console to restart it, and work a junction either way. Restarting the hall
    is loud: it is a noise event the occupants' stories may read.
+   *Built*: the hall's console (hold 6 s) and each junction's box (hold 2 s,
+   one verb for the other branch) answer through the side objective's world
+   prompt within 10 cells, worked by company infantry within 2.5 cells; the
+   objectives rail carries a Site power row with the hall's load, each
+   junction's branch and each door's state. Each store is a field cache behind
+   its door (part of slice 5). The noise event is not built.
 4. **Collapses.** A breachable run in rubble materials across a short way, with
    a long way round. A charge clears it.
 5. **Records terminal and sealed stores.** Reading the terminal marks the

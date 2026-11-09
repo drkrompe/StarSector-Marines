@@ -257,6 +257,12 @@ take the vault fast and leave the store; restart the hall, or spend a charge on
 the door and keep moving. The records terminal turns the unknown wiring into a
 plan; without it the company learns each junction by throwing it.
 
+**The wiring follows the delve.** Each layer has one junction at its stand. It
+feeds either that layer's sealed store or the way on: the layer's seal gate, and
+at the last layer the vault's seal. Junctions start on the way on, and the
+capacity is the way on's load plus one, so one store at a time can be fed
+beside it. An overloaded hall powers nothing until a junction sheds load.
+
 **Charges are the price of skipping it.** A breaching charge forces a seal door
 or clears a collapse at once, but charges are finite issue (`DemolitionKit`),
 and a forced vault seal gets the unpowered breach time. Nothing is ever locked

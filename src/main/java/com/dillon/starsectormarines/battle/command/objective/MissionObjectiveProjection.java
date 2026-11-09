@@ -130,6 +130,7 @@ public final class MissionObjectiveProjection {
         items.sort(Comparator.comparing(Item::id));
         // Side objectives follow the mission's own rows, in offer order.
         items.addAll(SideObjectiveRows.items(sim.getSideObjectives(), SideField.of(sim)));
+        if (sim.getRuinsWorks() != null) items.add(sim.getRuinsWorks().item());
         if (items.isEmpty()) return MissionObjectiveSnapshot.EMPTY;
         var activities = activities(sim.getCommanderSnapshot(Faction.MARINE), id -> {
             var squad = sim.getSquad(id);

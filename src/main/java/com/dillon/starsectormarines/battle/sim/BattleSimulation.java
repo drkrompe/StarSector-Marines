@@ -33,6 +33,8 @@ import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -714,7 +716,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void installFieldSalvage() {
         if (salvageInstalled) return;
         if (simTickIndex != 0) throw new IllegalStateException("Salvage must be installed before battle");
-        fieldSalvage = new FieldSalvage(SalvagePlacement.forBattle(this, generationSeed));
+        List<SalvageCache> finds = new ArrayList<>(SalvagePlacement.forBattle(this, generationSeed));
+        // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
+        if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
+        fieldSalvage = new FieldSalvage(finds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;
@@ -1205,6 +1210,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Ticked before the story sequences; never part of the win check. Empty on a battle that offers none.
      */
     public SideObjectiveService getSideObjectives() { return sideObjectives; }
+
+    private RuinsWorks ruinsWorks;
+
+    /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
+    public RuinsWorks getRuinsWorks() { return ruinsWorks; }
+
+    /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
+    public void installRuinsWorks(RuinsWorks works) {
+        if (salvageInstalled || simTickIndex != 0) throw new IllegalStateException("Install the works at setup");
+        ruinsWorks = works;
+        works.install(this);
+    }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */
@@ -4341,6 +4358,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (thunderRun != null) thunderRun.tick(this);
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
+        if (ruinsWorks != null) ruinsWorks.tick(this);
         fieldSalvage.tick(this);
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);

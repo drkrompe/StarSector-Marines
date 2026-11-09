@@ -130,6 +130,7 @@ import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
@@ -1276,6 +1277,8 @@ public final class BattleSetup {
             // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
             sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
                     ruinsLayout.liftPoints().get(0).route()));
+            // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
+            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

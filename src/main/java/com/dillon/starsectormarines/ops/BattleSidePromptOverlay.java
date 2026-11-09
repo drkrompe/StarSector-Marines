@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService.Offer;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -73,7 +75,11 @@ final class BattleSidePromptOverlay {
     private Offer choose(BattleSimulation sim) {
         Offer best = null;
         float bestD = Float.MAX_VALUE;
-        for (Offer offer : sim.getSideObjectives().offers(SideField.of(sim))) {
+        SideField field = SideField.of(sim);
+        List<Offer> offers = new ArrayList<>(sim.getSideObjectives().offers(field));
+        // A ruins site's works answer through the same prompt, though none of them is a job.
+        if (sim.getRuinsWorks() != null) offers.addAll(sim.getRuinsWorks().offers(field));
+        for (Offer offer : offers) {
             if (pressedFor > 0f && offer.key().equals(pressedKey)) continue;
             float sx = camera.cellToScreenX(offer.cellX() + .5f), sy = camera.cellToScreenY(offer.cellY() + .5f);
             if (!inView(sx, sy, camera.vpX(), camera.vpY(), camera.vpW(), camera.vpH(), camera.coverLeft(), camera.coverBottom())) continue;
@@ -84,7 +90,8 @@ final class BattleSidePromptOverlay {
     }
 
     private void press(String key, String verb) {
-        if (sim != null) sim.getSideObjectives().choose(key, verb);
+        if (sim != null && RuinsWorks.owns(key) && sim.getRuinsWorks() != null) sim.getRuinsWorks().choose(key, verb);
+        else if (sim != null) sim.getSideObjectives().choose(key, verb);
         pressedKey = key;
         pressedFor = PRESSED_HIDE;
     }
