@@ -26,7 +26,7 @@ ROOT = HERE.parents[2]
 OUT = ROOT / "build" / "flock-look"
 STILL = ROOT / "build" / "snapshots" / "derelict-flocks-ruins-look" / "look" / "flocks-close-close-02.png"
 JAVA_HOME = r"C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr"
-RECOMMENDED = {"drone": "dart", "cradle": "rack"}
+RECOMMENDED = {"drone": "dart", "cradle": "carousel"}
 
 QUESTIONS = {
     "drone": {

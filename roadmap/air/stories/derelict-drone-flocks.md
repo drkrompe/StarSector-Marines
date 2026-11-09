@@ -3,13 +3,15 @@
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
 behaviors) and heavy mechs"). Slices 1, 2, 4, 5 and 6 built, slice 3's unit,
 tasks and strike built; flocks play in the derelict ruins battle and frags are
-area fire against them. Slice 7's look is built on the recommended options while
-three picks wait on the owner (`derelict-swarm-drone`, `derelict-flock-cradle`,
-`derelict-swarm-whine`).
+area fire against them. Slice 7's look is built to the owner's picks
+(`derelict-swarm-drone` dart, `derelict-flock-cradle` carousel,
+`derelict-swarm-whine` buzz).
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — the look: swarm drone and cradle art in both lineages'
+Updated: 2026-11-09 — owner picks in: the dart, the carousel cradle (set back
+from a doorway so its housing never covers the door) and the buzz whine.
+Earlier: the look: swarm drone and cradle art in both lineages'
 liveries, and the swarm whine, on the recommended options with picks raised.
 Earlier: area fire: frags thrown at a flock, led to where its
 drones will be. Earlier: flocks in the derelict ruins battle: every roofed goal held
@@ -238,9 +240,14 @@ of the drone hub's. `BattleSetup` passes the ruin's occupant into
 `DerelictSecurity.install`. The art is painted from geometry guides through
 ImageGen, four candidate designs a sheet, one sheet per livery
 (`art-source/drones/swarm-drones/`: `guide.py`, `cradle_guide.py`, the briefs,
-`pack.py` to cut the picked designs into `mod/`). The recommended options ship:
-the dart (a lozenge body pushed by a tail fan, so a drone's heading reads) and
-the rack (two rows of seven docking cups). `options.py` renders every candidate
+`pack.py` to cut the picked designs into `mod/`). The owner picked the dart (a
+lozenge body pushed by a tail fan, so a drone's heading reads) and the carousel
+(a round drum, fourteen hatches round the rim, a mast at the hub). The carousel
+is the widest housing, so a cradle stands at `FlockCradle.site`: the cell nearest
+home whose square of `CLEARANCE_CELLS` round it is all open ground. A flock homed
+at a doorway's threshold keeps its cradle set back in the open, its housing never
+over the door, a wall or a roof; a cradle never seals its cell, so ground units
+pass it either way. `options.py` renders every candidate
 in game through `-Dsnapshot.artOverlay` and the suite's close shot
 (`-Dsnapshot.flocks.closeOnly`, `-Dsnapshot.flocks.lineage=contingency`).
 
@@ -248,7 +255,7 @@ The swarm whine (`FlockAudio`, sound `marines_flock_whine`) is one placed loop
 on each of the nearest three flocks within 40 cells, on seen ground: it rises in
 pitch with the flock's mean speed and thins with its numbers. Three voices are
 designed in `asset-pipeline/.../audio/flock/generate.py` (hornet, turbine, buzz);
-hornet ships. `options.py` beside it records each in a mixed battle clip
+the owner picked buzz (open rotors chopped at the blade rate). `options.py` beside it records each in a mixed battle clip
 (`-Dsnapshot.flocks.whineOnly`, `-Dsnapshot.lookSound`).
 
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags

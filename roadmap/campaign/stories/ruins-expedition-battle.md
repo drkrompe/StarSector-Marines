@@ -1,7 +1,8 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slices 1, 2, 6 and 7 built (objective, disclosure,
-deeper caches, briefing); slice 3 deferred, slice 8 dropped. The family
+Status: IN PROGRESS — slices 1, 2, 4, 6 and 7 built (objective, disclosure, crew,
+deeper caches, briefing); slice 3 deferred, slice 8 dropped, slices 9 to
+13 (the pull-out and the Delve row) planned. The family
 plays in battle on
 interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
@@ -147,6 +148,37 @@ story's battle plays, it lifts the fork's development-only gate
    (`mapgen-nouns.md`, Ruins ground); balance is a played battle. The
    harness built before the ruling is removed; the per-grade scavenger
    fixtures stay for played battles (`playBattle -Pbattle=<fixture>`).
+9. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
+   pulling out. The family's Retreat becomes **Pull out**: a Ruins battle
+   resolves as pulled out when the retreat is confirmed with a company squad
+   inside a held lift point's circle and no hostile holding that point, and as
+   an ordinary defeat otherwise. A pulled-out resolution keeps its secured finds
+   claimable at Results. This is the one exception to "defeat or withdrawal
+   leaves them behind", and `loot-nouns.md` names it in the same commit. The
+   retreat confirmation lists the banked finds and draws the held lift points'
+   circles. The fork's commit path reads pulled out as it reads lost (nothing
+   salvaged, site unexplored). Unit-test the resolution rule on its inputs:
+   held or unheld lift point, contested or not, squad inside or outside.
+10. **What the site remembers.** The finds recovered at a won or pulled-out
+    commit are written once to the site's market as a set of find ids. A
+    later expedition's placement leaves them out; the occupant, works and
+    every other find are seeded as before. Unit-test the placement filter and
+    the exactly-once write.
+11. **The vault store.** One find per layer of the delve, placed at the vault,
+    recovered when the haul boards and settled with the banked finds. It is
+    left behind on a pull-out, and is subject to slice 10 like any find.
+12. **The Delve row.** A rail row beside the vault's card. It shows effectives
+    against the number landed, squads below half strength, machines lost,
+    charges left, banked finds, stores opened, the nearest held lift point with
+    its route length, the layer count, and, once the vault is sighted, the
+    vault's route to the nearest held lift point. At each layer's stand it
+    reports the tally since the last stand and offers PULL OUT.
+13. **Close readings.** When the company first holds a layer's stand, the next
+    layer's strength band and the occupant's sign are drawn from the occupant's
+    readings pool (`RuinsSurvey`), from the band the occupant's setup gave that
+    layer. They are worded as readings and never name a unit or a place. They
+    are part of the company's disclosure (slice 2), so the occupant's layout
+    stays out of the company's frame.
 
 ## Constraints
 
