@@ -187,7 +187,7 @@ public final class DerelictSecurity {
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
                 vault.sourceCellX(), vault.sourceCellY());
         director.wearLook(DerelictLook.of(livery));
-        director.braceVaultFrames(sim);
+        director.armWalkers(sim);
         FlockSystemPort port = new FlockSystemPort();
         for (ZonePlan plan : plans) {
             int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
