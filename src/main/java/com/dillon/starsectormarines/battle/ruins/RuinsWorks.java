@@ -202,7 +202,9 @@ public final class RuinsWorks {
                 int cacheX = room.door().x() + Integer.signum(room.interior().x() - room.door().x());
                 int cacheY = room.door().y() + Integer.signum(room.interior().y() - room.door().y());
                 stores.add(new SalvageCache("sealed-" + storeId, cacheX, cacheY, resource, resource.cacheQuantity)
-                        .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN));
+                        .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN)
+                        // A sealed store keeps the old colony's hardware (RuinsFindTier.Place.SEALED_STORE).
+                        .asTechCache());
             }
             if (empty && layer.court() != null) {
                 // The court's lift comes up with its layer's store: the way on, or the store and the near lift.

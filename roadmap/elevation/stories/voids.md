@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -41,6 +41,17 @@ face and ramp, and folds into `elevation-nouns.md` when it ships.
   battle every void is simply a drop. How deep each style should be is not
   decided: the owner will feel it out from renders (2026-11-07), so depth
   stays a dial until then.
+- A natural void's or rise's depth may **vary along it** (owner, 2026-11-09:
+  "Anything stopping us from varying the depth of the gorges"): **depth
+  marks** (`NaturalVoid.DepthMark`, `NaturalRise.HeightMark`) say how deep
+  the floor lies, or how high the top stands, at places along it, and between
+  them the depth blends smoothly. Every ledge keeps its share of the floor's
+  depth wherever it lies, so a gorge that shallows keeps its ledges, closer
+  together. Only the depth changes: where the lip, the ledges and the floor
+  lie across the void is the steps' insets, so a mark never moves an edge
+  the battle reads. An open pit ignores marks: its benches are cut level and
+  its haul road is laid from their depths. A void without marks is as deep
+  everywhere as its steps.
 - A void's **edge** is its band of cells along walkable ground. It is drawn
   as a wall going down. To the battle it is the void itself, not a face, so it
   needs no width of its own.
@@ -503,7 +514,8 @@ Laws):
    natural drop whose floor is molten rock. Look suite:
    `createSnapshots -Psnapshot=lava-void-look`, a basalt plain cut by a rift
    with a stone road bridge (`-Dsnapshot.lava.depth`, `-Dsnapshot.lava.eyes`,
-   `-Dsnapshot.lava.stillsOnly`).
+   `-Dsnapshot.lava.stillsOnly`, and `-Dsnapshot.lava.setup` = `rift`, the
+   default, `river` or `vary`).
    - **What it reuses.** Everything that makes a drop: `NaturalVoid` with style
      `LAVA`, its steps, the field's edge, ledges, walls, bridges and sun, and
      the drop's renderer and painter's order. The wall is its own ImageGen
@@ -555,6 +567,21 @@ Laws):
    on the plain, crusted and glowing through their cracks; lava falls where a
    side channel pours into the rift; the floor running out past the drop's
    margin in the wide shot, as the gorge's water does.
+   - **A lava river** (owner, 2026-11-09: "the lava river might look good with
+     flow and not need a 40m drop"): the same style set shallow, a low bank of
+     cooled crust and the melt 4 m down (`LavaVoidLookSuite.river`), a valid
+     `NaturalVoid` with no new rule. A shallow melt runs where a deep one
+     pools: the crust's drift and the heat's run quicken from a 24 m melt's
+     crawl (0.22 cells a second, the rift's) to a 4 m channel's run (1.1)
+     (`LavaVoidLook.runShare`, `MoltenVoidRenderSystem.crustSpeed`), so the
+     plates are seen to travel. One pace for a whole melt, from its mean
+     depth, and once it runs at all its crust drifts as one sheet along the
+     melt's mean bearing: a crust carried far along a pace or a bearing that
+     changed cell to cell tore its image apart between them. A crawling
+     rift's crust still follows its bends. The 40 m rift stays the style's
+     standing depth, drawn as before.
+   - **A rift that shallows** (`-Dsnapshot.lava.setup=vary`): 40 m in the
+     west, 12 m by the bridge, 4 m in the east, by depth marks.
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -609,7 +636,7 @@ Laws):
    `createSnapshots -Psnapshot=raid-mine-pit-look`.
    - **Benches.** `NaturalVoid` with style `OPEN_PIT` and six benches 7 m
      apart, each cut 2 cells back from the face above, to a floor 42 m down
-     (`OpenPit.STEPS`). Cut, not eroded: the field's wander is a fifth of a
+     (`OpenPit.STEPS`; owner pick `raid-mine-pit-depth`, 2026-11-09). Cut, not eroded: the field's wander is a fifth of a
      natural drop's (`NaturalVoidField.Shape.CUT_WANDER`), so the benches run
      evenly round the pit. The faces are their own ImageGen image
      (`pit-bench-wall.png`, blasted rock with presplit drill traces, under
@@ -639,10 +666,21 @@ Laws):
      outside it stays connected as before, a pocket wholly inside the site on
      open ground is taken into the pit, and any other stranding refuses the
      pit and the map keeps none. No bridge is ever needed.
+   - **Machines** (owner, 2026-11-09: "mining equipment or other evidence of
+     large scale excavation"). `PitMachines`: a face shovel at the toe of a
+     face on the dry floor loading a haul truck, the next truck queued behind
+     it, a dozer and a wheel loader elsewhere on the floor, two blasthole
+     drills a pattern apart on the first bench with room clear of the road,
+     and two haul trucks on the road, the deeper loaded and climbing, the
+     upper empty and coming down. Each is drawn at its depth's scale, after
+     its bench and before the face above it, so the rock in front hides it.
+     The battle's vehicle scale: a haul truck is three cells by two, and the
+     haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen sheet,
+     `pit-machines.png`, filled in over a geometry guide
+     (`art-source/voids/open-pit/machines-guide.py`). Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
-   Left: the owner's pick of depth and bench count; haul trucks on the road and
-   a shovel at the face; more than one conveyor (to the stores, or from the
-   shafts); dust over the working bench.
+   Left: spoil heaps and parked machines on the rim; more than one conveyor
+   (to the stores, or from the shafts); dust over the working bench.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
@@ -660,6 +698,22 @@ Laws):
      a few skerries. A causeway is a bridge.
    The field takes these as they are. Each style adds its floor drawing and
    its palette, and a crevasse its "no floor"; none needs a new shape rule.
+
+   **Depth along a void** (owner, 2026-11-09, Model). Every natural drop and
+   rise takes depth marks: the field blends a **gain** from them, the share of
+   the steps' depth the void stands at, at every point (weights falling with
+   the square of the distance past 6 cells, `NaturalVoidField.gains`), and
+   scales every step by it. A ledge's pieces stand at the depth of their own
+   corners and a wall at the depth of each of its two ends, so a face runs
+   taller at one end than the other and a floor slopes between marks. The
+   sun, the sky and every floor's and air's drawing read the depth where they
+   are; the wall image's strata thin where the face is shorter; a crevasse's
+   floor takes less of its deep blue where it shallows. Look suites:
+   `-Dsnapshot.gorge.vary`, `-Dsnapshot.ice.vary`, `-Dsnapshot.ravine.vary`
+   and the lava rift's `vary` setup. Left: a generator laying marks (a gorge
+   river deepest where its brook's valley is, shallowing to its fords);
+   water that runs faster where the gorge shallows; a falls where a floor
+   steps rather than slopes.
 
    **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
    generated maps lay natural voids by planet type, not only debug maps). Look

@@ -50,6 +50,18 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/gorge-wall.png", 14f, 11);
     }
 
+    /**
+     * The ravine's walls climbing and sinking along its length ({@code -Dsnapshot.ravine.vary=true}): low banks in the
+     * west, as high as their steps by the pillar, and higher still past the side canyon.
+     */
+    static NaturalRise varying(NaturalRise look) {
+        float f = look.topMeters();
+        return look.withMarks(List.of(
+                new NaturalRise.HeightMark(15f, centre(15), f * .25f),
+                new NaturalRise.HeightMark(PILLAR_X, centre(PILLAR_X), f),
+                new NaturalRise.HeightMark(175f, centre(175), f * 1.5f)));
+    }
+
     @Override public String id() { return "ravine-rise-look"; }
 
     @Override public String label() { return "Ravine floor between cliffs (natural rise look experiment)"; }
@@ -64,8 +76,10 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
         float height = Float.parseFloat(System.getProperty("snapshot.ravine.height", "36"));
         for (String eyeText : System.getProperty("snapshot.ravine.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "ravine-%03dm-eye%03dm", Math.round(height), Math.round(eye));
-            try (BattleSimulation sim = ravine(walls(height, eye))) {
+            boolean vary = Boolean.getBoolean("snapshot.ravine.vary");
+            String tag = String.format(Locale.ROOT, "ravine-%03dm%s-eye%03dm", Math.round(height), vary ? "-vary" : "",
+                    Math.round(eye));
+            try (BattleSimulation sim = ravine(vary ? varying(walls(height, eye)) : walls(height, eye))) {
                 out.add(shot(context, sim, tag + "-1-wall-foot.png", 40f, centre(40) - 3f, PLAY));
                 out.add(shot(context, sim, tag + "-2-pillar.png", PILLAR_X, centre(PILLAR_X), PLAY));
                 out.add(shot(context, sim, tag + "-3-side-canyon.png", CANYON_X, centre(CANYON_X) - 12f, PLAY));
