@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator;
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
  */
-public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron) {
+public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached) {
 
     public FortressProgram {
         buildings = List.copyOf(buildings);
@@ -35,6 +35,11 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         if (apron < 0) {
             throw new IllegalArgumentException("a place cannot owe " + apron + " cells of apron");
         }
+    }
+
+    /** A program whose buildings may corner into each other, as a garrison's do. */
+    public FortressProgram(List<FortressBuilding> buildings, int airfields, int apron) {
+        this(buildings, airfields, apron, false);
     }
 
     /** A program that owes buildings and airfields but no open ground of its own. */
@@ -75,12 +80,12 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
             throw new IllegalArgumentException(
                     "this program has no " + purpose + " to set a count for");
         }
-        return new FortressProgram(out, airfields, apron);
+        return new FortressProgram(out, airfields, apron, detached);
     }
 
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
-        return new FortressProgram(buildings, count, apron);
+        return new FortressProgram(buildings, count, apron, detached);
     }
 
     /**
@@ -93,7 +98,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * the one that knows what the map can spare.
      */
     public FortressProgram withApron(int cells) {
-        return new FortressProgram(buildings, airfields, cells);
+        return new FortressProgram(buildings, airfields, cells, detached);
     }
 
     /**
@@ -316,10 +321,19 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
     private static final RoomShape MACHINE_HALL = RoomShape.rectangle(12, 9);
 
     /**
+     * Yard a works keeps per machine hall, on top of its packing slack: the ground the halls stand apart on, so
+     * each is a building of its own with a way round it. UNTUNED.
+     */
+    static final int WORKS_YARD_PER_HALL = 140;
+
+    /**
      * An industry's works ({@code raid-mission.md}, Break): its machine halls, a generator hall, a stores and the
      * posts its gates are watched from. The halls are what a raid comes to wreck, one machine to a hall, and they
      * stand in the yard where a charge can be carried to them; the posts face out. No keep and no airfield: the
      * works is a plant, and the garrison beside it is where the market is held from.
+     *
+     * <p>{@link #detached() Detached}, with yard to spare: each hall stands as its own building, so a machine is a
+     * building a squad goes into and not a room of one long block.
      *
      * @param machineHalls halls in the works, one per machine
      */
@@ -331,7 +345,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 1),
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 2)),
-                0);
+                0, machineHalls * WORKS_YARD_PER_HALL, true);
     }
 
     /**

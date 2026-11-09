@@ -142,7 +142,9 @@ between them.
 
 - **Drawn once, from the landing.** The company comes down in the homes, the
   near town, at the landing edge. The industrial quarter stands between the homes
-  and the works, so no house stands against the compound. The works compound is at the deep end,
+  and the works, so no house stands against the compound, and the district's
+  yards stand beyond the works. The homes' streets reach a shorter way than a
+  settlement's, so the town keeps to its district. The works compound is at the deep end,
   in its industrial district, and the garrison is at the deep end on the works'
   other flank, so the alarm comes from beside the prize, not from behind the
   boat.
@@ -150,8 +152,9 @@ between them.
   buffer of open ground (the glacis) as wide as security says: 3, 5 or 8 cells,
   open to fortified. Its wall is the security's rung (picket, garrison,
   stronghold), no harder than the operation's ceiling. Its program is one
-  machine hall per machine, a generator hall, a stores and two guard posts;
-  the raid's machines are its halls.
+  machine hall per machine, a generator hall, a stores and two guard posts,
+  each a building of its own on yard enough to stand apart (a detached
+  program); the raid's machines are its halls.
 - **Varied by the seed:** the whole site mirrored east to west and north to
   south, and every place seeded anywhere in its region.
 - **Varied by the market:** homes grow a town's streets from size 5, a

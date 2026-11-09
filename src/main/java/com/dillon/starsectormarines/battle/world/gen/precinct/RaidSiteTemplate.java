@@ -21,7 +21,8 @@ import java.util.SplittableRandom;
  * <p>The template is drawn with the company arriving from the west. The landing band is the west edge; the homes
  * are the near town the landing comes down in, between the landing and everything worth raiding; an industrial
  * quarter of yards and sheds stands between the homes and the works, so the homes never reach the compound; the
- * works compound stands at the back of that industrial district, at the deep end, walled or fenced by the market's {@link Security} with a buffer of open
+ * works compound stands at the back of that industrial district, at the deep end, with the district's yards
+ * beyond it, walled or fenced by the market's {@link Security} with a buffer of open
  * ground round it; the garrison stands at the deep end too, on the works' other flank, so the alarm comes from
  * beside the works and not from behind the landing. Districting is the point: nothing worth stealing or breaking
  * stands among the homes.
@@ -41,6 +42,8 @@ public final class RaidSiteTemplate {
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";
+    /** The yards beyond the works: the industrial district's far side, so the deep end is built and not empty. */
+    public static final String YARDS = "yards";
     public static final String OUTSKIRTS = "outskirts";
 
     /** Market size from which the site has an outskirts suburb behind the homes. UNTUNED. */
@@ -91,6 +94,7 @@ public final class RaidSiteTemplate {
     static final MapPlacement LANDING_FROM = new MapPlacement(0f, 0.25f, 0.30f, 0.75f);
     static final MapPlacement HOMES_AT = new MapPlacement(0.14f, 0.32f, 0.32f, 0.68f);
     static final MapPlacement INDUSTRY_AT = new MapPlacement(0.48f, 0.50f, 0.62f, 0.80f);
+    static final MapPlacement YARDS_AT = new MapPlacement(0.86f, 0.62f, 0.97f, 0.94f);
     static final MapPlacement WORKS_AT = new MapPlacement(0.68f, 0.58f, 0.86f, 0.80f);
     static final MapPlacement GARRISON_AT = new MapPlacement(0.70f, 0.14f, 0.90f, 0.36f);
     static final MapPlacement OUTSKIRTS_AT = new MapPlacement(0.04f, 0.04f, 0.22f, 0.24f);
@@ -153,7 +157,9 @@ public final class RaidSiteTemplate {
         briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY, oriented(INDUSTRY_AT, mirrorX, mirrorY),
-                GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.INDUSTRY));
+                INDUSTRY_GROWTH, PrecinctCharacter.INDUSTRY));
+        briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
+                INDUSTRY_GROWTH, PrecinctCharacter.INDUSTRY));
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
             briefs.add(PrecinctBrief.settlement(OUTSKIRTS, oriented(OUTSKIRTS_AT, mirrorX, mirrorY),
                     GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB));
@@ -171,9 +177,26 @@ public final class RaidSiteTemplate {
         return rung.fortification().laidSquare().withGlacis(security.buffer());
     }
 
-    /** The homes grow with the market: a hamlet's streets for a small market, a town's from {@link #TOWN_FROM}. */
+    /**
+     * The homes grow with the market: a hamlet's streets for a small market, a town's from {@link #TOWN_FROM}. Their
+     * arms are short, {@link #HOMES_ARM_LO} to {@link #HOMES_ARM_HI} of the map rather than a settlement's usual
+     * reach, so the town fills its own district and never runs round to the works.
+     */
     static GrownTrunkPlan.Profile homesGrowth(TargetProfile profile) {
-        return profile.marketSize() >= TOWN_FROM ? GrownTrunkPlan.Profile.town() : GrownTrunkPlan.Profile.hamlet();
+        return shortArms(profile.marketSize() >= TOWN_FROM
+                ? GrownTrunkPlan.Profile.town() : GrownTrunkPlan.Profile.hamlet());
+    }
+
+    /** Shortest and longest arm of the homes' streets, as fractions of the map. UNTUNED. */
+    static final float HOMES_ARM_LO = 0.07f;
+    static final float HOMES_ARM_HI = 0.15f;
+
+    /** The industrial quarter and the yards: a town's density of yards and sheds on the homes' short arms. */
+    private static final GrownTrunkPlan.Profile INDUSTRY_GROWTH = shortArms(GrownTrunkPlan.Profile.town());
+
+    private static GrownTrunkPlan.Profile shortArms(GrownTrunkPlan.Profile p) {
+        return new GrownTrunkPlan.Profile(p.junctionBudget, p.branchChance, HOMES_ARM_LO, HOMES_ARM_HI,
+                p.fourWayChance, p.frontageDepth, p.link);
     }
 
     /** A region of the canonical template, mirrored as the seed chose. */

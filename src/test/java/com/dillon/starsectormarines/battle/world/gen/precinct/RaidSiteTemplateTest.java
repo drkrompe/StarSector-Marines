@@ -116,6 +116,8 @@ class RaidSiteTemplateTest {
                     "seed " + seed + ": the homes are not between the landing and the works");
             assertTrue(homes < industry && industry < works,
                     "seed " + seed + ": the industrial quarter does not stand between the homes and the works");
+            int yards = Math.abs(named(plan, RaidSiteTemplate.YARDS).seedX() - edge);
+            assertTrue(yards > works, "seed " + seed + ": the yards are not beyond the works");
             assertTrue((named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2)
                             != (named(plan, RaidSiteTemplate.GARRISON).seedY() > H / 2),
                     "seed " + seed + ": the works and the garrison share a flank");
@@ -155,9 +157,22 @@ class RaidSiteTemplateTest {
         assertFalse(plan.precincts().isEmpty());
     }
 
+    /** Each hall stands as its own building, on yard enough to stand apart on. */
     @Test
-    void aWorksProgramIsItsHalls() {
-        assertEquals(5, FortressProgram.works(5).countOf(RoomPurpose.PARTS_CAGE));
-        assertEquals(0, FortressProgram.works(5).airfields());
+    void aWorksProgramIsItsHallsStandingApart() {
+        FortressProgram works = FortressProgram.works(5);
+        assertEquals(5, works.countOf(RoomPurpose.PARTS_CAGE));
+        assertEquals(0, works.airfields());
+        assertTrue(works.detached());
+        assertTrue(works.apron() > FortressProgram.works(3).apron(), "more halls, more yard");
+        assertFalse(FortressProgram.garrison().detached(), "a garrison's buildings still corner into each other");
+    }
+
+    /** The homes' streets reach less far than a settlement's, so the town keeps to its district. */
+    @Test
+    void theHomesStreetsAreShort() {
+        GrownTrunkPlan.Profile homes = RaidSiteTemplate.homesGrowth(market(7, 3));
+        assertTrue(homes.armLenHiFrac < GrownTrunkPlan.Profile.town().armLenHiFrac);
+        assertEquals(RaidSiteTemplate.HOMES_ARM_HI, homes.armLenHiFrac);
     }
 }
