@@ -151,9 +151,29 @@ Everything is in `battle.derelict`.
   the company never fields, builds or refits it. `DerelictWalkerFrame` gives
   its three loadouts (line: HC-10, AC-6, two SRM-5; siege: two chainguns, two
   LRM-15 frag racks; vault: two HC-10, two SRM-15) and their plate as a share
-  of the chassis's (siege 0.85, vault 1.45). Its art, body plan and sound are
-  the Bulwark's until the line's own are picked; it is two-armed like the
-  Bulwark so the stand-in draws its arms.
+  of the chassis's (siege 0.85, vault 1.45). Nothing of the Bulwark's (owner,
+  2026-11-09): its own chassis appearance (`CHASSIS_DERELICT`), body plan
+  (`MechBodyPlan.DERELICT`: a low torso over legs, struck mostly in the torso)
+  and numbers, all UNTUNED. Its arm guns sit in two side ports of the torso
+  and its racks on its back; shared systems (movement, weapon components, mech
+  doctrine and targeting) are the mechs' own.
+- **The walker's legs.** A torso on reaching legs (owner, 2026-11-09:
+  "a central torso on 3-4 legs that reach out and walk or pull along walls").
+  `DerelictLegRig` is the drawn rig, render-only: hips on a ring about the
+  torso, each foot planted until it strays `RESTEP_CELLS` from where it would
+  rest, then stepping over `STEP_SECONDS` with its gait group (four legs in
+  diagonal pairs, three one at a time); a torso that jumps further than a leg
+  reaches stands fresh. With wall reach a leg marches out along its line up to
+  `MAX_REACH_CELLS` and grips the first wall face it meets, and rests on the
+  floor where none is in reach. The torso still paths, collides and stands on
+  floor cells, so pathing is untouched; moving over or along wall cells would
+  need a passability view of its own, read by both the planner and terrain
+  motion as `HoverSkirt` and `WallCrush` are, and is not built.
+  `DerelictWalkerComposer` draws it from placeholder parts
+  (`art-source/derelict-walker/placeholder.py`). The leg count and wall reach
+  wait on the owner's `derelict-walker-legs` and `derelict-walker-wall-reach`
+  picks, behind the temporary switches `battle.derelictWalker.legs` (4) and
+  `battle.derelictWalker.wallReach` (on).
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none
@@ -243,11 +263,16 @@ frame at their interior posts with the roof lifted).; `sceneEvidence
 after; pin: a line frame given a contact inside its perimeter comes to it and
 engages; pin-outside: one past its perimeter is held for; contingency: the
 line frame walks to the egress and holds it, the siege frame fires from its
-post, the vault frame stays).
+post, the vault frame stays); `DerelictLegRigTest`;
+`createSnapshots -Psnapshot=derelict-heavies-look
+-Dsnapshot.derelict.interiorOnly=true` with the two walker switches (the
+interior stills alone, closer, and the vault frame stood in a three-cell
+hall: the walker-legs picks).
 
 Not built yet: a `sceneEvidence` loop for a flock's leash (the flock
-model's own scenes cover its flight; `FlockTasking` is unit-tested); looks
-for the walker, posts and node (3, 9; the cradle's look is
+model's own scenes cover its flight; `FlockTasking` is unit-tested); the
+walker's finished art and sound (after the legs picks), movement over or
+along wall cells, and looks for the posts and node (3, 9; the cradle's look is
 `derelict-drone-flocks.md`'s), and the repair drone's own look if it should
 differ from the tender's. Strength is not tuned, and is not tuned from
 autopilot runs: it waits on the owner playing a derelict battle. Both

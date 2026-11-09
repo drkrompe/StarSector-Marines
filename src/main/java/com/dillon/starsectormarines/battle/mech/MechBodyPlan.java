@@ -56,6 +56,14 @@ public final class MechBodyPlan {
             0.35f, 0.40f, 0.18f, 0.07f, 0.40f,
             new float[] {0.22f, 0.46f, 0f, 0.06f, 0.06f, 0.07f, 0.07f, 0.06f}, false);
 
+    /**
+     * The derelict security walker: a low torso slung between reaching legs, so its legs stand out wide and take more
+     * of the low fire, its guns in two side ports and two back racks, a small sensor cluster for a head.
+     */
+    public static final MechBodyPlan DERELICT = new MechBodyPlan("derelict",
+            0.30f, 0.52f, 0.14f, 0.04f, 0.30f,
+            new float[] {0.28f, 0.46f, 0f, 0.05f, 0.05f, 0.06f, 0.06f, 0.04f}, false);
+
     /** Long-range support: one heavy cannon, an LRM rack on each shoulder. */
     public static final MechBodyPlan WARDEN = new MechBodyPlan("warden",
             0.33f, 0.40f, 0.20f, 0.07f, 0.25f,

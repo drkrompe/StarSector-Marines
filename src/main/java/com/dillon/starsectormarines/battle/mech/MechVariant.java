@@ -37,13 +37,17 @@ public enum MechVariant {
 
     /**
      * The derelict security walker (`derelict-lore-guide.md`, Units): an unpiloted Mbaye-Gogol heavy built where it
-     * stands to guard a site, outside the company's tech-by-weight grid ({@link #automated()}). Its stock fit is the line
-     * frame; the siege and vault frames are loadouts on this one chassis ({@code DerelictWalkerFrame}). Drawn on the
-     * Bulwark's body until its own art is picked (`derelict-security-network.md`, slice 3).
+     * stands to guard a site, outside the company's tech-by-weight grid ({@link #automated()}). A derelict chassis of
+     * its own, no company mech's: a low armoured torso slung between reaching legs, its guns in torso ports (two side
+     * ports and two racks on its back), drawn by its own leg rig ({@code DerelictLegRig}) and struck by its own body
+     * plan ({@link MechBodyPlan#DERELICT}). Its numbers are its own brief's, all UNTUNED: heavier plate and structure
+     * than anything the company fields, a deliberate legged pace, a narrow enough stance for a two-cell corridor. Its
+     * stock fit is the line frame; the siege and vault frames are loadouts on this one chassis
+     * ({@code DerelictWalkerFrame}).
      */
-    SECURITY_WALKER("security_walker", "@gearMechVariantSECURITY_WALKER", 820f, 1100f, 22f, 0.82f, 0.40f, 50f,
-            1.90f, 1.70f, 0.72f, 0.95f, 2.6f,
-            LayeredMechAppearance.CHASSIS_CLEAN,
+    SECURITY_WALKER("security_walker", "@gearMechVariantSECURITY_WALKER", 900f, 1200f, 22f, 0.75f, 0.45f, 52f,
+            2.00f, 1.80f, 0.70f, 0.80f, 2.8f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
             null, MechWeaponComponent.HC_10, MechWeaponComponent.AC_6,
             MechWeaponComponent.SRM_5,
             MechWeaponComponent.SRM_5,
@@ -168,9 +172,9 @@ public enum MechVariant {
         return max;
     }
 
-    /** Whether this chassis carries its arm guns on two arms rather than on one centreline mount. */
+    /** Whether this chassis carries its arm guns on two side mounts rather than on one centreline mount. */
     public boolean twoArmed() {
-        return this == BULWARK || this == SECURITY_WALKER;
+        return arms == null;
     }
 
     /** Whether this chassis exposes {@code slot} at all: the centreline mount or the two arms, never both. */
@@ -210,8 +214,7 @@ public enum MechVariant {
             case HOUND -> MechBodyPlan.HOUND;
             case BULWARK -> MechBodyPlan.BULWARK;
             case WARDEN -> MechBodyPlan.WARDEN;
-            // Stand-in: the walker is drawn on the Bulwark's body, so it is struck as one until its own art is picked.
-            case SECURITY_WALKER -> MechBodyPlan.BULWARK;
+            case SECURITY_WALKER -> MechBodyPlan.DERELICT;
         };
     }
 
@@ -223,7 +226,8 @@ public enum MechVariant {
         return switch (this) {
             case HOUND -> LiftClass.LIGHT;
             case WARDEN -> LiftClass.MEDIUM;
-            case BULWARK, SECURITY_WALKER -> LiftClass.HEAVY;
+            case BULWARK -> LiftClass.HEAVY;
+            case SECURITY_WALKER -> LiftClass.HEAVY;
         };
     }
 }
