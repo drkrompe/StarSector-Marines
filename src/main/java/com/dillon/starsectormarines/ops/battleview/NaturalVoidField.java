@@ -716,6 +716,8 @@ final class NaturalVoidField {
                             float mx = 0f, my = 0f;
                             for (int v = 0; v < m; v++) { mx += tmp[v * 2]; my += tmp[v * 2 + 1]; }
                             mx /= m; my /= m;
+                            // A bank's end where a bridge leaves it is the road onto the deck, not a lip.
+                            if (byBridge(mx, my)) continue;
                             // Full at the drop's edge, fading out into the turf, broken into clumps.
                             float e0 = linear(tx, ty, val, mx, my);
                             float cover = e0 >= FRAY_FADE ? 1f : e0 / FRAY_FADE
@@ -729,6 +731,26 @@ final class NaturalVoidField {
                 }
             }
         }
+    }
+
+    /**
+     * Whether the open cell nearest a point of ground is a bridge: the point lies at a bridge's end, where the
+     * walkable surface runs on onto the deck, rather than at the drop's edge.
+     */
+    boolean byBridge(float x, float y) {
+        float bestVoid = Float.MAX_VALUE, bestBridge = Float.MAX_VALUE;
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        for (int dy = -3; dy <= 3; dy++) {
+            for (int dx = -3; dx <= 3; dx++) {
+                int ox = cx + dx, oy = cy + dy;
+                if (!openCell(ox, oy)) continue;
+                float ex = Math.max(0f, Math.max(ox - x, x - (ox + 1))), ey = Math.max(0f, Math.max(oy - y, y - (oy + 1)));
+                float d = ex * ex + ey * ey;
+                if (bridge[oy * w + ox]) bestBridge = Math.min(bestBridge, d);
+                else bestVoid = Math.min(bestVoid, d);
+            }
+        }
+        return bestBridge < bestVoid;
     }
 
     private boolean nearOpen(int x, int y) {
