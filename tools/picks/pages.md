@@ -32,3 +32,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | HQ command deck reskin (bridge room, colour, plate versions) | https://claude.ai/artifact/6HMasKcthSGxBwC2fbUZNK |
 | Hegemony armour line (weapon-point variants, the red Onager's emitter) | https://claude.ai/artifact/DH3gtRXwEHXt3tiSmzPWNU |
 | Voids (city drop look: sky port roof deck over the city below) | https://claude.ai/artifact/PcifafuBfp8foX5w1DuBeA |
+| Ruins expedition (ruins fork, expedition battle, derelict AI occupant) | https://claude.ai/artifact/BKUR5jQUjDdA8hrSvFJ5VB |
