@@ -16,27 +16,44 @@ import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
  * two-cell catwalk and tower C by a catwalk that turns a corner over the drop; B and C are joined by a six-cell
  * skybridge a vehicle could cross. Each roof carries a landing pad or plant.
  */
-final class SkyPortCluster {
+public final class SkyPortCluster {
 
-    static final int W = 240, H = 170;
+    public static final int W = 240, H = 170;
     /** The towers' roofs, inclusive: {@code {x0, y0, x1, y1}}. */
-    static final int[] A = {30, 60, 80, 105}, B = {120, 95, 165, 145}, C = {115, 10, 160, 50};
+    public static final int[] A = {30, 60, 80, 105}, B = {120, 95, 165, 145}, C = {115, 10, 160, 50};
     /** The walkways, inclusive: A to B, B to C, and the dogleg from A to C in its two legs. */
-    static final int[][] WALKWAYS = {
-            {81, 99, 119, 100},
-            {136, 51, 141, 94},
-            {70, 30, 71, 59}, {72, 30, 114, 31}};
+    public static final int[] CATWALK = {81, 99, 119, 100}, SKYBRIDGE = {136, 51, 141, 94};
+    public static final int[][] DOGLEG = {{70, 30, 71, 59}, {72, 30, 114, 31}};
+    static final int[][] WALKWAYS = {CATWALK, SKYBRIDGE, DOGLEG[0], DOGLEG[1]};
+    /**
+     * A lone roof in the far corner, reached by no walkway and out of sight of the cluster: where a scene keeps
+     * the other side, which a battle needs on the map to run.
+     */
+    public static final int[] OUTPOST = {231, 161, 238, 168};
     /** The landing pads, inclusive. */
     static final int[][] PADS = {{54, 70, 74, 90}, {138, 26, 154, 44}};
 
     private SkyPortCluster() { }
 
     static BattleSimulation build(VoidBackdrop backdrop) {
+        SceneBuilder builder = lay(backdrop, true);
+        builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
+                .inFile(92, 99, 1, 0)
+                .assigned(id -> ObjectiveAssignment.defendArea(id, 130, 100))
+                .done();
+        return builder.build().sim();
+    }
+
+    /**
+     * The cluster laid as a scene's ground, with no one on it; {@code catwalk} false leaves the drop where the
+     * catwalk from A to B would be, so A reaches B only round by C.
+     */
+    public static SceneBuilder lay(VoidBackdrop backdrop, boolean catwalk) {
         NavigationGrid grid = new NavigationGrid(W, H);
         CellTopology topology = new CellTopology(W, H);
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) {
-                String finish = finish(x, y);
+                String finish = !catwalk && inside(x, y, CATWALK) ? null : finish(x, y);
                 if (finish != null) {
                     grid.setWalkableFloor(x, y);
                     topology.setGroundKind(x, y, GroundKind.STRIPED);
@@ -57,18 +74,13 @@ final class SkyPortCluster {
         block(grid, topology, 150, 126, 158, 138);
         block(grid, topology, 121, 15, 133, 27);
         topology.setVoidBackdrop(backdrop);
-        SceneBuilder builder = SceneBuilder.over(grid, topology).missionCompletion(false);
-        builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
-                .inFile(92, 99, 1, 0)
-                .assigned(id -> ObjectiveAssignment.defendArea(id, 130, 100))
-                .done();
-        return builder.build().sim();
+        return SceneBuilder.over(grid, topology).missionCompletion(false);
     }
 
     /** What a cell is laid with, or null where it is void. */
     private static String finish(int x, int y) {
         for (int[] w : WALKWAYS) if (inside(x, y, w)) return "ship-bay.grate-run";
-        for (int[] t : new int[][]{A, B, C}) {
+        for (int[] t : new int[][]{A, B, C, OUTPOST}) {
             if (!inside(x, y, t)) continue;
             for (int[] pad : PADS) {
                 if (!inside(x, y, pad)) continue;
@@ -100,7 +112,8 @@ final class SkyPortCluster {
         topology.setSurface(doorX, y0, topology.surfaceIndex("loading-bay.staging-deck"));
     }
 
-    private static boolean inside(int x, int y, int[] r) {
+    /** Whether a cell lies inside an inclusive rectangle {@code {x0, y0, x1, y1}}. */
+    public static boolean inside(int x, int y, int[] r) {
         return x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3];
     }
 }

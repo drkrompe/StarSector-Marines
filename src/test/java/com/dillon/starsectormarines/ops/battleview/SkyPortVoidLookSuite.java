@@ -68,7 +68,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
      * The cluster's backdrop: slender towers, stepping out only a little as they fall so the drop between them
      * stays open, and lower towers standing round them in the drop.
      */
-    static VoidBackdrop clustered(float depth, float eye) {
+    public static VoidBackdrop clustered(float depth, float eye) {
         float f = depth / 400f;
         return backdrop(depth, eye, List.of(new VoidBackdrop.Tier(50f * f, 4f), new VoidBackdrop.Tier(120f * f, 10f),
                 new VoidBackdrop.Tier(210f * f, 18f), new VoidBackdrop.Tier(300f * f, 28f)), List.of(

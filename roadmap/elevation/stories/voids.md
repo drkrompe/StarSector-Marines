@@ -263,8 +263,13 @@ Laws):
      and a six-cell skybridge a vehicle could cross, ten neighbours from
      45 m to 180 m down. `-Dsnapshot.skyPort.layout=deck` keeps the single
      roof deck.
-   Left: whether squads route across the walkways as expected (a behaviour
-   scene, slice 1); towers at different roof heights (a tier up by stairs or
+   - **Walkway routing** is proved by the `walkway-crossing` behaviour scene
+     (`sceneEvidence -Pscene=walkway-crossing`) on the same cluster: a rifle
+     squad sent from A to B crosses the catwalk and no other walkway, A to C
+     takes the dogleg, and with the catwalk cut A to B goes round by the
+     dogleg and the skybridge; in every loop no one stands on a void cell.
+     The lone roof in the cluster's far corner holds the scene's other side.
+   Left: towers at different roof heights (a tier up by stairs or
    lifts); the walkway's own surface past the ship-bay grate; cranes and
    gantries; the city's own layers. The play area's size and chokepoints will
    change (owner, 2026-11-07); the structures follow whatever footprint the
