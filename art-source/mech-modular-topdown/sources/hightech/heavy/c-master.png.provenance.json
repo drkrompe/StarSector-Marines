@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c21b-1b07-7e50-9ab8-c6e2ac56093a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c21b-1b07-7e50-9ab8-c6e2ac56093a\\exec-b3b322be-dd13-4950-83c7-ed6fdc26ff4b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\hightech\\heavy\\c-master.png",
+    "sha256": "460f9ad889620702af037a27365fe9d721470fc800d8d2422e8f101e9e847624",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\hightech\\heavy\\c.prompt.txt",
+  "promptSha256": "478f92dc79aed6e0d5f6cb517d7bb3c4653bdb0f0ce997aa4c96a0c029eaf362",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Material/style only; not layout\n\nAsset type: production-source concept master for a top-down game sprite: the chassis of a new Tri-Tachyon HIGH-TECH mech line, a heavy lance platform walking machine: a wide flux shield and a shoulder-mounted lance laser, drawn in the same design language as Starsector's high-tech warships.\n\nImage 1 is the exact silhouette and layout authority, a grey value blockout: fill it in, never move, resize or add to its shapes, and keep all empty canvas empty, including the open channel between the two nose lobes where a gun barrel shows. It is built as separate armour lobes with wide channels of exposed machinery between them. The grey values mean: the DARK shapes are the exposed machine core, a dense mass of dark gunmetal machinery (ribbed conduits, actuator stacks, heat-sink fins, cable bundles, small blue-lit ports) that shows in every gap between the lobes and as a ribbed engine bank at the rear; the MID-GREY smooth shapes are armour lobes, each one a bulging, rounded shell with soft highlights and deep shading at its edges, like carapace; the light flat rectangle on the spine is a plain mounting plate where a weapon pod bolts on later; the small light disc near the front is a sensor bulb; the lightest disc is the SHIELD EMITTER, a round projector bulb with a soft blue core. The dark rings set into the shoulder lobes are recessed round weapon sockets, empty. Symmetric about the vertical centre line.\n\nImage 2 is material and style reference only, never layout: Starsector's high-tech hulls, the Tempest, Aurora, Medusa and Paragon. Match their finish: pale steel-blue and blue-grey armour shells with cool blue shading, rounded and layered, set over dark, busy, finely detailed machinery; round recessed weapon mounts sunk into the shells; small blue glow slots; a little wear, scorch and grime in the recesses; light from the upper left. Paint it at full resolution as a crisp, detailed game-sprite master, not pixel art.\n\nStrict 90-degree zenith orthographic top-down view of the chassis top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow outside the machine, border, text, labels or logos. Draw only the chassis body: no weapons, missile racks, drones, legs or feet, which are separate layers drawn later.\n\nAvoid: clean white plastic, flat untextured panels, long glowing light strips, rivets, tan or olive paint, a framed canopy, a pilot figure, perspective, side view, isometric view, cropped edges, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\heavy\\guide-c.png",
+      "sha256": "b6ba37e772725c4a9a7c63821ba5b202c7429e61c1171f878390f5b809c48f80",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image-generation tool to fill the exact blockout with the referenced high-tech materials and preserve the transparent negative space."
+  ],
+  "usage": {
+    "input_tokens": 45399,
+    "cached_input_tokens": 38144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 720,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.4
+}

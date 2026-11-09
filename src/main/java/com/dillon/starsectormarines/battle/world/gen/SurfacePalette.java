@@ -8,13 +8,9 @@ import com.dillon.starsectormarines.battle.world.model.RockDamage;
  * {@code battle.world.gen} never sees a game API. The campaign-decoupled
  * vocabulary for terrain, exactly as {@link EconomicFunction} is for industry.
  *
- * <p><b>This is the wild surface, not every green thing on the map.</b> A
- * settlement's parks and street verges are ground the colonists made and
- * maintain — irrigated lawn on an airless rock is a statement about the
- * colony's wealth, not about the planet — so cultivated fills keep their own
- * character and do not consult this. What follows the palette is ground nobody
- * planted: the hinterland the road growth never reached, and the wild
- * {@code NATURE_*} lots inside the built area.
+ * <p>It answers for the colony's ground too. Wild ground nobody planted takes
+ * {@link #inlandGround()}; the lawn a settlement lays (yards, verges, parks)
+ * takes the same {@link #inlandGround()}, through {@link CultivatedGround}.
  *
  * <p>Most of the Sector is not a garden. {@link #ROCK} is the baseline rather
  * than {@link #VERDANT}, because a habitable world is the rare case worth
@@ -80,7 +76,14 @@ public enum SurfacePalette {
         return approachGround;
     }
 
-    /** Unworked inland ground, including thin margins too small for a nature parcel. */
+    /**
+     * Inland ground: unworked wild ground, thin margins too small for a nature parcel, and the colony's own open
+     * ground too (yards, verges, parks, through {@link CultivatedGround}). Lawn only where things grow.
+     *
+     * <p>A settlement's lawn used to stay green on every world, read as a colony that shipped the soil in. On a
+     * desert it was most of the town floor and read as a mistake instead (owner: "the green grass on this sand world
+     * is strange"); packed earth was tried and its olive tile still read as dead lawn against sand and stone.
+     */
     public GroundKind inlandGround() {
         return this == VERDANT ? GroundKind.GRASS : approachGround;
     }

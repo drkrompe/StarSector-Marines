@@ -90,6 +90,23 @@ public final class VaultFrameBrace {
         return Math.abs(wrap(bearing)) >= 180f - REAR_ARC_DEGREES;
     }
 
+    /**
+     * Degrees from a facing to the offset {@code (dx, dy)}, in the battle's facing convention (0 faces +y, the forward
+     * vector is {@code (-sin, cos)}, as {@code ArmorArcs} reads it).
+     */
+    public static float bearing(float facingDegrees, float dx, float dy) {
+        return wrap((float) Math.toDegrees(Math.atan2(-dx, dy)) - facingDegrees);
+    }
+
+    /**
+     * A mount's cycle clock after this tick's fire scale: a clock that rose since the last tick ({@code before} to
+     * {@code now}) has just fired and is stretched by {@code 1 / fireScale}; one running down is left as it is.
+     */
+    public static float stretch(float before, float now, float fireScale) {
+        if (now <= before + 1e-4f || fireScale >= 1f || fireScale <= 0f) return now;
+        return now / fireScale;
+    }
+
     /** The bearing in (-180, 180]. */
     static float wrap(float degrees) {
         float d = degrees % 360f;

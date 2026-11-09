@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Kind;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Order;
 import com.dillon.starsectormarines.battle.mech.MechSections;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -90,6 +92,78 @@ public final class DerelictSecurityDirector {
         }
     }
     private final Map<Long, Float> postDurability = new TreeMap<>();
+    private final Map<Long, Braced> braces = new TreeMap<>();
+
+    /** A vault frame's brace in the field (`ruins-guardians.md`): its stance and what it last read. */
+    private static final class Braced {
+        final VaultFrameBrace brace = new VaultFrameBrace();
+        float lastX = Float.NaN;
+        float lastY = Float.NaN;
+        float[] cycles = new float[0];
+    }
+
+    /** How far a frame may shift in one tick and still count as standing, cells. */
+    static final float STILL_CELLS_PER_TICK = 0.005f;
+
+    /**
+     * Gives each vault frame its brace, the vault guardian's stance (`ruins-guardians.md`), and has the damage
+     * pipeline ask it how each hit on the frame lands.
+     */
+    public void braceVaultFrames(BattleSimulation sim) {
+        for (Walker walker : walkers) {
+            if (walker.frame() != DerelictWalkerFrame.VAULT) continue;
+            for (int i = 0, n = sim.squadMemberCount(walker.squadId()); i < n; i++) {
+                braces.put(sim.squadMemberAt(walker.squadId(), i), new Braced());
+            }
+        }
+        if (!braces.isEmpty()) sim.getRoster().hitScale((target, attacker) -> braceHit(sim, target, attacker));
+    }
+
+    /** A vault frame's stance, or null for a unit that is none. */
+    public VaultFrameBrace.Stance braceOf(long unitId) {
+        Braced braced = braces.get(unitId);
+        return braced == null ? null : braced.brace.stance();
+    }
+
+    private float braceHit(BattleSimulation sim, long target, long attacker) {
+        Braced braced = braces.get(target);
+        if (braced == null || attacker == target || sim.resolveUnit(attacker) == 0L) return 1f;
+        World world = sim.world();
+        if (!world.hasMechLoadout(target)) return 1f;
+        return braced.brace.hit(VaultFrameBrace.bearing(world.mechLoadout(target).torsoFacingDegrees,
+                world.x(attacker) - world.x(target), world.y(attacker) - world.y(target)));
+    }
+
+    /** Every tick: each vault frame braces or comes free, and its guns cycle at its stance's rate. */
+    private void tickBraces(BattleSimulation sim) {
+        World world = sim.world();
+        for (Map.Entry<Long, Braced> entry : braces.entrySet()) {
+            long id = entry.getKey();
+            Braced braced = entry.getValue();
+            if (sim.resolveUnit(id) == 0L || !world.hasMechLoadout(id)) continue;
+            MechLoadoutComponent mech = world.mechLoadout(id);
+            float x = world.x(id);
+            float y = world.y(id);
+            boolean moving = !Float.isNaN(braced.lastX)
+                    && Math.hypot(x - braced.lastX, y - braced.lastY) > STILL_CELLS_PER_TICK;
+            braced.lastX = x;
+            braced.lastY = y;
+            long target = sim.targetOf(id);
+            boolean engaged = target != 0L && sim.resolveUnit(target) != 0L;
+            float bearing = engaged ? VaultFrameBrace.bearing(mech.torsoFacingDegrees,
+                    world.x(target) - x, world.y(target) - y) : 0f;
+            braced.brace.tick(BattleSimulation.TICK_DT, moving, engaged, bearing);
+            MechWeaponMount[] mounts = mech.mounts();
+            if (braced.cycles.length != mounts.length) braced.cycles = new float[mounts.length];
+            for (int i = 0; i < mounts.length; i++) {
+                MechWeaponMount mount = mounts[i];
+                if (mount == null) continue;
+                mount.cycleRemaining = VaultFrameBrace.stretch(braced.cycles[i], mount.cycleRemaining,
+                        braced.brace.fireScale());
+                braced.cycles[i] = mount.cycleRemaining;
+            }
+        }
+    }
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
                                     int vaultX, int vaultY) {
@@ -179,6 +253,7 @@ public final class DerelictSecurityDirector {
     public void tick(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
         flyTenders(sim);
+        tickBraces(sim);
         if (tick % PULSE_TICKS != 0) return;
         List<Report> reports = flocks.reports();
         List<Contact> own = ownContacts(sim, tick);

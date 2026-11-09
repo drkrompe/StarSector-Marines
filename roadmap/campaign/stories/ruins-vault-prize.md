@@ -1,8 +1,14 @@
 # Ruins vault prize
 
-Status: PLANNED — slice 1 (the draw) built, built on the recommended options
-while the owner's picks `ruins-vault-prize`, `ruins-prize-hint` and
-`ruins-prize-forced` are open.
+Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
+`ruins-prize-hint` a, `ruins-find-tiers` a, `ruins-prize-forced` a,
+`ruins-theme-defences` a). These are built and folded into
+`ruins-expedition.md` (The vault and its prize):
+- The draw and the tell in the briefing.
+- The payout and find-tier rules.
+- The batteries.
+
+The slices below are what is left.
 
 Written: 2026-11-09
 
@@ -18,30 +24,30 @@ the ruins and guesses what is inside before committing the company.
 
 ## Slices
 
-1. **The draw.** *Built* (`RuinsVaultPrizes`, `RuinsVaultPrize`,
-   `RuinsVaultTheme`). It is a pure function of the sector seed, the market,
-   the grade and the occupant, so a site holds the same prize every time:
-   - Family weights by grade, and the occupant's lean.
-   - A core's tier by grade; a colony item by vanilla's `rare_tech` weights.
-   - The stake, and the core hint (true three in four, else one step off).
+1. **The prize at the vault.** The payout rules are built (`RuinsVaultPayout`,
+   `RuinsTechCache`, `RuinsFindTier`); the wiring is owed.
+   - The battle records whether the vault was powered at the breach
+     (`RuinsVaultObjective.vaultPowered` when `breached()` turns true).
+   - The won expedition's settlement then pays:
+     - A colony item as vanilla's special item.
+     - A core as its commodity.
+     - Each tech cache by rolling its drop group through vanilla's salvage
+       generator.
+   - Tech caches in sealed stores, guardian rooms and the vault store's deepest
+     layer need the same settlement. That opens `loot-nouns.md`'s
+     equipment-cache gate for ruins.
 
-   Unit-tested in `RuinsVaultPrizesTest`.
-2. **The tell in the briefing.** The survey adds the theme's tell
-   (`RuinsVaultTheme.tellKey`) and, for a core, the hinted tier, worded in the
-   occupant's instruments. This adds the strings.
-3. **The prize at the vault.** The won expedition's settlement adds the prize
-   beside the vault store:
-   - A colony item as vanilla's special item.
-   - A core as its commodity.
-   - Tech as a tech cache from the site's drop groups.
-   - Goods as a larger bundle.
-
-   Whether the vault was powered decides whether a core or item breaks into
-   tech caches (pick `ruins-prize-forced`). Unit-test the settlement.
-4. **Stakes read by pressure and guardians.** `ruins-pressure.md`'s reserve and
-   stir rate, and the vault warden's tier, read `RuinsVaultPrize.stakes`. That
-   is the pressure and mini-boss sessions' work; this slice only publishes the
-   stake on the mission.
+   Unit-test the settlement.
+2. **Stakes read by pressure and guardians.** Publish `RuinsVaultPrize.stakes`
+   on the mission for `ruins-pressure.md`'s reserve and stir rate and for the
+   guardian seam (`ruins-guardians.md`). Guardian strength does not scale with
+   the stake until the owner's playtest. Whether waking the batteries adds stir
+   is still with the pressure session.
+3. **The batteries, finished.**
+   - A side hostile to everyone, so the guns fire on the occupant too.
+   - A powered-down look, so dark and awake read apart.
+4. **The tell in the occupant's voice.** Each tell is one line today; word it
+   through the occupant's own instruments (`RuinsSurvey`).
 5. **Themed ground and works.** The ruins ground lays the theme's interior set
    and the works' twist (heat valves, magnet gates, coolant junctions), one
    theme at a time, through picks with look shots. That is mapgen and art.

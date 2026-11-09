@@ -2159,18 +2159,19 @@ a rock kept ninety cells of standing water after the shore was gone. On a dry
 world those lots become open ground, which is what a waterfront structurally is:
 the edge of the built area, floored by whatever the world is made of.
 
-**The palette governs ground nobody planted, and stops at the settlement's own
-made ground.** Parks and street verges keep their grass on an airless rock:
-lawn there is a statement about the colony that shipped the soil in and waters
-it, not about the planet. Measured on a barren world, every remaining green cell
-is exactly that — a couple of hundred cells of park and a dozen of verge, with
-no leak from the wild fills or the hinterland pre-paint.
-
-Both halves are one law and neither is safe alone. A palette nobody wired up and
-a palette applied one layer too broadly are different bugs with the same
-symptom in isolation, so the contrast — cultivated lawn beside wild regolith on
-the *same* world — is what is pinned, in `CultivatedGroundTest`. What survives
-in the built area is the colony's; what surrounds it is the planet's.
+**The palette governs the colony's lawn too.** Yards, street verges, parks and the
+open margins of a settled claim are laid as lawn by many fills, none of which asks
+the planet. The closing outdoor pass does, once per cell: grass stays grass where
+the world grows things, and elsewhere becomes the world's own inland ground —
+sand on a desert, stone on a rock, snow on a frozen world (`CultivatedGround`,
+`SurfacePalette.inlandGround`). Packed earth was tried; its olive tile still
+read as dead lawn, an island the town stood on. It asks `SurfaceField` per cell, so a living
+basin on a desert keeps its green floor. Lawn on every world used to be the law,
+read as a colony that shipped the soil in; on a desert it was most of what the
+player saw of the town, and it read as a mistake (owner). Cells that carry an
+authored surface — a farm's crop rows and pasture — draw that surface and are
+left as laid. Only the ground kind changes, so walkability, props and random
+streams do not move, and a living world's map is the map it was.
 
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's
@@ -2186,7 +2187,7 @@ alternate in patches, so the change reads as country thinning out rather than a
 line; the renderer draws the patches' outline as the continuous field the cells
 were sampled from (`SurfaceField.edge`, `battle-render-nouns.md`, basin edge),
 so it is not stepped either. The woods grow on the floor and thin out across the last stretch before
-the band (`SurfaceField.woods`); a desert rim grows open grey scrub instead,
+the band (`SurfaceField.woods`); a desert rim, and a desert with no basin at all, grows open grey scrub instead,
 about a third as thick, the same silhouettes and states drawn from the
 `dry-scrub-*` sheets (a placement's id carries `-dry`, `NaturalPropShape.DRY`,
 and every state, damage and creep blight follows that id). A brook keeps its water on the floor and
