@@ -61,6 +61,8 @@ public final class DerelictSecurityDirector {
     private final Set<Long> haul = new TreeSet<>();
     private final Map<Integer, Long> nodes = new TreeMap<>();
     private final Map<Integer, Float> nodeDurability = new TreeMap<>();
+    private final Map<Long, Integer> posts = new TreeMap<>();
+    private final Map<Long, Float> postDurability = new TreeMap<>();
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
                                     int vaultX, int vaultY) {
@@ -79,6 +81,16 @@ public final class DerelictSecurityDirector {
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
     public void standNode(int zoneId, long entityId) {
         nodes.put(zoneId, entityId);
+    }
+
+    /** Stands a folded post of a zone (slice 7): powered only while the zone is awake. */
+    public void standPost(int zoneId, long entityId) {
+        posts.put(entityId, zoneId);
+    }
+
+    /** Each folded post's zone, by post entity. */
+    public Map<Long, Integer> posts() {
+        return Collections.unmodifiableMap(posts);
     }
 
     /** Each zone's node entity, by zone id. */
@@ -155,7 +167,20 @@ public final class DerelictSecurityDirector {
                         <= RuinsVaultObjective.ESCORT_RADIUS) haul.add(contact.unitId());
             }
         }
+        for (Map.Entry<Long, Integer> post : posts.entrySet()) {
+            long id = post.getKey();
+            if (sim.resolveUnit(id) == 0L) continue;
+            float now = sim.world().hp(id) + sim.world().armor(id);
+            Float before = postDurability.put(id, now);
+            if (before != null && now < before - 0.5f) network.stir(post.getValue(), tick);
+        }
         network.settle(tick);
+        for (Map.Entry<Long, Integer> post : posts.entrySet()) {
+            long id = post.getKey();
+            if (sim.resolveUnit(id) == 0L) continue;
+            if (DerelictPost.unfolded(network.zone(post.getValue()))) sim.turretState().restorePower(id);
+            else sim.turretState().cutPower(id);
+        }
 
         List<Long> haulIds = new ArrayList<>(haul);
         List<Contact> haulContacts = new ArrayList<>();
