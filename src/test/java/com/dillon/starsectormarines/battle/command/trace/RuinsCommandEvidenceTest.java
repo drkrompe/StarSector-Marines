@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.RuinsBattleFixture;
-import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.json.JSONArray;
@@ -28,11 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Opt-in evidence that the Ruins family plays to an end ({@code ruins-expedition-battle.md}, slice 8): one fixture per
- * grade on the ruins ground, each played headless from a few seeds. Every run must end with the haul boarded or the
- * expedition lost through one of the family's terminals (the haul failed, or the company beaten); a run that only
- * times out fails. It proves the mission works, not that it is hard enough: the company is the autopilot here, and
- * balance is tuned against a player.
+ * Opt-in evidence that every Ruins grade sets up and can end ({@code ruins-expedition-battle.md}, slice 8): one fixture
+ * per grade on the ruins ground, each from a few seeds. A run either sets up or fails to (its ground cannot be laid),
+ * and a run that set up either ends (the haul boarded or lost, or the company beaten) or is stuck at the tick limit.
+ *
+ * <p>Nothing else is reported. The company here is Extraction's autopilot, not anything a player would do, so who
+ * wins and how long it takes say nothing about the mission.
  */
 @Tag("ruins-command-evidence")
 class RuinsCommandEvidenceTest {
@@ -48,7 +48,7 @@ class RuinsCommandEvidenceTest {
             "/battle-fixtures/ruins-scavengers-vast-v1.json");
 
     @Test
-    void everyGradePlaysToOneOfTheFamilysTerminals() throws Exception {
+    void everyGradeSetsUpAndEnds() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         int maxTicks = positive(PREFIX + ".maxTicks", DEFAULT_MAX_TICKS);
         int seeds = positive(PREFIX + ".seeds", DEFAULT_SEEDS);
@@ -69,50 +69,39 @@ class RuinsCommandEvidenceTest {
 
         StringBuilder markdown = new StringBuilder()
                 .append("# Ruins command evidence\n\n")
-                .append("Forced-serial, zero-input Ruins expeditions on the ruins ground: Extraction's commanders ")
-                .append("play the company, the occupant's side plays as the battle installs it. ")
-                .append(seeds).append(" seed(s) per grade, at most ").append(maxTicks).append(" ticks.\n\n")
-                .append("| Grade | Occupant | Seed | Result | Seconds | Haul | Breach | Caches secured |\n")
-                .append("|---|---|---:|---|---:|---|---:|---:|\n");
+                .append("Whether each grade's battle sets up on the ruins ground, and whether it ends within ")
+                .append(maxTicks).append(" ticks, from ").append(seeds).append(" seed(s) per grade.\n\n")
+                .append("| Grade | Seed | Setup | End |\n")
+                .append("|---|---:|---|---|\n");
         JSONArray rows = new JSONArray();
-        List<String> undecided = new ArrayList<>();
         List<String> setupFailures = new ArrayList<>();
+        List<String> stuck = new ArrayList<>();
         for (RunResult result : results) {
             String id = result.grade().toLowerCase(Locale.ROOT) + "-" + result.seed();
-            Files.writeString(output.resolve("traces").resolve(id + ".jsonl"), result.trace(), StandardCharsets.UTF_8);
-            if (result.outcome().equals("TIMEOUT")) undecided.add(id);
-            if (result.outcome().equals("SETUP_FAILED")) setupFailures.add(id + ": " + result.failure());
-            markdown.append('|').append(result.grade()).append('|').append(result.occupant())
-                    .append('|').append(result.seed()).append('|').append(result.outcome())
-                    .append('|').append(Math.round(result.ticks() * BattleSimulation.TICK_DT))
-                    .append('|').append(result.phase()).append(result.failure().equals("NONE") ? "" : " (" + result.failure() + ")")
-                    .append('|').append(Math.round(result.breachProgress() * 100f)).append('%')
-                    .append('|').append(result.cachesSecured()).append('/').append(result.caches())
+            if (result.setupFailure() != null) {
+                setupFailures.add(id + ": " + result.setupFailure());
+            } else {
+                Files.writeString(output.resolve("traces").resolve(id + ".jsonl"), result.trace(),
+                        StandardCharsets.UTF_8);
+                if (!result.ended()) stuck.add(id);
+            }
+            markdown.append('|').append(result.grade()).append('|').append(result.seed())
+                    .append('|').append(result.setupFailure() == null ? "set up" : "failed: " + result.setupFailure())
+                    .append('|').append(result.setupFailure() != null ? "-" : result.ended() ? "ended" : "stuck")
                     .append("|\n");
-            rows.put(new JSONObject()
-                    .put("grade", result.grade()).put("occupant", result.occupant()).put("seed", result.seed())
-                    .put("outcome", result.outcome()).put("winner", result.winner() == null ? JSONObject.NULL : result.winner())
-                    .put("ticks", result.ticks()).put("phase", result.phase()).put("failure", result.failure())
-                    .put("breachProgress", result.breachProgress())
-                    .put("caches", result.caches()).put("cachesSecured", result.cachesSecured()));
-        }
-        markdown.append('\n');
-        for (String grade : results.stream().map(RunResult::grade).distinct().toList()) {
-            List<RunResult> ofGrade = results.stream().filter(r -> r.grade().equals(grade))
-                    .filter(r -> !r.outcome().equals("SETUP_FAILED")).toList();
-            long won = ofGrade.stream().filter(r -> r.outcome().equals("HAUL_BOARDED")).count();
-            double meanSeconds = ofGrade.stream().mapToInt(RunResult::ticks).average().orElse(0) * BattleSimulation.TICK_DT;
-            markdown.append("- ").append(grade).append(": ").append(won).append('/').append(ofGrade.size())
-                    .append(" boarded, mean ").append(Math.round(meanSeconds)).append(" s\n");
+            rows.put(new JSONObject().put("grade", result.grade()).put("seed", result.seed())
+                    .put("setUp", result.setupFailure() == null)
+                    .put("setupFailure", result.setupFailure() == null ? JSONObject.NULL : result.setupFailure())
+                    .put("ended", result.ended()));
         }
         Files.writeString(output.resolve("summary.json"), new JSONObject()
-                .put("schemaVersion", 1).put("maxTicks", maxTicks).put("seedsPerGrade", seeds)
+                .put("schemaVersion", 2).put("maxTicks", maxTicks).put("seedsPerGrade", seeds)
                 .put("runs", rows).toString(2) + '\n', StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.md"), markdown.toString(), StandardCharsets.UTF_8);
         System.out.println("[ruins-command-evidence] report " + output.resolve("summary.md"));
 
         assertTrue(setupFailures.isEmpty(), "expeditions whose battle could not be set up: " + setupFailures);
-        assertTrue(undecided.isEmpty(), "expeditions that reached no terminal: " + undecided);
+        assertTrue(stuck.isEmpty(), "expeditions stuck at the tick limit: " + stuck);
     }
 
     private static RunResult run(RuinsBattleFixture fixture, int maxTicks) throws Exception {
@@ -120,9 +109,8 @@ class RuinsCommandEvidenceTest {
         try {
             built = fixture.build();
         } catch (RuntimeException setup) {
-            // A ground that cannot be laid is a setup failure: report it beside the runs that played.
-            return new RunResult(fixture.grade().name(), fixture.occupant().name(), fixture.seed(), "SETUP_FAILED",
-                    null, 0, "-", String.valueOf(setup.getMessage()), 0f, 0, 0, "");
+            // A ground that cannot be laid is reported beside the runs that played, not instead of them.
+            return new RunResult(fixture.grade().name(), fixture.seed(), String.valueOf(setup.getMessage()), false, "");
         }
         try (BattleSimulation sim = built) {
             sim.setCommandTraceEnabled(true, fixture.kind());
@@ -132,18 +120,9 @@ class RuinsCommandEvidenceTest {
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             RuinsObjectiveFacts vault = RuinsObjectiveDisclosure.freeze(sim, Faction.MARINE);
-            String outcome;
-            if (vault.complete()) outcome = "HAUL_BOARDED";
-            else if (vault.failed()) outcome = "HAUL_LOST";
-            else if (sim.isComplete()) outcome = "COMPANY_BEATEN";
-            else outcome = "TIMEOUT";
-            List<SalvageCache> caches = sim.fieldSalvage().caches();
-            return new RunResult(fixture.grade().name(), fixture.occupant().name(), fixture.seed(), outcome,
-                    sim.getWinner() != null ? sim.getWinner().name() : null, sim.getSimTickIndex(),
-                    vault.phase(), vault.failure() != null ? vault.failure().name() : "NONE",
-                    vault.breachDuration() > 0f ? vault.breachProgress() / vault.breachDuration() : 0f,
-                    caches.size(), (int) caches.stream().filter(SalvageCache::secured).count(),
-                    sim.getCommandTraceJsonLines());
+            // Ended: the haul boarded or lost, or the battle decided some other way (the company beaten).
+            boolean ended = vault.complete() || vault.failed() || sim.isComplete();
+            return new RunResult(fixture.grade().name(), fixture.seed(), null, ended, sim.getCommandTraceJsonLines());
         }
     }
 
@@ -177,7 +156,6 @@ class RuinsCommandEvidenceTest {
         return parsed;
     }
 
-    private record RunResult(String grade, String occupant, long seed, String outcome, String winner, int ticks,
-                             String phase, String failure, float breachProgress, int caches, int cachesSecured,
-                             String trace) { }
+    /** @param setupFailure why the battle could not be set up, or null when it was */
+    private record RunResult(String grade, long seed, String setupFailure, boolean ended, String trace) { }
 }
