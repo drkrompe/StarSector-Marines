@@ -544,7 +544,7 @@ stage refuses any arrival area touching the objective's claim instead. A Raid
 states it (owner: "we don't need to keep landing zones at the edge of the map"),
 because its prize is wherever the search finds it rather than the garrison, and
 a garrison's claim often runs down beside the arrival band with no gap to
-measure. The choice is on the picks page as `raid-landing`.
+measure. The owner picked inset over the edge (`raid-landing`, 2026-11-09).
 
 **Cells, not a fraction of the map.** A standoff is a walk, and a walk does not
 scale with the map: doubling the map should not double the minutes before first

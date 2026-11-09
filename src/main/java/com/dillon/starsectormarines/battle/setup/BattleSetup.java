@@ -133,6 +133,7 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
@@ -1298,6 +1299,9 @@ public final class BattleSetup {
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
+            // The vault store: a find per layer at the vault, which comes out with the haul.
+            sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
+                    ruinsLayout.sourceX(), ruinsLayout.sourceY()));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

@@ -216,6 +216,15 @@ story's battle plays, it lifts the fork's development-only gate
 12. **The vault store.** One find per layer of the delve, placed at the vault,
     recovered when the haul boards and settled with the banked finds. It is
     left behind on a pull-out, and is subject to slice 11 like any find.
+
+    *Built.* `RuinsVaultStore.of` lays a find per layer at the vault's cell,
+    `vault-store-1` onward; `BattleSetup` hands it to
+    `BattleSimulation.setVaultStore`, which leaves out the site's taken finds.
+    It is no field cache, so nobody secures it by standing at it.
+    `MissionResolver` settles it after the banked finds only on a win
+    (`RuinsVaultStore.settled`), so it comes home and is remembered with them,
+    and a pull-out leaves it. It is not yet drawn at the vault. Not yet seen in
+    a played battle.
 13. **The rail: phase, Delve row and close readings.** The vault's card gains
     the Entrance step (Entrance > Breach > Escort > Board) and reads "Take the
     entrance" in phase A, with every entrance and apron marked and an apron's
