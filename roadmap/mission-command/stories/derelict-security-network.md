@@ -66,8 +66,9 @@ swarm director, and it commands flocks as units.
    courts.
 8. **Power branches.** At a site whose power hall feeds the network, a
    junction that cuts a branch powers down the zones on it (`ruins-works.md`).
-9. **Looks.** Domain and contingency looks for the cradles, posts and node
-   (`tech-families.md`), with picks.
+9. **Looks.** Domain and contingency looks for the posts and node
+   (`tech-families.md`), with picks. The cradle's look is the flocks' (slice 7
+   of `derelict-drone-flocks.md`).
 
 ## Interiors
 

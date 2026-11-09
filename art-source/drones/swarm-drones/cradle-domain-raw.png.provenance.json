@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c148-c43d-75c1-84e9-4d7aa81ce144",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c148-c43d-75c1-84e9-4d7aa81ce144\\exec-b8bc95b4-56dc-44a0-bb3f-d890cdb9ab36.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\swarm-drones\\cradle-domain-raw.png",
+    "sha256": "9968f3572389cf10e7373ad9df086d115736510305a695e1236cddab205e2fcb",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\drones\\swarm-drones\\cradle-domain-prompt.txt",
+  "promptSha256": "7a4ac25a6af7bff8a16f7189056100f8cc68ddc3ac27528084d432557ad0ef77",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Livery, material and wear reference only; not layout, subject or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of four finished top-down game sprites of a DRONE CRADLE: a ground-standing docking station of an old Domain-era colonial installation, where a set of fourteen small utility drones is docked, serviced and recharged. About four metres across, an industrial fixture built where it stands. The four are alternative designs; keep each exactly where the guide puts it, at exactly its size and outline:\n- top-left, RACK: a rectangular docking rack, two rows of seven round docking cups either side of a central service spine.\n- top-right, CAROUSEL: a round steel drum with fourteen round docking hatches round the rim and a low antenna mast at the hub.\n- bottom-left, HANGAR: a low steel box whose two roof doors stand half open on a dark bay, fourteen docked drone hubs visible inside.\n- bottom-right, BLOCK: a square block of fourteen square docking bays with round hatch caps, three standing open and dark, two corner housings with caution markings.\nLivery and material: Domain-era colonial industrial equipment, decades unattended: weathered grey pressed-steel plate with rivets and bolted seams, worn yellow-and-black caution striping where the guide has yellow, a small red status lamp where it has red, stencilled serial numbers; dust, chipped paint and a little rust, sturdy and utilitarian. Image 2 shows the drones this station docks, in the same livery (material, palette and wear reference only, not layout or subject); the station must read as the same family. Match the rendering scale and level of detail of image 3, an approved top-down vehicle sprite from this game (rendering style only, not layout, palette or subject): grounded, believable, crisp and readable at small size, not glossy concept art.\nIn the guide pale grey is steel plate, mid grey is service decking or door leaves, dark is open bays or ducts, light-grey discs are closed hatches or docked drones.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Keep each design exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between them. True transparent background with genuine alpha outside the silhouettes; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\drones\\swarm-drones\\cradle-guide.png",
+      "sha256": "96cf606f51bdb621c3184233a8ccefb88ffeb064ebf713cfdab9ee04438b8d72",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "art-source\\drones\\swarm-drones\\swarm-domain-raw.png",
+      "sha256": "1299770b86549d886e3ff4da381edbeb99ad1fa5dbfcb2308183cd1d96ae34f9",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Livery, material and wear reference only; not layout, subject or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3809076c4cb5654e3f6a554cd0a914c4a9047c09b5c33f49bcba746c7c4f795b",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sprite sheet, preserving the guide’s geometry and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 87502,
+    "cached_input_tokens": 59008,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 933,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 81.9
+}

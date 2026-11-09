@@ -24,10 +24,12 @@ public enum DroneLook {
     /** Tri-Tachyon's strike drone: a dart-shaped warhead pushed by a tail fan. */
     TT_STRIKE("graphics/battle/drones/tt-strike.png", 1.1f),
     /**
-     * A flock's swarm drone ({@link Flock}): small, so a flock of sixteen reads as a body of little machines. Drawn
-     * with the shipped drone's art until its own look is picked (`derelict-drone-flocks.md`, slice 7).
+     * A flock's swarm drone ({@link Flock}) in Domain security's livery ({@link FlockLivery#DOMAIN}): small, so a flock
+     * of sixteen reads as a body of little machines (`derelict-drone-flocks.md`, slice 7).
      */
-    SWARM(Drone.SPRITE_PATH, .55f);
+    SWARM("graphics/battle/drones/swarm-domain.png", .55f),
+    /** The swarm drone in contingency security's livery ({@link FlockLivery#CONTINGENCY}). Appended: looks are ordinals. */
+    SWARM_CONTINGENCY("graphics/battle/drones/swarm-contingency.png", .55f);
 
     private final String spritePath;
     private final float heightCells;
