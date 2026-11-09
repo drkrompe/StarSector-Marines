@@ -59,6 +59,8 @@ public final class DerelictSecurityDirector {
     private final Map<Integer, Float> durability = new TreeMap<>();
     private final Map<Integer, int[]> stirredAt = new TreeMap<>();
     private final Set<Long> haul = new TreeSet<>();
+    private final Map<Integer, Long> nodes = new TreeMap<>();
+    private final Map<Integer, Float> nodeDurability = new TreeMap<>();
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
                                     int vaultX, int vaultY) {
@@ -72,6 +74,16 @@ public final class DerelictSecurityDirector {
     /** Connects the flock model (`derelict-drone-flocks.md`, Seam). */
     public void connectFlocks(FlockCommandPort port) {
         flocks = port == null ? FlockCommandPort.NONE : port;
+    }
+
+    /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
+    public void standNode(int zoneId, long entityId) {
+        nodes.put(zoneId, entityId);
+    }
+
+    /** Each zone's node entity, by zone id. */
+    public Map<Integer, Long> nodes() {
+        return Collections.unmodifiableMap(nodes);
     }
 
     public SecurityNetwork network() {
@@ -113,6 +125,19 @@ public final class DerelictSecurityDirector {
             if (zone == null) continue;
             network.stir(zone.id, tick);
             stirredAt.put(zone.id, new int[] {contact.cellX(), contact.cellY()});
+        }
+        DerelictNode.watch(network, nodes, id -> sim.resolveUnit(id) != 0L);
+        for (Map.Entry<Integer, Long> node : nodes.entrySet()) {
+            SecurityZone zone = network.zone(node.getKey());
+            flocks.nodeStands(node.getKey(), zone.nodeAlive());
+            if (!zone.nodeAlive()) continue;
+            // Damage to the node is damage to a unit of the zone: it wakes.
+            float now = sim.world().hp(node.getValue()) + sim.world().armor(node.getValue());
+            Float before = nodeDurability.put(node.getKey(), now);
+            if (before != null && now < before - 0.5f) {
+                network.stir(zone.id, tick);
+                stirredAt.put(zone.id, new int[] {zone.nodeCellX, zone.nodeCellY});
+            }
         }
         for (Walker walker : walkers) {
             float now = durability(sim, walker.squadId());
