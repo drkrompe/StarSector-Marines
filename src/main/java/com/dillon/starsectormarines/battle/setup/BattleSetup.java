@@ -734,7 +734,21 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null, null, null, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null, null, null, 0);
+    }
+
+    /**
+     * A raid to disrupt an industry ({@code raid-mission.md}, Break): {@code machines} machines of the works to
+     * wreck, the way out open from the first. Zero machines is a raid for one target.
+     */
+    public static BattleSimulation createRaidWorks(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName, int machines) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
+                sprawl, null, 1f, false, targetName, null, null, null, null, null, machines);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -774,7 +788,7 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                ruinsCrew(occupant, grade));
+                ruinsCrew(occupant, grade), 0);
     }
 
     /** A ruins site's scavenger crew: its grade's, for a scavenger site only; null for every other occupant. */
@@ -1171,14 +1185,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null, null, null, 0);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null, null, 0);
     }
 
     /**
@@ -1219,7 +1233,7 @@ public final class BattleSetup {
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
-            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew) {
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1266,7 +1280,9 @@ public final class BattleSetup {
                 marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
-        RaidTargetLayout raidLayout = type == MissionType.RAID
+        RaidWorksLayout raidWorksLayout = type == MissionType.RAID && raidWorks > 0
+                ? RaidWorksLayout.select(map, lzCells, raidWorks) : null;
+        RaidTargetLayout raidLayout = type == MissionType.RAID && raidWorksLayout == null
                 ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
         ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
@@ -1284,6 +1300,15 @@ public final class BattleSetup {
             sim.getColdAccount().holdMachines(new ColdAccountMachineReserve(ColdAccountForce.MACHINES,
                     MaintenanceOutpost.footprint(map.grid.getHeight()), MaintenanceOutpost.machineBay(map.grid.getHeight()),
                     groundRoster.primaryFactionId()));
+        } else if (raidWorksLayout != null) {
+            List<RaidObjective.Site> machines = new ArrayList<>();
+            for (int[] cell : raidWorksLayout.machines()) {
+                machines.add(new RaidObjective.Site(cell[0], cell[1],
+                        Math.max(0, sim.getZoneGraph().zoneIdAt(cell[0], cell[1]))));
+            }
+            sim.addObjective(RaidObjective.works(raidWorksLayout.targetId(),
+                    raidTargetName == null ? raidWorksLayout.targetName() : raidTargetName, machines,
+                    raidWorksLayout.egressCellX(), raidWorksLayout.egressCellY()));
         } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());

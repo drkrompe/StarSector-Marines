@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryReport;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
@@ -436,6 +437,7 @@ public final class MissionResolver {
                 .mission(mission)
                 .victory(victory)
                 .pulledOut(pulledOut)
+                .raidWorksShare(raidWorksShare(sim))
                 .payoutEarned(payoutEarned)
                 .marinesEngaged(marinesEngaged)
                 .marinesLost(marinesLost)
@@ -476,6 +478,14 @@ public final class MissionResolver {
      * board (anything still running lapses, or ends as its runtime says) and reads its
      * results. Empty when the mission rolled none.
      */
+    /** The share of a disrupting raid's works the company wrecked; 1 when the battle had no works. */
+    static float raidWorksShare(BattleSimulation sim) {
+        for (Objective objective : sim.getObjectives()) {
+            if (objective instanceof RaidObjective raid && raid.works()) return raid.share();
+        }
+        return 1f;
+    }
+
     static List<ObjectiveResult> optionalObjectiveResults(BattleSimulation sim) {
         ObjectiveBoard board = sim.getOptionalObjectives();
         if (board == null) return List.of();
@@ -558,7 +568,8 @@ public final class MissionResolver {
             // command when the panel closes. A replayed result records nothing further
             // and writes nothing further back.
             if (key == null || !MarketRaidLedger.record(
-                    script != null ? script.state() : null, key.serial(), outcome.victory)) {
+                    script != null ? script.state() : null, key.serial(), outcome.victory,
+                    outcome.raidWorksShare)) {
                 LOG.info("MarineOps: market raid " + outcome.missionId + " already recorded — no writeback");
                 return;
             }
