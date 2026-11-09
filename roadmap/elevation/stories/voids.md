@@ -316,6 +316,19 @@ Laws):
      depth so the towers rise out of them. The shallow deck is cool under
      the sky; the deep one warm, lit by the city below, and thinner, so its
      lights show through.
+   - **Steam, searchlights and running lights** (owner, 2026-11-09: more
+     effects). Vents on the towers' own roofs breathe steam: puffs from the
+     fog sheet leaving the roof one after another, rising, swelling, thinning
+     and leaning with the wind, whiter than the fog banks so they read as
+     columns. Searchlights stand at some corners of the playing surface,
+     their beams swinging slowly out over the drop: a chain of soft lights
+     widening and fading along the throw, drawn additively, since light
+     composited over grey fog does not brighten it; the surface's tiles cut
+     a beam off where it crosses the deck. Lamps on the city's deep crowns
+     were tried first; the nearer towers' walls hid their beams. Every craft
+     carries a red and a green light at its widest and a white strobe at
+     its tail, and its engine glow is round. Steam vents on the terraces were
+     tried and dropped: the fog banks drowned them.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
      Each structure's roof takes a corner radius hashed from its place
      (square, 6, 10 or 14 m; a plain sum of its position put every tower of
