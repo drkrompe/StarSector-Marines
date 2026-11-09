@@ -98,6 +98,14 @@ public record PrecinctCharacter(String name, Map<MapDistrictTheme, Integer> mix,
             MapDistrictTheme.INDUSTRIAL, 85,
             MapDistrictTheme.OUTSKIRTS, 15);
 
+    /**
+     * Farm country: steadings and open ground, a shed or two among them. A farming Raid site's district round its
+     * plant ({@code raid-mission.md}, Site templates).
+     */
+    public static final PrecinctCharacter FARMSTEAD = of("farmstead", null,
+            MapDistrictTheme.OUTSKIRTS, 80,
+            MapDistrictTheme.INDUSTRIAL, 20);
+
     /** One district of a city: dense and mixed, with no core of its own. */
     public static final PrecinctCharacter QUARTER = of("quarter", null,
             MapDistrictTheme.MIXED, 30,

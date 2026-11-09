@@ -420,7 +420,13 @@ com.dillon.starsectormarines.battle.setup.RaidLandingOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidDirectionsSuite
 com.dillon.starsectormarines.ops.RaidWorksLookSuite
 com.dillon.starsectormarines.ops.RaidSiteLookSuite
+com.dillon.starsectormarines.ops.PlanetGroundLookSuite
 com.dillon.starsectormarines.ops.RaidMineSiteLookSuite
+com.dillon.starsectormarines.ops.RaidRefinerySiteLookSuite
+com.dillon.starsectormarines.ops.RaidLightIndustrySiteLookSuite
+com.dillon.starsectormarines.ops.RaidFarmSiteLookSuite
+com.dillon.starsectormarines.ops.RaidPortSiteLookSuite
+com.dillon.starsectormarines.ops.RaidMilitarySiteLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite
 com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
@@ -429,6 +435,7 @@ com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
+com.dillon.starsectormarines.battle.derelict.RuinsGuardiansLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite

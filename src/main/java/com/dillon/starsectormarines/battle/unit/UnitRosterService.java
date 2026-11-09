@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
+import com.dillon.starsectormarines.battle.combat.HitScale;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.combat.StaggerModifier;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
@@ -423,6 +424,14 @@ public final class UnitRosterService {
 
     /** Data owner for the MITIGATION component — the live screen an actor can hold up. */
     public MitigationService mitigations() { return mitigationService; }
+
+    private HitScale hitScale = HitScale.NONE;
+
+    /** The scale every resolved hit's damage takes after cover; {@link HitScale#NONE} unless a mission sets one. */
+    public HitScale hitScale() { return hitScale; }
+
+    /** Sets the hit scale (derelict security's braced vault frame); null restores {@link HitScale#NONE}. */
+    public void hitScale(HitScale scale) { hitScale = scale == null ? HitScale.NONE : scale; }
 
     /** Limb wounds carried this battle. */
     public WoundService wounds() { return woundService; }

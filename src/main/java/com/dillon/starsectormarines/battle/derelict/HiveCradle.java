@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.drone.FlockCradle;
+import com.dillon.starsectormarines.battle.drone.FlockHatch;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 
@@ -42,6 +45,16 @@ public final class HiveCradle {
     private HiveCradle() {}
 
     /**
+     * The hive's housing at {@code (cellX, cellY)}: a cradle's structure, targeted, armoured and demolished as one is,
+     * heavier and plated shut until its hatch opens.
+     */
+    public static EntitySpec create(String id, Faction side, int cellX, int cellY) {
+        return FlockCradle.create(id, side, cellX, cellY)
+                .health(MAX_STRUCTURE)
+                .armor(ARMOR_CAPACITY, SHUT_ARMOR_RATING);
+    }
+
+    /**
      * The court the hive stands in, or null for a site without one. A layer guardian stands at an extensive or vast
      * site (`ruins-guardian-placement` a), on the deepest interior layer before the vault's, in that layer's court:
      * inside the megastructure a court is a light well, open sky ringed by roofed halls, so the hive's flock is kept
@@ -73,7 +86,7 @@ public final class HiveCradle {
      * One hive's hatch and bay. Each tick takes whether its branch is powered and how many of its flock are up, and
      * returns how many drones it launches that tick.
      */
-    public static final class Hatch {
+    public static final class Hatch implements FlockHatch {
         private HatchState state = HatchState.SHUT;
         private int bay = BAY;
         private float cycle;
@@ -89,6 +102,7 @@ public final class HiveCradle {
          * @param airborne   the flock's drones now up
          * @return the drones launched this tick
          */
+        @Override
         public int tick(float dt, boolean powered, boolean nodeStands, int airborne) {
             if (!powered || !nodeStands) {
                 // Cold: the hatch shuts and the clocks stop; the bay keeps what it built.
@@ -150,6 +164,7 @@ public final class HiveCradle {
         public int bay() { return bay; }
 
         /** The plate rating the hive takes hits on now. */
+        @Override
         public float armorRating() {
             return state == HatchState.OPEN ? OPEN_ARMOR_RATING : SHUT_ARMOR_RATING;
         }

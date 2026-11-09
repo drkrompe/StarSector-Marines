@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -63,11 +64,18 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
+        // Every lawn has been laid by now; the planet decides whether it is lawn. Before the landscape, so a hill
+        // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
+        CultivatedGround.settle(c.topology, field);
+        landscape(c, field);
+    }
+
+    private void landscape(GenContext c, SurfaceField field) {
         if (!Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return;
         if (c.width < 32 || c.height < 32 || TileRegistry.installed() == null) return;
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
-        if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());
+        if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin(), field);
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape, field);
         boolean[] reserved = reservations(c, hostAnchors, true);
@@ -753,9 +761,10 @@ public final class OutdoorLandscapeStage implements GenStage {
      * shows as one, against bare earth (which does not burn, `fire-nouns.md`)
      * or wild ground alike; with this the line between them is organic. Runs
      * before the tracks are cleared, so a ride stays bare earth wherever a
-     * margin reaches it.
+     * margin reaches it. The rough ground is the world's own: grass and plants
+     * only where things grow, the world's bare ground elsewhere.
      */
-    private static void raggedMargins(GenContext c, int margin) {
+    private static void raggedMargins(GenContext c, int margin, SurfaceField palettes) {
         int w = c.width, h = c.height;
         TileRegistry registry = TileRegistry.installed();
         List<Integer> plants = new ArrayList<>();
@@ -784,9 +793,10 @@ public final class OutdoorLandscapeStage implements GenStage {
             boolean eaten = in[i] > 0 && in[i] != Integer.MAX_VALUE && in[i] <= (1f - line) * (margin + 1);
             if (!grown && !eaten || laid[i]) continue;
             c.topology.setSurface(x, y, 0);
-            c.topology.setGroundKind(x, y, GroundKind.GRASS);
+            SurfacePalette world = palettes.at(x, y);
+            c.topology.setGroundKind(x, y, world.inlandGround());
             long roll = mix(seed + 1, x, y);
-            boolean plant = !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
+            boolean plant = world == SurfacePalette.VERDANT && !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
             c.topology.setNatureOverlayIndex(x, y, plant ? plants.get((int) Math.floorMod(roll >>> 8, (long) plants.size())) : -1);
         }
     }
