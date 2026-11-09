@@ -1232,7 +1232,8 @@ Conquest fixture's trace diverged at exactly that rally and nowhere else.
 
 ## A derived plan fits the map it is given
 
-`MapScale` is 112x64, 144x80 and 280x168, and the model above was measured at
+`MapScale`'s tier band is 112x64, 144x80 and 280x168 (a Raid takes it two steps
+up, to 200x112, 280x168 and 400x240), and the model above was measured at
 560x336. A derivation with a fixed 30-cell margin and 60-cell separation cannot
 seat a second seed on 112x64 — the seedable span is 52x4 — so both scale with
 the map: the margin is a quarter of the short side and the separation a quarter

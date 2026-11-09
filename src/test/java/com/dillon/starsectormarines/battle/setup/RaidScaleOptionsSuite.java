@@ -31,8 +31,8 @@ import java.util.List;
 /**
  * Raid map sizes for the owner's pick (owner: "Raid maps are too small"): each option's Raid map beside an
  * Extraction map of the same tier, both whole and at one shared scale, so the sizes compare. {@code today} is the
- * tier band ({@link MapScale#forTier}), {@code one-step} is {@link MapScale#forRaid} (built), {@code two-step} a step
- * past it. Two tiers per option: established ({@code *-established.png}, {@value #ESTABLISHED_CELLS} cells across
+ * tier band ({@link MapScale#forTier}), {@code one-step} a step up it, {@code two-step} two steps, the owner's pick and
+ * {@link MapScale#forRaid}. Two tiers per option: established ({@code *-established.png}, {@value #ESTABLISHED_CELLS} cells across
  * each half) and reinforced ({@code *-reinforced.png}, {@value #REINFORCED_CELLS} cells across). Each Raid is also
  * drawn alone fitted to the frame ({@code *-raid-fit.png}). Ground only, through the look preset, roofs on; seed and
  * market are the Raid evidence fixture's (a spaceport and heavy industry on rock).
@@ -54,8 +54,8 @@ public final class RaidScaleOptionsSuite implements SnapshotSuite {
 
     private static final List<Option> OPTIONS = List.of(
             new Option("today", MapScale.forTier(OperationTier.ESTABLISHED), MapScale.forTier(OperationTier.REINFORCED)),
-            new Option("one-step", MapScale.forRaid(OperationTier.ESTABLISHED), MapScale.forRaid(OperationTier.REINFORCED)),
-            new Option("two-step", MapScale.LARGE, MapScale.VAST));
+            new Option("one-step", MapScale.WIDE, MapScale.VAST),
+            new Option("two-step", MapScale.forRaid(OperationTier.ESTABLISHED), MapScale.forRaid(OperationTier.REINFORCED)));
 
     @Override public String id() { return "raid-scale-options"; }
 
