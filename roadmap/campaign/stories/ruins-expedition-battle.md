@@ -141,6 +141,15 @@ story's battle plays, it lifts the fork's development-only gate
    one of the family's terminals. That proves the mission works, not that it is
    hard enough; balance is a played battle (`playBattle -Pbattle=<source>`).
 
+   *Harness built.* `commanderEvidence -Pmission=ruins` plays one scavenger
+   fixture per grade on the ruins ground (`ruins-scavengers-<grade>-v1.json`),
+   three seeds each, with the company's real lift: one twelve-seat Hermes, one
+   trip per squad the tier recommends. Every run that sets up reaches a
+   terminal: on the first full run 10 of 11 boarded the haul and one widespread
+   company was beaten in transit, in about 3 minutes (scattered) to 11 minutes
+   (vast) of battle. One extensive seed (91104) cannot lay its ground
+   (`ruins.layer.2 seats no power hall`), so the task fails until the ground
+   does (`ruins-ground.md`).
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change
