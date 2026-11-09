@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -379,6 +380,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -1261,6 +1263,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SideObjectiveService getSideObjectives() { return sideObjectives; }
 
     private RuinsWorks ruinsWorks;
+    private final List<LockedDoor> lockedDoors = new ArrayList<>();
+
+    /** The battle's locked doors ({@code garrisonables.md}, Locked doors and hardened walls), for drawing. */
+    public List<LockedDoor> lockedDoors() { return Collections.unmodifiableList(lockedDoors); }
+
+    /** Registers a locked door as it installs. At setup. */
+    public void addLockedDoor(LockedDoor door) {
+        if (!lockedDoors.contains(door)) lockedDoors.add(door);
+    }
 
     /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
     public RuinsWorks getRuinsWorks() { return ruinsWorks; }
