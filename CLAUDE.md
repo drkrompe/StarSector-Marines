@@ -130,7 +130,7 @@ its doc for flags and outputs.
 
 | Task | What it answers | Detail |
 |------|-----------------|--------|
-| `commanderEvidence -Pmission=<id>` | A mission's fixture matrix played headless, with traces and summaries (Conquest takes ~17 min: slow is not stuck) | `evidence-tasks.md`, `commander-evidence-missions.md` |
+| `commanderEvidence -Pmission=<id>` | A mission's fixture matrix played headless, with traces, for diagnosing a defect; never to judge success (see below; Conquest takes ~17 min: slow is not stuck) | `evidence-tasks.md`, `commander-evidence-missions.md` |
 | `simDeterminism` | Does the same fixture play the same twice, serially and side by side | `evidence-tasks.md` |
 | `battleProbe` | Step one battle and query it between steps, instead of bisecting | `evidence-tasks.md` |
 | `sceneEvidence` | Behaviour scene verdicts, PASS/FAIL, no rendering | `evidence-tasks.md`, `behavior-scenes.md` |
@@ -156,12 +156,15 @@ its doc for flags and outputs.
   (`SwitchRegistryTest` fails on an unlisted `battle.*` or `marines.*` read in
   `src/main`), and the session that added it removes it with the losing path
   once the comparison is decided. A permanent lever states its reason there.
-- **Balance missions against a player, not the autopilot** (owner). In a
-  played battle the player's squads take no objective from mission command;
-  only allies and the opposition are commanded. Evidence runs still let the
-  Marine commander play the company, so their win rates and durations show a
-  mission works, not that it is hard enough: playtesting found campaign
-  missions too easy that way. Tune for a player giving orders
+- **Sessions never run a mission to judge its success or failure** (owner).
+  Sessions cannot play these maps or balance them against the player, so
+  never play out a mission, story battle or evidence matrix to read who wins,
+  how long it takes, or whether the company gets through, and never tune
+  strength, budgets or difficulty from such a run. Prove rules with unit tests
+  where they are decided. Build checks that need no battle (does the ground
+  build and seat its places) and look shots for review are fine. Balance is
+  the owner's playtest: in a played battle the player commands the company and
+  only allies and the opposition take orders from mission command
   (`mission-command-nouns.md`, Player and faction extensions).
 - **Raise a heap only after finding the retainer**; a battle's live set is well
   under 1 GB (`evidence-tasks.md`, Memory).
