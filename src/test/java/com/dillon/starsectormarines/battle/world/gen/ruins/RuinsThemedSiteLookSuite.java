@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.ruins.RuinsBatteryGuns;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
@@ -27,7 +26,7 @@ import java.util.Locale;
 /**
  * A ruins site built round a colony item ({@code ruins-expedition.md}, The vault and its prize): an extensive site
  * held by scavengers whose vault keeps a cryoarithmetic engine, so it keeps the old colony's batteries
- * ({@link RuinsBatteries}) on its approach. Built through {@link RuinsBattleFixture} as a launched expedition is, then
+ * ({@code RuinsBatteries}) on its approach. Built through {@link RuinsBattleFixture} as a launched expedition is, then
  * through the look preset at 1920x1080: the whole map, the approach at twice play zoom, and the middle battery close,
  * dark at landfall ({@code 01-dark}) and awake once the hall is restarted ({@code 02-awake}). Its ground is today's ruins ground: the
  * theme's own interior set is still owed. Prints each battery's cell and state. {@code -Dsnapshot.ruinsBattle.seed}
@@ -55,7 +54,7 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
         long seed = Long.getLong("snapshot.ruinsBattle.seed", 7L);
         RuinsBattleFixture fixture = RuinsBattleFixture.fromFactoryInputs(seed, BattleSetup.defaultManifest(), false,
                 OperationTier.VETERAN, RiskLevel.MEDIUM, RuinsGroundEvidence.profile(surface), FlybyRoster.EMPTY,
-                FlybyRoster.EMPTY, GRADE, RuinsOccupant.SCAVENGERS, List.of(), RuinsBatteries.count(GRADE, PRIZE));
+                FlybyRoster.EMPTY, GRADE, RuinsOccupant.SCAVENGERS, List.of(), PRIZE);
         List<SnapshotArtifact> out = new ArrayList<>();
         try (BattleSimulation sim = fixture.build()) {
             RuinsBatteryGuns batteries = sim.getRuinsBatteries();

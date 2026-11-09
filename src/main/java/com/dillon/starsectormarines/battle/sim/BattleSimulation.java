@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.ruins.RuinsBatteryGuns;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
@@ -1302,6 +1303,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     private RuinsBatteryGuns ruinsBatteries;
+    private RuinsVaultPrize ruinsPrize;
+
+    /**
+     * A ruins site's vault prize, for what reads its stake (the guardians, {@code ruins-guardians.md}); null for none.
+     */
+    public RuinsVaultPrize getRuinsPrize() { return ruinsPrize; }
+
+    /** Names a ruins site's vault prize. At setup only. */
+    public void setRuinsPrize(RuinsVaultPrize prize) {
+        if (simTickIndex != 0) throw new IllegalStateException("Name the vault's prize at setup");
+        ruinsPrize = prize;
+    }
 
     /** The old colony's batteries on a ruins site's approach; null when the site keeps none. */
     public RuinsBatteryGuns getRuinsBatteries() { return ruinsBatteries; }
