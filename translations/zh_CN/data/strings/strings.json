@@ -941,6 +941,8 @@
 		"openingUiSettingsRaidForkDetail": "开启时，每次在行星上确认袭击都会询问是用陆战队行动亲自带队，还是照常发动。关闭时，袭击照常发动，不再询问。",
 		"openingUiSettingsInvasionFork": "Nexerelin 入侵前询问",
 		"openingUiSettingsInvasionForkDetail": "开启时，每次入侵行星都会询问是用陆战队行动来打，还是交给 Nexerelin。关闭时，Nexerelin 直接进行它自己的地面战斗，不再询问。",
+		"openingUiSettingsRuinsFork": "探索遗迹前询问",
+		"openingUiSettingsRuinsForkDetail": "开启时，每次在无人殖民的世界上探索遗迹都会询问是派连队还是照常派打捞队。关闭时，直接派打捞队，不再询问。",
 		"openingUiSettingsOn": "开",
 		"openingUiSettingsOff": "关",
 		"openingCompanyNoticesMaraSIntroductionToTamsinVale": "Zoey 引荐给 Tamsin Vale",

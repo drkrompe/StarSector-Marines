@@ -13,57 +13,61 @@ import java.util.function.Consumer;
 /** The Settings page's keys, each reading and writing the setting it shows. */
 final class SettingsViewModel {
 
-    /** One on/off setting: where it is read and written, and the property prefix its card binds to. */
-    record Setting(String prop, BooleanSupplier read, Consumer<Boolean> write) {}
+    /**
+     * One on/off setting: where it is read and written, whether its card shows (a setting for a mod or feature that
+     * is absent hides), and the property prefix its card binds to.
+     */
+    record Setting(String prop, BooleanSupplier read, Consumer<Boolean> write, BooleanSupplier shown) {
+        Setting(String prop, BooleanSupplier read, Consumer<Boolean> write) {
+            this(prop, read, write, () -> true);
+        }
+    }
 
     private final List<Key> keys;
-    private final BooleanSupplier nexerelin;
-    private final MutableSignal<String> nexerelinCardClasses;
 
     /**
-     * @param settings  the page's settings, bound as {@code <prop>Label}, {@code <prop>Classes} and
-     *                  {@code <prop>Action}
-     * @param nexerelin whether Nexerelin is enabled; its cards ({@code nexerelinCardClasses}) show only then
+     * @param settings the page's settings, bound as {@code <prop>Label}, {@code <prop>Classes}, {@code <prop>Action}
+     *                 and {@code <prop>CardClasses}
      */
-    SettingsViewModel(Reactor reactor, List<Setting> settings, BooleanSupplier nexerelin) {
+    SettingsViewModel(Reactor reactor, List<Setting> settings) {
         this.keys = settings.stream().map(setting -> new Key(reactor, setting)).toList();
-        this.nexerelin = nexerelin;
-        nexerelinCardClasses = reactor.signal(cardClasses(nexerelin.getAsBoolean()));
     }
 
     void put(Map<String, Object> props) {
         for (Key key : keys) key.put(props);
-        props.put("nexerelinCardClasses", nexerelinCardClasses);
     }
 
     /** Settings live in the save, so another may have been loaded since this page last showed. */
     void refresh() {
         for (Key key : keys) key.refresh();
-        nexerelinCardClasses.set(cardClasses(nexerelin.getAsBoolean()));
     }
 
     private static final class Key {
         private final Setting setting;
         private final MutableSignal<String> label;
         private final MutableSignal<String> classes;
+        private final MutableSignal<String> cardClasses;
 
         Key(Reactor reactor, Setting setting) {
             this.setting = setting;
             boolean on = setting.read().getAsBoolean();
             label = reactor.signal(label(on));
             classes = reactor.signal(classes(on));
+            cardClasses = reactor.signal(cardClasses(setting.shown().getAsBoolean()));
         }
 
         void put(Map<String, Object> props) {
             props.put(setting.prop() + "Label", label);
             props.put(setting.prop() + "Classes", classes);
             props.put(setting.prop() + "Action", (Runnable) this::toggle);
+            props.put(setting.prop() + "CardClasses", cardClasses);
         }
 
         void refresh() {
             boolean on = setting.read().getAsBoolean();
             label.set(label(on));
             classes.set(classes(on));
+            cardClasses.set(cardClasses(setting.shown().getAsBoolean()));
         }
 
         private void toggle() {
@@ -84,14 +88,18 @@ final class SettingsViewModel {
         return shown ? "settings-card" : "settings-card settings-card-hidden";
     }
 
-    /** The page's properties with no campaign behind them, every setting showing {@code on}. */
-    static Map<String, Object> previewProps(boolean on, boolean nexerelin) {
+    /**
+     * The page's properties with no campaign behind them, every setting showing {@code on}; the Nexerelin and ruins
+     * cards show when {@code optional} is true.
+     */
+    static Map<String, Object> previewProps(boolean on, boolean optional) {
         Map<String, Object> props = new LinkedHashMap<>();
         List<Setting> settings = List.of(
                 new Setting("voiceOver", () -> on, value -> { }),
                 new Setting("raidFork", () -> on, value -> { }),
-                new Setting("invasionFork", () -> on, value -> { }));
-        new SettingsViewModel(new Reactor(), settings, () -> nexerelin).put(props);
+                new Setting("invasionFork", () -> on, value -> { }, () -> optional),
+                new Setting("ruinsFork", () -> on, value -> { }, () -> optional));
+        new SettingsViewModel(new Reactor(), settings).put(props);
         Runnable none = () -> { };
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SETTINGS, MarineOpsPageNav.ANY_SHIP,
                 none, none, none, none, none, none, none, none);

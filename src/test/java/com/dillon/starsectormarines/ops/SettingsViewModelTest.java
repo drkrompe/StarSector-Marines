@@ -25,7 +25,7 @@ class SettingsViewModelTest {
         boolean[] on = {true};
         Map<String, Object> props = SettingsViewModel.previewProps(true, true);
         new SettingsViewModel(reactor, List.of(new SettingsViewModel.Setting("voiceOver", () -> on[0],
-                value -> on[0] = value)), () -> true).put(props);
+                value -> on[0] = value))).put(props);
         Path mod = Path.of("mod");
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(mod.resolve(path)));
         try {
@@ -84,15 +84,16 @@ class SettingsViewModelTest {
         boolean[] on = {true};
         Map<String, Object> props = new LinkedHashMap<>();
         boolean[] nexerelin = {false};
-        SettingsViewModel model = new SettingsViewModel(new Reactor(), List.of(
-                new SettingsViewModel.Setting("raidFork", () -> on[0], value -> on[0] = value)), () -> nexerelin[0]);
+        SettingsViewModel model = new SettingsViewModel(new Reactor(), List.of(new SettingsViewModel.Setting(
+                "invasionFork", () -> on[0], value -> on[0] = value, () -> nexerelin[0])));
         model.put(props);
-        assertEquals("settings-card settings-card-hidden", ((MutableSignal<?>) props.get("nexerelinCardClasses")).peek());
+        assertEquals("settings-card settings-card-hidden",
+                ((MutableSignal<?>) props.get("invasionForkCardClasses")).peek());
         on[0] = false;
         nexerelin[0] = true;
         model.refresh();
-        assertEquals("Off", ((MutableSignal<?>) props.get("raidForkLabel")).peek());
-        assertEquals("settings-card", ((MutableSignal<?>) props.get("nexerelinCardClasses")).peek(),
-                "Nexerelin's settings show once it is enabled");
+        assertEquals("Off", ((MutableSignal<?>) props.get("invasionForkLabel")).peek());
+        assertEquals("settings-card", ((MutableSignal<?>) props.get("invasionForkCardClasses")).peek(),
+                "a setting's card shows once what it needs is there");
     }
 }

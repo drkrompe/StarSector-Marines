@@ -7,24 +7,16 @@ package com.dillon.starsectormarines.campaign.ruins;
 public enum RuinsRoute {
     /** Show the choice between the company and the salvage team. */
     FORK,
-    /** Straight to the expedition briefing. */
-    MARINE_OPERATIONS,
     /** Vanilla's salvage team, untouched: the rule does not intercept at all. */
     STANDARD;
 
     /**
-     * @param preference the save's preference
-     * @param supported  whether this is a ruins site Marine Operations can fight on: an uncolonized world with a
-     *                   ruins condition, not a gas giant. Anything else always gets vanilla's salvage team
+     * @param asks      whether the save's {@link RuinsForkSetting} is on
+     * @param supported whether this is a ruins site Marine Operations can fight on: an uncolonized world with a
+     *                  ruins condition, not a gas giant. Anything else always gets vanilla's salvage team
      */
-    public static RuinsRoute choose(RuinsExpeditionPreference preference, boolean supported) {
-        if (!supported) return STANDARD;
-        if (preference == null) preference = RuinsExpeditionPreference.ASK;
-        return switch (preference) {
-            case ASK -> FORK;
-            case MARINE_OPERATIONS -> MARINE_OPERATIONS;
-            case STANDARD -> STANDARD;
-        };
+    public static RuinsRoute choose(boolean asks, boolean supported) {
+        return asks && supported ? FORK : STANDARD;
     }
 
     /**
