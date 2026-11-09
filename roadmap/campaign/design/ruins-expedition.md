@@ -459,11 +459,14 @@ toward the entrance:
   scavenger patrols, a derelict flock on its leash (flocks never enter a roofed
   room). It does not take the entrance. It is waiting when the company and the
   haul come out, so a thorough phase A pays at the end.
-- **The stir** (planned, `ruins-pressure.md`). An occupied site keeps the
+- **The stir** (`ruins-pressure.md`). An occupied site keeps the
   pressure on the whole delve: time inside, gunfire and loud acts raise a stir
   that never falls, and each step sends a push out of a finite reserve deeper
-  in, hunting the company, or onto the way back behind a company that sits
-  still. Nothing comes up behind the first layer inside.
+  in, hunting the company's noise, or onto the stand of the layer behind a
+  company that has sat still. Nothing comes up behind the first layer inside.
+  Each occupant raises its own: line-frame lances, crew squads called up from
+  the dig, or Rav bores woken. Each push is a comms line in the occupant's
+  voice naming the layer.
 - **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out
