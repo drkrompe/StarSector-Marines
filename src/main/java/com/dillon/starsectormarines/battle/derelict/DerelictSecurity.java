@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.drone.Flock;
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -139,6 +140,12 @@ public final class DerelictSecurity {
      * keeps its post.
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve) {
+        return install(sim, grade, delve, FlockLivery.DOMAIN);
+    }
+
+    /** As {@link #install(BattleSimulation, RuinsGrade, RuinsDelve)}, its flocks in a lineage's livery. */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
+                                                   FlockLivery livery) {
         RuinsVaultObjective vault = null;
         for (Objective objective : sim.getObjectives()) {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
@@ -178,7 +185,7 @@ public final class DerelictSecurity {
             int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
                     && sim.getTopology().isRoofIntact(x, y));
             Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, home[0] + 0.5f, home[1] + 0.5f,
-                    FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS);
+                    FLOCK_SIZE, FlockWeights.WASP, plan.perimeterCells() + FlockTasking.LEASH_CELLS, livery);
             port.add(flock, plan.id());
         }
         director.connectFlocks(port);

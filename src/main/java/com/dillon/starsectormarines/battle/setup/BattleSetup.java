@@ -59,6 +59,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
@@ -1439,7 +1440,8 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve);
+            if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve,
+                    ruinsOccupant == RuinsOccupant.CONTINGENCY_SECURITY ? FlockLivery.CONTINGENCY : FlockLivery.DOMAIN);
             else if (ravRuin) RuinsSleepers.install(sim, map.ruinsDelve, ruinsGrade, seed);
             else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),

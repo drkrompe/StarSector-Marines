@@ -14,10 +14,16 @@ import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
 import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
+import com.dillon.starsectormarines.battle.satchel.DemolitionKit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +41,11 @@ import java.util.List;
  *
  * <p>Seal doors are shut as wall at setup, each cell like the wall beside it. A powered door opens as built passage; an
  * unpowered open door shuts once nobody stands in it or in the room it keeps. A breach through a shut door forces it
- * open for good, so nothing is locked for good.
+ * open for good, so nothing is locked for good. The forced way is the player's: a seal door's prompt and the collapse's
+ * offer to set a charge, and a satchel carrier who comes within reach of it sets one there.
+ *
+ * <p>The records terminal is read like the hall is restarted. Until it is read, the sealed stores are not marked and
+ * a junction does not say what it feeds until it has been thrown once; reading it marks the whole plan.
  */
 public final class RuinsWorks {
 
@@ -45,11 +55,19 @@ public final class RuinsWorks {
     public static final float THROW_SECONDS = 2f;
     /** How near the company must be to a console or box for its prompt to come up. UNTUNED. */
     public static final float PROMPT_CELLS = 10f;
+    /** Seconds infantry hold the records terminal's console to read it. UNTUNED. */
+    public static final float READ_SECONDS = 4f;
+    /** How far past a satchel's contact range a carrier may stand from the cell he sets it on. UNTUNED. */
+    static final float CHARGE_SLACK = 1.5f;
     /** How near a soldier must stand to a console or box to work it. */
     public static final float WORK_CELLS = 2.5f;
     static final String KEY = "ruins-works/";
     static final String HALL = KEY + "hall";
     static final String JUNCTION = KEY + "junction/";
+    static final String RECORDS = KEY + "records";
+    static final String DOOR = KEY + "door/";
+    static final String COLLAPSE = KEY + "collapse";
+    static final String FORCE = "force";
     public static final String VAULT_SEAL = "vault-seal";
 
     /** A console or box the company works, at its stand cell. */
@@ -63,6 +81,12 @@ public final class RuinsWorks {
     private final boolean[] forced;
     private final MapEditor.PassageRecord[][] shut;
     private final List<SalvageCache> stores;
+    private final Site records;
+    private final SealDoor collapse;
+    private final boolean[] known;
+    private boolean read;
+    private boolean cleared;
+    private String forceKey;
     private RuinsVaultObjective vault;
     private boolean installed;
     private String pressedKey;
@@ -71,8 +95,12 @@ public final class RuinsWorks {
     private String workVerb;
     private float work;
 
-    RuinsWorks(PowerGraph graph, Site hall, List<Site> junctions, List<SealDoor> doors, List<SalvageCache> stores) {
+    RuinsWorks(PowerGraph graph, Site hall, List<Site> junctions, List<SealDoor> doors, List<SalvageCache> stores,
+               Site records, SealDoor collapse) {
         this.graph = graph;
+        this.records = records;
+        this.collapse = collapse;
+        this.known = new boolean[junctions.size()];
         this.hall = hall;
         this.junctions = List.copyOf(junctions);
         this.doors = List.copyOf(doors);
@@ -123,7 +151,19 @@ public final class RuinsWorks {
         onward++;
         RuinsDelve.PowerHall hallPlace = delve.powerHall();
         Site hall = new Site(HALL, Strings.get("ruinsWorksHallName"), hallPlace.console().x(), hallPlace.console().y());
-        return new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores);
+        Site records = delve.records() == null ? null : new Site(RECORDS, Strings.get("ruinsWorksRecordsName"),
+                delve.records().console().x(), delve.records().console().y());
+        SealDoor collapse = null;
+        if (delve.collapse() != null && delve.collapse().shortWay() != null) {
+            RuinsDelve.Way way = delve.collapse().shortWay();
+            RuinsDelve.Area span = way.span();
+            int[][] cells = new int[span.height()][];
+            for (int y = span.bottom(); y <= span.top(); y++) cells[y - span.bottom()] = new int[]{span.left(), y};
+            collapse = new SealDoor("collapse", Strings.get("ruinsWorksCollapseName"), cells, way.far().x(),
+                    way.far().y(), new int[]{span.left(), span.bottom(), span.right(), span.top()}, false);
+        }
+        return new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores, records,
+                collapse);
     }
 
     /** The field caches behind the sealed stores, for the battle's field salvage. */
@@ -135,6 +175,12 @@ public final class RuinsWorks {
     public boolean isForced(int door) { return forced[door]; }
     public Site hall() { return hall; }
     public List<Site> junctions() { return junctions; }
+    public Site records() { return records; }
+    public boolean recordsRead() { return read; }
+    public SealDoor collapse() { return collapse; }
+    public boolean collapseCleared() { return cleared; }
+    /** Whether the player knows what junction {@code j} feeds: thrown once, or the records read. */
+    public boolean junctionKnown(int j) { return read || known[j]; }
 
     /** Shuts every seal door as the wall beside it. At setup, before the battle's field finds are placed. */
     public void install(BattleSimulation sim) {
@@ -193,6 +239,10 @@ public final class RuinsWorks {
     public void tick(BattleSimulation sim) {
         if (!installed || sim.isComplete()) return;
         SideField field = SideField.of(sim);
+        if (pressedKey != null && FORCE.equals(pressedVerb)) {
+            forceKey = pressedKey;
+            pressedKey = null;
+        }
         if (pressedKey != null) {
             Site site = site(pressedKey);
             if (site != null && near(field, site, PROMPT_CELLS)) {
@@ -202,13 +252,14 @@ public final class RuinsWorks {
             }
             pressedKey = null;
         }
+        if (forceKey != null) tickForce(sim, field);
         if (workKey != null) {
             Site site = site(workKey);
             if (!near(field, site, PROMPT_CELLS)) {
                 workKey = null;
             } else if (near(field, site, WORK_CELLS)) {
                 work += BattleSimulation.TICK_DT;
-                if (work >= required(workKey)) finish();
+                if (work >= required(workKey)) finish(sim);
             } else {
                 work = 0f;
             }
@@ -216,18 +267,84 @@ public final class RuinsWorks {
         settle(sim);
     }
 
-    private void finish() {
-        if (workKey.equals(HALL)) graph.restart();
-        else graph.throwJunction(Integer.parseInt(workKey.substring(JUNCTION.length())), Branch.valueOf(workVerb));
+    private void finish(BattleSimulation sim) {
+        if (workKey.equals(HALL)) {
+            graph.restart();
+            loud(sim, hall.x(), hall.y());
+        } else if (workKey.equals(RECORDS)) {
+            read = true;
+        } else {
+            int j = Integer.parseInt(workKey.substring(JUNCTION.length()));
+            graph.throwJunction(j, Branch.valueOf(workVerb));
+            known[j] = true;
+        }
         workKey = null;
         work = 0f;
     }
 
-    private static float required(String key) { return key.equals(HALL) ? RESTART_SECONDS : THROW_SECONDS; }
+    /** A restart is loud: the occupants hear it as the nearest bore waking, or the nearest security zone stirring. */
+    private static void loud(BattleSimulation sim, int x, int y) {
+        if (sim.ruinsSleepers() != null) sim.ruinsSleepers().loud(x + 0.5f, y + 0.5f);
+        if (sim.derelictSecurity() != null) sim.derelictSecurity().network().loud(x, y, sim.getSimTickIndex());
+    }
+
+    private static float required(String key) {
+        return key.equals(HALL) ? RESTART_SECONDS : key.equals(RECORDS) ? READ_SECONDS : THROW_SECONDS;
+    }
+
+    /** The door or collapse the player asked a charge on, or null once it stands open. */
+    private SealDoor forceTarget(String key) {
+        if (COLLAPSE.equals(key)) return cleared ? null : collapse;
+        for (int d = 0; d < doors.size(); d++) {
+            if ((DOOR + doors.get(d).id()).equals(key)) return open[d] ? null : doors.get(d);
+        }
+        return null;
+    }
+
+    /**
+     * A charge on the target the player picked: the first company satchel carrier within his reach of one of its cells
+     * sets it there, as on any wall ({@code SatchelChargeService.plantAtCell}), and the blast that cuts the cell forces
+     * the door or clears the collapse. The order lapses once nobody of the company is near.
+     */
+    private void tickForce(BattleSimulation sim, SideField field) {
+        SealDoor target = forceTarget(forceKey);
+        if (target == null) {
+            forceKey = null;
+            return;
+        }
+        int[] m = target.middle();
+        if (field.nearest(SideField.Who.COMBATANT, m[0] + .5f, m[1] + .5f, PROMPT_CELLS + target.cells().length) == 0L) {
+            forceKey = null;
+            return;
+        }
+        for (int[] c : target.cells()) if (sim.satchelCharges().hasChargeAtCell(c[0], c[1])) return;
+        World world = sim.world();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE || sim.isRiding(unit)
+                    || !DemolitionKit.carried(world, unit) || world.secondaryCooldownTimer(unit) > 0f) continue;
+            SpecialEquipmentDef kit = world.specialEquipment(unit);
+            if (kit.activation() != SpecialActivation.UTILITY_SATCHEL) continue;
+            SatchelChargeSpec spec = kit.satchelChargeSpec();
+            for (int[] c : target.cells()) {
+                float dx = world.x(unit) - (c[0] + .5f), dy = world.y(unit) - (c[1] + .5f);
+                if (dx * dx + dy * dy > sq(spec.contactRange() + CHARGE_SLACK)) continue;
+                if (!sim.satchelCharges().plantAtCell(unit, c[0], c[1], Faction.MARINE, spec)) continue;
+                world.setSecondaryCooldownTimer(unit, spec.cooldownSeconds());
+                if (kit.usesAmmunition()) world.setSecondaryAmmo(unit, world.secondaryAmmo(unit) - 1);
+                sim.noteSecondaryUsed(unit);
+                forceKey = null;
+                return;
+            }
+        }
+    }
+
+    private static float sq(float v) { return v * v; }
 
     /** Opens what is powered, shuts what lost power once it is clear, and hands the vault its seal's power. */
     void settle(BattleSimulation sim) {
         MapEditor editor = sim.mapEditor();
+        if (collapse != null && !cleared && breached(sim, collapse)) cleared = true;
         for (int d = 0; d < doors.size(); d++) {
             if (forced[d]) continue;
             SealDoor door = doors.get(d);
@@ -301,25 +418,53 @@ public final class RuinsWorks {
                     Strings.get("ruinsWorksTagCold"), Strings.format("ruinsWorksHallDetail", seconds(RESTART_SECONDS)),
                     List.of(new OfferVerb("restart", Strings.get("ruinsWorksVerbRestart"), ""))));
         }
+        if (records != null && !read && !RECORDS.equals(workKey) && near(field, records, PROMPT_CELLS)) {
+            out.add(new Offer(records.key(), records.x(), records.y(), SideTrigger.Interact.Layout.CARD, records.name(),
+                    Strings.get("ruinsWorksTagUnread"), Strings.format("ruinsWorksRecordsDetail", seconds(READ_SECONDS)),
+                    List.of(new OfferVerb("read", Strings.get("ruinsWorksVerbRead"), ""))));
+        }
         for (int j = 0; j < junctions.size(); j++) {
             Site box = junctions.get(j);
             if (box.key().equals(workKey) || !near(field, box, PROMPT_CELLS)) continue;
             Branch at = graph.position(j);
-            String feeding = Strings.get(at == Branch.STORE ? "ruinsWorksFeedingStore" : "ruinsWorksFeedingOnward");
             Branch other = at == Branch.STORE ? Branch.ONWARD : Branch.STORE;
+            String detail = junctionKnown(j)
+                    ? Strings.format("ruinsWorksJunctionDetail", Strings.get(at == Branch.STORE
+                            ? "ruinsWorksFeedingStore" : "ruinsWorksFeedingOnward"))
+                    : Strings.get("ruinsWorksJunctionUnknown");
+            String verb = !junctionKnown(j) ? Strings.get("ruinsWorksVerbThrow")
+                    : Strings.get(other == Branch.STORE ? "ruinsWorksVerbStore" : "ruinsWorksVerbOnward");
             out.add(new Offer(box.key(), box.x(), box.y(), SideTrigger.Interact.Layout.CARD, box.name(),
-                    graph.running() ? load : Strings.get("ruinsWorksTagCold"),
-                    Strings.format("ruinsWorksJunctionDetail", feeding),
-                    List.of(new OfferVerb(other.name(), Strings.get(other == Branch.STORE
-                            ? "ruinsWorksVerbStore" : "ruinsWorksVerbOnward"), ""))));
+                    graph.running() ? load : Strings.get("ruinsWorksTagCold"), detail,
+                    List.of(new OfferVerb(other.name(), verb, ""))));
+        }
+        for (int d = 0; d < doors.size(); d++) {
+            SealDoor door = doors.get(d);
+            if (open[d] || (door.store() && !read)) continue;
+            forceOffer(out, field, DOOR + door.id(), door, Strings.get("ruinsWorksDoorSealed"),
+                    Strings.get("ruinsWorksForceDetail"));
+        }
+        if (collapse != null && !cleared) {
+            forceOffer(out, field, COLLAPSE, collapse, Strings.get("ruinsWorksCollapseChoked"),
+                    Strings.get("ruinsWorksCollapseDetail"));
         }
         return out;
+    }
+
+    private void forceOffer(List<Offer> out, SideField field, String key, SealDoor target, String tag, String detail) {
+        int[] m = target.middle();
+        if (key.equals(forceKey) || field.nearest(SideField.Who.COMBATANT, m[0] + .5f, m[1] + .5f, PROMPT_CELLS) == 0L) {
+            return;
+        }
+        out.add(new Offer(key, m[0], m[1], SideTrigger.Interact.Layout.CARD, target.name(), tag, detail,
+                List.of(new OfferVerb(FORCE, Strings.get("ruinsWorksVerbForce"), ""))));
     }
 
     private static String seconds(float s) { return Strings.format("objectiveSeconds", Math.round(s * 10) / 10f); }
 
     private Site site(String key) {
         if (hall.key().equals(key)) return hall;
+        if (records != null && records.key().equals(key)) return records;
         for (Site box : junctions) if (box.key().equals(key)) return box;
         return null;
     }
@@ -343,12 +488,25 @@ public final class RuinsWorks {
                 running ? MissionObjectiveSnapshot.State.COMPLETE : active));
         for (int j = 0; j < junctions.size(); j++) {
             Site box = junctions.get(j);
-            markers.add(new Marker(box.key(), box.name(), box.x(), box.y(), Strings.get(
-                    graph.position(j) == Branch.STORE ? "ruinsWorksFeedingStoreShort" : "ruinsWorksFeedingOnwardShort"),
-                    active));
+            markers.add(new Marker(box.key(), box.name(), box.x(), box.y(), Strings.get(!junctionKnown(j)
+                    ? "ruinsWorksFeedingUnknown" : graph.position(j) == Branch.STORE ? "ruinsWorksFeedingStoreShort"
+                    : "ruinsWorksFeedingOnwardShort"), active));
+        }
+        if (records != null) {
+            markers.add(new Marker(records.key(), records.name(), records.x(), records.y(),
+                    Strings.get(read ? "ruinsWorksTagRead" : "ruinsWorksTagUnread"),
+                    read ? MissionObjectiveSnapshot.State.COMPLETE : active));
+        }
+        if (collapse != null) {
+            int[] m = collapse.middle();
+            markers.add(new Marker(COLLAPSE, collapse.name(), m[0], m[1], Strings.get(cleared
+                    ? "ruinsWorksCollapseCleared" : "ruinsWorksCollapseChoked"),
+                    cleared ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
+            // A sealed store is the site's secret until the records are read or it stands open.
+            if (door.store() && !read && !open[d]) continue;
             int[] m = door.middle();
             String status = Strings.get(forced[d] ? "ruinsWorksDoorForced" : open[d] ? "ruinsWorksDoorOpen"
                     : "ruinsWorksDoorSealed");

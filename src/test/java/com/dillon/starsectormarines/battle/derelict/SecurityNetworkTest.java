@@ -31,6 +31,14 @@ class SecurityNetworkTest {
     }
 
     @Test
+    void aLoudWorkOutsideEveryPerimeterStirsTheNearestZone() {
+        SecurityNetwork network = row();
+        network.loud(70, 10, 5);
+        assertEquals(AWAKE, network.zone(2).state());
+        assertEquals(DORMANT, network.zone(0).state());
+    }
+
+    @Test
     void gunfireWakesOnlyTheZonesWhosePerimeterHoldsIt() {
         SecurityNetwork network = row();
         network.gunfire(40, 10, 5);
