@@ -54,8 +54,8 @@ import java.util.Map;
  * a lost one leaves the ruins unexplored; backing out of the briefing returns to the choice ({@link
  * RuinsExpeditionLedger}).
  *
- * <p>The battle is still a stand-in ({@code RuinsExpeditionMissionFactory}). Until the expedition's own mission
- * exists ({@code ruins-expedition-battle.md}), the fork is offered only in a development build
+ * <p>The battle is the Ruins family's ({@code RuinsExpeditionMissionFactory}). Until the owner's live pass
+ * ({@code ruins-expedition-fork.md}, Live pass), the fork is offered only in a development build
  * ({@link DevConfig#DEV_MODE}). A player's install never sees it, so Explore the ruins is unchanged for them.
  */
 public class MarineRuinsCMD extends BaseCommandPlugin {

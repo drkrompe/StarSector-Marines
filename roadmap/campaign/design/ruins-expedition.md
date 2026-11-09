@@ -1,7 +1,8 @@
 # Ruins expedition: going into a world's ruins with the company
 
-Status: DRAFT — proposed by the owner; nothing is built. The first work is
-`ruins-expedition-fork.md`.
+Status: DRAFT — the fork, the Ruins mission family and its occupants are built
+and offered only in development builds; the owner's live pass is
+`ruins-expedition-fork.md`'s.
 
 Written: 2026-11-09
 
@@ -179,7 +180,9 @@ rule (uncontested presence for a time releases the package), the escorted
 package with its leash, loss and abandonment, boarding at an egress, the
 payload projection's shape (so the rail and map show the haul like any
 package), and the family's disclosure law: the company knows the vault, its
-lift points and the haul; the occupant's layout is never disclosed.
+lift points and the haul; the occupant's layout is never disclosed. It borrows
+them as shared code, never a copy, and a change the family needs in a shared
+rule is raised against `extraction-command.md` first.
 
 **What it does not borrow:** the single corridor and its corridor commander;
 the fixed egress (a lift point can be any held court); the generic defenders'
@@ -195,7 +198,9 @@ is always an opposing commander.
   layer at a time with a lead element ahead of the body, sends a squad to a
   cache or a works task when its layer is quiet, forms the breach hold on the
   vault, and after the breach screens the haul to the nearest lift point it
-  holds. It plans from the same frozen frame as every commander.
+  holds. It plans from the same frozen frame as every commander. It is
+  deferred (owner: planning the company's run is a waste for now), so
+  Extraction's company commander plays the company headless (Open questions).
 - **The occupant's side** is the occupant's own: the **crew commander** for
   scavengers (a conventional squad commander over a camp and a dig), the swarm
   director under a ruins profile for the Rav, and the **security-network
@@ -237,7 +242,10 @@ behind their own gate in `loot-nouns.md`.
 **Retry meets the same ruins.** The map, the occupant, its strength and the
 works are all seeded from the site and never stored, so a second expedition
 meets the same ground at full strength and its works reset. Nothing the first
-expedition opened, powered or destroyed stays that way.
+expedition opened, powered or destroyed stays that way. The one exception is
+the finds it brought home (Law 6): every find keeps its seeded place and
+identity from visit to visit, so a find once taken is left out, and everything
+else is placed as before.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
 supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
@@ -539,7 +547,13 @@ are a pirate's priorities). It uses the pirate ground roster
 borrows the generic Extraction defenders' pieces (`extraction-command.md`):
 posted squads at the camp and the dig, a patrol pool, and the identity-free
 alarm that mobilizes at most three squads. What is its own is the two places it
-answers for, the dig first and the stash second.
+answers for, the dig first and the stash second: one squad always walks the
+dig, an alarm there takes all three, trouble at the camp alone sends two, and
+both at once split two and one. The crew's strength comes from the grade
+alone, a budget spent on its heavy first and then on infantry, whoever owned
+the world. A share of the infantry is posted at the dig and a smaller one at
+the camp, which stands on the vault route nearer the landing; the rest walk
+patrol along the route with the heavy.
 Its stash is the one occupant spoil. Independent salvage crews are not
 occupants: shooting a licensed crew would carry a reputation meaning this
 feature does not own.
@@ -640,6 +654,15 @@ The haul range is the Flow's (step 3), and the battle never changes it.
 
 ## Open questions
 
+- **The delve commander** (deferred, owner). Take it up only once ruins ground
+  has settled, and only if headless evidence needs more than Extraction's
+  company commander. It reads the layers and the vault route from what setup
+  publishes, never open streets: a layer may be inside, behind a threshold or
+  a seal door.
+- Still owed on the rail and the vault: breaching charges left, once a charge
+  is a finite stock; the banked finds by material rather than a count; the
+  close reading's sign on the compact rail, which shows only the band (the
+  comms feed or the row expanded); and the vault store drawn at the vault.
 - Should an occupant also block standard exploration (vanilla's team turned
   back by an armed occupant), or only shape the expedition? Blocking would make
   the fork more than an option, so the default is no.
