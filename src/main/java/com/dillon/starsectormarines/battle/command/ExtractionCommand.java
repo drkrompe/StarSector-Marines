@@ -14,7 +14,7 @@ import java.util.Set;
 public final class ExtractionCommand implements AutonomousMissionCommand<
         ExtractionCommandFrame, ExtractionCommandSnapshot> {
 
-    private final EscortFormation formation = new EscortFormation();
+    private final PayloadEscortFormation formation = new PayloadEscortFormation();
     private volatile ExtractionCommandSnapshot extractionSnapshot;
 
     public ExtractionCommandSnapshot extractionSnapshot() {
@@ -63,7 +63,7 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
 
             Role role = formation.role(squad.squadId());
             int[] desired = desiredCell(role, anchorX, anchorY, payload);
-            int[] target = EscortFormation.nearestReachable(squad, desired[0], desired[1],
+            int[] target = PayloadEscortFormation.nearestReachable(squad, desired[0], desired[1],
                     anchorX, anchorY, frame.topology(), reservedTargets);
             if (target == null) {
                 proposals.add(releaseOrRetain(squad,
@@ -73,9 +73,9 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
                         squad.localContact()));
                 continue;
             }
-            reservedTargets.add(EscortFormation.cellKey(target[0], target[1]));
+            reservedTargets.add(PayloadEscortFormation.cellKey(target[0], target[1]));
 
-            ObjectiveAssignment assignment = EscortFormation.escortRole(role)
+            ObjectiveAssignment assignment = PayloadEscortFormation.escortRole(role)
                     ? ObjectiveAssignment.escort(squad.squadId(),
                     target[0], target[1])
                     : ObjectiveAssignment.defendSite(squad.squadId(),
@@ -131,7 +131,7 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
 
     private static int[] desiredCell(Role role, int anchorX, int anchorY,
                                      ExtractionObjectiveFacts payload) {
-        return EscortFormation.desiredCell(role, anchorX, anchorY,
+        return PayloadEscortFormation.desiredCell(role, anchorX, anchorY,
                 payload.corridorGuideCellX(), payload.corridorGuideCellY(),
                 payload.egressCellX(), payload.egressCellY(),
                 payload.sourceCellX(), payload.sourceCellY());

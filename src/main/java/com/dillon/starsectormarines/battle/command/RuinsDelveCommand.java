@@ -24,7 +24,7 @@ import java.util.Set;
  *   <li><b>Breach.</b> One squad holds the vault, the rest screen it towards the lift point. A landing court whose
  *       route is shorter than the haul's bound lift point gets a squad to hold it open, while three squads or more
  *       remain.</li>
- *   <li><b>Haul.</b> Extraction's moving escort ({@link EscortFormation}) takes the haul to the lift point the
+ *   <li><b>Haul.</b> Extraction's moving escort ({@link PayloadEscortFormation}) takes the haul to the lift point the
  *       objective bound it for.</li>
  * </ol>
  *
@@ -42,7 +42,7 @@ public final class RuinsDelveCommand implements AutonomousMissionCommand<RuinsDe
     static final int DETOUR_ROUTE_CELLS = 24;
 
     private final int layers;
-    private final EscortFormation formation = new EscortFormation();
+    private final PayloadEscortFormation formation = new PayloadEscortFormation();
     private int cleared;
     private boolean atVault;
     private int leadSquadId = -1;
@@ -184,17 +184,17 @@ public final class RuinsDelveCommand implements AutonomousMissionCommand<RuinsDe
                         leadTarget[1]), "DELVE_LEAD_LAYER_" + (cleared + 1), leadTarget, proposals, intents);
             } else if (squad.squadId() == detourSquadId) {
                 RuinsObjectiveFacts.Cache cache = cacheFor(facts, detourCacheId);
-                int[] cell = EscortFormation.nearestReachable(squad, cache.cellX(), cache.cellY(),
+                int[] cell = PayloadEscortFormation.nearestReachable(squad, cache.cellX(), cache.cellY(),
                         cache.cellX(), cache.cellY(), topology, reserved);
                 if (cell == null) { stranded(squad, proposals, intents); clearDetour(); continue; }
-                reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
+                reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
                 assign(squad, Role.CACHE_DETOUR, ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]),
                         "CACHE_DETOUR_" + detourCacheId, cell, proposals, intents);
             } else {
-                int[] cell = EscortFormation.nearestReachable(squad, bodyTarget[0], bodyTarget[1],
+                int[] cell = PayloadEscortFormation.nearestReachable(squad, bodyTarget[0], bodyTarget[1],
                         bodyTarget[0], bodyTarget[1], topology, reserved);
                 if (cell == null) { stranded(squad, proposals, intents); continue; }
-                reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
+                reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
                 assign(squad, Role.DELVE_BODY, ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]),
                         leadInContact ? "DELVE_BODY_SUPPORT_LEAD" : "DELVE_BODY_HOLD_LAYER_" + cleared, cell,
                         proposals, intents);
@@ -247,26 +247,26 @@ public final class RuinsDelveCommand implements AutonomousMissionCommand<RuinsDe
         int screen = 0;
         for (CommandSquadState squad : pool) {
             if (squad.squadId() == vaultHoldSquadId) {
-                int[] cell = EscortFormation.nearestReachable(squad, vaultX, vaultY, vaultX, vaultY, topology, reserved);
+                int[] cell = PayloadEscortFormation.nearestReachable(squad, vaultX, vaultY, vaultX, vaultY, topology, reserved);
                 if (cell == null) { stranded(squad, proposals, intents); continue; }
-                reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
+                reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
                 assign(squad, Role.VAULT_HOLD, ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]),
                         "VAULT_BREACH_HOLD", cell, proposals, intents);
             } else if (squad.squadId() == courtHoldSquadId) {
-                int[] cell = EscortFormation.nearestReachable(squad, court.cellX(), court.cellY(), court.cellX(),
+                int[] cell = PayloadEscortFormation.nearestReachable(squad, court.cellX(), court.cellY(), court.cellX(),
                         court.cellY(), topology, reserved);
                 if (cell == null) { stranded(squad, proposals, intents); courtHoldSquadId = -1; continue; }
-                reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
+                reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
                 assign(squad, Role.COURT_HOLD, ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]),
                         "COURT_HOLD_" + court.name(), cell, proposals, intents);
             } else {
                 ExtractionCommandSnapshot.Role facing = SCREENS.get(screen++ % SCREENS.size());
-                int[] desired = EscortFormation.desiredCell(facing, vaultX, vaultY, -1, -1, egressX, egressY,
+                int[] desired = PayloadEscortFormation.desiredCell(facing, vaultX, vaultY, -1, -1, egressX, egressY,
                         vaultX, vaultY);
-                int[] cell = EscortFormation.nearestReachable(squad, desired[0], desired[1], vaultX, vaultY,
+                int[] cell = PayloadEscortFormation.nearestReachable(squad, desired[0], desired[1], vaultX, vaultY,
                         topology, reserved);
                 if (cell == null) { stranded(squad, proposals, intents); continue; }
-                reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
+                reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
                 assign(squad, Role.VAULT_SCREEN, ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]),
                         "VAULT_SCREEN_" + facing.name(), cell, proposals, intents);
             }
@@ -303,13 +303,13 @@ public final class RuinsDelveCommand implements AutonomousMissionCommand<RuinsDe
         Set<Long> reserved = new HashSet<>();
         for (CommandSquadState squad : pool) {
             ExtractionCommandSnapshot.Role role = formation.role(squad.squadId());
-            int[] desired = EscortFormation.desiredCell(role, anchorX, anchorY, facts.guideCellX(),
+            int[] desired = PayloadEscortFormation.desiredCell(role, anchorX, anchorY, facts.guideCellX(),
                     facts.guideCellY(), egressX, egressY, facts.vaultCellX(), facts.vaultCellY());
-            int[] cell = EscortFormation.nearestReachable(squad, desired[0], desired[1], anchorX, anchorY,
+            int[] cell = PayloadEscortFormation.nearestReachable(squad, desired[0], desired[1], anchorX, anchorY,
                     topology, reserved);
             if (cell == null) { stranded(squad, proposals, intents); continue; }
-            reserved.add(EscortFormation.cellKey(cell[0], cell[1]));
-            ObjectiveAssignment assignment = EscortFormation.escortRole(role)
+            reserved.add(PayloadEscortFormation.cellKey(cell[0], cell[1]));
+            ObjectiveAssignment assignment = PayloadEscortFormation.escortRole(role)
                     ? ObjectiveAssignment.escort(squad.squadId(), cell[0], cell[1])
                     : ObjectiveAssignment.defendSite(squad.squadId(), cell[0], cell[1]);
             assign(squad, Role.valueOf(role.name()), assignment, "HAUL_" + role.name() + "_" + facts.phase(), cell,

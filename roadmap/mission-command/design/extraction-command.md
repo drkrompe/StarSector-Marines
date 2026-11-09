@@ -276,7 +276,7 @@ abandonment, boarding, payload projection and disclosure law, and shares their
 code rather than copying it. It does not take the corridor, the corridor
 commander or the fixed egress; its delve commander moves the haul in the
 corridor commander's escort formation (payload element, close escort, four
-screens), which both share as `EscortFormation`. Presence counts only a
+screens), which both share as `PayloadEscortFormation`. Presence counts only a
 settled Marine combatant that moves: an emplacement guards, it never escorts.
 Its scavengers' crew commander borrows the
 generic defenders' posting, patrol pool and alarm, and its derelict security is

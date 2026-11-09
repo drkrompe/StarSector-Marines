@@ -17,7 +17,7 @@ import java.util.Set;
  * <p>Roles are stable: a squad keeps its role while it lives and stays in the pool, and the payload element is
  * reassigned only when it can no longer reach the payload.
  */
-final class EscortFormation {
+final class PayloadEscortFormation {
 
     private static final List<Role> SCREEN_ROLES = List.of(
             Role.LEAD_SCREEN, Role.LEFT_SCREEN,

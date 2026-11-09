@@ -88,7 +88,7 @@ story's battle plays, it lifts the fork's development-only gate
    it back. At the vault one squad holds the breach and the rest screen it. A
    landing court whose route is shorter than the bound lift point's gets a
    holder while three squads or more remain. The haul then moves in
-   Extraction's escort formation, now shared as `EscortFormation`. Squads under
+   Extraction's escort formation, now shared as `PayloadEscortFormation`. Squads under
    the player's order are left alone. Works detours wait for `ruins-works.md`,
    which has no works yet. A headless `battleProbe` on a Widespread fixture
    shows the delve leading and supporting, then a two-squad company lost at
