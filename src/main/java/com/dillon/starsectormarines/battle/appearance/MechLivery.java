@@ -27,6 +27,15 @@ public enum MechLivery {
         this.assetFolder = assetFolder;
     }
 
+    /**
+     * Whether this livery's chassis are bodies of their own with a foot pad to match, rather than the shared outlines
+     * repainted: the Hegemony's low-tech family (art-source/mech-modular-topdown/sources/lowtech). Its folder then
+     * holds a {@code foot.png}; every other livery stands on the shared foot.
+     */
+    public boolean ownsFoot() {
+        return this == HEGEMONY;
+    }
+
     /** Folder below {@code factions/}, or {@code null} for the base assets. */
     public String assetFolder() {
         return assetFolder;

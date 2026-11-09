@@ -8,7 +8,12 @@ visible. Runtime dimensions use chassis width as their shared unit.
 from pathlib import Path
 from PIL import Image
 
+import sys
+
 from derive_faction_weapons import DC_4_QS_SQUEEZE, build_faction_weapons, squeeze
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "sources" / "lowtech"))
+import build as lowtech  # noqa: E402
 
 
 # Raw art lives outside mod/, so the shipped folder never carries pre-pack
@@ -19,8 +24,8 @@ REPOSITORY = HERE.parent.parent
 SOURCES = HERE / "sources"
 ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
 PREVIEWS = REPOSITORY / "build" / "sprite-previews" / "mech"
+# The repainted liveries; the Hegemony wears bodies of its own (sources/lowtech/build.py).
 FACTION_SKINS = (
-    "hegemony",
     "tri-tachyon",
     "persean-league",
     "luddic-church",
@@ -138,6 +143,7 @@ def main() -> None:
         normalize(f"{source_root}/warden.png", f"{output_root}/chassis-warden.png",
                   (208, 208), flip_top_bottom=True,
                   alpha_from="chassis-warden.png")
+    lowtech.build()
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.

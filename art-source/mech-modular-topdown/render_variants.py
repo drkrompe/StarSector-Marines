@@ -69,7 +69,7 @@ VARIANTS = (
         "nose-heavy",
         "srm-rack.png",
         "srm-rack.png",
-        "under-pair",
+        "top-pair",
         1.35,
         "HEAVY CANNON  /  LRM-5  /  LRM-5",
     ),
@@ -153,7 +153,8 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int],
         rear_pivot(canvas, narrow, origin, hull_width, -0.37, -0.15)
         rear_pivot(canvas, narrow, origin, hull_width, 0.37, -0.15)
     elif variant.arm_layout == "nose":
-        rear_pivot(canvas, arms, origin, hull_width, 0.0, -0.02)
+        narrow = arms.resize((max(1, arms.width // 2), arms.height), Image.Resampling.LANCZOS)
+        rear_pivot(canvas, narrow, origin, hull_width, 0.0, -0.02)
     elif variant.arm_layout == "nose-heavy":
         rear_pivot(canvas, arms, origin, hull_width, 0.0, -0.05)
 

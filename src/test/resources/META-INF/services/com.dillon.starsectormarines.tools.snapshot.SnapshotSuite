@@ -313,6 +313,7 @@ com.dillon.starsectormarines.battle.vehicle.VehicleColoursLookSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleSizesSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleLiveriesSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechLiveriesSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechActiveProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleDamageSmokeSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite
