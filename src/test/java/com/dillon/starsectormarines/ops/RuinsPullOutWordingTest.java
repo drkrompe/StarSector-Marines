@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RuinsPullOutWordingTest {
 
     @Test
-    void withThePullOutPointHeldTheConfirmationNamesTheBankedFinds() {
-        BattleRetreatOverlayModel.Wording wording = RuinsPullOutWording.of(true,
+    void theConfirmationIsPullOutAndNamesTheBankedFinds() {
+        BattleRetreatOverlayModel.Wording wording = RuinsPullOutWording.of(
                 List.of(new SalvageCache.Recovered("field-cache-0", SalvageResource.METALS, 40)));
 
         assertEquals(Strings.get("ruinsPullOut"), wording.retreat());
@@ -23,11 +23,7 @@ class RuinsPullOutWordingTest {
     }
 
     @Test
-    void withThePullOutPointLostItIsAnOrdinaryRetreat() {
-        BattleRetreatOverlayModel.Wording wording = RuinsPullOutWording.of(false,
-                List.of(new SalvageCache.Recovered("field-cache-0", SalvageResource.METALS, 40)));
-
-        assertEquals(Strings.get("battleRetreat"), wording.retreat());
-        assertEquals(Strings.get("ruinsPullOutLostDetail"), wording.confirmDetail());
+    void withNothingBankedItSaysSo() {
+        assertEquals(Strings.get("ruinsPullOutNothingBanked"), RuinsPullOutWording.of(List.of()).confirmDetail());
     }
 }

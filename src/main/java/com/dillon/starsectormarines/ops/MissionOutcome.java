@@ -85,8 +85,8 @@ public final class MissionOutcome {
     public final List<OfficerMissionResult> officers;
     public final boolean        victory;
     /**
-     * A Ruins expedition the company left while its pull-out point was held ({@code ruins-expedition.md}, Pressing on
-     * or pulling out): not a victory, yet its banked finds come home. Always false for any other mission.
+     * A Ruins expedition the company left before the haul boarded ({@code ruins-expedition.md}, Pressing on or
+     * pulling out): not a victory, yet its banked finds come home. Always false for any other mission.
      */
     public final boolean        pulledOut;
     public final String         missionId;

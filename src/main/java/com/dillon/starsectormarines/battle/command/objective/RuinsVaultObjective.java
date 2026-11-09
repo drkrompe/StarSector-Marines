@@ -64,7 +64,6 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     private int destination;
     private boolean powered;
-    private boolean sealForced;
     private boolean complete;
     private boolean failed;
     private Failure failure = Failure.NONE;
@@ -115,26 +114,11 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
 
-    /**
-     * Routes power to the vault's seal: the breach takes the powered time from now on, unless the seal was forced.
-     * Set by the site's works.
-     */
+    /** Routes power to the vault's seal: the breach takes the powered time from now on. Set by the site's works. */
     public void setVaultPowered(boolean powered) {
         this.powered = powered;
-        if (!breach.held()) breach.setDuration(powered && !sealForced ? poweredBreachSeconds : breachSeconds);
+        if (!breach.held()) breach.setDuration(powered ? poweredBreachSeconds : breachSeconds);
     }
-
-    /**
-     * The vault's seal was forced with a charge ({@code ruins-works.md}): the breach keeps the unpowered time for good,
-     * whatever power reaches the seal afterwards. Set by the site's works.
-     */
-    public void forceSeal() {
-        sealForced = true;
-        setVaultPowered(powered);
-    }
-
-    /** Whether the vault's seal was forced rather than powered open. */
-    public boolean sealForced() { return sealForced; }
 
     @Override
     public void tick(BattleView sim) {
@@ -281,9 +265,6 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     @Override public String displayName() { return "Breach " + vaultName + " and lift out " + haulName; }
 
     // Pull-out point (slice 9 replaces these bodies; ruins-expedition.md, The entrance and the pull-out point).
-
-    /** Whether the company's pull-out point is held: the landing in phase A, the entry in phase B. */
-    public boolean pullOutPointHeld() { return true; }
 
     /** The pull-out point's cell: the landing's in phase A, the entry's apron in phase B. */
     public int pullOutPointCellX() { return liftPointCellX(landingLiftPoint()); }

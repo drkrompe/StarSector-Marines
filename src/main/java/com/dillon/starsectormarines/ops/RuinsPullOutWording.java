@@ -9,9 +9,8 @@ import com.dillon.starsectormarines.i18n.Strings;
 import java.util.List;
 
 /**
- * A Ruins battle's Retreat is Pull out ({@code ruins-expedition.md}, Pressing on or pulling out). While the pull-out
- * point is held the confirmation lists the banked finds that will come home and says the vault stays sealed; while it
- * is lost it is an ordinary Retreat and says the finds stay behind. The circles it draws are the battle's
+ * A Ruins battle's Retreat is Pull out ({@code ruins-expedition.md}, Pressing on or pulling out): its confirmation
+ * lists the banked finds that will come home and says the vault stays sealed. The circles it draws are the battle's
  * {@code withdrawalPads}.
  */
 final class RuinsPullOutWording {
@@ -23,15 +22,10 @@ final class RuinsPullOutWording {
         if (sim == null) return null;
         RuinsVaultObjective vault = RuinsPullOut.vault(sim);
         if (vault == null) return null;
-        return of(vault.pullOutPointHeld(), sim.fieldSalvage().recovered());
+        return of(sim.fieldSalvage().recovered());
     }
 
-    static BattleRetreatOverlayModel.Wording of(boolean pullOutPointHeld, List<SalvageCache.Recovered> banked) {
-        if (!pullOutPointHeld) {
-            return new BattleRetreatOverlayModel.Wording(Strings.get("battleRetreat"),
-                    Strings.get("battleRetreatConfirm"), Strings.get("ruinsPullOutLostDetail"),
-                    Strings.get("battleRetreatConfirmAction"));
-        }
+    static BattleRetreatOverlayModel.Wording of(List<SalvageCache.Recovered> banked) {
         String detail = banked.isEmpty() ? Strings.get("ruinsPullOutNothingBanked")
                 : Strings.format("ruinsPullOutBanked", Strings.join("separatorDot", banked.stream()
                         .map(find -> Strings.format("resultsScreenFieldFind", find.quantity(),

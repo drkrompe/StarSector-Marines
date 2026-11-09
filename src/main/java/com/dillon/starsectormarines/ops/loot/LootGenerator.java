@@ -30,8 +30,8 @@ public final class LootGenerator {
                 LOG.error("Unable to generate recovery manifest for mission " + outcome.missionId, ex);
             }
         }
-        // Secured finds come home on a victory, and from a Ruins expedition pulled out with its pull-out point held:
-        // there they are banked (ruins-expedition.md, Pressing on or pulling out).
+        // Secured finds come home on a victory, and from a Ruins expedition pulled out: there they are banked
+        // (ruins-expedition.md, Pressing on or pulling out).
         if (outcome.victory || outcome.pulledOut) {
             manifest = FieldSalvageLoot.append(manifest, outcome.fieldSalvage,
                     resource -> commodity(resource.commodityId));

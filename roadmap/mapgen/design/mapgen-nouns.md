@@ -1928,8 +1928,9 @@ Every place has a stable name (`places()` lists them, `area(name)` answers one):
 | `ruins.works.records` | The records office in the first layer. |
 | `ruins.works.collapse` | The short way through the last layer, in line with the vault's door, choked by breachable wall: a way of its own kind; the layer's open ways are the long way round. On scattered ground its layer is outside, so it is only a choked heap on the boundary, no shorter than walking round. |
 | `ruins.interior` | The roofed part of the site, with its entrances from open ground; `ruins.interior.chamber.M` are its unnamed chambers. |
+| `ruins.interior.entrance.M` | The apron outside entrance M (`RuinsDelve.Apron`): open ground under open sky cleared west of the door, clear of the hull face's jogs, with an arrival area of two berths for the boat. It is not a lift point until the mission takes the entrance (`ruins-expedition.md`, The entrance and the pull-out point). |
 
-Lift points are the landing's arrival areas, then each court's. Which court is
+Lift points are the landing's arrival areas, then each court's; an entrance's apron joins them when the mission takes it. Which court is
 held, which rooms are stores and which branch a junction feeds are the
 mission's (`ruins-works.md`). Seven rules hold the ground together.
 

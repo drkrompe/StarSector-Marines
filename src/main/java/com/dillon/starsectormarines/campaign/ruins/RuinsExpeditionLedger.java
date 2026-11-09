@@ -19,9 +19,9 @@ public final class RuinsExpeditionLedger {
         NONE,
         /** The company won: vanilla salvages the ruins. */
         WON,
-        /** The company pulled out with its pull-out point held: its banked finds came home, the ruins stay unexplored. */
+        /** The company pulled out: its banked finds came home, the ruins stay unexplored. */
         PULLED_OUT,
-        /** The company lost, or withdrew with its pull-out point lost: the ruins stay unexplored. */
+        /** The company lost: the ruins stay unexplored. */
         LOST
     }
 

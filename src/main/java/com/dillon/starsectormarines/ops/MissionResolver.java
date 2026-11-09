@@ -204,7 +204,7 @@ public final class MissionResolver {
                                          MarineCaptain captain,
                                          Set<String> deployedFireteamIds) {
         boolean victory = sim.getWinner() == Faction.MARINE;
-        // A Ruins expedition left while its pull-out point is held is pulled out, not lost (ruins-expedition.md).
+        // A Ruins expedition the company leaves is pulled out, not lost (ruins-expedition.md).
         boolean pulledOut = RuinsPullOut.of(sim, victory, sim.isRetreated()) == RuinsPullOut.Resolution.PULLED_OUT;
 
         // Casualty tally without the legacy units list: survivors come from the

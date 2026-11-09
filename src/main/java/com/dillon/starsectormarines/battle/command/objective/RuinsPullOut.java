@@ -8,9 +8,9 @@ import java.util.List;
 
 /**
  * How a Ruins battle ends for the company ({@code ruins-expedition.md}, Pressing on or pulling out): won when the haul
- * boards; <b>pulled out</b> when the company leaves while its pull-out point is held, bringing its banked finds home
- * and leaving the vault; lost otherwise. The family's Retreat is Pull out, and it is an ordinary withdrawal, a loss,
- * while the pull-out point is lost.
+ * boards; <b>pulled out</b> when the company leaves before that, bringing its banked finds home and leaving the vault;
+ * lost when the haul is lost or abandoned, or the company is wiped out. The family's Retreat is Pull out, and a
+ * confirmed one always pulls out, in either phase and wherever the company stands.
  */
 public final class RuinsPullOut {
 
@@ -18,22 +18,21 @@ public final class RuinsPullOut {
     public enum Resolution {
         /** The haul boarded: banked finds, the vault store, then vanilla's haul. */
         WON,
-        /** Left while the pull-out point was held: the banked finds come home, the vault stays sealed. */
+        /** The company left: the banked finds come home, the vault stays sealed. */
         PULLED_OUT,
-        /** Wiped out, the haul lost, or a retreat while the pull-out point was lost: nothing comes home. */
+        /** The haul lost or abandoned, or the company wiped out: nothing comes home. */
         LOST
     }
 
     private RuinsPullOut() {}
 
     /**
-     * @param won             the company won the battle (the haul boarded)
-     * @param retreated       the company's retreat was confirmed
-     * @param pullOutPointHeld whether the pull-out point was held when the battle ended
+     * @param won       the company won the battle (the haul boarded)
+     * @param retreated the company's retreat was confirmed
      */
-    public static Resolution resolve(boolean won, boolean retreated, boolean pullOutPointHeld) {
+    public static Resolution resolve(boolean won, boolean retreated) {
         if (won) return Resolution.WON;
-        return retreated && pullOutPointHeld ? Resolution.PULLED_OUT : Resolution.LOST;
+        return retreated ? Resolution.PULLED_OUT : Resolution.LOST;
     }
 
     /** The battle's vault, or null when it is not a Ruins battle. */
@@ -46,21 +45,32 @@ public final class RuinsPullOut {
 
     /** The Ruins resolution of an ended battle; null when it is not a Ruins battle. */
     public static Resolution of(BattleView sim, boolean won, boolean retreated) {
-        RuinsVaultObjective vault = vault(sim);
-        return vault == null ? null : resolve(won, retreated, vault.pullOutPointHeld());
+        return vault(sim) == null ? null : resolve(won, retreated);
     }
 
     /**
-     * The circles a withdrawing company extracts unhurt from: where it landed, the pull-out point, and every other
-     * held lift point. Each point is a small pad, so it gets the same circle a landing pad does.
+     * The circles a pulling-out company extracts unhurt from: where it landed, the pull-out point (the landing in
+     * phase A, the entry in phase B), and every other held lift point.
      */
     public static List<LandingPad> extractionPads(List<LandingPad> landing, RuinsVaultObjective vault) {
-        List<LandingPad> pads = new ArrayList<>(landing);
-        if (vault == null) return pads;
-        pads.add(point(vault.pullOutPointCellX(), vault.pullOutPointCellY()));
+        if (vault == null) return List.copyOf(landing);
+        List<int[]> held = new ArrayList<>();
         for (int i = 0; i < vault.liftPoints().size(); i++) {
-            if (vault.liftPointAvailable(i)) pads.add(point(vault.liftPointCellX(i), vault.liftPointCellY(i)));
+            if (vault.liftPointAvailable(i)) held.add(new int[]{vault.liftPointCellX(i), vault.liftPointCellY(i)});
         }
+        return extractionPads(landing, vault.pullOutPointCellX(), vault.pullOutPointCellY(), held);
+    }
+
+    /**
+     * The circles from their parts. Each point is a small pad, so it gets the same circle a landing pad does.
+     *
+     * @param heldLiftPoints each held lift point's cell as {x, y}
+     */
+    public static List<LandingPad> extractionPads(List<LandingPad> landing, int pullOutX, int pullOutY,
+                                                  List<int[]> heldLiftPoints) {
+        List<LandingPad> pads = new ArrayList<>(landing);
+        pads.add(point(pullOutX, pullOutY));
+        for (int[] cell : heldLiftPoints) pads.add(point(cell[0], cell[1]));
         return pads;
     }
 

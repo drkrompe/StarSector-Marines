@@ -420,4 +420,4 @@ com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
 com.dillon.starsectormarines.ops.RuinsBriefingSnapshotSuite
 com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
-com.dillon.starsectormarines.battle.ruins.RuinsVaultSealOptionsSuite
+com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
