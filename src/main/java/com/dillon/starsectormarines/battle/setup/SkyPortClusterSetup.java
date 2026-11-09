@@ -104,15 +104,15 @@ public final class SkyPortClusterSetup {
     }
 
     /**
-     * Traffic down the city's streets: a lane along the middle of every street of the grid that keeps clear of
-     * the port's towers, at depths stepping down from lane to lane, so craft fly the canyons between the towers.
+     * Traffic down the city's streets: every street of the grid that keeps clear of the port's towers carries a
+     * stack of skyways, one above another in its canyon, kept above the deep terraces that narrow it. The streets
+     * one way fly at other depths than the streets across them, so no two lanes cross at one depth.
      */
     static List<VoidBackdrop.Skyway> skyways(float f) {
         List<VoidBackdrop.Skyway> ways = new ArrayList<>();
         int[][] port = {A, B, C, OUTPOST};
         float lo = -CITY_MARGIN, hiX = W + CITY_MARGIN, hiY = H + CITY_MARGIN;
-        float[] depths = {170f, 230f, 290f, 340f};
-        int lane = 0;
+        float[][] depths = {{50f, 115f, 180f}, {80f, 148f, 215f}};
         for (int axis = 0; axis < 2; axis++) {
             float hi = axis == 0 ? hiX : hiY;
             for (int street = -CITY_MARGIN + PLOT_PITCH - STREET / 2; street < hi; street += PLOT_PITCH) {
@@ -122,9 +122,11 @@ public final class SkyPortClusterSetup {
                     if (street >= a0 - STREET / 2 && street <= a1 + STREET / 2) clear = false;
                 }
                 if (!clear) continue;
-                float z = depths[lane++ % depths.length] * f;
-                ways.add(axis == 0 ? new VoidBackdrop.Skyway(street, lo, street, hiY, z)
-                        : new VoidBackdrop.Skyway(lo, street, hiX, street, z));
+                for (float depth : depths[axis]) {
+                    float z = depth * f;
+                    ways.add(axis == 0 ? new VoidBackdrop.Skyway(street, lo, street, hiY, z)
+                            : new VoidBackdrop.Skyway(lo, street, hiX, street, z));
+                }
             }
         }
         return ways;
@@ -186,7 +188,7 @@ public final class SkyPortClusterSetup {
         return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
                 .42f, .41f, .40f,
                 "graphics/battle/voids/industrial-facade.png", 32f,
-                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .2f, neighbours, skyways);
+                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .11f, neighbours, skyways);
     }
 
     /**

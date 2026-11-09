@@ -223,13 +223,14 @@ Laws):
      aeroshuttles and the like): two craft to a bay fly in from far out over
      its lane and into the mouth, or out the other way, and skyways cross
      the drop beside the structure at four depths, two streams apiece,
-     opposite ways. Craft move on the presentation clock, are drawn in the
+     opposite ways. Craft move on the presentation clock (the wall clock in
+     the game, which passes none), are drawn in the
      painter's order of their depth, fade into the haze, and show an engine
      glow.
    - **Parked freighters** stand on the terraces between the bays, on their
      own shadows.
    - Hulls below the surface are sized to the structure (`craftMetersPerPx`,
-     0.2 m a pixel: a Buffalo about 30 m), not to the battle's own craft,
+     0.11 m a pixel in the cluster (owner, 2026-11-09: smaller), not to the battle's own craft,
      which are drawn small to sit beside infantry; the bays and lanes are
      sized for them.
    - **The deck surface** is the sky port's own tileset (`sky-port-deck`),
@@ -260,7 +261,16 @@ Laws):
      the battle stands on, roofs deeper the farther from the port. Its
      towers take two bold setbacks rather than many slight ones, which read
      as slivers. **Skyways** (`VoidBackdrop.skyways`) fly down the streets
-     clear of the port, two streams apiece.
+     clear of the port, three stacked in each street's canyon above the deep
+     terraces that narrow it, two streams apiece, the cross streets at other
+     depths; marker lights run a chase down each lane's edges.
+   - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
+     Each structure's roof takes a corner radius by its place (square, 6, 10
+     or 14 m), and each terrace below rounds on the same centres, its radius
+     grown by its outset, so every step is a ring of even width; the playing
+     surface's own corners stay as the map lays them and only its terraces
+     round. A rounded corner's wall is facets textured corner to corner; its
+     roof is the ring between its arc and the arc above.
    - **Painter's order in depth slices.** Ordering whole levels by their
      roofs let a deeper tower's walls cut through a nearer one up close.
      Every wall band (8 m), roof, freight bay and craft is drawn by its own
