@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
 import com.dillon.starsectormarines.campaign.raid.RaidOutcomeCommit;
 import com.dillon.starsectormarines.campaign.raid.RaidForkSetting;
 import com.dillon.starsectormarines.campaign.raid.RaidRoute;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
@@ -99,6 +100,13 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         return RaidRoute.choose(RaidForkSetting.asks(state), supported);
     }
 
+    /** The industry's Raid site's briefing line, or null for an industry with no site or a raid that disrupts nothing. */
+    private static String chokepoint(String planetName, int marketSize, String industryId, int days) {
+        RaidSiteTemplate site = RaidSiteTemplate.forIndustry(industryId);
+        if (site == null || days <= 0) return null;
+        return Strings.format(site.briefingKey(), planetName, RaidSiteTemplate.feedersFor(marketSize), days);
+    }
+
     private static MarketAPI planetMarket(InteractionDialogAPI dialog) {
         return dialog.getInteractionTarget() instanceof PlanetAPI planet ? planet.getMarket() : null;
     }
@@ -138,10 +146,12 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         if (!(dialog.getInteractionTarget() instanceof PlanetAPI planet) || planet.getMarket() == null) return false;
         MarketAPI market = planet.getMarket();
         int serial = MarketRaidLedger.issue(state());
+        TempData temp = RaidOutcomeCommit.raidOn(market);
+        String industryId = RaidOutcomeCommit.targetIndustryId(temp);
         Mission mission = MarketRaidMissionFactory.create(
-                serial, market.getId(), planet.getName(), market.getFactionId(),
-                RaidOutcomeCommit.targetIndustryId(RaidOutcomeCommit.raidOn(market)),
-                TargetProfileResolver.fromMarket(market).garrison());
+                serial, market.getId(), planet.getName(), market.getFactionId(), industryId,
+                TargetProfileResolver.fromMarket(market).garrison(),
+                chokepoint(planet.getName(), market.getSize(), industryId, RaidOutcomeCommit.disruptionDays(temp)));
         if (mission == null) return false;
         LOG.info("MarineRaidCMD: opening raid briefing " + mission.id);
         dialog.hideTextPanel();

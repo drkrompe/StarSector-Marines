@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign.raid;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.listeners.MarineLossesStatModifier;
 import com.fs.starfarer.api.combat.MutableStat;
+import com.fs.starfarer.api.impl.campaign.graid.DisruptIndustryRaidObjectivePluginImpl;
 import com.fs.starfarer.api.impl.campaign.graid.GroundRaidObjectivePlugin;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.RaidType;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.TempData;
@@ -79,6 +80,21 @@ public final class RaidOutcomeCommit {
             if (objective.getSource() != null) return objective.getSource().getId();
         }
         return null;
+    }
+
+    /**
+     * The days a disrupting raid's target goes down at full effect, as the raid command reckons them for the marines
+     * assigned (before its own spread of up to a quarter more, and before the share of the works wrecked), or 0 when
+     * the raid disrupts nothing.
+     */
+    public static int disruptionDays(TempData temp) {
+        if (temp == null || temp.raidType != RaidType.DISRUPT || temp.objectives == null) return 0;
+        for (GroundRaidObjectivePlugin objective : temp.objectives) {
+            if (objective instanceof DisruptIndustryRaidObjectivePluginImpl disrupt && objective.getMarinesAssigned() > 0) {
+                return disrupt.getDisruptionDaysSort(objective.getMarinesAssigned());
+            }
+        }
+        return 0;
     }
 
     static final class CompanyFoughtLosses implements MarineLossesStatModifier {
