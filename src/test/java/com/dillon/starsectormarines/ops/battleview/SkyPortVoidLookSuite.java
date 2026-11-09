@@ -82,6 +82,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                     out.add(shot(context, sim, tag + "-5-dogleg.png", 76f, 36f, PLAY));
                     out.add(shot(context, sim, tag + "-6-tower-edge.png", 158f, 136f, PLAY));
                     out.add(shot(context, sim, tag + "-7-stairs.png", 126f, 44f, PLAY));
+                    out.add(shot(context, sim, tag + "-8-a-corner.png", 81f, 106f, 85f));
                     if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 55f, 82f, 142f, 120f));
                 }
             }

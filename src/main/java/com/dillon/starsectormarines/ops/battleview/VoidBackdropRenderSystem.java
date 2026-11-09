@@ -984,6 +984,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         List<VoidBackdrop.Tier> tiers = new ArrayList<>();
         for (VoidBackdrop.Tier tier : backdrop.tiers()) if (tier.depthMeters() > top) tiers.add(tier);
         List<Level> structure = new ArrayList<>();
+        boolean[] above = null;
         for (int i = 0; i <= tiers.size(); i++) {
             Level level = new Level();
             level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
@@ -992,7 +993,16 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             level.surface = i == 0 && top <= 0f;
             boolean[] mask = i == 0 ? footprint : dilate(footprint, mw, mh, Math.round(level.outset));
             findRuns(mask, mw, mh, m, level.runs);
-            mergeRects(mask, mw, mh, 1, -m, -m, level.roofs);
+            // A terrace's roof is only the ring left open round the level above: the part under that level is
+            // never seen, and drawn whole it would lay the roof, its veil and its haze over the walls above
+            // wherever they lean toward the view's centre.
+            boolean[] open = mask;
+            if (above != null) {
+                open = mask.clone();
+                for (int k = 0; k < open.length; k++) open[k] &= !above[k];
+            }
+            mergeRects(open, mw, mh, 1, -m, -m, level.roofs);
+            above = mask;
             if (i > 0) {
                 level.footings = structure.get(i - 1).runs;
                 level.reach = level.outset - structure.get(i - 1).outset;
