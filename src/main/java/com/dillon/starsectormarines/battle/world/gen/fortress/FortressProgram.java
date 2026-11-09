@@ -25,7 +25,8 @@ import java.util.function.UnaryOperator;
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
  */
-public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached) {
+public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached,
+                              boolean cantonment) {
 
     public FortressProgram {
         buildings = List.copyOf(buildings);
@@ -35,6 +36,11 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         if (apron < 0) {
             throw new IllegalArgumentException("a place cannot owe " + apron + " cells of apron");
         }
+    }
+
+    /** A program packed as it fits, detached or not. */
+    public FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached) {
+        this(buildings, airfields, apron, detached, false);
     }
 
     /** A program whose buildings may corner into each other, as a garrison's do. */
@@ -80,12 +86,12 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
             throw new IllegalArgumentException(
                     "this program has no " + purpose + " to set a count for");
         }
-        return new FortressProgram(out, airfields, apron, detached);
+        return new FortressProgram(out, airfields, apron, detached, cantonment);
     }
 
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
-        return new FortressProgram(buildings, count, apron, detached);
+        return new FortressProgram(buildings, count, apron, detached, cantonment);
     }
 
     /**
@@ -98,7 +104,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * the one that knows what the map can spare.
      */
     public FortressProgram withApron(int cells) {
-        return new FortressProgram(buildings, airfields, cells, detached);
+        return new FortressProgram(buildings, airfields, cells, detached, cantonment);
     }
 
     /**
@@ -254,6 +260,39 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.PARTS_CAGE, WORKSHOP, Ward.YARD, 2),
                 new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 2)),
                 GARRISON_AIRFIELDS);
+    }
+
+    /** The headquarters of a cantonment: a plain block that faces its parade ground square. */
+    private static final RoomShape HEADQUARTERS = RoomShape.rectangle(14, 7);
+    /** A cantonment's guardroom by its gate. */
+    private static final RoomShape GUARDROOM = RoomShape.rectangle(9, 4);
+
+    /**
+     * A garrison laid out as an installation ({@link Cantonment}): the same kinds of building as {@link #garrison()},
+     * counted from the market. Its size sets the barracks, workshops and stores; its security ({@code grade} 0 open,
+     * 1 guarded, 2 fortified) sets the guardroom, the corner towers and the magazines. One flight line at most: the
+     * rows are laid round one.
+     *
+     * @param marketSize the market's size, 3 to 10
+     * @param grade      0 open, 1 guarded, 2 fortified
+     * @param airfields  flight lines the garrison keeps, at most one
+     */
+    public static FortressProgram cantonment(int marketSize, int grade, int airfields) {
+        if (grade < 0 || grade > 2) throw new IllegalArgumentException("security grade " + grade);
+        int barracks = Math.max(2, Math.min(7, marketSize - 1));
+        int posts = 2 + (grade == 0 ? 0 : grade == 1 ? 2 : 4);
+        List<FortressBuilding> buildings = new ArrayList<>(List.of(
+                new FortressBuilding(RoomPurpose.KEEP_THRONE, HEADQUARTERS, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, barracks),
+                new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, marketSize >= 7 ? 2 : 1),
+                new FortressBuilding(RoomPurpose.VEHICLE_BAY, VEHICLE_SHED, Ward.FRONTAGE, 1),
+                new FortressBuilding(RoomPurpose.PARTS_CAGE, WORKSHOP, Ward.YARD, marketSize >= 6 ? 2 : 1),
+                new FortressBuilding(RoomPurpose.ARMORY, MAGAZINE, Ward.REAR, 1 + grade),
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, marketSize >= 6 ? 2 : 1),
+                new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE, posts)));
+        if (grade > 0) buildings.add(new FortressBuilding(RoomPurpose.KEEP_ENTRY, GUARDROOM, Ward.FRONTAGE, 1));
+        return new FortressProgram(buildings, Math.min(1, airfields), 0, false, true);
     }
 
     /**
@@ -526,6 +565,11 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         // The apron is added rather than scaled for the same reason the lot is:
         // it is ground the place holds and nothing stands on, so the packing
         // slack has nothing to say about it.
+        // A cantonment is as big as the square its rows need, and room for the town's roads through it.
+        if (cantonment) {
+            int side = Cantonment.side(this, Cantonment.chosenPlan()) + Cantonment.ROAD_SLACK;
+            return side * side;
+        }
         return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION) + apron;
     }
 

@@ -418,6 +418,7 @@ com.dillon.starsectormarines.battle.setup.RaidScaleOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidLandingOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidDirectionsSuite
 com.dillon.starsectormarines.ops.RaidWorksLookSuite
+com.dillon.starsectormarines.ops.RaidGarrisonLookSuite
 com.dillon.starsectormarines.ops.RaidSiteLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite

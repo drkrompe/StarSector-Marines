@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
@@ -1197,6 +1198,29 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>What the world owes, before the map is asked whether it has room for
      * it: the caller fits the result to the ground available.
      */
+    /**
+     * A Raid site's garrison district ({@code raid-mission.md}, Garrison district): laid in rows as a cantonment
+     * rather than packed, its rows filled by the market's size and its guardroom, corner towers and magazines set by
+     * its security ({@code grade}: 0 open, 1 guarded, 2 fortified), with one flight line. Raid only: every other
+     * garrison is {@link #garrisonFor}'s, so no story map moves.
+     */
+    public static FortressProgram raidGarrison(TargetProfile profile, int grade) {
+        return FortressProgram.cantonment(profile.marketSize(), grade, 1);
+    }
+
+    /**
+     * A Raid garrison's roads: one crossroads at its middle whose four arms run straight out through its walls, the
+     * avenues its rows are laid square to, and no branching street of its own to cut across them.
+     */
+    public static GrownTrunkPlan.Profile raidGarrisonGrowth() {
+        return new GrownTrunkPlan.Profile(0, 0f, 0.30f, 0.34f, 1f, 4, SettlementLink.NONE);
+    }
+
+    /** A Raid garrison's wall: laid square, as its rows are, with its security's open ground round it. */
+    public static Fortification raidGarrisonWall(Fortification wall, int buffer) {
+        return wall.laidSquare().withGlacis(buffer);
+    }
+
     static FortressProgram garrisonFor(TargetProfile profile) {
         return FortressProgram.garrison()
                 .withAirfields(profile.defenseLevel() >= 4 ? 2 : 1);
