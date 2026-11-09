@@ -1,10 +1,10 @@
 # Ruins pressure: the site stirs
 
-Status: PLANNED — slice 1 (the stir, its steps, the reserve and the aim rule)
-built and ticked on occupied sites; its pushes are recorded but not yet turned
-into units. Built on the recommended options while the owner's picks
-`ruins-pressure-clock` (a), `ruins-pressure-reserve` (a) and
-`ruins-pressure-push` (a) are open.
+Status: IN PROGRESS — slices 1 (the stir) and 3 (pushes fielded per
+occupant, with their comms line) built; slice 2 (wake points) and the rest of
+slice 4 (the Delve row) remain. The owner picked `ruins-pressure-push` (a);
+`ruins-pressure-clock` (a) and `ruins-pressure-reserve` (a) are built on their
+recommended options while open.
 
 Written: 2026-11-09
 
@@ -41,8 +41,9 @@ until it moves again.
   (pick `ruins-pressure-reserve`). The vault's breach throws whatever is left
   in one push after the haul, beside the occupant's own contingency.
 - **The aim.** A push comes up in the layer ahead and hunts the company's last
-  noise. If the company has held still for about 45 seconds (its middle within
-  eight cells), it is **dug in**, and the next push comes up in the layer
+  noise. If the company has held still for about 45 seconds (the middle of its
+  forward element, the marines in its deepest layer, within eight cells, so
+  squads still landing behind never count), it is **dug in**, and the next push comes up in the layer
   behind it instead and sits on that layer's stand, across the way back.
   Nothing comes up behind the first layer inside: the entry stays the
   company's (`ruins-expedition.md`, The entrance is the company's).
@@ -84,22 +85,50 @@ company has not seen:
    room that is not a store (a service hatch for derelict security, a crawlway
    for the scavengers, a bore mound for the Rav), published by the ruins
    ground. A charge collapses one, so a company can spend charges to close its
-   way back.
-3. **Fielding a push, per occupant.** Derelict security: a walker lance out of
-   the vault zone's bay, under the network director as a reserve lance, free of
-   any perimeter. Scavengers: crew squads called up from the dig, under the
-   crew commander. Rav: a step surges the nearest closed bore, and the
-   sleepers' own stir folds onto this one. A hunt walks to the company's last
-   noise; a way-back push holds its stand until killed.
-4. **The row and the cues.** The level, bar, reserve band and dug-in line on
-   the Delve row; the step sting and comms lines per occupant; a look shot per
-   level for review.
+   way back. Until then a push comes up on the layer's own open ground (its
+   ways' ends inside the band, its stand, its middle), on the cell farthest
+   from the company (`RuinsPushes.wakeCell`).
+3. **Fielding a push, per occupant.** *Built* (`RuinsPushes`, raised by
+   `BattleSetup.fieldRuinsPushes`). Derelict security: a line frame per squad,
+   each its own lance, commanded by the push and not by the network director,
+   and tended by no repair drone (`DerelictSecurity.raisePush`). Scavengers: a
+   patrol-sized crew squad per squad, called up out of the crew's own mix,
+   commanded by the push and not by the crew commander. Rav: each squad wakes
+   the nearest closed bore to the wake cell, or surges the nearest open one
+   with none closed, and the swarm director commands what comes out
+   (`RuinsSleepers.push`); time below no longer stirs the bores, since the
+   site's stir keeps it (`RuinsSleepers.foldTimeIntoStir`). A hunt walks at
+   the company's last noise (where it last fired; where it stands before its
+   first shot) and keeps after it; a way-back push walks to the stand of the
+   layer behind (its junction's) and holds it until killed. The breach's push
+   hunts from the vault's layer.
+4. **The row and the cues.** *Comms line built*
+   (`RuinsPressureCommsPresenter`): each push posts a line in the occupant's
+   voice, headed by the level reached, naming the layer it comes from; a
+   way-back push's says it is behind the company, in the danger tone. Look
+   shots: `createSnapshots -Psnapshot=ruins-push-cue-look`. Still to build:
+   the level, bar, reserve band and dug-in line on the Delve row, the step
+   sting, and a look shot per level.
 
 ## Seams
 
 - The mini-boss and vault sessions own guardians and the vault; a guardian is
   never part of the reserve, and the breach's push is separate from a vault
-  warden.
+  guardian. A hive's relaunches are the hive's own cadence: a push is never a
+  flock and never relaunches one.
+- The old colony's batteries (`RuinsBatteries`) fire on anyone, pushes
+  included. Their waking adds no stir of its own: the hall restart that wakes
+  them already lifts the stir by a third of a step
+  (`RuinsPressure.HALL_RESTART`), and the guns are their own cost, on the way
+  out. The stir stays the company's own noise.
+- **Stakes.** A vault prize's stake (`RuinsVaultPrize.stakes`, 0 to 3) holds
+  one more squad in the reserve per stake and stirs the site 15% faster per
+  stake (`RuinsPressure.of(grade, stakes, delve)`, UNTUNED). The prize does not
+  ride the mission yet, so battles pass stake 0. It should be drawn where the
+  occupant is (`RuinsExpeditionMissionFactory.create`), ride as
+  `Mission.ruinsPrize` and the fixture's `prize`, and reach
+  `BattleSetup.createRuins` beside the occupant, which hands
+  `prize.stakes()` to the stir.
 - `ruins-expedition.md` gains a short Pressure paragraph under Where phase B's
   threats come from when slice 3 lands.
 

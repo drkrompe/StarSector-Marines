@@ -32,9 +32,10 @@ import java.util.Set;
  * band as the bare ground its surface is laid over, and the roads themselves as
  * routes for the road finish to sweep.
  *
- * <p>Cultivated ground, so it is green and turned earth on every world, airless
- * rock included, the same law that keeps a park's lawn green there. A colony
- * grows its food beside itself whatever the planet is made of.
+ * <p>Cultivated ground laid as authored surfaces, so it is green and turned
+ * earth on every world, airless rock included: a colony grows its food beside
+ * itself whatever the planet is made of. {@code CultivatedGround} leaves
+ * surfaced cells alone, so a farm keeps its fields where a yard loses its lawn.
  *
  * <p>Coordinate-based and draws nothing. Fields, roads, yards and hedges change
  * appearance only: every cell they touch was open ground and stays exactly as

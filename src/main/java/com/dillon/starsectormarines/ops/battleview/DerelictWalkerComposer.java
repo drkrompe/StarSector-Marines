@@ -18,6 +18,8 @@ final class DerelictWalkerComposer {
     static final float JOINT_INSET_CELLS = 0.16f;
     /** How much larger a part draws per cell of height. */
     static final float HEIGHT_GROWTH = 0.10f;
+    /** The torso's own growth per cell of rise: stronger than a leg's, so its bob reads from above. */
+    static final float TORSO_HEIGHT_GROWTH = 0.45f;
     /** The knee joint drawn a little wider than the segments it joins, so it reads as the pivot. */
     static final float JOINT_SCALE = 1.15f;
 
@@ -39,8 +41,8 @@ final class DerelictWalkerComposer {
                         + DerelictLegPose.STEP_LIFT_CELLS * rig.lift(i);
                 float hx = rig.hipX(i);
                 float hy = rig.hipY(i);
-                DerelictLegPose.knee(hx, hy, rig.footX(i), rig.footY(i), footHeight, knee);
-                float hipZ = DerelictLegPose.HIP_HEIGHT_CELLS;
+                float hipZ = DerelictLegPose.HIP_HEIGHT_CELLS + rig.bodyHeight();
+                DerelictLegPose.knee(hx, hy, hipZ, rig.footX(i), rig.footY(i), footHeight, knee);
                 bone(out, art.shin, cam, knee[0], knee[1], rig.footX(i), rig.footY(i), (knee[2] + footHeight) / 2f,
                         alpha);
                 bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, alpha);
@@ -52,7 +54,8 @@ final class DerelictWalkerComposer {
             }
         }
         float ppc = cam.cellPxSize();
-        float torsoW = TORSO_CELLS * renderScale * ppc;
+        // The body nearer the camera as it rises, further as it sinks onto its legs.
+        float torsoW = TORSO_CELLS * renderScale * ppc * (1f + TORSO_HEIGHT_GROWTH * rig.bodyHeight());
         float torsoH = torsoW * art.torso.pxHeight / Math.max(1f, art.torso.pxWidth);
         out.add(art.torso, cam.cellToScreenX(rig.bodyX()), cam.cellToScreenY(rig.bodyY()), torsoW, torsoH,
                 rig.facing(), 1f, 1f, 1f, alpha);

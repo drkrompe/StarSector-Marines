@@ -176,6 +176,64 @@ public final class RuinsSleepers {
         if (nearest >= 0) stir.rouse(nearest);
     }
 
+    /**
+     * The site's stir keeps the time below ({@code ruins-pressure.md}): from now the bores stir only with gunfire they
+     * hear, the hall and the breach, and the stir's pushes open them ({@link #push}).
+     */
+    public void foldTimeIntoStir() {
+        stir.timeStirs = false;
+    }
+
+    /**
+     * A stir push: {@code squads} surges from the bores nearest {@code (x, y)}, closed ones first, which open on the
+     * next step; with none closed, the nearest open bores surge now. The swarm director releases each as any surge.
+     *
+     * @return how many bores the push woke or surged
+     */
+    public int push(BattleSimulation sim, int squads, float x, float y) {
+        float[][] at = new float[bores.size()][];
+        boolean[] awake = new boolean[bores.size()];
+        for (int i = 0; i < bores.size(); i++) {
+            SwarmBore bore = bores.get(i);
+            at[i] = bore == null ? null : new float[]{bore.x() + 0.5f, bore.y() + 0.5f};
+            awake[i] = stir.awake(i);
+        }
+        boolean[] taken = new boolean[bores.size()];
+        int sent = 0;
+        for (int k = 0; k < squads; k++) {
+            int i = pick(at, awake, taken, x, y);
+            if (i < 0) break;
+            taken[i] = true;
+            sent++;
+            if (!awake[i]) stir.rouse(i);
+            else sim.swarmBores().surgeNow(bores.get(i), sim.getSimTickIndex());
+        }
+        return sent;
+    }
+
+    /**
+     * The bore a push wakes: the nearest closed one not yet taken, else the nearest open one; -1 when there is none.
+     *
+     * @param at each bore's middle, null for a bore not yet open on the ground
+     */
+    static int pick(float[][] at, boolean[] awake, boolean[] taken, float x, float y) {
+        int best = -1;
+        float bestD = Float.MAX_VALUE;
+        boolean bestClosed = false;
+        for (int i = 0; i < at.length; i++) {
+            if (at[i] == null || taken[i]) continue;
+            boolean closed = !awake[i];
+            float dx = at[i][0] - x, dy = at[i][1] - y;
+            float d = dx * dx + dy * dy;
+            if (best < 0 || (closed && !bestClosed) || (closed == bestClosed && d < bestD)) {
+                best = i;
+                bestD = d;
+                bestClosed = closed;
+            }
+        }
+        return best;
+    }
+
     /** How many bores have opened. */
     public int awake() {
         int n = 0;
@@ -248,6 +306,8 @@ public final class RuinsSleepers {
     static final class Stir {
         private final float[] stir;
         private final boolean[] awake;
+        /** Whether time below stirs the bores; false once the site's stir keeps the time. */
+        boolean timeStirs = true;
 
         Stir(int bores) {
             stir = new float[bores];
@@ -278,7 +338,7 @@ public final class RuinsSleepers {
             List<Integer> opened = new ArrayList<>();
             for (int i = 0; i < stir.length; i++) {
                 if (awake[i]) continue;
-                stir[i] += dt * (TIME_STIR_PER_SECOND + (breaching ? BREACH_STIR_PER_SECOND : 0f))
+                stir[i] += dt * ((timeStirs ? TIME_STIR_PER_SECOND : 0f) + (breaching ? BREACH_STIR_PER_SECOND : 0f))
                         + SHOT_STIR * heard[i];
                 if (breached || stir[i] >= threshold(i)) {
                     awake[i] = true;

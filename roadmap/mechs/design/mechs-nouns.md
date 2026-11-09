@@ -28,11 +28,15 @@ increasing an encounter's total armored threat.
   wear **bodies of its own**: the low-tech family (owner), drawn in the
   Hegemony armour line's riveted tan plate with a faceted pilot canopy and
   legs to match, worn by the Hegemony and, in the vehicle line's blue and red
-  paints of it, by Independents and pirates (`MechLivery.ownsLegs`;
-  art-source/mech-modular-topdown/sources/lowtech). Its outlines differ from
-  the shared ones, but every mount, the chassis square and the runtime scale
-  are the shared chassis's, so it still owns no hardware. Its weapon casings
-  take its own plate colour, as every livery's do.
+  paints of it, by Independents and pirates
+  (art-source/mech-modular-topdown/sources/lowtech); and the high-tech row's
+  concept bodies (owner pick: the heavy shell), steel-blue armour lobes over
+  exposed machinery after Tri-Tachyon's warships, with legs to match, worn by
+  Tri-Tachyon (sources/hightech). `MechLivery.ownsLegs` names them. Their
+  outlines differ from the shared ones, but every mount, the chassis square
+  and the runtime scale are the shared chassis's, so they still own no
+  hardware. Their weapon casings take their own plate colour, as every
+  livery's do.
 - A **role** is tactical doctrine. It owns where a mech attempts to operate,
   what it supports, and when it advances, holds, or withdraws. A recommended
   role is not a chassis lock; the same hardware may receive another doctrine.

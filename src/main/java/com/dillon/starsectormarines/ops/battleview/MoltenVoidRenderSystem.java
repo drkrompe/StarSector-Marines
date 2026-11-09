@@ -92,7 +92,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             for (int x = 0; x < w; x++) {
                 int i = y * w + x;
                 float cx = x + .5f, cy = y + .5f;
-                if (field.open[i] && !field.bridge[i]) {
+                // Under a bridge too: the melt runs on beneath the deck and shows past its edge, scaled toward the eye.
+                if (field.open[i]) {
                     float in = field.sample(field.reach[n], cx, cy);
                     if (in <= 0f) continue;
                     overFloor[i] = true;
@@ -110,10 +111,12 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                     floor = grow(floor, floorCount * 5 + 5);
                     int o = floorCount++ * 5;
                     floor[o] = x; floor[o + 1] = y; floor[o + 2] = cover; floor[o + 3] = fx; floor[o + 4] = fy;
-                } else if (!field.open[i]) {
+                } else {
                     // A pool of light on each cell of ground at the lip; the pools overlap into one band.
                     float out = -field.sample(field.edge, cx, cy);
                     if (out < 0f || out > LIP_POOL_ROW_CELLS) continue;
+                    // A bridge's end is road onto the deck, not the lip: no pool of the melt's light there.
+                    if (field.byBridge(cx, cy)) continue;
                     lip = grow(lip, lipCount * 3 + 3);
                     int o = lipCount++ * 3;
                     lip[o] = cx; lip[o + 1] = cy; lip[o + 2] = LavaVoidLook.lipGlow(out, floorMeters);
@@ -359,7 +362,6 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float floorMeters = field.depth[field.steps()];
         float alpha = drop.alpha();
         float cellPx = cam.cellPxSize();
-        float ccx = cam.panCellX() + NaturalVoidRenderSystem.MARGIN, ccy = cam.panCellY() + NaturalVoidRenderSystem.MARGIN;
         int seed = drop.seed();
         for (int c = 0; c < floorCount; c++) {
             int o = c * 5;
@@ -377,7 +379,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             float py = y + ((hsh >>> 12) & 15) / 15f + WIND_Y * drift + WIND_X * wob;
             float s = drop.scale(z);
             if (!drop.inView(px, py, s, cellPx)) continue;
-            if (z > 0f && hidden(field, ccx, ccy, px, py, z)) continue;
+            if (z > 0f && drop.hidden(px, py, z)) continue;
             float fade = (float) Math.pow(1f - t, 1.3f) * Math.min(1f, t * 12f);
             float twinkle = .7f + .3f * (float) Math.sin(time * 11f + hsh);
             float g = LavaVoidLook.lerp(.85f, .28f, t), b = LavaVoidLook.lerp(.45f, .05f, t);
@@ -388,22 +390,6 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             out.addAdditiveSprite(RenderLayer.GROUND, dot.sprite, qx, qy, size * 1.6f, size * 1.6f, 0f,
                     1f, g, b, fade * twinkle * alpha);
         }
-    }
-
-    /** Whether the rock stands between the eye, over {@code (ccx, ccy)}, and a point {@code z} metres down. */
-    private boolean hidden(NaturalVoidField field, float ccx, float ccy, float x, float y, float z) {
-        for (int k = 0; k <= 3; k++) {
-            float zk = z * k / 4f;
-            // The point on the line of sight at depth zk: where the eye's ray through the point passes it.
-            float f = drop.scale(z) / drop.scale(zk);
-            float rx = ccx + (x - ccx) * f, ry = ccy + (y - ccy) * f;
-            int ix = (int) Math.floor(rx), iy = (int) Math.floor(ry);
-            if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h) return true;
-            if (k == 0 && !field.open[iy * field.w + ix]) return true;
-            if (field.bridge[iy * field.w + ix] && zk < NaturalVoidField.DECK_METERS) return true;
-            if (field.depthAt(rx, ry) < zk - .01f) return true;
-        }
-        return false;
     }
 
     /**
@@ -435,7 +421,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 float y = j * step + dy + (((hsh >> 8) & 255) / 255f - .5f) * step;
                 // Smoke stands over the rift: where it came up from, upwind of here, and thins away from it.
                 float over = overRift(field, x - WIND_X * SMOKE_LAG_CELLS, y - WIND_Y * SMOKE_LAG_CELLS, low);
-                if (over <= 0f) continue;
+                if (over <= 0f || field.nearBridge(x, y, puffCells * .75f)) continue;
                 float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .21f, j * .21f, seed);
                 if (n < .38f) continue;
                 float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
@@ -457,6 +443,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         int ix = (int) Math.floor(x), iy = (int) Math.floor(y);
         if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h) return 0f;
         if (low) return overFloor[iy * field.w + ix] ? 1f : 0f;
+        if (field.byBridge(x, y)) return 0f;
         return LavaVoidLook.smooth(-2.5f, 2f, field.sample(field.edge, x, y));
     }
 

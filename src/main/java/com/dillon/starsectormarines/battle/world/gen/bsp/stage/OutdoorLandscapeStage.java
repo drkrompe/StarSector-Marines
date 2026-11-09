@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -63,11 +64,18 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
+        // Every lawn has been laid by now; the planet decides whether it is lawn. Before the landscape, so a hill
+        // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
+        CultivatedGround.settle(c.topology, field);
+        landscape(c, field);
+    }
+
+    private void landscape(GenContext c, SurfaceField field) {
         if (!Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return;
         if (c.width < 32 || c.height < 32 || TileRegistry.installed() == null) return;
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
-        if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());
+        if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin(), field);
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape, field);
         boolean[] reserved = reservations(c, hostAnchors, true);
@@ -89,7 +97,8 @@ public final class OutdoorLandscapeStage implements GenStage {
                     landscape.sealed().isEmpty() ? null : mainBody(c));
         }
         // A basin's woods grow on its floor and thin out toward its rim; the rim's own palette dresses the rest.
-        if (field.floor() == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland(), field);
+        // A desert with no basin grows the rim's open dry scrub across the whole map.
+        if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
         // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
@@ -753,9 +762,10 @@ public final class OutdoorLandscapeStage implements GenStage {
      * shows as one, against bare earth (which does not burn, `fire-nouns.md`)
      * or wild ground alike; with this the line between them is organic. Runs
      * before the tracks are cleared, so a ride stays bare earth wherever a
-     * margin reaches it.
+     * margin reaches it. The rough ground is the world's own: grass and plants
+     * only where things grow, the world's bare ground elsewhere.
      */
-    private static void raggedMargins(GenContext c, int margin) {
+    private static void raggedMargins(GenContext c, int margin, SurfaceField palettes) {
         int w = c.width, h = c.height;
         TileRegistry registry = TileRegistry.installed();
         List<Integer> plants = new ArrayList<>();
@@ -784,9 +794,10 @@ public final class OutdoorLandscapeStage implements GenStage {
             boolean eaten = in[i] > 0 && in[i] != Integer.MAX_VALUE && in[i] <= (1f - line) * (margin + 1);
             if (!grown && !eaten || laid[i]) continue;
             c.topology.setSurface(x, y, 0);
-            c.topology.setGroundKind(x, y, GroundKind.GRASS);
+            SurfacePalette world = palettes.at(x, y);
+            c.topology.setGroundKind(x, y, world.inlandGround());
             long roll = mix(seed + 1, x, y);
-            boolean plant = !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
+            boolean plant = world == SurfacePalette.VERDANT && !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
             c.topology.setNatureOverlayIndex(x, y, plant ? plants.get((int) Math.floorMod(roll >>> 8, (long) plants.size())) : -1);
         }
     }
@@ -986,11 +997,11 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * The woods, on green ground. With a basin they grow on its floor, thinning from full {@code woodland}
      * {@link SurfaceField#WOODS_THINNING} in from the floor's edge to none at the band ({@link SurfaceField#woods}),
-     * and a desert rim grows open dry scrub instead, {@link #RIM_SCRUB} as thick, drawn with the dry twins' art
+     * and a desert rim grows open dry scrub instead, {@link #RIM_SCRUB} as thick (a desert with no basin is all rim), drawn with the dry twins' art
      * ({@link NaturalPropShape#DRY}) where it is installed.
      */
     private static void trees(GenContext c, boolean[] reserved, float woodland, SurfaceField palettes) {
-        boolean scrub = !palettes.uniform() && palettes.world() == SurfacePalette.ARID && dryScrubInstalled();
+        boolean scrub = palettes.world() == SurfacePalette.ARID && dryScrubInstalled();
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         // Cells a tank cannot flatten: every crown that is not undergrowth.
         boolean[] hard = new boolean[reserved.length];
@@ -1037,6 +1048,14 @@ public final class OutdoorLandscapeStage implements GenStage {
                 tree -> scrub && palettes.rim(tree.x() + tree.width() / 2, tree.y() + tree.height() / 2));
         undergrowth(c, paint, reserved,
                 patch -> scrub && palettes.rim(patch.x() + patch.width() / 2, patch.y() + patch.height() / 2));
+    }
+
+    /**
+     * Whether the map grows anything: woods on a living floor, and on a desert open dry scrub, drawn only with the dry
+     * twins' art so a desert never grows green trees. A barren or frozen world grows nothing.
+     */
+    static boolean grows(SurfaceField field, boolean dryArt) {
+        return field.floor() == SurfacePalette.VERDANT || field.world() == SurfacePalette.ARID && dryArt;
     }
 
     /** How thick a desert rim's scrub grows, as a share of the floor's woodland. */

@@ -137,6 +137,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
+import com.dillon.starsectormarines.battle.ruins.RuinsPushes;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
@@ -1541,6 +1542,7 @@ public final class BattleSetup {
             else if (ruinsDefence == null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
+            if (ruinsDefence != null) fieldRuinsPushes(sim, map, ruinsDefence, ruinsCrew, groundRoster, seed);
         }
         return sim;
     }
@@ -5513,14 +5515,75 @@ public final class BattleSetup {
                                       Deque<GroundRosterProfile.ForceTier> infantry, UnitRole role,
                                       DefenderRoster roster, GroundRosterProfile groundRoster, Random rng,
                                       DefenderObserverIssue observers, int[] named) {
-        if (count <= 0 || infantry.isEmpty()) return 0;
+        Squad squad = crewSquad(sim, map, node, radius, count, infantry, role, roster, groundRoster, rng, observers,
+                named, "d");
+        return squad != null ? squad.originalSize : 0;
+    }
+
+    /**
+     * The site's stir pushes, raised by its occupant ({@code ruins-pressure.md}, slice 3): a line-frame lance each
+     * squad out of derelict security's bays, crew squads called up from the dig, or Rav bores surged. An empty site
+     * has no stir.
+     */
+    private static void fieldRuinsPushes(BattleSimulation sim, MapResult map, RuinsDefence defence, RuinsCrew crew,
+                                         GroundRosterProfile groundRoster, long seed) {
+        RuinsPressure pressure = sim.ruinsPressure();
+        if (pressure == null || map.ruinsDelve == null) return;
+        switch (defence) {
+            case SECURITY -> pressure.field(new RuinsPushes(RuinsPushes.Voice.SECURITY,
+                    (s, push, x, y) -> DerelictSecurity.raisePush(s, push.squads(), x, y), map.ruinsDelve));
+            case SLEEPERS -> {
+                RuinsSleepers sleepers = sim.ruinsSleepers();
+                if (sleepers == null) return;
+                sleepers.foldTimeIntoStir();
+                pressure.field(new RuinsPushes(RuinsPushes.Voice.SLEEPERS, (s, push, x, y) -> {
+                    sleepers.push(s, push.squads(), x + 0.5f, y + 0.5f);
+                    return List.of();
+                }, map.ruinsDelve));
+            }
+            case CREW -> {
+                if (crew != null) pressure.field(new RuinsPushes(RuinsPushes.Voice.CREW,
+                        crewPushForce(map, crew, groundRoster, seed), map.ruinsDelve));
+            }
+            case NONE -> { }
+        }
+    }
+
+    /** Crew squads called up from the dig, a patrol's size each, drawn from the crew's own mix in turn. */
+    private static RuinsPushes.Force crewPushForce(MapResult map, RuinsCrew crew, GroundRosterProfile groundRoster,
+                                                  long seed) {
+        DefenderRoster roster = crew.roster();
+        Random rng = new Random(seed * 31L + 0x5713L);
+        Deque<GroundRosterProfile.ForceTier> infantry = new ArrayDeque<>();
+        int[] named = {0};
+        return (sim, push, x, y) -> {
+            List<Integer> out = new ArrayList<>();
+            if (roster.infantryOrder().isEmpty()) return out;
+            DefenderObserverIssue observers = DefenderObserverIssue.of(sim);
+            for (int i = 0; i < push.squads(); i++) {
+                while (infantry.size() < roster.patrolSquadSize) infantry.addAll(roster.infantryOrder());
+                TacticalNode node = crewNode(x, y, roster.patrolSquadSize, map.grid);
+                Squad squad = crewSquad(sim, map, node, GARRISON_SPAWN_RADIUS + 2, roster.patrolSquadSize, infantry,
+                        UnitRole.PATROL, roster, groundRoster, rng, observers, named, "stir");
+                if (squad != null) out.add(squad.id);
+            }
+            return out;
+        };
+    }
+
+    /** One crew squad of up to {@code count} round a node; null when none could stand. */
+    private static Squad crewSquad(BattleSimulation sim, MapResult map, TacticalNode node, int radius, int count,
+                                   Deque<GroundRosterProfile.ForceTier> infantry, UnitRole role,
+                                   DefenderRoster roster, GroundRosterProfile groundRoster, Random rng,
+                                   DefenderObserverIssue observers, int[] named, String prefix) {
+        if (count <= 0 || infantry.isEmpty()) return null;
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : pickCellsForNode(map.grid, sim.getZoneGraph(), node, radius, count)) {
             if (infantry.isEmpty()) break;
             GroundRosterProfile.ForceTier tier = infantry.poll();
             UnitType type = groundRoster.unitType(tier);
-            EntitySpec unit = makeDefender("d" + named[0]++, type, cell[0], cell[1], roster.risk, groundRoster,
+            EntitySpec unit = makeDefender(prefix + named[0]++, type, cell[0], cell[1], roster.risk, groundRoster,
                     tier, rng, null);
             unit.role(role);
             if (role == UnitRole.GARRISON) unit.home(cell[0], cell[1]);
@@ -5535,7 +5598,7 @@ public final class BattleSetup {
             spawned++;
         }
         if (squad != null) squad.originalSize = spawned;
-        return spawned;
+        return squad;
     }
 
     /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). Composition follows the roster: mechs first, then red marines, then militia. */

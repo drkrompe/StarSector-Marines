@@ -1716,7 +1716,7 @@ public final class UnitRenderService implements RenderSystem {
                         ? sprites.derelictWalkerSprites() : null;
                 if (walkerArt != null) {
                     // The derelict walker is its own chassis: a torso on reaching legs, drawn from its own rig.
-                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> DerelictWalkerLook.newRig());
+                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> new DerelictLegRig());
                     int tick = ctx.sim.getSimTickIndex();
                     Integer last = derelictRigTicks.put(entityId, tick);
                     float dt = last == null ? 0f

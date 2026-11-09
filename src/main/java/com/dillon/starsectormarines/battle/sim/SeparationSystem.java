@@ -313,6 +313,22 @@ public final class SeparationSystem {
         this.movement = roster.movement();
     }
 
+    /** The index of the foot in {@code feet} ({@code count} of them) nearest {@code (x, y)}. */
+    public static int nearestFoot(float[] feet, int count, float x, float y) {
+        int best = 0;
+        float bestD = Float.MAX_VALUE;
+        for (int i = 0; i < count; i++) {
+            float dx = feet[2 * i] - x;
+            float dy = feet[2 * i + 1] - y;
+            float d = dx * dx + dy * dy;
+            if (d < bestD) {
+                bestD = d;
+                best = i;
+            }
+        }
+        return best;
+    }
+
     /**
      * Bodies held by another body sit where their holder puts them every tick,
      * so they take no part: a shove would be overwritten, and the holder would
@@ -320,6 +336,29 @@ public final class SeparationSystem {
      */
     public void spareHeld(LongPredicate held) {
         this.held = held;
+    }
+
+    /**
+     * A body that stands high on its feet, so small bodies pass under it between them (`ruins-guardians.md`,
+     * Underneath): the derelict walker. Asked in the pair pass only while one is set.
+     */
+    public interface Straddle {
+        /** The feet of {@code unit} as {@code {x0, y0, ...}} into {@code out}; 0 when it is no straddler now. */
+        int feet(long unit, float[] out);
+
+        /** Whether {@code unit} fits under a straddler. */
+        boolean fitsUnder(long unit);
+
+        /** A foot's blocking radius, cells. */
+        float footRadius();
+    }
+
+    private Straddle straddle;
+    private final float[] feetScratch = new float[16];
+
+    /** Sets the straddlers on the field; null for none. A small body is then kept off their feet, not their body. */
+    public void straddle(Straddle straddle) {
+        this.straddle = straddle;
     }
 
     /**
@@ -385,11 +424,24 @@ public final class SeparationSystem {
                 float bx = collisionX[j];
                 float by = collisionY[j];
                 float rb = collisionRadius[j];
+                boolean onFoot = false;
+                if (straddle != null) {
+                    // A straddler is not shoved by what walks under it; what walks under it meets only its feet.
+                    if (straddle.feet(a, feetScratch) > 0 && straddle.fitsUnder(b)) continue;
+                    int feet = straddle.feet(b, feetScratch);
+                    if (feet > 0 && straddle.fitsUnder(a)) {
+                        int foot = nearestFoot(feetScratch, feet, ax, ay);
+                        bx = feetScratch[2 * foot];
+                        by = feetScratch[2 * foot + 1];
+                        rb = straddle.footRadius();
+                        onFoot = true;
+                    }
+                }
                 float sumR;
                 float dx;
                 float dy;
                 boolean crossing = false;
-                if (aLong || elongated[j]) {
+                if (!onFoot && (aLong || elongated[j])) {
                     // Measured lower id first, so both sides of a pair see the
                     // same two points and push along one line.
                     boolean aFirst = a < b;

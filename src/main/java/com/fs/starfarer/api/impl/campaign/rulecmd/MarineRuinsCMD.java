@@ -3,6 +3,7 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.bloom.SectorBloomWorld;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -164,7 +165,8 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         int serial = RuinsExpeditionLedger.issue(state());
         Mission mission = RuinsExpeditionMissionFactory.create(serial, market.getId(), planet.getName(), grade(market),
                 SectorRuinsOccupants.of(market),
-                RuinsSiteFinds.parse(market.getMemoryWithoutUpdate().getString(RuinsSiteFinds.MEMORY_KEY)));
+                RuinsSiteFinds.parse(market.getMemoryWithoutUpdate().getString(RuinsSiteFinds.MEMORY_KEY)),
+                SectorBloomWorld.sectorSeed());
         if (mission == null) return false;
         LOG.info("MarineRuinsCMD: opening expedition briefing " + mission.id + " (" + mission.ruinsOccupant + ")");
         dialog.hideTextPanel();

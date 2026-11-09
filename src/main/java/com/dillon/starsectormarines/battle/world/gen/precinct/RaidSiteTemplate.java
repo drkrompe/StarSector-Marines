@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.function.IntFunction;
 
 /**
  * An authored Raid site for one industry ({@code raid-mission.md}, Site templates; owner pick {@code raid-mapgen}:
@@ -31,6 +33,12 @@ import java.util.SplittableRandom;
  * south (the works north or south of the garrison), and each place seeded anywhere in its region. The market
  * varies it by size: a bigger market has a town's streets rather than a hamlet's and, from {@link #OUTSKIRTS_FROM},
  * an outskirts suburb on the landing side, behind the homes and away from everything worth raiding.
+ *
+ * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
+ * machine halls in a dense industrial quarter; a mine's is its head works, a winding house over each shaft and the
+ * ore mill they feed, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
+ * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
+ * among depots, with the garrison beside it as on every site.
  *
  * <p>Raid only. Every other mission's map is derived as it was.
  */
@@ -109,19 +117,62 @@ public final class RaidSiteTemplate {
     /** Share of the map a works may claim before its program is trimmed. UNTUNED. */
     static final float WORKS_FIT = 0.06f;
 
+    /** Share of the map a mine's head works may claim: its shafts stand apart on wide ore yards. UNTUNED. */
+    static final float MINE_FIT = 0.08f;
+
     private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
+    private static final Set<String> MINING = Set.of("mining", "techmining");
+    private static final Set<String> REFINING = Set.of("refining", "fuelprod");
+    private static final Set<String> LIGHT_INDUSTRY = Set.of("lightindustry");
+    private static final Set<String> FARMING = Set.of("farming", "aquaculture");
+    private static final Set<String> PORT = Set.of("spaceport", "megaport");
+    private static final Set<String> MILITARY = Set.of("militarybase", "patrolhq", "highcommand");
 
     private final String key;
+    private final IntFunction<FortressProgram> works;
+    private final float worksFit;
+    private final GrownTrunkPlan.Profile industryGrowth;
+    private final PrecinctCharacter industryCharacter;
 
-    private RaidSiteTemplate(String key) {
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth) {
+        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter) {
         this.key = key;
+        this.works = works;
+        this.worksFit = worksFit;
+        this.industryGrowth = industryGrowth;
+        this.industryCharacter = industryCharacter;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
     public static RaidSiteTemplate forIndustry(String industryId) {
         if (industryId == null) return null;
         String id = industryId.toLowerCase(Locale.ROOT);
-        if (HEAVY_INDUSTRY.contains(id)) return new RaidSiteTemplate("heavy-industry");
+        if (HEAVY_INDUSTRY.contains(id)) {
+            return new RaidSiteTemplate("heavy-industry", FortressProgram::works, WORKS_FIT, INDUSTRY_GROWTH);
+        }
+        if (MINING.contains(id)) return new RaidSiteTemplate("mining", RaidWorksPrograms::mine, MINE_FIT, ORE_YARDS);
+        if (REFINING.contains(id)) {
+            return new RaidSiteTemplate("refining", RaidWorksPrograms::refinery, MINE_FIT, INDUSTRY_GROWTH);
+        }
+        if (LIGHT_INDUSTRY.contains(id)) {
+            return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
+        }
+        if (FARMING.contains(id)) {
+            return new RaidSiteTemplate("farming", RaidWorksPrograms::farmPlant, WORKS_FIT, ORE_YARDS,
+                    PrecinctCharacter.FARMSTEAD);
+        }
+        if (PORT.contains(id)) {
+            return new RaidSiteTemplate("spaceport", RaidWorksPrograms::cargoTerminal, MINE_FIT, INDUSTRY_GROWTH);
+        }
+        if (MILITARY.contains(id)) {
+            return new RaidSiteTemplate("military", RaidWorksPrograms::motorPool, MINE_FIT, ORE_YARDS,
+                    PrecinctCharacter.DEPOT);
+        }
         return null;
     }
 
@@ -132,7 +183,7 @@ public final class RaidSiteTemplate {
      * The site laid on a map of this size for this market. The draws are this template's own: one for the
      * orientation, then the places in order.
      *
-     * @param machines machine halls in the works, one per machine the raid wrecks
+     * @param machines machines in the works (halls, or a mine's winding houses), one per machine the raid wrecks
      * @param demand   the hardest wall this operation may be asked to face; it caps the works' wall and sets the
      *                 garrison's as a derived plan does
      */
@@ -146,7 +197,7 @@ public final class RaidSiteTemplate {
         Security security = Security.of(profile);
         List<PrecinctBrief> briefs = new ArrayList<>();
         briefs.add(PrecinctBrief.garrison(WORKS, oriented(WORKS_AT, mirrorX, mirrorY), WORKS_GROWTH,
-                FortressProgram.works(machines).fittedTo(Math.round(WORKS_FIT * width * height)),
+                works.apply(machines).fittedTo(Math.round(worksFit * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
             briefs.add(PrecinctBrief.garrison(GARRISON, oriented(GARRISON_AT, mirrorX, mirrorY),
@@ -157,9 +208,9 @@ public final class RaidSiteTemplate {
         briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY, oriented(INDUSTRY_AT, mirrorX, mirrorY),
-                INDUSTRY_GROWTH, PrecinctCharacter.INDUSTRY));
+                industryGrowth, industryCharacter));
         briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
-                INDUSTRY_GROWTH, PrecinctCharacter.INDUSTRY));
+                industryGrowth, industryCharacter));
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
             briefs.add(PrecinctBrief.settlement(OUTSKIRTS, oriented(OUTSKIRTS_AT, mirrorX, mirrorY),
                     GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB));
@@ -193,6 +244,15 @@ public final class RaidSiteTemplate {
 
     /** The industrial quarter and the yards: a town's density of yards and sheds on the homes' short arms. */
     private static final GrownTrunkPlan.Profile INDUSTRY_GROWTH = shortArms(GrownTrunkPlan.Profile.town());
+
+    /** A mine's ore yards and railhead: a hamlet's few roads, sheds and stockpiles with open ground between. */
+    private static final GrownTrunkPlan.Profile ORE_YARDS = shortArms(GrownTrunkPlan.Profile.hamlet());
+
+    /** The kind of district round the works, for evidence. */
+    PrecinctCharacter industryCharacter() { return industryCharacter; }
+
+    /** How many junctions the industry round the works grows, for evidence. */
+    int industryJunctions() { return industryGrowth.junctionBudget; }
 
     private static GrownTrunkPlan.Profile shortArms(GrownTrunkPlan.Profile p) {
         return new GrownTrunkPlan.Profile(p.junctionBudget, p.branchChance, HOMES_ARM_LO, HOMES_ARM_HI,

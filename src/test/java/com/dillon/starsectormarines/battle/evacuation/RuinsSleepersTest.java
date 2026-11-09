@@ -102,4 +102,24 @@ class RuinsSleepersTest {
             }
         }
     }
+
+    @Test
+    void oncePressureKeepsTheTimeOnlyNoiseAndTheBreachStirTheBores() {
+        RuinsSleepers.Stir stir = new RuinsSleepers.Stir(2);
+        stir.timeStirs = false;
+        assertTrue(stir.advance(RuinsSleepers.WAKE_BASE * 2f, new float[2], false, false).isEmpty());
+        assertEquals(List.of(0, 1), stir.advance(DT, new float[2], false, true));
+    }
+
+    @Test
+    void aPushWakesTheNearestClosedBoreFirstThenSurgesTheNearestOpenOne() {
+        float[][] at = {{0f, 0f}, {10f, 0f}, {50f, 0f}, null};
+        boolean[] awake = {false, true, false, false};
+        assertEquals(0, RuinsSleepers.pick(at, awake, new boolean[4], 12f, 0f), "closed first, though an open one is nearer");
+        assertEquals(2, RuinsSleepers.pick(at, awake, new boolean[]{true, false, false, false}, 12f, 0f));
+        assertEquals(1, RuinsSleepers.pick(at, awake, new boolean[]{true, false, true, false}, 12f, 0f),
+                "with none closed left, the open one");
+        assertEquals(-1, RuinsSleepers.pick(at, awake, new boolean[]{true, true, true, false}, 12f, 0f),
+                "a bore not yet on the ground is never picked");
+    }
 }

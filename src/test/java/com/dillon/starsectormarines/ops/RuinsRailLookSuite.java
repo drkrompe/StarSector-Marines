@@ -92,12 +92,12 @@ public final class RuinsRailLookSuite implements SnapshotSuite {
         return out;
     }
 
-    private static void advance(BattleSimulation sim, float seconds) {
+    static void advance(BattleSimulation sim, float seconds) {
         for (int i = 0, n = Math.round(seconds / BattleSimulation.TICK_DT); i < n && !sim.isComplete(); i++)
             sim.advance(BattleSimulation.TICK_DT);
     }
 
-    private static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name,
+    static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name,
                                          float x, float y, float cellsAcross) throws Exception {
         MissionObjectiveSnapshot picture = MissionObjectiveProjection.capture(sim);
         Reactor reactor = new Reactor();
@@ -126,7 +126,7 @@ public final class RuinsRailLookSuite implements SnapshotSuite {
         }
     }
 
-    private static void installFonts(SnapshotContext context, BitmapFont... fonts) throws Exception {
+    static void installFonts(SnapshotContext context, BitmapFont... fonts) throws Exception {
         for (BitmapFont font : fonts) {
             Path path = context.modRoot().resolve(font.sourcePath());
             if (!Files.exists(path)) path = context.starsectorCore().resolve(font.sourcePath());
