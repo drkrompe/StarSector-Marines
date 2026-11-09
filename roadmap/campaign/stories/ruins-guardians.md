@@ -93,16 +93,17 @@ No new chassis: its boss read is the walker's look, the sentinel
 
 1. **Rules (built).** The hive's site and hatch cycle, the vault frame's
    brace. Unit-tested.
-2. **The hive in battle.** `DerelictSecurity.install` stands the hive in its
-   court, with its own flock launched from it on the zone's branch. The flock's
-   rebuild becomes the hive's hatch: a cradle given a hatch launches from its
-   bay instead of rebuilding slowly. The hatch's armour rating applies to its
-   structure. The hive counts as a defender in the court's hold. A
-   `sceneEvidence` scene: the hatch opens when the flock is short, and a thrown
-   junction keeps it shut.
-3. **The brace in battle.** The director or the walker's own tick feeds the
-   brace with its target's bearing, scales hits by the brace's arc, and its
-   fire by `fireScale`. "Never leaves its hall" clamps its answer from
+2. **The hive in battle (built).** `DerelictSecurity.install` stands the
+   hive in its court, its flock shut in the court's well, answering to the
+   nearest zone. The hatch launches it in place of the slow rebuild and sets
+   its housing's plate. The housing and its flock are defender combatants, so
+   they contest the court's hold. Remains: a `sceneEvidence` scene (the hatch
+   opens when the flock is short, and a thrown junction keeps it shut).
+3. **The brace in battle (built, but for the clamp and the legs).** The
+   director ticks each vault frame's brace with its movement and its target's
+   bearing, the damage pipeline asks it how each hit lands (`HitScale`), and a
+   free frame's guns cycle at `fireScale`. Remains: "never leaves its hall"
+   clamps its answer from
    `WalkerPosture.VAULT_REACH_CELLS` (10) to the vault hall's own cells. It
    coordinates with the walker's leg rig (wall reach,
    `derelict-walker-wall-reach`), which draws the planted legs. Owned jointly
@@ -114,7 +115,7 @@ No new chassis: its boss read is the walker's look, the sentinel
    marker, the hatch's lamps and tone, the walker's footfalls.
 6. **Looks.** The hive's own housing: a heavier cradle over a well hatch,
    painted after the shipped cradle and node (`art-source/derelict-security`),
-   through a pick. Until then it draws as the shipped cradle, larger.
+   through a pick. Until then it draws as the shipped cradle.
 7. **The other occupants.** Scavengers (the crew boss and the cutting rig),
    the Rav (the old sleeper and the deep bore), an empty site (the vault's own
    battery), as `ruins-guardian-kinds` (a) names them, each a story slice of
@@ -130,8 +131,14 @@ No new chassis: its boss read is the walker's look, the sentinel
 - `VaultFrameBrace` (`battle.derelict`): the stance (free, bracing, braced),
   the damage scale by bearing (front, flank, rear), a rear hit unbracing it,
   and the fire scale. Numbers UNTUNED.
+- In battle: `DerelictSecurity.standHive` and `FlockSystem.launchInWell` (a
+  flock kept to its own light well, launched by a `FlockHatch`);
+  `DerelictSecurityDirector.braceVaultFrames` (the stance each tick, hits
+  through `UnitRosterService.hitScale`, fire cycles stretched). The hive draws
+  as the shipped cradle until slice 6. Look stills: `createSnapshots
+  -Psnapshot=ruins-guardians-look`.
 
-Tests: `HiveCradleTest`, `VaultFrameBraceTest`.
+Tests: `HiveCradleTest`, `VaultFrameBraceTest`, `FlockSystemTest`.
 
 ## Constraints
 

@@ -34,6 +34,10 @@ public final class Flock implements DroneAnchor {
     FlockLivery livery = FlockLivery.DOMAIN;
     final FlockCradle.Clock rebuild = new FlockCradle.Clock();
     final FlockDock dock = new FlockDock();
+    /** The hatch that launches this flock in place of the slow rebuild, or null for an ordinary cradle. */
+    FlockHatch hatch;
+    /** The open cells this flock is kept to when it is shut in a light well, row-major; null for the outside. */
+    boolean[] well;
     private volatile boolean nodeStands = true;
     /** Tick the field was last built, for the rebuild cadence. */
     int fieldTick = Integer.MIN_VALUE / 2;
@@ -94,6 +98,12 @@ public final class Flock implements DroneAnchor {
     public void nodeStands(boolean stands) { nodeStands = stands; }
 
     public boolean nodeStands() { return nodeStands; }
+
+    /** The hatch launching this flock, or null when its cradle rebuilds it slowly. */
+    public FlockHatch hatch() { return hatch; }
+
+    /** Whether this flock is shut in a light well of its own rather than flying the outside. */
+    public boolean inWell() { return well != null; }
 
     /** Members flying now. */
     public int size() { return members.size(); }
