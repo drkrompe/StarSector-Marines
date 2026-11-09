@@ -334,29 +334,34 @@ wakes, feeds or ends a campaign bloom and never touches the reservoir's rest
 ### Derelict security
 
 The site's own automated security, still running on orders nobody remembers:
-Domain security, or Tri-Tachyon contingency security in a Remnant system.
+Domain security, or Tri-Tachyon contingency security in a Remnant system. It
+fights as **drone flocks and heavy walkers** (owner, 2026-11-09).
 `derelict-lore-guide.md` holds its canon, units, doctrine and voice. In the
 battle:
 
-- **Each layer is a security zone**: a control node with the sentry posts,
-  drone cradles, security walkers and repair drones it controls, linked to its
+- **Each layer is a security zone**: a control node with the drone cradles,
+  heavy walkers, sentry posts and repair drones it controls, linked to its
   neighbours by relays. The vault zone is the strongest.
 - **Zones start dormant** and wake on a sensor contact, gunfire inside their
   perimeter or damage, relaying the alarm to their linked neighbours, which go
-  alert where they stand. An awake zone fights inside its perimeter and does
-  not pursue past it.
-- **The breach runs the contingency**: every zone wakes and every mobile unit
-  that can reach the vault zone or the route out of it is called in. The egress
-  is the hardest fight.
-- **Killing a node isolates its zone**: no relay in or out, no repairs, and the
-  contingency's call does not reach it.
+  alert where they stand.
+- **Flocks are the alarm and the screen.** A woken zone's flock goes up first,
+  finds and pins the company, and may range a bounded leash beyond its
+  perimeter. **Heavies are the anchor**: they hold their layer's chokes and
+  courts, never leave their perimeter, and come to what the flocks have pinned.
+- **The breach runs the contingency**: every zone wakes, the flocks go for the
+  haul's escort and the heavies walk to the egress route and hold it. The
+  egress is the hardest fight.
+- **Killing a node isolates its zone**: no relay in or out, no repairs, no
+  rebuilt drones, and the contingency's call does not reach it.
 - The network is the **security-network director** that `extraction-command.md`
   leaves open for Silent Colony: a mission director with honest knowledge (its
-  own sensors and relays), not a mirrored squad commander. It is built here, and
-  Silent Colony may adopt it later.
+  own sensors, flocks and relays), not a mirrored squad commander. It commands
+  flocks as units (`derelict-drone-flocks.md`) and walkers as ordinary mechs.
 
-Its strength scales with the grade through the number of zones and what each
-holds; a heavy walker guards the vault zone only at the vast grade.
+Its strength scales with the grade: one to four flocks, and from none or one
+heavy at scattered to four or five, a vault frame among them, at vast
+(`derelict-lore-guide.md`, Strength by grade).
 
 ## Briefing
 

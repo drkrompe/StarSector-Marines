@@ -5,6 +5,8 @@ occupant of a ruins expedition (`ruins-expedition.md`). Nothing is built.
 
 Written: 2026-11-09
 
+Updated: 2026-11-09 — owner direction: drone swarms with flocking behaviour and heavy mechs. Flocks are the signature and the alarm, an automated heavy line the anchor; posts are secondary.
+
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws, and
 `remnants-lore-guide.md`, the guide this one must stay apart from. The battle
 this guide gives a voice to is in `ruins-expedition.md` (Occupants) and its
@@ -106,72 +108,140 @@ Everything in this section is mod direction.
 - **Not the Remnants.** No nexus, no fleet, no ordo, no alpha-core personality,
   no reach beyond the site. A Remnant ground force belongs to
   `remnants-lore-guide.md` and is not a ruins occupant.
-- **Not the Rav.** It does not grow, eat or come in waves. It holds.
+- **Not the Rav.** It does not grow, eat or hunt. Its swarm is a flock of
+  identical machines flying as one body, and its numbers are fixed.
 - **Not a robot army in human shapes.** No humanoid infantry. The smallest
-  armed unit is a drone or a folded sentry post, and every unit has a job a
+  armed unit is a swarm drone, and every unit has a job a
   security planner would buy it for.
 - **Not loot on legs.** Destroying units does not drop AI cores. A core in the
   ruins is in the vault, and the vault's haul is vanilla's.
 
+### The force: flocks and heavies
+
+Owner direction (2026-11-09): derelict security is **drone swarms with flocking
+behaviour, and heavy mechs**. The swarm is the faction's signature, the heavy
+walkers its hard core, and the two fight as one force: the flocks find, pin and
+screen; the heavies arrive and break what the flocks have pinned.
+
+The canon gives both halves. The Domain sent drones "to tip the terrible balance
+of attrition" against rebel worlds, the Picket closes to unleash "a shockingly
+dense volume of light-caliber fire", and the Berserker makes "little
+consideration for its own survival": cheap, expendable machines in numbers. The
+Rampart is "little more than an artillery platform", built so that wrecks repair
+the lightly damaged: a slow, heavy anchor that keeps itself running.
+
 ### Units
 
-Each unit uses an existing mechanical role (`faction-lore-nouns.md`,
-Implementation lookup): the derelict roster adds looks, weapon mixes and a
-doctrine, not a new kind of actor, except where a story says so.
-
-| Unit | Role it uses | What it is |
+| Unit | What it is | Built from |
 | --- | --- | --- |
-| **Sentry post** | Defence post, light to large (`DefensePost`) | A folded gun emplacement that rises from its housing when its zone wakes. Light posts carry machine guns and light autocannon, medium posts heavier autocannon and mortars, large posts missile racks or a heavy cannon. |
-| **Drone cradle** | Drone hub (`DroneHub`) | A launch housing that keeps a small flight of security drones docked and puts them up when its zone wakes. Its drones are the network's eyes and its fast response. |
-| **Security walker** | Mech (`mechs-nouns.md`) | An unpiloted Mbaye-Gogol walker: a light patrol frame in pairs, and at the larger grades a heavy frame built for vault guard. Its chassis, plates and weapons are ordinary mech parts; it has no cockpit and no pilot to kill. |
-| **Repair drone** | Builder drone (`tender-ship.md`), working a damaged post instead of a new one | An unarmed drone docked at the node that flies out to restore damaged posts and cradles while its node stands and its repair stock lasts, and stands down under fire as a builder does. Killing it, or the node, stops the network healing. |
-| **Control node** | Structure | The zone's controller and relay: armoured, unarmed, the thing a security planner protects. Destroyed, its zone stops relaying and repairing. |
+| **Swarm drone** | A small, cheap, expendable flier with one light gun. Alone it is nothing; it exists in a flock. | The shipped drone's air body, lighter (`Drone`), steered by the flock (`derelict-drone-flocks.md`) |
+| **Flock** | Twelve to sixteen swarm drones that move, turn and attack as one body. The unit the network commands. | New: the flock model (`derelict-drone-flocks.md`) |
+| **Drone cradle** | A launch housing that keeps one flock docked, puts it up when its zone wakes, takes it back, and slowly rebuilds lost drones while its node stands. | The drone hub (`DroneHub`) with a flock's stock |
+| **Security walker** | An unpiloted heavy walker of the derelict line, in three loadouts: the **line frame** (heavy cannon and plate, holds a layer and crushes cover), the **siege frame** (mortar and missile racks, fires on what the flocks see), and the **vault frame** (the heaviest plate, the vault's last guard). | A new heavy mech line (`mech-lines.md`): one chassis, variants by loadout (`mechs-nouns.md`) |
+| **Sentry post** | A folded gun emplacement that rises when its zone wakes. Secondary now: a few per zone at doors and courts. | Defence post (`DefensePost`) with a wake gate |
+| **Repair drone** | An unarmed drone that restores damaged posts, cradles and walkers while its node stands and its stock lasts; stands down under fire. | The tender's builder drone (`tender-ship.md`) |
+| **Control node** | The zone's controller and relay: armoured, unarmed. Destroyed, its zone stops relaying, repairing and rebuilding drones. | Structure |
 
-The walker is the only new chassis. A Domain-lineage walker and a
-contingency-lineage walker are liveries of the same chassis, not two variants.
-Ground units do not reuse vanilla's ship class names (the Warden is already the
-mod's own mech); they take Mbaye-Gogol designations, for example *MG-series
-patrol frame*.
+**The heavies are a line of their own.** The derelict walker is one new heavy
+chassis with its own art, sound and doctrine, not a livery of the Bulwark
+(`mech-lines.md`, law 1: a line is never a recolour). It stands outside the
+player's tech-by-weight grid as an automated line: no cockpit, no pilot, and
+never fielded by the company, since the Sector's law keeps armed machines under
+crewed control. Its variants are loadouts on the one chassis (`mech-lines.md`,
+law 2), and its Domain and contingency looks are liveries of it. It is never
+lifted; it was built where it stands. Ground units take Mbaye-Gogol
+designations (*MG-series line frame*), never vanilla's ship class names.
+
+**Strength by grade** (starting points for the stories to tune):
+
+| Grade | Flocks | Heavies | Sentry posts |
+| --- | --- | --- | --- |
+| Scattered | 1 | 0–1 | a few |
+| Widespread | 2 | 1–2 | a few per zone |
+| Extensive | 3 | 2–3, one siege frame | a few per zone |
+| Vast | 4 | 4–5, one vault frame | a few per zone |
+
+### The flock
+
+- **One drone.** Light: a burst from a rifle drops it. It flies low, below the
+  rooflines, carrying one light gun with a short reach. It crosses low cover
+  (rubble, sandbags, fences) but not walls or roofs, and it never enters a
+  roofed interior: it goes round, through open doors and breaches, over courts.
+- **Flocking.** Each drone steers by three local rules: keep apart from its
+  neighbours (**separation**, the shipped `DroneSeparation`), fly the way they
+  fly (**alignment**), and keep with them (**cohesion**), all drawn after the
+  flock's **anchor**, the point the network moves. A wall in the way splits the
+  flock: each drone takes the side its own route favours, and cohesion re-forms
+  it behind. A flock therefore pours down streets, divides round a building and
+  closes again on the far side.
+- **Attack.** A flock does not trade fire from cover. It closes on a target,
+  wraps round it and strafes in passes, each drone firing when its nose comes
+  on; the volume, not any one gun, is the threat. Under fire it spreads, never
+  stops.
+- **Loss.** Drones die singly and fall where they are hit. A flock below a third
+  of its strength goes home to its cradle to re-form; a cradle without a node
+  rebuilds nothing.
+- **Command.** The network commands flocks, never drones: it gives a flock a
+  task (screen, probe, strike, pursue, return) and an anchor route, and the
+  members fly it themselves.
+- **How the company fights it.** Area fire thins a flock fastest: squad
+  automatics, shotguns, grenades and anything that bursts. Shooters indoors
+  are out of its reach, since a flock never enters a roofed room; a door shut
+  behind them (a sally door) closes the way. Smoke breaks its sight and so the
+  siege frames' spotting. Point-defence and flak engage it as any flier. And a
+  dead node stops the cradle rebuilding.
+
+### The flock and the Rav
+
+The two must never read as the same thing.
+
+| | Rav (the swarm) | Derelict flocks |
+| --- | --- | --- |
+| Body | ground animals, by strain | identical fliers |
+| Moves as | individuals on a shared prey field, each hunting what it senses | one body, steered by flocking to an anchor the network moves |
+| Numbers | grow: bores feed and spawn while the company stays | fixed: each cradle's flock, rebuilt slowly while its node lives |
+| Attack | melee and spit, piling on | ranged strafing passes, wrapping round |
+| Shape | spreads, crowds into gaps, floods doors | streams, splits round walls and re-forms, keeps out of rooms |
+| Answer | gates, choke and kill, starve it | area fire, fight from indoors, smoke, cut the node |
 
 ### Weapons and equipment
 
-Domain security prefers the `derelict` arsenal at ground scale: machine guns,
-autocannon, mortars, light missile racks, flak against aircraft, and the odd
-early laser in a point-defence role. Contingency security leans to Tri-Tachyon's
-pulse and beam lasers and guided missiles. Neither carries anything a Marine
-can pick up and use: a wrecked post is scrap, and the company's field finds stay
-the ordinary bundles (`loot-nouns.md`).
+Domain security keeps the `derelict` arsenal at ground scale: the flocks' light
+machine guns, the line frame's heavy cannon and autocannon, the siege frame's
+mortar and missile racks, flak and point-defence lasers against the company's
+aircraft and missiles. Contingency security leans to pulse and beam lasers and
+guided missiles. Nothing it carries is usable by a Marine: a wreck is scrap,
+and the field finds stay the ordinary bundles (`loot-nouns.md`).
 
 ### Tactics and command
 
 - **Zones.** A network is a set of **security zones**, each a node with the
-  posts, cradles, walkers and repair drones it controls, linked to its neighbours by
-  relays. A zone is the network's unit of attention.
-- **Dormant until woken.** A zone starts **dormant**: posts folded, drones
-  docked, walkers powered down. It goes **alert** when one of its sensors sees
-  a company unit, when it hears gunfire inside its perimeter, or when any of
-  its units is damaged; an alert zone is **awake** at once. An awake zone
-  relays the alarm to its linked neighbours, which go alert but stay where they
-  are. With no contact for a while an awake zone settles back to alert, never
-  to dormant.
-- **It holds.** An awake zone's walkers and drones fight inside their perimeter
-  and come back to it. They do not pursue a company that has left their
-  ground. That is the counterplay: scout, find the quiet way through, cut a
-  relay or a node, and the network can be bypassed, isolated or put to sleep
-  zone by zone.
-- **The contingency.** Breaching the vault runs the contingency: every zone
-  wakes, and every mobile unit that can still reach the vault's zone, or the
-  route out of it, is called in. This is the only time the network leaves its
-  perimeters, and it is why the way out is the hardest fight.
-- **Honest knowledge.** A zone knows what its own sensors see and what linked
-  zones relay. A cut relay or a dead node isolates a zone; jamming, smoke and
-  walls work on its sensors as on anyone's. The network is a mission director,
-  like the swarm's (`extraction-command.md`), not a mirrored squad commander;
-  it reads only what its sensors and relays legally give it.
-- **No morale, no immunity.** Machines do not break, surrender or retreat
-  (`fightToTheLast`), but they take damage by the ordinary rules of their
-  chassis and armour (`faction-lore-nouns.md`, Faction flavor is not a hidden
-  bonus).
+  cradles, walkers, posts and repair drones it controls, linked to its
+  neighbours by relays.
+- **Dormant until woken.** A zone starts **dormant**: flocks docked, walkers
+  powered down, posts folded. It wakes on a sensor contact, gunfire inside its
+  perimeter or damage, and relays the alarm to its linked neighbours, which go
+  alert where they stand. With no contact for a while an awake zone settles back
+  to alert, never to dormant.
+- **The flocks are the alarm and the screen.** A woken zone's flock goes up
+  first. It finds the company, relays what it sees to the zone and its
+  neighbours, and pins the company down. Flocks have a **leash**: they may leave
+  their zone's perimeter to probe and to screen, a bounded way, and come back.
+- **The heavies are the anchor.** Walkers hold their zone's layer, its chokes
+  and its courts, and never leave their perimeter. They come to what the flocks
+  have pinned inside it. Siege frames fire on what the flocks see, so a blinded
+  or dead flock leaves them firing on old contacts.
+- **The contingency.** Breaching the vault wakes every zone. Every flock that
+  can reach the vault or the route out goes for the haul's escort; the heavies
+  walk to the egress route through their own ground and hold it. The flocks
+  arrive first and pin; the heavies close the way.
+- **Honest knowledge.** A zone knows what its sensors, its flocks and its
+  relays tell it. A dead node isolates its zone; jamming, smoke and walls work
+  on its sensors as on anyone's. The network is a mission director like the
+  Rav's swarm director, not a mirrored squad commander.
+- **No morale, no immunity.** Machines do not break or retreat
+  (`fightToTheLast`); they take damage by the ordinary rules of their chassis
+  and armour.
 
 ### How it reads against the other occupants
 
@@ -180,8 +250,8 @@ the ordinary bundles (`loot-nouns.md`).
 | Wants | the same haul the company wants | food, and to grow | its ground kept, for orders nobody remembers |
 | Starts | awake, working the ruins | asleep below, stirred by noise | dormant, woken by its sensors |
 | Pressure over time | early and steady; breaks if its captain or its stash is lost | rises the longer the company stays and the louder it is | flat until a zone wakes; peaks at the contingency |
-| Pursuit | to its camp and the vault, then lets go | to the lift | never past its perimeter, except in the contingency |
-| Rewards | speed and violence | speed and quiet | scouting, routes and cutting nodes |
+| Pursuit | to its camp and the vault, then lets go | to the lift | flocks on a leash, heavies never past their perimeter, except in the contingency |
+| Rewards | speed and violence | speed and quiet | area fire, cover discipline, anti-armour, cutting nodes |
 | Leaves behind | its stash (an extra field cache) | nothing | nothing usable; scrap |
 
 ### Facilities and sites
@@ -191,7 +261,8 @@ paving, checkpoint gates, a sealed archive or bank vault, a buried magazine, a
 power hall feeding the network, a landing field the colony's security never
 stopped guarding, a corporate black-site annex behind a second wall. The vault
 is where the network's oldest orders point. Geometry is human, built for people
-who are gone, with maintenance hatches the drones use.
+who are gone, with maintenance hatches the drones use and courts wide enough for the
+flocks to wheel in.
 
 ### Voice and names
 
