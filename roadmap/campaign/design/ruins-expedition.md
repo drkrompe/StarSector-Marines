@@ -185,7 +185,7 @@ company's own powers work as in any mission (`command-powers-nouns.md`).
 The **delve** is the ground between the landing area and the vault: how far the
 route runs and how many **layers** it crosses. A layer is a band of ruined
 ground the route must get through, such as a collapsed street, a breached wall
-or a sealed gate. It is where an occupant holds (a scavenger outpost, a security
+or, inside the megastructure, a sealed gate. It is where an occupant holds (a scavenger outpost, a security
 zone, a nest band) and where the site's works stand. The grade is vanilla's
 proxy for the haul's size (rating 0.25 to 1 in the ruins salvage specs), so risk
 and reward rise together.
