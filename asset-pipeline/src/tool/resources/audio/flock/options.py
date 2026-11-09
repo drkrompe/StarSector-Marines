@@ -21,7 +21,7 @@ OUT = ROOT / "build" / "flock-look" / "whine"
 LOOK = ROOT / "build" / "snapshots" / "derelict-flocks-ruins-look" / "look"
 MANIFEST = ROOT / "asset-pipeline" / "src" / "tool" / "resources" / "audio" / "audio.json"
 JAVA_HOME = r"C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr"
-RECOMMENDED = "hornet"
+RECOMMENDED = "buzz"
 VOICES = {
     "hornet": "High fan whine, fourteen tones beating against each other: an insect swarm made of machines. "
               "Unmistakable over gunfire and never confused with an engine.",
