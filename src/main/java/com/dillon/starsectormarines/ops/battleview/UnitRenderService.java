@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
@@ -768,11 +769,11 @@ public final class UnitRenderService implements RenderSystem {
      * Drone-hub bodies: one unrotated whole-texture {@code SPRITE} per live hub.
      * Faithful port of the inline hub pass; the hub sprite is loaded at
      * {@code BattleScreen.attach} (hoisted out of the pass) so this stays GL-free,
-     * and is simply skipped if the load failed (the footprints already drew).
+     * and is simply skipped if the load failed (the footprints already drew). A
+     * flock's cradle draws its lineage's housing instead ({@link FlockLivery}).
      */
     private void sweepHubBodies(RenderContext ctx, DrawList out) {
         ShuttleSpriteCache hub = sprites.droneHubSprite();
-        if (hub == null) return;
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
         ViewCull view = ViewCull.of(cam);
@@ -781,9 +782,18 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = hubs.size(); i < n; i++) {
             long u = hubs.id(i);
             if (!view.visible(world.renderX(u), world.renderY(u),
-                    DroneHub.VISUAL_CELLS * AUTHORED_EXTENT_SLACK)) continue;
+                    Math.max(DroneHub.VISUAL_CELLS, FlockLivery.CRADLE_VISUAL_CELLS) * AUTHORED_EXTENT_SLACK)) continue;
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
+            // A flock's cradle wears its lineage's housing; a plain hub, or a cradle whose art did not load, the hub's.
+            FlockLivery livery = ctx.sim.flocks().cradleLivery(u);
+            ShuttleSpriteCache cradle = livery == null ? null : sprites.spriteByPath(livery.cradleSpritePath());
+            if (cradle != null) {
+                float tall = FlockLivery.CRADLE_VISUAL_CELLS * cellPx / Math.max(1f, cradle.aspect);
+                emitWholeSprite(out, cradle, 0f, tall, cx, cy, alphaMult);
+                continue;
+            }
+            if (hub == null) continue;
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS * cellPx,
                     cx, cy, alphaMult);
         }

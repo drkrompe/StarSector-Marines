@@ -175,3 +175,4 @@ com.dillon.starsectormarines.battle.nav.WalkwayCrossingScene
 com.dillon.starsectormarines.battle.drone.DerelictFlockScene
 com.dillon.starsectormarines.battle.derelict.DerelictPostScene
 com.dillon.starsectormarines.battle.drone.FlockCountersScene
+com.dillon.starsectormarines.battle.ruins.RuinsWorksScene

@@ -1,8 +1,9 @@
 # Ruins works
 
-Status: IN PROGRESS — slices 1 to 3 built (power routed and a seal door opened
-in a played battle); collapses, the records terminal, the noise hook and the
-evidence scenes are next. Part of slice 5 of
+Status: IN PROGRESS — slices 1 to 5 built, with the noise hook and a
+`sceneEvidence` scene; the vault's own seal (and the scattered bunker's door)
+waits on an owner pick, and the full chain is played once an empty site fields
+nobody. Part of slice 5 of
 `ruins-expedition-fork.md`, beside `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -50,13 +51,28 @@ one, and the sealed stores behind them are the reward.
    prompt within 10 cells, worked by company infantry within 2.5 cells; the
    objectives rail carries a Site power row with the hall's load, each
    junction's branch and each door's state. Each store is a field cache behind
-   its door (part of slice 5). The noise event is not built.
+   its door (part of slice 5).
+   *Built*, the noise: a restart wakes the Rav's nearest closed bore at once
+   (`RuinsSleepers.loud`) and stirs the derelict zone keeping the hall, or the
+   zone whose node is nearest (`SecurityNetwork.loud`).
 4. **Collapses.** A breachable run in rubble materials across a short way, with
    a long way round. A charge clears it.
+   *Built*: the collapse is the delve's own (`mapgen-nouns.md`, Ruins ground:
+   the choked short way's wall line). The forced way is the player's, for a
+   collapse and every shut seal door alike: the prompt offers SET CHARGE, and
+   the first company satchel carrier within his contact range (plus 1.5 cells)
+   of one of its cells sets a charge there (`SatchelChargeService.plantAtCell`).
+   The blast that cuts a cell clears the collapse or forces the door. The rail
+   marks the collapse CHOKED or CLEARED.
 5. **Records terminal and sealed stores.** Reading the terminal marks the
    power plan on the map and reveals the hidden stores. Each store is a field
    cache behind a seal door; an empty site has two, an occupied site at most
    one per layer.
+   *Built*: holding the terminal's console 4 s reads it. Until then every
+   sealed store is unmarked and offers no prompt, and a junction says what it
+   feeds only once it has been thrown (FEEDS ?, verb THROW); reading marks every
+   store and junction. Still one store per layer on every site; the two-store
+   empty site waits on slice 6.
 6. **The empty site's chain.** On a scattered site with nobody: the vault seal
    unpowered, a collapse across the short way, the power hall in a side layer,
    capacity for the vault and one other consumer, every step visible from the
@@ -67,6 +83,11 @@ one, and the sealed stores behind them are the reward.
    `ruins-occupants.md` and `derelict-security-network.md`.
 8. **Evidence.** `sceneEvidence` scenes for the chain: powered and forced vault,
    store opened, collapse cleared, with look shots for the owner.
+   *Built*: `sceneEvidence -Pscene=ruins-works` (`RuinsWorksScene`): powered
+   (a held console restarts the hall and the fed door opens), forced (the press
+   sets a charge on the door and the cut door is forced) and collapse (likewise
+   cleared). `createSnapshots -Psnapshot=ruins-works-look` shows a store sealed
+   and powered open. The vault loops wait on its seal.
 
 ## Constraints
 

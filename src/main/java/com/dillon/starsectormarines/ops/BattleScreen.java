@@ -91,6 +91,7 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
 import com.dillon.starsectormarines.ops.battleview.CreepAudio;
+import com.dillon.starsectormarines.ops.battleview.FlockAudio;
 import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
@@ -1505,6 +1506,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         BoreAudio.play(sim);
         SwarmAudio.play(sim, camera.panCellX(), camera.panCellY());
         CreepAudio.play(sim, camera.panCellX(), camera.panCellY());
+        FlockAudio.play(sim, camera.panCellX(), camera.panCellY());
     }
 
     private void spawnImpactFx(BattleSimulation sim) {

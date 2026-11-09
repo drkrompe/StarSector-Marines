@@ -47,6 +47,13 @@ class RuinsSleepersTest {
     }
 
     @Test
+    void aRousedBoreOpensOnTheNextStepAndOnlyIt() {
+        RuinsSleepers.Stir stir = new RuinsSleepers.Stir(3);
+        stir.rouse(2);
+        assertEquals(List.of(2), stir.advance(DT, new float[3], false, false));
+    }
+
+    @Test
     void aBreachUnderWayStirsFasterAndItsEndOpensEveryBore() {
         RuinsSleepers.Stir calm = new RuinsSleepers.Stir(1);
         RuinsSleepers.Stir breaching = new RuinsSleepers.Stir(1);
