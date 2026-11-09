@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ruins;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
+import com.dillon.starsectormarines.battle.setup.RuinsDefence;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -117,6 +119,14 @@ class RuinsWorksTest {
             works.settle(sim);
             assertTrue(works.collapseCleared());
         }
+    }
+
+    @Test
+    void anEmptySiteSealsASecondStoreOnItsLastLayer() {
+        assertEquals(2, RuinsWorks.storesIn(2, 3, 2, RuinsDefence.NONE));
+        assertEquals(1, RuinsWorks.storesIn(1, 3, 2, RuinsDefence.NONE), "earlier layers keep one");
+        assertEquals(1, RuinsWorks.storesIn(2, 3, 2, RuinsDefence.CREW), "an occupied site keeps one per layer");
+        assertEquals(1, RuinsWorks.storesIn(0, 1, 1, RuinsDefence.NONE), "never more than the layer's rooms");
     }
 
     private static boolean marked(RuinsWorks works, String door) {

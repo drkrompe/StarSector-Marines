@@ -2214,7 +2214,7 @@
 		"ruinsWorksCollapseChoked": "CHOKED",
 		"ruinsWorksCollapseCleared": "CLEARED",
 		"ruinsWorksRecordsName": "Records terminal",
-		"ruinsWorksRecordsDetail": "Hold the console {0} to read the site's power plan.",
+		"ruinsWorksRecordsDetail": "Hold the console {0} to read the site''s power plan.",
 		"ruinsWorksVerbRead": "READ",
 		"ruinsWorksTagUnread": "UNREAD",
 		"ruinsWorksTagRead": "READ",
