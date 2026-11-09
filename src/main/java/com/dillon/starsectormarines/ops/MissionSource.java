@@ -27,6 +27,8 @@ package com.dillon.starsectormarines.ops;
  *   <li>{@link #REPLAY} — a won campaign chapter flown again for credits only.</li>
  *   <li>{@link #MARKET_RAID} — the player's own raid on a market, fought as a Raid and
  *       committed through the game's own raid command.</li>
+ *   <li>{@link #RUINS_EXPEDITION} — the company sent into a world's ruins, committed
+ *       through the game's own ruins salvage.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -69,7 +71,14 @@ public enum MissionSource {
      * ({@code raid-resolution.md}). No contract, no MRB credibility. Append-only:
      * ordinals are persisted.
      */
-    MARKET_RAID;
+    MARKET_RAID,
+    /**
+     * The company sent into an uncolonized world's ruins in place of vanilla's salvage team;
+     * a won expedition hands the ruins to vanilla's own salvage once the battle ends
+     * ({@code ruins-expedition.md}). No contract, no MRB credibility. Append-only: ordinals
+     * are persisted.
+     */
+    RUINS_EXPEDITION;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT

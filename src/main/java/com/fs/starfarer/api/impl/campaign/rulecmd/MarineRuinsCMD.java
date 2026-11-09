@@ -3,11 +3,17 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionPreference;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionPreferenceLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsRoute;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
+import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
+import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.RuinsExpeditionMissionFactory;
+import com.dillon.starsectormarines.ops.ScreenId;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.OptionPanelAPI;
@@ -46,9 +52,14 @@ import java.util.Map;
  *   <li>{@code resetAvailable} / {@code addReset} / {@code reset}: the planet menu's way back to Ask.</li>
  * </ul>
  *
- * <p>The expedition battle does not exist yet ({@code ruins-expedition-fork.md}, slices 2 and 3). Until it does, the
- * fork is offered only in a development build ({@link DevConfig#DEV_MODE}), and choosing the company says so and
- * returns to the choice. A player's install never sees the fork, so Explore the ruins is unchanged for them.
+ * <p>Choosing the company opens the expedition's briefing. When the Marine Operations panel closes, a won expedition
+ * re-fires Explore the ruins through the bypass, so vanilla's own salvage gives the haul and marks the ruins explored;
+ * a lost one leaves the ruins unexplored; backing out of the briefing returns to the choice ({@link
+ * RuinsExpeditionLedger}).
+ *
+ * <p>The battle is still a stand-in ({@code RuinsExpeditionMissionFactory}). Until the expedition's own mission
+ * exists ({@code ruins-expedition-battle.md}), the fork is offered only in a development build
+ * ({@link DevConfig#DEV_MODE}). A player's install never sees it, so Explore the ruins is unchanged for them.
  */
 public class MarineRuinsCMD extends BaseCommandPlugin {
 
@@ -66,8 +77,8 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
     static final String BYPASS_FLAG = "$smRuinsBypass";
 
     /**
-     * Whether the expedition can be fought. False until its battle exists; while false, only a development build shows
-     * the fork. The slice that adds the battle removes this and the development gate together.
+     * Whether the expedition's own battle exists. False while it is a stand-in; while false, only a development build
+     * shows the fork. The slice that adds the battle removes this and the development gate together.
      */
     static final boolean EXPEDITION_BUILT = false;
 
@@ -168,13 +179,48 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         options.setShortcut(OPTION_BACK, Keyboard.KEY_ESCAPE, false, false, false, true);
     }
 
-    /** Opens the expedition. Its battle is not built yet, so for now this says so and returns to the choice. */
+    /**
+     * Opens Marine Operations straight at the expedition briefing. When the panel closes, a fought battle commits
+     * through vanilla's salvage or leaves the ruins as they were; backing out commits nothing and returns to the choice.
+     */
     private static boolean open(InteractionDialogAPI dialog) {
-        LOG.info("MarineRuinsCMD: expedition chosen on " + dialog.getInteractionTarget().getId()
-                + "; the expedition battle is not built yet");
-        dialog.getTextPanel().addPara(Strings.get("ruinsExpeditionNotReady"));
-        showFork(dialog);
+        if (!(dialog.getInteractionTarget() instanceof PlanetAPI planet) || planet.getMarket() == null) return false;
+        MarketAPI market = planet.getMarket();
+        int serial = RuinsExpeditionLedger.issue(state());
+        Mission mission = RuinsExpeditionMissionFactory.create(serial, market.getId(), planet.getName(), grade(market));
+        if (mission == null) return false;
+        LOG.info("MarineRuinsCMD: opening expedition briefing " + mission.id);
+        dialog.hideTextPanel();
+        dialog.hideVisualPanel();
+        dialog.showCustomVisualDialog(MarineOpsDialogSize.requestedWidth(), MarineOpsDialogSize.requestedHeight(),
+                new MarineOpsDialogDelegate(planet, ctx -> {
+                    ctx.setSelectedMission(mission);
+                    ctx.goTo(ScreenId.BRIEFING);
+                }, () -> {
+                    dialog.showTextPanel();
+                    dialog.showVisualPanel();
+                    afterPanel(dialog, market, serial);
+                }));
         return true;
+    }
+
+    /** Hands a won expedition's ruins to vanilla's salvage, leaves a lost one's as they were, or returns to the choice. */
+    private static void afterPanel(InteractionDialogAPI dialog, MarketAPI market, int serial) {
+        RuinsExpeditionLedger.Pending pending = RuinsExpeditionLedger.take(state(), serial);
+        if (pending == RuinsExpeditionLedger.Pending.NONE) {
+            showFork(dialog);
+            return;
+        }
+        boolean won = pending == RuinsExpeditionLedger.Pending.WON;
+        dialog.getTextPanel().addPara(Strings.get(won ? "ruinsExpeditionCommitWon" : "ruinsExpeditionCommitLost"));
+        // The planet menu again, so vanilla's ruins row seeds its salvage as on arrival.
+        refreshMenu(dialog);
+        if (won && dialog.getPlugin() instanceof RuleBasedDialog rules) {
+            dialog.getOptionPanel().clearOptions();
+            toStandard(dialog, rules.getMemoryMap());
+        }
+        LOG.info("MarineRuinsCMD: expedition " + serial + " on " + market.getId() + " committed as "
+                + (won ? "won" : "lost"));
     }
 
     /** Rebuilds the planet menu from scratch. */
