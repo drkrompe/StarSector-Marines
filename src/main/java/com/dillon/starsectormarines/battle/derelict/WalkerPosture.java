@@ -62,7 +62,7 @@ public final class WalkerPosture {
     public static Order decide(DerelictWalkerFrame frame, SecurityZone zone, boolean contingency,
                                int postX, int postY, List<Contact> pins, List<Contact> sightings,
                                List<Long> haul, List<int[]> egress, float reachCells) {
-        boolean called = contingency && zone.nodeAlive();
+        boolean called = contingency && zone.online();
         if (frame.spots()) {
             if (zone.state() != SecurityZone.State.AWAKE && !called) return Order.hold(postX, postY);
             Contact spot = called ? freshest(sightings, haul, postX, postY, reachCells) : null;

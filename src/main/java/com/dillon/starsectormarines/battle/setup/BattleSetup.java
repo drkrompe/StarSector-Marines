@@ -59,6 +59,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
@@ -770,8 +771,22 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                RuinsDefence.of(occupant) == RuinsDefence.CREW
-                        ? RuinsCrew.of(grade, GroundRosterRegistry.resolve(RuinsCrew.FACTION_ID)) : null);
+                ruinsCrew(occupant, grade));
+    }
+
+    /** A ruins site's scavenger crew: its grade's, for a scavenger site only; null for every other occupant. */
+    static RuinsCrew ruinsCrew(RuinsOccupant occupant, RuinsGrade grade) {
+        return RuinsDefence.of(occupant) == RuinsDefence.CREW
+                ? RuinsCrew.of(grade, GroundRosterRegistry.resolve(RuinsCrew.FACTION_ID)) : null;
+    }
+
+    /**
+     * A ruins site's generic defender roster: its crew's on a scavenger site, and nobody on any other, whose side (if
+     * any) is installed by its own director. A ruins site never fields the generic garrison, patrols or air.
+     */
+    static DefenderRoster ruinsRoster(RuinsDefence defence, RuinsCrew crew, RiskLevel risk) {
+        return defence == RuinsDefence.CREW && crew != null ? crew.roster()
+                : DefenderRoster.explicit(0, 0, List.of(), 1, risk);
     }
 
     /**
@@ -1239,10 +1254,9 @@ public final class BattleSetup {
         // A ruins crew is its grade's budget and nothing else: no emplacements, no air, whatever the company brings.
         DefenderForcePlan defenders = coldAccount
                 ? new DefenderForcePlan(ColdAccountForce.roster(risk), List.copyOf(defensePosts), FlybyRoster.EMPTY)
-                : ruinsCrew != null ? new DefenderForcePlan(ruinsCrew.roster(), List.of(), FlybyRoster.EMPTY)
                 // Any other occupant brings its own side, or none: no generic squads, emplacements or air.
                 : ruinsDefence != null ? new DefenderForcePlan(
-                        DefenderRoster.explicit(0, 0, List.of(), 1, risk), List.of(), FlybyRoster.EMPTY)
+                        ruinsRoster(ruinsDefence, ruinsCrew, risk), List.of(), FlybyRoster.EMPTY)
                 : defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
@@ -1426,12 +1440,14 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve);
+            if (liveRuin) DerelictSecurity.install(sim, ruinsGrade, map.ruinsDelve,
+                    ruinsOccupant == RuinsOccupant.CONTINGENCY_SECURITY ? FlockLivery.CONTINGENCY : FlockLivery.DOMAIN);
             else if (ravRuin) RuinsSleepers.install(sim, map.ruinsDelve, ruinsGrade, seed);
             else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
-            else if (ruinsDefence != RuinsDefence.NONE) sim.setAutonomousCommander(Faction.DEFENDER,
+            // A ruins site's side commands itself, or is no one: never the generic commander.
+            else if (ruinsDefence == null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
         }

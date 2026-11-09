@@ -70,7 +70,7 @@ public final class ImpactDecalsSnapshotSuite implements SnapshotSuite {
                     LookReview.View.play(cx, cy),
                     LookReview.View.close("close-west", cx - halfSpan, cy, 24f),
                     LookReview.View.close("close-east", cx + halfSpan, cy, 24f));
-        }, 6, 6, 1);
+        }, 36, 6, 1).withStills(5);
     }
 
     /**

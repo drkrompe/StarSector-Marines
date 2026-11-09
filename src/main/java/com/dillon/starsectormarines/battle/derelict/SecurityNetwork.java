@@ -69,7 +69,7 @@ public final class SecurityNetwork {
     public void stir(int zoneId, int tick) {
         SecurityZone zone = zones.get(zoneId);
         if (zone == null) return;
-        if (zone.stir(tick) && zone.nodeAlive()) relayFrom(zone);
+        if (zone.stir(tick) && zone.online()) relayFrom(zone);
     }
 
     /** Gunfire at a cell: every zone whose perimeter holds it stirs. */
@@ -77,6 +77,25 @@ public final class SecurityNetwork {
         for (SecurityZone zone : zones.values()) {
             if (zone.inside(cellX, cellY)) stir(zone.id, tick);
         }
+    }
+
+    /**
+     * A loud work at a cell (a ruins site's power hall restarting, `ruins-works.md`): the zone keeping the cell stirs,
+     * or, outside every perimeter, the zone whose node is nearest; its linked zones hear the relay as from any stir.
+     */
+    public void loud(int cellX, int cellY, int tick) {
+        SecurityZone zone = zoneAt(cellX, cellY);
+        if (zone == null) {
+            int best = Integer.MAX_VALUE;
+            for (SecurityZone z : zones.values()) {
+                int distance = Math.max(Math.abs(cellX - z.nodeCellX), Math.abs(cellY - z.nodeCellY));
+                if (distance < best) {
+                    best = distance;
+                    zone = z;
+                }
+            }
+        }
+        if (zone != null) stir(zone.id, tick);
     }
 
     /** The vault is breached: every zone with a live node wakes, now and from here on. */
@@ -88,7 +107,7 @@ public final class SecurityNetwork {
     /** Settles quiet zones; zones in the contingency stay awake while their node stands. */
     public void settle(int tick) {
         for (SecurityZone zone : zones.values()) {
-            if (contingency && zone.nodeAlive()) zone.stir(tick);
+            if (contingency && zone.online()) zone.stir(tick);
             else zone.settle(tick);
         }
     }

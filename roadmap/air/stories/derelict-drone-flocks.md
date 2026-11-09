@@ -3,11 +3,17 @@
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
 behaviors) and heavy mechs"). Slices 1, 2, 4, 5 and 6 built, slice 3's unit,
 tasks and strike built; flocks play in the derelict ruins battle and frags are
-area fire against them. The look is to come (slice 7).
+area fire against them. Slice 7's look is built to the owner's picks
+(`derelict-swarm-drone` dart, `derelict-flock-cradle` carousel,
+`derelict-swarm-whine` buzz).
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — area fire: frags thrown at a flock, led to where its
+Updated: 2026-11-09 — owner picks in: the dart, the carousel cradle (set back
+from a doorway so its housing never covers the door) and the buzz whine.
+Earlier: the look: swarm drone and cradle art in both lineages'
+liveries, and the swarm whine, on the recommended options with picks raised.
+Earlier: area fire: frags thrown at a flock, led to where its
 drones will be. Earlier: flocks in the derelict ruins battle: every roofed goal held
 at its threshold, the outside as the flock's ground, one entrance per flock,
 cradles. Earlier: owner picks in (`derelict-swarm-size`, `derelict-mech-line`,
@@ -178,19 +184,14 @@ outside 0.9 ms (every `SKY_TICKS`). The neighbour search is bounded to the
 flock's own members by construction (`FlockSteering` reads only the flock's
 roster). No further work is needed for the owner's sizes.
 
-**Counters measured** (slice 6, `sceneEvidence -Pscene=derelict-flock-counters`,
-2026-11-09): one flock of sixteen strikes a stationary fire team of six, four
-ways. Readings, not a balance target:
+**Counters measured** (slice 6, `sceneEvidence -Pscene=derelict-flock-counters`):
+one flock of sixteen strikes a stationary fire team of six, four ways (rifles,
+squad automatics, rifles with frag grenades, rifles indoors with the door in the
+flock's line). Its verdicts are mechanisms only: no member under a roof, both
+sides fire, and frags are thrown at the flock where the team carries them. Who
+wins is not judged here (owner: the owner's playtest decides strength), so the
+scene's loss readings are not evidence of balance and are not quoted.
 
-| loop | drones lost | men lost | flock broke (tick) | most members hurt in one tick |
-| --- | --- | --- | --- | --- |
-| rifles in the open | 9 | 6 | never | 2 |
-| squad automatics in the open | 11 | 6 | 409 | 1 |
-| rifles with frag grenades (8 thrown) | 16 | 2 | 254 | 5 |
-| rifles indoors, door in the flock's line | 9 | 6 | never | 1 |
-
-- Squad automatics are the counter that works today: the highest volume
-  breaks the flock.
 - **Frags are area fire against a flock** (the owner's `derelict-flock-counters`
   pick, area fire and cover). Drones fly low, so a blast already reaches every
   member in its radius as it reaches a man; the throw is the rule that was
@@ -199,11 +200,10 @@ ways. Readings, not a balance target:
   where the most led drones fall inside the blast. It runs even while the squad
   is surviving or on a mission goal, which block every other throw, since a
   flock closing on a squad is when area fire answers it. Friendly-footprint and
-  overlap checks are the ground throw's. One blast hurt up to five members.
-- **Flock strength waits on a played battle** (owner): these runs and the ruins
-  battle let the autopilot play the company, so they show the counters work,
-  not that a flock is hard enough. Flock size, drone HP and fire are tuned only
-  after a player has fought them (`playBattle -Pbattle=<source>`).
+  overlap checks are the ground throw's; one blast hurts several members.
+- **Flock strength is the owner's playtest** (owner): no session runs a ruins
+  mission to judge who wins. Flock size, drone HP and fire are tuned only after
+  the owner has fought them (`playBattle -Pbattle=<source>`).
 - Indoors works only out of the door's line: with the door facing the flock,
   the team dies as in the open; hidden behind a partition (`derelict-flock`,
   `strike-indoors`) it is untouched while the flock waits at the door.
@@ -231,9 +231,36 @@ destroyed: nothing rebuilt). Unit tests also `FlockCradleTest` and
 `createSnapshots -Psnapshot=derelict-flock` adds the look shot `flock-strike`
 on generated colony ground.
 
+**The look** (slice 7). A flock wears its lineage's livery (`FlockLivery`):
+Domain security's grey steel and hazard yellow, or contingency security's
+Tri-Tachyon white and cyan gone dull. Members wear `DroneLook.SWARM` or
+`SWARM_CONTINGENCY`, and the cradle draws its lineage's housing
+(`FlockLivery.cradleSpritePath`, `CRADLE_VISUAL_CELLS` on its long side) in place
+of the drone hub's. `BattleSetup` passes the ruin's occupant into
+`DerelictSecurity.install`. The art is painted from geometry guides through
+ImageGen, four candidate designs a sheet, one sheet per livery
+(`art-source/drones/swarm-drones/`: `guide.py`, `cradle_guide.py`, the briefs,
+`pack.py` to cut the picked designs into `mod/`). The owner picked the dart (a
+lozenge body pushed by a tail fan, so a drone's heading reads) and the carousel
+(a round drum, fourteen hatches round the rim, a mast at the hub). The carousel
+is the widest housing, so a cradle stands at `FlockCradle.site`: the cell nearest
+home whose square of `CLEARANCE_CELLS` round it is all open ground. A flock homed
+at a doorway's threshold keeps its cradle set back in the open, its housing never
+over the door, a wall or a roof; a cradle never seals its cell, so ground units
+pass it either way. `options.py` renders every candidate
+in game through `-Dsnapshot.artOverlay` and the suite's close shot
+(`-Dsnapshot.flocks.closeOnly`, `-Dsnapshot.flocks.lineage=contingency`).
+
+The swarm whine (`FlockAudio`, sound `marines_flock_whine`) is one placed loop
+on each of the nearest three flocks within 40 cells, on seen ground: it rises in
+pitch with the flock's mean speed and thins with its numbers. Three voices are
+designed in `asset-pipeline/.../audio/flock/generate.py` (hornet, turbine, buzz);
+the owner picked buzz (open rotors chopped at the blade rate). `options.py` beside it records each in a mixed battle clip
+(`-Dsnapshot.flocks.whineOnly`, `-Dsnapshot.lookSound`).
+
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags
 and fences are walls to a flock for now); screen, probe, pursue and return
-scenes; docking; the look (slice 7).
+scenes; docking; a cradle's own wreck and launch animation.
 
 ## Slices
 

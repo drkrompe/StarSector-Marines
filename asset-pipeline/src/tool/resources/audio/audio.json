@@ -179,6 +179,8 @@
     {"id": "marines_tender_hit", "source": "tender/marines_tender_hit.wav", "kind": "positional", "out": "battle/tender"},
     {"id": "marines_tender_alert", "source": "tender/marines_tender_alert.wav", "kind": "positional", "out": "battle/tender"},
     {"id": "marines_tender_complete", "source": "tender/marines_tender_complete.wav", "kind": "positional", "out": "battle/tender"},
+    // Derelict flocks: the swarm whine, a placed loop on each flock heard (FlockAudio). Candidates: flock/generate.py.
+    {"id": "marines_flock_whine", "source": "flock/marines_flock_whine_buzz.wav", "kind": "positional", "out": "battle/flock"},
     // Jackal, Ox and Rivet: combat variants and assignment exchanges.
     {"id": "marines_mara_hound_found", "source": "wayline/marines_mara_hound_found.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms", "mix": "story_voice"},
     {"id": "marines_castle_hound_ready", "source": "wayline/marines_castle_hound_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue", "mix": "story_voice"},

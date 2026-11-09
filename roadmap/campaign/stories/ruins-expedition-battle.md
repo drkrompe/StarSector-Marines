@@ -145,8 +145,8 @@ story's battle plays, it lifts the fork's development-only gate
    the mission or its balance. Rules are proven by unit tests where they are
    decided; whether the ground builds is the ground's own evidence
    (`mapgen-nouns.md`, Ruins ground); balance is a played battle. The
-   `commanderEvidence -Pmission=ruins` harness built before the ruling is not
-   to be run for outcomes.
+   harness built before the ruling is removed; the per-grade scavenger
+   fixtures stay for played battles (`playBattle -Pbattle=<fixture>`).
 
 ## Constraints
 

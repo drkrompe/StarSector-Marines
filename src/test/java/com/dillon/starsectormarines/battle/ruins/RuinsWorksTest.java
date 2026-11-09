@@ -71,12 +71,35 @@ class RuinsWorksTest {
         }
     }
 
+    @Test
+    void readingTheRecordsMarksTheStoreAndWhatEachJunctionFeeds() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsWorks works = works();
+            sim.installRuinsWorks(works);
+            assertFalse(works.junctionKnown(0));
+            assertFalse(marked(works, "store-1"), "a sealed store is a secret until the records are read");
+
+            sim.spawn(new EntitySpec("clerk", Faction.MARINE, UnitType.MARINE, 2, 14));
+            works.choose(RuinsWorks.RECORDS, "read");
+            for (int t = 0; t * BattleSimulation.TICK_DT < RuinsWorks.READ_SECONDS + 0.2f; t++) works.tick(sim);
+
+            assertTrue(works.recordsRead());
+            assertTrue(works.junctionKnown(0));
+            assertTrue(marked(works, "store-1"));
+        }
+    }
+
+    private static boolean marked(RuinsWorks works, String door) {
+        return works.item().markers().stream().anyMatch(m -> m.id().endsWith(door));
+    }
+
     private static RuinsWorks works() {
         PowerGraph graph = new PowerGraph(1, List.of(Branch.ONWARD), List.of(new Consumer("store-1", 0, Branch.STORE)));
         SealDoor door = new SealDoor("store-1", "store", new int[][]{{DOOR_X, DOOR_Y}}, 7, 8,
                 new int[]{5, 5, 9, 9}, true);
         return new RuinsWorks(graph, new RuinsWorks.Site(RuinsWorks.HALL, "hall", 2, 2),
-                List.of(new RuinsWorks.Site(RuinsWorks.JUNCTION + 0, "junction", 12, 2)), List.of(door), List.of());
+                List.of(new RuinsWorks.Site(RuinsWorks.JUNCTION + 0, "junction", 12, 2)), List.of(door), List.of(),
+                new RuinsWorks.Site(RuinsWorks.RECORDS, "records", 2, 14), null);
     }
 
     private static BattleSimulation simulation() {

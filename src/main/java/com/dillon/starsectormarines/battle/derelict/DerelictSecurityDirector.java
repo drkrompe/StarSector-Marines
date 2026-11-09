@@ -8,8 +8,12 @@ import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective
 import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Contact;
 import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Report;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Kind;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Order;
+import com.dillon.starsectormarines.battle.mech.MechSections;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -61,6 +65,29 @@ public final class DerelictSecurityDirector {
     private final Set<Long> haul = new TreeSet<>();
     private final Map<Integer, Long> nodes = new TreeMap<>();
     private final Map<Integer, Float> nodeDurability = new TreeMap<>();
+    private final Map<Long, Integer> posts = new TreeMap<>();
+    private final Map<Integer, Integer> junctions = new TreeMap<>();
+    private final List<Tender> tenders = new ArrayList<>();
+
+    /** A zone's repair drone in the field: its entity, zone, home, rules and current goal. */
+    private static final class Tender {
+        final long id;
+        final int zoneId;
+        final float homeX;
+        final float homeY;
+        final RepairDrone rules = new RepairDrone();
+        RepairDrone.Goal goal;
+        float lastDurability = -1f;
+
+        Tender(long id, int zoneId, float homeX, float homeY) {
+            this.id = id;
+            this.zoneId = zoneId;
+            this.homeX = homeX;
+            this.homeY = homeY;
+            this.goal = new RepairDrone.Goal(RepairDrone.Kind.HOME, homeX, homeY, 0L);
+        }
+    }
+    private final Map<Long, Float> postDurability = new TreeMap<>();
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
                                     int vaultX, int vaultY) {
@@ -79,6 +106,39 @@ public final class DerelictSecurityDirector {
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
     public void standNode(int zoneId, long entityId) {
         nodes.put(zoneId, entityId);
+    }
+
+    /** Puts a zone's repair drone in the field (slice 6), homed at {@code (homeX, homeY)}. */
+    public void standRepairDrone(int zoneId, long entityId, float homeX, float homeY) {
+        tenders.add(new Tender(entityId, zoneId, homeX, homeY));
+    }
+
+    /** The repair drones' entities, in the order they were stood. */
+    public List<Long> repairDrones() {
+        List<Long> out = new ArrayList<>();
+        for (Tender tender : tenders) out.add(tender.id);
+        return out;
+    }
+
+    /** The stock a zone's repair drone has left, or -1 with none. */
+    public float repairStock(int zoneId) {
+        for (Tender tender : tenders) if (tender.zoneId == zoneId) return tender.rules.stock();
+        return -1f;
+    }
+
+    /** Feeds a zone through a ruins works junction (slice 8): thrown to its store, the zone goes dark. */
+    public void feedThrough(int zoneId, int junction) {
+        junctions.put(zoneId, junction);
+    }
+
+    /** Stands a folded post of a zone (slice 7): powered only while the zone is awake. */
+    public void standPost(int zoneId, long entityId) {
+        posts.put(entityId, zoneId);
+    }
+
+    /** Each folded post's zone, by post entity. */
+    public Map<Long, Integer> posts() {
+        return Collections.unmodifiableMap(posts);
     }
 
     /** Each zone's node entity, by zone id. */
@@ -106,6 +166,7 @@ public final class DerelictSecurityDirector {
 
     public void tick(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
+        flyTenders(sim);
         if (tick % PULSE_TICKS != 0) return;
         List<Report> reports = flocks.reports();
         List<Contact> own = ownContacts(sim, tick);
@@ -126,10 +187,12 @@ public final class DerelictSecurityDirector {
             network.stir(zone.id, tick);
             stirredAt.put(zone.id, new int[] {contact.cellX(), contact.cellY()});
         }
+        RuinsWorks works = sim.getRuinsWorks();
+        if (works != null && !junctions.isEmpty()) DerelictPower.apply(network, junctions, works.graph()::position);
         DerelictNode.watch(network, nodes, id -> sim.resolveUnit(id) != 0L);
         for (Map.Entry<Integer, Long> node : nodes.entrySet()) {
             SecurityZone zone = network.zone(node.getKey());
-            flocks.nodeStands(node.getKey(), zone.nodeAlive());
+            flocks.nodeStands(node.getKey(), zone.online());
             if (!zone.nodeAlive()) continue;
             // Damage to the node is damage to a unit of the zone: it wakes.
             float now = sim.world().hp(node.getValue()) + sim.world().armor(node.getValue());
@@ -155,7 +218,20 @@ public final class DerelictSecurityDirector {
                         <= RuinsVaultObjective.ESCORT_RADIUS) haul.add(contact.unitId());
             }
         }
+        for (Map.Entry<Long, Integer> post : posts.entrySet()) {
+            long id = post.getKey();
+            if (sim.resolveUnit(id) == 0L) continue;
+            float now = sim.world().hp(id) + sim.world().armor(id);
+            Float before = postDurability.put(id, now);
+            if (before != null && now < before - 0.5f) network.stir(post.getValue(), tick);
+        }
         network.settle(tick);
+        for (Map.Entry<Long, Integer> post : posts.entrySet()) {
+            long id = post.getKey();
+            if (sim.resolveUnit(id) == 0L) continue;
+            if (DerelictPost.unfolded(network.zone(post.getValue()))) sim.turretState().restorePower(id);
+            else sim.turretState().cutPower(id);
+        }
 
         List<Long> haulIds = new ArrayList<>(haul);
         List<Contact> haulContacts = new ArrayList<>();
@@ -170,6 +246,7 @@ public final class DerelictSecurityDirector {
                     blind ? all : flockSeen, haulIds, egress, walker.frame().maxWeaponRange());
             apply(sim, walker, order, tick);
         }
+        for (Tender tender : tenders) directTender(sim, tender, all, tick);
         for (Report report : reports) {
             SecurityZone zone = network.zone(report.homeZoneId());
             if (zone == null) continue;
@@ -180,6 +257,103 @@ public final class DerelictSecurityDirector {
                 flocks.order(report.flockId(), order.task(), order.anchorX(), order.anchorY(), order.targetUnitId());
             }
         }
+    }
+
+    /** A repair drone's goal this pulse, from what it may mend in its zone and whether it is under fire. */
+    private void directTender(BattleSimulation sim, Tender tender, List<Contact> hostiles, int tick) {
+        if (sim.resolveUnit(tender.id) == 0L) return;
+        World world = sim.world();
+        float x = world.x(tender.id);
+        float y = world.y(tender.id);
+        float durability = world.hp(tender.id) + (world.hasArmor(tender.id) ? world.armor(tender.id) : 0f);
+        boolean hit = tender.lastDurability >= 0f && durability < tender.lastDurability - 0.01f;
+        tender.lastDurability = durability;
+        boolean threatened = false;
+        for (Contact contact : hostiles) {
+            if (Math.max(Math.abs(contact.cellX() + 0.5f - x), Math.abs(contact.cellY() + 0.5f - y))
+                    <= RepairDrone.THREAT_CELLS) {
+                threatened = true;
+                break;
+            }
+        }
+        SecurityZone zone = network.zone(tender.zoneId);
+        tender.goal = tender.rules.decide(x, y, tender.homeX, tender.homeY, zone != null && zone.online(),
+                hit || threatened, charges(sim, tender.zoneId), tick);
+    }
+
+    /** What a zone's repair drone may mend: its posts, its flock's cradle and its walkers, with how whole each is. */
+    private List<RepairDrone.Charge> charges(BattleSimulation sim, int zoneId) {
+        List<Long> ids = new ArrayList<>();
+        for (Map.Entry<Long, Integer> post : posts.entrySet()) if (post.getValue() == zoneId) ids.add(post.getKey());
+        ids.addAll(flocks.cradles(zoneId));
+        for (Walker walker : walkers) {
+            if (walker.zoneId() != zoneId) continue;
+            for (int i = 0, n = sim.squadMemberCount(walker.squadId()); i < n; i++) {
+                ids.add(sim.squadMemberAt(walker.squadId(), i));
+            }
+        }
+        World world = sim.world();
+        List<RepairDrone.Charge> out = new ArrayList<>();
+        for (long id : ids) {
+            if (sim.resolveUnit(id) == 0L) continue;
+            float share;
+            if (world.hasMechLoadout(id)) {
+                float max = world.maxArmor(id);
+                if (max <= 0f) continue;
+                share = world.armor(id) / max;
+            } else {
+                float max = world.maxHp(id) + world.maxArmor(id);
+                if (max <= 0f) continue;
+                share = (world.hp(id) + world.armor(id)) / max;
+            }
+            out.add(new RepairDrone.Charge(id, world.x(id), world.y(id), share));
+        }
+        return out;
+    }
+
+    /** Every tick: each repair drone flies toward its goal, or mends what it reached. */
+    private void flyTenders(BattleSimulation sim) {
+        float dt = BattleSimulation.TICK_DT;
+        World world = sim.world();
+        for (Tender tender : tenders) {
+            if (sim.resolveUnit(tender.id) == 0L) continue;
+            RepairDrone.Goal goal = tender.goal;
+            if (goal.kind() == RepairDrone.Kind.MEND) {
+                if (sim.resolveUnit(goal.entityId()) == 0L) continue;
+                float points = tender.rules.draw(dt);
+                tender.rules.refund(points - mend(world, goal.entityId(), points));
+                continue;
+            }
+            float x = world.x(tender.id);
+            float y = world.y(tender.id);
+            float dx = goal.x() - x;
+            float dy = goal.y() - y;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            if (distance < 0.05f) continue;
+            float step = Math.min(distance, RepairDrone.SPEED_CELLS * dt);
+            float nx = x + dx / distance * step;
+            float ny = y + dy / distance * step;
+            float heading = (float) Math.toDegrees(Math.atan2(-dx, dy));
+            AirBody body = world.kinematics(tender.id);
+            if (body != null) body.teleport(nx, ny, heading);
+            world.setPos(tender.id, nx, ny);
+        }
+    }
+
+    /** Lays up to {@code points} on a charge: plate then structure, or plate only on a walker. Returns what was laid. */
+    static float mend(World world, long id, float points) {
+        if (world.hasMechLoadout(id)) {
+            MechSections sections = world.mechLoadout(id).sectionsFor(world.hp(id), world.maxHp(id),
+                    world.armor(id), world.maxArmor(id));
+            float laid = sections.mendArmor(points);
+            world.setArmor(id, sections.totalArmor());
+            return laid;
+        }
+        float plate = Math.min(points, Math.max(0f, world.maxArmor(id) - world.armor(id)));
+        if (plate > 0f) world.setArmor(id, world.armor(id) + plate);
+        float frame = Math.min(points - plate, Math.max(0f, world.maxHp(id) - world.hp(id)));
+        if (frame > 0f) world.setHp(id, world.hp(id) + frame);
+        return plate + frame;
     }
 
     private void apply(BattleSimulation sim, Walker walker, Order order, int tick) {

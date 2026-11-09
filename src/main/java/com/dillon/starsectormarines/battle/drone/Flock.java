@@ -31,6 +31,7 @@ public final class Flock implements DroneAnchor {
     int squadId = -1;
     /** The cradle at the flock's home, or {@code 0L} when it has none. */
     long cradleId;
+    FlockLivery livery = FlockLivery.DOMAIN;
     final FlockCradle.Clock rebuild = new FlockCradle.Clock();
     private volatile boolean nodeStands = true;
     /** Tick the field was last built, for the rebuild cadence. */
@@ -245,4 +246,7 @@ public final class Flock implements DroneAnchor {
     @Override public Flock flock() { return this; }
 
     @Override public AirHandling handling(long member) { return FlockFlight.HANDLING; }
+
+    /** The lineage this flock was built by, which decides how its drones and cradle are drawn. */
+    public FlockLivery livery() { return livery; }
 }

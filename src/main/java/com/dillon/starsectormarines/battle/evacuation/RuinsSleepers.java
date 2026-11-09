@@ -157,6 +157,25 @@ public final class RuinsSleepers {
         }
     }
 
+    /**
+     * A loud work at a cell (the power hall restarting, `ruins-works.md`): the nearest bore still closed is roused to its
+     * threshold and opens on the next step.
+     */
+    public void loud(float x, float y) {
+        int nearest = -1;
+        float best = Float.MAX_VALUE;
+        for (int i = 0; i < bores.size(); i++) {
+            SwarmBore bore = bores.get(i);
+            if (bore == null || stir.awake(i)) continue;
+            float dx = bore.x() + 0.5f - x, dy = bore.y() + 0.5f - y;
+            if (dx * dx + dy * dy < best) {
+                best = dx * dx + dy * dy;
+                nearest = i;
+            }
+        }
+        if (nearest >= 0) stir.rouse(nearest);
+    }
+
     /** How many bores have opened. */
     public int awake() {
         int n = 0;
@@ -242,6 +261,11 @@ public final class RuinsSleepers {
         boolean awake(int bore) { return awake[bore]; }
 
         float stir(int bore) { return stir[bore]; }
+
+        /** Lifts a closed bore's stir to its threshold, so it opens on the next step. */
+        void rouse(int bore) {
+            if (!awake[bore]) stir[bore] = Math.max(stir[bore], threshold(bore));
+        }
 
         /**
          * @param dt        seconds this step

@@ -175,7 +175,7 @@ test {
                 'swarm-flow-evidence', 'flock-cost-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
-                'raid-command-evidence', 'extraction-command-evidence', 'ruins-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
+                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'story-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
@@ -262,7 +262,6 @@ def commanderEvidenceTags = [
         corvus: 'corvus-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
-        ruins: 'ruins-command-evidence',
         'colony-breach': 'colony-breach-command-evidence',
         'cordon-line': 'cordon-command-evidence',
         'cordon-road': 'cordon-command-evidence',
@@ -662,7 +661,6 @@ tasks.register('commanderEvidence', Test) {
                 corvus: 'corvus.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
-                ruins: 'ruins.command.evidence',
                 'colony-breach': 'colony.breach.command.evidence',
                 'cordon-line': 'cordon.line.command.evidence',
                 'cordon-road': 'cordon.road.command.evidence',
@@ -695,11 +693,6 @@ tasks.register('commanderEvidence', Test) {
         }
         if (!maxTicks.isBlank()) {
             systemProperty "${prefix}.maxTicks", maxTicks
-        }
-        // -Pseeds=<n> plays each Ruins grade from that many seeds (3 by default).
-        def evidenceSeeds = providers.gradleProperty('seeds').getOrElse('').trim()
-        if (!evidenceSeeds.isBlank()) {
-            systemProperty "${prefix}.seeds", evidenceSeeds
         }
         // -Pdensities=town,urban plays only those densities' pools (the Cordon); every density by default.
         def densities = providers.gradleProperty('densities').getOrElse('').trim()

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c143-0e8b-79d3-b187-f764e0b8feb6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c143-0e8b-79d3-b187-f764e0b8feb6\\exec-250fc141-3257-4611-a613-f021d6e91cc7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\swarm-drones\\cradle-contingency-raw.png",
+    "sha256": "906521314d68c1896536b2609eb7c2774e3fe4ea7c157c56b69b080443fa4c42",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\drones\\swarm-drones\\cradle-contingency-prompt.txt",
+  "promptSha256": "c308dfdb3d5051178a8ff744dc73d104379800ea613645082cfac0ceced010f3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Tri-Tachyon livery and material reference only, clean version; not layout, subject or scale\nImage 3: Rendering style and detail level only; not layout, palette or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of four finished top-down game sprites of a DRONE CRADLE: a ground-standing armoured launch housing of an abandoned Tri-Tachyon research site whose automated defences are still carrying out an executive contingency order that keeps a flock of fourteen small swarm drones docked, launches them, and slowly rebuilds lost ones. About four metres across, built where it stands, a target an infantry company has to demolish. The four are alternative designs; keep each exactly where the guide puts it, at exactly its size and outline:\n- top-left, RACK: an armoured rectangular launch rack, two rows of seven round docking cups either side of a central service spine.\n- top-right, CAROUSEL: a round armoured drum with fourteen round launch hatches round the rim and a low sensor mast at the hub.\n- bottom-left, HANGAR: a low armoured box whose two roof doors stand half open on a dark bay, fourteen docked drone hubs visible inside.\n- bottom-right, SILO: a square block of fourteen square launch tubes with round hatch caps, three standing open and dark, two corner housings with sensor lenses.\nLivery and material: Tri-Tachyon high-tech, seamless composite shells and sealed hatches in white and pale grey with graphite seams, but GONE DULL after decades unattended: yellowed, dust-greyed and scorched white, cracked panels, cyan status lights faded to a weak glow; where the guide has yellow put a thin dull cyan accent band, where it has red put a dim cyan sensor lens; smooth and sealed, nothing exposed. Image 2 is this company's approved Tri-Tachyon drone in its clean livery (livery and material reference only, not layout or subject); make this dirtier and more worn. Match the rendering scale and level of detail of image 3, an approved top-down vehicle sprite from this game (rendering style only, not layout, palette or subject): grounded, believable, crisp and readable at small size, not glossy concept art.\nIn the guide pale grey is armour plate, mid grey is service decking or door leaves, dark is open bays, ducts or open tubes, light-grey discs are closed hatches or docked drones.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Keep each design exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between them. True transparent background with genuine alpha outside the silhouettes; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\drones\\swarm-drones\\cradle-guide.png",
+      "sha256": "96cf606f51bdb621c3184233a8ccefb88ffeb064ebf713cfdab9ee04438b8d72",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "mod\\graphics\\battle\\drones\\tt-escort.png",
+      "sha256": "2937f480b20f3d66117db16df47b6e51cb0fb8ea98f45fc1c9585de07ed57a80",
+      "dimensions": [
+        192,
+        155
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and material reference only, clean version; not layout, subject or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3809076c4cb5654e3f6a554cd0a914c4a9047c09b5c33f49bcba746c7c4f795b",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sprite sheet, keeping the guide’s layout and silhouettes fixed.\n"
+  ],
+  "usage": {
+    "input_tokens": 108016,
+    "cached_input_tokens": 90496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1128,
+    "reasoning_output_tokens": 35
+  },
+  "elapsedSeconds": 88.3
+}

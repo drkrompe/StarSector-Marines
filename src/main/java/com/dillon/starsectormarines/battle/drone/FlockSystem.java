@@ -14,9 +14,11 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,6 +61,8 @@ public final class FlockSystem {
     private static final int LAUNCH_SEARCH = 6;
 
     private final List<Flock> flocks = new ArrayList<>();
+    /** Each cradle a flock was launched with, by unit, to its livery; a cradle outlives a wiped-out flock. */
+    private final Map<Long, FlockLivery> cradles = new HashMap<>();
     private int nextFlock;
     private int nextMember;
 
@@ -81,6 +85,12 @@ public final class FlockSystem {
      */
     public Flock launch(BattleSimulation sim, Faction side, float x, float y, int count, FlockWeights weights,
                         float leashCells) {
+        return launch(sim, side, x, y, count, weights, leashCells, FlockLivery.DOMAIN);
+    }
+
+    /** As {@link #launch(BattleSimulation, Faction, float, float, int, FlockWeights, float)}, in a lineage's livery. */
+    public Flock launch(BattleSimulation sim, Faction side, float x, float y, int count, FlockWeights weights,
+                        float leashCells, FlockLivery livery) {
         NavigationGrid grid = sim.getGrid();
         FlockField.Open open = sky(sim);
         // A flock is put up outside: a launch point under a roof moves to its threshold, which is then its home.
@@ -97,6 +107,7 @@ public final class FlockSystem {
             y = door[1] + .5f;
         }
         Flock flock = new Flock(nextFlock++, side, weights, x, y, leashCells);
+        flock.livery = livery;
         flock.squadId = sim.mintSquad(side, UnitType.DRONE);
         sim.getSquad(flock.squadId).droneAnchor = flock;
         // Members go up on the open cells nearest home by the open ground itself, so a cradle at a cramped entrance
@@ -107,10 +118,17 @@ public final class FlockSystem {
             spawnMember(sim, flock, cell[0], cell[1]);
         }
         flocks.add(flock);
-        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side,
-                (int) Math.floor(x), (int) Math.floor(y)));
+        int[] site = FlockCradle.site((int) Math.floor(x), (int) Math.floor(y), open, LAUNCH_SEARCH);
+        if (site == null) site = new int[]{(int) Math.floor(x), (int) Math.floor(y)};
+        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side, site[0], site[1]));
+        if (flock.cradleId != 0L) cradles.put(flock.cradleId, livery);
         publish(flock, sim, true);
         return flock;
+    }
+
+    /** The livery of the flock whose cradle is {@code unitId}, or null when that unit is no flock's cradle. */
+    public FlockLivery cradleLivery(long unitId) {
+        return cradles.get(unitId);
     }
 
     /** How near another flock's home an entrance counts as already held, cells. */
@@ -135,7 +153,7 @@ public final class FlockSystem {
 
     private long spawnMember(BattleSimulation sim, Flock flock, int cx, int cy) {
         EntitySpec spec = Drone.create("flock-" + flock.id() + "-" + nextMember++, flock.side(), cx, cy, 0L,
-                        DroneLook.SWARM)
+                        flock.livery().drone())
                 .squad(flock.squadId)
                 .health(SWARM_HP)
                 .attackRange(SWARM_RANGE_CELLS)

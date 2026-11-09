@@ -90,6 +90,12 @@ final class HeadlessBattleSprites extends BattleSprites {
     /** Same path the base class loads through the game; see {@link #decalSheet()}. */
     private static final String DECAL_SHEET = "graphics/decals/decals.png";
 
+    /**
+     * {@code -Dsnapshot.artOverlay=<dir>}: a folder laid out like {@code mod/} whose files are drawn in place of the
+     * shipped ones at the same paths, so look candidates are shown in game before one of them is picked and shipped.
+     */
+    public static final String ART_OVERLAY_PROPERTY = "snapshot.artOverlay";
+
     private final SpriteTokens tokens;
     private final Path modRoot;
     /**
@@ -863,6 +869,11 @@ final class HeadlessBattleSprites extends BattleSprites {
      * ship rather than one in an install they were not thinking about.
      */
     private Path resolve(String path) {
+        String overlay = System.getProperty(ART_OVERLAY_PROPERTY);
+        if (overlay != null && !overlay.isEmpty()) {
+            Path candidate = Path.of(overlay).resolve(path);
+            if (Files.isRegularFile(candidate)) return candidate;
+        }
         Path shipped = modRoot.resolve(path);
         if (Files.isRegularFile(shipped) || vanillaRoot == null) return shipped;
         Path installed = vanillaRoot.resolve(path);
