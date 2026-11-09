@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -402,6 +403,16 @@ public final class GroundRenderSystem implements RenderSystem {
             }
             System.arraycopy(sublayers,existing,expanded,existing+TerrainSurface.LAYERS,DECORATION_LAYERS);sublayers=expanded;
         }
+        // Rounded wall corners lie over all the ground and under the scars, scatter and door trim laid on it.
+        if(WallCorners.enabled()) {
+            int existing=sublayers.length-DECORATION_LAYERS;
+            GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+WallCorners.LAYERS];
+            System.arraycopy(sublayers,0,expanded,0,existing);
+            for(int layer=0;layer<WallCorners.LAYERS;layer++) {
+                final int index=layer;expanded[existing+layer]=(x,y,sink)->base.resolveCorner(index,x,y,sink);
+            }
+            System.arraycopy(sublayers,existing,expanded,existing+WallCorners.LAYERS,DECORATION_LAYERS);sublayers=expanded;
+        }
         int terrainLayers=sublayers.length-DECORATION_LAYERS;
         int resident0 = sublayers.length;
         GroundMesh.CellResolver[] meshLayers = sublayers;
@@ -682,21 +693,10 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         private void resolveWall(int x, int y, GroundMesh.CellSink sink) {
-            GridBlockDef block = wallBlock;
-            Color fill = wallFill;
             int surface = topology.getSurface(x, y);
-            if (surfaceBlock != null) {
-                if (surface > 0 && surface < surfaceBlock.length) {
-                    block = surfaceBlock[surface];
-                    fill = surfaceFill[surface];
-                }
-            }
-            // A fortification lot's wall draws in its works style where the style has a look for it.
-            int works = topology.getWorksStyle(x, y);
-            if (works != 0 && surface >= 0 && surface < styledWall.length && styledWall[surface] != null) {
-                GridBlockDef look = styledWall[surface][works - 1];
-                if (look != null && sheetFor(look.sheetPath) != null) block = look;
-            }
+            Color fill = (surfaceBlock != null && surface > 0 && surface < surfaceBlock.length)
+                    ? surfaceFill[surface] : wallFill;
+            GridBlockDef block = wallLook(x, y);
             TileManifest.TileFrame tile =
                     WallMasks.pickTile(topology, x, y, block);
             if (tile == null) {
@@ -704,6 +704,91 @@ public final class GroundRenderSystem implements RenderSystem {
                 return;
             }
             wallTile(block, tile, sink);
+        }
+
+        /** The block a wall cell draws from: its room's bulkhead, in its works style where it has one. */
+        private GridBlockDef wallLook(int x, int y) {
+            GridBlockDef block = wallBlock;
+            int surface = topology.getSurface(x, y);
+            if (surfaceBlock != null && surface > 0 && surface < surfaceBlock.length) block = surfaceBlock[surface];
+            // A fortification lot's wall draws in its works style where the style has a look for it.
+            int works = topology.getWorksStyle(x, y);
+            if (works != 0 && surface >= 0 && surface < styledWall.length && styledWall[surface] != null) {
+                GridBlockDef look = styledWall[surface][works - 1];
+                if (look != null && sheetFor(look.sheetPath) != null) block = look;
+            }
+            return block;
+        }
+
+        // ---- rounded corners (WallCorners) ----------------------------------
+
+        private final WallCorners.Cells cornerCells = new WallCorners.Cells() {
+            @Override public boolean wall(int x, int y) {
+                return topology.inBounds(x, y) && topology.isWall(x, y) && !topology.isWindow(x, y);
+            }
+
+            @Override public boolean open(int x, int y) {
+                // A window carries on the wall it sits in: a window cell, or a gap whose edge holds one.
+                return topology.inBounds(x, y) && !topology.isWall(x, y) && !topology.isWindow(x, y)
+                        && !grid.isDoorway(x, y) && !windowEdge(x, y);
+            }
+        };
+
+        private boolean windowEdge(int x, int y) {
+            for (Direction side : Direction.CARDINALS) {
+                SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, side);
+                if (barrier != null && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) return true;
+            }
+            return false;
+        }
+        private final PieceSink pieceSink = new PieceSink();
+
+        /** The {@code layer}-th corner piece of this cell, counting its quarters in order. */
+        void resolveCorner(int layer, int x, int y, GroundMesh.CellSink sink) {
+            int k = layer;
+            for (int q = 0; q < 4; q++) {
+                WallCorners.Piece[] pieces = cornerPieces(x, y, q);
+                if (pieces == null) continue;
+                if (k < pieces.length) {
+                    drawCornerPiece(pieces[k], x, y, q, sink);
+                    return;
+                }
+                k -= pieces.length;
+            }
+        }
+
+        private WallCorners.Piece[] cornerPieces(int x, int y, int q) {
+            if (WallCorners.outside(cornerCells, x, y, q)) return WallCorners.outsidePieces(q);
+            // A fillet bends the face art of a full-cell wall set; a legacy perimeter wall keeps its corner.
+            if (WallCorners.inside(cornerCells, x, y, q) && facesLook(x, y + WallCorners.SY[q]) != null) {
+                return WallCorners.insidePieces(q);
+            }
+            return null;
+        }
+
+        private GridBlockDef facesLook(int x, int y) {
+            GridBlockDef block = wallLook(x, y);
+            return block != null && block.layout == GridLayout.WALL_FACES_4X4
+                    && sheetFor(block.sheetPath) != null ? block : null;
+        }
+
+        private void drawCornerPiece(WallCorners.Piece piece, int x, int y, int q, GroundMesh.CellSink sink) {
+            pieceSink.target = sink;
+            pieceSink.patch = piece.patch();
+            int wy = y + WallCorners.SY[q];
+            switch (piece.source()) {
+                case GROUND -> resolveFloor(x + WallCorners.SX[q], y, pieceSink);
+                case OWN -> resolveWall(x, y, pieceSink);
+                case CAP -> facesTile(facesLook(x, wy), false, false, pieceSink);
+                // The wall across the quarter's y side, looking at this cell.
+                case FACE -> facesTile(facesLook(x, wy), WallCorners.SY[q] < 0, WallCorners.SY[q] > 0, pieceSink);
+            }
+        }
+
+        private void facesTile(GridBlockDef block, boolean north, boolean south, GroundMesh.CellSink sink) {
+            if (block == null) return;
+            int[] cell = block.resolve(north, south, false, false);
+            if (cell != null) wallTile(block, new TileManifest.TileFrame(cell[0], cell[1]), sink);
         }
 
         private void resolveFloor(int x, int y, GroundMesh.CellSink sink) {
@@ -1003,6 +1088,19 @@ public final class GroundRenderSystem implements RenderSystem {
         float[] vertices;
         public void quad(SpriteAPI sheet,int x,int y,int w,int h) {target.patch(sheet,x,y,w,h,vertices);}
         public void fill(int rgb) { /* The installed terrain catalog supplies textured caps. */ }
+    }
+
+    /**
+     * Turns one resolved tile into one rounded-corner piece ({@link WallCorners}). A tile that
+     * would itself be a patch, or a fill, draws nothing: a piece is one whole tile bent, and a
+     * square of colour has no corner to round.
+     */
+    private static final class PieceSink implements GroundMesh.CellSink {
+        GroundMesh.CellSink target;
+        float[] patch;
+        public void quad(SpriteAPI sheet,int x,int y,int w,int h) {target.patch(sheet,x,y,w,h,patch);}
+        public void patch(SpriteAPI sheet,int sx,int sy,int sw,int sh,float[] vertices) {}
+        public void fill(int rgb) {}
     }
 
     /**

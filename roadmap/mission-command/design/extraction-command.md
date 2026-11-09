@@ -269,10 +269,12 @@ Rescue migration is retained in `shipped.md`; live pressure tuning remains in
 
 ## Ruins Expedition
 
-Planned (`ruins-expedition.md`). A ruins expedition is a generic recovery: the
-vault is the source, the haul the abstract package, the first landing area the
-egress, and the ruins grade sets the breach time the vault must be held. It has
-no employer and no allies. Scavengers are the generic conventional defenders;
-the Rav are the swarm director under a ruins profile; derelict security is the
-security-network director, built for ruins in `derelict-security-network.md`,
-which Silent Colony may later adopt.
+The ruins expedition is not an Extraction scenario: the owner made it a mission
+family of its own (`ruins-expedition.md`, The Ruins mission family). It borrows
+this family's source-hold rule, escorted package with its leash, loss and
+abandonment, boarding, payload projection and disclosure law, and shares their
+code rather than copying it. It does not take the corridor, the corridor
+commander or the fixed egress. Its scavengers' crew commander borrows the
+generic defenders' posting, patrol pool and alarm, and its derelict security is
+the security-network director this document leaves open for Silent Colony,
+built for ruins in `derelict-security-network.md`.
