@@ -11,7 +11,8 @@ Read `ruins-expedition.md` (Occupants, Briefing) first, then
 ## Goal
 
 Every ruins site has its seeded occupant: nobody, scavengers, the Rav or
-derelict security. The briefing names it truthfully through what the survey saw.
+derelict security. The briefing names it truthfully through survey readings
+of the occupant's own kind.
 
 ## Slices
 
@@ -21,8 +22,8 @@ derelict security. The briefing names it truthfully through what the survey saw.
    that changes over a campaign and stores nothing. Unit-test that it is stable
    across calls, that only a scattered site draws nobody, that a reservoir
    world draws the Rav one time in two, and the theme modifiers.
-2. **Nobody.** An empty site plays the expedition with no opposition and the
-   briefing's "quiet" line.
+2. **Nobody.** An empty site plays the expedition with no opposing side, its
+   way to the vault through the works chain (`ruins-works.md`).
 3. **Rav.** The swarm director's ruins profile: closed bores in the deeper
    layers that noise and time open, no mother bore, no harvest, no cohort, late
    strains only at the larger grades, pressure peaking on the egress. It never
@@ -30,13 +31,15 @@ derelict security. The briefing names it truthfully through what the survey saw.
    bore-opening rule; a `commanderEvidence` fixture on the vast grade.
 4. **Derelict security.** Wire the occupant to `derelict-security-network.md`
    once that story's director and units exist.
-5. **Briefing.** The occupant line and the grade's strength band for every
-   occupant, contingency lineage included.
+5. **Briefing.** The survey readings pool for nobody, the Rav and derelict
+   security (lifesigns; movement and power; quiet with structure and power
+   hints), seeded per site, with the contingency lineage's own reading. The
+   scavengers' pool is `ruins-expedition-battle.md`'s.
 
 ## Constraints
 
 - The occupant is never stored, so a retry meets it again at full strength.
-- Disclosure is the category and a band, never the layout.
+- Disclosure is the assessment, a band and true readings, never the layout.
 - An expedition never wakes, feeds or ends a bloom.
 
 ## Done

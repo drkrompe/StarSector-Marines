@@ -32,8 +32,12 @@ at one end to a vault at the other through the grade's **layers**.
    through, a breached wall, a sealed gate with a side way round. A layer never
    closes the route; every layer has at least two ways through at the larger
    grades.
-4. **Side rooms.** Small ruined rooms off each layer where the field-cache
-   placement prefers to put its finds.
+4. **Side rooms, courts and works sites.** Small ruined rooms off each layer
+   where the field-cache placement prefers to put its finds and the sealed
+   stores stand; at least one open **landing court** per layer past the first,
+   where the boat can set down; and published sites for the works
+   (`ruins-works.md`): a power hall, junction boxes, a records terminal, and a
+   collapse with its long way round.
 5. **Pools.** Run `storyMapPools` and `generatedSpaceEvidence` over every grade
    and surface: vault reachable, layer count as declared, no closed route.
 

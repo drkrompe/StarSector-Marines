@@ -6,8 +6,9 @@ Status: PLANNED — owner direction; nothing built. Feeds slice 5 of
 Written: 2026-11-09
 
 Read `derelict-lore-guide.md` in full first, then `ruins-expedition.md`
-(Derelict security), `extraction-command.md` (the swarm director, and the
-security-network director it leaves open) and `mechs-nouns.md`.
+(The Ruins mission family, Derelict security), `extraction-command.md` (the
+swarm director, the pattern this director follows, and the security-network
+director it leaves open for Silent Colony) and `mechs-nouns.md`.
 
 ## Goal
 
@@ -41,7 +42,9 @@ a mission director with honest knowledge, like the swarm's.
 6. **The security walker.** One unpiloted mech chassis in two liveries (Domain,
    contingency), light patrol frame and heavy vault frame by loadout. New art
    through the usual picks; ordinary mech parts.
-7. **Looks.** Domain and contingency looks for the folded posts, cradles, drones
+7. **Power branches.** At a site whose power hall feeds the network, a
+   junction that cuts a branch powers down the zones on it (`ruins-works.md`).
+8. **Looks.** Domain and contingency looks for the folded posts, cradles, drones
    and node (`tech-families.md`), with picks.
 
 ## Constraints
@@ -56,5 +59,5 @@ a mission director with honest knowledge, like the swarm's.
 ## Done
 
 A derelict expedition on each grade plays through `ruins-occupants.md` and the
-owner has played one. Fold the director into `extraction-command.md`, the units
+owner has played one. Fold the director into `ruins-expedition.md`, the units
 into their noun docs, add a row to `shipped.md`, and delete this story.
