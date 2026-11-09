@@ -50,6 +50,18 @@ public final class IceVoidLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/ice-wall.png", 10f, 23);
     }
 
+    /**
+     * The crevasse deepening and shallowing along its length ({@code -Dsnapshot.ice.vary=true}): a shallow trough in the
+     * west, as deep as its steps by the snow bridge, and deeper still in the east.
+     */
+    static NaturalVoid varying(NaturalVoid look) {
+        float f = look.floorMeters();
+        return look.withMarks(List.of(
+                new NaturalVoid.DepthMark(20f, centre(20), f * .2f),
+                new NaturalVoid.DepthMark(SNOW_BRIDGE_X, centre(SNOW_BRIDGE_X), f),
+                new NaturalVoid.DepthMark(185f, centre(185), f * 1.4f)));
+    }
+
     @Override public String id() { return "ice-void-look"; }
 
     @Override public String label() { return "Glacial crevasse through a snowfield (natural void look experiment)"; }
@@ -64,8 +76,10 @@ public final class IceVoidLookSuite implements SnapshotSuite {
         float depth = Float.parseFloat(System.getProperty("snapshot.ice.depth", "36"));
         for (String eyeText : System.getProperty("snapshot.ice.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "ice-%03dm-eye%03dm", Math.round(depth), Math.round(eye));
-            try (BattleSimulation sim = snowfield(crevasse(depth, eye))) {
+            boolean vary = Boolean.getBoolean("snapshot.ice.vary");
+            String tag = String.format(Locale.ROOT, "ice-%03dm%s-eye%03dm", Math.round(depth), vary ? "-vary" : "",
+                    Math.round(eye));
+            try (BattleSimulation sim = snowfield(vary ? varying(crevasse(depth, eye)) : crevasse(depth, eye))) {
                 out.add(shot(context, sim, tag + "-1-snow-bridge.png", SNOW_BRIDGE_X + 4f,
                         centre(SNOW_BRIDGE_X) + 3f, PLAY));
                 out.add(shot(context, sim, tag + "-2-bend.png", 50f, centre(50) - 2f, PLAY));

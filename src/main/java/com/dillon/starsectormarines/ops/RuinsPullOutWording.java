@@ -28,8 +28,7 @@ final class RuinsPullOutWording {
     static BattleRetreatOverlayModel.Wording of(List<SalvageCache.Recovered> banked) {
         String detail = banked.isEmpty() ? Strings.get("ruinsPullOutNothingBanked")
                 : Strings.format("ruinsPullOutBanked", Strings.join("separatorDot", banked.stream()
-                        .map(find -> Strings.format("resultsScreenFieldFind", find.quantity(),
-                                find.resource().displayName))
+                        .map(SalvageCache.Recovered::label)
                         .toArray(String[]::new)));
         return new BattleRetreatOverlayModel.Wording(Strings.get("ruinsPullOut"),
                 Strings.get("ruinsPullOutConfirm"), detail, Strings.get("ruinsPullOut"));

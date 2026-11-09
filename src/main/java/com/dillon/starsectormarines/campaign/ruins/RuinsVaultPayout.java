@@ -20,9 +20,9 @@ public record RuinsVaultPayout(String itemId, List<RuinsTechCache> techCaches, i
     /** The id prefix of the prize's tech caches, numbered from 1. */
     public static final String CACHE_PREFIX = "vault-prize-";
     /** Supply bundles a goods prize pays. UNTUNED. */
-    static final int GOODS_BUNDLES = 3;
+    public static final int GOODS_BUNDLES = 3;
     /** Tech caches a tech prize pays. UNTUNED. */
-    static final int TECH_CACHES = 2;
+    public static final int TECH_CACHES = 2;
 
     public RuinsVaultPayout {
         techCaches = List.copyOf(techCaches);

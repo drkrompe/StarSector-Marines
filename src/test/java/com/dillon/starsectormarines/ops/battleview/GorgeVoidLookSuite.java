@@ -49,6 +49,18 @@ public final class GorgeVoidLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/gorge-wall.png", 14f, 7);
     }
 
+    /**
+     * The gorge deepening and shallowing along its length ({@code -Dsnapshot.gorge.vary=true}): as deep as its steps in
+     * the west, shallowing to a quarter of that by the road bridge, and back to deep at the east.
+     */
+    static NaturalVoid varying(NaturalVoid look) {
+        float f = look.floorMeters();
+        return look.withMarks(List.of(
+                new NaturalVoid.DepthMark(20f, centre(20), f),
+                new NaturalVoid.DepthMark(110f, centre(110), f * .25f),
+                new NaturalVoid.DepthMark(190f, centre(190), f * 1.1f)));
+    }
+
     @Override public String id() { return "gorge-void-look"; }
 
     @Override public String label() { return "River gorge through a meadow (natural void look experiment)"; }
@@ -63,8 +75,10 @@ public final class GorgeVoidLookSuite implements SnapshotSuite {
         float depth = Float.parseFloat(System.getProperty("snapshot.gorge.depth", "50"));
         for (String eyeText : System.getProperty("snapshot.gorge.eyes", "120,160").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "gorge-%03dm-eye%03dm", Math.round(depth), Math.round(eye));
-            try (BattleSimulation sim = meadow(gorge(depth, eye))) {
+            boolean vary = Boolean.getBoolean("snapshot.gorge.vary");
+            String tag = String.format(Locale.ROOT, "gorge-%03dm%s-eye%03dm", Math.round(depth), vary ? "-vary" : "",
+                    Math.round(eye));
+            try (BattleSimulation sim = meadow(vary ? varying(gorge(depth, eye)) : gorge(depth, eye))) {
                 out.add(shot(context, sim, tag + "-1-footbridge.png", FOOT_X + 6f, centre(FOOT_X) + 4f, PLAY));
                 out.add(shot(context, sim, tag + "-2-road-bridge.png", ROAD_X, centre(ROAD_X) - 3f, PLAY));
                 out.add(shot(context, sim, tag + "-3-bend.png", 108f, centre(108) + 2f, PLAY));

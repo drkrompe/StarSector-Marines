@@ -12,6 +12,11 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
   the breach.
 - The prize carried on the mission and fixture, its stake read by the pressure
   and named on the battle for the guardians.
+- Tech caches along the delve (sealed stores, the guardian's court, the vault
+  store's deepest layer) settled as rolls of vanilla equipment, and the prize's
+  row on the results screen.
+- One works twist per theme (`RuinsWorksTwist`), built on the recommended set
+  while the owner's pick on it is open.
 
 The slices below are what is left.
 
@@ -29,20 +34,13 @@ the ruins and guesses what is inside before committing the company.
 
 ## Slices
 
-1. **Tech caches outside the vault.** The prize is paid; the tech caches in
-   sealed stores, guardian rooms and the vault store's deepest layer
-   (`RuinsFindTier`) still pay supply bundles. Settling them as tech rolls
-   (`RuinsPrizeSettlement`'s roll) opens `loot-nouns.md`'s equipment-cache gate
-   for ruins. Showing the prize on the results screen is owed with it; today
-   it goes straight to cargo and the log.
-2. **The batteries, finished.**
+1. **The batteries, finished.**
    - A side hostile to everyone, so the guns fire on the occupant too.
    - A powered-down look, so dark and awake read apart.
-3. **The tell in the occupant's voice.** Each tell is one line today; word it
+2. **The tell in the occupant's voice.** Each tell is one line today; word it
    through the occupant's own instruments (`RuinsSurvey`).
-4. **Themed works and art.** Furniture and the close reading are built. Still
+3. **Themed works and art.** Furniture and the close reading are built. Still
    owed, through picks with look shots:
-   - The works' twist per theme (heat valves, magnet gates, coolant junctions).
    - Art made for a theme where the shipped props fall short: frost, vats,
      a forge floor.
    - Theme on the approach outside.
