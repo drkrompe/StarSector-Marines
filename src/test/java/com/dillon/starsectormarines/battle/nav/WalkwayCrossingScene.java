@@ -7,12 +7,11 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneReport;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.Verdict;
+import com.dillon.starsectormarines.battle.setup.SkyPortClusterSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.ops.battleview.SkyPortCluster;
-import com.dillon.starsectormarines.ops.battleview.SkyPortVoidLookSuite;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -58,12 +57,14 @@ public final class WalkwayCrossingScene implements BehaviorScene {
 
     private SceneReport loop(String loop, boolean catwalk, int[] goal, List<String> crossed, List<String> avoided,
                              FrameSink frames) {
-        SceneBuilder builder = SkyPortCluster.lay(SkyPortVoidLookSuite.clustered(400f, 1f), catwalk).seed(20261109L);
+        SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(catwalk);
+        SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false)
+                .seed(20261109L);
         builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
                 .inFile(36, 84, 1, 0)
                 .assigned(id -> ObjectiveAssignment.attackMove(id, goal[0], goal[1]))
                 .done();
-        int lx = SkyPortCluster.OUTPOST[0] + 3, ly = SkyPortCluster.OUTPOST[1] + 3;
+        int lx = SkyPortClusterSetup.OUTPOST[0] + 3, ly = SkyPortClusterSetup.OUTPOST[1] + 3;
         builder.squad("lookout").faction(Faction.DEFENDER).size(1).unarmed().stationary().at(lx, ly)
                 .assigned(id -> ObjectiveAssignment.defendArea(id, lx, ly))
                 .done();
@@ -86,10 +87,10 @@ public final class WalkwayCrossingScene implements BehaviorScene {
                     if (topology.getGroundKind(cx, cy) == GroundKind.VOID && overDrop++ == 0) {
                         firstOverDrop = "member " + m + " at (" + cx + ", " + cy + ") on tick " + tick;
                     }
-                    if (SkyPortCluster.inside(cx, cy, SkyPortCluster.CATWALK)) stoodOn.get("catwalk")[m] = true;
-                    if (SkyPortCluster.inside(cx, cy, SkyPortCluster.SKYBRIDGE)) stoodOn.get("skybridge")[m] = true;
-                    for (int[] leg : SkyPortCluster.DOGLEG) {
-                        if (SkyPortCluster.inside(cx, cy, leg)) stoodOn.get("dogleg")[m] = true;
+                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.CATWALK)) stoodOn.get("catwalk")[m] = true;
+                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.SKYBRIDGE)) stoodOn.get("skybridge")[m] = true;
+                    for (int[] leg : SkyPortClusterSetup.DOGLEG) {
+                        if (SkyPortClusterSetup.inside(cx, cy, leg)) stoodOn.get("dogleg")[m] = true;
                     }
                     all &= Math.hypot(x - goal[0] - .5f, y - goal[1] - .5f) <= ARRIVED_CELLS;
                 }
