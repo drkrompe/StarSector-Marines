@@ -91,10 +91,10 @@ public final class SkyPortClusterSetup {
      */
     public static final float EYE_METERS = 240f;
 
-    /** Vanilla hulls flying the bays, slips and skyways; the last three, the freighters, stand parked on the terraces. */
+    /** Vanilla hulls flying the bays, slips and skyways, mostly the shuttle and the Hound (owner); the last three, the freighters, stand parked on the terraces. */
     public static final List<String> CRAFT = List.of(
-            "graphics/ships/aeroshuttle/aeroshuttle_base.png", "graphics/ships/hermes/hermes_base.png",
-            "graphics/ships/hound/hound_base.png", "graphics/ships/wayfarer/wayfarer.png",
+            "graphics/ships/aeroshuttle/aeroshuttle_base.png", "graphics/ships/hound/hound_base.png",
+            "graphics/ships/hermes/hermes_base.png", "graphics/ships/wayfarer/wayfarer.png",
             "graphics/ships/buffalo/buffalo_base.png", "graphics/ships/tarsus/tarsus_base.png",
             "graphics/ships/mule/mule_base.png");
 

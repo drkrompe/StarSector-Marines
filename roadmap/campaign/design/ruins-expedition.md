@@ -620,6 +620,9 @@ The haul range is the Flow's (step 3), and the battle never changes it.
 - Ruins ground tuning waits on played battles: the dead town's densities,
   layer, room and court sizes, and the interior's chamber count and spine width
   are first guesses, to be tuned against a player giving orders.
+- What keeps the entry held is on the picks page (`ruins-entry-hold`): held
+  until retaken with no garrison (as written), a squad on its apron at the
+  moment of the pull-out, or a standing garrison.
 
 ## Boundaries
 

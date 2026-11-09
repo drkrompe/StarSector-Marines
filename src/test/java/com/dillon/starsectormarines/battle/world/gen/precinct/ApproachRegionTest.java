@@ -142,4 +142,34 @@ class ApproachRegionTest {
         assertEquals(stated[2], region.x1());
         assertEquals(80, region.standoffCells());
     }
+
+    /**
+     * {@link Standoff#INSET} lands a set depth in from the edge, whatever the
+     * walk to the claim: the western band at 560 wide has 164 cells to spare,
+     * and still moves only {@link Standoff#INSET_DEPTH}.
+     */
+    @Test
+    void anInsetLandsASetDepthInFromItsEdge() {
+        int[] stated = MapPlacement.WEST.bounds(W, H);
+        ApproachRegion inset = ApproachRegion.resolve(
+                MapPlacement.WEST, Standoff.INSET, EAST_CLAIM, W, H);
+        assertArrayEquals(new int[]{Standoff.INSET_DEPTH, stated[1],
+                stated[2] + Standoff.INSET_DEPTH, stated[3]}, inset.bounds());
+        assertEquals(LandingPad.Approach.WEST, inset.approach(),
+                "an inset beachhead still comes in across the edge it was stated on");
+    }
+
+    /**
+     * A garrison claim that already runs down beside the band leaves no gap to
+     * slide across, and an inset still lands its depth in: it is measured from
+     * the edge, and the landing stage, not the region, keeps berths off the claim.
+     */
+    @Test
+    void anInsetIsNotHeldBackByAClaimBesideTheBand() {
+        int[] stated = MapPlacement.WEST.bounds(W, H);
+        int[] overlapping = {stated[2] - 10, 100, 520, 260};
+        ApproachRegion inset = ApproachRegion.resolve(
+                MapPlacement.WEST, Standoff.INSET, overlapping, W, H);
+        assertEquals(Standoff.INSET_DEPTH, inset.x0());
+    }
 }

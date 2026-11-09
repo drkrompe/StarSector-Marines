@@ -52,7 +52,25 @@ public enum Standoff {
      * <p>Carries no distance of its own, so {@link #cells()} is the largest
      * standoff there could be rather than a number to compare against.
      */
-    FAR(Integer.MAX_VALUE);
+    FAR(Integer.MAX_VALUE),
+
+    /**
+     * Landed {@link #INSET_DEPTH} cells in from the map edge the band arrived
+     * across, into the town rather than at its edge (owner: "we don't need to
+     * keep landing zones at the edge of the map").
+     *
+     * <p>A depth from the edge rather than a walk to the claim, unlike
+     * {@link #CLOSE} and {@link #STANDARD}: a Raid's prize is wherever the
+     * search finds it, not the garrison a walk is measured against, and a
+     * garrison's claim often runs down beside the arrival band, leaving no gap
+     * to measure. So the band slides the depth whatever the claim, and the
+     * landing stage keeps every berth off the objective's own ground instead.
+     * {@link #cells()} is unused.
+     */
+    INSET(0);
+
+    /** How far {@link #INSET} slides the band in from its edge. UNTUNED. */
+    public static final int INSET_DEPTH = 40;
 
     private final int cells;
 

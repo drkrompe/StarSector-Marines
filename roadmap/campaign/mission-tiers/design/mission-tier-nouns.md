@@ -37,7 +37,8 @@ offered at. A Raid takes its tier's map two steps up the band
 (`MapScale.forRaid`: 200x112 at a first contract, 280x168 established or
 veteran, 400x240 reinforced or full strength), so a search for the prize has
 ground to search: the owner's pick (`raid-map-size` b) after finding Raid maps
-too small, the same two steps the ruins ground took.
+too small, the same two steps the ruins ground took. Its shuttles land a set
+depth into the town rather than on the map edge (`precincts.md`, `INSET`).
 
 An authored small territorial chapter is a separate profile, not a generic
 Conquest offer below its tier floor. It states its own map, recommendation,
