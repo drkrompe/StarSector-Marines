@@ -312,6 +312,28 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 0);
     }
 
+    /** A machine hall of a works: the floor one charge wrecks. Big enough to read as a plant, not a shed. */
+    private static final RoomShape MACHINE_HALL = RoomShape.rectangle(12, 9);
+
+    /**
+     * An industry's works ({@code raid-mission.md}, Break): its machine halls, a generator hall, a stores and the
+     * posts its gates are watched from. The halls are what a raid comes to wreck, one machine to a hall, and they
+     * stand in the yard where a charge can be carried to them; the posts face out. No keep and no airfield: the
+     * works is a plant, and the garrison beside it is where the market is held from.
+     *
+     * @param machineHalls halls in the works, one per machine
+     */
+    public static FortressProgram works(int machineHalls) {
+        if (machineHalls < 1) throw new IllegalArgumentException("a works has at least one machine hall");
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.PARTS_CAGE, MACHINE_HALL, Ward.YARD, machineHalls),
+                new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
+                        RoomPacker.EdgeContact.ANY, 2)),
+                0);
+    }
+
     /**
      * How much open ground a landing place owes before anything is built on it.
      *

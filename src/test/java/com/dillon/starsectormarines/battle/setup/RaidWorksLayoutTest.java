@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.OperationTier;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -7,6 +8,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** How a disrupting raid's works chooses its machines ({@code raid-mission.md}, Break). */
 class RaidWorksLayoutTest {
+
+    /** A works compound's machines are its own depots, nearest its seed first; homes and far depots are not. */
+    @Test
+    void aCompoundsHallsAreItsNearestDepots() {
+        List<PointOfInterest> pois = List.of(
+                poi(PointOfInterest.Kind.DEPOT, 120, 50),
+                poi(PointOfInterest.Kind.RESIDENTIAL, 101, 50),
+                poi(PointOfInterest.Kind.DEPOT, 105, 50),
+                poi(PointOfInterest.Kind.ADMINISTRATIVE, 102, 50),
+                poi(PointOfInterest.Kind.DEPOT, 100 + RaidWorksLayout.WORKS_REACH + 5, 50));
+        List<int[]> halls = RaidWorksLayout.compoundHalls(pois, 100, 50);
+        assertEquals(2, halls.size());
+        assertArrayEquals(new int[]{105, 50}, halls.get(0));
+        assertArrayEquals(new int[]{120, 50}, halls.get(1));
+    }
+
+    private static PointOfInterest poi(PointOfInterest.Kind kind, int x, int y) {
+        return new PointOfInterest(kind, x - 2, y - 2, x + 2, y + 2, x, y + 3, x, y);
+    }
 
     @Test
     void machinesAreTakenInCandidateOrderUpToTheCount() {
