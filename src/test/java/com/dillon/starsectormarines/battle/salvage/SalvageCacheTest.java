@@ -17,6 +17,13 @@ class SalvageCacheTest {
         assertTrue(FieldSalvage.canReach(grid, 2, 4, 4, 4));
         assertFalse(FieldSalvage.canReach(grid, 0, 4, 4, 4));
     }
+    @Test void aFindInARoomIsHeldFromTheRoomAndItsMarginOnly() {
+        var c = cache().heldFromRoom(5, 5, 9, 9, 2);
+        assertTrue(c.holds(7.5f, 11.5f), "two cells outside its wall");
+        assertFalse(c.holds(7.5f, 12.5f));
+        assertFalse(cache().holds(7.5f, 7.5f), "a find in the open has no room");
+    }
+
     @Test void spottingDoesNotRecoverAndInterruptedWorkRestarts() {
         var c = cache();
         c.advance(20, false, true, false);

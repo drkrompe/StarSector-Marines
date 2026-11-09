@@ -89,6 +89,17 @@ class RuinsWorksTest {
         }
     }
 
+    @Test
+    void aConsoleInABuildingIsWorkedFromAnywhereInItOrAtItsDoor() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsWorks.Site office = new RuinsWorks.Site(RuinsWorks.RECORDS, "office", 7, 6, new int[]{5, 5, 9, 9});
+            long clerk = sim.spawn(new EntitySpec("clerk", Faction.MARINE, UnitType.MARINE, 7, 11));
+            assertTrue(RuinsWorks.worked(sim, null, office), "two cells outside its wall, as a squad sent to its door stands");
+            sim.world().setCellPos(clerk, 7, 15);
+            assertFalse(RuinsWorks.worked(sim, null, office));
+        }
+    }
+
     private static boolean marked(RuinsWorks works, String door) {
         return works.item().markers().stream().anyMatch(m -> m.id().endsWith(door));
     }
