@@ -73,7 +73,7 @@ swarm director, and it commands flocks as units.
 
 Owner, 2026-11-09: some ruin sites are megastructures or bunkers; the company
 lands outside and works into roofed rooms and corridors with the vault deep
-inside (`ruins-ground.md`, Interior: outside, then inside). The two halves of
+inside (`mapgen-nouns.md`, Ruins ground: the far end is inside). The two halves of
 the force split along the roofline:
 
 - **Flocks own the exterior and the approaches.** A flock never enters a

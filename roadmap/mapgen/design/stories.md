@@ -17,7 +17,6 @@ three lane-seeding defects it uncovered are fixed and folded into
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Distinct toxic, irradiated, volcanic and ash material families remain; palette-specific terrain and obstacles must preserve access. |
-| `ruins-ground.md` | IN PROGRESS | A ruins site's own ground: an abandoned settlement with no link, laid as a delve from landing area to vault through the grade's layers (`ruins-expedition.md`). Generated at every grade with its places published; waits on the battle playing on it. |
 | `settlement-off-map-link.md` | PLANNED | Every settlement reachable off-map by road or by landing pad; an off-grid outpost is the pad case. |
 | `cross-leaf-footprint-planning.md` | IN PROGRESS | Bounded industrial template parcels are supported; general compound programs, other families and nonrectangular claims remain. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |

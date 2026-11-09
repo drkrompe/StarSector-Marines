@@ -1885,16 +1885,43 @@ the map records for the command layer to read.
 
 ## Ruins ground
 
-A ruins site's map (`ruins-ground.md`) is a grown settlement that died: the
-same growth at a density the mission states, `SettlementLink.NONE`, and every
-lot a ruin. It is laid as a **delve**: a cleared landing ground at the west
-end, a vault at the east end, and between them the ruins grade's **layers**,
-each a wall line across the whole map with its ways through. A mission asks for
-it with a `RuinsGroundPlan` (the layer count, 1 to 4) through
-`MapGenerator.generateRuins`, and reads `MapResult.ruinsDelve`: every place by
-a stable name (`ruins.landing`, `ruins.vault`, `ruins.layer.N`, its ways, rooms
-and court, the works sites `ruins.works.*`, and `ruins.interior`). Six rules
-hold it together.
+A ruins site's map (`ruins-expedition.md`, Ruined ground) is a grown
+settlement that died: the same growth at a density the mission states,
+`SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
+cleared landing ground at the west end, a vault at the east end, and between
+them the ruins grade's **layers**, each a wall line across the whole map with
+its ways through.
+
+A mission asks for it with a `RuinsGroundPlan` through
+`MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
+other map). The plan is the layer count, 1 (scattered) to 4 (vast), never the
+campaign's grade, so world generation stays free of campaign types; the map's
+size and the dead town's density follow from it. The profile gives only the
+world's surface. The seed is the site's, so the same site makes the same ground
+every time. `BattleSetup.createRuins` asks with the campaign's layer count and
+reads the vault's source and the lift points, each with its route from the
+vault, off the published places; a dead site parks no vehicles and gets no
+emplacement scatter.
+
+Every place has a stable name (`places()` lists them, `area(name)` answers one):
+
+| Name | What it is |
+|---|---|
+| `ruins.landing` | The cleared landing ground at the west end. Its arrival areas are the map's own `landingAreas` and `landingPads`, the only berths on the map; the company spawns on it. |
+| `ruins.vault` | The vault suite at the east end: its door, inner door, the approach cell outside the door, and the one source cell the breach is held on. The opposing anchor stands at the approach. |
+| `ruins.layer.N` | Layer N, from 1 nearest the landing: its holdable ground up to the next layer's line; a collapsed street, a breached wall or a sealed gate. |
+| `ruins.layer.N.way.M` | The ways through layer N: a gap, a breach, a sealed gate's span (open ground until the works shut it) or the side way round a gate, each with its span and a cell either side. |
+| `ruins.layer.N.room.M` | Two small rooms behind each layer, one door each: where caches and sealed stores go. |
+| `ruins.layer.N.court` | The open landing court of every layer past the first; not among the map's berths, since the boat is called to it. |
+| `ruins.works.power-hall` | The generator hall, in a layer before the last; its console is the cell infantry hold. |
+| `ruins.works.junction.N` | One junction box per layer, in the wall past its first open way; its stand is on that way's passage. |
+| `ruins.works.records` | The records office in the first layer. |
+| `ruins.works.collapse` | The short way through the last layer, in line with the vault's door, choked by breachable wall: a way of its own kind; the layer's open ways are the long way round. |
+| `ruins.interior` | The roofed part of the site, with its entrances from open ground; `ruins.interior.chamber.M` are its unnamed chambers. |
+
+Lift points are the landing's arrival areas, then each court's. Which court is
+held, which rooms are stores and which branch a junction feeds are the
+mission's (`ruins-works.md`). Seven rules hold the ground together.
 
 **The ruins are a value, not a branch.** The recipe relabels every lot as a
 ruined lot before the ordinary fill dispatch runs, so the burned-out footprints
@@ -1903,7 +1930,10 @@ special drawing. Nothing is claimed as a compound: a compound is a working
 facility. The only intact shells are the delve's own: the vault, the rooms and
 the works. A ruins site is longer dead than a town's ruined lots, so its lots
 are weathered further (floors broken into rubble and earth, no olive sheet,
-most furniture gone), by a hash that draws nothing from the layout.
+most furniture gone), by a hash that draws nothing from the layout. No new
+hazard system and no new art set: the ground is terrain in the ruined-lot,
+rubble and installation materials, and a new wall, floor or roof set is an art
+decision with picks.
 
 **Nothing joins a ruin to the world.** No street is finished as a carriageway:
 the dead town's streets are broken into trodden earth and rubble bed, by a
@@ -1933,7 +1963,16 @@ lines inside are its walls and bulkheads, so their ways are its entrances and
 doors. A court inside is a light well open to the sky, so every lift point is
 under open sky and everything else inside is under a roof, one roof over the
 whole mass: the solid hull is registered as a building of its own
-(`RuinsRoofStage`), so its roof joins the halls'.
+(`RuinsRoofStage`), so its roof joins the halls', and going in lifts the roof
+over the halls while the mass stays roofed. One roof in the existing roof art
+was the owner's pick (2026-11-09) over a dedicated megastructure roof set and
+over roof strips with bare hull between them. Rooms and the power hall inside
+are built of the hull; the power hall stands inside at extensive and vast, and
+at widespread, whose only layer before the last is outside, it stays out.
+
+**The vault is the site's hardened heart.** Buttressed dark cast concrete,
+an antechamber and the vault room behind an inner door, the haul crated in its
+corners: the one shell on the map that reads intact and strong.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
@@ -1941,6 +1980,10 @@ landing to the vault's source, every way, room, court berth, works cell and
 interior chamber, and
 generation throws on any failure. There is no fallback map: the site's seed
 names the ground, so the same ruins come back on a second expedition.
+`RuinsGroundEvidence` (`generatedSpaceEvidence`) generates every grade on every
+surface over several seeds, plus seeds that once broke a ground, and holds the
+vault, every interior room and chamber under a roof and every lift point under
+open sky. Ruins ground has no story-map pool: a site's seed names its map.
 
 ## Rural country
 

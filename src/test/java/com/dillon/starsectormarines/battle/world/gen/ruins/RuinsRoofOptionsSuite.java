@@ -21,7 +21,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.List;
 
 /**
- * The ruins interior's roof from above, for the owner's pick ({@code ruins-ground.md}, Interior): an extensive
+ * The ruins interior's roof from above, for the owner's pick ({@code mapgen-nouns.md}, Ruins ground): an extensive
  * site, seed 7, a minute in, framed on the megastructure through the look preset with roofs on. {@code roof.png} is
  * the roof as the ground builds it; {@code roof-plate-mock.png} is the same frame with the megastructure's roof
  * drawn from the armour-plate row of the roof sheet, standing in for a dedicated megastructure roof set (the

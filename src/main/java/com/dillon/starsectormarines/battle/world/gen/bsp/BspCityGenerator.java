@@ -495,7 +495,7 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * A ruins site's ground ({@code ruins-ground.md}): a dead settlement grown at the plan's density with no link
+     * A ruins site's ground ({@code mapgen-nouns.md}, Ruins ground): a dead settlement grown at the plan's density with no link
      * to anything ({@link SettlementLink#NONE}), every lot a ruin, and the delve laid over it before finalize so
      * its shells and walls are ordinary buildings and walls. No district, compound, market or landing link: none
      * of them works here.
@@ -526,7 +526,7 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * A ruins site's battle ground at the plan's size ({@code ruins-ground.md}). The map carries its
+     * A ruins site's battle ground at the plan's size ({@code mapgen-nouns.md}, Ruins ground). The map carries its
      * {@link MapResult#ruinsDelve}; {@code profile} supplies the world's surface and nothing else, since a ruin's
      * size and link are the plan's. A ground that breaks a delve law ({@link DelveCheck}) is a generation error.
      */
