@@ -1,0 +1,294 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "id": "volcanic.basalt",
+      "layout": "variants"
+    },
+    {
+      "id": "volcanic.ash",
+      "layout": "variants"
+    }
+  ],
+  "cellPx": 56,
+  "gridCols": 8,
+  "gridRows": 2,
+  "idPrefix": "volcanic",
+  "note": "Volcanic ground: cooled basalt flow (row 0) and settled ash (row 1), eight wrapped variants each, cut from ImageGen masters in art-source/tilesets/volcanic-ground/ by normalize_ground_variants.py (atlas-material-source/basalt-variants, ash-variants). Drawn for STONE and SAND on a volcanic world (paletteGroundRender).",
+  "sheet": "art-source/tilesets/volcanic-ground.raw.png",
+  "sheetName": "volcanic-ground",
+  "entries": [
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v1",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v2",
+      "included": true,
+      "rect": [
+        56,
+        0,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v3",
+      "included": true,
+      "rect": [
+        112,
+        0,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v4",
+      "included": true,
+      "rect": [
+        168,
+        0,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v5",
+      "included": true,
+      "rect": [
+        224,
+        0,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v6",
+      "included": true,
+      "rect": [
+        280,
+        0,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v7",
+      "included": true,
+      "rect": [
+        336,
+        0,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "volcanic.basalt",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.basalt.v8",
+      "included": true,
+      "rect": [
+        392,
+        0,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v1",
+      "included": true,
+      "rect": [
+        0,
+        56,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v2",
+      "included": true,
+      "rect": [
+        56,
+        56,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v3",
+      "included": true,
+      "rect": [
+        112,
+        56,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v4",
+      "included": true,
+      "rect": [
+        168,
+        56,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v5",
+      "included": true,
+      "rect": [
+        224,
+        56,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v6",
+      "included": true,
+      "rect": [
+        280,
+        56,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v7",
+      "included": true,
+      "rect": [
+        336,
+        56,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "volcanic.ash",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "volcanic.ash.v8",
+      "included": true,
+      "rect": [
+        392,
+        56,
+        56,
+        56
+      ],
+      "slot": "v8"
+    }
+  ]
+}
