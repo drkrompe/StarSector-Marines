@@ -2024,6 +2024,14 @@ surface over several seeds, plus seeds that once broke a ground, and holds the
 vault, every interior room and chamber under a roof and every lift point under
 open sky. Ruins ground has no story-map pool: a site's seed names its map.
 
+**Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
+and the interior's chambers wear for the site's vault prize
+(`ruins-expedition.md`, The vault and its prize). The ruins ground lays them
+against room walls, never in a doorway, and only where a room stays one floor.
+It draws them by a coordinate hash, not from the layout's stream, so the same
+seed lays the same ground whatever it wears, and the delve laws above still
+hold it.
+
 ## Rural country
 
 The **country** is the band of open land an open-field landing claims along

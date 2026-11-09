@@ -7,6 +7,9 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
 - The draw and the tell in the briefing.
 - The payout and find-tier rules.
 - The batteries.
+- Furniture inside the ruin and the close reading of the vault's layer.
+- The prize paid into cargo on a win, whole or broken by the vault's power at
+  the breach.
 - The prize carried on the mission and fixture, its stake read by the pressure
   and named on the battle for the guardians.
 
@@ -26,28 +29,23 @@ the ruins and guesses what is inside before committing the company.
 
 ## Slices
 
-1. **The prize at the vault.** The payout rules are built (`RuinsVaultPayout`,
-   `RuinsTechCache`, `RuinsFindTier`); the wiring is owed.
-   - The battle records whether the vault was powered at the breach
-     (`RuinsVaultObjective.vaultPowered` when `breached()` turns true).
-   - The won expedition's settlement then pays:
-     - A colony item as vanilla's special item.
-     - A core as its commodity.
-     - Each tech cache by rolling its drop group through vanilla's salvage
-       generator.
-   - Tech caches in sealed stores, guardian rooms and the vault store's deepest
-     layer need the same settlement. That opens `loot-nouns.md`'s
-     equipment-cache gate for ruins.
-
-   Unit-test the settlement.
+1. **Tech caches outside the vault.** The prize is paid; the tech caches in
+   sealed stores, guardian rooms and the vault store's deepest layer
+   (`RuinsFindTier`) still pay supply bundles. Settling them as tech rolls
+   (`RuinsPrizeSettlement`'s roll) opens `loot-nouns.md`'s equipment-cache gate
+   for ruins. Showing the prize on the results screen is owed with it; today
+   it goes straight to cargo and the log.
 2. **The batteries, finished.**
    - A side hostile to everyone, so the guns fire on the occupant too.
    - A powered-down look, so dark and awake read apart.
 3. **The tell in the occupant's voice.** Each tell is one line today; word it
    through the occupant's own instruments (`RuinsSurvey`).
-4. **Themed ground and works.** The ruins ground lays the theme's interior set
-   and the works' twist (heat valves, magnet gates, coolant junctions), one
-   theme at a time, through picks with look shots. That is mapgen and art.
+4. **Themed works and art.** Furniture and the close reading are built. Still
+   owed, through picks with look shots:
+   - The works' twist per theme (heat valves, magnet gates, coolant junctions).
+   - Art made for a theme where the shipped props fall short: frost, vats,
+     a forge floor.
+   - Theme on the approach outside.
 
 ## Constraints
 

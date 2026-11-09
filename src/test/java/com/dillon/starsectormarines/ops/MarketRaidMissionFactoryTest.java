@@ -35,6 +35,16 @@ class MarketRaidMissionFactoryTest {
                 MarketRaidMissionFactory.tierFor(fortress));
     }
 
+    /** The industry's Raid site's line closes the briefing: what the target is to the whole planet. */
+    @Test
+    void theChokepointLineClosesTheBriefing() {
+        Mission plain = MarketRaidMissionFactory.create(3, "jangala", "Jangala", "hegemony", "mining",
+                MarketGarrison.NONE);
+        Mission hub = MarketRaidMissionFactory.create(3, "jangala", "Jangala", "hegemony", "mining",
+                MarketGarrison.NONE, "It handles the output of 7 digs.");
+        assertEquals(plain.flavor + " It handles the output of 7 digs.", hub.flavor);
+    }
+
     @Test
     void nothingToRaidBuildsNothing() {
         assertNull(MarketRaidMissionFactory.create(0, "jangala", "Jangala", "hegemony", null, MarketGarrison.NONE));

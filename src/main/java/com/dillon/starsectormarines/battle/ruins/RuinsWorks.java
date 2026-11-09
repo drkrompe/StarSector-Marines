@@ -70,6 +70,7 @@ public final class RuinsWorks {
     static final String KEYPAD = KEY + "keypad";
     static final String DOOR = KEY + "door/";
     static final String COLLAPSE = KEY + "collapse";
+    static final String WAKE = KEY + "wake/";
     static final String FORCE = "force";
     public static final String VAULT_SEAL = "vault-seal";
 
@@ -121,6 +122,25 @@ public final class RuinsWorks {
     private final List<Court> courts = new ArrayList<>();
     /** For each of {@link #courts}, its index among the vault objective's lift points, or -1; set at install. */
     private int[] courtLifts = new int[0];
+
+    /**
+     * A wake point ({@code ruins-pressure.md}, slice 2): where the occupant's stir pushes come up in a layer inside, the
+     * floor of a side room that is not a store. A company charge going off over it collapses it for good, and no push
+     * comes up in that layer again.
+     *
+     * @param layer the layer it serves
+     * @param spot  its one cell as a span the works' force path can set a charge on
+     */
+    public record WakePoint(int layer, SealDoor spot) {
+        public int x() { return spot.cells()[0][0]; }
+
+        public int y() { return spot.cells()[0][1]; }
+    }
+
+    private final List<WakePoint> wakes = new ArrayList<>();
+    private final List<Boolean> wakeCollapsed = new ArrayList<>();
+    /** The company's charges armed at the last look, {id, x, y, blast radius}, to see which went off where. */
+    private final List<float[]> armed = new ArrayList<>();
 
     /** A landing court's lift, a consumer on its layer's store side. */
     record Court(String id, String name, int[] ground) { }
@@ -250,12 +270,88 @@ public final class RuinsWorks {
         works.vaultShell = box(vaultPlace.footprint());
         works.access = access;
         works.courts.addAll(courts);
+        if (!empty && defence != null) works.placeWakes(delve, defence);
         if (records != null) {
             // The keypad stands on the antechamber's floor in front of the vault's door, toward its outer door.
             int kx = ix + Integer.signum(vaultPlace.door().x() - ix);
             works.keypad = new Site(KEYPAD, Strings.get("ruinsWorksKeypadName"), kx, iy);
         }
         return works;
+    }
+
+    /**
+     * One wake point in each layer inside that has a side room past its stores, on that room's floor; named for who
+     * comes up through it.
+     */
+    private void placeWakes(RuinsDelve delve, RuinsDefence defence) {
+        int firstInside = delve.interior() != null ? delve.interior().firstLayer() : 0;
+        String name = Strings.get(switch (defence) {
+            case SECURITY -> "ruinsWakeHatch";
+            case CREW -> "ruinsWakeCrawlway";
+            default -> "ruinsWakeBoreMound";
+        });
+        for (RuinsDelve.Layer layer : delve.layers()) {
+            RuinsDelve.SideRoom room = wakeRoom(layer, firstInside, delve.layerCount(), defence);
+            if (room == null) continue;
+            int x = room.interior().x(), y = room.interior().y();
+            SealDoor spot = new SealDoor("wake-" + (layer.index() + 1),
+                    Strings.format("ruinsWakeName", name, layer.index() + 1), new int[][]{{x, y}}, x, y,
+                    new int[]{x, y, x, y}, false);
+            wakes.add(new WakePoint(layer.index(), spot));
+            wakeCollapsed.add(false);
+        }
+    }
+
+    /** The side room a layer's wake point stands in: its first past the stores, inside only; null for none. */
+    static RuinsDelve.SideRoom wakeRoom(RuinsDelve.Layer layer, int firstInside, int layerCount, RuinsDefence defence) {
+        if (layer.index() < firstInside) return null;
+        int stores = storesIn(layer.index(), layerCount, layer.rooms().size(), defence);
+        return stores < layer.rooms().size() ? layer.rooms().get(stores) : null;
+    }
+
+    /** The site's wake points, in layer order. */
+    public List<WakePoint> wakePoints() { return List.copyOf(wakes); }
+
+    /** Layer {@code layer}'s wake point, or null where it has none. */
+    public WakePoint wakePoint(int layer) {
+        for (WakePoint wake : wakes) if (wake.layer() == layer) return wake;
+        return null;
+    }
+
+    /** Whether layer {@code layer}'s wake point has been collapsed by a charge. */
+    public boolean wakeCollapsed(int layer) {
+        for (int w = 0; w < wakes.size(); w++) if (wakes.get(w).layer() == layer) return wakeCollapsed.get(w);
+        return false;
+    }
+
+    /** Whether a charge of {@code radius} gone off at {@code (x, y)} collapses a wake point at cell {@code (wx, wy)}. */
+    static boolean collapses(int wx, int wy, float x, float y, float radius) {
+        float dx = wx + 0.5f - x, dy = wy + 0.5f - y;
+        float reach = radius + 0.5f;
+        return dx * dx + dy * dy <= reach * reach;
+    }
+
+    /** The company's charges that went off since the last look collapse the wake points they cover. */
+    private void watchCharges(BattleSimulation sim) {
+        if (wakes.isEmpty()) return;
+        List<float[]> now = new ArrayList<>();
+        for (var charge : sim.satchelCharges().activeCharges()) {
+            if (charge.sourceFaction() == Faction.MARINE) {
+                now.add(new float[]{charge.id(), charge.x(), charge.y(), charge.blastRadius()});
+            }
+        }
+        for (float[] was : armed) {
+            boolean still = false;
+            for (float[] is : now) still |= is[0] == was[0];
+            if (still) continue;
+            for (int w = 0; w < wakes.size(); w++) {
+                if (!wakeCollapsed.get(w) && collapses(wakes.get(w).x(), wakes.get(w).y(), was[1], was[2], was[3])) {
+                    wakeCollapsed.set(w, true);
+                }
+            }
+        }
+        armed.clear();
+        armed.addAll(now);
     }
 
     /**
@@ -365,6 +461,7 @@ public final class RuinsWorks {
     /** One tick: the player's press, the work at a console or box, then the doors and the vault's seal. */
     public void tick(BattleSimulation sim) {
         if (!installed || sim.isComplete()) return;
+        watchCharges(sim);
         SideField field = SideField.of(sim);
         if (pressedKey != null && FORCE.equals(pressedVerb)) {
             forceKey = pressedKey;
@@ -430,6 +527,9 @@ public final class RuinsWorks {
     /** The door or collapse the player asked a charge on, or null once it stands open. */
     private SealDoor forceTarget(String key) {
         if (COLLAPSE.equals(key)) return cleared ? null : collapse;
+        for (int w = 0; w < wakes.size(); w++) {
+            if ((WAKE + wakes.get(w).spot().id()).equals(key)) return wakeCollapsed.get(w) ? null : wakes.get(w).spot();
+        }
         for (int d = 0; d < doors.size(); d++) {
             if ((DOOR + doors.get(d).id()).equals(key)) {
                 return isOpen(d) || doors.get(d).hardened() ? null : doors.get(d);
@@ -557,6 +657,11 @@ public final class RuinsWorks {
         if (collapse != null && !cleared) {
             forceOffer(out, field, COLLAPSE, collapse, Strings.get("ruinsWorksCollapseChoked"),
                     Strings.get("ruinsWorksCollapseDetail"));
+        }
+        for (int w = 0; w < wakes.size(); w++) {
+            if (wakeCollapsed.get(w)) continue;
+            forceOffer(out, field, WAKE + wakes.get(w).spot().id(), wakes.get(w).spot(), Strings.get("ruinsWakeOpen"),
+                    Strings.get("ruinsWakeDetail"));
         }
         // Once the vault's door is powered, the records console is a key: its card says so.
         if (vaultNeedsKeys() && !keys.turned() && graph.powered(graph.consumer(VAULT_SEAL)) && !RECORDS.equals(workKey)
@@ -692,6 +797,13 @@ public final class RuinsWorks {
             markers.add(new Marker(keypad.key(), keypad.name(), keypad.x(), keypad.y(), Strings.get(code.entered()
                     ? "ruinsWorksCodeEntered" : read ? "ruinsWorksCodeKnown" : "ruinsWorksCodeUnknown"),
                     code.entered() ? MissionObjectiveSnapshot.State.COMPLETE : active));
+        }
+        for (int w = 0; w < wakes.size(); w++) {
+            WakePoint wake = wakes.get(w);
+            boolean shut = wakeCollapsed.get(w);
+            markers.add(new Marker(WAKE + wake.spot().id(), wake.spot().name(), wake.x(), wake.y(),
+                    Strings.get(shut ? "ruinsWakeCollapsed" : "ruinsWakeOpen"),
+                    shut ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
         for (int c = 0; c < courts.size(); c++) {
             int[] g = courts.get(c).ground();

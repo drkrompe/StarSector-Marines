@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.ui.comms.RuinsPressureCommsPresenter;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -83,12 +85,15 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
             try (BattleSimulation sim = delve(context, DERELICT)) {
                 out.add(push(context, sim, "03-security-hunt", Aim.HUNT));
             }
+            try (BattleSimulation sim = delve(context, SCAVENGERS_DEEP)) {
+                out.addAll(wakePoint(context, sim));
+            }
         }
         return out;
     }
 
     /** The fixture's battle with the entry taken and marines at the stand of the deepest layer. */
-    private static BattleSimulation delve(SnapshotContext context, String fixturePath) throws Exception {
+    static BattleSimulation delve(SnapshotContext context, String fixturePath) throws Exception {
         JSONObject fixture = new JSONObject(Files.readString(context.projectRoot().resolve(fixturePath)));
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
         RuinsVaultObjective vault = RuinsPullOut.vault(sim);
@@ -143,8 +148,38 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
         return shot;
     }
 
+    /**
+     * A wake point: a hunt coming up out of the crawlway of the layer it is sent to, then the same crawlway after a
+     * company charge has gone off over it, marked collapsed.
+     */
+    private static List<SnapshotArtifact> wakePoint(SnapshotContext context, BattleSimulation sim) throws Exception {
+        RuinsPressure pressure = sim.ruinsPressure();
+        pressure.loud(RuinsPressure.STEP);
+        RuinsRailLookSuite.advance(sim, 0.5f);
+        Push push = pressure.pushes().get(pressure.pushes().size() - 1);
+        RuinsWorks.WakePoint wake = sim.getRuinsWorks().wakePoint(push.layer());
+        if (wake == null) throw new IllegalStateException("layer " + (push.layer() + 1) + " has no wake point");
+        RuinsRailLookSuite.advance(sim, 2f);
+        SnapshotArtifact rising = RuinsRailLookSuite.shot(context, sim, "04-crew-wake-point", wake.x(), wake.y(), 60f);
+        plate(context, rising.frames().get(0), RuinsPressureCommsPresenter.notice(pressure.fielded().voice(), push));
+        long carrier = 0L;
+        for (int i = 0, m = sim.liveUnitCount(); i < m && carrier == 0L; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) == Faction.MARINE && sim.movement().has(unit)) carrier = unit;
+        }
+        SatchelChargeSpec spec = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)
+                .satchelChargeSpec();
+        if (!sim.satchelCharges().plantAtCell(carrier, wake.x(), wake.y(), Faction.MARINE, spec)) {
+            throw new IllegalStateException("no charge set on the wake point");
+        }
+        RuinsRailLookSuite.advance(sim, spec.fuseSeconds() + 1.5f);
+        if (!sim.getRuinsWorks().wakeCollapsed(push.layer())) throw new IllegalStateException("the charge left it");
+        SnapshotArtifact shut = RuinsRailLookSuite.shot(context, sim, "05-crew-wake-collapsed", wake.x(), wake.y(), 60f);
+        return List.of(rising, shut);
+    }
+
     /** Every marine squad holds the ground it stands on. */
-    private static void holdTheCompany(BattleSimulation sim) {
+    static void holdTheCompany(BattleSimulation sim) {
         Set<Integer> held = new TreeSet<>();
         for (int i = 0, m = sim.liveUnitCount(); i < m; i++) {
             long unit = sim.liveUnitAt(i);
@@ -159,7 +194,7 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
     }
 
     /** The middle of some squads' members, or with {@code side} of that side's movers; null with none. */
-    private static float[] middle(BattleSimulation sim, List<Integer> squads, Faction side) {
+    static float[] middle(BattleSimulation sim, List<Integer> squads, Faction side) {
         float sx = 0f, sy = 0f;
         int n = 0;
         if (side == null) {

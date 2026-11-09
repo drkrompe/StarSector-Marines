@@ -271,6 +271,22 @@ class RaidSiteTemplateTest {
         return n;
     }
 
+    /** The hub is fed by more sites the bigger the market, and always by more than one. */
+    @Test
+    void aBiggerMarketFeedsTheHubFromMoreSites() {
+        assertTrue(RaidSiteTemplate.feedersFor(3) >= 2);
+        assertTrue(RaidSiteTemplate.feedersFor(1) >= 2, "a hub with one feeder is not a hub");
+        for (int size = 3; size < 9; size++) {
+            assertTrue(RaidSiteTemplate.feedersFor(size + 1) > RaidSiteTemplate.feedersFor(size), "size " + size);
+        }
+        Set<String> keys = new HashSet<>();
+        for (String id : List.of("heavyindustry", "mining", "refining", "lightindustry", "farming", "spaceport",
+                "militarybase")) {
+            keys.add(RaidSiteTemplate.forIndustry(id).briefingKey());
+        }
+        assertEquals(7, keys.size(), "every site has its own briefing line");
+    }
+
     /** A mine's ore yards are sparser than heavy industry's quarter. */
     @Test
     void aMinesYardsAreSparserThanAnIndustrialQuarter() {

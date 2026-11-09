@@ -1,8 +1,8 @@
 # Ruins pressure: the site stirs
 
-Status: IN PROGRESS — slices 1 (the stir) and 3 (pushes fielded per
-occupant, with their comms line) built; slice 2 (wake points) and the rest of
-slice 4 (the Delve row) remain. The owner picked `ruins-pressure-push` (a);
+Status: IN PROGRESS — slices 1 to 4 built: the stir, its wake points, its
+pushes fielded per occupant and its cues (comms line, Delve row). Open: a step
+sting. The owner picked `ruins-pressure-push` (a) and `ruins-stir-row` (a);
 `ruins-pressure-clock` (a) and `ruins-pressure-reserve` (a) are built on their
 recommended options while open.
 
@@ -58,12 +58,13 @@ decision weighs.
 Every rule above has a cue the player reads, none of which names a unit the
 company has not seen:
 
-- **The Delve row** reads the level beside the depth ("Layer 2 of 4 · Site
-  roused") with a bar toward the next step, and the reserve as a band in the
-  close reading (untouched, thinned, spent).
-- **Dug in.** When the company counts as dug in, the row says so ("Dug in: the
-  site is going round you") in the alert colour, and the way-back figure turns
-  to "contested" once a push sits on it.
+- **The Delve row** (owner pick `ruins-stir-row` a): the level leads the
+  row's short line ("Site roused / 12 in a circle / ..."), so a narrow rail
+  cuts the depth before the level; the row's bar fills toward the next push; the whole reading ends with the level and the
+  reserve as a band (untouched, thinned, spent).
+- **Dug in.** When the company counts as dug in, the warning ("Dug in: the
+  site is going round you") takes the short line and the row's blocker, and
+  the way back reads "contested" while a push holds the stand behind.
 - **A step.** Each step plays the occupant's sting and a comms line in its
   voice: derelict relays chiming down the halls and "Power draw rising
   below"; the scavengers' radio and "They're calling the dig crew up"; the Rav
@@ -81,13 +82,17 @@ company has not seen:
    ruins battles and ticked in the delve, hearing company gunfire, its charges
    going off and the hall restart. Pushes are recorded (`pushes()`), not yet
    fielded. Numbers UNTUNED.
-2. **Wake points.** Where a push comes up: one per layer inside, in a side
-   room that is not a store (a service hatch for derelict security, a crawlway
-   for the scavengers, a bore mound for the Rav), published by the ruins
-   ground. A charge collapses one, so a company can spend charges to close its
-   way back. Until then a push comes up on the layer's own open ground (its
-   ways' ends inside the band, its stand, its middle), on the cell farthest
-   from the company (`RuinsPushes.wakeCell`).
+2. **Wake points.** *Built* (`RuinsWorks.WakePoint`). Each layer inside gets
+   one on the floor of its first side room past its stores, named for who
+   comes up through it: a service hatch for derelict security, a crawlway for
+   the scavengers, a bore mound for the Rav. A push comes up at its layer's
+   wake point while it stands, and on the layer's open ground where there is
+   none (`RuinsPushes.wakeCell`). Each wake point is a rail marker and offers
+   the works' force prompt; a company charge going off over it collapses it
+   for good (`RuinsWorks.collapses`). A collapsed layer sends nothing: a
+   way-back push into it hunts from ahead instead, and a hunt comes up in the
+   next open layer deeper in. The vault's layer, where the reserve is kept,
+   is never shut. So a company can spend charges to close its way back.
 3. **Fielding a push, per occupant.** *Built* (`RuinsPushes`, raised by
    `BattleSetup.fieldRuinsPushes`). Derelict security: a line frame per squad,
    each its own lance, commanded by the push and not by the network director,
@@ -102,13 +107,13 @@ company has not seen:
    first shot) and keeps after it; a way-back push walks to the stand of the
    layer behind (its junction's) and holds it until killed. The breach's push
    hunts from the vault's layer.
-4. **The row and the cues.** *Comms line built*
-   (`RuinsPressureCommsPresenter`): each push posts a line in the occupant's
-   voice, headed by the level reached, naming the layer it comes from; a
-   way-back push's says it is behind the company, in the danger tone. Look
-   shots: `createSnapshots -Psnapshot=ruins-push-cue-look`. Still to build:
-   the level, bar, reserve band and dug-in line on the Delve row, the step
-   sting, and a look shot per level.
+4. **The row and the cues.** *Built*: each push's comms line
+   (`RuinsPressureCommsPresenter`) and the Delve row's stir reading
+   (`RuinsDelveRow.Stir`, read by `RuinsDelveWatch.stir`): the level leading
+   the short line, the bar toward the next push, the dug-in warning, the way
+   back contested, and the reserve band in the whole reading. Look shots:
+   `ruins-push-cue-look`. Still to build: a
+   step sting per occupant.
 
 ## Seams
 

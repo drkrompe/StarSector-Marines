@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
@@ -89,6 +90,13 @@ public final class MissionOutcome {
      * pulling out): not a victory, yet its banked finds come home. Always false for any other mission.
      */
     public final boolean        pulledOut;
+    /** A ruins expedition's vault prize, copied from the mission; null for none or any other mission. */
+    public final RuinsVaultPrize ruinsPrize;
+    /**
+     * Whether power reached a ruins vault's seal when the breach was held, which keeps a core or colony item whole
+     * ({@code RuinsVaultPayout}); false for any other mission.
+     */
+    public final boolean        ruinsVaultPowered;
     /**
      * The share of a disrupting raid's works the company wrecked, 0 to 1 ({@code raid-mission.md}, Break); 1 for
      * every other mission.
@@ -261,6 +269,8 @@ public final class MissionOutcome {
         this.sideObjectives = List.copyOf(b.sideObjectives);
         this.victory            = b.victory;
         this.pulledOut          = b.pulledOut;
+        this.ruinsPrize         = b.ruinsPrize;
+        this.ruinsVaultPowered  = b.ruinsVaultPowered;
         this.raidWorksShare     = b.raidWorksShare;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
@@ -386,6 +396,8 @@ public final class MissionOutcome {
         }
         private boolean victory;
         private boolean pulledOut;
+        private RuinsVaultPrize ruinsPrize;
+        private boolean ruinsVaultPowered;
         private float raidWorksShare = 1f;
         private String missionId;
         private String missionName;
@@ -472,6 +484,7 @@ public final class MissionOutcome {
             this.campaignEventMarketId = mission.campaignEventMarketId;
             this.campaignEventThreatSeed = mission.campaignEventThreatSeed;
             this.civiliansAtRisk = mission.civiliansAtRisk;
+            this.ruinsPrize = mission.ruinsPrize;
             return this;
         }
 
@@ -496,6 +509,12 @@ public final class MissionOutcome {
 
         public Builder pulledOut(boolean pulledOut) {
             this.pulledOut = pulledOut;
+            return this;
+        }
+
+        /** @param powered whether power reached the ruins vault's seal when the breach was held */
+        public Builder ruinsVaultPowered(boolean powered) {
+            this.ruinsVaultPowered = powered;
             return this;
         }
 

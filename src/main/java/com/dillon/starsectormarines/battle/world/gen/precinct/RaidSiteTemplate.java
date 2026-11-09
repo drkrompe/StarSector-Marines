@@ -233,6 +233,26 @@ public final class RaidSiteTemplate {
     /** The template's name, for evidence. */
     public String key() { return key; }
 
+    /** Sites the hub is fed by on the smallest market a Raid names. UNTUNED. */
+    static final int FEEDERS_BASE = 3;
+    /** Sites added per market size above three. UNTUNED. */
+    static final int FEEDERS_PER_SIZE = 2;
+
+    /**
+     * How many of the planet's sites feed this one ({@code raid-site-templates.md}, The planet's chokepoint): the
+     * digs a concentrator handles, the fields a refinery takes crude from. A bigger market has more of them, all
+     * running through the one hub. Never fewer than two: a hub with one feeder is not a hub.
+     */
+    public static int feedersFor(int marketSize) {
+        return Math.max(2, FEEDERS_BASE + FEEDERS_PER_SIZE * (marketSize - 3));
+    }
+
+    /**
+     * The briefing's string for this site: what the hub is to the planet. Formatted with the planet's name, the
+     * feeders ({@link #feedersFor}) and the days its loss costs at full effect.
+     */
+    public String briefingKey() { return "raidSiteChokepoint_" + key.replace('-', '_'); }
+
     /**
      * The site laid on a map of this size for this market. The draws are this template's own: one for the
      * orientation, then the places in order.
@@ -295,13 +315,15 @@ public final class RaidSiteTemplate {
         Side deep = mirrorX ? Side.WEST : Side.EAST;
         Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
         List<Road> out = new ArrayList<>();
-        out.add(new Road(HAUL_ROAD, Endpoint.gate(WORKS, deep.opposite()), Endpoint.beside(INDUSTRY, deep, 0, 0),
+        // Each runs to the works' gate: a carved road is kept only where it joins the network, and beside a walled
+        // place's gate is where it does. Through a district's ground it is that district's streets.
+        out.add(new Road(HAUL_ROAD, Endpoint.beside(INDUSTRY, deep, 0, 0), Endpoint.gate(WORKS, deep.opposite()),
                 LINE_WIDTH, false));
-        out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT), Endpoint.gate(WORKS, outer),
-                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), LINE_WIDTH, false));
+        out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT),
+                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false));
         if (!pit) {
-            out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT), Endpoint.gate(WORKS, deep),
-                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), LINE_WIDTH, false));
+            out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT),
+                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false));
         }
         return out;
     }

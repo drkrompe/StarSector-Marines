@@ -36,10 +36,31 @@ public final class RuinsDelveRow {
      * @param vaultRoute       cells from the vault to the nearest held lift point, or {@code -1} until it is sighted
      * @param stand            the last stand's report, or null before the first
      * @param standFresh       whether that stand was taken just now, so its tally leads the row
+     * @param stir             the site's stir as the company reads it, or null on a site with none
      */
     public record Picture(RuinsPhase phase, int insideCircle, int effectives, int landed, int squadsBelowHalf,
                           int machinesLost, int findsBanked, int storesOpened, int routeBack, int layer, int layers,
-                          int vaultRoute, Stand stand, boolean standFresh) { }
+                          int vaultRoute, Stand stand, boolean standFresh, Stir stir) {
+        /** A picture of a site with no stir. */
+        public Picture(RuinsPhase phase, int insideCircle, int effectives, int landed, int squadsBelowHalf,
+                       int machinesLost, int findsBanked, int storesOpened, int routeBack, int layer, int layers,
+                       int vaultRoute, Stand stand, boolean standFresh) {
+            this(phase, insideCircle, effectives, landed, squadsBelowHalf, machinesLost, findsBanked, storesOpened,
+                    routeBack, layer, layers, vaultRoute, stand, standFresh, null);
+        }
+    }
+
+    /**
+     * The site's stir as the row reads it ({@code ruins-pressure.md}, Cues): its level, how near the next step is, how
+     * much of the occupant's reserve is left, and whether the site is going round a company that sits.
+     *
+     * @param levelKey      the level's string key ("Site roused")
+     * @param towardNext    0 to 1 toward the next step: the row's bar
+     * @param reserveKey    the reserve band's string key: untouched, thinned or spent
+     * @param dugIn         whether the company has held still long enough that the next push goes round it
+     * @param wayBackHeld   whether a push holds the stand of a layer behind the company
+     */
+    public record Stir(String levelKey, float towardNext, String reserveKey, boolean dugIn, boolean wayBackHeld) { }
 
     /**
      * A stand's report: the losses and finds since the last stand, and the next layer's close reading.
@@ -59,12 +80,25 @@ public final class RuinsDelveRow {
                 : Strings.format("ruinsDelveRowLayer", p.layer(), p.layers());
         String line = p.standFresh() && p.stand() != null ? tally(p.stand()) : glance(p);
         String whole = p.stand() == null ? reads(p) : stand(p.stand()) + " " + reads(p);
-        return new Item(id(vaultId), Strings.get("ruinsDelveRowName"), State.ACTIVE, heading, depth, whole, line, -1,
-                "", List.of(), "");
+        Stir stir = p.phase() == RuinsPhase.DELVE ? p.stir() : null;
+        if (stir == null) {
+            return new Item(id(vaultId), Strings.get("ruinsDelveRowName"), State.ACTIVE, heading, depth, whole, line,
+                    -1, "", List.of(), "");
+        }
+        // The site's stir (ruins-pressure.md, Cues, pick ruins-stir-row a): its level leads the short line, so the
+        // compact rail cuts the depth before it; a sitting company is warned there instead; the bar fills toward the
+        // next push; the reserve is read in the whole reading.
+        String warning = stir.dugIn() ? Strings.get("ruinsDelveRowDugIn") : "";
+        if (stir.dugIn()) line = warning;
+        else if (!p.standFresh()) line = Strings.format("ruinsDelveGlanceStir", Strings.get(stir.levelKey()), line);
+        whole = whole + " " + Strings.format("ruinsDelveRowStir", Strings.get(stir.levelKey()),
+                Strings.get(stir.reserveKey()));
+        return new Item(id(vaultId), Strings.get("ruinsDelveRowName"), State.ACTIVE, heading, depth, whole, line,
+                Math.max(0f, Math.min(1f, stir.towardNext())), warning, List.of(), "");
     }
 
     /** The company at a glance, for the compact rail: in a circle, on their feet, finds, and depth. */
-    static String glance(Picture p) {
+    public static String glance(Picture p) {
         String depth = p.phase() == RuinsPhase.APPROACH ? Strings.get("ruinsDelveGlanceOutside")
                 : Strings.format("ruinsDelveGlanceLayer", p.layer(), p.layers());
         return Strings.format("ruinsDelveGlance", p.insideCircle(), p.effectives(), p.landed(), p.findsBanked(), depth);
@@ -80,7 +114,9 @@ public final class RuinsDelveRow {
         List<String> has = new ArrayList<>();
         has.add(Strings.format("ruinsDelveRowFinds", p.findsBanked()));
         if (p.storesOpened() > 0) has.add(Strings.format("ruinsDelveRowStores", p.storesOpened()));
-        if (p.routeBack() >= 0) has.add(Strings.format("ruinsDelveRowRouteBack", p.routeBack()));
+        boolean contested = p.phase() == RuinsPhase.DELVE && p.stir() != null && p.stir().wayBackHeld();
+        if (p.routeBack() >= 0) has.add(Strings.format(contested ? "ruinsDelveRowRouteBackContested"
+                : "ruinsDelveRowRouteBack", p.routeBack()));
         StringBuilder out = new StringBuilder(String.join(", ", company)).append(". ")
                 .append(String.join(", ", has)).append('.');
         if (p.vaultRoute() >= 0) out.append(' ').append(Strings.format("ruinsDelveRowVaultRoute", p.vaultRoute()));

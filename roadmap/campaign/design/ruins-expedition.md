@@ -466,7 +466,9 @@ toward the entrance:
   company that has sat still. Nothing comes up behind the first layer inside.
   Each occupant raises its own: line-frame lances, crew squads called up from
   the dig, or Rav bores woken. Each push is a comms line in the occupant's
-  voice naming the layer.
+  voice naming the layer. A push comes up at its layer's wake point (a
+  service hatch, a crawlway or a bore mound in the side room past the store);
+  a charge collapses one for good, and that layer sends nothing again.
 - **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out
@@ -631,6 +633,22 @@ the company commits. The prize's **theme** shows four ways:
 | Catalytic core, fullerene spool | Refinery, tether anchor | Pressure doors |
 | Drone replicator | Drone foundry | Live flocks in the halls (derelict only) |
 
+**Inside the ruin** the theme shows two ways:
+- **Furniture** (`RuinsThemeDressing`, laid by the ruins ground as a
+  `RuinsDressing`). The vault room and the interior's chambers are furnished
+  from the game's own props: server racks for a server hall, rifle racks and
+  ammunition lockers for an armory, reactor housings and pumps for reactor
+  halls, crates for a depot, and so on. Each prop stands against a room's wall,
+  never in a doorway, and only where the room stays one floor. The dressing
+  draws nothing from the layout's random stream, so a site's ground is the
+  same whatever its prize.
+- **A close reading.** At the stand before the vault's layer, the Delve row's
+  close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
+  the occupant's sign: the survey's tell, seen up close.
+
+The works' own twists (heat valves, magnet gates) and theme-made art are still
+owed.
+
 **How sure the hint is** (pick `ruins-prize-hint` a): the family is always
 true, and so is a colony item, since the item is the site. A core's tier reads
 as "likely": right three times in four, else one step off.
@@ -654,6 +672,16 @@ the breach was held. Breached on the long unpowered hold, it breaks into tech
 caches, one more than its stake. Goods (three supply bundles) and tech (two tech
 caches) pay the same either way. The better the prize, the more the power
 puzzle is worth solving, and nothing is lost outright.
+
+**Paying it.** The battle records whether the seal had power when the breach
+was held (`RuinsVaultObjective.vaultPoweredAtBreach`, carried on
+`MissionOutcome.ruinsVaultPowered`). When a won expedition's record is written,
+`RuinsPrizeSettlement` pays the prize into the fleet's cargo, once:
+- A colony item as vanilla's special item.
+- A core as its commodity.
+- Goods as supply bundles.
+- Each tech cache as one roll of its drop group through vanilla's salvage
+  roller, rerolled past `nothing`.
 
 **The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
 a). A site built round a core or a colony item keeps the guns that once kept
