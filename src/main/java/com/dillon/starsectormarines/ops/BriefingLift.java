@@ -210,7 +210,6 @@ public final class BriefingLift {
         }
     }
 
-    /** One machine card: its doll, its weight, a warning when lift falls short, and its verdict. */
     /**
      * One machine tile in the field inset: a small doll and two bricks, the weight brick lit red when lift
      * falls short of its class and the warning brick lit when it will not drop. Its words are its hover.
@@ -245,9 +244,13 @@ public final class BriefingLift {
         }
     }
 
-    /** Whether a verdict is lift falling short, which the card marks with a warning. */
+    /**
+     * Whether a verdict is lift falling short of the machine's class, which lights its weight brick
+     * red. No drop call and held back are not lift: the weight keeps its class colour and only the
+     * warning brick lights.
+     */
     static boolean liftShort(Status status) {
-        return status == Status.NO_LIFT || status == Status.LIFT_SPENT || status == Status.NO_DROP_CALL;
+        return status == Status.NO_LIFT || status == Status.LIFT_SPENT;
     }
 
     /** Fills the briefing's armor and lift section; hides it when there is no lift and no armor to show. */

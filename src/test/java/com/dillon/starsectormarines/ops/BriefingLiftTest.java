@@ -18,6 +18,7 @@ import java.util.List;
 
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.DROPS;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.HELD_BACK;
+import static com.dillon.starsectormarines.ops.BriefingLift.Status.LIFT_SPENT;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_DROP_CALL;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_LIFT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,5 +79,14 @@ class BriefingLiftTest {
         assertEquals(.4f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
         BriefingLift.pulse(List.of(warn), period * 3f);
         assertEquals(1f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
+    }
+
+    @Test
+    void onlyALiftVerdictLightsTheWeightBrick() {
+        assertTrue(BriefingLift.liftShort(NO_LIFT));
+        assertTrue(BriefingLift.liftShort(LIFT_SPENT));
+        assertFalse(BriefingLift.liftShort(NO_DROP_CALL), "no drop call is not lift falling short");
+        assertFalse(BriefingLift.liftShort(HELD_BACK));
+        assertFalse(BriefingLift.liftShort(DROPS));
     }
 }
