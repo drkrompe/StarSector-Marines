@@ -20,6 +20,23 @@ class MarketRaidLedgerTest {
     }
 
     @Test
+    void theShareOfTheWorksWreckedIsKeptWithTheRecord() {
+        CampaignState state = new CampaignState();
+        int serial = MarketRaidLedger.issue(state);
+
+        MarketRaidLedger.record(state, serial, true, 0.25f);
+        assertEquals(0.25f, MarketRaidLedger.recordedShare(state));
+    }
+
+    @Test
+    void aShareTheSaveNeverKeptReadsAsTheWhole() {
+        CampaignState state = new CampaignState();
+        state.marketRaidRecordedShare = 0f;
+
+        assertEquals(1f, MarketRaidLedger.recordedShare(state));
+    }
+
+    @Test
     void aLostRaidIsTakenAsLost() {
         CampaignState state = new CampaignState();
         int serial = MarketRaidLedger.issue(state);

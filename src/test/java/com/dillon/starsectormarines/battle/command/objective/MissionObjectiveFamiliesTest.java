@@ -41,6 +41,16 @@ class MissionObjectiveFamiliesTest {
         assertEquals("", MissionObjectiveFamilies.salvage(sequence).blocker());
     }
 
+    @Test void aWorksMarksEveryMachineAndCountsTheWrecked() {
+        var works = RaidObjective.works("works", "Refinery", List.of(new RaidObjective.Site(5, 5, 1),
+                new RaidObjective.Site(15, 5, 1), new RaidObjective.Site(5, 15, 1)), 20, 20);
+        var item = MissionObjectiveFamilies.raid(works);
+        assertEquals(4, item.markers().size(), "three machines and the landing zone");
+        assertTrue(item.name().contains("0 of 3"));
+        assertEquals(5, item.focus().x());
+        assertEquals("Wreck Refinery and extract", works.displayName());
+    }
+
     @Test void plantingAndRaidReadTheirActualStepClocks() {
         var charge = new ChargeSiteObjective(8, 9, 5, "Power relay");
         var planted = MissionObjectiveFamilies.charge(charge);

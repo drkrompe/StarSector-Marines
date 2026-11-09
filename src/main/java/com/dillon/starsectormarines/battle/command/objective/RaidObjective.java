@@ -3,17 +3,29 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import java.util.List;
 
 /**
- * Marine Raid contract: seize one authored target, then return the recovered
- * package to the authored egress. The package is abstract rather than bound to
- * one carrier; after seizure, any surviving Marine combatant can complete the
- * extraction. This prevents carrier-death bookkeeping from becoming a hidden
- * second objective while retaining the required strike-and-egress shape.
+ * Marine Raid contract: work one or more authored sites, then reach the authored egress
+ * ({@code raid-mission.md}).
+ *
+ * <p>A raid for valuables has one site, the target, and plays as it always has: seize it, then return the
+ * recovered package to the egress. The package is abstract rather than bound to one carrier; after seizure, any
+ * surviving Marine combatant can complete the extraction. This prevents carrier-death bookkeeping from becoming a
+ * hidden second objective while retaining the required strike-and-egress shape.
+ *
+ * <p>A raid to disrupt an industry has several sites, the machines of its works ({@link #works}). Each is wrecked
+ * by the same law that seizes a target: a settled Marine combatant holding its pocket uncontested for the service
+ * time, progress lost on interruption. Machines can be worked in any order and at once. The way out opens with the
+ * first machine wrecked ({@link Phase#EGRESS}): leaving then is the player's call, and machines left standing can
+ * still be wrecked on the way. {@link #share} is the fraction wrecked, which decides how long the industry stays
+ * disrupted.
  */
 public final class RaidObjective implements Objective {
 
     public static final float DEFAULT_SERVICE_DURATION = 6f;
+    /** Seconds a charge takes to set on one machine of the works. UNTUNED. */
+    public static final float WRECK_DURATION = 8f;
     public static final int TARGET_RADIUS = 2;
     public static final int EGRESS_RADIUS = 3;
 
@@ -24,18 +36,25 @@ public final class RaidObjective implements Objective {
         public static TargetAlarm quiet() { return new TargetAlarm(false, -1); }
     }
 
+    /** One place the raid works: the target, or a machine of the works. The zone is frozen at setup. */
+    public record Site(int cellX, int cellY, int zoneId) {
+        public Site {
+            if (zoneId < 0) throw new IllegalArgumentException("valid Raid site zone required");
+        }
+    }
+
     private final String targetId;
     private final String targetName;
-    private final int targetCellX;
-    private final int targetCellY;
-    private final int targetZoneId;
+    private final List<Site> sites;
+    private final boolean works;
     private final int egressCellX;
     private final int egressCellY;
     private final float serviceDuration;
 
-    private float serviceProgress;
+    private final float[] progress;
+    private final boolean[] done;
+    private int doneCount;
     private boolean marineServicing;
-    private boolean targetSecured;
     private boolean complete;
     private int alarmRaisedTick = -1;
 
@@ -49,21 +68,39 @@ public final class RaidObjective implements Objective {
     RaidObjective(String targetId, String targetName,
                   int targetCellX, int targetCellY, int targetZoneId,
                   int egressCellX, int egressCellY, float serviceDuration) {
+        this(targetId, targetName, List.of(new Site(targetCellX, targetCellY, targetZoneId)), false,
+                egressCellX, egressCellY, serviceDuration);
+    }
+
+    private RaidObjective(String targetId, String targetName, List<Site> sites, boolean works,
+                          int egressCellX, int egressCellY, float serviceDuration) {
         if (targetId == null || targetId.isBlank()
                 || targetName == null || targetName.isBlank()) {
             throw new IllegalArgumentException("stable Raid target identity required");
         }
-        if (targetZoneId < 0 || serviceDuration <= 0f) {
+        if (sites == null || sites.isEmpty() || serviceDuration <= 0f) {
             throw new IllegalArgumentException("valid Raid target zone required");
         }
         this.targetId = targetId;
         this.targetName = targetName;
-        this.targetCellX = targetCellX;
-        this.targetCellY = targetCellY;
-        this.targetZoneId = targetZoneId;
+        this.sites = List.copyOf(sites);
+        this.works = works;
         this.egressCellX = egressCellX;
         this.egressCellY = egressCellY;
         this.serviceDuration = serviceDuration;
+        this.progress = new float[this.sites.size()];
+        this.done = new boolean[this.sites.size()];
+    }
+
+    /** A raid to disrupt an industry: its works' machines, each wrecked by a charge ({@link #WRECK_DURATION}). */
+    public static RaidObjective works(String targetId, String targetName, List<Site> machines,
+                                      int egressCellX, int egressCellY) {
+        return works(targetId, targetName, machines, egressCellX, egressCellY, WRECK_DURATION);
+    }
+
+    static RaidObjective works(String targetId, String targetName, List<Site> machines,
+                               int egressCellX, int egressCellY, float chargeDuration) {
+        return new RaidObjective(targetId, targetName, machines, true, egressCellX, egressCellY, chargeDuration);
     }
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
@@ -71,28 +108,39 @@ public final class RaidObjective implements Objective {
     @Override
     public void tick(BattleView sim) {
         if (complete) return;
-        if (!targetSecured) {
-            int zone = targetZoneId(sim);
+        marineServicing = false;
+        for (int i = 0; i < sites.size(); i++) {
+            if (done[i]) continue;
+            Site site = sites.get(i);
+            int zone = zoneAt(sim, site);
             boolean marinePresent = combatantPresent(sim, Faction.MARINE,
-                    targetCellX, targetCellY, TARGET_RADIUS, zone, true);
+                    site.cellX(), site.cellY(), TARGET_RADIUS, zone, true);
             boolean defenderPresent = combatantPresent(sim, Faction.DEFENDER,
-                    targetCellX, targetCellY, TARGET_RADIUS, zone, false);
-            marineServicing = marinePresent && !defenderPresent;
-            if (!marineServicing) {
-                serviceProgress = 0f;
-                return;
+                    site.cellX(), site.cellY(), TARGET_RADIUS, zone, false);
+            if (!marinePresent || defenderPresent) {
+                progress[i] = 0f;
+                continue;
             }
+            marineServicing = true;
             if (alarmRaisedTick < 0) alarmRaisedTick = sim.getSimTickIndex();
-            serviceProgress += BattleSimulation.TICK_DT;
-            if (serviceProgress >= serviceDuration) {
-                serviceProgress = serviceDuration;
-                targetSecured = true;
-                marineServicing = false;
+            progress[i] += BattleSimulation.TICK_DT;
+            if (progress[i] >= serviceDuration) {
+                progress[i] = serviceDuration;
+                done[i] = true;
+                doneCount++;
             }
-            return;
         }
-        complete = combatantPresent(sim, Faction.MARINE,
-                egressCellX, egressCellY, EGRESS_RADIUS, -1, true);
+        // The way out opens with the first site done; reaching it then ends the raid.
+        if (doneCount > 0 && combatantPresent(sim, Faction.MARINE, egressCellX, egressCellY, EGRESS_RADIUS, -1,
+                true)) {
+            complete = true;
+            marineServicing = false;
+        }
+    }
+
+    private static int zoneAt(BattleView sim, Site site) {
+        int zone = sim.getZoneGraph().zoneIdAt(site.cellX(), site.cellY());
+        return zone >= 0 ? zone : site.zoneId();
     }
 
     private static boolean combatantPresent(BattleView sim, Faction faction,
@@ -115,12 +163,25 @@ public final class RaidObjective implements Objective {
         return false;
     }
 
+    /**
+     * The site the raid is about now: the standing one furthest along, else the first standing, else the last.
+     * A one-site raid's is always its target.
+     */
+    private int current() {
+        int best = -1;
+        for (int i = 0; i < sites.size(); i++) {
+            if (done[i]) continue;
+            if (best < 0 || progress[i] > progress[best]) best = i;
+        }
+        return best >= 0 ? best : sites.size() - 1;
+    }
+
     public String targetId() { return targetId; }
     public String targetName() { return targetName; }
-    public int targetCellX() { return targetCellX; }
-    public int targetCellY() { return targetCellY; }
+    public int targetCellX() { return sites.get(current()).cellX(); }
+    public int targetCellY() { return sites.get(current()).cellY(); }
     /** The zone id frozen at setup; it goes stale once the zone graph is rebuilt. */
-    public int targetZoneId() { return targetZoneId; }
+    public int targetZoneId() { return sites.get(current()).zoneId(); }
 
     /**
      * The target's zone as the zone graph numbers it now. The graph is rebuilt when topology
@@ -128,19 +189,32 @@ public final class RaidObjective implements Objective {
      * at setup can name another room; it is the fallback only when the target cell has no zone.
      */
     public int targetZoneId(BattleView sim) {
-        int zone = sim.getZoneGraph().zoneIdAt(targetCellX, targetCellY);
-        return zone >= 0 ? zone : targetZoneId;
+        return zoneAt(sim, sites.get(current()));
     }
     public int egressCellX() { return egressCellX; }
     public int egressCellY() { return egressCellY; }
-    public float serviceProgress() { return serviceProgress; }
+    public float serviceProgress() { return progress[current()]; }
     public float serviceDuration() { return serviceDuration; }
     public boolean marineServicing() { return marineServicing; }
-    public boolean targetSecured() { return targetSecured; }
+    /** Whether every site is done: the target seized, or every machine of the works wrecked. */
+    public boolean targetSecured() { return doneCount == sites.size(); }
+
+    /** Whether this raid is a disrupting raid's works rather than one target. */
+    public boolean works() { return works; }
+    /** Every site, in setup order. */
+    public List<Site> sites() { return sites; }
+    /** Whether the site at {@code index} (in {@link #sites} order) is done. */
+    public boolean siteDone(int index) { return done[index]; }
+    public int sitesDone() { return doneCount; }
+    /** The fraction of sites done, 0 to 1: for a works, the share wrecked. */
+    public float share() { return (float) doneCount / sites.size(); }
+    /** Whether the way out is open: at least one site is done. */
+    public boolean egressOpen() { return doneCount > 0; }
+
     public Phase phase() {
         if (complete) return Phase.COMPLETE;
-        if (targetSecured) return Phase.EGRESS;
-        return marineServicing || serviceProgress > 0f ? Phase.SERVICE : Phase.APPROACH;
+        if (doneCount > 0) return Phase.EGRESS;
+        return marineServicing || progress[current()] > 0f ? Phase.SERVICE : Phase.APPROACH;
     }
     /**
      * Raises the installation alarm from outside the target room: a mission whose garrison is roused by something
@@ -159,6 +233,6 @@ public final class RaidObjective implements Objective {
     @Override public boolean isComplete() { return complete; }
     @Override public boolean isFailed() { return false; }
     @Override public String displayName() {
-        return "Seize " + targetName + " and extract";
+        return works ? "Wreck " + targetName + " and extract" : "Seize " + targetName + " and extract";
     }
 }
