@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * A derelict flock's sound (`derelict-drone-flocks.md`, slice 7): the swarm whine, one placed loop on each flock
+ * A derelict flock's sound (`air-nouns.md`, Flocks): the swarm whine, one placed loop on each flock
  * within earshot, read off the flocks rather than posted by them, so the simulation stays silent.
  *
  * <p>A flock is heard as one body, not fourteen machines: the loop sits on its members' middle, rises in pitch with

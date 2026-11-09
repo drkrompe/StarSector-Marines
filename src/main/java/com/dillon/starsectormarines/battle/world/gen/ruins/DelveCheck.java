@@ -84,6 +84,17 @@ public final class DelveCheck {
                         + (delve.layers().size() - interior.firstLayer()));
             }
             if (interior.entrances().isEmpty()) out.add("the interior has no entrance");
+            if (interior.aprons().size() != interior.entrances().size()) {
+                out.add(interior.entrances().size() + " entrances but " + interior.aprons().size() + " aprons");
+            }
+            for (RuinsDelve.Apron apron : interior.aprons()) {
+                for (LandingPad berth : apron.lift().berths()) {
+                    if (!berth.isClear(grid, null)) out.add(apron.name() + " has a berth that is not clear ground");
+                    else if (!reached(grid, reach, new Cell(berth.centerX, berth.centerY))) {
+                        out.add(apron.name() + " is not reachable");
+                    }
+                }
+            }
             for (Area entrance : interior.entrances()) {
                 if (!walkable(grid, entrance)) out.add("an interior entrance at " + entrance + " is not open");
             }

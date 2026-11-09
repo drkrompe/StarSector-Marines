@@ -103,6 +103,7 @@ public final class RuinsGroundSnapshotSuite implements SnapshotSuite {
             for (RuinsDelve.SideRoom room : layer.rooms()) box(marks, room.footprint(), "room", ReviewStyle.POSITION);
             if (layer.court() != null) box(marks, layer.court().ground(), "court", ReviewStyle.LANDING);
         }
+        for (RuinsDelve.Apron apron : delve.interior().aprons()) box(marks, apron.ground(), "entrance", ReviewStyle.LANDING);
         box(marks, delve.powerHall().footprint(), "power hall", ReviewStyle.OBJECTIVE);
         box(marks, delve.records().footprint(), "records", ReviewStyle.OBJECTIVE);
         for (RuinsDelve.Junction junction : delve.junctions()) {

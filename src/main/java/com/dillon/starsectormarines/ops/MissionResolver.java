@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidMissionKey;
+import com.dillon.starsectormarines.battle.command.objective.RuinsPullOut;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -203,6 +204,8 @@ public final class MissionResolver {
                                          MarineCaptain captain,
                                          Set<String> deployedFireteamIds) {
         boolean victory = sim.getWinner() == Faction.MARINE;
+        // A Ruins expedition the company leaves is pulled out, not lost (ruins-expedition.md).
+        boolean pulledOut = RuinsPullOut.of(sim, victory, sim.isRetreated()) == RuinsPullOut.Resolution.PULLED_OUT;
 
         // Casualty tally without the legacy units list: survivors come from the
         // dense registry (live-only), casualties from the corpse home — the
@@ -233,7 +236,7 @@ public final class MissionResolver {
                 String id = (String) sim.getEntityWorld().getObject(unit, c.IDENTITY,
                         BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
                 if (id != null) survivingSoldierIds.add(id);
-                if (id != null && withdrew && !WithdrawalExtraction.extracts(sim.getMarineLandingPads(),
+                if (id != null && withdrew && !WithdrawalExtraction.extracts(sim.withdrawalPads(),
                         sim.world().x(unit), sim.world().y(unit))) {
                     withdrawalStragglerSoldierIds.add(id);
                 }
@@ -430,6 +433,7 @@ public final class MissionResolver {
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
                 .victory(victory)
+                .pulledOut(pulledOut)
                 .payoutEarned(payoutEarned)
                 .marinesEngaged(marinesEngaged)
                 .marinesLost(marinesLost)
@@ -565,13 +569,14 @@ public final class MissionResolver {
             // Exactly-once: the planet dialog takes this record into vanilla's own salvage
             // when the panel closes. A replayed result records nothing further and writes
             // nothing further back.
+            RuinsExpeditionLedger.Pending fought = outcome.victory ? RuinsExpeditionLedger.Pending.WON
+                    : outcome.pulledOut ? RuinsExpeditionLedger.Pending.PULLED_OUT : RuinsExpeditionLedger.Pending.LOST;
             if (key == null || !RuinsExpeditionLedger.record(
-                    script != null ? script.state() : null, key.serial(), outcome.victory)) {
+                    script != null ? script.state() : null, key.serial(), fought)) {
                 LOG.info("MarineOps: ruins expedition " + outcome.missionId + " already recorded — no writeback");
                 return;
             }
-            LOG.info("MarineOps: ruins expedition " + outcome.missionId + " recorded as "
-                    + (outcome.victory ? "won" : "lost"));
+            LOG.info("MarineOps: ruins expedition " + outcome.missionId + " recorded as " + fought);
         }
         CargoAPI cargo = CampaignBackend.playerFleet() != null
                 ? CampaignBackend.playerFleet().getCargo()

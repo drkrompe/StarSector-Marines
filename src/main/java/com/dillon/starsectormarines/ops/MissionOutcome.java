@@ -84,6 +84,11 @@ public final class MissionOutcome {
     public final String officerAttemptId;
     public final List<OfficerMissionResult> officers;
     public final boolean        victory;
+    /**
+     * A Ruins expedition the company left before the haul boarded ({@code ruins-expedition.md}, Pressing on or
+     * pulling out): not a victory, yet its banked finds come home. Always false for any other mission.
+     */
+    public final boolean        pulledOut;
     public final String         missionId;
     public final String         missionName;
     public final MissionType    missionType;
@@ -250,6 +255,7 @@ public final class MissionOutcome {
         this.objectives = List.copyOf(b.objectives);
         this.sideObjectives = List.copyOf(b.sideObjectives);
         this.victory            = b.victory;
+        this.pulledOut          = b.pulledOut;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
         this.missionId          = b.missionId;
@@ -373,6 +379,7 @@ public final class MissionOutcome {
             return this;
         }
         private boolean victory;
+        private boolean pulledOut;
         private String missionId;
         private String missionName;
         private MissionType missionType;
@@ -477,6 +484,11 @@ public final class MissionOutcome {
 
         public Builder victory(boolean victory) {
             this.victory = victory;
+            return this;
+        }
+
+        public Builder pulledOut(boolean pulledOut) {
+            this.pulledOut = pulledOut;
             return this;
         }
 

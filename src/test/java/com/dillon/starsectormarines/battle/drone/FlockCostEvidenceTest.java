@@ -21,7 +21,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * What derelict flocks cost a tick (`derelict-drone-flocks.md`, slice 5): four flocks of sixteen on a vast map
+ * What derelict flocks cost a tick (`air-nouns.md`, Flocks): four flocks of sixteen on a vast map
  * (280x168, the vast ruins plan's size) laid out as blocks of roofed buildings with streets between, two flocks
  * probing long routes back and forth through the blocks and two striking durable markers, one in a street and one
  * inside a building (held at its threshold). The control is the same map and markers with no flocks. Nothing shoots

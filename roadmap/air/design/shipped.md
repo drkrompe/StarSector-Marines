@@ -27,3 +27,4 @@ Written: 2026-08-23
 | `ship-on-station-power.md` | 2026-10-13 | this change | `command-powers-nouns.md` — the Ship on Station family; `air-nouns.md` — Overhead ships, called by the command deck; `ship-support.md` — slice 1 built, owner defaults, approach-time finding |
 | `atmospheric-frigate-duel.md` | 2026-10-16 | `f50081b71`, `af719d15c`, `32b99f12b`, `658b75707`, `6038d5031`, `5383af72b`, `649c99aac`, "Frigate duel slice 8" | `air-nouns.md` — Overhead ships (ship against ship); `warship-behaviours.md` — Decided / Open questions: ship against ship |
 | `heavy-lift-fittings.md` | 2026-10-16 | `282460664`, `31b3cb9a7`, `ea3861074` | `air-nouns.md` — Lift and who flies a drop; `company-view-nouns.md` — the lift slot; `command-powers-nouns.md` — sources versus who flies |
+| `derelict-drone-flocks.md` | 2026-11-09 | `1d6383f298`, `d0695be13a`, `77ba8ade9c`, `e1c6a8d65e`, this change | `air-nouns.md` — Flocks |

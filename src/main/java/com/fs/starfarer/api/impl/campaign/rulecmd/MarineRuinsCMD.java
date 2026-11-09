@@ -179,7 +179,10 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         return true;
     }
 
-    /** Hands a won expedition's ruins to vanilla's salvage, leaves a lost one's as they were, or returns to the choice. */
+    /**
+     * Hands a won expedition's ruins to vanilla's salvage, leaves a pulled-out or lost one's as they were (the vault
+     * sealed, the site unexplored), or returns to the choice.
+     */
     private static void afterPanel(InteractionDialogAPI dialog, MarketAPI market, int serial) {
         RuinsExpeditionLedger.Pending pending = RuinsExpeditionLedger.take(state(), serial);
         if (pending == RuinsExpeditionLedger.Pending.NONE) {
@@ -187,15 +190,18 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
             return;
         }
         boolean won = pending == RuinsExpeditionLedger.Pending.WON;
-        dialog.getTextPanel().addPara(Strings.get(won ? "ruinsExpeditionCommitWon" : "ruinsExpeditionCommitLost"));
+        dialog.getTextPanel().addPara(Strings.get(switch (pending) {
+            case WON -> "ruinsExpeditionCommitWon";
+            case PULLED_OUT -> "ruinsExpeditionCommitPulledOut";
+            default -> "ruinsExpeditionCommitLost";
+        }));
         // The planet menu again, so vanilla's ruins row seeds its salvage as on arrival.
         refreshMenu(dialog);
         if (won && dialog.getPlugin() instanceof RuleBasedDialog rules) {
             dialog.getOptionPanel().clearOptions();
             toStandard(dialog, rules.getMemoryMap());
         }
-        LOG.info("MarineRuinsCMD: expedition " + serial + " on " + market.getId() + " committed as "
-                + (won ? "won" : "lost"));
+        LOG.info("MarineRuinsCMD: expedition " + serial + " on " + market.getId() + " committed as " + pending);
     }
 
     /** Rebuilds the planet menu from scratch. */

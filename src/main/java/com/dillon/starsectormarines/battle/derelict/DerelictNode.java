@@ -17,7 +17,8 @@ import java.util.function.LongPredicate;
  * ({@link SecurityZone#loseNode()}).
  *
  * <p>It is a structure as the drone hub is ({@link UnitType#DRONE_HUB_STRUCTURE}, role {@link UnitRole#STRUCTURE}), so
- * the company targets, damages and demolishes it as it does a hub, until the node's own look is picked.
+ * the company targets, damages and demolishes it as it does a hub; it is drawn as its lineage's relay structure
+ * ({@link DerelictLook#nodeSpritePath}).
  */
 public final class DerelictNode {
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
@@ -33,6 +34,10 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
     /** Ticks the vast site plays before its interior stills, long enough for the walkers to stand on their posts. */
     static final int INTERIOR_SETTLE_TICKS = 120;
     static final float INTERIOR_CELLS = 36f;
+    /** A walker close enough to read its legs against the walls. */
+    static final float CLOSE_CELLS = 16f;
+    /** {@code -Dsnapshot.derelict.interiorOnly=true}: only the interior stills, for the walker-legs pick. */
+    static final String INTERIOR_ONLY = "snapshot.derelict.interiorOnly";
 
     @Override public String id() { return "derelict-heavies-look"; }
 
@@ -45,12 +50,13 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             JSONObject fixture = new JSONObject(Files.readString(context.projectRoot().resolve(FIXTURE),
                     StandardCharsets.UTF_8));
-            int contact = firstContact(fixture);
-            List<SnapshotArtifact> out = new ArrayList<>(LookReview.record(context.modRoot(),
-                    shot("derelict-posts", fixture, 1, 90, 30f)));
-            out.addAll(LookReview.record(context.modRoot(),
-                    shot("derelict-fight", fixture, Math.max(1, contact - 60), RECORD_TICKS,
-                            44f)));
+            List<SnapshotArtifact> out = new ArrayList<>();
+            if (!Boolean.getBoolean(INTERIOR_ONLY)) {
+                int contact = firstContact(fixture);
+                out.addAll(LookReview.record(context.modRoot(), shot("derelict-posts", fixture, 1, 90, 30f)));
+                out.addAll(LookReview.record(context.modRoot(),
+                        shot("derelict-fight", fixture, Math.max(1, contact - 60), RECORD_TICKS, 44f)));
+            }
             // The interior: the vast site's vault frame on the vault and a line frame in a chamber.
             JSONObject vast = new JSONObject(Files.readString(context.projectRoot().resolve(VAST_FIXTURE),
                     StandardCharsets.UTF_8));
@@ -109,8 +115,51 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact(names[i] + ".png", BattleReviewFrameRenderer.look(context.modRoot(), 1920,
                     1080, sim.world().renderX(walker), sim.world().renderY(walker), INTERIOR_CELLS)
                     .withoutRoofs().render(sim, names[i])));
+            out.add(new SnapshotArtifact(names[i] + "-close.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                    1920, 1080, sim.world().renderX(walker), sim.world().renderY(walker), CLOSE_CELLS)
+                    .withoutRoofs().render(sim, names[i] + "-close")));
+        }
+        // The walker-legs pick reads at a corridor: the vault frame stood in the nearest three-cell hall for the still.
+        if (!all.isEmpty()) {
+            long walker = all.get(0);
+            int[] hall = corridorNear(sim.getGrid(), sim.world().cellX(walker), sim.world().cellY(walker));
+            if (hall != null) {
+                sim.world().setPos(walker, hall[0] + 0.5f, hall[1] + 0.5f);
+                out.add(new SnapshotArtifact("derelict-interior-corridor.png", BattleReviewFrameRenderer.look(
+                        context.modRoot(), 1920, 1080, hall[0] + 0.5f, hall[1] + 0.5f, CLOSE_CELLS)
+                        .withoutRoofs().render(sim, "derelict-interior-corridor")));
+            }
         }
         return out;
+    }
+
+    /** The cell nearest (cx, cy) in the middle of a straight hall three cells wide and seven long, or null. */
+    static int[] corridorNear(NavigationGrid grid, int cx, int cy) {
+        int[] best = null;
+        long bestDistance = Long.MAX_VALUE;
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (!hall(grid, x, y, true) && !hall(grid, x, y, false)) continue;
+                long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
+                if (d < bestDistance) {
+                    bestDistance = d;
+                    best = new int[] {x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean hall(NavigationGrid grid, int x, int y, boolean alongX) {
+        for (int along = -3; along <= 3; along++) {
+            for (int across = -2; across <= 2; across++) {
+                int gx = alongX ? x + along : x + across;
+                int gy = alongX ? y + across : y + along;
+                boolean open = grid.inBounds(gx, gy) && grid.isWalkable(gx, gy);
+                if (open != (Math.abs(across) <= 1)) return false;
+            }
+        }
+        return true;
     }
 
     /**

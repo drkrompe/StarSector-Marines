@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
  *
  * <p>Every briefing opened draws a new serial into its mission key. Results {@link #record records} the battle's
  * outcome against that serial; the planet dialog, once the Marine Operations panel closes, {@link #take takes} it: a
- * won expedition hands the ruins to vanilla's own salvage, a lost one leaves them unexplored. A briefing backed out of
+ * won expedition hands the ruins to vanilla's own salvage, a pulled-out or lost one leaves them unexplored. A briefing backed out of
  * leaves its serial unrecorded, so nothing is taken. Replaying Results, or an older briefing's result, records
  * nothing, and a recorded outcome is taken once.
  */
@@ -19,7 +19,9 @@ public final class RuinsExpeditionLedger {
         NONE,
         /** The company won: vanilla salvages the ruins. */
         WON,
-        /** The company lost or withdrew: the ruins stay unexplored. */
+        /** The company pulled out: its banked finds came home, the ruins stay unexplored. */
+        PULLED_OUT,
+        /** The company lost: the ruins stay unexplored. */
         LOST
     }
 
@@ -31,12 +33,18 @@ public final class RuinsExpeditionLedger {
         return ++state.ruinsExpeditionIssued;
     }
 
-    /** Records the battle fought for {@code serial}; false when it, or a later expedition, is already recorded. */
-    public static boolean record(CampaignState state, int serial, boolean victory) {
+    /**
+     * Records the battle fought for {@code serial}; false when it, or a later expedition, is already recorded.
+     *
+     * @param outcome {@link Pending#WON}, {@link Pending#PULLED_OUT} or {@link Pending#LOST}
+     */
+    public static boolean record(CampaignState state, int serial, Pending outcome) {
+        if (outcome == null || outcome == Pending.NONE) throw new IllegalArgumentException("a fought expedition has an outcome");
         if (state == null || serial <= 0 || serial > state.ruinsExpeditionIssued) return false;
         if (serial <= state.ruinsExpeditionRecorded) return false;
         state.ruinsExpeditionRecorded = serial;
-        state.ruinsExpeditionRecordedVictory = victory;
+        state.ruinsExpeditionRecordedVictory = outcome == Pending.WON;
+        state.ruinsExpeditionRecordedPulledOut = outcome == Pending.PULLED_OUT;
         return true;
     }
 
@@ -45,6 +53,7 @@ public final class RuinsExpeditionLedger {
         if (state == null || serial <= 0 || state.ruinsExpeditionRecorded != serial) return Pending.NONE;
         if (serial <= state.ruinsExpeditionCommitted) return Pending.NONE;
         state.ruinsExpeditionCommitted = serial;
-        return state.ruinsExpeditionRecordedVictory ? Pending.WON : Pending.LOST;
+        if (state.ruinsExpeditionRecordedVictory) return Pending.WON;
+        return state.ruinsExpeditionRecordedPulledOut ? Pending.PULLED_OUT : Pending.LOST;
     }
 }

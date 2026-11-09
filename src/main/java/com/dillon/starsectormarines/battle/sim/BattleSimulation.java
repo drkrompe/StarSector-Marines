@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.command.objective.RuinsPullOut;
+import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
@@ -3680,6 +3682,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public List<LandingPad> getMarineLandingPads() {
         return marineLandingPads;
+    }
+
+    /**
+     * Where a withdrawing company extracts unhurt: the pads it landed on, and in a Ruins battle the pull-out point
+     * and every held lift point too ({@link RuinsPullOut#extractionPads}). The retreat confirmation draws exactly
+     * these circles and Results tests exactly these.
+     */
+    public List<LandingPad> withdrawalPads() {
+        RuinsVaultObjective vault = RuinsPullOut.vault(this);
+        return vault == null ? marineLandingPads : RuinsPullOut.extractionPads(marineLandingPads, vault);
     }
 
     /** Records the pads setup landed the marines on. {@code BattleSetup} owns the call. */

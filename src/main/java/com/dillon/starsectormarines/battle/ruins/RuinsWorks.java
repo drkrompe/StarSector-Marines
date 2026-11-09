@@ -5,13 +5,14 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.door.HardenedWalls;
+import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService.Offer;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService.OfferVerb;
 import com.dillon.starsectormarines.battle.objective.side.SideTrigger;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
-import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.battle.satchel.DemolitionKit;
@@ -19,7 +20,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
-import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
@@ -87,9 +87,9 @@ public final class RuinsWorks {
     private final Site hall;
     private final List<Site> junctions;
     private final List<SealDoor> doors;
-    private final boolean[] open;
-    private final boolean[] forced;
-    private final MapEditor.PassageRecord[][] shut;
+    private final List<LockedDoor> locks;
+    /** The vault suite's footprint, whose walls are hardened at install; null for none. */
+    private int[] vaultShell;
     private final List<SalvageCache> stores;
     private final Site records;
     private final SealDoor collapse;
@@ -115,9 +115,11 @@ public final class RuinsWorks {
         this.junctions = List.copyOf(junctions);
         this.doors = List.copyOf(doors);
         this.stores = List.copyOf(stores);
-        this.open = new boolean[doors.size()];
-        this.forced = new boolean[doors.size()];
-        this.shut = new MapEditor.PassageRecord[doors.size()][];
+        List<LockedDoor> built = new ArrayList<>();
+        for (SealDoor door : doors) {
+            built.add(new LockedDoor(door.id(), door.cells(), door.likeX(), door.likeY(), door.keep(), door.hardened()));
+        }
+        this.locks = List.copyOf(built);
     }
 
     /** The works a delve's published ground carries, wired as the class says. */
@@ -177,7 +179,7 @@ public final class RuinsWorks {
         RuinsDelve.Vault vaultPlace = delve.vault();
         int ix = vaultPlace.innerDoor().x(), iy = vaultPlace.innerDoor().y();
         doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"), new int[][]{{ix, iy}},
-                vaultPlace.source().x(), vaultPlace.source().y(), box(vaultPlace.footprint()), false));
+                vaultPlace.source().x(), vaultPlace.source().y(), box(vaultPlace.footprint()), false, true));
         consumers.add(new Consumer(VAULT_SEAL, last, Branch.ONWARD));
         onward++;
         RuinsDelve.PowerHall hallPlace = delve.powerHall();
@@ -194,8 +196,10 @@ public final class RuinsWorks {
             collapse = new SealDoor("collapse", Strings.get("ruinsWorksCollapseName"), cells, way.far().x(),
                     way.far().y(), new int[]{span.left(), span.bottom(), span.right(), span.top()}, false);
         }
-        return new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores, records,
-                collapse);
+        RuinsWorks works = new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores,
+                records, collapse);
+        works.vaultShell = box(vaultPlace.footprint());
+        return works;
     }
 
     private static int[] box(RuinsDelve.Area a) { return new int[]{a.left(), a.bottom(), a.right(), a.top()}; }
@@ -212,8 +216,8 @@ public final class RuinsWorks {
 
     public PowerGraph graph() { return graph; }
     public List<SealDoor> doors() { return doors; }
-    public boolean isOpen(int door) { return open[door]; }
-    public boolean isForced(int door) { return forced[door]; }
+    public boolean isOpen(int door) { return locks.get(door).isOpen(); }
+    public boolean isForced(int door) { return locks.get(door).isForced(); }
     public Site hall() { return hall; }
     public List<Site> junctions() { return junctions; }
     public Site records() { return records; }
@@ -223,58 +227,23 @@ public final class RuinsWorks {
     /** Whether the player knows what junction {@code j} feeds: thrown once, or the records read. */
     public boolean junctionKnown(int j) { return read || known[j]; }
 
-    /** Shuts every seal door as the wall beside it. At setup, before the battle's field finds are placed. */
+    /**
+     * Shuts every seal door as the wall beside it and hardens the vault suite's walls, so no heavy drives through them
+     * and no charge opens them. At setup, before the battle's field finds are placed.
+     */
     public void install(BattleSimulation sim) {
         if (installed) return;
         installed = true;
         for (Objective objective : sim.getObjectives()) {
             if (objective instanceof RuinsVaultObjective found) vault = found;
         }
-        MapEditor editor = sim.mapEditor();
-        for (int d = 0; d < doors.size(); d++) {
-            SealDoor door = doors.get(d);
-            shut[d] = new MapEditor.PassageRecord[door.cells().length];
-            for (int c = 0; c < door.cells().length; c++) {
-                int x = door.cells()[c][0], y = door.cells()[c][1];
-                MapEditor.PassageRecord wall = jamb(sim, editor, door, x, y);
-                if (wall == null) throw new IllegalStateException(door.id() + " has no wall beside it to seal as");
-                shut[d][c] = wall;
-                editor.closePassage(wall);
-            }
+        if (vaultShell != null) {
+            HardenedWalls.harden(sim.getGrid(), sim.getTopology(), vaultShell[0], vaultShell[1], vaultShell[2],
+                    vaultShell[3]);
         }
+        for (LockedDoor lock : locks) lock.install(sim);
     }
 
-    /**
-     * The nearest wall to a door cell, recorded as if it stood in the door cell; null when none stands within
-     * {@link #JAMB_REACH}. A room door has its jambs beside it; a gate's span may meet its wall line a cell or two
-     * off where the line jogs.
-     */
-    private static MapEditor.PassageRecord jamb(BattleSimulation sim, MapEditor editor, SealDoor door, int x, int y) {
-        for (int r = 1; r <= JAMB_REACH; r++) {
-            for (int dy = -r; dy <= r; dy++) {
-                for (int dx = -r; dx <= r; dx++) {
-                    if (Math.abs(dx) + Math.abs(dy) != r) continue;
-                    int nx = x + dx, ny = y + dy;
-                    if (!sim.getGrid().inBounds(nx, ny) || sim.getGrid().isWalkable(nx, ny) || inDoor(door, nx, ny)) {
-                        continue;
-                    }
-                    MapEditor.PassageRecord w = editor.recordPassage(nx, ny);
-                    return new MapEditor.PassageRecord(x, y, w.flags(), w.edges(), w.wallHp(), w.wall(), w.window(),
-                            w.fixture(), w.groundKind(), w.surface(), w.ownCover(), w.ownCatch(), w.towardCover(),
-                            w.towardCatch());
-                }
-            }
-        }
-        return null;
-    }
-
-    /** How far from a door cell its jamb may stand. */
-    static final int JAMB_REACH = 3;
-
-    private static boolean inDoor(SealDoor door, int x, int y) {
-        for (int[] c : door.cells()) if (c[0] == x && c[1] == y) return true;
-        return false;
-    }
 
     /** One tick: the player's press, the work at a console or box, then the doors and the vault's seal. */
     public void tick(BattleSimulation sim) {
@@ -337,7 +306,9 @@ public final class RuinsWorks {
     private SealDoor forceTarget(String key) {
         if (COLLAPSE.equals(key)) return cleared ? null : collapse;
         for (int d = 0; d < doors.size(); d++) {
-            if ((DOOR + doors.get(d).id()).equals(key)) return open[d] ? null : doors.get(d);
+            if ((DOOR + doors.get(d).id()).equals(key)) {
+                return isOpen(d) || doors.get(d).hardened() ? null : doors.get(d);
+            }
         }
         return null;
     }
@@ -382,67 +353,19 @@ public final class RuinsWorks {
 
     private static float sq(float v) { return v * v; }
 
-    /** Opens what is powered, shuts what lost power once it is clear, and hands the vault its seal's power. */
+
+    /**
+     * Opens what is powered, shuts what lost power once it is clear, and hands the vault its seal's power. Once the
+     * vault is breached every door on the way on stays open, so the haul is never shut in behind a lost feed.
+     */
     void settle(BattleSimulation sim) {
-        MapEditor editor = sim.mapEditor();
-        if (collapse != null && !cleared && breached(sim, collapse)) cleared = true;
+        if (collapse != null && !cleared && LockedDoor.breached(sim, collapse.cells())) cleared = true;
+        boolean vaultBreached = vault != null && vault.breached();
         for (int d = 0; d < doors.size(); d++) {
-            if (forced[d]) continue;
             SealDoor door = doors.get(d);
-            if (!open[d] && breached(sim, door)) {
-                forced[d] = true;
-                open[d] = true;
-                if (vault != null && door.id().equals(VAULT_SEAL)) vault.forceSeal();
-                continue;
-            }
-            boolean powered = graph.powered(graph.consumer(door.id()));
-            if (powered && !open[d]) {
-                for (int[] c : door.cells()) editor.openPassage(c[0], c[1], door.likeX(), door.likeY());
-                open[d] = true;
-            } else if (!powered && open[d] && !door.store() && vault != null && vault.breached()) {
-                // Once the vault is breached the way out stays open: the haul is not shut in behind a lost feed.
-                continue;
-            } else if (!powered && open[d] && !occupied(sim, door)) {
-                for (MapEditor.PassageRecord wall : shut[d]) editor.closePassage(wall);
-                open[d] = false;
-                dropRoutesThrough(sim, door);
-            }
+            locks.get(d).settle(sim, graph.powered(graph.consumer(door.id())) || !door.store() && vaultBreached);
         }
         if (vault != null) vault.setVaultPowered(graph.powered(graph.consumer(VAULT_SEAL)));
-    }
-
-    private static boolean breached(BattleSimulation sim, SealDoor door) {
-        for (int[] c : door.cells()) if (sim.getGrid().isWalkable(c[0], c[1])) return true;
-        return false;
-    }
-
-    /** Whether any body on the ground stands in the door or the room it keeps. */
-    private static boolean occupied(BattleSimulation sim, SealDoor door) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.isRiding(unit) || sim.identity().type(unit).isStatic()) continue;
-            float x = sim.world().x(unit), y = sim.world().y(unit);
-            if (door.keeps(x, y)) return true;
-            for (int[] c : door.cells()) {
-                if (Math.abs(x - (c[0] + .5f)) < 1.5f && Math.abs(y - (c[1] + .5f)) < 1.5f) return true;
-            }
-        }
-        return false;
-    }
-
-    private static void dropRoutesThrough(BattleSimulation sim, SealDoor door) {
-        float[] box = {Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
-        for (int[] c : door.cells()) {
-            box[0] = Math.min(box[0], c[0]);
-            box[1] = Math.min(box[1], c[1]);
-            box[2] = Math.max(box[2], c[0] + 1f);
-            box[3] = Math.max(box[3], c[1] + 1f);
-        }
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.isRiding(unit) || sim.identity().type(unit).isStatic()) continue;
-            if (SallyDoors.routeCrosses(sim, unit, box, sim.physicalRadius(unit) + 0.5f)) sim.clearPath(unit);
-        }
     }
 
     /** The player pressed {@code verb} on {@code key}'s prompt: it takes effect on the next tick. */
@@ -485,7 +408,7 @@ public final class RuinsWorks {
         }
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
-            if (open[d] || (door.store() && !read)) continue;
+            if (isOpen(d) || door.hardened() || (door.store() && !read)) continue;
             forceOffer(out, field, DOOR + door.id(), door, Strings.get("ruinsWorksDoorSealed"),
                     Strings.get("ruinsWorksForceDetail"));
         }
@@ -566,12 +489,12 @@ public final class RuinsWorks {
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
             // A sealed store is the site's secret until the records are read or it stands open.
-            if (door.store() && !read && !open[d]) continue;
+            if (door.store() && !read && !isOpen(d)) continue;
             int[] m = door.middle();
-            String status = Strings.get(forced[d] ? "ruinsWorksDoorForced" : open[d] ? "ruinsWorksDoorOpen"
+            String status = Strings.get(isForced(d) ? "ruinsWorksDoorForced" : isOpen(d) ? "ruinsWorksDoorOpen"
                     : "ruinsWorksDoorSealed");
             markers.add(new Marker(KEY + door.id(), door.name(), m[0], m[1], status,
-                    open[d] ? MissionObjectiveSnapshot.State.COMPLETE : active));
+                    isOpen(d) ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
         return new Item("zz-ruins-works", Strings.get("ruinsWorksName"), running && !overloaded
                 ? MissionObjectiveSnapshot.State.COMPLETE : active, phase, "", instruction,

@@ -144,6 +144,7 @@
   .results-outcome { height: 86px; padding: 22px 14px; border-width: 1px; font-family: title; }
   .results-outcome.victory { color: #78d494; background-color: #132b22; border-color: #78d494; }
   .results-outcome.defeat { color: #e98b83; background-color: #3d2a26; border-color: #e98b83; }
+  .results-outcome.pulled-out { color: #e5b459; background-color: #33291a; border-color: #e5b459; }
   .results-mission-name { height: 34px; padding: 4px; }
   .results-mission-meta { height: 24px; padding: 4px; }
   .result-rows { flex-direction: column; gap: 1px; padding: 6px; border-width: 1px; }

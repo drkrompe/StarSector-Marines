@@ -18,8 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Derelict security's flocks in a live ruin with a megastructure (`derelict-drone-flocks.md`, Roofs are the flock's
- * limit): the extensive-grade derelict fixture, whose last two layers are a roofed interior, played under autonomous
+ * Derelict security's flocks in a live ruin with a megastructure (`air-nouns.md`, Flocks): the extensive-grade derelict fixture, whose last two layers are a roofed interior, played under autonomous
  * command. First it prints each flock's home and whether it is open sky, then plays to {@link #PLAY_TICKS} counting
  * member-ticks under a roof (the rule says none). Then the look preset, following the flocks: at their homes outside
  * the megastructure before the company comes, and from the first strike or pursuit, through the fight. Opt-in.
@@ -78,7 +77,7 @@ public final class DerelictFlocksRuinsLookSuite implements SnapshotSuite {
     }
 
     /**
-     * The look candidates' shot (`derelict-drone-flocks.md`, slice 7): close on a flock waiting by its cradle out in the
+     * The look candidates' shot (`air-nouns.md`, Flocks): close on a flock waiting by its cradle out in the
      * open, so the drones and the cradle read at their own size. Without the long survey.
      */
     static LookReview.Shot closeShot(JSONObject fixture) throws Exception {

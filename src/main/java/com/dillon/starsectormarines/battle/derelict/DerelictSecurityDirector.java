@@ -59,6 +59,7 @@ public final class DerelictSecurityDirector {
     private final int vaultX;
     private final int vaultY;
     private FlockCommandPort flocks = FlockCommandPort.NONE;
+    private DerelictLook look = DerelictLook.DOMAIN;
     private final Map<Integer, Order> issued = new TreeMap<>();
     private final Map<Integer, Boolean> walking = new TreeMap<>();
     private final Map<Integer, Float> durability = new TreeMap<>();
@@ -99,9 +100,19 @@ public final class DerelictSecurityDirector {
         this.vaultY = vaultY;
     }
 
-    /** Connects the flock model (`derelict-drone-flocks.md`, Seam). */
+    /** Connects the flock model (`air-nouns.md`, Flocks). */
     public void connectFlocks(FlockCommandPort port) {
         flocks = port == null ? FlockCommandPort.NONE : port;
+    }
+
+    /** Draws the network's posts and nodes in its lineage's look (slice 9). Presentation only. */
+    public void wearLook(DerelictLook look) {
+        this.look = look == null ? DerelictLook.DOMAIN : look;
+    }
+
+    /** The lineage look the network's posts and nodes are drawn in. */
+    public DerelictLook look() {
+        return look;
     }
 
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
