@@ -124,7 +124,15 @@ public enum RefitOrder {
     BARRACKS_FOUR(RefitTrack.BARRACKS, RefitBand.IMPROVED_I, 4_000,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
     BARRACKS_SIX(RefitTrack.BARRACKS, RefitBand.IMPROVED_II, 8_000,
-            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED);
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    // The fleet's machine shop. The Second Wind's fabrication is her workshop chain, which keeps
+    // its own orders; these are priced as its tooling and reclamation stages.
+    /** Tooling: the workshop discount on supplies, and spares recycled at three quarters. */
+    FABRICATION_TOOLING(RefitTrack.FABRICATION, RefitBand.IMPROVED_I, 4_500,
+            RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    /** A reclamation line that breaks a spare back down to its whole bill. */
+    FABRICATION_RECLAMATION(RefitTrack.FABRICATION, RefitBand.IMPROVED_II, 7_500,
+            RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED);
 
     public final RefitTrack track;
     public final RefitBand band;
@@ -165,10 +173,17 @@ public enum RefitOrder {
     /** The AI cores taken from fleet cargo besides the credits; empty for a credits-only tier. */
     public Map<String, Integer> cores() { return CORES.getOrDefault(this, Map.of()); }
 
-    /** The order that brings {@code track} from {@code band} to the next tier, or null. */
-    public static RefitOrder after(RefitTrack track, RefitBand band) {
+    /** Whether only fleet facilities sell this tier: a fleet-only room's, or the fleet's own fabrication. */
+    public boolean fleetOnly() { return track.fleetOnly || track == RefitTrack.FABRICATION; }
+
+    /** The order that brings {@code track} from {@code band} to the next tier on the Second Wind, or null. */
+    public static RefitOrder after(RefitTrack track, RefitBand band) { return after(track, band, false); }
+
+    /** The same on the fleet's tree when {@code fleet}, which also sells the fleet-only tiers. */
+    public static RefitOrder after(RefitTrack track, RefitBand band, boolean fleet) {
         RefitBand next = band.next();
-        for (RefitOrder order : values()) if (order.track == track && order.band == next) return order;
+        for (RefitOrder order : values())
+            if (order.track == track && order.band == next && (fleet || !order.fleetOnly())) return order;
         return null;
     }
 

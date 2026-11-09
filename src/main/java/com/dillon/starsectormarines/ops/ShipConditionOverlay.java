@@ -232,7 +232,7 @@ public final class ShipConditionOverlay {
         style(card, position(bounds.width() - width - inset - 10f, inset + 10f)
                 + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: 1; pointer-events: auto;",
                 Math.max(0f, width - 36f), Math.max(0f, height - 36f)));
-        markup.requireElement("survey-card-hint").text(Strings.get("openingRefitSystemsTitle"));
+        markup.requireElement("survey-card-hint").text(Strings.get(model.deckless() ? "openingRefitFleetSystemsTitle" : "openingRefitSystemsTitle"));
         document.advance(0f);
     }
 

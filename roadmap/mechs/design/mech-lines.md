@@ -81,6 +81,16 @@ purchases, so the low-tech row comes first:
 3. A line's weight class is the lift it needs, so a line never changes lift through
    variants.
 
+## Outside the grid
+
+An **automated line** stands outside the grid: an unpiloted machine no company
+fields, builds, buys or refits, because the Sector's law keeps armed machines
+under crewed control. The first is derelict security's walker
+(`MechVariant.SECURITY_WALKER`, `MechVariant.automated()`), one heavy chassis
+whose line, siege and vault frames are loadouts on it
+(`derelict-security-network.md`). The laws hold for it as for any line; until
+its own art, sound and doctrine are picked it is drawn on the Bulwark's body.
+
 ## Open
 
 - **Which low-tech cell first, medium or heavy**, and whether the Hound stays the light.

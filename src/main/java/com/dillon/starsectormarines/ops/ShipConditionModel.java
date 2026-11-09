@@ -279,7 +279,7 @@ public final class ShipConditionModel {
         benefit = Strings.format("openingRefitNow", RefitText.effect(shown, band));
         if (next != null) benefit += "\n" + Strings.format("openingRefitNext",
                 Strings.format("openingRefitRowState", RefitText.tier(shown, next.band), RefitText.effect(shown, next.band)));
-        reason = shown == RefitTrack.FABRICATION ? Strings.get("openingRefitWorkshopCard") : Strings.get("openingRefitAtCeiling");
+        reason = shown == RefitTrack.FABRICATION && !refitState.fleet() ? Strings.get("openingRefitWorkshopCard") : Strings.get("openingRefitAtCeiling");
         if (next != null && !next.requires.isEmpty()) {
             m.put("needsClasses", "survey-needs");
             m.put("needs", needs(refitState, next));
@@ -314,10 +314,10 @@ public final class ShipConditionModel {
         m.put("systemsClasses", "systems-view");
         m.put("systemsProgress", Strings.format("openingRefitSystemsProgress", tiersDone(refitState, true), tiersOffered(true)));
         m.put("cores", ShipSystemsTree.cores(refitState, track, this::trackSelection, true));
-        m.put("title", Strings.get("openingRefitSystemsTitle"));
+        m.put("title", Strings.get("openingRefitFleetSystemsTitle"));
         m.put("backLabel", Strings.get("openingRefitSystemsBackFleet"));
         var card = refitCard(m, refitState, track, true);
-        m.put("copy", RefitText.lore(track)); m.put("benefit", card[0]); m.put("bill", card[2]); m.put("reason", card[1]);
+        m.put("copy", RefitText.lore(track, true)); m.put("benefit", card[0]); m.put("bill", card[2]); m.put("reason", card[1]);
         m.put("action", action); m.put("feedback", feedback);
         row.set(Map.copyOf(m));
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.vehicle.FactionVehiclePoints;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
 
@@ -537,6 +538,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Serial route/boarding driver, inert until a rescue payload configures it. */
     private final CivilianEvacuationSystem civilianEvacuationSystem =
             new CivilianEvacuationSystem(civilianEvacuation);
+    /** A derelict site's security network director (`derelict-security-network.md`); null on every other battle. */
+    private DerelictSecurityDirector derelictSecurity;
+
+    /** Installs a derelict site's security network director; called once at setup. */
+    public void installDerelictSecurity(DerelictSecurityDirector director) {
+        if (derelictSecurity != null) throw new IllegalStateException("Derelict security is already installed");
+        derelictSecurity = director;
+    }
+
+    /** The derelict security network director, or null when the battle has none. */
+    public DerelictSecurityDirector derelictSecurity() {
+        return derelictSecurity;
+    }
+
     /** Mission-local perimeter waves; inert unless civilian-rescue setup configures them. */
     private final SwarmReinforcementSystem swarmReinforcements =
             new SwarmReinforcementSystem(civilianEvacuation);
@@ -677,6 +692,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
     public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
+
+    private SalvagePlacement.Delve fieldCacheDelve;
+
+    /** A Ruins delve's cache count and vault route, or null for the one-per-resource scatter. */
+    public SalvagePlacement.Delve fieldCacheDelve() { return fieldCacheDelve; }
+
+    public void setFieldCacheDelve(SalvagePlacement.Delve delve) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Set the delve's caches before launch installs finds");
+        fieldCacheDelve = delve;
+    }
 
     public void setFieldSalvageSites(List<SalvagePlacement.Site> sites) {
         if (salvageInstalled || simTickIndex != 0)
@@ -4277,6 +4303,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmHarvest.tick(this);
         swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        if (derelictSecurity != null) derelictSecurity.tick(this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
         // After the harvest and the packs: a skitterer hauls what the harvest left loose, and tends what grew.

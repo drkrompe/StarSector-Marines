@@ -30,7 +30,7 @@ public final class MechRepairs {
         return switch (variant) {
             case HOUND -> LIGHT_DAYS_AT_FULL_WEAR;
             case WARDEN -> MEDIUM_DAYS_AT_FULL_WEAR;
-            case BULWARK -> HEAVY_DAYS_AT_FULL_WEAR;
+            case BULWARK, SECURITY_WALKER -> HEAVY_DAYS_AT_FULL_WEAR;
         };
     }
 

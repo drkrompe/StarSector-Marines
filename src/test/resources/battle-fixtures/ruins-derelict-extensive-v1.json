@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "kind": "RUINS",
+  "seed": 90923,
+  "enemyHasHeavyArmor": false,
+  "tier": "ESTABLISHED",
+  "risk": "MEDIUM",
+  "shuttles": [
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    }
+  ],
+  "targetProfile": {
+    "marketSize": 3,
+    "stability": 0,
+    "defenseLevel": 0,
+    "spaceportTier": 0,
+    "factionId": "derelict",
+    "functions": [
+      "HABITATION"
+    ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": [],
+  "grade": "EXTENSIVE",
+  "occupant": "DOMAIN_SECURITY"
+}

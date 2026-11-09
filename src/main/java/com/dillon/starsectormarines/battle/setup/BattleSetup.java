@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -725,7 +726,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -764,17 +765,18 @@ public final class BattleSetup {
         // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
         switch (occupant) {
             case SCAVENGERS:
+            // Derelict security: its walkers under the security-network director (derelict-security-network.md).
+            case DOMAIN_SECURITY:
+            case CONTINGENCY_SECURITY:
                 break;
             case NOBODY: // the works chain with no opposing side: ruins-works.md
             case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
-            case DOMAIN_SECURITY: // the security-network director: derelict-security-network.md
-            case CONTINGENCY_SECURITY:
                 LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
                 break;
         }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
-                null, 1f, false, null, null, RuinsDelve.of(grade));
+                null, 1f, false, null, null, RuinsDelve.of(grade), occupant.isDerelict() ? grade : null);
     }
 
     /**
@@ -1155,14 +1157,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null);
     }
 
     /**
@@ -1193,7 +1195,7 @@ public final class BattleSetup {
     }
 
     static final String RUINS_HAUL_ID = "RUINS-01";
-    static final String RUINS_HAUL_NAME = "vault haul";
+    static final String RUINS_HAUL_NAME = "Vault haul";
     static final String RUINS_VAULT_NAME = "The vault";
     static final String RUINS_LANDING_NAME = "Landing area";
 
@@ -1202,7 +1204,8 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
-            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve) {
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade liveRuinGrade) {
+        boolean liveRuin = type == MissionType.RUINS && liveRuinGrade != null;
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1270,6 +1273,9 @@ public final class BattleSetup {
             sim.addObjective(new RuinsVaultObjective(RUINS_HAUL_ID, RUINS_HAUL_NAME, RUINS_VAULT_NAME,
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
                     ruinsLayout.liftPoints()));
+            // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
+            sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
+                    ruinsLayout.liftPoints().get(0).route()));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
@@ -1338,7 +1344,8 @@ public final class BattleSetup {
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
         };
-        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+        // A live ruin's opposition is its security alone: no posted squads or patrols.
+        if (!liveRuin) allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                 assaultMobileMembers);
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -1405,7 +1412,8 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            sim.setAutonomousCommander(Faction.DEFENDER,
+            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade);
+            else sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
         }

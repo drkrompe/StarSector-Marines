@@ -28,7 +28,9 @@ public final class DebugBaySlot {
         if (OPTIONS != null) return OPTIONS;
         List<DebugBaySlot> all = new ArrayList<>();
         all.add(EMPTY);
-        for (MechVariant mech : MechVariant.values()) all.add(of(mech));
+        for (MechVariant mech : MechVariant.values()) {
+            if (!mech.automated()) all.add(of(mech));
+        }
         for (VehicleType vehicle : VehicleType.values()) all.add(of(vehicle));
         return List.copyOf(all);
     }

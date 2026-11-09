@@ -41,12 +41,12 @@ class ShipConditionTest {
         for (RefitOrder order : RefitOrder.values()) {
             assertNotEquals(RefitBand.DEFICIT, order.band);
             assertFalse(order.requires.containsKey(order.track), order.name());
-            assertSame(order, RefitOrder.after(order.track, RefitBand.values()[order.band.ordinal() - 1]));
+            assertSame(order, RefitOrder.after(order.track, RefitBand.values()[order.band.ordinal() - 1], order.fleetOnly()));
         }
         // Fabrication is the workshop chain's.
         for (RefitTrack track : RefitTrack.values())
             if (track != RefitTrack.FABRICATION)
-                assertNotNull(RefitOrder.after(track, track.fleetOnly ? track.fleetStart() : track.start()), track.name());
+                assertNotNull(RefitOrder.after(track, track.fleetOnly ? track.fleetStart() : track.start(), track.fleetOnly), track.name());
         assertNull(RefitOrder.after(RefitTrack.FABRICATION, RefitBand.DEFICIT));
     }
 

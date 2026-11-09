@@ -6,8 +6,10 @@ strike built, its other tasks' scenes and the network's use of them to come.
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — the flock built on the drone squad's anchor seam: steering,
-open-ground field, low flight, the flock unit with its tasks, and the strike.
+Updated: 2026-11-09 — owner picks in (`derelict-swarm-size`, `derelict-mech-line`,
+`derelict-flock-counters`, all option a); roofed-room exclusion is a central
+rule, and a strike on a roofed target is held at its threshold. Earlier the same
+day: the flock built on the drone squad's anchor seam.
 
 Read `derelict-lore-guide.md` (The flock, The flock and the Rav) first, then
 `air-nouns.md` (the air body, fighters and drones), `tender-ship.md` (the wing
@@ -56,6 +58,35 @@ derelict-only.
   and point defence engage members as fliers. The counters fall out of the
   model; none is a rule.
 
+## Roofs are the flock's limit
+
+Owner picks (2026-11-09), all option a: flocks of twelve to sixteen, one per
+zone, tight and darting (`derelict-swarm-size`); a derelict heavy line of its
+own (`derelict-mech-line`); area fire and cover as the counters, flocks keeping
+out of roofed rooms (`derelict-flock-counters`). On the last the owner added
+that some ruins sites are megastructures the company explores from inside, and
+ruins maps are to be hybrids: an exterior drop-off and an interior section in a
+megastructure or bunker (`ruins-ground.md`).
+
+So roofed-room exclusion is a central rule, not an edge case:
+
+- **A flock never goes under an intact roof**, on any map. The rule reads
+  only the map's own roof (`CellTopology.isRoofIntact`) and walls, so it holds
+  on ruins ground, a colony, a megastructure's halls or a bunker alike, with no
+  map-specific code. A roof brought down opens its cells to the flock.
+- **Flocks own the exterior and the approaches.** The interior of a
+  megastructure belongs to what fits in it: the heavies, posts and the
+  network's other units (`derelict-security-network.md`).
+- **A strike on a target under a roof is held at its threshold**: the open cell
+  where the target's way out by the ground first meets open ground, its doorway,
+  breach or gate (`FlockField.threshold`). The flock waits there in a body and
+  shoots what shows in it; it does not wrap the building or try the walls. A
+  target that walks out is in the open and the strike wraps it as usual. A
+  target in a room with no way out within the field's reach has no threshold,
+  and the flock wraps the open ground round it.
+- So the company's answer inside is to keep out of a door's line, or shut it;
+  and a company coming out of a megastructure meets the flock at the door.
+
 ## Built
 
 Everything is in the drone package; a flock is a drone squad whose
@@ -94,18 +125,28 @@ swarm action, which hands them to `FlockFlight` (`DroneAnchor.flock()`).
   publishes. `launch` puts a flock up; `BattleSimulation.flocks()` reaches it.
 - On a strike the anchor sits on the target and each member flies its slot on
   a turning ring (`FlockFlight.orbitSlot`), pushed out to open ground when the
-  ring crosses a wall (`openSlot`).
+  ring crosses a wall (`openSlot`). A target under a roof is struck from its
+  threshold instead (`Flock.holdingThreshold()`): the anchor sits there, there
+  is no ring, and members fire on the target whenever they see it
+  (`Flock.focusTarget()`).
 
-The seam with the network (`derelict-security-network.md`): the director calls
-`FlockSystem.launch` with the zone's cradle point as home and its leash, then
-gives each flock a task from what `contacts()` reports. It never touches a
-member.
+The seam with the network (`derelict-security-network.md`): the network
+launches one flock per zone with `FlockSystem.launch`, homed on the zone's node
+(the cradle point once cradles exist) and leashed to its perimeter plus
+`FlockTasking.LEASH_CELLS`. The director reads and tasks flocks only through
+`FlockCommandPort` in `battle.derelict`, which `FlockSystemPort` implements over
+`Flock` with this package's `FlockTask`: a report per flock (anchor, strength
+as a share of `strength()`, each of `contacts()` at its cell as seen
+(`contactCells()`) on the scan tick (`contactTick()`), its strike target as the
+pin) and one task with an anchor or target. It never touches a member.
 
 Evidence: `FlockSteeringTest`, `FlockFieldTest`, `FlockFlightTest`; the
 `derelict-flock` scene (`sceneEvidence -Pscene=derelict-flock`): `split`
 (probes through a roofed building, splits round it, re-forms past it),
 `strike-open` (wraps a fire team on all four sides and strafes),
-`strike-indoors` (the team in a roofed room; no member ever under the roof).
+`strike-indoors` (the team in a roofed room, hidden from its open door by a
+partition: the flock holds the door's threshold for the whole wait and no
+member is ever under the roof).
 `createSnapshots -Psnapshot=derelict-flock` adds the look shot `flock-strike`
 on generated colony ground.
 

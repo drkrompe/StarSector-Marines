@@ -18,8 +18,10 @@ import java.util.Set;
  * Pure: the campaign reads receipts into one of these, and everything a band
  * does is answered here so Engineering and the launch freeze cannot disagree. {@link #NONE} is every other hull: neutral on every track.
  */
-public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
+public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands, boolean fleet) {
     public static final ShipCondition NONE = new ShipCondition(false, Map.of());
+
+    public ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) { this(applies, bands, false); }
 
     public ShipCondition {
         var copy = new EnumMap<RefitTrack, RefitBand>(RefitTrack.class);
@@ -36,7 +38,7 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         if (!applies) return this;
         var copy = new EnumMap<>(bands);
         copy.put(track, band);
-        return new ShipCondition(true, copy);
+        return new ShipCondition(true, copy, fleet);
     }
 
     /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it, the reclamation line further. */
@@ -68,7 +70,7 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
     }
 
     /** The order that would advance {@code track}, or null when it is at its ceiling. */
-    public RefitOrder next(RefitTrack track) { return RefitOrder.after(track, band(track)); }
+    public RefitOrder next(RefitTrack track) { return RefitOrder.after(track, band(track), fleet); }
 
     /** The first unmet requirement of {@code order}, in its declared order, or null when none. */
     public Map.Entry<RefitTrack, RefitBand> missing(RefitOrder order) {
@@ -185,12 +187,15 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
-    /** Bunkrooms in the fleet's barracks, nine billets each: two to start, then four, then six. */
+    /**
+     * Bunkrooms in the fleet's barracks, nine billets each: four to start, the Second Wind's 36
+     * usable billets and three full squads, then six, then eight.
+     */
     public int bunkrooms() {
         return switch (band(RefitTrack.BARRACKS)) {
-            case DEFICIT, RESTORED -> 2;
-            case IMPROVED_I -> 4;
-            case IMPROVED_II -> 6;
+            case DEFICIT, RESTORED -> 4;
+            case IMPROVED_I -> 6;
+            case IMPROVED_II -> 8;
         };
     }
 

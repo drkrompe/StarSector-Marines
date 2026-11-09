@@ -54,12 +54,15 @@ of the occupant's own kind.
    strains only at the larger grades, pressure peaking on the egress. It never
    touches the campaign bloom or the reservoir's rest. `sceneEvidence` for the
    bore-opening rule; a `commanderEvidence` fixture on the vast grade.
-4. **Derelict security.** Wire the occupant to `derelict-security-network.md`
-   once that story's director and units exist.
+4. **Derelict security.** Built: a derelict occupant's `createRuins` calls
+   `DerelictSecurity.install` in place of the generic squads and
+   `ExtractionDefenderCommand`, and the mission names the occupant's faction
+   (`derelict-security-network.md`, What is built).
 5. **Briefing.** The survey readings pool for nobody, the Rav and derelict
    security (lifesigns; movement and power; quiet with structure and power
    hints), seeded per site, with the contingency lineage's own reading. The
-   scavengers' pool is `ruins-expedition-battle.md`'s.
+   scavengers' pool is `ruins-expedition-battle.md`'s. Each pool is a
+   `RuinsSurvey.Pool` with its case in `RuinsSurvey.poolFor`.
 
 ## Constraints
 

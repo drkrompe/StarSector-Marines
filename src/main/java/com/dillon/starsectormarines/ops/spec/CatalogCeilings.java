@@ -282,6 +282,7 @@ public final class CatalogCeilings {
     private static float maxOverVariants(Function<MechVariant, Float> axis) {
         float scanned = 1f;
         for (MechVariant variant : MechVariant.values()) {
+            if (variant.automated()) continue;
             scanned = Math.max(scanned, axis.apply(variant));
         }
         return scanned;

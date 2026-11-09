@@ -25,6 +25,38 @@ public final class SalvagePlacement {
         }
         boolean contains(Cell c) { return c.x >= left && c.x <= right && c.y >= bottom && c.y <= top; }
     }
+    /**
+     * A Ruins delve's finds ({@code ruins-expedition.md}): the grade's cache count instead of one per resource, most
+     * of them on the far half of the vault route, so the deeper ground holds more of the field finds.
+     *
+     * @param caches how many finds the grade offers
+     * @param route  the vault route as flat x,y pairs, from the vault to the landing
+     */
+    public record Delve(int caches, int[] route) {
+        public Delve {
+            if (caches < 0 || route == null || route.length < 2 || (route.length & 1) != 0)
+                throw new IllegalArgumentException("A delve needs a cache count and a route from the vault");
+            route = Arrays.copyOf(route, route.length);
+        }
+
+        /** The finds the far half must hold first: two in three, rounded up. */
+        int farQuota() { return (caches * 2 + 2) / 3; }
+
+        /** Whether a cell lies nearer the vault than the landing along the route, by its nearest route point. */
+        boolean farHalf(Cell c) {
+            int points = route.length / 2, nearest = 0, best = Integer.MAX_VALUE;
+            for (int i = 0; i < points; i++) {
+                int d = distance(c.x, c.y, route[i * 2], route[i * 2 + 1]);
+                if (d < best) { best = d; nearest = i; }
+            }
+            // The route runs from the vault, so its first half is the far half from the landing.
+            return nearest * 2 < points;
+        }
+    }
+
+    /** Delve finds stand closer together than the one-per-resource scatter, so a small site still holds its grade's count. */
+    static final int DELVE_SPACING = 20;
+
     private SalvagePlacement() { }
 
     public static List<SalvageCache> forBattle(BattleSimulation sim, long seed) {
@@ -49,7 +81,45 @@ public final class SalvagePlacement {
         var targets = sim.getTacticalMap() == null ? List.<Cell>of() : sim.getTacticalMap().all().stream()
                 .filter(n -> !HeldPlaces.isUnposted(n))
                 .map(n -> new Cell(n.anchorX, n.anchorY)).toList();
+        if (sim.fieldCacheDelve() != null)
+            return placeDelve(grid, sim.getMarineLandingPads(), candidates, targets, seed, sim.fieldCacheDelve());
         return place(grid, sim.getMarineLandingPads(), candidates, targets, seed, sim.fieldSalvageSites());
+    }
+
+    /**
+     * Pure geometry seam for a delve: the far half's quota first, then the rest from anywhere legal, so a far half
+     * with too few sites lends its share to the near half. Resources take turns; fewer finds when sites are scarce.
+     */
+    public static List<SalvageCache> placeDelve(NavigationGrid grid, List<LandingPad> pads,
+                                               List<Cell> candidates, List<Cell> targets, long seed, Delve delve) {
+        if (pads.isEmpty() || delve.caches() == 0) return List.of();
+        var shuffled = new ArrayList<>(candidates);
+        Collections.shuffle(shuffled, new Random(seed ^ 0x44454c5645L));
+        var legal = shuffled.stream().filter(c -> grid.isWalkable(c.x, c.y))
+                .filter(c -> pads.stream().noneMatch(p -> distance(c.x, c.y, p.centerX, p.centerY) < 28 * 28))
+                .filter(c -> targets.stream().noneMatch(t -> distance(c.x, c.y, t.x, t.y) < 16 * 16))
+                .filter(c -> pads.stream().anyMatch(p -> grid.arePathConnected(p.centerX, p.centerY, c.x, c.y, false)))
+                .toList();
+        var chosen = new ArrayList<Cell>();
+        pick(legal.stream().filter(delve::farHalf).toList(), chosen, delve.farQuota());
+        pick(legal, chosen, delve.caches());
+        var selected = new ArrayList<SalvageCache>();
+        var resources = SalvageResource.values();
+        for (int i = 0; i < chosen.size(); i++) {
+            var resource = resources[i % resources.length];
+            var cell = chosen.get(i);
+            selected.add(new SalvageCache("field-cache-" + i, cell.x, cell.y, resource, resource.cacheQuantity));
+        }
+        return List.copyOf(selected);
+    }
+
+    private static void pick(List<Cell> from, List<Cell> chosen, int upTo) {
+        for (var c : from) {
+            if (chosen.size() >= upTo) return;
+            if (chosen.contains(c)) continue;
+            if (chosen.stream().anyMatch(s -> distance(c.x, c.y, s.x, s.y) < DELVE_SPACING * DELVE_SPACING)) continue;
+            chosen.add(c);
+        }
     }
 
     /** Pure geometry seam: supplied candidates are clear sites, targets are mandatory/tactical centers. */

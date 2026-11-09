@@ -35,6 +35,21 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarracksCommandModelTest {
+    @Test void aSquadIsRaisedOnlyWhenAllOfItHasARack() {
+        var roster = new MarineRoster();
+        var captain = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
+        roster.add(captain);
+        TestStores stores = TestStores.forSquads(80);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
+                stores, () -> 0, id -> new PersonnelDrawResult(0, 0)).command();
+        model.billets(() -> 2 * MarineSquad.CAPACITY + MarineSquad.CAPACITY / 2);
+        model.selectCommand(captain.id());
+        for (int i = 0; i < 4; i++) model.raiseSquad();
+        assertEquals(2, roster.squads().size(), "half a squad's racks raise nothing");
+        assertEquals(2, stores.spends, "a refused raise pays no bill");
+        assertTrue(raiseTile(model).get("founderDisabled") instanceof Boolean b && b);
+    }
+
     @Test void raisingASquadFillsOnlyFreeCommandSlots() {
         var roster = new MarineRoster();
         var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);

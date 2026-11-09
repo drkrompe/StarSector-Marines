@@ -1,7 +1,8 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slice 1 (the objective) built, and the family plays
-in battle on interim parts. Slice 3 of
+Status: IN PROGRESS — slices 1, 2, 6 and 7 built (objective, disclosure,
+deeper caches, briefing); slice 3 deferred. The family plays in battle on
+interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
@@ -60,10 +61,34 @@ story's battle plays, it lifts the fork's development-only gate
    its lift points, the haul's state and escort; the occupant's side sees what
    its own perspective allows; the occupant's layout is never in the company's
    frame.
+
+   *Built.* `RuinsObjectiveDisclosure` freezes `RuinsObjectiveFacts` per side.
+   The company sees the vault, the approach from the landing area, every lift
+   point with its route length and whether it is open, the haul, its escort,
+   and the field caches its own sight has found. The occupant sees its vault
+   and whether the company has reached it, as Extraction's defenders see their
+   source. The objective keeps the payload kind PACKAGE, so the generic
+   defenders still read it until slice 4. The rail and map have the family's
+   own card (`MissionObjectiveProjection.vaultHaul`): Reach the vault,
+   Breaching with the grade's breach time (and the powered wording), Escorting
+   haul to the named lift point, Boarding. Every lift point is a marker, and an
+   unheld court reads "hold to open". The steps read Breach > Escort > Board.
 3. **The delve commander.** The company's headless strategy: a layer at a time
    with a lead element, cache and works detours when a layer is quiet, the
    breach hold, then the haul screened to the nearest held lift point. Played
    battles yield to the player as every mission does.
+
+   *Deferred* (owner: planning the company's run is a waste for now). In a
+   played battle the player commands the company, and the ground is still
+   changing, so `ExtractionCommand` stays the company's commander for
+   `MissionType.RUINS`; it is enough for headless evidence. Take this slice up
+   only once `ruins-ground.md` has landed, and only if evidence needs more
+   than `ExtractionCommand`. If it is taken up, it reads the layers and the
+   vault route from what setup publishes, never open streets: a layer may be
+   inside, behind a threshold or seal door.
+
+   *Shared fix kept from this work:* `EscortPresence` crashed on a Marine
+   emplacement, which has no movement; it now skips one.
 4. **The crew commander.** The scavengers' strategy: posted squads at the camp
    and the dig, a patrol pool and the alarm, borrowed from the generic Extraction
    defenders, answering for the dig first and the stash second. The pirate
@@ -78,6 +103,18 @@ story's battle plays, it lifts the fork's development-only gate
 7. **Briefing.** The assessment, the grade's strength band and the scavengers'
    readings pool (`ruins-expedition.md`, Briefing); the other pools are
    `ruins-occupants.md`'s.
+
+   *Slices 6 and 7 built.* A Ruins battle hands the field-cache placement a
+   `SalvagePlacement.Delve`: the grade's `RuinsDelve.fieldCaches` and the vault
+   route. Two in three finds (rounded up) go on the route's vault half first,
+   the rest anywhere legal, closer spaced than the one-per-resource scatter;
+   resources take turns, and scarce ground yields fewer. The briefing is the
+   mission's dialogue: the stakes, then the orbital survey (`RuinsSurvey`): the
+   assessment with the grade's band (light to severe) read through the
+   occupant's instruments, then two or three readings seeded by the market id.
+   `RuinsSurvey.poolFor` maps an occupant to its pool; only the scavengers have
+   one, and an occupant without one reads as the scavengers its battle still
+   fields.
 8. **Evidence.** `commanderEvidence -Pmission=ruins` with a fixture per grade on
    the stand-in ground, headless: the haul boards, or the expedition loses by
    one of the family's terminals. That proves the mission works, not that it is

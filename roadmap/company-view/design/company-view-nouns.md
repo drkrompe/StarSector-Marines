@@ -1670,6 +1670,13 @@ spec (`BackdropPlanetPass`), and the stars barely move. Opened anywhere else, th
 stream past the bow. Hyperspace has its own clouds and no stars. This is set dressing:
 it stays dark and shifts only slightly as the camera pans, so the deck stays what is read.
 
+**Fleet facilities** (`fleet-facilities.md`) are every other start's company home:
+no company ship, no ship choice and no loss of home. Engineering is the systems
+tree alone, starting at neutral, and its fleet-only tracks size a standard deck
+the Mech Lab, Boat Deck and Barracks crop their rooms from. Upgrades belong to
+the fleet, and billets bound the squads raised. Everything below about her deck,
+yard repairs and story gates is the Second Wind's.
+
 **Engineering** is the persistent ship-condition navigation tab, reached from
 every company room and Armory subview. It contains the former Walk the Ship
 room-condition survey. Small SVG glyphs straddle compartment walls with sealed,
