@@ -128,6 +128,12 @@ public final class GroundMesh {
         /** This cell draws {@code sheet}'s sub-rectangle over its own square. */
         void quad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH);
 
+        /**
+         * This cell draws a four-vertex part of the sub-rectangle. {@code vertices} holds four
+         * cell-space positions, and the tile is sampled at the same normalised place; with
+         * sixteen floats, the last eight are the tile UVs to sample instead, which lets a piece
+         * bend its tile (rounded wall corners) or lie past its own cell.
+         */
         default void patch(SpriteAPI sheet,int sx,int sy,int sw,int sh,float[] vertices) { throw new UnsupportedOperationException("Clipped tile sink required"); }
 
         /** This cell has no tile and paints {@code rgb} instead. */
@@ -730,10 +736,12 @@ public final class GroundMesh {
 
         void writePatch(int slot,int gx,int gy,int sx,int sy,int sw,int sh,float[] vertices) {
             int at=slot*8;
+            int tex=vertices.length>=16?8:0;
             for(int i=0;i<8;i+=2) {
                 float x=vertices[i],y=vertices[i+1];pos[at+i]=gx+x;pos[at+i+1]=gy+y;
-                uv[at+i]=(sx+x*sw)/sheetPxW*sheet.getTextureWidth();
-                uv[at+i+1]=sheet.getTextureHeight()-(sy+(1-y)*sh)/sheetPxH*sheet.getTextureHeight();
+                float u=vertices[tex+i],v=vertices[tex+i+1];
+                uv[at+i]=(sx+u*sw)/sheetPxW*sheet.getTextureWidth();
+                uv[at+i+1]=sheet.getTextureHeight()-(sy+(1-v)*sh)/sheetPxH*sheet.getTextureHeight();
             }
             markDirty(slot);
         }

@@ -170,7 +170,10 @@ public final class DrawList {
         }
     }
 
-    /** A convex clipped part of a tile; vertices are normalized within its uncut destination. */
+    /**
+     * A convex clipped part of a tile; vertices are normalized within its uncut destination. A
+     * sixteen-float patch carries explicit tile UVs after the positions.
+     */
     public void addSheetPatch(RenderLayer layer, SpriteAPI sheet,int sx,int sy,int sw,int sh,
                               float cx,float cy,float w,float h,float alpha,float[] patch) {
         TextureUsage.sheet(sheet, sw, sh, w, h);
