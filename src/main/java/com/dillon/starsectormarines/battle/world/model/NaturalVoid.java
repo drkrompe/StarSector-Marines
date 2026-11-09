@@ -24,7 +24,12 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
         /** A river cut deep: rock strata walls with mossy ledges down to running water. */
         GORGE_RIVER,
         /** A volcanic rift: basalt walls lit orange from below by a river of molten rock crusting as it flows. */
-        LAVA
+        LAVA,
+        /**
+         * A glacial crevasse on a frozen world: blue-white ice walls in layered strata, snow drifted on the
+         * ledges and blown off the lip, a cold mist in the deep blue below and a frozen meltwater floor.
+         */
+        ICE
     }
 
     /** A ledge: its depth below the surface, and how far into the void from the edge it begins. */

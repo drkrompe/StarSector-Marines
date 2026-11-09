@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -71,7 +71,7 @@ generation, never a battle rule, as an emplacement style is
 
 | Style | Where | Edge | Floor | Bridge |
 | --- | --- | --- | --- | --- |
-| **Crevasse** | Ice and rock country: a narrow, jagged split | Blue-white ice or fractured rock, a snow or scree lip | Dark, narrowing to nothing | A snow bridge or a laid plank span |
+| **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
@@ -554,16 +554,61 @@ Laws):
    side channel pours into the rift; the floor running out past the drop's
    margin in the wide shot, as the gorge's water does.
 
+   **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
+   the map toolbelt, ice first): a natural drop split through a frozen
+   world's ice. Look suite: `createSnapshots -Psnapshot=ice-void-look`, a
+   snowfield cut by a crevasse with a snow bridge and a timber plank span
+   (`-Dsnapshot.ice.depth`, `-Dsnapshot.ice.eyes`, `-Dsnapshot.ice.stillsOnly`).
+   - **What it reuses.** All of the drop, as the lava rift does: `NaturalVoid`
+     with style `ICE`, its steps, edge, ledges, walls, bridges, sun and
+     painter's order. The wall is its own ImageGen image (`ice-wall.png`,
+     glacier ice in strata with grit bands, meltwater runnels and icicle
+     fringes, under `art-source/voids/ice/`).
+   - **Ice is lit through** (`IceVoidLook`). A rock face's shade is black; an
+     ice face's and snow's is the sky's blue, and the deep tint is a dark
+     blue that gathers slowly near the lip and fast toward the floor, so the
+     walls run from blue-white to near-black blue. Snow lies drifted on every
+     ledge, thickest back against the wall above, thinning to bare ice where
+     the ledge breaks over the face below. The lip is a hard snow cornice,
+     blue ice only right at the face, going over to the snowfield's own tone,
+     so the snow tiles' stepped edge does not show.
+   - **The floor** (`GlacialVoidRenderSystem`, in the drop's order in place of
+     the water): old dark ice, milky in places, snow drifted at the walls'
+     feet, pools of meltwater frozen glassy with a glint drifting on them; it
+     takes the open sky's light, not the sun's. A cold mist lies low over it.
+   - **The air**, over the tiles after the fray: spindrift blown off the lip
+     wherever the wind leaves the ground for the drop, streaming out and
+     sinking into the crevasse in gusts, each streak hidden where the ice
+     stands between it and the eye; fine snow falling over everything in
+     view. No snow blows off a bridge's end and no mist stands under a deck
+     (`NaturalVoidField.byBridge`, `nearBridge`), as for the lava rift.
+   - **Snow is added light over the tiles, never composited.** A translucent
+     piece composited over the ground thins the ground target's alpha, which
+     the composite reads as shade: white streaks and flakes landed grey on the
+     snowfield, and the fray's fading outer pieces drew a grey seam along the
+     lip. So the crevasse's fray ends where its cover is whole, as the lava
+     rift's does, and no mist stands over the lip. Every natural style's fray
+     still darkens this way at its outer end; on turf it passes for soil.
+   - **Battle.** Unchanged: a crevasse is a drop like every other style.
+   First pass: a cornice, two snowy ledges and the floor 36 m down, a crevasse
+   9 to 16 cells across, camera 120 m, daylight. Left: the owner's pick of
+   depth; the narrow crevasse below (two to five cells), which needs a
+   narrower span rule: a crossing counts as a bridge only where the ground it
+   joins lies `BRIDGE_CELLS` (7) apart, so a plank over a 7-cell pinch drew as
+   a tongue of bank with the drop ending either side; snow bridges drawn as a
+   sagging arch rather than a straight deck edge; icicles along the lip and
+   seracs or fallen blocks on the floor; a dusk or polar-night sky.
+
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
    - **Canyon**: the gorge river's dry sister for desert and barren worlds.
      Wider and deeper, more and wider ledges, a red or ochre sandstone wall;
      the floor a dry wash of sand and scree with scattered boulders.
-   - **Crevasse**: ice and rock country. Narrow (two to five cells), few or
-     no ledges, a blue-white ice wall, a snow lip. Its floor is not drawn:
-     the depth tint runs to a near-black blue, "narrowing to nothing". Its
-     bridges are snow bridges: the same span, its edge drawn as a sagging
-     snow arch.
+   - **Narrow crevasse**: the glacial crevasse closed to a split of two to
+     five cells, few or no ledges. Its floor is not drawn: the depth tint
+     runs to a near-black blue, "narrowing to nothing". Its bridges are snow
+     bridges: the same span, its edge drawn as a sagging snow arch. Needs the
+     span rule above to accept a crossing over a narrow split.
    - **Sea cliff**: the land ends at a map's edge. The void runs to the map's
      edge, so there is no far wall; the steps are fewer and taller, the
      floor is sea: swell drifting in toward the foot, surf breaking along it,
@@ -581,7 +626,8 @@ Laws):
      stays connected through the bridges.
    - A **canyon** where a barren or desert map would lay a gorge river, and
      as a mission's dividing line between two halves of a map.
-   - A **crevasse** in ice and rock country, a short seeded split laid
+   - A **glacial crevasse** on frozen worlds (`SurfacePalette.FROZEN`), where
+     a temperate map would lay a gorge river, and a short seeded split laid
      across open ground off the mission's lines, never across a road, with a
      snow bridge where a route must cross.
    - A **sea cliff** where a beach map lays its shoreline (`BeachShorelineStage`)
