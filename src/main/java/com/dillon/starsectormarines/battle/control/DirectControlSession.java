@@ -731,6 +731,7 @@ public final class DirectControlSession {
                 speed, BattleSimulation.TICK_DT);
         if (sprinting) roster.combat().clearPrimaryFire(id);
         MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
+        steerPointBurst(id, input);
         if (marineLeft.onSpecial()) {
             fireLeftSpecial(id, input, sprinting);
             return;
@@ -771,6 +772,19 @@ public final class DirectControlSession {
         }
         world.setSecondaryCooldownTimer(id, special.cooldown());
         marineLeft.fired();
+    }
+
+    /**
+     * A burst under way follows the cursor: each follow-up round goes where the player is pointing now,
+     * not where the first round went, so an SMG or machine gun sweeps with the mouse. A cursor the point
+     * path cannot fire at (on the Marine itself) keeps the last point rather than cancelling the burst.
+     */
+    private void steerPointBurst(long id, ManualIntent input) {
+        CombatService combat = roster.combat();
+        if (combat.burstRemaining(id) <= 0 || combat.burstPointAim(id) == null) return;
+        PointFireAim cursor = new PointFireAim(input.aimX(), input.aimY());
+        World world = roster.world();
+        if (cursor.validFrom(world.renderX(id), world.renderY(id))) combat.setBurstPointAim(id, cursor);
     }
 
     /**

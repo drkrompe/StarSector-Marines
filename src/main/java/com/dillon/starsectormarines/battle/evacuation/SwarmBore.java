@@ -65,6 +65,8 @@ public final class SwarmBore {
     private int surges;
     private int nextSurgeTick;
     private boolean dormant;
+    /** The highest tier this bore may grow to; growth past it adds nothing ({@code RuinsSleepers}). */
+    private BoreTier ceiling = BoreTier.MAW;
     private int bodiesSpawned;
     private final int[] stagesReleased = new int[SwarmStage.values().length];
     private boolean matriarchReleased;
@@ -203,6 +205,11 @@ public final class SwarmBore {
 
     void hold() { dormant = true; }
 
+    void cap(BoreTier ceiling) { this.ceiling = ceiling; }
+
+    /** The highest tier this bore may grow to. */
+    public BoreTier ceiling() { return ceiling; }
+
     /** Wakes the bore with a surge due on {@code tick}. */
     void surgeAt(int tick) {
         dormant = false;
@@ -307,6 +314,7 @@ public final class SwarmBore {
     private BoreTier addGrowth(float points, int tick) {
         growth += points;
         BoreTier reached = BoreTier.forGrowth(growth);
+        if (reached.ordinal() > ceiling.ordinal()) reached = ceiling;
         if (reached.ordinal() <= tier.ordinal()) return null;
         for (BoreTier t : BoreTier.values()) {
             if (t.ordinal() > tier.ordinal() && t.ordinal() <= reached.ordinal()) tierTicks[t.ordinal()] = tick;

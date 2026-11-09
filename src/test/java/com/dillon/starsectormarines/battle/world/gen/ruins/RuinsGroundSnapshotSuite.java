@@ -24,7 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Ruins ground at every grade ({@code ruins-ground.md}), 1920x1080 through the look preset: each grade's whole map,
+ * Ruins ground at every grade ({@code mapgen-nouns.md}, Ruins ground), 1920x1080 through the look preset: each grade's whole map,
  * the same map with its published places marked, and play-zoom frames on the landing, a layer's way through, a
  * landing court, the power hall, the collapse and the vault. {@code -Dsnapshot.ruinsGround.surface=ARID} picks
  * the world (default ROCK); {@code -Dsnapshot.ruinsGround.seed=N} the seed (default 1).

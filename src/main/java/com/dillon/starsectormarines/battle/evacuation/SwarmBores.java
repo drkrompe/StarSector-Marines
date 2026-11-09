@@ -398,6 +398,11 @@ public final class SwarmBores {
         bore.hold();
     }
 
+    /** Caps the tier {@code bore} may grow to, so its later strains never come (a ruins site's smaller grades). */
+    public void capTier(SwarmBore bore, BoreTier ceiling) {
+        bore.cap(ceiling);
+    }
+
     /**
      * Wakes {@code bore} with a surge due now. The director still releases it
      * only when it fits under the living bores' capacity, as any surge.

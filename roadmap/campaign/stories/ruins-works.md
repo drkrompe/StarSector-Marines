@@ -61,7 +61,7 @@ one, and the sealed stores behind them are the reward.
    unpowered, a collapse across the short way, the power hall in a side layer,
    capacity for the vault and one other consumer, every step visible from the
    one before. Laid by hand on the stand-in ground first, then by
-   `ruins-ground.md`'s works sites.
+   the ruins ground's works sites (`mapgen-nouns.md`, Ruins ground).
 7. **Occupied sites.** Fewer works, all optional. The noise hook for the Rav
    and derelict zones, and the derelict branch power-down, land with
    `ruins-occupants.md` and `derelict-security-network.md`.

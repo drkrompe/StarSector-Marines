@@ -26,7 +26,7 @@ So the requirement is a stated property, `SettlementLink`, with three values:
 
 `NONE` was reserved before ruins were generated, so that when they were, the
 shape they needed was already a value rather than a change to a law. Ruins
-ground (`ruins-ground.md`) now uses it: its streets end short of every edge and
+ground (`mapgen-nouns.md`, Ruins ground) now uses it: its streets end short of every edge and
 its only berths are its own landing's.
 
 ## What the defect actually was

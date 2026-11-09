@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A ruins site's ground as a mission reads it ({@code ruins-ground.md}): the delve from the landing area at the
+ * A ruins site's ground as a mission reads it ({@code mapgen-nouns.md}, Ruins ground): the delve from the landing area at the
  * map's west end to the vault at its east end, the layers the route crosses, their side rooms and landing courts,
  * and the sites of the ruins' works ({@code ruins-works.md}). Every place carries a stable name; {@link #area}
  * answers any of them, so a mission can say "the second layer" or "the power hall" without searching the map.

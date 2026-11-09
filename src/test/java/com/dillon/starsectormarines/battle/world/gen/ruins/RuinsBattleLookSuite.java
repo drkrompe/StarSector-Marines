@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * A Ruins battle as {@code BattleSetup.createRuins} builds it, on its ruins ground ({@code ruins-ground.md}),
+ * A Ruins battle as {@code BattleSetup.createRuins} builds it, on its ruins ground ({@code mapgen-nouns.md}, Ruins ground),
  * through the look preset at 1920x1080: per grade, the whole map and the landing at play zoom once the company is
  * down, the vault, and the interior with its roofs off. The scavengers hold the site; the default manifest lands. Played
  * {@code -Dsnapshot.ruinsBattle.seconds} (default 60) unrecorded first; {@code -Dsnapshot.ruinsBattle.surface}

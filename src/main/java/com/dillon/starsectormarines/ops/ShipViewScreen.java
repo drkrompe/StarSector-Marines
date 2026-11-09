@@ -98,7 +98,7 @@ public final class ShipViewScreen implements Screen {
         }
         if (fleet) {
             workshop = new WorkshopRestorationModel(reactor,
-                    () -> new CompanyWorkshopRestoration.Offer(WorkshopState.NONE, 0, null),
+                    () -> new CompanyWorkshopRestoration.Offer(WorkshopState.NONE, CompanyWorkshopRestoration.credits(), null),
                     state -> null, () -> { }, () -> { });
             survey = ShipConditionModel.fleet(reactor, FleetFacilities::condition, FleetFacilities::offer,
                     FleetFacilities::purchase, CampaignCommodityPresentation.INSTANCE, () -> { });

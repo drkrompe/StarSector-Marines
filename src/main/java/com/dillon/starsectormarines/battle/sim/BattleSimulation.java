@@ -149,6 +149,7 @@ import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.evacuation.RuinsSleepers;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
@@ -542,6 +543,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new CivilianEvacuationSystem(civilianEvacuation);
     /** A derelict site's security network director (`derelict-security-network.md`); null on every other battle. */
     private DerelictSecurityDirector derelictSecurity;
+    private RuinsSleepers ruinsSleepers;
+
+    /** Installs the Rav under a ruins site ({@code RuinsSleepers}); once, at setup. */
+    public void installRuinsSleepers(RuinsSleepers sleepers) {
+        if (ruinsSleepers != null || simTickIndex != 0) throw new IllegalStateException("Install the sleepers once at setup");
+        ruinsSleepers = sleepers;
+    }
+
+    /** The Rav under a ruins site, or null. */
+    public RuinsSleepers ruinsSleepers() {
+        return ruinsSleepers;
+    }
 
     /** Installs a derelict site's security network director; called once at setup. */
     public void installDerelictSecurity(DerelictSecurityDirector director) {
@@ -691,6 +704,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private FieldSalvage fieldSalvage = new FieldSalvage(List.of());
     private boolean salvageInstalled;
     private List<SalvagePlacement.Site> fieldSalvageSites = List.of();
+    private SalvageCache occupantStash;
 
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
     public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
@@ -712,6 +726,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldSalvageSites = List.copyOf(sites);
     }
 
+    /** An occupant's own spoil, found beside the field caches: a ruins crew's stash at its camp, or null. */
+    public SalvageCache occupantStash() { return occupantStash; }
+
+    public void setOccupantStash(SalvageCache stash) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the occupant's stash before launch installs finds");
+        occupantStash = stash;
+    }
+
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
     public void installFieldSalvage() {
         if (salvageInstalled) return;
@@ -719,6 +742,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         List<SalvageCache> finds = new ArrayList<>(SalvagePlacement.forBattle(this, generationSeed));
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
+        if (occupantStash != null) finds.add(occupantStash);
         fieldSalvage = new FieldSalvage(finds);
         salvageInstalled = true;
     }
@@ -4321,6 +4345,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         if (derelictSecurity != null) derelictSecurity.tick(this);
+        if (ruinsSleepers != null) ruinsSleepers.tick(this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
         // After the harvest and the packs: a skitterer hauls what the harvest left loose, and tends what grew.

@@ -32,6 +32,21 @@ the garrisons a counter-attack took (`conquest-command.md`, garrisons sortie;
 these lines produce live with the mechanisms they measure: `garrisonables.md`
 (fight mix by mission) and `conquest-command.md` (a place the defender loses).
 
+## Ruins (`ruins`)
+
+One scavenger fixture per ruins grade (`ruins-scavengers-<grade>-v1.json`), on
+the ruins ground, each played from three seeds (`-Pseeds=<n>`; the fixture's
+seed and the ones after it). The company flies its real lift: one twelve-seat
+Hermes, one trip per squad the grade's tier recommends. `summary.md` gives each
+grade and seed as set up or failed (with the setup error), and as ended or
+stuck at the tick limit (default 27,000 ticks, `-PmaxTicks`). A setup failure
+or a stuck run fails the task. Ended means the haul boarded or lost, or the
+company beaten; which one is not reported. The company is Extraction's
+autopilot, not a player, so who wins and how long it takes say nothing about
+the mission (`ruins-expedition-battle.md`). Other occupants have their own
+fixtures, played with `-Pfixture=<path>`: `ruins-derelict-<grade>-v1.json` and
+`ruins-rav-<grade>-v1.json` (extensive and vast).
+
 ## Colony Breach (`colony-breach`)
 
 One fixture per hive posture (`colony-breach-nouns.md`, Hive posture), side by

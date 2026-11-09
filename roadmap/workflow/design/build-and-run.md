@@ -68,8 +68,9 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
 - **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
   generated colony map, and a third of medium tanks with each rotary gun, the green and red Scorpion
-  and Onager and a laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, with no
-  enemy and no end, for feeling how machines drive (`ProvingGroundSetup`; options
+  and Onager and a laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, and behind
+  them a squad for each Marine primary at service grade whose seats carry every special, with no
+  enemy and no end, for feeling how machines drive and firing every weapon (`ProvingGroundSetup`; options
   `surface=` and `seed=`). Click one, Tab to take it over. Debug Missions lists the
   same battle under Diagnostics, where a company of one squad lands with it.
 - **Controls** are the screens' own. In a catalog mission F9 leaves the battle for
@@ -107,7 +108,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   mod (the settings' mod manager then reports Nexerelin enabled), plus
   `src/test/resources/play/rules.csv` for Leave. Ossuary, an uncolonized world with
   extensive ruins listed after the colonies, plays the ruins fork
-  (`ruins-expedition.md`) over vanilla's own ruins and salvage rows, through to
+  (`ruins-expedition.md`), held by Domain security (Arcadia carries vanilla's
+  derelict theme, so its occupant draw gives derelict security), over vanilla's own ruins and salvage rows, through to
   the post-salvage row that marks the ruins explored, with toggles for ruins
   already explored and a hostile fleet nearby; it has no port, so the fleet
   never docks there. Until the expedition battle exists the fork needs
@@ -139,6 +141,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   control by its markup id, to pixel clicks: it waits for the control, respects
   modals and fails naming what could be pressed. `ids` prints that list.
   Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
+- **`-PplayStart=fleet`** plays the stand-in company on fleet facilities instead of
+  the Second Wind: no company ship, Engineering as the systems tree alone, and the
+  mock rooms its upgrades size (`fleet-facilities.md`). Quote each `-P` argument
+  in PowerShell, or a script path ending `.txt` is read as a task name.
 - **`-PplayUiScale=<scale>`** runs the window at a Starsector UI scale (in PowerShell,
   quote it: `"-PplayUiScale=1.5"`). The script step `audit <label>` reports every
   clickable control cut off by the page or a non-scrolling clip, and every label wider or taller

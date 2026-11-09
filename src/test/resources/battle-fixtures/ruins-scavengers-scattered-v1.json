@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "kind": "RUINS",
+  "seed": 91101,
+  "enemyHasHeavyArmor": false,
+  "tier": "FIRST_CONTRACT",
+  "risk": "MEDIUM",
+  "shuttles": [
+    {
+      "type": "HERMES",
+      "cycles": 1,
+      "seatsPerSortie": 12
+    }
+  ],
+  "targetProfile": {
+    "marketSize": 3,
+    "stability": 0,
+    "defenseLevel": 0,
+    "spaceportTier": 0,
+    "factionId": "pirates",
+    "functions": [
+      "HABITATION"
+    ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": [],
+  "grade": "SCATTERED",
+  "occupant": "SCAVENGERS"
+}
