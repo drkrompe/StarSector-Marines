@@ -156,11 +156,11 @@ seal doors with the vault deep inside, and brings the haul back out.
 - **Laws.** `DelveCheck` reaches every chamber and every entrance; the layer
   laws (no single blocked way closes the route) hold on the interior's
   bulkheads as on the lines outside.
-- **Open.** The roof is a picks question (`ruins-interior-roof`: one roof,
-  built; a dedicated megastructure roof set, mocked with the plate row; or
-  strips over the halls); `createSnapshots -Psnapshot=ruins-roof-options`
-  renders the first two. The chamber count, spine width and hull material are
-  UNTUNED. Seal doors are the works'
+- **Roof decided** (owner, 2026-11-09, picks `ruins-interior-roof`): a, one
+  roof over the whole megastructure in the existing roof art, over a dedicated
+  megastructure set (mocked with the plate row) and strips over the halls.
+  `createSnapshots -Psnapshot=ruins-roof-options` renders the first two.
+- **Open.** The chamber count, spine width and hull material are UNTUNED. Seal doors are the works'
   (`ruins-works.md`); the ground publishes the gate spans and the bunker door
   they shut.
 

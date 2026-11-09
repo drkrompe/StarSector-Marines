@@ -141,6 +141,8 @@ public final class RuinsDelveStage implements GenStage {
         /** The interior's footprint, and the hull face's column per row (null for the bunker). */
         Area interiorBox;
         int[] faceLx;
+        /** The power hall when it stands inside, laid with its band before the spine. */
+        PowerHall innerHall;
         /** Each interior layer's court, laid with its band so the spine runs through it. */
         final Map<Integer, Court> wells = new HashMap<>();
 
@@ -191,17 +193,17 @@ public final class RuinsDelveStage implements GenStage {
             for (int i = 0; i < layers; i++) drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1));
 
             int firstInside = layers - plan.interiorLayers();
+            // The power hall stands in a layer before the last; inside, when the interior has one.
+            int hallLayer = layers == 1 ? 0 : plan.interiorLayers() == 2 ? layers - 2 : rng.nextInt(layers - 1);
             List<Area> entrances = new ArrayList<>();
             if (firstInside == layers) entrances.add(bunker(vaultY));
-            else entrances.addAll(enclose(drafts, firstInside, zoneEnd));
+            else entrances.addAll(enclose(drafts, firstInside, zoneEnd, hallLayer));
 
             List<Layer> laid = new ArrayList<>();
             List<Junction> junctions = new ArrayList<>();
             List<Area> chambers = new ArrayList<>();
             PowerHall hall = null;
             RecordsTerminal records = null;
-            // The power hall stands in a layer before the last; inside, when the interior has one.
-            int hallLayer = layers == 1 ? 0 : plan.interiorLayers() == 2 ? layers - 2 : rng.nextInt(layers - 1);
             for (int i = 0; i < layers; i++) {
                 LayerDraft d = drafts.get(i);
                 boolean in = i >= firstInside;
@@ -212,10 +214,7 @@ public final class RuinsDelveStage implements GenStage {
                 if (i > 0) {
                     court = in ? wells.get(i) : court(i, region);
                 }
-                if (i == hallLayer) {
-                    hall = hall(i, region);
-                    if (in) connect(outside(hall.footprint(), hall.door()), i, null);
-                }
+                if (i == hallLayer) hall = in ? innerHall : hall(i, region);
                 if (i == 0) records = records(region);
                 List<SideRoom> rooms = new ArrayList<>();
                 for (int r = 0; r < ROOMS_PER_LAYER; r++) {
@@ -857,7 +856,7 @@ public final class RuinsDelveStage implements GenStage {
          * way into it and out of it, and two doors from the last band into the vault's hall (the apron, roofed).
          * Returns the entrances: the first interior layer's open ways.
          */
-        List<Area> enclose(List<LayerDraft> drafts, int first, int zoneEnd) {
+        List<Area> enclose(List<LayerDraft> drafts, int first, int zoneEnd, int hallLayer) {
             LayerDraft face = drafts.get(first);
             faceLx = face.lx;
             interiorBox = new Area(face.lineLeft, 0, w - 1, h - 1);
@@ -892,16 +891,21 @@ public final class RuinsDelveStage implements GenStage {
             for (int k = first; k < drafts.size(); k++) {
                 int left = drafts.get(k).lineRight + 2;
                 int right = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 2 : apron.left() - 2;
-                // The band's court first, a light well the spine runs through, so the corridor never has to
-                // squeeze past it.
+                // The band's big pieces first, while the whole band is free: the power hall, then the court,
+                // a light well the spine runs through. The spine is laid after them, clear of the hall, so neither
+                // has to squeeze in beside the corridor.
                 int regionLeft = drafts.get(k).lineRight + 3;
                 int regionRight = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 4 : zoneEnd;
-                Court well = court(k, new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3));
+                Area region = new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3);
+                if (k == hallLayer) innerHall = hall(k, region);
+                Court well = court(k, region);
                 wells.put(k, well);
-                int spine = clamp(well.ground().centreX(), left + 1, right - 1);
+                int spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 for (int y = 2; y <= h - 3; y++) for (int x = spine - 1; x <= spine + 1; x++) carve(x, y, k);
                 for (Way way : drafts.get(k).ways) connect(way.far(), k, null);
                 if (k + 1 < drafts.size()) for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null);
+                if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
+                connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
             }
             int last = drafts.size() - 1;
             connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron);
@@ -964,6 +968,24 @@ public final class RuinsDelveStage implements GenStage {
             if (rng.nextBoolean()) loose(WRECKAGE[rng.nextInt(WRECKAGE.length)], room.left() + 1, room.bottom() + 1);
             else loose(SCRAP, room.right() - 1, room.top() - 1);
             return room;
+        }
+
+        /**
+         * The column a band's spine runs down: through the court, as near its middle as it can (else anywhere clear of the hall), three cells wide
+         * and clear of the power hall and the ring of open floor round it, within {@code lo..hi}.
+         */
+        int spineColumn(Court well, PowerHall hall, int lo, int hi, int band) {
+            int best = -1, centre = well.ground().centreX();
+            for (int x = Math.max(lo, well.ground().left() + 1); x <= Math.min(hi, well.ground().right() - 1); x++) {
+                if (hall != null && x + 1 >= hall.footprint().left() - 2 && x - 1 <= hall.footprint().right() + 2) continue;
+                if (best < 0 || Math.abs(x - centre) < Math.abs(best - centre)) best = x;
+            }
+            // A court straight above or below the hall: the spine runs clear of the hall, the court is joined to it.
+            for (int x = lo; best < 0 && x <= hi; x++) {
+                if (hall == null || x + 1 < hall.footprint().left() - 2 || x - 1 > hall.footprint().right() + 2) best = x;
+            }
+            if (best < 0) throw new IllegalStateException(RuinsDelve.layerName(band) + " has no room for its spine");
+            return best;
         }
 
         /** The open cell straight out from a shell's door. */
