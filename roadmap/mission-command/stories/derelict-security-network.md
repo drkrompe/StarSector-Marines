@@ -98,8 +98,9 @@ the force split along the roofline:
 - **Posts that wake** (slice 7) stand at interior doors and courts as well as
   outside.
 
-Not built: posting walkers by the interior's own places (`ruins.interior`, its
-rooms and doors) rather than by route cells; that waits on the interior ground.
+Built: where the site has an interior (`RuinsDelve.Interior`), the walkers
+are posted by its own places rather than by route cells (What is built, The
+seam into the battle).
 
 ## What is built
 
@@ -170,12 +171,21 @@ Everything is in `battle.derelict`.
   (`egressAlong`), launches the flocks and installs the director in place of
   `ExtractionDefenderCommand`. `RuinsExpeditionMissionFactory` names the
   occupant's own faction for a derelict site.
+- **Interior posts.** On a site with an interior, `install(sim, grade, delve)`
+  posts the walkers by `interiorPosts`: the vault frame on the vault's
+  approach, the siege frame in the first entrance, line frames in the
+  interior's chambers in turn (its entrances when it has none); each walker
+  belongs to the zone whose node is nearest. A zone's flock is homed on the
+  first unroofed cell of the route from its node toward the landing
+  (`openSkyHome`), so a flock whose zone lies indoors waits at the doorway
+  rather than under the roof.
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
 `ruins-derelict-extensive-v1`; `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
-from the first walker contact). Played headless through `battleProbe`: line
+from the first walker contact, then the vast site's vault frame and a line
+frame at their interior posts with the roof lifted). Played headless through `battleProbe`: line
 frames hold their posts until a pin falls inside their perimeter and then
 attack-move onto it; the siege frame engages from its post at twenty-odd
 cells.
