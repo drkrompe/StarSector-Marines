@@ -91,4 +91,29 @@ class MechFluxTest {
         assertFalse(flux.permits(0f, false) && flux.permits(95f, false));
         assertThrows(IllegalStateException.class, () -> flux.configure(120f, 6f));
     }
+
+    @Test void aChargeIsNeverRefusedNeverVentsAndHoldsTheAiPastTheWarningMark() {
+        MechFlux flux = new MechFlux();
+        assertFalse(flux.charge(96f));
+        assertFalse(flux.venting(), "a shield's flux keeps the shield up until the pool is full");
+        assertTrue(flux.aiDissipating());
+        assertTrue(flux.charge(10f), "the charge that fills the pool says so");
+        assertEquals(flux.capacity(), flux.value());
+    }
+
+    @Test void anOverloadSilencesThePoolThenLeavesItEmptyAndClear() {
+        MechFlux flux = new MechFlux();
+        flux.commit(50f);
+        flux.overload(2f);
+        assertTrue(flux.overloaded());
+        assertFalse(flux.permits(0f, false));
+        assertEquals(2f, flux.secondsUntilPermits(10f, false), .001f);
+        assertFalse(flux.charge(5f), "nothing is charged while overloaded");
+        flux.advance(1f);
+        assertEquals(50f, flux.value(), .001f, "it vents from full to empty over the overload");
+        flux.advance(1f);
+        assertFalse(flux.overloaded());
+        assertEquals(0f, flux.value());
+        assertTrue(flux.permits(80f, true));
+    }
 }

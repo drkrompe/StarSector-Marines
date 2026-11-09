@@ -90,6 +90,7 @@ import com.dillon.starsectormarines.ops.battleview.HeldFireLoops;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
+import com.dillon.starsectormarines.ops.battleview.RuinsStirAudio;
 import com.dillon.starsectormarines.ops.battleview.CreepAudio;
 import com.dillon.starsectormarines.ops.battleview.FlockAudio;
 import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
@@ -1505,6 +1506,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
         BoreAudio.play(sim);
+        RuinsStirAudio.play(sim);
         SwarmAudio.play(sim, camera.panCellX(), camera.panCellY());
         CreepAudio.play(sim, camera.panCellX(), camera.panCellY());
         FlockAudio.play(sim, camera.panCellX(), camera.panCellY());

@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MachineHosts;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
+import com.dillon.starsectormarines.battle.mech.MechShield;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
@@ -2968,6 +2970,23 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             String structureId = host.getValue().activeProtectionStructureId();
             if (structureId == null || resolveUnit(id) == 0L) continue;
             pointDefense.mountMachine(id, rosterService.identity().faction(id), structureId);
+        }
+        fitMechShields();
+    }
+
+    /**
+     * Gives every mech whose compartment carries a shield emitter its shield, once: run on the mech's own flux pool
+     * ({@link MechShield}), facing as the mech does. The shield goes when the mech does ({@link #tickTurretShields}).
+     */
+    private void fitMechShields() {
+        for (Map.Entry<Long, MachineSystems> host : rosterService.machineHosts().entries()) {
+            if (!host.getValue().shieldEmitter()) continue;
+            long id = host.getKey();
+            if (resolveUnit(id) == 0L || turretShields.fitted(id) != null) continue;
+            MechLoadoutComponent loadout = world.mechLoadout(id);
+            if (loadout == null) continue;
+            turretShields.fitPooled(id, MechShield.FRONTAL, MechShield.TINT, world.mechHipFacingDegrees(id) + 90f,
+                    loadout.flux);
         }
     }
 

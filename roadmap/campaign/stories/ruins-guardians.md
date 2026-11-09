@@ -1,9 +1,9 @@
 # Ruins guardians
 
 Status: IN PROGRESS — owner direction ("mini bosses"); owner picks
-`derelict-hive-fight` (a, the hatch rhythm) and `derelict-vault-guardian` (a,
-the vault frame braces). The rules for derelict security's two guardians are
-built (What is built). Builds on the picks `ruins-guardian-placement` (a) and
+`derelict-hive-fight` (a, the hatch rhythm), `derelict-vault-guardian` (a,
+the vault frame braces) and `walker-legs` (a, knees on the walker). The rules
+for derelict security's two guardians are built (What is built). Builds on the picks `ruins-guardian-placement` (a) and
 `ruins-guardian-kinds` (a). The walker's look is `derelict-walker-look-v3`'s
 sentinel, which derelict security's heavy line ships.
 
@@ -93,7 +93,7 @@ No new chassis: its boss read is the walker's look, the sentinel
 
 Owner direction ("separate hit boxes for the legs / knees and the central
 body"; "enemies likely should be able to path under the held up torso"),
-built on the recommended option of the open pick `walker-legs` (a). Every
+owner pick `walker-legs` (a, knees on the same unit). Every
 derelict walker carries it; the vault frame's brace reads it.
 
 - **Knees.** Each of the four legs has a knee with its own structure, on the

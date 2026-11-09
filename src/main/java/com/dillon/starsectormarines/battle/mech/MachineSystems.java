@@ -17,9 +17,11 @@ import java.util.List;
  * @param droneBay         the drones its compartment adds to what it launches, in launch order (a sensor pair's two)
  * @param activeProtection it carries active protection: a point-defence mount riding the machine that takes the
  *                         arcing, top-attack rounds coming down on it ({@link #activeProtectionStructureId})
+ * @param shieldEmitter    it carries a shield emitter: a frontal flux shield run on its one flux pool, so blocking and
+ *                         firing spend the same headroom ({@link MechShield})
  */
 public record MachineSystems(float structureFactor, float ammoFactor, float speedFactor, List<DroneRole> droneBay,
-                             boolean activeProtection) {
+                             boolean activeProtection, boolean shieldEmitter) {
 
     /** {@code false} is the control: active protection mounts nothing. */
     public static final String ACTIVE_PROTECTION_PROPERTY = "battle.vehicle.activeProtection";
@@ -29,7 +31,7 @@ public record MachineSystems(float structureFactor, float ammoFactor, float spee
             Boolean.parseBoolean(System.getProperty(ACTIVE_PROTECTION_PROPERTY, "true")) ? "structure.tank-aps" : null;
 
     /** A compartment that changes none of these. */
-    public static final MachineSystems NONE = new MachineSystems(1f, 1f, 1f, List.of(), false);
+    public static final MachineSystems NONE = new MachineSystems(1f, 1f, 1f, List.of(), false, false);
 
     public MachineSystems {
         if (!positive(structureFactor) || !positive(ammoFactor) || !positive(speedFactor)) {
@@ -38,9 +40,15 @@ public record MachineSystems(float structureFactor, float ammoFactor, float spee
         droneBay = droneBay == null ? List.of() : List.copyOf(droneBay);
     }
 
+    /** A compartment with no shield emitter. */
+    public MachineSystems(float structureFactor, float ammoFactor, float speedFactor, List<DroneRole> droneBay,
+                          boolean activeProtection) {
+        this(structureFactor, ammoFactor, speedFactor, droneBay, activeProtection, false);
+    }
+
     /** A compartment that changes only structure and rounds. */
     public MachineSystems(float structureFactor, float ammoFactor) {
-        this(structureFactor, ammoFactor, 1f, List.of(), false);
+        this(structureFactor, ammoFactor, 1f, List.of(), false, false);
     }
 
     private static boolean positive(float value) {

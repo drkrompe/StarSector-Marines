@@ -93,7 +93,7 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
     }
 
     /** The fixture's battle with the entry taken and marines at the stand of the deepest layer. */
-    private static BattleSimulation delve(SnapshotContext context, String fixturePath) throws Exception {
+    static BattleSimulation delve(SnapshotContext context, String fixturePath) throws Exception {
         JSONObject fixture = new JSONObject(Files.readString(context.projectRoot().resolve(fixturePath)));
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
         RuinsVaultObjective vault = RuinsPullOut.vault(sim);
@@ -179,7 +179,7 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
     }
 
     /** Every marine squad holds the ground it stands on. */
-    private static void holdTheCompany(BattleSimulation sim) {
+    static void holdTheCompany(BattleSimulation sim) {
         Set<Integer> held = new TreeSet<>();
         for (int i = 0, m = sim.liveUnitCount(); i < m; i++) {
             long unit = sim.liveUnitAt(i);
@@ -194,7 +194,7 @@ public final class RuinsPushCueLookSuite implements SnapshotSuite {
     }
 
     /** The middle of some squads' members, or with {@code side} of that side's movers; null with none. */
-    private static float[] middle(BattleSimulation sim, List<Integer> squads, Faction side) {
+    static float[] middle(BattleSimulation sim, List<Integer> squads, Faction side) {
         float sx = 0f, sy = 0f;
         int n = 0;
         if (side == null) {

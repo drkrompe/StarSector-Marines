@@ -104,6 +104,18 @@ public final class RuinsPushes {
         }
     }
 
+    /** Whether a way-back push still standing has reached the stand it holds across the company's way back. */
+    public boolean wayBackHeld(BattleSimulation sim) {
+        for (int i = 0; i < fielded.size(); i++) {
+            Order order = issued.get(i);
+            if (fielded.get(i).push().aim() == Aim.WAY_BACK && order != null && order.kind() == Kind.DEFEND
+                    && sim.squadMemberCount(fielded.get(i).squadId()) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Every step: on the pulse, each push's squad still standing is told where to go. */
     void tick(BattleSimulation sim, int noiseX, int noiseY) {
         if (fielded.isEmpty() || sim.getSimTickIndex() % PULSE_TICKS != 0) return;
