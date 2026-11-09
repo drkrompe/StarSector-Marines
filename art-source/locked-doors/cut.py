@@ -1,10 +1,14 @@
 """Cuts the accepted locked-door master into the shipped sprites (mod/graphics/doors/<id>.png).
 
+Each hardened door also gets a <id>-ready.png whose red lock bar and lamp are turned amber: the door powered but still
+waiting on its keys.
+
 Each piece is cut at its own opaque bounds found round its guide box (ImageGen moves pieces a few pixels), then
 scaled to OUT_CELL px per cell at its guide size. Run from the repository root:
 python art-source/locked-doors/cut.py
 """
 import json
+import colorsys
 import os
 from PIL import Image
 
@@ -27,3 +31,24 @@ for p in spec["pieces"]:
     size = (round(p["w"] / spec["cellPx"] * OUT_CELL), round(p["h"] / spec["cellPx"] * OUT_CELL))
     piece.resize(size, Image.LANCZOS).save(os.path.join(OUT, p["id"] + ".png"))
     print(p["id"], size)
+
+
+def amber(image):
+    """The image with its strongly red, saturated pixels (the lock bar and lamp) turned amber, light kept."""
+    out = image.copy()
+    px = out.load()
+    for y in range(out.height):
+        for x in range(out.width):
+            r, g, b, a = px[x, y]
+            h, l, sat = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+            if a and sat > 0.45 and l > 0.25 and (h < 0.06 or h > 0.95) and r > 120:
+                nr, ng, nb = colorsys.hls_to_rgb(0.11, min(1.0, l * 1.08), sat)
+                px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return out
+
+
+for p in spec["pieces"]:
+    if p["id"].startswith("hardened-") and "jamb" not in p["id"]:
+        shut = Image.open(os.path.join(OUT, p["id"] + ".png")).convert("RGBA")
+        amber(shut).save(os.path.join(OUT, p["id"] + "-ready.png"))
+        print(p["id"] + "-ready")

@@ -48,8 +48,18 @@ one, and the sealed stores behind them are the reward.
    hardened: it and the vault suite's walls are hardened walls, so no charge
    and no heavy hull gets in, and the hall's power is the only way through
    (owner pick `ruins-vault-seal`: a door with a puzzle, the first locked door
-   and hardened walls, so a heavy tank is not simply driven through). Powered,
-   it opens and the breach takes the powered time. On scattered ground the
+   and hardened walls, so a heavy tank is not simply driven through).
+   **Vault access** (`VaultKeys`; owner pick `ruins-vault-access`, built on the
+   recommended option c while it is open): power alone does not open it. Once
+   powered, its lamp burns amber and it waits on two keys turned together: the
+   company holds the records console and the vault keypad (on the antechamber
+   floor before the door) at the same moment for 3 s, so the company splits
+   across the site. Turned, the keys stay turned and the powered door opens;
+   the breach takes the powered time. A site without a records terminal opens
+   it by power alone. The door's marker and prompt say what it lacks (NO POWER,
+   then TURN BOTH KEYS with the keys held), the keypad is marked with its count,
+   the records console's card names it a key once the door is powered, and the
+   last junction's marker reads FEEDS THE VAULT. On scattered ground the
    bunker's one door is a forcible seal door on the same branch. Once the vault
    is breached, no way-on door shuts again, so the haul is never shut in.
 3. **The power hall and junctions.** Mission-owned interactions on the main
@@ -107,7 +117,9 @@ one, and the sealed stores behind them are the reward.
    run or scene judges whether the company gets through (owner rule).
    `createSnapshots -Psnapshot=ruins-works-look` shows a store sealed and
    powered open; `ruins-vault-lock-look` shows the vault's door locked, its
-   hardened walls tinted, and the door opened by power.
+   hardened walls tinted, powered and awaiting its keys, and open;
+   `ruins-vault-access-picks` frames the access pick's three options.
+   `VaultKeysTest` proves the keys.
 
 ## Constraints
 

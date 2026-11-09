@@ -1,0 +1,13 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of a sheer gorge wall
+cut by a river, as it would be mapped onto a vertical cliff. Weathered
+sedimentary rock in horizontal strata: thick grey-brown sandstone beds
+and thinner dark shale bands, each course roughly 1 to 3 m tall, with
+crisp bedding lines, vertical joints and fractures, small overhanging
+ledges with tufts of moss and fern, hanging roots, dark seep stains and
+mineral streaks running down, lichen patches. Lit evenly by soft daylight
+from straight in front, no cast shadows from outside the tile. Even
+density across the whole tile with no focal point, strata running
+straight across so it repeats both horizontally and vertically. Palette:
+warm grey-brown, ochre, slate, dark olive moss. No water, no sky, no
+people, no text, no border, no vignette. Square canvas.

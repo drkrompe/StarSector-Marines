@@ -305,7 +305,10 @@ beside it. An overloaded hall powers nothing until a junction sheds load.
 The vault's seal is its inner door, and on scattered ground the bunker's door is
 sealed too, both on the last layer's way on; once the vault is breached they
 stay open. The vault's door and its suite's walls are hardened: no charge and
-no heavy hull gets in, so the hall is the vault's one way.
+no heavy hull gets in, so the hall is the vault's one way. Powered, the door
+still waits on two keys turned together: the company holds the records console
+and the vault keypad at the same moment, so it splits across the site
+(`ruins-works.md`, Vault access).
 A store, a gate or the collapse is forced through its prompt: a satchel carrier
 brought within reach sets the charge.
 
