@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c21e-8be6-7091-8b8a-4f8e0a739047",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c21e-8be6-7091-8b8a-4f8e0a739047\\exec-cfe835a7-5fd9-4013-87e6-4ec626c68867.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\hightech\\foot\\foot-master.png",
+    "sha256": "3f540b13e08be7c010da6e1aad32759ff3fa25f961cb3504034214b374753734",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\hightech\\foot\\foot.prompt.txt",
+  "promptSha256": "097cca6e6e4d57845b8ca4d41c9ac77811726081965964eb331faca47d117759",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Family identity only; not layout\nImage 3: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the FOOT PAD of a Tri-Tachyon high-tech walking machine, seen straight from above. It is drawn under the machine's body, so mostly its front edge shows as the leg steps.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize or add to its shape, and keep all empty canvas empty. The wide upper part is the front of the pad; the stepped lower part is the heel where the leg meets it. Draw a rounded steel-blue armour toe lobe over a dark machined sole, a dark ankle bearing at the heel with one small blue-lit port.\n\nImage 2 is family identity reference only, never layout: the accepted heavy-shell body of the Tri-Tachyon high-tech walker this part belongs to. Match it exactly: pale steel-blue armour lobes with cool blue shading, bulging and rounded like carapace, set over dark, busy gunmetal machinery with small blue-lit ports; a little wear and grime in the recesses; crisp painted game-sprite finish at full resolution, not pixel art; light from the upper left. Image 3 is material reference only: Starsector's high-tech hulls.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, cast shadow, halo, glow outside the part, border, text or labels.\n\nAvoid: a leg, a second foot, rivets, tan or olive paint, white plastic, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\foot\\guide.png",
+      "sha256": "6eaeacde2bf2ad4619830f7c32e4d80bd14620173dacd3e1eaa96a81766b2346",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\medium\\d-master.png",
+      "sha256": "f2aaf04f2a778cfd57487f498fb5af68137db507b348e1a215671c74b686572d",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Family identity only; not layout"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one foot-pad image, preserving Image 1’s silhouette and layout and using the other references for the finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 45599,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 615,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.1
+}

@@ -4,8 +4,16 @@ import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
+import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +61,26 @@ public final class RaidSiteTemplate {
     /** The yards beyond the works: the industrial district's far side, so the deep end is built and not empty. */
     public static final String YARDS = "yards";
     public static final String OUTSKIRTS = "outskirts";
+    /**
+     * A mine's open pit: ground held beside the head works, at the deep end, as a {@link Site} of
+     * {@link SitePurpose#GROUND} on the plan's {@link PrecinctPlan#layout() layout}. Nothing grows on it (no road,
+     * building, field or works), so {@link OpenPit} finds it clear and cuts the pit there; read it with
+     * {@code plan.layout().find(PIT)}.
+     */
+    public static final String PIT = OpenPit.SITE;
+    /** The road from the works' near gate to its industrial district: how the works' output leaves for the town. */
+    public static final String HAUL_ROAD = "haul-road";
+    /**
+     * The feeder lines: roads from the works' far gates off the map's edge, the lines from the planet's other sites
+     * that all run in to this one ({@code raid-site-templates.md}, The planet's chokepoint). Named this prefix and
+     * the side they leave by.
+     */
+    public static final String FEEDER = "feeder-";
+
+    /** Width of the haul road and the feeders, in cells. UNTUNED. */
+    static final int LINE_WIDTH = 3;
+    /** An endpoint offset beyond any map: the road's far end is clamped to the edge, so it runs off the map. */
+    private static final int OFF_MAP = 10_000;
 
     /** Market size from which the site has an outskirts suburb behind the homes. UNTUNED. */
     static final int OUTSKIRTS_FROM = 6;
@@ -106,6 +134,21 @@ public final class RaidSiteTemplate {
     static final MapPlacement WORKS_AT = new MapPlacement(0.68f, 0.58f, 0.86f, 0.80f);
     static final MapPlacement GARRISON_AT = new MapPlacement(0.70f, 0.14f, 0.90f, 0.36f);
     static final MapPlacement OUTSKIRTS_AT = new MapPlacement(0.04f, 0.04f, 0.22f, 0.24f);
+    // A mine stands its head works further in and its ore yards with it, so the deep end is the pit's.
+    static final MapPlacement MINE_WORKS_AT = new MapPlacement(0.56f, 0.55f, 0.68f, 0.75f);
+    static final MapPlacement MINE_INDUSTRY_AT = new MapPlacement(0.38f, 0.50f, 0.48f, 0.80f);
+
+    /** Cells of open ground between the head works' claim and the pit's lip: room for the road out of its far gate. UNTUNED. */
+    static final int PIT_GAP = 16;
+    /** Half the pit's extent across the map, as a share of its height. UNTUNED. */
+    static final float PIT_HALF_SPAN = 0.22f;
+    /**
+     * The pit keeps to the works' side of the map, never nearer the middle than this share: clear of the garrison's
+     * ground, whose roads the works can depend on for its own way in. UNTUNED.
+     */
+    static final float PIT_INNER = 0.56f;
+    /** Cells the pit stops short of the map's edges. */
+    static final int PIT_MARGIN = 2;
 
     /**
      * The works' own roads: one junction and short arms, enough to reach the town's streets through its gates and
@@ -133,19 +176,27 @@ public final class RaidSiteTemplate {
     private final float worksFit;
     private final GrownTrunkPlan.Profile industryGrowth;
     private final PrecinctCharacter industryCharacter;
+    private final boolean pit;
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth) {
-        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY);
+        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY, false);
     }
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter) {
+        this(key, works, worksFit, industryGrowth, industryCharacter, false);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
+                             boolean pit) {
         this.key = key;
         this.works = works;
         this.worksFit = worksFit;
         this.industryGrowth = industryGrowth;
         this.industryCharacter = industryCharacter;
+        this.pit = pit;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
@@ -155,7 +206,10 @@ public final class RaidSiteTemplate {
         if (HEAVY_INDUSTRY.contains(id)) {
             return new RaidSiteTemplate("heavy-industry", FortressProgram::works, WORKS_FIT, INDUSTRY_GROWTH);
         }
-        if (MINING.contains(id)) return new RaidSiteTemplate("mining", RaidWorksPrograms::mine, MINE_FIT, ORE_YARDS);
+        if (MINING.contains(id)) {
+            return new RaidSiteTemplate("mining", RaidWorksPrograms::mine, MINE_FIT, ORE_YARDS,
+                    PrecinctCharacter.INDUSTRY, true);
+        }
         if (REFINING.contains(id)) {
             return new RaidSiteTemplate("refining", RaidWorksPrograms::refinery, MINE_FIT, INDUSTRY_GROWTH);
         }
@@ -196,27 +250,97 @@ public final class RaidSiteTemplate {
         boolean mirrorY = orientation.nextBoolean();
         Security security = Security.of(profile);
         List<PrecinctBrief> briefs = new ArrayList<>();
-        briefs.add(PrecinctBrief.garrison(WORKS, oriented(WORKS_AT, mirrorX, mirrorY), WORKS_GROWTH,
+        briefs.add(PrecinctBrief.garrison(WORKS, oriented(pit ? MINE_WORKS_AT : WORKS_AT, mirrorX, mirrorY),
+                WORKS_GROWTH,
                 works.apply(machines).fittedTo(Math.round(worksFit * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
             briefs.add(PrecinctBrief.garrison(GARRISON, oriented(GARRISON_AT, mirrorX, mirrorY),
-                    GrownTrunkPlan.Profile.hamlet(),
-                    PrecinctPlan.garrisonFor(profile).fittedTo(Math.round(PrecinctPlan.FIT * width * height)),
-                    demand.resolve(profile.defenseLevel())));
+                    PrecinctPlan.raidGarrisonGrowth(),
+                    PrecinctPlan.raidGarrison(profile, security.ordinal())
+                            .fittedTo(Math.round(PrecinctPlan.FIT * width * height)),
+                    PrecinctPlan.raidGarrisonWall(demand.resolve(profile.defenseLevel()), security.buffer())));
         }
         briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
-        briefs.add(PrecinctBrief.settlement(INDUSTRY, oriented(INDUSTRY_AT, mirrorX, mirrorY),
-                industryGrowth, industryCharacter));
-        briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
-                industryGrowth, industryCharacter));
+        briefs.add(PrecinctBrief.settlement(INDUSTRY,
+                oriented(pit ? MINE_INDUSTRY_AT : INDUSTRY_AT, mirrorX, mirrorY), industryGrowth, industryCharacter));
+        if (!pit) {
+            briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
+                    industryGrowth, industryCharacter));
+        }
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
             briefs.add(PrecinctBrief.settlement(OUTSKIRTS, oriented(OUTSKIRTS_AT, mirrorX, mirrorY),
                     GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB));
         }
-        return PrecinctPlan.laidOut(briefs, oriented(LANDING_FROM, mirrorX, mirrorY), width, height, rng)
+        PrecinctPlan plan = PrecinctPlan.laidOut(briefs, oriented(LANDING_FROM, mirrorX, mirrorY), width, height, rng)
                 .withStandoff(Standoff.INSET);
+        List<Piece> pieces = new ArrayList<>();
+        if (pit) {
+            Precinct head = null;
+            for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) head = p;
+            pieces.add(pitSite(head.seedX(), head.seedY(), worksReach(worksFit, security, width, height),
+                    mirrorX, mirrorY, width, height));
+        }
+        pieces.addAll(lines(mirrorX, mirrorY, pit));
+        return plan.withLayout(new MissionLayout(pieces));
+    }
+
+    /**
+     * The works' roads ({@code raid-site-templates.md}, The planet's chokepoint): the haul road from its near gate
+     * to the industrial district, and a feeder off the map's edge from each far gate, the deep end's and the outer
+     * flank's. A mine's deep end is its pit, so its only feeder is the flank's.
+     */
+    static List<Road> lines(boolean mirrorX, boolean mirrorY, boolean pit) {
+        Side deep = mirrorX ? Side.WEST : Side.EAST;
+        Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
+        List<Road> out = new ArrayList<>();
+        out.add(new Road(HAUL_ROAD, Endpoint.gate(WORKS, deep.opposite()), Endpoint.beside(INDUSTRY, deep, 0, 0),
+                LINE_WIDTH, false));
+        out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT), Endpoint.gate(WORKS, outer),
+                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), LINE_WIDTH, false));
+        if (!pit) {
+            out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT), Endpoint.gate(WORKS, deep),
+                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), LINE_WIDTH, false));
+        }
+        return out;
+    }
+
+    /**
+     * The most a works' claim reaches from its seed: half the side of the square a works of this fit and security
+     * can claim, at its largest. Its program is fitted to {@code fit} of the map, so its claim is never wider.
+     */
+    static int worksReach(float fit, Security security, int width, int height) {
+        int side = (int) Math.ceil(Math.sqrt(fit * width * height)) + 2 * security.buffer();
+        return (side + 1) / 2;
+    }
+
+    /**
+     * The pit beside a head works seeded at {@code (seedX, seedY)}: from {@link #PIT_GAP} beyond the works' reach to
+     * the deep edge, and across the map {@link #PIT_HALF_SPAN} either side of the works, kept to the works' half
+     * (never nearer the middle than {@link #PIT_INNER}) so it stays off the garrison's flank.
+     */
+    static Site pitSite(int seedX, int seedY, int reach, boolean mirrorX, boolean mirrorY, int width, int height) {
+        int x0, x1;
+        if (mirrorX) {
+            x0 = PIT_MARGIN;
+            x1 = seedX - reach - PIT_GAP;
+        } else {
+            x0 = seedX + reach + PIT_GAP;
+            x1 = width - 1 - PIT_MARGIN;
+        }
+        int span = Math.round(PIT_HALF_SPAN * height);
+        int y0 = seedY - span, y1 = seedY + span;
+        if (mirrorY) {
+            y0 = Math.max(PIT_MARGIN, y0);
+            y1 = Math.min(Math.round((1f - PIT_INNER) * height), y1);
+        } else {
+            y0 = Math.max(Math.round(PIT_INNER * height), y0);
+            y1 = Math.min(height - 1 - PIT_MARGIN, y1);
+        }
+        if (x1 < x0) x1 = x0;
+        if (y1 < y0) y1 = y0;
+        return new Site(PIT, x0, y0, x1, y1, SitePurpose.GROUND, true);
     }
 
     /**

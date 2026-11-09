@@ -26,8 +26,9 @@ import java.util.Set;
  * unless the company has sat still (dug in, {@link Stillness}), when it comes up in the layer behind and sits on the
  * way back. Holding still is never safe: the site goes round a company that does.
  *
- * <p>This class decides the steps, the pushes and their aim. Turning a push into the occupant's units is the
- * occupant's (the story's later slices); until then {@link #pushes()} records them for the row and for probes.
+ * <p>This class decides the steps, the pushes and their aim; {@link RuinsPushes} raises each push as the occupant's
+ * units and commands them once it is {@linkplain #field fielded}. {@link #pushes()} records every push for the row,
+ * the comms and probes.
  */
 public final class RuinsPressure {
 
@@ -74,6 +75,12 @@ public final class RuinsPressure {
     static final float TIME_PER_SECOND = 1f;
     /** Further stir per second while the company is firing: a fight halves the time to the next push. UNTUNED. */
     static final float FIRING_PER_SECOND = 1f;
+    /** The highest stake a prize carries. */
+    static final int MAX_STAKES = 3;
+    /** Reserve squads each stake of the prize adds. UNTUNED. */
+    static final int RESERVE_PER_STAKE = 1;
+    /** How much faster time and gunfire stir per stake: a stake-3 site steps in 90 s / 1.45, about a minute. UNTUNED. */
+    static final float RATE_PER_STAKE = 0.15f;
     /** Stir of the power hall restarting, the loudest work on the site. UNTUNED. */
     public static final float HALL_RESTART = 30f;
     /** Stir of a breaching charge going off. UNTUNED. */
@@ -88,6 +95,8 @@ public final class RuinsPressure {
     static final float FIRING_HOLD_SECONDS = 1f;
 
     private final int initialReserve;
+    /** How fast time and gunfire stir this site: faster the more its vault's prize is worth. */
+    private final float rate;
     private final RuinsDelve delve;
     private final Stillness stillness = new Stillness(STILL_SECONDS, SAMPLE_SECONDS, STILL_CELLS);
     private final List<Push> pushes = new ArrayList<>();
@@ -99,9 +108,24 @@ public final class RuinsPressure {
     private float elapsed;
     private float lastShot = -FIRING_HOLD_SECONDS;
     private int shotsHeard;
+    private RuinsPushes field;
+    private float companyX;
+    private float companyY;
+    private int noiseX;
+    private int noiseY;
+    private boolean placed;
+    private boolean heardAny;
+    private int shotX;
+    private int shotY;
 
     RuinsPressure(int reserve, RuinsDelve delve) {
+        this(reserve, 1f, delve);
+    }
+
+    RuinsPressure(int reserve, float rate, RuinsDelve delve) {
         if (reserve < 0) throw new IllegalArgumentException("A reserve is never negative");
+        if (!(rate > 0f)) throw new IllegalArgumentException("A stir always rises");
+        this.rate = rate;
         this.initialReserve = reserve;
         this.reserve = reserve;
         this.delve = delve;
@@ -109,7 +133,17 @@ public final class RuinsPressure {
 
     /** The pressure of an occupied site of {@code grade}, over its delve. */
     public static RuinsPressure of(RuinsGrade grade, RuinsDelve delve) {
-        return new RuinsPressure(reserve(grade), delve);
+        return of(grade, 0, delve);
+    }
+
+    /**
+     * The pressure of an occupied site of {@code grade} whose vault holds a prize of {@code stakes}
+     * ({@code RuinsVaultPrize.stakes}, 0 to 3; {@code ruins-expedition.md}, Stakes): each stake holds one more squad
+     * in the reserve and stirs the site faster.
+     */
+    public static RuinsPressure of(RuinsGrade grade, int stakes, RuinsDelve delve) {
+        int stake = Math.max(0, Math.min(MAX_STAKES, stakes));
+        return new RuinsPressure(reserve(grade) + stake * RESERVE_PER_STAKE, 1f + stake * RATE_PER_STAKE, delve);
     }
 
     /** The occupant's reserve deeper in, in squads: larger ruins hold more. UNTUNED. */
@@ -151,7 +185,7 @@ public final class RuinsPressure {
      */
     List<Push> advance(float dt, boolean firing, Situation where) {
         if (breached) return List.of();
-        stir += dt * (TIME_PER_SECOND + (firing ? FIRING_PER_SECOND : 0f));
+        stir += dt * rate * (TIME_PER_SECOND + (firing ? FIRING_PER_SECOND : 0f));
         return steps(where);
     }
 
@@ -211,6 +245,15 @@ public final class RuinsPressure {
     /** Whether the company has held still long enough that the next push goes round it. */
     public boolean dugIn() { return stillness.dugIn(); }
 
+    /** Has the occupant raise and command each push from now on. Once, at setup, after the occupant stands. */
+    public void field(RuinsPushes pushes) {
+        if (field != null) throw new IllegalStateException("A site's pushes are fielded once");
+        field = pushes;
+    }
+
+    /** Who raises the pushes, or null on a site whose pushes are only recorded. */
+    public RuinsPushes fielded() { return field; }
+
     /** Every push sent so far, oldest first. */
     public List<Push> pushes() { return Collections.unmodifiableList(pushes); }
 
@@ -220,21 +263,33 @@ public final class RuinsPressure {
      */
     public void tick(BattleSimulation sim) {
         RuinsVaultObjective vault = vault(sim);
-        if (vault == null || breached) return;
+        if (vault == null) return;
         float dt = BattleSimulation.TICK_DT;
         elapsed += dt;
         boolean shot = heardShots(sim);
         int charged = heardCharges(sim);
-        if (vault.breached()) {
-            breach(delve.layerCount());
-            return;
+        if (!breached && vault.breached()) {
+            situation(sim);
+            send(sim, breach(delve.layerCount()));
+        } else if (!breached && vault.ruinsPhase() == RuinsVaultObjective.RuinsPhase.DELVE) {
+            if (shot) {
+                lastShot = elapsed;
+                heardAny = true;
+                noiseX = shotX;
+                noiseY = shotY;
+            }
+            loud(charged * CHARGE);
+            Situation where = situation(sim);
+            if (where != null) {
+                for (Push push : advance(dt, elapsed - lastShot < FIRING_HOLD_SECONDS, where)) send(sim, push);
+            }
         }
-        if (vault.ruinsPhase() != RuinsVaultObjective.RuinsPhase.DELVE) return;
-        if (shot) lastShot = elapsed;
-        loud(charged * CHARGE);
-        Situation where = situation(sim);
-        if (where == null) return;
-        advance(dt, elapsed - lastShot < FIRING_HOLD_SECONDS, where);
+        if (field != null && placed) field.tick(sim, noiseX, noiseY);
+    }
+
+    /** Has the occupant raise a push just sent, near the company it was sent at. */
+    private void send(BattleSimulation sim, Push push) {
+        if (push != null && field != null && placed) field.field(sim, push, companyX, companyY);
     }
 
     private static RuinsVaultObjective vault(BattleSimulation sim) {
@@ -250,7 +305,11 @@ public final class RuinsPressure {
         if (frame.size() < shotsHeard) shotsHeard = 0;
         boolean any = false;
         for (int i = shotsHeard; i < frame.size(); i++) {
-            if (frame.get(i).shooterFaction == Faction.MARINE) any = true;
+            ShotEvent event = frame.get(i);
+            if (event.shooterFaction != Faction.MARINE) continue;
+            any = true;
+            shotX = (int) Math.floor(event.fromX);
+            shotY = (int) Math.floor(event.fromY);
         }
         shotsHeard = frame.size();
         return any;
@@ -269,27 +328,63 @@ public final class RuinsPressure {
         return gone;
     }
 
-    /** Where the company stands: its middle sampled for stillness, and the deepest layer any of it is in. */
+    /**
+     * Where the company stands: the deepest layer any of it is in, and the middle of its forward element there,
+     * sampled for stillness. Only the forward element counts, so squads still landing or walking up behind never keep
+     * a vanguard that holds a stand from being dug in.
+     */
     private Situation situation(BattleSimulation sim) {
-        float sx = 0f, sy = 0f;
-        int count = 0, deepest = -1;
+        List<int[]> in = new ArrayList<>();
+        List<float[]> at = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE || !sim.identity().type(unit).combatant
                     || !sim.movement().has(unit) || sim.isRiding(unit)) continue;
-            float x = sim.world().x(unit), y = sim.world().y(unit);
-            sx += x;
-            sy += y;
-            count++;
             int cx = sim.world().cellX(unit), cy = sim.world().cellY(unit);
+            int layerIn = -1;
             for (RuinsDelve.Layer layer : delve.layers()) {
-                if (layer.index() > deepest && layer.ground().contains(cx, cy)) deepest = layer.index();
+                if (layer.index() > layerIn && layer.ground().contains(cx, cy)) layerIn = layer.index();
             }
+            in.add(new int[]{layerIn});
+            at.add(new float[]{sim.world().x(unit), sim.world().y(unit)});
         }
-        if (count == 0) return null;
-        stillness.sample(elapsed, sx / count, sy / count);
+        float[] front = forward(in, at);
+        if (front == null) return null;
+        int deepest = (int) front[2];
+        int layers = delve.layerCount();
+        companyX = front[0];
+        companyY = front[1];
+        // The company's last noise is where it last fired; before its first shot, where it stands.
+        if (!heardAny) {
+            noiseX = (int) Math.floor(companyX);
+            noiseY = (int) Math.floor(companyY);
+        }
+        placed = true;
+        stillness.sample(elapsed, companyX, companyY);
         int firstInside = delve.interior() != null ? delve.interior().firstLayer() : 0;
-        return new Situation(stillness.dugIn(), Math.max(deepest, 0), firstInside, delve.layerCount());
+        return new Situation(stillness.dugIn(), Math.max(deepest, 0), firstInside, layers);
+    }
+
+    /**
+     * The company's forward element: the middle of the units in the deepest layer any of them is in (-1 for none),
+     * as {x, y, layer}; null with no units.
+     *
+     * @param layerOf each unit's layer, as a one-element array
+     * @param at      each unit's position
+     */
+    static float[] forward(List<int[]> layerOf, List<float[]> at) {
+        int deepest = Integer.MIN_VALUE;
+        for (int[] layer : layerOf) deepest = Math.max(deepest, layer[0]);
+        if (layerOf.isEmpty()) return null;
+        float sx = 0f, sy = 0f;
+        int n = 0;
+        for (int i = 0; i < layerOf.size(); i++) {
+            if (layerOf.get(i)[0] != deepest) continue;
+            sx += at.get(i)[0];
+            sy += at.get(i)[1];
+            n++;
+        }
+        return new float[]{sx / n, sy / n, deepest};
     }
 
     /**

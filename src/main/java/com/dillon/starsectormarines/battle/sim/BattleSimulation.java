@@ -37,6 +37,8 @@ import java.util.UUID;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.ruins.RuinsBatteryGuns;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
@@ -1298,6 +1300,32 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void installRuinsDelveWatch(RuinsDelveWatch watch) {
         if (simTickIndex != 0) throw new IllegalStateException("Install the delve watch at setup");
         ruinsDelveWatch = watch;
+    }
+
+    private RuinsBatteryGuns ruinsBatteries;
+    private RuinsVaultPrize ruinsPrize;
+
+    /**
+     * A ruins site's vault prize, for what reads its stake (the guardians, {@code ruins-guardians.md}); null for none.
+     */
+    public RuinsVaultPrize getRuinsPrize() { return ruinsPrize; }
+
+    /** Names a ruins site's vault prize. At setup only. */
+    public void setRuinsPrize(RuinsVaultPrize prize) {
+        if (simTickIndex != 0) throw new IllegalStateException("Name the vault's prize at setup");
+        ruinsPrize = prize;
+    }
+
+    /** The old colony's batteries on a ruins site's approach; null when the site keeps none. */
+    public RuinsBatteryGuns getRuinsBatteries() { return ruinsBatteries; }
+
+    /**
+     * Stands a ruins site's batteries ({@link RuinsBatteryGuns#install}) on its approach, after its works. At setup
+     * only.
+     */
+    public void installRuinsBatteries(int count) {
+        if (ruinsBatteries != null || simTickIndex != 0) throw new IllegalStateException("Stand the batteries once at setup");
+        ruinsBatteries = RuinsBatteryGuns.install(this, count);
     }
 
     /** Installs a ruins site's works: its seal doors shut now, before launch places the field finds. At setup only. */
@@ -2854,6 +2882,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The flocks of swarm drones on the field and the anchors their commanders move. */
     public FlockSystem flocks() { return flocks; }
+
+    /** Sets the bodies small units pass under, kept off their feet alone (`ruins-guardians.md`); null for none. */
+    public void straddle(SeparationSystem.Straddle straddle) { separation.straddle(straddle); }
     /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
     public int getSimTickIndex() { return simTickIndex; }
     /**
@@ -4450,6 +4481,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         if (ruinsWorks != null) ruinsWorks.tick(this);
+        // After the works, so the batteries wake on the tick the hall does.
+        if (ruinsBatteries != null) ruinsBatteries.tick(this);
         // After the works, so a hall restarted this tick is heard on it.
         if (ruinsPressure != null) ruinsPressure.tick(this);
         fieldSalvage.tick(this);

@@ -63,6 +63,8 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -164,6 +166,17 @@ class BattleFixtureJsonTest {
         var decoded = (RuinsBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
         assertEquals(fixture, decoded);
         assertEquals(List.of("field-cache-0", "sealed-store-1"), decoded.takenFinds());
+    }
+
+    @Test void ruinsRoundTripKeepsTheVaultsPrize() throws Exception {
+        var prize = new RuinsVaultPrize(RuinsVaultPrize.Family.AI_CORE, RuinsVaultTheme.SERVER_HALL,
+                RuinsVaultPrize.BETA_CORE, 2);
+        var fixture = new RuinsBattleFixture(31L, List.of(new ShuttleAssignment(ShuttleType.HERMES, 2)),
+                false, OperationTier.VETERAN, RiskLevel.MEDIUM, TargetProfile.NEUTRAL, List.of(), List.of(),
+                RuinsGrade.VAST, RuinsOccupant.DOMAIN_SECURITY, List.of(), prize);
+        var decoded = (RuinsBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
+        assertEquals(prize, decoded.prize());
+        assertEquals(fixture, decoded);
     }
 
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -32,7 +33,8 @@ public record RuinsBattleFixture(
         List<FighterWingCommitment> enemyFighterSupport,
         RuinsGrade grade,
         RuinsOccupant occupant,
-        List<String> takenFinds) implements BattleFixture {
+        List<String> takenFinds,
+        RuinsVaultPrize prize) implements BattleFixture {
 
     public static final String KIND = "RUINS";
 
@@ -48,6 +50,16 @@ public record RuinsBattleFixture(
         grade = Objects.requireNonNull(grade, "grade");
         occupant = Objects.requireNonNull(occupant, "occupant");
         takenFinds = takenFinds == null ? List.of() : List.copyOf(new TreeSet<>(takenFinds));
+    }
+
+    /** A site whose vault holds no prize. */
+    public RuinsBattleFixture(long seed, List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
+                              OperationTier tier, RiskLevel risk, TargetProfile targetProfile,
+                              List<FighterWingCommitment> marineFighterSupport,
+                              List<FighterWingCommitment> enemyFighterSupport, RuinsGrade grade,
+                              RuinsOccupant occupant, List<String> takenFinds) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile, marineFighterSupport,
+                enemyFighterSupport, grade, occupant, takenFinds, null);
     }
 
     /** A site with nothing yet brought home. */
@@ -76,12 +88,23 @@ public record RuinsBattleFixture(
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant,
             Collection<String> takenFinds) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, grade, occupant, takenFinds, null);
+    }
+
+    /** @param prize the vault's prize ({@code RuinsVaultPrizes.draw}); null for none */
+    public static RuinsBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant,
+            Collection<String> takenFinds, RuinsVaultPrize prize) {
         return new RuinsBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                grade, occupant, takenFinds == null ? List.of() : List.copyOf(takenFinds));
+                grade, occupant, takenFinds == null ? List.of() : List.copyOf(takenFinds), prize);
     }
 
     @Override public String kind() { return KIND; }
@@ -91,7 +114,7 @@ public record RuinsBattleFixture(
         BattleSimulation sim = BattleSetup.createRuins(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport), grade, occupant);
+                FighterWingCommitment.toRoster(enemyFighterSupport), grade, occupant, prize);
         // What earlier expeditions brought home stays taken (ruins-expedition.md, Law 6).
         sim.setTakenFinds(Set.copyOf(takenFinds));
         return sim;

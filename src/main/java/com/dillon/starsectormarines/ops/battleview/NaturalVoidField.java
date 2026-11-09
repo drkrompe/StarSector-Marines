@@ -141,9 +141,14 @@ final class NaturalVoidField {
 
     /**
      * The steps as the field reads them: {@code depths} and {@code insets} for steps {@code 1..n}, depth signed
-     * downward; {@code spans} when narrow ground across the shape is a bridge.
+     * downward; {@code spans} when narrow ground across the shape is a bridge; {@code wander} how far the edge
+     * and ledges swing about their insets, as a share of the natural styles' ({@link #WANDER_SLOW}): an open pit's
+     * benches are cut, not eroded, so they wander much less.
      */
-    record Shape(float[] depths, float[] insets, int seed, boolean spans) {
+    record Shape(float[] depths, float[] insets, int seed, boolean spans, float wander) {
+        /** How little an open pit's benches wander, as a share of a natural drop's ledges. */
+        static final float CUT_WANDER = .22f;
+
         static Shape of(NaturalVoid look) {
             int n = look.steps().size();
             float[] d = new float[n], in = new float[n];
@@ -151,7 +156,8 @@ final class NaturalVoidField {
                 d[k] = look.steps().get(k).depthMeters();
                 in[k] = look.steps().get(k).insetCells();
             }
-            return new Shape(d, in, look.seed(), true);
+            float wander = look.style() == NaturalVoid.Style.OPEN_PIT ? CUT_WANDER : 1f;
+            return new Shape(d, in, look.seed(), true, wander);
         }
 
         static Shape of(NaturalRise look) {
@@ -162,7 +168,7 @@ final class NaturalVoidField {
                 in[k] = look.steps().get(k).insetCells();
             }
             // Narrow ground between two rises is a pass along the ravine floor, not a span over anything.
-            return new Shape(d, in, look.seed(), false);
+            return new Shape(d, in, look.seed(), false, 1f);
         }
     }
 
@@ -197,8 +203,8 @@ final class NaturalVoidField {
                 for (int i = 0; i < sw; i++) {
                     int s = j * sw + i;
                     float x = i / (float) RES, y = j / (float) RES;
-                    float wander = WANDER_SLOW * Noise.fbm(x / 9f, y / 9f, shape.seed() * 31 + k)
-                            + WANDER_FINE * Noise.fbm(x / 1.6f, y / 1.6f, shape.seed() * 57 + k);
+                    float wander = shape.wander() * (WANDER_SLOW * Noise.fbm(x / 9f, y / 9f, shape.seed() * 31 + k)
+                            + WANDER_FINE * Noise.fbm(x / 1.6f, y / 1.6f, shape.seed() * 57 + k));
                     float own = edge[s] + wander - inset;
                     r[s] = k == n ? own : Math.max(own, reach[k + 1][s]);
                 }
@@ -751,6 +757,23 @@ final class NaturalVoidField {
             }
         }
         return bestBridge < bestVoid;
+    }
+
+    /**
+     * Whether a bridge's deck lies within {@code radius} cells of a point. A bridge is ground to the air over a drop:
+     * a puff of smoke or mist that would spread over its deck is not drawn, so the deck never reads stained.
+     */
+    boolean nearBridge(float x, float y, float radius) {
+        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
+        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
+        for (int cy = Math.max(0, y0); cy <= Math.min(h - 1, y1); cy++) {
+            for (int cx = Math.max(0, x0); cx <= Math.min(w - 1, x1); cx++) {
+                if (!bridge[cy * w + cx]) continue;
+                float ex = Math.max(0f, Math.max(cx - x, x - (cx + 1))), ey = Math.max(0f, Math.max(cy - y, y - (cy + 1)));
+                if (ex * ex + ey * ey < radius * radius) return true;
+            }
+        }
+        return false;
     }
 
     private boolean nearOpen(int x, int y) {

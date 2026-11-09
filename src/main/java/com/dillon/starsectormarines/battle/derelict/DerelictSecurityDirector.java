@@ -14,13 +14,18 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.modifier.UnitModifier;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.SeparationSystem;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,77 +97,160 @@ public final class DerelictSecurityDirector {
         }
     }
     private final Map<Long, Float> postDurability = new TreeMap<>();
-    private final Map<Long, Braced> braces = new TreeMap<>();
+    private final Map<Long, Body> bodies = new TreeMap<>();
 
-    /** A vault frame's brace in the field (`ruins-guardians.md`): its stance and what it last read. */
-    private static final class Braced {
-        final VaultFrameBrace brace = new VaultFrameBrace();
+    /**
+     * A walker's body in the field (`ruins-guardians.md`): its knees, the vault frame's brace (null on any other
+     * frame), and what it last read.
+     */
+    private static final class Body {
+        final WalkerKnees knees = new WalkerKnees();
+        final VaultFrameBrace brace;
         float lastX = Float.NaN;
         float lastY = Float.NaN;
         float[] cycles = new float[0];
+        int hits;
+
+        Body(VaultFrameBrace brace) {
+            this.brace = brace;
+        }
     }
 
     /** How far a frame may shift in one tick and still count as standing, cells. */
     static final float STILL_CELLS_PER_TICK = 0.005f;
 
     /**
-     * Gives each vault frame its brace, the vault guardian's stance (`ruins-guardians.md`), and has the damage
-     * pipeline ask it how each hit on the frame lands.
+     * Gives each walker its knees and its footprint, and the vault frame its brace (`ruins-guardians.md`): the damage
+     * pipeline asks the walker how each hit lands, its speed follows its legs, and small bodies pass under it between
+     * its feet while it stands.
      */
-    public void braceVaultFrames(BattleSimulation sim) {
+    public void armWalkers(BattleSimulation sim) {
         for (Walker walker : walkers) {
-            if (walker.frame() != DerelictWalkerFrame.VAULT) continue;
             for (int i = 0, n = sim.squadMemberCount(walker.squadId()); i < n; i++) {
-                braces.put(sim.squadMemberAt(walker.squadId(), i), new Braced());
+                bodies.put(sim.squadMemberAt(walker.squadId(), i),
+                        new Body(walker.frame() == DerelictWalkerFrame.VAULT ? new VaultFrameBrace() : null));
             }
         }
-        if (!braces.isEmpty()) sim.getRoster().hitScale((target, attacker) -> braceHit(sim, target, attacker));
+        if (bodies.isEmpty()) return;
+        sim.getRoster().hitScale((target, attacker, damage) -> bodyHit(sim, target, attacker, damage));
+        sim.getRoster().modifiers().register(new LegModifier());
+        sim.straddle(new Straddle(sim));
     }
 
     /** A vault frame's stance, or null for a unit that is none. */
     public VaultFrameBrace.Stance braceOf(long unitId) {
-        Braced braced = braces.get(unitId);
-        return braced == null ? null : braced.brace.stance();
+        Body body = bodies.get(unitId);
+        return body == null || body.brace == null ? null : body.brace.stance();
     }
 
-    private float braceHit(BattleSimulation sim, long target, long attacker) {
-        Braced braced = braces.get(target);
-        if (braced == null || attacker == target || sim.resolveUnit(attacker) == 0L) return 1f;
+    /** A walker's knees, or null for a unit that is none. */
+    public WalkerKnees kneesOf(long unitId) {
+        Body body = bodies.get(unitId);
+        return body == null ? null : body.knees;
+    }
+
+    private float bodyHit(BattleSimulation sim, long target, long attacker, float damage) {
+        Body body = bodies.get(target);
+        if (body == null || attacker == target || sim.resolveUnit(attacker) == 0L) return 1f;
         World world = sim.world();
         if (!world.hasMechLoadout(target)) return 1f;
-        return braced.brace.hit(VaultFrameBrace.bearing(world.mechLoadout(target).torsoFacingDegrees,
-                world.x(attacker) - world.x(target), world.y(attacker) - world.y(target)));
+        float dx = world.x(attacker) - world.x(target);
+        float dy = world.y(attacker) - world.y(target);
+        float bearing = VaultFrameBrace.bearing(world.mechLoadout(target).torsoFacingDegrees, dx, dy);
+        boolean downed = body.knees.downed();
+        boolean under = !downed && WalkerFootprint.under(dx, dy);
+        boolean braced = body.brace != null && body.brace.stance() == VaultFrameBrace.Stance.BRACED;
+        if (!downed && body.knees.hit(bearing, braced, under, roll(target, attacker, body.hits++), damage) == 0f) {
+            return 0f;
+        }
+        if (body.knees.downed()) return WalkerKnees.DOWNED_SCALE;
+        if (under) return VaultFrameBrace.REAR_SCALE;
+        return body.brace != null ? body.brace.hit(bearing) : 1f;
+    }
+
+    /** A roll in [0, 1) fixed by who struck whom and the hit's count, so a replay rolls the same. */
+    static float roll(long target, long attacker, int n) {
+        long h = target * 0x9E3779B97F4A7C15L ^ attacker * 0xC2B2AE3D27D4EB4FL ^ (n + 1L) * 0x165667B19E3779F9L;
+        h ^= h >>> 33;
+        h *= 0xff51afd7ed558ccdL;
+        h ^= h >>> 33;
+        h *= 0xc4ceb9fe1a85ec53L;
+        h ^= h >>> 33;
+        return (h >>> 40) / (float) (1 << 24);
     }
 
     /** Every tick: each vault frame braces or comes free, and its guns cycle at its stance's rate. */
-    private void tickBraces(BattleSimulation sim) {
+    private void tickBodies(BattleSimulation sim) {
         World world = sim.world();
-        for (Map.Entry<Long, Braced> entry : braces.entrySet()) {
+        for (Map.Entry<Long, Body> entry : bodies.entrySet()) {
             long id = entry.getKey();
-            Braced braced = entry.getValue();
-            if (sim.resolveUnit(id) == 0L || !world.hasMechLoadout(id)) continue;
+            Body body = entry.getValue();
+            if (body.brace == null || sim.resolveUnit(id) == 0L || !world.hasMechLoadout(id)) continue;
             MechLoadoutComponent mech = world.mechLoadout(id);
             float x = world.x(id);
             float y = world.y(id);
-            boolean moving = !Float.isNaN(braced.lastX)
-                    && Math.hypot(x - braced.lastX, y - braced.lastY) > STILL_CELLS_PER_TICK;
-            braced.lastX = x;
-            braced.lastY = y;
+            boolean moving = !Float.isNaN(body.lastX)
+                    && Math.hypot(x - body.lastX, y - body.lastY) > STILL_CELLS_PER_TICK;
+            body.lastX = x;
+            body.lastY = y;
             long target = sim.targetOf(id);
             boolean engaged = target != 0L && sim.resolveUnit(target) != 0L;
             float bearing = engaged ? VaultFrameBrace.bearing(mech.torsoFacingDegrees,
                     world.x(target) - x, world.y(target) - y) : 0f;
-            braced.brace.tick(BattleSimulation.TICK_DT, moving, engaged, bearing);
+            // A frame missing a front leg cannot plant on the walls, and a downed one braces on nothing.
+            boolean planted = body.knees.canBrace() && !body.knees.downed();
+            body.brace.tick(BattleSimulation.TICK_DT, moving || !planted, engaged, bearing);
             MechWeaponMount[] mounts = mech.mounts();
-            if (braced.cycles.length != mounts.length) braced.cycles = new float[mounts.length];
+            if (body.cycles.length != mounts.length) body.cycles = new float[mounts.length];
             for (int i = 0; i < mounts.length; i++) {
                 MechWeaponMount mount = mounts[i];
                 if (mount == null) continue;
-                mount.cycleRemaining = VaultFrameBrace.stretch(braced.cycles[i], mount.cycleRemaining,
-                        braced.brace.fireScale());
-                braced.cycles[i] = mount.cycleRemaining;
+                mount.cycleRemaining = VaultFrameBrace.stretch(body.cycles[i], mount.cycleRemaining,
+                        body.brace.fireScale());
+                body.cycles[i] = mount.cycleRemaining;
             }
         }
+    }
+
+    /** A walker's speed follows its legs: whole, limping on three, or downed on two. */
+    private final class LegModifier implements UnitModifier {
+        @Override public String name(long unit) { return "unitModifierWalkerLegs"; }
+
+        @Override public Set<UnitStat> stats() { return EnumSet.of(UnitStat.MOVE_SPEED); }
+
+        @Override public boolean appliesTo(long unit) {
+            Body body = bodies.get(unit);
+            return body != null && body.knees.lostCount() > 0;
+        }
+
+        @Override public float multiplier(long unit, UnitStat stat) {
+            Body body = bodies.get(unit);
+            return body == null || stat != UnitStat.MOVE_SPEED ? 1f : body.knees.speedShare();
+        }
+    }
+
+    /** Standing walkers: a small body passes under one, kept off its feet; a downed one blocks its body. */
+    private final class Straddle implements SeparationSystem.Straddle {
+        private final BattleSimulation sim;
+
+        Straddle(BattleSimulation sim) {
+            this.sim = sim;
+        }
+
+        @Override public int feet(long unit, float[] out) {
+            Body body = bodies.get(unit);
+            if (body == null || body.knees.downed()) return 0;
+            World world = sim.world();
+            if (!world.hasMechLoadout(unit)) return 0;
+            return WalkerFootprint.feet(world.x(unit), world.y(unit), world.mechLoadout(unit).torsoFacingDegrees, out);
+        }
+
+        @Override public boolean fitsUnder(long unit) {
+            UnitType type = sim.getRoster().identity().type(unit);
+            return WalkerFootprint.fitsUnder(type.radius, type.isMech() || type.isStatic());
+        }
+
+        @Override public float footRadius() { return WalkerFootprint.FOOT_RADIUS; }
     }
 
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
@@ -253,7 +341,7 @@ public final class DerelictSecurityDirector {
     public void tick(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
         flyTenders(sim);
-        tickBraces(sim);
+        tickBodies(sim);
         if (tick % PULSE_TICKS != 0) return;
         List<Report> reports = flocks.reports();
         List<Contact> own = ownContacts(sim, tick);
@@ -524,11 +612,13 @@ public final class DerelictSecurityDirector {
         return new ArrayList<>(byUnit.values());
     }
 
-    private static float durability(BattleSimulation sim, int squadId) {
+    private float durability(BattleSimulation sim, int squadId) {
         float total = 0f;
         for (int i = 0, n = sim.squadMemberCount(squadId); i < n; i++) {
             long member = sim.squadMemberAt(squadId, i);
             total += sim.world().hp(member) + sim.world().armor(member);
+            WalkerKnees knees = kneesOf(member);
+            if (knees != null) for (int k = 0; k < WalkerKnees.LEGS; k++) total += knees.structure(k);
         }
         return total;
     }

@@ -15,23 +15,49 @@ import java.util.List;
  * @param wallTexture    a seamless mod image of the rock face seen straight on, its strata running across
  * @param wallTileMeters how many metres of face, across and down, one copy of the wall image covers
  * @param seed           the wander of the edges and ledges, so two drops never break alike
+ * @param belts          ore conveyors on gantries out of an open pit, each from its floor up over the rim to the
+ *                       works it feeds; empty for every other drop
  */
 public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture,
-                          float wallTileMeters, int seed) {
+                          float wallTileMeters, int seed, List<Belt> belts) {
 
     /** A natural void style: what the walls and the floor are, and where a generator lays it. */
     public enum Style {
         /** A river cut deep: rock strata walls with mossy ledges down to running water. */
         GORGE_RIVER,
         /** A volcanic rift: basalt walls lit orange from below by a river of molten rock crusting as it flows. */
-        LAVA
+        LAVA,
+        /**
+         * A glacial crevasse on a frozen world: blue-white ice walls in layered strata, snow drifted on the
+         * ledges and blown off the lip, a cold mist in the deep blue below and a frozen meltwater floor.
+         */
+        ICE,
+        /**
+         * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
+         * climbing out to the works, and a sump on the floor.
+         */
+        OPEN_PIT
     }
+
+    /**
+     * An ore conveyor on a gantry, in map cells: from {@code (floorX, floorY)} on the pit's floor it climbs to
+     * {@code (rimX, rimY)}, the last void cell on its line, and runs on over the ground to {@code (endX, endY)}
+     * at the wall of the works it feeds. Drawn only: nothing walks on it or under it differently.
+     */
+    public record Belt(float floorX, float floorY, float rimX, float rimY, float endX, float endY) { }
 
     /** A ledge: its depth below the surface, and how far into the void from the edge it begins. */
     public record Step(float depthMeters, float insetCells) { }
 
+    /** A drop with no conveyors. */
+    public NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture, float wallTileMeters,
+                       int seed) {
+        this(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, List.of());
+    }
+
     public NaturalVoid {
         steps = List.copyOf(steps);
+        belts = belts == null ? List.of() : List.copyOf(belts);
         if (steps.isEmpty()) throw new IllegalArgumentException("a natural void needs at least its floor");
     }
 

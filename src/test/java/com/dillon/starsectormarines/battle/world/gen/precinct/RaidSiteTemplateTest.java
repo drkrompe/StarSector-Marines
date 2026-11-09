@@ -7,6 +7,11 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -132,8 +137,11 @@ class RaidSiteTemplateTest {
                     "seed " + seed + ": the homes are not between the landing and the works");
             assertTrue(homes < industry && industry < works,
                     "seed " + seed + ": the industrial quarter does not stand between the homes and the works");
-            int yards = Math.abs(named(plan, RaidSiteTemplate.YARDS).seedX() - edge);
-            assertTrue(yards > works, "seed " + seed + ": the yards are not beyond the works");
+            Precinct yardsPlace = named(plan, RaidSiteTemplate.YARDS);
+            if (yardsPlace != null) {
+                int yards = Math.abs(yardsPlace.seedX() - edge);
+                assertTrue(yards > works, "seed " + seed + ": the yards are not beyond the works");
+            }
             assertTrue((named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2)
                             != (named(plan, RaidSiteTemplate.GARRISON).seedY() > H / 2),
                     "seed " + seed + ": the works and the garrison share a flank");
@@ -214,6 +222,53 @@ class RaidSiteTemplateTest {
         assertEquals(7, keys.size(), "seven sites, one per kind of industry");
         assertEquals(PrecinctCharacter.FARMSTEAD, RaidSiteTemplate.forIndustry("farming").industryCharacter(),
                 "a farm stands among farmsteads, not sheds");
+    }
+
+    /**
+     * A mine holds its pit's ground beside the head works, at the deep end and on the works' flank, clear of the
+     * works' claim, in every orientation; no other site holds one.
+     */
+    @Test
+    void aMineHoldsItsPitBesideTheHeadWorks() {
+        for (long seed = 0; seed < 16; seed++) {
+            PrecinctPlan plan = lay(MINE, market(5, 3), seed);
+            Site pit = (Site) plan.layout().find(RaidSiteTemplate.PIT);
+            assertNotNull(pit, "seed " + seed);
+            assertEquals(SitePurpose.GROUND, pit.purpose(), "nothing grows on the pit");
+            Precinct works = named(plan, RaidSiteTemplate.WORKS);
+            boolean fromWest = plan.attackerFrom().x0() == 0f;
+            int reach = RaidSiteTemplate.worksReach(RaidSiteTemplate.MINE_FIT,
+                    RaidSiteTemplate.Security.of(market(5, 3)), W, H);
+            if (fromWest) assertTrue(pit.x0() > works.seedX() + reach, "seed " + seed + ": the pit overlaps the works");
+            else assertTrue(pit.x1() < works.seedX() - reach, "seed " + seed + ": the pit overlaps the works");
+            assertTrue(pit.x1() - pit.x0() >= 20, "seed " + seed + ": a pit too narrow to read");
+            boolean worksNorth = works.seedY() > H / 2;
+            int inner = Math.round(RaidSiteTemplate.PIT_INNER * H);
+            assertTrue(worksNorth ? pit.y0() >= inner : pit.y1() <= H - inner,
+                    "seed " + seed + ": the pit reaches the garrison's flank");
+            assertNull(named(plan, RaidSiteTemplate.YARDS), "the pit is a mine's deep end");
+        }
+        assertNull(lay(SITE, market(5, 3), 1L).layout().find(RaidSiteTemplate.PIT));
+    }
+
+    /**
+     * The chokepoint's tells: every site runs a haul road from the works to its industry and feeders off the map
+     * from the works' far gates, two of them, or one where a mine's pit is the deep end.
+     */
+    @Test
+    void theWorksIsFedFromOffTheMap() {
+        for (long seed = 0; seed < 8; seed++) {
+            MissionLayout layout = lay(SITE, market(5, 3), seed).layout();
+            assertNotNull(layout.find(RaidSiteTemplate.HAUL_ROAD));
+            assertEquals(2, feeders(layout), "seed " + seed);
+            assertEquals(1, feeders(lay(MINE, market(5, 3), seed).layout()), "seed " + seed);
+        }
+    }
+
+    private static int feeders(MissionLayout layout) {
+        int n = 0;
+        for (Piece piece : layout.pieces()) if (piece instanceof Road && piece.name().startsWith(RaidSiteTemplate.FEEDER)) n++;
+        return n;
     }
 
     /** A mine's ore yards are sparser than heavy industry's quarter. */

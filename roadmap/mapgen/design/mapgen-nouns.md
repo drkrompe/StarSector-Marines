@@ -1264,6 +1264,24 @@ wall is. `compound-programs.md` owns the model, the measurements behind its
 sizing rules, and what remains before an ordinary compound can be built the same
 way.
 
+A **cantonment** is a garrison laid in rows rather than packed (`Cantonment`;
+owner note on the Raid site: a packed garrison read as "very messy"). Its claim
+is a square kept whole on the map, walled and glacised like a square place. The
+**gate** is where the town's road comes in, the widest road on the side facing
+the rest of the site; the avenue runs from the gate side's middle, with a
+forecourt street inside the wall where the road enters off that line. Every
+building stands on a footprint the ground takes whole, faces a street, and steps
+round any road the town grew through the square; what the rows cannot seat
+takes the nearest free spot, square to them. The program
+(`FortressProgram.cantonment`) counts barracks, workshops and stores from the
+market's size, and the guardroom, corner towers and magazines from its security.
+It keeps at most one flight line, placed where the rows leave room. Only a Raid
+site's garrison is a cantonment (`PrecinctPlan.raidGarrison`); every other
+garrison is packed as before. The row arrangement is the owner's pick
+`raid-garrison` (`battle.garrison.plan` until it is decided): a parade avenue
+from the gate to the HQ, a quadrangle round one parade square, or quadrants
+about two crossing avenues.
+
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
 doorways, courts and service roads share one cardinal pose. A yard is reserved

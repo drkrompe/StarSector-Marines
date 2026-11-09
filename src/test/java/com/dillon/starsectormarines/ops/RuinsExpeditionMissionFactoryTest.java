@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrizes;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,19 @@ class RuinsExpeditionMissionFactoryTest {
         assertEquals(first.battleSeed, again.battleSeed);
         assertEquals(Set.of("field-cache-1"), again.ruinsTakenFinds);
         assertTrue(first.ruinsTakenFinds.isEmpty());
+    }
+
+    @Test
+    void theVaultsPrizeIsDrawnBesideTheOccupant() {
+        for (int i = 0; i < 50; i++) {
+            String market = "site_" + i;
+            Mission mission = RuinsExpeditionMissionFactory.create(3, market, "Ossuary", RuinsGrade.VAST,
+                    RuinsOccupant.DOMAIN_SECURITY, Set.of(), 9L);
+            assertEquals(RuinsVaultPrizes.draw(9L, market, RuinsGrade.VAST, RuinsOccupant.DOMAIN_SECURITY),
+                    mission.ruinsPrize);
+        }
+        assertNull(RuinsExpeditionMissionFactory.create(3, "m", "Ossuary", RuinsGrade.VAST,
+                RuinsOccupant.SCAVENGERS).ruinsPrize);
     }
 
     @Test

@@ -77,7 +77,7 @@ These follow vanilla fleet doctrine. They are leanings, not ownership.
 |---|---|---|---|
 | Materials | Bolted and welded plate, castings, exposed cable and hydraulics | Pressed modular panels, sealed seams, standard fittings | Seamless composite, sealed shells, nothing exposed |
 | Silhouette | Slab-sided, boxy, heavy, a lot of mass | Clean but practical; panelled, with access hatches | Smooth curves and low profiles; hover skirts instead of tracks |
-| Livery | Drab, worn, faction paint over primer | Painted standard schemes with unit markings | White, graphite and accent cyan (Tri-Tachyon) |
+| Livery | Drab, worn, faction paint over primer | Painted standard schemes with unit markings | White, graphite and accent cyan on the hover line; pale steel-blue armour lobes over dark machinery on the walkers, after vanilla's high-tech hulls (Tri-Tachyon) |
 | Light | Caged amber lamps strung on cable | Recessed strip light (open) | Luminous panels and emitter glow (open) |
 | Engine flame | Vanilla low-tech orange | Vanilla midline amber | Vanilla high-tech blue (`EngineStylePalette`) |
 | Wear | Rust, patches and replaced plates; reads as old | Scuffed paint, clean repairs; reads as serviced | Scorching and cracked panels; damage reads as failure, not age |
@@ -134,7 +134,8 @@ The three chassis are stand-ins for a grid of mech lines, tech family by weight 
 All three are drawn as low-tech machines for the Hegemony, Independents and pirates
 (`mechs-nouns.md`, livery: the low-tech bodies). The other factions' sleek bodies are
 those powers' shells hung on the same frames, stand-ins for their own lines
-(`mech-lines.md`).
+(`mech-lines.md`). Tri-Tachyon's stand-in is the high-tech row's own look: lobed
+steel-blue bodies on the same frames, ahead of the row's rules.
 
 ### Infantry armor
 
@@ -164,8 +165,9 @@ Low-tech exists. Midline and high-tech are open (`interior-tech-styles.md`).
 - **Midline is missing almost everywhere.** It has no visual language, no ground engine
   voice and no interior. On the ground, only two mechs whose art doesn't yet read as
   anything in particular carry it (the PD laser tank, once the only midline-coded vehicle, retired).
-- **There is no high-tech mech.** Tri-Tachyon fields Wardens, a Sindrian hull that doesn't
-  read as Tri-Tachyon. Six of the nine mech lines are open (`mech-lines.md`).
+- **The high-tech mechs are a look only.** Tri-Tachyon's walkers wear the high-tech row's
+  bodies, but they are still the Hound, Warden and Bulwark frames underneath, with no
+  shield or drone wing of their own. Six of the nine mech lines are open (`mech-lines.md`).
 - **No mech or weapon sound varies by family.** Footsteps vary by chassis weight only, and
   there is one rifle voice for every faction.
 - **Vehicles carry no family of their own.** `VehicleType` has no family property, so the

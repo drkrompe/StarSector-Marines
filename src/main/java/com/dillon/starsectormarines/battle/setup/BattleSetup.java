@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.evacuation.RuinsSleepers;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
@@ -137,6 +139,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
+import com.dillon.starsectormarines.battle.ruins.RuinsPushes;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RuinsCrewCommand;
@@ -801,13 +804,26 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        return createRuins(seed, manifest, enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, grade, occupant, null);
+    }
+
+    /**
+     * @param prize the vault's prize ({@code RuinsVaultPrizes.draw}); its stake feeds the stir and the guardians, and
+     *              a core or colony item stands the old colony's batteries. Null for none.
+     */
+    public static BattleSimulation createRuins(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant, RuinsVaultPrize prize) {
         // The occupant alone chooses the defenders (RuinsDefence): the scavengers' crew, derelict security's walkers
         // under the security-network director (derelict-security-network.md), the Rav's sleepers under the swarm
         // director (RuinsSleepers), or, on an empty site, no one: its works are the expedition (ruins-expedition.md, Works).
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                ruinsCrew(occupant, grade), 0);
+                ruinsCrew(occupant, grade), 0, null, prize);
     }
 
     /** A ruins site's scavenger crew: its grade's, for a scavenger site only; null for every other occupant. */
@@ -1284,6 +1300,21 @@ public final class BattleSetup {
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, alliedGarrisonFactionId, alliedGarrisonStrengthMult, coldAccount,
+                raidTargetName, raidTargetKind, ruinsDelve, ruinsGrade, ruinsOccupant, ruinsCrew, raidWorks, raidSite,
+                null);
+    }
+
+    /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes}), null for none or another mission */
+    private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
+            TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
+            PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
+            float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite,
+            RuinsVaultPrize ruinsPrize) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1379,9 +1410,15 @@ public final class BattleSetup {
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
             // An occupied site stirs while the company is inside (ruins-pressure.md); an empty site's threat is time.
+            // The vault's prize: its stake deepens the reserve and quickens the stir, and the guardians read it.
+            sim.setRuinsPrize(ruinsPrize);
             if (ruinsDefence != null && ruinsDefence != RuinsDefence.NONE) {
-                sim.installRuinsPressure(RuinsPressure.of(ruinsGrade, map.ruinsDelve));
+                sim.installRuinsPressure(RuinsPressure.of(ruinsGrade, ruinsPrize != null ? ruinsPrize.stakes() : 0,
+                        map.ruinsDelve));
             }
+            // The old colony's guns on the approach, on the site's power (ruins-expedition.md, The vault and its prize).
+            int batteries = RuinsBatteries.count(ruinsGrade, ruinsPrize);
+            if (batteries > 0) sim.installRuinsBatteries(batteries);
             // The vault store: a find per layer at the vault, which comes out with the haul.
             sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),
                     ruinsLayout.sourceX(), ruinsLayout.sourceY()));
@@ -1541,6 +1578,7 @@ public final class BattleSetup {
             else if (ruinsDefence == null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
+            if (ruinsDefence != null) fieldRuinsPushes(sim, map, ruinsDefence, ruinsCrew, groundRoster, seed);
         }
         return sim;
     }
@@ -5513,14 +5551,75 @@ public final class BattleSetup {
                                       Deque<GroundRosterProfile.ForceTier> infantry, UnitRole role,
                                       DefenderRoster roster, GroundRosterProfile groundRoster, Random rng,
                                       DefenderObserverIssue observers, int[] named) {
-        if (count <= 0 || infantry.isEmpty()) return 0;
+        Squad squad = crewSquad(sim, map, node, radius, count, infantry, role, roster, groundRoster, rng, observers,
+                named, "d");
+        return squad != null ? squad.originalSize : 0;
+    }
+
+    /**
+     * The site's stir pushes, raised by its occupant ({@code ruins-pressure.md}, slice 3): a line-frame lance each
+     * squad out of derelict security's bays, crew squads called up from the dig, or Rav bores surged. An empty site
+     * has no stir.
+     */
+    private static void fieldRuinsPushes(BattleSimulation sim, MapResult map, RuinsDefence defence, RuinsCrew crew,
+                                         GroundRosterProfile groundRoster, long seed) {
+        RuinsPressure pressure = sim.ruinsPressure();
+        if (pressure == null || map.ruinsDelve == null) return;
+        switch (defence) {
+            case SECURITY -> pressure.field(new RuinsPushes(RuinsPushes.Voice.SECURITY,
+                    (s, push, x, y) -> DerelictSecurity.raisePush(s, push.squads(), x, y), map.ruinsDelve));
+            case SLEEPERS -> {
+                RuinsSleepers sleepers = sim.ruinsSleepers();
+                if (sleepers == null) return;
+                sleepers.foldTimeIntoStir();
+                pressure.field(new RuinsPushes(RuinsPushes.Voice.SLEEPERS, (s, push, x, y) -> {
+                    sleepers.push(s, push.squads(), x + 0.5f, y + 0.5f);
+                    return List.of();
+                }, map.ruinsDelve));
+            }
+            case CREW -> {
+                if (crew != null) pressure.field(new RuinsPushes(RuinsPushes.Voice.CREW,
+                        crewPushForce(map, crew, groundRoster, seed), map.ruinsDelve));
+            }
+            case NONE -> { }
+        }
+    }
+
+    /** Crew squads called up from the dig, a patrol's size each, drawn from the crew's own mix in turn. */
+    private static RuinsPushes.Force crewPushForce(MapResult map, RuinsCrew crew, GroundRosterProfile groundRoster,
+                                                  long seed) {
+        DefenderRoster roster = crew.roster();
+        Random rng = new Random(seed * 31L + 0x5713L);
+        Deque<GroundRosterProfile.ForceTier> infantry = new ArrayDeque<>();
+        int[] named = {0};
+        return (sim, push, x, y) -> {
+            List<Integer> out = new ArrayList<>();
+            if (roster.infantryOrder().isEmpty()) return out;
+            DefenderObserverIssue observers = DefenderObserverIssue.of(sim);
+            for (int i = 0; i < push.squads(); i++) {
+                while (infantry.size() < roster.patrolSquadSize) infantry.addAll(roster.infantryOrder());
+                TacticalNode node = crewNode(x, y, roster.patrolSquadSize, map.grid);
+                Squad squad = crewSquad(sim, map, node, GARRISON_SPAWN_RADIUS + 2, roster.patrolSquadSize, infantry,
+                        UnitRole.PATROL, roster, groundRoster, rng, observers, named, "stir");
+                if (squad != null) out.add(squad.id);
+            }
+            return out;
+        };
+    }
+
+    /** One crew squad of up to {@code count} round a node; null when none could stand. */
+    private static Squad crewSquad(BattleSimulation sim, MapResult map, TacticalNode node, int radius, int count,
+                                   Deque<GroundRosterProfile.ForceTier> infantry, UnitRole role,
+                                   DefenderRoster roster, GroundRosterProfile groundRoster, Random rng,
+                                   DefenderObserverIssue observers, int[] named, String prefix) {
+        if (count <= 0 || infantry.isEmpty()) return null;
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : pickCellsForNode(map.grid, sim.getZoneGraph(), node, radius, count)) {
             if (infantry.isEmpty()) break;
             GroundRosterProfile.ForceTier tier = infantry.poll();
             UnitType type = groundRoster.unitType(tier);
-            EntitySpec unit = makeDefender("d" + named[0]++, type, cell[0], cell[1], roster.risk, groundRoster,
+            EntitySpec unit = makeDefender(prefix + named[0]++, type, cell[0], cell[1], roster.risk, groundRoster,
                     tier, rng, null);
             unit.role(role);
             if (role == UnitRole.GARRISON) unit.home(cell[0], cell[1]);
@@ -5535,7 +5634,7 @@ public final class BattleSetup {
             spawned++;
         }
         if (squad != null) squad.originalSize = spawned;
-        return spawned;
+        return squad;
     }
 
     /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). Composition follows the roster: mechs first, then red marines, then militia. */
