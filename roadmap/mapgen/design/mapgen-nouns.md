@@ -1929,7 +1929,9 @@ spine corridor down each interior band, a corridor from every way into it, rooms
 and chambers off it, and the vault's forecourt as a roofed hall. The layer
 lines inside are its walls and bulkheads, so their ways are its entrances and
 doors. A court inside is a light well open to the sky, so every lift point is
-under open sky and everything else inside is under a roof.
+under open sky and everything else inside is under a roof, one roof over the
+whole mass: the solid hull is registered as a building of its own
+(`RuinsRoofStage`), so its roof joins the halls'.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
