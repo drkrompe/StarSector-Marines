@@ -4475,6 +4475,7 @@
 		"missionTypeSabotage":    "Sabotage",
 		"missionTypeRaid":        "Raid",
 		"missionTypeExtraction":  "Extraction",
+		"missionTypeRuins":       "Ruins",
 		"missionTypeConquest":    "Conquest",
 		"riskLow":                "Low",
 		"riskMedium":             "Medium",

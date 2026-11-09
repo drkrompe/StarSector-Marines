@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
@@ -220,6 +221,9 @@ public final class Mission {
      */
     public final Long battleSeed;
 
+    /** A ruins expedition's grade, which sets its delve; null for every other mission. */
+    public final RuinsGrade ruinsGrade;
+
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
      * ad-hoc missions not bound to a contract. The resolver bridges back to
@@ -317,6 +321,7 @@ public final class Mission {
         this.lanePaths        = b.lanePaths == null ? Collections.emptyList()
                 : Collections.unmodifiableList(new ArrayList<>(b.lanePaths));
         this.battleSeed       = b.battleSeed;
+        this.ruinsGrade       = b.ruinsGrade;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -383,6 +388,7 @@ public final class Mission {
         private DebugAirPool airPool;
         private List<LanePath> lanePaths;
         private Long battleSeed;
+        private RuinsGrade ruinsGrade;
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -436,6 +442,7 @@ public final class Mission {
             this.airPool = m.airPool;
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
+            this.ruinsGrade = m.ruinsGrade;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -649,6 +656,12 @@ public final class Mission {
         /** @param battleSeed fixed generation seed; null restores wall-clock seeding. */
         public Builder battleSeed(Long battleSeed) {
             this.battleSeed = battleSeed;
+            return this;
+        }
+
+        /** @param ruinsGrade a ruins expedition's grade ({@code ruins-expedition.md}). */
+        public Builder ruinsGrade(RuinsGrade ruinsGrade) {
+            this.ruinsGrade = ruinsGrade;
             return this;
         }
 
