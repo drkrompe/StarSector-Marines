@@ -26,7 +26,8 @@ import java.util.Map;
  *   <li>{@code ruins.works.power-hall}, {@code ruins.works.junction.N} (one per layer), {@code ruins.works.records}
  *       and {@code ruins.works.collapse} (the choked short way, itself also a way of its layer).</li>
  *   <li>{@code ruins.interior}: the roofed megastructure at the vault's end, or the bunker round the vault on
- *       scattered ground; {@code ruins.interior.chamber.M}, its unnamed-purpose chambers.</li>
+ *       scattered ground; {@code ruins.interior.chamber.M}, its unnamed-purpose chambers;
+ *       {@code ruins.interior.entrance.M}, the open apron outside each entrance.</li>
  * </ul>
  * Lift points are the landing area and every court ({@link #liftPoints}). Courts are not in the map's
  * {@code landingAreas}: the company's own lift comes down on the landing area, and a court is somewhere the boat
@@ -147,6 +148,14 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
     /** The records terminal, in its own small office: {@code console} is where infantry read it. */
     public record RecordsTerminal(String name, Area footprint, Cell door, Cell console, int layer) {}
 
+    /**
+     * The open ground outside an entrance to the interior ({@code ruins-expedition.md}, The entrance and the
+     * pull-out point): {@code door} is the entrance it fronts, {@code ground} the apron the company holds to take
+     * it, under open sky, and {@code lift} the arrival area on it the boat comes to once it is the entry. The lift
+     * is not among {@link #liftPoints}: the mission makes it one when the entrance is taken.
+     */
+    public record Apron(String name, Area door, Area ground, LandingArea lift) {}
+
     /** The collapse across the short way of layer {@code layer}; the layer's open ways are the long way round. */
     public record Collapse(String name, int layer, Way shortWay) {}
 
@@ -157,10 +166,17 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * {@code entrances} are the ways in from open ground (the first interior layer's open ways, or the bunker's
      * door). A court inside is a light well open to the sky, so every lift point is under open sky.
      */
-    public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Area> chambers) {
+    public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                           List<Area> chambers) {
         public Interior {
             entrances = List.copyOf(entrances);
+            aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
+        }
+
+        /** An interior with no aprons published, for a delve built by hand. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Area> chambers) {
+            this(name, footprint, firstLayer, entrances, List.of(), chambers);
         }
 
         /** Whether layer {@code index} (0-based) is inside. */
@@ -168,6 +184,9 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
 
         /** The name of chamber {@code index} (0-based). */
         public static String chamberName(int index) { return INTERIOR + ".chamber." + (index + 1); }
+
+        /** The name of entrance {@code index}'s apron (0-based). */
+        public static String apronName(int index) { return INTERIOR + ".entrance." + (index + 1); }
     }
 
     /** Where the haul may board: the landing area's arrival areas, then each court's, nearest the landing first. */
@@ -200,6 +219,7 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
             for (int k = 0; k < interior.chambers().size(); k++) {
                 out.put(Interior.chamberName(k), interior.chambers().get(k));
             }
+            for (Apron apron : interior.aprons()) out.put(apron.name(), apron.ground());
         }
         return out;
     }

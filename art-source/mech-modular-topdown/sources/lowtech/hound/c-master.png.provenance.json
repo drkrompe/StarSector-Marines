@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c180-c3db-7903-9b1f-9a67407c990f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c180-c3db-7903-9b1f-9a67407c990f\\exec-5472bb99-0db6-4c95-969f-2a411d21b933.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\c-master.png",
+    "sha256": "95685251a5738da3746f5628403cddd770b6d8a153a2fa5585aa2ed344347d14",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\c.prompt.txt",
+  "promptSha256": "13ce425ff7874c0570b5bdeebaa1f73b18ba2c5e95d6cb10be7e2d4ca240e7aa",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the chassis of the HOUND, a fast close-assault walking machine, redesigned as a squat, boxy walking tank in the old, low-tech Hegemony armour line.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize, widen or add to its shapes, and keep all empty canvas empty. From front to back: two cheek plates at the nose with an open channel between them; one broad, chamfered armoured body box; a lighter flat rectangular deck down its middle; two round hip housings at the waist on either side of the deck; a narrow armoured fender standing proud of each flank over the hips; a squat engine block at the very rear with exhaust grilles. Everything is symmetric about the vertical centre line. Make each shape read as real plate: thick glacis plates, rivet rows, weld seams, hatches, grab handles, stowage boxes, pipes along the body's edges.\n\nImage 2 is material and style reference only, never layout: the Hegemony medium tank this walker serves beside. Match its finish exactly: warm tan and khaki cast and welded plate with olive-green panels, heavy rivet rows, exposed piping and cable runs in the seams, worn bright edges, chips, grime and dust, a few orange hazard panels on leading corners, dark gunmetal working parts, crisp painted game-sprite finish, light from the upper left. It is old, low-tech, depot-built Hegemony military hardware: blunt, boxy, bolted and repairable, never sleek, smooth or high-tech.\n\nStrict 90-degree zenith orthographic top-down view of the chassis's top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space and the open gun channel at the nose; no ground, shadow slab, cast shadow, halo, glow, border, text, labels or logos.\n\nDraw only the chassis body. Do not draw weapons, missile racks, legs, feet or thigh linkages: those are separate layers drawn later. The open channel between the two nose cheek plates must stay empty and transparent, because the gun's barrel shows through it. The flat rectangular deck is where a missile rack is bolted on later: keep it a plain, flat, riveted mounting plate with bolt points, nothing standing on it. The two round housings at the waist are the hip joints the leg linkages leave from: draw them as heavy round bearing housings.\n\nAvoid: sci-fi smooth plastic, glowing lights, blue or cyan, white paint, perspective, side view, isometric view, cropped edges, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\guide-c.png",
+      "sha256": "2b3ccafbbc0bd68219f2ea9a648af4adfc2b5e26e918d2c53cee5e5130897f75",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one chassis image, preserving Image 1’s geometry and using Image 2 only for materials and finish."
+  ],
+  "usage": {
+    "input_tokens": 113756,
+    "cached_input_tokens": 102656,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 661,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 69.6
+}

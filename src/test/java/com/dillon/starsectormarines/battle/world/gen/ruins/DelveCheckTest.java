@@ -89,6 +89,11 @@ class DelveCheckTest {
                 new RuinsDelve.RecordsTerminal(RuinsDelve.RECORDS, spot, near, near, 0),
                 new RuinsDelve.Collapse(RuinsDelve.COLLAPSE, 0, collapse),
                 new RuinsDelve.Interior(RuinsDelve.INTERIOR, new Area(32, 6, W - 1, 14), 1,
-                        List.of(new Area(33, 10, 33, 10)), List.of()));
+                        List.of(new Area(33, 10, 33, 10)),
+                        List.of(new RuinsDelve.Apron(RuinsDelve.Interior.apronName(0), new Area(33, 10, 33, 10),
+                                new Area(24, 2, 30, 17), new LandingArea("apron",
+                                LandingPad.civilian(27, 4, LandingPad.Approach.WEST),
+                                LandingPad.civilian(27, 15, LandingPad.Approach.WEST)))),
+                        List.of()));
     }
 }

@@ -170,10 +170,9 @@ the works: derelict heavies, the scavengers' dig, the Rav's deeper bores.
   layer. Calling the boat to a nearer court shortens the egress but means
   holding the court while it comes in.
 - **Won, pulled out and lost.** Won when the haul boards. **Pulled out** when
-  the company leaves while its pull-out point is held, taking its banked finds
-  home and leaving the vault (Pressing on or pulling out). Lost when the haul
-  is lost or abandoned, the company is wiped out, or it retreats while its
-  pull-out point is lost.
+  the company leaves before that, taking its banked finds home and leaving the
+  vault (Pressing on or pulling out). Lost when the haul is lost or abandoned,
+  or the company is wiped out.
 
 **What it borrows from Extraction** (`extraction-command.md`): the source-hold
 rule (uncontested presence for a time releases the package), the escorted
@@ -355,21 +354,38 @@ longer means walking back to the drop point. The landing and any held court
 stay lift points for the haul; the entry is where the rail and the pull-out
 point to.
 
-**Holding it.** The entry stays held without a garrison. It is lost only if the
-occupant **retakes** it: hostiles hold its apron uncontested, with no company
-infantry in it, for the same hold time. A lost entry is retaken by holding it
-again. While the pull-out point is held, PULL OUT pays every banked find,
-wherever the company stands. Where the company stands decides who gets home:
-survivors inside the pull-out point's extraction circle, or any other held lift
-point's, extract unhurt, and the rest roll to get home as in any Retreat
-(`campaign-nouns.md`, Ending an operation). So the finds depend on keeping the
-way out, and the soldiers on being near it when the call comes. A squad left on
-the apron is insurance against a retake, not a requirement.
+**The entrance is the company's.** Once taken, the entry stays the company's
+for the rest of the battle. Nothing retakes it and no squad has to stay on it:
+in phase B the occupant is inside, and the danger lies between the company and
+the entry, not at the entry. Pulling out in phase B always brings every banked
+find home. Where the company stands decides who gets home: survivors inside the
+entry's extraction circle, or any other held lift point's, extract unhurt, and
+the rest roll to get home as in any Retreat (`campaign-nouns.md`, Ending an
+operation). The cost of pulling out from deep inside is the soldiers who have
+not got back to the door.
 
-Retakes come from what each occupant already does. In the contingency the
-derelict heavies walk to the egress route, which runs through the entry. The
-scavengers' camp and patrols are outside. The Rav follow noise and the haul to
-the lift. An empty site never retakes it.
+### Where phase B's threats come from
+
+In phase B the threat comes from inside the ruin, toward the company and then
+toward the entrance:
+
+- **Deeper in.** The occupant's phase B strength stands inside, in the layers
+  ahead: derelict security's interior zones, with heavies holding their layers
+  and the vault frame at the vault; the scavengers' dig at the vault; the Rav's
+  closed bores in the deeper layers. The company meets each layer head-on, from
+  ahead, and every layer it takes is behind it.
+- **The counter-push.** The breach turns the inside toward the entrance. The
+  derelict contingency wakes every interior zone and its heavies walk the
+  egress route out through their own ground; the crew commander throws every
+  squad it has left at the dig and then after the haul; the Rav's opened bores
+  follow the breach's noise and the haul. The haul comes out with the occupant
+  behind it, and its escort fights a rearguard back to the door. That is why
+  the egress is the hardest fight.
+- **What is left outside.** Whatever phase A did not finish stays outside:
+  scavenger patrols, a derelict flock on its leash (flocks never enter a roofed
+  room). It does not take the entrance. It is waiting when the company and the
+  haul come out, so a thorough phase A pays at the end.
+- **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out
 
@@ -390,17 +406,15 @@ and settled as field finds beside it (owner pick `ruins-vault-worth` a).
 **Banked finds.** Elsewhere a secured find comes home only on a victory
 (`loot-nouns.md`). In a Ruins battle a secured find is **banked**: it comes
 home if the expedition is won or pulled out, and it is left behind only if the
-company is wiped out or retreats while its pull-out point is lost. What the company
+company is wiped out. What the company
 stands to lose grows with every layer, because a wipe-out costs everything
 banked so far.
 
 **Pulling out** is the family's Retreat (owner pick `ruins-pull-out` a).
 Its confirmation draws the extraction circle round the pull-out point and every
 other held lift point, lists the banked finds that will come home, and says
-the vault stays sealed and the site unexplored. It pays the banked finds while
-the pull-out point is held (The entrance and the pull-out point). Survivors
-inside a circle extract unhurt, and the rest roll to get home. With the
-pull-out point lost it is an ordinary Retreat, and the finds stay behind.
+the vault stays sealed and the site unexplored. It always pays the banked
+finds. Survivors inside a circle extract unhurt, and the rest roll to get home.
 
 | Pull out | Comes home | Stays in the ruins |
 | --- | --- | --- |
@@ -426,9 +440,8 @@ apron being held shows its hold timer, as a court does. When the entry is taken
 the card reads "Entry held" for a moment, then "Reach the vault", and the map
 moves the pull-out marker from the landing to the entry. The **Delve row**, with
 the vault's card, heads with the phase and the pull-out point: "Approach · pull
-out at the landing", then "Delve · pull out at the entry", or "Delve · ENTRY
-LOST" in the alert colour while the occupant holds it, with PULL OUT dimmed to
-an ordinary Retreat.
+out at the landing", then "Delve · pull out at the entry", with how many of the
+company stand inside a circle (the ones a pull-out takes home unhurt).
 
 **Judging the forces.** The Delve row gives the player three honest reads, none
 of which names an enemy unit or place:
@@ -620,9 +633,6 @@ The haul range is the Flow's (step 3), and the battle never changes it.
 - Ruins ground tuning waits on played battles: the dead town's densities,
   layer, room and court sizes, and the interior's chamber count and spine width
   are first guesses, to be tuned against a player giving orders.
-- What keeps the entry held is on the picks page (`ruins-entry-hold`): held
-  until retaken with no garrison (as written), a squad on its apron at the
-  moment of the pull-out, or a standing garrison.
 
 ## Boundaries
 
