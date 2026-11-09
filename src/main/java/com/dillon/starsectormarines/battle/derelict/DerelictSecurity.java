@@ -383,7 +383,7 @@ public final class DerelictSecurity {
     }
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
-    private static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
+    static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
         float radius = DerelictWalkerFrame.CHASSIS.radius;
         MechSpawnPlacement.Point at = MechSpawnPlacement.nearCell(sim.getGrid(), radius, postX, postY,
                 (x, y) -> true, (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L));

@@ -28,18 +28,19 @@ public record RuinsGroundPlan(int layers, int width, int height, float density) 
     }
 
     /**
-     * The ground for a delve of {@code layers} layers, a step up the tier band ({@code MapScale}) from where it
-     * began, so a ruins site sits with the maps the company fights on elsewhere (owner: "Map is too small"):
-     * scattered ruins on the established map, widespread between it and the full-strength map, extensive on the
-     * full-strength map, vast at the colony map's size. The dead town is dense enough to fill the route, so the
-     * layers cross ruins rather than open country. UNTUNED.
+     * The ground for a delve of {@code layers} layers, two steps up the tier band ({@code MapScale}), the owner's
+     * pick ({@code ruins-map-size} b): a ruins site is larger than a mission at the same tier, because the
+     * exploration is the point and the player must judge whether they still have the forces to continue.
+     * Scattered ruins between the established and full-strength maps, widespread on the full-strength map,
+     * extensive at the colony map's size, vast at Conquest's. The dead town is dense enough to fill the route,
+     * so the layers cross ruins rather than open country. Densities UNTUNED.
      */
     public static RuinsGroundPlan forLayers(int layers) {
         return switch (layers) {
-            case 1 -> new RuinsGroundPlan(1, 144, 80, 0.50f);
-            case 2 -> new RuinsGroundPlan(2, 200, 112, 0.60f);
-            case 3 -> new RuinsGroundPlan(3, 280, 168, 0.70f);
-            case 4 -> new RuinsGroundPlan(4, 400, 240, 0.80f);
+            case 1 -> new RuinsGroundPlan(1, 200, 112, 0.55f);
+            case 2 -> new RuinsGroundPlan(2, 280, 168, 0.65f);
+            case 3 -> new RuinsGroundPlan(3, 400, 240, 0.75f);
+            case 4 -> new RuinsGroundPlan(4, 560, 336, 0.85f);
             default -> throw new IllegalArgumentException("a ruins delve has 1 to " + MAX_LAYERS + " layers, not " + layers);
         };
     }

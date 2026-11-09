@@ -52,10 +52,10 @@ import java.util.Random;
  */
 public final class RuinsDelveStage implements GenStage {
 
-    /** The landing ground runs from the west edge to this column. */
+    /** The landing ground's width in columns. */
     static final int LANDING_DEPTH = 16;
-    /** Berth centres stand on this column, deep enough into the ground that the approach is open air. */
-    static final int BERTH_COLUMN = 6;
+    /** Berth centres stand this many columns into the landing ground, deep enough that the approach is open air. */
+    static final int BERTH_COLUMN = 5;
     /** Half the lateral spread of one arrival area's berths, as the shipped arrival areas have it. */
     static final int BERTH_OFFSET = 4;
     static final int VAULT_WIDTH = 11, VAULT_HEIGHT = 9;
@@ -69,6 +69,16 @@ public final class RuinsDelveStage implements GenStage {
     static final int ROOMS_PER_LAYER = 2;
     /** The most ground a repair may wall in rather than join; more is a layout error, not a pocket. */
     static final int MAX_SEALED_POCKET = 60;
+
+    /**
+     * The landing ground's west column on a map {@code width} cells wide: a tenth of the way in, never at the
+     * edge (owner: "we don't need to keep landing zones at the edge of the map"). The dead settlement and open
+     * ground lie behind it as well as ahead, so the company lands among the ruins rather than at their rim; the
+     * delve still runs east from it to the vault.
+     */
+    static int landingLeft(int width) {
+        return Math.max(2, width / 10);
+    }
 
     static final String[] RUIN_WALLS = {"colony.masonry-wall", "colony.ceramic-wall", "colony.olive-wall"};
     static final String[] RUIN_FLOORS = {"colony.concrete", "colony.timber", "colony.terrazzo", "colony.terracotta"};
@@ -166,20 +176,23 @@ public final class RuinsDelveStage implements GenStage {
             endStreets();
             weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
-            Area landingGround = new Area(1, Math.max(1, landingY - 16), LANDING_DEPTH, Math.min(h - 2, landingY + 16));
+            int landingLeft = landingLeft(w);
+            Area landingGround = new Area(landingLeft, Math.max(1, landingY - 16), landingLeft + LANDING_DEPTH - 1,
+                    Math.min(h - 2, landingY + 16));
+            int berthX = landingLeft + BERTH_COLUMN;
             open(landingGround, null);
             reserve(landingGround, 0);
             List<LandingArea> landing = new ArrayList<>();
             int index = 1;
             for (int lateral : new int[]{landingY - 8, landingY + 8}) {
                 landing.add(new LandingArea("ruins-landing-" + index++,
-                        LandingPad.civilian(BERTH_COLUMN, lateral - BERTH_OFFSET, LandingPad.Approach.WEST),
-                        LandingPad.civilian(BERTH_COLUMN, lateral + BERTH_OFFSET, LandingPad.Approach.WEST)));
+                        LandingPad.civilian(berthX, lateral - BERTH_OFFSET, LandingPad.Approach.WEST),
+                        LandingPad.civilian(berthX, lateral + BERTH_OFFSET, LandingPad.Approach.WEST)));
             }
 
             int vaultY = clamp(h / 2 + rng.nextInt(h / 3 + 1) - h / 6, 10, h - 11);
             Vault vault = vault(vaultY);
-            int zoneStart = LANDING_DEPTH + 2;
+            int zoneStart = landingGround.right() + 2;
             int zoneEnd = vault.footprint().left() - FORECOURT - 1;
 
             int layers = plan.layers();
@@ -190,7 +203,9 @@ public final class RuinsDelveStage implements GenStage {
                 lines[i] = lineProfile(centre);
             }
             List<LayerDraft> drafts = new ArrayList<>();
-            for (int i = 0; i < layers; i++) drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1));
+            for (int i = 0; i < layers; i++) {
+                drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1, i >= layers - plan.interiorLayers()));
+            }
 
             int firstInside = layers - plan.interiorLayers();
             // The power hall stands in a layer before the last; inside, when the interior has one.
@@ -403,11 +418,18 @@ public final class RuinsDelveStage implements GenStage {
             final List<Integer> cells = new ArrayList<>();
         }
 
-        LayerDraft layer(int index, int[] lx, int collapseY) {
+        /**
+         * Layer {@code index} laid on the column profile {@code lx}. Inside the megastructure the line stands edge to
+         * edge, a hull wall with its ways through. Outside it is a boundary, not a wall (owner: a full-height line
+         * across open ground "has no reason to exist"): only short stubs of an old foundation stand along it, so
+         * the line is data the layer's places are laid against, and a sealed gate, which only shuts a standing
+         * line, is never laid outside.
+         */
+        LayerDraft layer(int index, int[] lx, int collapseY, boolean inside) {
             LayerDraft d = new LayerDraft();
             int open = plan.layers() == 1 ? 1 + rng.nextInt(2) : 2 + rng.nextInt(2);
             LayerKind[] kinds = LayerKind.values();
-            d.kind = open == 1 ? kinds[rng.nextInt(2)] : kinds[rng.nextInt(kinds.length)];
+            d.kind = open == 1 || !inside ? kinds[rng.nextInt(2)] : kinds[rng.nextInt(kinds.length)];
             String material = d.kind == LayerKind.SEALED_GATE ? GATE_WALL : LINE_WALLS[rng.nextInt(LINE_WALLS.length)];
 
             List<Integer> centres = new ArrayList<>();
@@ -447,20 +469,21 @@ public final class RuinsDelveStage implements GenStage {
                 wayKinds.add(kind);
             }
 
-            // The line, edge to edge, with a connector where it jogs.
+            // The line, edge to edge, with a connector where it jogs: walled throughout inside, in stubs outside.
+            boolean[] stands = standing(inside, lx);
             d.lineLeft = Integer.MAX_VALUE;
             d.lineRight = Integer.MIN_VALUE;
             for (int y = 0; y < h; y++) {
                 int from = y > 0 ? Math.min(lx[y], lx[y - 1]) : lx[y], to = y > 0 ? Math.max(lx[y], lx[y - 1]) : lx[y];
                 for (int x = from; x <= to; x++) {
-                    lineWall(x, y, material);
+                    if (stands[y]) lineWall(x, y, material);
                     d.cells.add(i(x, y));
                     lineCell[i(x, y)] = true;
                     d.lineLeft = Math.min(d.lineLeft, x);
                     d.lineRight = Math.max(d.lineRight, x);
                 }
             }
-            skirt(lx, d.kind == LayerKind.COLLAPSED_STREET ? 4 : 3);
+            skirt(lx, stands, inside ? (d.kind == LayerKind.COLLAPSED_STREET ? 4 : 3) : 2);
 
             int number = 1;
             for (int k = 0; k < spans.size(); k++) {
@@ -505,8 +528,9 @@ public final class RuinsDelveStage implements GenStage {
          * cells, and scrap where sections came down, so a line reads as an old wall gone to ruin rather than a
          * clean one drawn across the ground. A collapsed street sheds the most. Only open ground is touched.
          */
-        void skirt(int[] lx, int reach) {
+        void skirt(int[] lx, boolean[] stands, int reach) {
             for (int y = 1; y < h - 1; y++) {
+                if (!stands[y] && !stands[y - 1] && !stands[y + 1]) continue;
                 for (int side : new int[]{-1, 1}) {
                     for (int step = 1; step <= reach; step++) {
                         int x = lx[y] + side * step;
@@ -520,6 +544,37 @@ public final class RuinsDelveStage implements GenStage {
                     loose(SCRAP, lx[y] + side, y);
                 }
             }
+        }
+
+        /**
+         * Which rows of a line stand as wall: every row inside; outside, stubs of two to four rows with gaps of
+         * four to nine between, starting in a gap, so no stretch of the line reads as a wall across the map, and
+         * only among the dead town's own walls: in open country the line stands nowhere.
+         */
+        boolean[] standing(boolean inside, int[] lx) {
+            boolean[] stands = new boolean[h];
+            if (inside) {
+                Arrays.fill(stands, true);
+                return stands;
+            }
+            int y = 1 + rng.nextInt(6);
+            while (y < h) {
+                int length = 2 + rng.nextInt(3);
+                boolean town = amongRuins(lx[y], y);
+                for (int k = 0; k < length && y < h; k++) stands[y++] = town;
+                y += 4 + rng.nextInt(6);
+            }
+            return stands;
+        }
+
+        /** Whether a wall of the dead town stands within a few cells of {@code (x, y)}. */
+        boolean amongRuins(int x, int y) {
+            for (int dy = -3; dy <= 3; dy++) {
+                for (int dx = -5; dx <= 5; dx++) {
+                    if (grid.inBounds(x + dx, y + dy) && topology.isWall(x + dx, y + dy)) return true;
+                }
+            }
+            return false;
         }
 
         Integer pickRow(int lo, int hi, List<Integer> taken, int collapseY) {

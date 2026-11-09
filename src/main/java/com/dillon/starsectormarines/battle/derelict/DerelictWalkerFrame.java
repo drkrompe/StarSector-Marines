@@ -16,13 +16,13 @@ public enum DerelictWalkerFrame {
 
     /** Heavy cannon, autocannon and plate: holds a layer, comes to what the flocks pin, crushes cover. */
     LINE(MechWeaponComponent.HC_10, MechWeaponComponent.AC_6,
-            MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5, 1.0f, MechRole.ARMORED_SUPPORT),
+            MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5, 1.0f, MechRole.BALANCED),
     /** Mortar-weight missile racks over two light guns: fires on what the flocks see, from its post. */
     SIEGE(MechWeaponComponent.CHAINGUN, MechWeaponComponent.CHAINGUN,
             MechWeaponComponent.LRM_15_FRAG, MechWeaponComponent.LRM_15_FRAG, 0.85f, MechRole.LR_SUPPORT),
     /** Two heavy cannon under the heaviest plate: the vault's last guard. */
     VAULT(MechWeaponComponent.HC_10, MechWeaponComponent.HC_10,
-            MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15, 1.45f, MechRole.ARMORED_SUPPORT);
+            MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15, 1.45f, MechRole.BALANCED);
 
     /** The one chassis every frame is built on. */
     public static final MechVariant CHASSIS = MechVariant.SECURITY_WALKER;

@@ -70,8 +70,18 @@ public final class RuinsWorks {
     static final String FORCE = "force";
     public static final String VAULT_SEAL = "vault-seal";
 
-    /** A console or box the company works, at its stand cell. */
-    public record Site(String key, String name, int x, int y) { }
+    /**
+     * A console or box the company works, at its stand cell. A console in a building of its own (the hall, the records
+     * office) carries the building's footprint {@code area} (left, bottom, right, top): anyone of the company in it, or
+     * within {@link #WORK_MARGIN} of its walls, works the console, since a squad sent to a room holds where its
+     * tactical nodes are, not at the console. A box in the open has no area and is worked within {@link #WORK_CELLS}.
+     */
+    public record Site(String key, String name, int x, int y, int[] area) {
+        public Site(String key, String name, int x, int y) { this(key, name, x, y, null); }
+    }
+
+    /** How far outside a console's building or a store's room the company still works it: a squad sent to a door stands two or three cells short of it. UNTUNED. */
+    static final int WORK_MARGIN = 3;
 
     private final PowerGraph graph;
     private final Site hall;
@@ -132,8 +142,11 @@ public final class RuinsWorks {
                     new int[]{f.left(), f.bottom(), f.right(), f.top()}, true));
             consumers.add(new Consumer(storeId, j, Branch.STORE));
             SalvageResource resource = SalvageResource.values()[j % SalvageResource.values().length];
-            stores.add(new SalvageCache("sealed-" + storeId, room.interior().x(), room.interior().y(), resource,
-                    resource.cacheQuantity));
+            // The find lies just inside the door and is recovered by holding the room, as the hall is worked.
+            int cacheX = room.door().x() + Integer.signum(room.interior().x() - room.door().x());
+            int cacheY = room.door().y() + Integer.signum(room.interior().y() - room.door().y());
+            stores.add(new SalvageCache("sealed-" + storeId, cacheX, cacheY, resource, resource.cacheQuantity)
+                    .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN));
             for (RuinsDelve.Way way : layer.ways()) {
                 if (way.kind() != RuinsDelve.WayKind.GATE) continue;
                 RuinsDelve.Area span = way.span();
@@ -150,9 +163,10 @@ public final class RuinsWorks {
         consumers.add(new Consumer(VAULT_SEAL, delve.layerCount() - 1, Branch.ONWARD));
         onward++;
         RuinsDelve.PowerHall hallPlace = delve.powerHall();
-        Site hall = new Site(HALL, Strings.get("ruinsWorksHallName"), hallPlace.console().x(), hallPlace.console().y());
+        Site hall = new Site(HALL, Strings.get("ruinsWorksHallName"), hallPlace.console().x(), hallPlace.console().y(),
+                box(hallPlace.footprint()));
         Site records = delve.records() == null ? null : new Site(RECORDS, Strings.get("ruinsWorksRecordsName"),
-                delve.records().console().x(), delve.records().console().y());
+                delve.records().console().x(), delve.records().console().y(), box(delve.records().footprint()));
         SealDoor collapse = null;
         if (delve.collapse() != null && delve.collapse().shortWay() != null) {
             RuinsDelve.Way way = delve.collapse().shortWay();
@@ -165,6 +179,8 @@ public final class RuinsWorks {
         return new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores, records,
                 collapse);
     }
+
+    private static int[] box(RuinsDelve.Area a) { return new int[]{a.left(), a.bottom(), a.right(), a.top()}; }
 
     /** The field caches behind the sealed stores, for the battle's field salvage. */
     public List<SalvageCache> storeCaches() { return stores; }
@@ -257,7 +273,7 @@ public final class RuinsWorks {
             Site site = site(workKey);
             if (!near(field, site, PROMPT_CELLS)) {
                 workKey = null;
-            } else if (near(field, site, WORK_CELLS)) {
+            } else if (worked(sim, field, site)) {
                 work += BattleSimulation.TICK_DT;
                 if (work >= required(workKey)) finish(sim);
             } else {
@@ -467,6 +483,21 @@ public final class RuinsWorks {
         if (records != null && records.key().equals(key)) return records;
         for (Site box : junctions) if (box.key().equals(key)) return box;
         return null;
+    }
+
+    /** Whether somebody of the company is where {@code site} is worked from. */
+    static boolean worked(BattleSimulation sim, SideField field, Site site) {
+        if (site.area() == null) return near(field, site, WORK_CELLS);
+        int[] a = site.area();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE || sim.isRiding(unit)
+                    || sim.identity().type(unit).isStatic()) continue;
+            float x = sim.world().x(unit), y = sim.world().y(unit);
+            if (x >= a[0] - WORK_MARGIN && x < a[2] + 1 + WORK_MARGIN && y >= a[1] - WORK_MARGIN
+                    && y < a[3] + 1 + WORK_MARGIN) return true;
+        }
+        return false;
     }
 
     private static boolean near(SideField field, Site site, float reach) {

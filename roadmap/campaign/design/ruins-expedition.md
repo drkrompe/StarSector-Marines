@@ -146,8 +146,11 @@ with detours to caches and works), the **breach** (holding the vault), the
   **landing court** the company holds, an open court the ruins ground
   publishes in a layer. Calling the boat to a nearer court shortens the egress
   but means holding the court while it comes in.
-- **Won and lost.** Won when the haul boards. Lost when the haul is lost or
-  abandoned, the company is wiped out, or it withdraws.
+- **Won, pulled out and lost.** Won when the haul boards. **Pulled out** when
+  the company leaves from a lift point it holds, taking its banked finds home
+  and leaving the vault (Pressing on or pulling out). Lost when the haul is
+  lost or abandoned, the company is wiped out, or it retreats without a held
+  lift point.
 
 **What it borrows from Extraction** (`extraction-command.md`): the source-hold
 rule (uncontested presence for a time releases the package), the escorted
@@ -185,17 +188,17 @@ company's own powers work as in any mission (`command-powers-nouns.md`).
 The **delve** is the ground between the landing area and the vault: how far the
 route runs and how many **layers** it crosses. A layer is a band of ruined
 ground the route must get through, such as a collapsed street, a breached wall
-or a sealed gate. It is where an occupant holds (a scavenger outpost, a security
+or, inside the megastructure, a sealed gate. It is where an occupant holds (a scavenger outpost, a security
 zone, a nest band) and where the site's works stand. The grade is vanilla's
 proxy for the haul's size (rating 0.25 to 1 in the ruins salvage specs), so risk
 and reward rise together.
 
 | Grade | Map | Layers | Breach time (unpowered / powered) | Occupant strength | Field caches |
 | --- | --- | --- | --- | --- | --- |
-| Scattered | 144x80: a dead town across the route | 1 | 30 / 10 s | none or light | 2 |
-| Widespread | 200x112 | 2 | 45 / 15 s | light | 3 |
-| Extensive | 280x168 | 3 | 60 / 20 s | moderate | 4 |
-| Vast | 400x240, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
+| Scattered | 200x112: a dead town across the route | 1 | 30 / 10 s | none or light | 2 |
+| Widespread | 280x168 | 2 | 45 / 15 s | light | 3 |
+| Extensive | 400x240 | 3 | 60 / 20 s | moderate | 4 |
+| Vast | 560x336, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
 
 The numbers are starting points, tuned against a player giving orders, not the
 headless autopilot (`CLAUDE.md`, Balance missions against a player). Occupant
@@ -216,12 +219,14 @@ expedition opened, powered or destroyed stays that way.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
 supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
-The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area at
-one end, the vault at the other, the grade's layers between with their side
+The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area
+toward one end, set in from the map's edge among the ruins, the vault at the
+other, the grade's layers between with their side
 rooms, landing courts and works sites, every place published by name, built
-from mapgen's ruined-lot vocabulary. Its map grows with the grade, a step up
-the tier band so a site sits with the company's other maps: 144x80, 200x112,
-280x168 and 400x240 cells.
+from mapgen's ruined-lot vocabulary. Its map grows with the grade, two steps up
+the tier band, larger than a mission at the same tier, so the player must judge
+whether they still have the forces to go on (owner's pick): 200x112, 280x168,
+400x240 and 560x336 cells.
 `BattleSetup.createRuins` plays on it: the vault and every lift point come from
 the ground's published places, never from a search of the map.
 
@@ -293,6 +298,98 @@ one before it.
 occupant: restarting a power hall is loud (it wakes the Rav's nearest bores and
 any derelict zone that hears it), and at a derelict site the power hall feeds
 the network, so a junction that cuts a branch powers down the zones on it.
+
+### Pressing on or pulling out
+
+The owner picked the larger maps: "The larger maps give us the more interesting
+exploration. The player needs to determine whether they still have the forces
+to "continue"". So the delve is a run of decisions, not one objective. Each
+layer pays something and costs something, and at any layer the player may stop
+and leave with what the company has.
+
+**Deeper pays more.** Caches are weighted to the far half of the route, an
+occupied site has a sealed store per layer, and the vault is at the end. The
+vault's haul is vanilla's, and the salvage team brings the same haul (Law 4,
+Law 6), so the haul alone is no reason to press on to the vault. What the vault
+pays the expedition is the **vault store**: the deepest find, a bundle per layer
+of the delve (one at scattered, four at vast), recovered when the haul boards
+and settled as field finds beside it (pick `ruins-vault-worth` a).
+
+**Banked finds.** Elsewhere a secured find comes home only on a victory
+(`loot-nouns.md`). In a Ruins battle a secured find is **banked**: it comes
+home if the expedition is won or pulled out, and it is left behind only if the
+company is wiped out or retreats without a held lift point. What the company
+stands to lose grows with every layer, because a wipe-out costs everything
+banked so far.
+
+**Pulling out** is the family's Retreat (pick `ruins-pull-out` a). Its
+confirmation draws the extraction circle round every lift point the company
+holds (the landing area and any held court). It lists the banked finds that
+will come home, and says the vault stays sealed and the site unexplored. It
+pays the banked finds when a company squad stands inside a lift point's circle
+and no hostile holds that lift point. Then, as with any Retreat, survivors
+inside a circle extract unhurt and the rest roll to get home (`campaign-nouns.md`,
+Ending an operation). Without a held lift point it is an ordinary Retreat, and
+the finds stay behind. Pulling out is a move, not a button: bring the company
+back to a lift point or take a nearer court, then call it.
+
+| Pull out | Comes home | Stays in the ruins |
+| --- | --- | --- |
+| Before any find | Nothing; the losses settle | Everything |
+| After some layers | Every banked find, each store opened | The deeper caches, the vault and its store |
+| During the breach or the egress | Every banked find | The haul, abandoned; the vault store |
+| (Won) The haul boards | Banked finds, the vault store, then vanilla's haul | Nothing |
+
+**The outcome.** A pulled-out expedition is neither won nor lost. Results reads
+**Pulled out**: it settles the banked finds as field finds (Law 5) and the
+company's losses. Nothing comes out of the vault and the site stays unexplored
+(Law 6), so the player may come back with the company or send the salvage team.
+
+**What the site remembers** (pick `ruins-after-pull-out` a). The finds the
+company brought home stay taken; everything else is as seeded on a return: the
+occupant at full strength, the works reset, every unrecovered cache and store in
+place. This is the one fact a ruins site stores: the set of its finds already
+recovered, per market, written once at commit. Without it an empty scattered
+site is a farm, with its caches and two stores free of risk on every visit.
+
+**Judging the forces.** The rail's **Delve row** sits with the vault's card.
+It gives the player three honest reads, none of which names an enemy unit or
+place:
+
+- **The company**: effectives on the ground against the number landed, squads
+  below half strength, machines lost, and breaching charges left (the works'
+  forced ways spend them).
+- **What it has**: the banked finds by material, the stores opened, and the
+  nearest held lift point with its route length.
+- **What lies ahead**: how deep the company is ("Layer 2 of 4"), and a **close
+  reading** of the next layer once the company holds a layer's stand. The close
+  reading is the briefing's survey reading sharpened by the company's own
+  sensors: the layer's strength band (quiet, held, strongly held) and the
+  occupant's sign. For derelict security that is power draw and flock sweeps,
+  for the Rav lifesigns that rise with noise and time, and for scavengers
+  chatter and generator heat. The vault's layer always reads strongest.
+
+**The way back is part of the cost.** The haul is escorted from the vault to a
+lift point under the occupant's heaviest pressure: the breach wakes every
+derelict zone, peaks the Rav and brings the crew to the dig. A company that
+just reaches the vault has still to come out. Once the vault is sighted, the
+Delve row shows its route to the nearest held lift point. A held court near the
+vault is the answer, and holding one costs a squad.
+
+**Losses are felt at the stands.** Each time the company holds a layer's stand,
+the Delve row reports the tally since the last one ("Layer 2 held: 6 down, a
+Hound lost, 2 finds banked") and offers PULL OUT beside it. A stand is the
+natural place to judge: the layer behind is cleared, the next one's close
+reading has just come in, and the way back is the shortest it will be. Between
+stands the losses read where they happen: a squad below half strength dims on
+the rail, and the comms feed reports each squad that breaks and each machine
+lost.
+
+**The briefing frames it.** Beside the grade's strength band, the briefing
+gives the delve's depth in layers and one line on leaving: the company may pull
+out from any lift point it holds, and what it has recovered comes home. The band
+already tells a starter company that a vast site is too much; the pull-out
+makes it worth going in anyway, as deep as the company can, and coming back.
 
 ## Occupants
 
@@ -440,9 +537,9 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
-- Ruins map size is on the picks page (`ruins-map-size`): one step up the
-  tier band, built, or two. The owner found the first sizes too small and the
-  scattered layer line a stray wall in open desert.
+- Pressing on or pulling out: three owner picks are open (`ruins-pull-out`,
+  `ruins-after-pull-out`, `ruins-vault-worth`); the section is written on
+  option (a) of each.
 - Ruins ground tuning waits on played battles: the dead town's densities,
   layer, room and court sizes, and the interior's chamber count and spine width
   are first guesses, to be tuned against a player giving orders.

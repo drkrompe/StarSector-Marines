@@ -1888,19 +1888,21 @@ the map records for the command layer to read.
 A ruins site's map (`ruins-expedition.md`, Ruined ground) is a grown
 settlement that died: the same growth at a density the mission states,
 `SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
-cleared landing ground at the west end, a vault at the east end, and between
-them the ruins grade's **layers**, each a wall line across the whole map with
-its ways through.
+cleared landing ground toward the west end, a vault at the east end, and between
+them the ruins grade's **layers**, each a line across the whole map with its
+ways through: a wall inside the megastructure, a boundary outside it.
 
 A mission asks for it with a `RuinsGroundPlan` through
 `MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
 other map). The plan is the layer count, 1 (scattered) to 4 (vast), never the
 campaign's grade, so world generation stays free of campaign types; the map's
-size and the dead town's density follow from it. The size sits a step up the
-tier band (`MapScale`), so a site stands with the maps the company fights on
-elsewhere: 144x80 at scattered (the established map), 200x112, 280x168 (the
-full-strength map) and 400x240 at vast, at densities 0.50 to 0.80 so the dead
-town fills the route and the layers cross ruins, not open country. The profile gives only the
+size and the dead town's density follow from it. The size sits two steps up the
+tier band (`MapScale`), larger than a mission at the same tier, the owner's
+pick (`ruins-map-size` b): "The larger maps give us the more interesting
+exploration. The player needs to determine whether they still have the forces
+to continue." 200x112 at scattered, 280x168 (the full-strength map), 400x240
+(the colony map) and 560x336 at vast (Conquest's), at densities 0.55 to 0.85
+so the dead town fills the route and the layers cross ruins, not open country. The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
@@ -1911,16 +1913,16 @@ Every place has a stable name (`places()` lists them, `area(name)` answers one):
 
 | Name | What it is |
 |---|---|
-| `ruins.landing` | The cleared landing ground at the west end. Its arrival areas are the map's own `landingAreas` and `landingPads`, the only berths on the map; the company spawns on it. |
+| `ruins.landing` | The cleared landing ground toward the west end, a tenth of the map in from the edge (`RuinsDelveStage.landingLeft`), never on it (owner: "we don't need to keep landing zones at the edge of the map"): ruins or open ground lie behind it as well as ahead, and its berths are under open sky. Its arrival areas are the map's own `landingAreas` and `landingPads`, the only berths on the map; the company spawns on it. |
 | `ruins.vault` | The vault suite at the east end: its door, inner door, the approach cell outside the door, and the one source cell the breach is held on. The opposing anchor stands at the approach. |
-| `ruins.layer.N` | Layer N, from 1 nearest the landing: its holdable ground up to the next layer's line; a collapsed street, a breached wall or a sealed gate. |
+| `ruins.layer.N` | Layer N, from 1 nearest the landing: its holdable ground up to the next layer's line; a collapsed street, a breached wall or, inside the megastructure only, a sealed gate. |
 | `ruins.layer.N.way.M` | The ways through layer N: a gap, a breach, a sealed gate's span (open ground until the works shut it) or the side way round a gate, each with its span and a cell either side. |
 | `ruins.layer.N.room.M` | Two small rooms behind each layer, one door each: where caches and sealed stores go. |
 | `ruins.layer.N.court` | The open landing court of every layer past the first; not among the map's berths, since the boat is called to it. |
 | `ruins.works.power-hall` | The generator hall, in a layer before the last; its console is the cell infantry hold. |
 | `ruins.works.junction.N` | One junction box per layer, in the wall past its first open way; its stand is on that way's passage. |
 | `ruins.works.records` | The records office in the first layer. |
-| `ruins.works.collapse` | The short way through the last layer, in line with the vault's door, choked by breachable wall: a way of its own kind; the layer's open ways are the long way round. |
+| `ruins.works.collapse` | The short way through the last layer, in line with the vault's door, choked by breachable wall: a way of its own kind; the layer's open ways are the long way round. On scattered ground its layer is outside, so it is only a choked heap on the boundary, no shorter than walking round. |
 | `ruins.interior` | The roofed part of the site, with its entrances from open ground; `ruins.interior.chamber.M` are its unnamed chambers. |
 
 Lift points are the landing's arrival areas, then each court's. Which court is
@@ -1946,11 +1948,18 @@ six cells short of every edge, trunks included, so the road graph has no perimet
 and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
 
-**A layer never closes the route.** Every layer line runs edge to edge, so the
-ways are the only crossings, and a way is open ground across the line. A line
-is an old wall gone to ruin, never a clean one drawn across the ground: it
-sheds a bed of rubble against both faces, thinning over three cells (four for
-a collapsed street), with scrap where sections came down. Scattered
+**A line stands only inside.** Inside the megastructure a layer line is a
+hull wall edge to edge, so its ways are the only crossings, and it sheds a bed
+of rubble against both faces, thinning over three cells (four for a collapsed
+street), with scrap where sections came down. Outside, a full-height wall has
+no reason to exist (owner: "a random wall"): the line is the layer's boundary,
+data its places are laid against, and draws nothing in open country; among the
+dead town's own walls an odd stub of old foundation stands on it, two to four
+cells long. A sealed gate shuts only a standing line, so it is never laid
+outside.
+
+**A layer never closes the route.** A way is open ground across the line, and
+a standing line is crossed only by its ways. Scattered
 ruins may be crossed by one way; every layer at a larger grade has at least two,
 and blocking any single one still leaves the vault reachable. The collapse is a
 way of its own kind, choked and breachable, never counted among the open ones.

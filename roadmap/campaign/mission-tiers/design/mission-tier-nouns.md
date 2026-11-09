@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — explicit small territorial chapter profiles preserve generic Conquest scale.
+Updated: 2026-11-09 — a Raid takes its tier map one step up the band.
 
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
@@ -33,7 +33,11 @@ keeps a conquest a late-game operation while allowing other types to occur at
 more than one scale. Conquest's map scale is the one mission-owned exception:
 it is the authored siege, its three tracks and its fortress with a city around
 it were measured at 560x336, and it takes that scale at every tier it is
-offered at.
+offered at. A Raid takes its tier's map one step up the band
+(`MapScale.forRaid`: 144x80 at a first contract, 200x112 established or
+veteran, 400x240 reinforced or full strength), so a search for the prize has
+ground to search (owner: Raid maps too small); the size choice is on the picks
+page as `raid-map-size`.
 
 An authored small territorial chapter is a separate profile, not a generic
 Conquest offer below its tier floor. It states its own map, recommendation,
