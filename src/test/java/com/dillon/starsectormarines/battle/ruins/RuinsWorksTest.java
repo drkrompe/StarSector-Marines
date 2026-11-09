@@ -129,6 +129,29 @@ class RuinsWorksTest {
         assertEquals(1, RuinsWorks.storesIn(0, 1, 1, RuinsDefence.NONE), "never more than the layer's rooms");
     }
 
+    @Test
+    void thePoweredVaultDoorWaitsOnItsTwoKeys() {
+        try (BattleSimulation sim = simulation()) {
+            PowerGraph graph = new PowerGraph(1, List.of(Branch.ONWARD),
+                    List.of(new Consumer(RuinsWorks.VAULT_SEAL, 0, Branch.ONWARD)));
+            SealDoor seal = new SealDoor(RuinsWorks.VAULT_SEAL, "vault", new int[][]{{DOOR_X, DOOR_Y}}, 7, 8,
+                    new int[]{5, 5, 9, 9}, false, true);
+            RuinsWorks works = new RuinsWorks(graph, new RuinsWorks.Site(RuinsWorks.HALL, "hall", 2, 2),
+                    List.of(new RuinsWorks.Site(RuinsWorks.JUNCTION + 0, "junction", 12, 2)), List.of(seal), List.of(),
+                    new RuinsWorks.Site(RuinsWorks.RECORDS, "records", 2, 14), null);
+            works.keypad = new RuinsWorks.Site(RuinsWorks.KEYPAD, "keypad", DOOR_X, DOOR_Y + 2);
+            sim.installRuinsWorks(works);
+
+            works.graph().restart();
+            works.settle(sim);
+            assertFalse(sim.getGrid().isWalkable(DOOR_X, DOOR_Y), "powered, it still waits on its keys");
+
+            works.keys.tick(true, true, true, VaultKeys.TURN_SECONDS);
+            works.settle(sim);
+            assertTrue(sim.getGrid().isWalkable(DOOR_X, DOOR_Y), "powered and keyed, it opens");
+        }
+    }
+
     private static boolean marked(RuinsWorks works, String door) {
         return works.item().markers().stream().anyMatch(m -> m.id().endsWith(door));
     }

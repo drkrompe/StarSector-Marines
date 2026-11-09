@@ -66,6 +66,8 @@ public final class RuinsWorks {
     static final String HALL = KEY + "hall";
     static final String JUNCTION = KEY + "junction/";
     static final String RECORDS = KEY + "records";
+    static final String RECORDS_KEY = KEY + "records-key";
+    static final String KEYPAD = KEY + "keypad";
     static final String DOOR = KEY + "door/";
     static final String COLLAPSE = KEY + "collapse";
     static final String FORCE = "force";
@@ -104,6 +106,11 @@ public final class RuinsWorks {
     private String pressedVerb;
     private String workKey;
     private String workVerb;
+    /** The keypad by the vault's door, the second of its two keys with the records console; null for none. */
+    Site keypad;
+    /** The vault door's keys ({@code ruins-works.md}, Vault access). */
+    final VaultKeys keys = new VaultKeys();
+    private int keysHeld;
     private float work;
 
     RuinsWorks(PowerGraph graph, Site hall, List<Site> junctions, List<SealDoor> doors, List<SalvageCache> stores,
@@ -207,6 +214,11 @@ public final class RuinsWorks {
         RuinsWorks works = new RuinsWorks(new PowerGraph(onward + 1, initial, consumers), hall, junctions, doors, stores,
                 records, collapse);
         works.vaultShell = box(vaultPlace.footprint());
+        if (records != null) {
+            // The keypad stands on the antechamber's floor in front of the vault's door, toward its outer door.
+            int kx = ix + Integer.signum(vaultPlace.door().x() - ix);
+            works.keypad = new Site(KEYPAD, Strings.get("ruinsWorksKeypadName"), kx, iy);
+        }
         return works;
     }
 
@@ -243,6 +255,12 @@ public final class RuinsWorks {
     public boolean collapseCleared() { return cleared; }
     /** Whether the player knows what junction {@code j} feeds: thrown once, or the records read. */
     public boolean junctionKnown(int j) { return read || known[j]; }
+    /** The vault keypad, or null on a site without the two keys. */
+    public Site keypad() { return keypad; }
+    /** Whether the vault's door waits on its two keys: a site with a records console and a keypad. */
+    public boolean vaultNeedsKeys() { return keypad != null && records != null; }
+    /** Whether the vault's keys are turned, or it needs none. */
+    public boolean vaultKeysTurned() { return !vaultNeedsKeys() || keys.turned(); }
 
     /**
      * Shuts every seal door as the wall beside it and hardens the vault suite's walls, so no heavy drives through them
@@ -280,6 +298,11 @@ public final class RuinsWorks {
             pressedKey = null;
         }
         if (forceKey != null) tickForce(sim, field);
+        if (vaultNeedsKeys()) {
+            boolean atRecords = worked(sim, field, records), atKeypad = worked(sim, field, keypad);
+            keysHeld = (atRecords ? 1 : 0) + (atKeypad ? 1 : 0);
+            keys.tick(graph.powered(graph.consumer(VAULT_SEAL)), atRecords, atKeypad, BattleSimulation.TICK_DT);
+        }
         if (workKey != null) {
             Site site = site(workKey);
             if (!near(field, site, PROMPT_CELLS)) {
@@ -380,7 +403,12 @@ public final class RuinsWorks {
         boolean vaultBreached = vault != null && vault.breached();
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
-            locks.get(d).settle(sim, graph.powered(graph.consumer(door.id())) || !door.store() && vaultBreached);
+            boolean powered = graph.powered(graph.consumer(door.id()));
+            // The vault's door needs its two keys as well as its power.
+            boolean keyed = !VAULT_SEAL.equals(door.id()) || vaultKeysTurned();
+            LockedDoor lock = locks.get(d);
+            lock.settle(sim, powered && keyed || !door.store() && vaultBreached);
+            lock.setReady(powered && !lock.isOpen());
         }
         if (vault != null) vault.setVaultPowered(graph.powered(graph.consumer(VAULT_SEAL)));
     }
@@ -427,7 +455,7 @@ public final class RuinsWorks {
             SealDoor door = doors.get(d);
             if (isOpen(d) || (door.store() && !read)) continue;
             if (door.hardened()) {
-                lockedOffer(out, field, DOOR + door.id(), door);
+                lockedOffer(out, field, DOOR + door.id(), door, graph.powered(graph.consumer(door.id())));
                 continue;
             }
             forceOffer(out, field, DOOR + door.id(), door, Strings.get("ruinsWorksDoorSealed"),
@@ -436,6 +464,13 @@ public final class RuinsWorks {
         if (collapse != null && !cleared) {
             forceOffer(out, field, COLLAPSE, collapse, Strings.get("ruinsWorksCollapseChoked"),
                     Strings.get("ruinsWorksCollapseDetail"));
+        }
+        // Once the vault's door is powered, the records console is a key: its card says so.
+        if (vaultNeedsKeys() && !keys.turned() && graph.powered(graph.consumer(VAULT_SEAL)) && !RECORDS.equals(workKey)
+                && near(field, records, PROMPT_CELLS)) {
+            out.add(new Offer(RECORDS_KEY, records.x(), records.y(), SideTrigger.Interact.Layout.CARD, records.name(),
+                    Strings.format("ruinsWorksKeysHeld", keysHeld),
+                    Strings.format("ruinsWorksRecordsKeyDetail", seconds(VaultKeys.TURN_SECONDS)), List.of()));
         }
         return out;
     }
@@ -449,12 +484,17 @@ public final class RuinsWorks {
                 List.of(new OfferVerb(FORCE, Strings.get("ruinsWorksVerbForce"), ""))));
     }
 
-    /** A hardened door's card: no verb, only what opens it. */
-    private void lockedOffer(List<Offer> out, SideField field, String key, SealDoor target) {
+    /** A hardened door's card: no verb, only what opens it and what it still lacks. */
+    private void lockedOffer(List<Offer> out, SideField field, String key, SealDoor target, boolean powered) {
         int[] m = target.middle();
         if (field.nearest(SideField.Who.COMBATANT, m[0] + .5f, m[1] + .5f, PROMPT_CELLS) == 0L) return;
-        out.add(new Offer(key, m[0], m[1], SideTrigger.Interact.Layout.CARD, target.name(),
-                Strings.get("ruinsWorksDoorLocked"), Strings.get("ruinsWorksLockedDetail"), List.of()));
+        boolean keyed = VAULT_SEAL.equals(target.id()) && vaultNeedsKeys();
+        String tag = Strings.get(!powered ? "ruinsWorksVaultNoPower" : keyed ? "ruinsWorksVaultTurnKeys"
+                : "ruinsWorksDoorLocked");
+        String detail = !keyed ? Strings.get("ruinsWorksLockedDetail")
+                : !powered ? Strings.get("ruinsWorksVaultNeedsPower")
+                : Strings.format("ruinsWorksVaultNeedsKeys", seconds(VaultKeys.TURN_SECONDS), keysHeld);
+        out.add(new Offer(key, m[0], m[1], SideTrigger.Interact.Layout.CARD, target.name(), tag, detail, List.of()));
     }
 
     private static String seconds(float s) { return Strings.format("objectiveSeconds", Math.round(s * 10) / 10f); }
@@ -500,9 +540,10 @@ public final class RuinsWorks {
                 running ? MissionObjectiveSnapshot.State.COMPLETE : active));
         for (int j = 0; j < junctions.size(); j++) {
             Site box = junctions.get(j);
+            boolean feedsVault = j == junctions.size() - 1;
             markers.add(new Marker(box.key(), box.name(), box.x(), box.y(), Strings.get(!junctionKnown(j)
                     ? "ruinsWorksFeedingUnknown" : graph.position(j) == Branch.STORE ? "ruinsWorksFeedingStoreShort"
-                    : "ruinsWorksFeedingOnwardShort"), active));
+                    : feedsVault ? "ruinsWorksFeedingVaultShort" : "ruinsWorksFeedingOnwardShort"), active));
         }
         if (records != null) {
             markers.add(new Marker(records.key(), records.name(), records.x(), records.y(),
@@ -520,10 +561,18 @@ public final class RuinsWorks {
             // A sealed store is the site's secret until the records are read or it stands open.
             if (door.store() && !read && !isOpen(d)) continue;
             int[] m = door.middle();
+            boolean powered = graph.powered(graph.consumer(door.id()));
+            boolean keyed = VAULT_SEAL.equals(door.id()) && vaultNeedsKeys();
             String status = Strings.get(isForced(d) ? "ruinsWorksDoorForced" : isOpen(d) ? "ruinsWorksDoorOpen"
+                    : keyed ? (powered ? "ruinsWorksVaultTurnKeys" : "ruinsWorksVaultNoPower")
                     : door.hardened() ? "ruinsWorksDoorLocked" : "ruinsWorksDoorSealed");
             markers.add(new Marker(KEY + door.id(), door.name(), m[0], m[1], status,
                     isOpen(d) ? MissionObjectiveSnapshot.State.COMPLETE : active));
+        }
+        if (vaultNeedsKeys()) {
+            markers.add(new Marker(keypad.key(), keypad.name(), keypad.x(), keypad.y(), keys.turned()
+                    ? Strings.get("ruinsWorksKeysTurned") : Strings.format("ruinsWorksKeysHeld", keysHeld),
+                    keys.turned() ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
         return new Item("zz-ruins-works", Strings.get("ruinsWorksName"), running && !overloaded
                 ? MissionObjectiveSnapshot.State.COMPLETE : active, phase, "", instruction,

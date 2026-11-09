@@ -26,6 +26,7 @@ public final class LockedDoor {
     private final boolean hardened;
     private MapEditor.PassageRecord[] shut;
     private boolean spansX;
+    private boolean ready;
     private boolean open;
     private boolean forced;
 
@@ -52,6 +53,9 @@ public final class LockedDoor {
     /** Whether a breach forced it open for good; never for a hardened door. */
     public boolean isForced() { return forced; }
     public boolean hardened() { return hardened; }
+    /** Whether its lock has what it can give (power, say) but still waits on something else: drawn with an amber lamp. */
+    public boolean ready() { return ready; }
+    public void setReady(boolean ready) { this.ready = ready; }
     /** The door's cells, {x, y} each; read only. */
     public int[][] cells() { return cells; }
     /** Whether the door runs along x (a passage through it runs north-south); known once installed. */

@@ -33,7 +33,8 @@ import java.util.List;
  * The vault's locked door and hardened walls ({@code ruins-works.md}; {@code garrisonables.md}, Locked doors and
  * hardened walls) through the look preset at 1920x1080 on an empty scattered site, centred on the vault's inner door:
  * the door locked with the hall cold; the same frame with every hardened cell tinted, a review overlay that the game
- * never draws; and the door unlocked once the hall runs and the way on is fed. The power is routed through the works'
+ * never draws; the door powered once the hall runs and the way on is fed, its lamp amber while it waits on its two
+ * keys; and the door open once the keys are turned. The power is routed through the works'
  * own rules. {@code -Dsnapshot.ruinsVaultLock.seed} picks the site (default 31). Opt-in:
  * {@code -Psnapshot=ruins-vault-lock-look}.
  */
@@ -68,7 +69,10 @@ public final class RuinsVaultLockLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact("02-hardened-walls-tinted.png", tinted(context, locked, sim, cx, cy)));
             works.graph().restart();
             sim.advance(BattleSimulation.TICK_DT);
-            out.add(new SnapshotArtifact("03-vault-door-unlocked-by-power.png", frame(context, sim, cx, cy)));
+            out.add(new SnapshotArtifact("03-vault-door-powered-awaiting-keys.png", frame(context, sim, cx, cy)));
+            works.keys.tick(true, true, true, VaultKeys.TURN_SECONDS);
+            sim.advance(BattleSimulation.TICK_DT);
+            out.add(new SnapshotArtifact("04-vault-door-keys-turned-open.png", frame(context, sim, cx, cy)));
         }
         return out;
     }
