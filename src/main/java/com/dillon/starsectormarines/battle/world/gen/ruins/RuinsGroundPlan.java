@@ -28,16 +28,18 @@ public record RuinsGroundPlan(int layers, int width, int height, float density) 
     }
 
     /**
-     * The ground for a delve of {@code layers} layers: scattered ruins on the first-contract map, vast ones on the
-     * full-strength map. The sizes are the tier band's ({@code MapScale}) with one step between widespread and
-     * vast, so a vast site's vault stands deep in the ruins. UNTUNED.
+     * The ground for a delve of {@code layers} layers, a step up the tier band ({@code MapScale}) from where it
+     * began, so a ruins site sits with the maps the company fights on elsewhere (owner: "Map is too small"):
+     * scattered ruins on the established map, widespread between it and the full-strength map, extensive on the
+     * full-strength map, vast at the colony map's size. The dead town is dense enough to fill the route, so the
+     * layers cross ruins rather than open country. UNTUNED.
      */
     public static RuinsGroundPlan forLayers(int layers) {
         return switch (layers) {
-            case 1 -> new RuinsGroundPlan(1, 112, 64, 0.30f);
-            case 2 -> new RuinsGroundPlan(2, 144, 80, 0.45f);
-            case 3 -> new RuinsGroundPlan(3, 200, 112, 0.60f);
-            case 4 -> new RuinsGroundPlan(4, 280, 168, 0.75f);
+            case 1 -> new RuinsGroundPlan(1, 144, 80, 0.50f);
+            case 2 -> new RuinsGroundPlan(2, 200, 112, 0.60f);
+            case 3 -> new RuinsGroundPlan(3, 280, 168, 0.70f);
+            case 4 -> new RuinsGroundPlan(4, 400, 240, 0.80f);
             default -> throw new IllegalArgumentException("a ruins delve has 1 to " + MAX_LAYERS + " layers, not " + layers);
         };
     }

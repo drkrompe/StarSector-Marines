@@ -1,7 +1,8 @@
 # Ruins expedition battle
 
 Status: IN PROGRESS — slices 1, 2, 6 and 7 built (objective, disclosure,
-deeper caches, briefing); slice 3 deferred. The family plays in battle on
+deeper caches, briefing); slice 3 deferred, slice 8 dropped. The family
+plays in battle on
 interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
@@ -138,19 +139,15 @@ story's battle plays, it lifts the fork's development-only gate
    `RuinsSurvey.poolFor` maps an occupant to its pool; only the scavengers have
    one, and an occupant without one reads as the scavengers its battle still
    fields.
-8. **Evidence.** `commanderEvidence -Pmission=ruins` with a fixture per grade on
-   the stand-in ground, headless: the haul boards, or the expedition loses by
-   one of the family's terminals. That proves the mission works, not that it is
-   hard enough; balance is a played battle (`playBattle -Pbattle=<source>`).
+8. **Evidence.** *Dropped by the owner (2026-11-09).* No session runs the
+   mission headless to judge it, not even whether it ends: the autopilot
+   cannot play these maps as a player would, so its outcomes say nothing about
+   the mission or its balance. Rules are proven by unit tests where they are
+   decided; whether the ground builds is the ground's own evidence
+   (`mapgen-nouns.md`, Ruins ground); balance is a played battle. The
+   `commanderEvidence -Pmission=ruins` harness built before the ruling is not
+   to be run for outcomes.
 
-   *Harness built.* `commanderEvidence -Pmission=ruins` plays one scavenger
-   fixture per grade on the ruins ground (`ruins-scavengers-<grade>-v1.json`),
-   three seeds each, with the company's real lift: one twelve-seat Hermes, one
-   trip per squad the tier recommends. It reports only whether each run set
-   up and whether it ended or stuck: the autopilot company is no player, so
-   its wins and times say nothing. Every run that set up has ended. Extensive
-   seed 91104 cannot lay its ground (`ruins.layer.2 seats no power hall`), so
-   the task fails until the ground does (`mapgen-nouns.md`, Ruins ground).
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change
@@ -163,6 +160,6 @@ story's battle plays, it lifts the fork's development-only gate
 
 ## Done
 
-All slices pass their tests and evidence, and the owner has played an
-expedition on each grade. Fold the family into `ruins-expedition.md` and its row
+All slices but the dropped slice 8 pass their tests, and the owner has played
+an expedition on each grade. Fold the family into `ruins-expedition.md` and its row
 in `mission-command-nouns.md`, add a row to `shipped.md`, and delete this story.
