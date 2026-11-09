@@ -32,9 +32,9 @@ import java.util.Locale;
  * <p>{@code -Dsnapshot.skyPort.depth=400} picks the depth in metres, the terraces and the ground below scaled
  * with it; {@code -Dsnapshot.skyPort.eyes=150,240} the camera heights to compare, in metres above the roofs.
  *
- * <p>{@code -Dsnapshot.skyPort.layout=cluster} (the default) lays three tower roofs joined by walkways over the
- * drop, neighbouring towers standing lower all round: stills on the catwalk, the skybridge, the dogleg's corner
- * and a tower's edge, one of the whole cluster, and a pan along the catwalk from one tower to the next.
+ * <p>{@code -Dsnapshot.skyPort.layout=cluster} (the default) lays the sky port station over the drop, the city's
+ * towers standing lower all round: stills on the landing deck, a viaduct, the stair bridges, the tracks and the
+ * platforms' ends, the station and the whole map, and a pan from the landing deck to the platforms.
  * {@code deck} lays the single roof deck with its pier.
  */
 public final class SkyPortVoidLookSuite implements SnapshotSuite {
@@ -56,7 +56,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         float f = depth / 400f;
         return SkyPortClusterSetup.industrial(depth, eye, List.of(new VoidBackdrop.Tier(60f * f, 14f),
                 new VoidBackdrop.Tier(130f * f, 34f), new VoidBackdrop.Tier(220f * f, 60f),
-                new VoidBackdrop.Tier(310f * f, 90f)), List.of(), List.of());
+                new VoidBackdrop.Tier(310f * f, 90f)), List.of(), List.of(), List.of());
     }
 
     @Override public String id() { return "sky-port-void-look"; }
@@ -76,14 +76,14 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                 float eye = Float.parseFloat(eyeText.trim());
                 String tag = String.format(Locale.ROOT, "cluster-%04dm-eye%04dm", Math.round(depth), Math.round(eye));
                 try (BattleSimulation sim = cluster(depth, eye)) {
-                    out.add(shot(context, sim, tag + "-1-catwalk.png", 100f, 100f, PLAY));
-                    out.add(shot(context, sim, tag + "-2-skybridge.png", 138f, 74f, PLAY));
-                    out.add(shot(context, sim, tag + "-3-wide.png", SkyPortClusterSetup.W / 2f, SkyPortClusterSetup.H / 2f, 210f));
-                    out.add(shot(context, sim, tag + "-5-dogleg.png", 76f, 36f, PLAY));
-                    out.add(shot(context, sim, tag + "-6-tower-edge.png", 158f, 136f, PLAY));
-                    out.add(shot(context, sim, tag + "-7-stairs.png", 126f, 44f, PLAY));
-                    out.add(shot(context, sim, tag + "-8-a-corner.png", 81f, 106f, 85f));
-                    if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 55f, 82f, 142f, 120f));
+                    out.add(shot(context, sim, tag + "-1-landing.png", 36f, 119f, PLAY));
+                    out.add(shot(context, sim, tag + "-2-viaduct.png", 62f, 128f, PLAY));
+                    out.add(shot(context, sim, tag + "-3-wide.png", SkyPortClusterSetup.W / 2f, SkyPortClusterSetup.H / 2f, 330f));
+                    out.add(shot(context, sim, tag + "-5-stair-bridges.png", 130f, 105f, PLAY));
+                    out.add(shot(context, sim, tag + "-6-tracks.png", 215f, 90f, PLAY));
+                    out.add(shot(context, sim, tag + "-7-platform-ends.png", 300f, 120f, 85f));
+                    out.add(shot(context, sim, tag + "-8-station.png", 170f, 120f, 170f));
+                    if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 36f, 119f, 230f, 105f));
                 }
             }
             return out;
@@ -132,8 +132,8 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         ground.topology().setVoidBackdrop(SkyPortClusterSetup.backdrop(depth, eye));
         SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false);
         builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
-                .inFile(92, 99, 1, 0)
-                .assigned(id -> ObjectiveAssignment.defendArea(id, 130, 100))
+                .inFile(54, 140, 1, 0)
+                .assigned(id -> ObjectiveAssignment.defendArea(id, 60, 140))
                 .done();
         return builder.build().sim();
     }
