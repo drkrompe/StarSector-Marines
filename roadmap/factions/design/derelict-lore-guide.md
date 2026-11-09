@@ -140,7 +140,7 @@ the lightly damaged: a slow, heavy anchor that keeps itself running.
 | **Swarm drone** | A small, cheap, expendable flier with one light gun. Alone it is nothing; it exists in a flock. | The shipped drone's air body, lighter (`Drone`), steered by the flock (`derelict-drone-flocks.md`) |
 | **Flock** | Twelve to sixteen swarm drones that move, turn and attack as one body. The unit the network commands. | New: the flock model (`derelict-drone-flocks.md`) |
 | **Drone cradle** | A launch housing that keeps one flock docked, puts it up when its zone wakes, takes it back, and slowly rebuilds lost drones while its node stands. | The drone hub (`DroneHub`) with a flock's stock |
-| **Security walker** | An unpiloted heavy walker of the derelict line, in three loadouts: the **line frame** (heavy cannon and plate, holds a layer and crushes cover), the **siege frame** (mortar and missile racks, fires on what the flocks see), and the **vault frame** (the heaviest plate, the vault's last guard). | A new heavy mech line (`mech-lines.md`): one chassis, variants by loadout (`mechs-nouns.md`) |
+| **Security walker** | An unpiloted heavy walker of the derelict line, in three loadouts: the **line frame** (heavy cannon and plate, holds a layer and crushes cover), the **siege frame** (mortar and missile racks, fires on what the flocks see), and the **vault frame** (the heaviest plate, the vault's last guard, an interior guardian that never leaves it). Sized to stand in an interior's corridors. | A new heavy mech line (`mech-lines.md`): one chassis, variants by loadout (`mechs-nouns.md`) |
 | **Sentry post** | A folded gun emplacement that rises when its zone wakes. Secondary now: a few per zone at doors and courts. | Defence post (`DefensePost`) with a wake gate |
 | **Repair drone** | An unarmed drone that restores damaged posts, cradles and walkers while its node stands and its stock lasts; stands down under fire. | The tender's builder drone (`tender-ship.md`) |
 | **Control node** | The zone's controller and relay: armoured, unarmed. Destroyed, its zone stops relaying, repairing and rebuilding drones. | Structure |
@@ -235,9 +235,15 @@ and the field finds stay the ordinary bundles (`loot-nouns.md`).
   have pinned inside it. Siege frames fire on what the flocks see, so a blinded
   or dead flock leaves them firing on old contacts.
 - **The contingency.** Breaching the vault wakes every zone. Every flock that
-  can reach the vault or the route out goes for the haul's escort; the heavies
-  walk to the egress route through their own ground and hold it. The flocks
-  arrive first and pin; the heavies close the way.
+  can reach the vault or the route out goes for the haul's escort; the line
+  frames walk to the egress route through their own ground and hold it, and the
+  vault frame stays on the vault. The flocks arrive first and pin; the heavies
+  close the way.
+- **Inside and outside.** Where a site is a megastructure or bunker (owner,
+  2026-11-09), the roofline divides the watch: flocks keep the exterior, the
+  approaches and the doorways and never enter a roofed room; walkers and posts
+  hold the halls, corridors and the vault inside. The walker is built to fit
+  the corridors it guards.
 - **Honest knowledge.** A zone knows what its sensors, its flocks and its
   relays tell it. A dead node isolates its zone; jamming, smoke and walls work
   on its sensors as on anyone's. The network is a mission director like the

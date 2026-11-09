@@ -66,13 +66,16 @@ class WalkerPostureTest {
     }
 
     @Test
-    void inTheContingencyHeaviesHoldTheNearestEgressAndSiegeFramesFireOnTheHaul() {
+    void inTheContingencyLineFramesHoldTheEgressTheVaultFrameTheVaultAndSiegeFramesFireOnTheHaul() {
         SecurityZone zone = awake();
         Order line = decide(LINE, zone, true, List.of(new Contact(1, 22, 20, 0)), List.of(), List.of());
         assertEquals(Kind.HOLD_EGRESS, line.kind());
         assertEquals(90, line.cellX());
         assertEquals(0, line.cellY());
-        assertEquals(Kind.HOLD_EGRESS, decide(VAULT, zone, true, List.of(), List.of(), List.of()).kind());
+        assertEquals(Kind.HOLD, decide(VAULT, zone, true, List.of(), List.of(), List.of()).kind(),
+                "the vault frame guards the vault, not the way out");
+        assertEquals(Kind.CLOSE, decide(VAULT, zone, true, List.of(new Contact(4, 24, 20, 0)), List.of(), List.of())
+                .kind(), "and fights what reaches it");
         List<Contact> seen = List.of(new Contact(1, 30, 20, 90), new Contact(5, 28, 20, 10));
         Order siege = decide(SIEGE, zone, true, List.of(), seen, List.of(5L));
         assertEquals(5L, siege.unitId(), "the haul's escort first, however stale");

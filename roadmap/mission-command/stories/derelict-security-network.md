@@ -7,8 +7,12 @@ drones, waking posts, power branches and every look are not. Feeds slice 5 of
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — slices 1 to 4 built on owner pick `derelict-mech-line`'s
-recommended option (a line of its own), pending the owner's answer.
+Updated: 2026-11-09 — slices 1 to 4 built. Owner picks (2026-11-09), all on
+the recommended options: `derelict-mech-line` (a), a heavy line of its own;
+`derelict-swarm-size` (a), one flock of twelve to sixteen per zone;
+`derelict-flock-counters` (a), area fire and cover, flocks keeping out of
+roofed rooms. Interiors added (Interiors), from the owner's note that some
+sites are megastructures the company explores inside.
 
 Read `derelict-lore-guide.md` in full first, then `ruins-expedition.md`
 (The Ruins mission family, Derelict security), `extraction-command.md` (the
@@ -65,6 +69,38 @@ swarm director, and it commands flocks as units.
 9. **Looks.** Domain and contingency looks for the cradles, posts and node
    (`tech-families.md`), with picks.
 
+## Interiors
+
+Owner, 2026-11-09: some ruin sites are megastructures or bunkers; the company
+lands outside and works into roofed rooms and corridors with the vault deep
+inside (`ruins-ground.md`, Interior: outside, then inside). The two halves of
+the force split along the roofline:
+
+- **Flocks own the exterior and the approaches.** A flock never enters a
+  roofed cell; a strike on a unit under a roof holds the threshold, the doorway
+  or breach where its way out meets open ground (`derelict-drone-flocks.md`,
+  Roofs are the flock's limit). The company indoors is out of the flocks'
+  reach, which is the counter the owner picked.
+- **Heavies and posts hold the interior.** Zones laid along the vault's route
+  put the vault's zone, and at the larger grades the next, inside, so their
+  walkers stand in halls, corridors and antechambers. A pin under a roof still
+  counts: the flock holding the doorway pins the unit inside, and the zone's
+  line frames come to it through the corridors the flock cannot use.
+- **The vault frame is the interior guardian.** It stands on the vault, comes
+  only to what enters `VAULT_REACH_CELLS` of it, and stays there in the
+  contingency, when the line frames walk out to the egress; a vault breach
+  inside is fought by the heavies, the haul's way out by the flocks.
+- **Sized for corridors.** The walker fits the narrowest passage an interior is
+  carved with: its radius (0.72) stands in a `CorridorStage.CORRIDOR_WIDTH`
+  corridor (2 cells), tested by `DerelictWalkerFrameTest`. A narrower door or
+  seal door would shut it out; the interior's ways must stay corridor width
+  wherever a walker is posted beyond them.
+- **Posts that wake** (slice 7) stand at interior doors and courts as well as
+  outside.
+
+Not built: posting walkers by the interior's own places (`ruins.interior`, its
+rooms and doors) rather than by route cells; that waits on the interior ground.
+
 ## What is built
 
 Everything is in `battle.derelict`.
@@ -81,9 +117,9 @@ Everything is in `battle.derelict`.
   walker: dormant or alert holds the post; awake, a line frame comes to the
   nearest pin inside its own perimeter, a vault frame only to a pin within
   `VAULT_REACH_CELLS` of its post, a siege frame holds and fires on the
-  freshest sighting within its reach; in the contingency line and vault frames
-  hold the egress cell nearest their post (past the perimeter) and a siege
-  frame fires on the haul's escort first.
+  freshest sighting within its reach; in the contingency line frames hold the
+  egress cell nearest their post (past the perimeter), the vault frame stays on
+  the vault, and a siege frame fires on the haul's escort first.
 - **Tasks (slice 2, flocks).** `FlockTasking.decide` is the pure rule per
   flock: under a third of strength it goes home; in the contingency it
   strikes the haul's escort off the leash; a dormant zone's flock stays home,
