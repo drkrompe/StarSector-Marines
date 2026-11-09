@@ -15,7 +15,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
@@ -95,7 +98,12 @@ public final class PrecinctWardStage implements GenStage {
                     : posterns(claim, own, road, ownRoad, i, precinct.fortification(), yard, ctx);
             PrecinctFill.Masks masks = null;
             FortressInterior.Result result = null;
-            if (precinct.isProgrammed()) {
+            if (precinct.isProgrammed() && precinct.program().cantonment()) {
+                masks = PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
+                result = cantonment(ctx, precinct, masks, own, road, i, unbuilt, shortFields);
+                emitTacticalNodes(ctx, result);
+                emitPointsOfInterest(ctx, result);
+            } else if (precinct.isProgrammed()) {
                 masks =
                         PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 if (yard != null) reserveYard(masks, own, i, yard);
@@ -845,6 +853,61 @@ public final class PrecinctWardStage implements GenStage {
             }
         }
         return out;
+    }
+
+    /**
+     * Lays a {@link FortressProgram#cantonment() cantonment} in rows ({@link Cantonment}) instead of packing it: the
+     * gate where the town's road comes in, the rows square to it, its streets paved as roads and its parade ground
+     * as a courtyard, and its flight line built where the rows left it.
+     */
+    private static FortressInterior.Result cantonment(GenContext ctx, Precinct precinct, PrecinctFill.Masks masks,
+                                                      int[][] own, int[][] road, int who,
+                                                      Map<String, List<FortressBuilding>> unbuilt,
+                                                      Map<String, Integer> shortFields) {
+        int l = Integer.MAX_VALUE, b = Integer.MAX_VALUE, r = -1, t = -1;
+        boolean[][] mine = new boolean[ctx.width][ctx.height];
+        boolean[][] paved = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                paved[x][y] = road[x][y] != GrownTrunkPlan.UNOWNED;
+                if (own[x][y] != who) continue;
+                mine[x][y] = true;
+                l = Math.min(l, x); b = Math.min(b, y); r = Math.max(r, x); t = Math.max(t, y);
+            }
+        }
+        if (r < 0) return new FortressInterior.Result(List.of(), precinct.program().expanded());
+        Cantonment.Gate gate = Cantonment.gate(mine, paved, l, b, r, t);
+        Cantonment.Laid laid = Cantonment.lay(masks.buildable(), l, b, r, t, gate.side(), gate.axis(),
+                precinct.program(), Cantonment.chosenPlan());
+        for (int[] c : laid.streets()) {
+            if (!masks.buildable()[c[0]][c[1]]) continue;
+            masks.buildable()[c[0]][c[1]] = false;
+            masks.circulation()[c[0]][c[1]] = true;
+        }
+        Reserved field = null;
+        if (laid.airfield() != null) {
+            field = new Reserved(laid.airfield(), laid.airfieldSize());
+            for (int x = laid.airfield()[0]; x <= laid.airfield()[2]; x++) {
+                for (int y = laid.airfield()[1]; y <= laid.airfield()[3]; y++) masks.buildable()[x][y] = false;
+            }
+        } else if (precinct.program().airfields() > 0) {
+            shortFields.put(precinct.name(), precinct.program().airfields());
+        }
+        FortressInterior.Result rooms = FortressInterior.author(ctx, laid.rooms());
+        if (field != null) build(ctx, field, laid.facing());
+        InstallationGround.pave(ctx, laid.parade(), GroundKind.COURTYARD, Material.CONCRETE);
+        for (int[] c : laid.parade()) masks.buildable()[c[0]][c[1]] = false;
+        List<FortressBuilding> missing = new ArrayList<>();
+        for (RoomPurpose purpose : laid.unplaced()) {
+            for (FortressBuilding building : precinct.program().buildings()) {
+                if (building.purpose() == purpose) {
+                    missing.add(building);
+                    break;
+                }
+            }
+        }
+        if (!missing.isEmpty()) unbuilt.put(precinct.name(), List.copyOf(missing));
+        return rooms;
     }
 
     /** Off the map counts as outside, so an edge-hugging wall still gets a face. */

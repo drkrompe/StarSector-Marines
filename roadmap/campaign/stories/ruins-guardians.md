@@ -89,6 +89,38 @@ No new chassis: its boss read is the walker's look, the sentinel
 - **Signposting.** The vault's layer always reads strongest. Its footfalls
   carry. Its hall is marked once sighted.
 
+## The walker's legs and what passes under it
+
+Owner direction ("separate hit boxes for the legs / knees and the central
+body"; "enemies likely should be able to path under the held up torso"),
+built on the recommended option of the open pick `walker-legs` (a). Every
+derelict walker carries it; the vault frame's brace reads it.
+
+- **Knees.** Each of the four legs has a knee with its own structure, on the
+  same unit as the torso (`WalkerKnees`). A hit strikes a knee by a share set
+  by where it comes from: a braced front never (its front legs are planted
+  behind its plate), a flank most, the rear less, from under the torso most of
+  all. The knee on the shooter's side takes the hit instead of the torso. So
+  leg shots are the flanking reward, and the second squad's job.
+- **A leg lost.** It limps on three legs at 60% speed, grips no wall on that
+  side and cannot brace without both front legs. Two lost and it is downed:
+  the torso drops, it cannot walk, and it takes half again more damage from
+  every side.
+- **Underneath** (`WalkerFootprint`). A standing walker blocks the ground only
+  at its feet. A person fits under the torso, a machine never; under it, the
+  knees and the soft underside are in reach (hits from there land as from the
+  rear). A downed walker blocks its whole body again.
+- **Signposts.** A lost knee throws sparks, its foot drags a scored trail, and
+  a LEGS pip row over the walker counts what stands (slice 8).
+
+## What else stands guard
+
+The ruins' batteries (`RuinsBatteries`, on AI-core and colony-item sites) are
+a works hazard, outside the guardian tier: an occupied site keeps its
+guardians beside them. On an empty site the batteries are its vault guardian
+(`ruins-guardian-kinds` a, the vault's own battery) and nothing is added.
+Guardian strength does not read the prize's stakes; that waits on the owner.
+
 ## Slices
 
 1. **Rules (built).** The hive's site and hatch cycle, the vault frame's
@@ -120,6 +152,9 @@ No new chassis: its boss read is the walker's look, the sentinel
    the Rav (the old sleeper and the deep bore), an empty site (the vault's own
    battery), as `ruins-guardian-kinds` (a) names them, each a story slice of
    its own once picked.
+8. **Legs shown.** The leg rig limps on three legs, drags the lost leg's
+   foot and grips nothing on that side; sparks at a lost knee; the LEGS pip
+   row; a downed walker drawn with its torso on the floor.
 
 ## What is built
 
@@ -137,8 +172,13 @@ No new chassis: its boss read is the walker's look, the sentinel
   through `UnitRosterService.hitScale`, fire cycles stretched). The hive draws
   as the shipped cradle until slice 6. Look stills: `createSnapshots
   -Psnapshot=ruins-guardians-look`.
+- `WalkerKnees` and `WalkerFootprint` (`battle.derelict`), worn by every
+  derelict walker through `DerelictSecurityDirector.armWalkers`: knee hits
+  through `HitScale`, speed through a unit modifier, and the feet-only
+  footprint through `SeparationSystem.Straddle`. Not yet drawn (slice 8).
 
-Tests: `HiveCradleTest`, `VaultFrameBraceTest`, `FlockSystemTest`.
+Tests: `HiveCradleTest`, `VaultFrameBraceTest`, `FlockSystemTest`,
+`WalkerKneesTest`, `WalkerFootprintTest`.
 
 ## Constraints
 

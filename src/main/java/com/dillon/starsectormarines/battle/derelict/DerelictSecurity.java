@@ -187,7 +187,7 @@ public final class DerelictSecurity {
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
                 vault.sourceCellX(), vault.sourceCellY());
         director.wearLook(DerelictLook.of(livery));
-        director.braceVaultFrames(sim);
+        director.armWalkers(sim);
         FlockSystemPort port = new FlockSystemPort();
         for (ZonePlan plan : plans) {
             int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
@@ -424,6 +424,22 @@ public final class DerelictSecurity {
             if (!roofed.at(route[i * 2], route[i * 2 + 1])) return new int[] {route[i * 2], route[i * 2 + 1]};
         }
         return new int[] {plan.nodeX(), plan.nodeY()};
+    }
+
+    /**
+     * A stir push of the site's reserve ({@code ruins-pressure.md}): a line frame per squad, each in a lance of its own,
+     * come up near {@code (x, y)} out of the network's bays. They are not the director's walkers: the push commands
+     * them, and no zone's repair drone tends them. A guardian is never part of the reserve.
+     *
+     * @return the lances raised, fewer than asked where the ground has no room
+     */
+    public static List<Integer> raisePush(BattleSimulation sim, int squads, int x, int y) {
+        List<Integer> out = new ArrayList<>();
+        for (int i = 0; i < squads; i++) {
+            int squad = spawn(sim, DerelictWalkerFrame.LINE, x, y);
+            if (squad >= 0) out.add(squad);
+        }
+        return out;
     }
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */

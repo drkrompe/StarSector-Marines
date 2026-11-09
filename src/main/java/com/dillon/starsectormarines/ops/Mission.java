@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
@@ -232,8 +233,11 @@ public final class Mission {
     public final RuinsOccupant ruinsOccupant;
     /** The ids of a ruins site's finds already brought home, left out of its battle ({@code RuinsSiteFinds}). */
     public final Set<String> ruinsTakenFinds;
-    /** How many of the old colony's batteries a ruins site keeps ({@code RuinsBatteries.count}); 0 for none. */
-    public final int ruinsBatteries;
+    /**
+     * A ruins site's vault prize ({@code RuinsVaultPrizes.draw}), drawn beside the occupant; null for none or for
+     * every other mission.
+     */
+    public final RuinsVaultPrize ruinsPrize;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -335,7 +339,7 @@ public final class Mission {
         this.ruinsGrade       = b.ruinsGrade;
         this.ruinsOccupant    = b.ruinsOccupant;
         this.ruinsTakenFinds  = b.ruinsTakenFinds == null ? Set.of() : Set.copyOf(b.ruinsTakenFinds);
-        this.ruinsBatteries   = b.ruinsBatteries;
+        this.ruinsPrize       = b.ruinsPrize;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -405,7 +409,7 @@ public final class Mission {
         private RuinsGrade ruinsGrade;
         private RuinsOccupant ruinsOccupant;
         private Set<String> ruinsTakenFinds = Set.of();
-        private int ruinsBatteries;
+        private RuinsVaultPrize ruinsPrize;
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -462,7 +466,7 @@ public final class Mission {
             this.ruinsGrade = m.ruinsGrade;
             this.ruinsOccupant = m.ruinsOccupant;
             this.ruinsTakenFinds = m.ruinsTakenFinds;
-            this.ruinsBatteries = m.ruinsBatteries;
+            this.ruinsPrize = m.ruinsPrize;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -697,9 +701,9 @@ public final class Mission {
             return this;
         }
 
-        /** @param ruinsBatteries how many of the old colony's batteries a ruins site keeps ({@code RuinsBatteries}). */
-        public Builder ruinsBatteries(int ruinsBatteries) {
-            this.ruinsBatteries = ruinsBatteries;
+        /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes.draw}). */
+        public Builder ruinsPrize(RuinsVaultPrize ruinsPrize) {
+            this.ruinsPrize = ruinsPrize;
             return this;
         }
 

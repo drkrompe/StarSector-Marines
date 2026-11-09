@@ -39,7 +39,10 @@ The Hegemony wears bodies of its own, the low-tech family under
 `art-source/mech-modular-topdown/sources/lowtech/` (packed by its `build.py`,
 with a `foot.png` and `thigh-bone.png` of its own), and Independents and
 pirates wear the blue and red paints of it the Hegemony vehicles wear; their
-weapon casings take that plate.
+weapon casings take that plate. Tri-Tachyon wears the high-tech row's bodies,
+steel-blue armour lobes over exposed machinery, under
+`art-source/mech-modular-topdown/sources/hightech/` (packed by its `build.py`,
+with its own `foot.png` and `thigh-bone.png`), and its casings take that plate.
 
 `factions/<family>/` contains appearance-only chassis skins for Hegemony,
 Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,

@@ -1,0 +1,9 @@
+Asset type: production-source master for a top-down game sprite: the FOOT PAD of a Tri-Tachyon high-tech walking machine, seen straight from above. It is drawn under the machine's body, so mostly its front edge shows as the leg steps.
+
+Image 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize or add to its shape, and keep all empty canvas empty. The wide upper part is the front of the pad; the stepped lower part is the heel where the leg meets it. Draw a rounded steel-blue armour toe lobe over a dark machined sole, a dark ankle bearing at the heel with one small blue-lit port.
+
+Image 2 is family identity reference only, never layout: the accepted heavy-shell body of the Tri-Tachyon high-tech walker this part belongs to. Match it exactly: pale steel-blue armour lobes with cool blue shading, bulging and rounded like carapace, set over dark, busy gunmetal machinery with small blue-lit ports; a little wear and grime in the recesses; crisp painted game-sprite finish at full resolution, not pixel art; light from the upper left. Image 3 is material reference only: Starsector's high-tech hulls.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, cast shadow, halo, glow outside the part, border, text or labels.
+
+Avoid: a leg, a second foot, rivets, tan or olive paint, white plastic, perspective, side view, text.
