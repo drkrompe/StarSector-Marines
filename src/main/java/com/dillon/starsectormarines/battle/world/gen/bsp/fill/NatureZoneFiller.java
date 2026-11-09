@@ -503,6 +503,7 @@ public final class NatureZoneFiller implements BlockFiller {
             // plants require grass specifically, so a stony surface correctly
             // keeps its rocks and correctly grows nothing.
             case STONE:
+            case HARDPAN:
             case RUBBLE:
             // Snow is the same case for the same reason: no nature-strip frame
             // of its own, and nothing grows through it, so it takes rocks and

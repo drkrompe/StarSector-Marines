@@ -4,20 +4,35 @@ import java.util.List;
 
 /** Convex fractured bodies in cell coordinates, viewed from directly above. */
 public enum MineralFormation implements NaturalPropShape {
-    BOULDERS("boulders", 4, 3, false, List.of(
+    BOULDERS("boulders", 4, 3, Material.ROCK, List.of(
             new Facet(.25,.65, 1.1,.22, 2.05,.55, 2.3,1.35, 1.6,2.05, .4,1.8),
             new Facet(1.75,1.6, 2.45,.9, 3.55,1.2, 3.8,2.1, 3.15,2.75, 2.1,2.55))),
-    SPIRES("spires", 3, 5, false, List.of(
+    SPIRES("spires", 3, 5, Material.ROCK, List.of(
             new Facet(.4,.3, 1.35,.15, 1.9,1.0, 1.5,2.1, .3,1.7),
             new Facet(1.1,1.55, 2.4,1.15, 2.8,2.1, 2.5,3.2, 1.4,3.6, .7,2.7),
             new Facet(.45,3.15, 1.4,2.95, 2.2,3.7, 1.85,4.7, .7,4.8, .2,4.0))),
-    ICE_BLOCKS("ice-blocks", 4, 3, true, List.of(
+    ICE_BLOCKS("ice-blocks", 4, 3, Material.ICE, List.of(
             new Facet(.2,.7, 1.1,.2, 2.2,.4, 2.5,1.45, 1.6,2.0, .3,1.8),
             new Facet(1.85,1.8, 2.5,.85, 3.7,1.15, 3.75,2.2, 2.95,2.8, 2.0,2.6))),
-    ICE_PINNACLES("ice-pinnacles", 3, 5, true, List.of(
+    ICE_PINNACLES("ice-pinnacles", 3, 5, Material.ICE, List.of(
             new Facet(.3,.7, 1.25,.15, 1.95,.85, 1.45,2.05, .25,1.65),
             new Facet(1.0,1.5, 2.5,1.25, 2.8,2.6, 1.9,3.55, .7,2.6),
-            new Facet(.35,3.3, 1.3,2.85, 2.25,3.75, 1.8,4.8, .45,4.6, .2,4.0)));
+            new Facet(.35,3.3, 1.3,2.85, 2.25,3.75, 1.8,4.8, .45,4.6, .2,4.0))),
+    /**
+     * A pair of dead husks on an irradiated world: squat, hollowed, bleached shells of whatever stood here, glazed
+     * where the heat fused them. Drawn on their own sheet ({@code irradiated-formations}), not the planet sheet.
+     */
+    HUSKS("husks", 4, 3, Material.HUSK, List.of(
+            new Facet(.3,.6, 1.15,.25, 2.1,.6, 2.25,1.45, 1.55,2.0, .45,1.75),
+            new Facet(1.8,1.7, 2.5,.95, 3.6,1.25, 3.7,2.15, 3.05,2.7, 2.1,2.5))),
+    /** Three tall dead husks, stripped and split, on an irradiated world. */
+    HUSK_SPIRES("husk-spires", 3, 5, Material.HUSK, List.of(
+            new Facet(.4,.35, 1.3,.2, 1.85,1.0, 1.45,2.05, .35,1.7),
+            new Facet(1.1,1.6, 2.35,1.2, 2.75,2.1, 2.45,3.15, 1.45,3.55, .75,2.7),
+            new Facet(.5,3.2, 1.4,3.0, 2.15,3.7, 1.8,4.65, .75,4.75, .25,4.0)));
+
+    /** What a formation is made of: how it takes damage and which sheet draws it. */
+    public enum Material { ROCK, ICE, HUSK }
 
     public record Facet(double... points) {
         public Facet { points = points.clone(); }
@@ -45,16 +60,18 @@ public enum MineralFormation implements NaturalPropShape {
     }
     private final String id;
     private final int width, height;
-    private final boolean ice;
+    private final Material material;
     private final List<Facet> facets;
-    MineralFormation(String name,int width,int height,boolean ice,List<Facet> facets) {
-        id="formation."+name; this.width=width; this.height=height; this.ice=ice; this.facets=facets;
+    MineralFormation(String name,int width,int height,Material material,List<Facet> facets) {
+        id="formation."+name; this.width=width; this.height=height; this.material=material; this.facets=facets;
     }
     public String id() { return id; }
     public int width() { return width; }
     public int height() { return height; }
-    public boolean ice() { return ice; }
-    public int hitPoints() { return ice?250:400; }
+    public Material material() { return material; }
+    public boolean ice() { return material==Material.ICE; }
+    /** Ice and husks are brittle; rock is not. */
+    public int hitPoints() { return material==Material.ROCK?400:250; }
     public List<Facet> facets() { return facets; }
     public boolean blocks(int x,int y,int turns) {
         if(x<0 || y<0 || x>=width(turns) || y>=height(turns)) return false;
