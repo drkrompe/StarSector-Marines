@@ -1,0 +1,11 @@
+Asset type: production-source master for a top-down game sprite: a PIRATE gang's walking machine, a captured or scavenged Hegemony mech kept running for years with whatever scrap the gang could find.
+
+Image 1 is the sole edit target and the exact geometry authority: an old Hegemony walking machine seen straight from above, facing the top of the canvas. Keep its exact outer outline, canvas registration, scale and transparent padding, and keep every opening and mounting place where it is: the open channel between the nose cheeks stays empty, the round hip bearings stay round and in place, flat mounting plates stay flat, and the faceted pilot canopy stays a canopy in the same place. Inside the outline, rework the surface as repaired scrap.
+
+Primary request: make it read as REPAIRED, MODDED SCRAP rather than a clean military machine. Replace about half of the original tan plates with mismatched salvaged panels in other paints: faded grey, a scavenged olive panel, a blue-grey civilian panel, a red-oxide primer panel, one patch of bare steel. Weld them on with visible bead seams and over-sized bolts. Rivet small sheet-metal patches over old holes. Add crude bolted-on armour scraps and a piece of welded-on mesh or bar grille in a few places, all inside the outline. Paint over the orange hazard panels with crude, hand-brushed dark red, with drips and missing patches, and add one or two rough painted marks (a tally of scratches, a crude stripe) but no readable text or symbols. Keep it worn and grimy but legible: distinct patchwork panels, not an even coat of rust or noise. Keep the canopy glass dark smoked grey-green, perhaps with one cracked pane taped or barred over.
+
+Image 2 is material and style reference only, never layout: the Hegemony medium tank the original machine served beside, for the rendering style: crisp painted game-sprite finish, rivets, weld seams, light from the upper left.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls.
+
+Avoid: changing the outer outline, moving or covering the canopy, hip bearings or nose channel, an even rust wash, noise speckle, glowing lights, bright blue or cyan, perspective, side view, a second machine, text.
