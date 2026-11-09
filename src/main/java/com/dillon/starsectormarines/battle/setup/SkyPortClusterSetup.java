@@ -185,10 +185,18 @@ public final class SkyPortClusterSetup {
     /** The industrial hive city, facade and terrace roof, with the given terraces and neighbouring towers. */
     public static VoidBackdrop industrial(float depth, float eye, List<VoidBackdrop.Tier> tiers,
                                          List<VoidBackdrop.Tower> neighbours, List<VoidBackdrop.Skyway> skyways) {
+        // Dusk: the drop fades into a deep slate blue rather than grey, so the lights painted in the art, lifted out
+        // and laid over the haze, carry the city (owner, 2026-11-09: a sickly grey city devoid of light).
+        float f = depth / 400f;
+        VoidBackdrop.Atmosphere air = new VoidBackdrop.Atmosphere(
+                "graphics/battle/voids/industrial-facade-glow.png", "graphics/battle/voids/industrial-terrace-roof-glow.png",
+                "graphics/battle/voids/industrial-city-floor-glow.png", "graphics/fx/nebula_colorless.png", 4,
+                List.of(165f * f, 300f * f), .72f, 70f);
         return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
-                .42f, .41f, .40f,
+                .20f, .24f, .34f,
                 "graphics/battle/voids/industrial-facade.png", 32f,
-                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .11f, neighbours, skyways);
+                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .11f, neighbours, skyways,
+                air);
     }
 
     /**

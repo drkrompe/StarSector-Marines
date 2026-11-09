@@ -16,7 +16,7 @@
         <div id="systems-tree" class="systems-tree">
           <div id="systems-heading-row" class="systems-heading-row">
             <div id="systems-progress" class="label tone-edge systems-progress">{survey.systemsProgress}</div>
-            <button id="systems-back" class="systems-back console-action">{i18n.openingRefitSystemsBack}</button>
+            <button id="systems-back" class="systems-back console-action">{survey.backLabel}</button>
           </div>
           <div id="systems-branches" class="systems-branches">
           <div each="core in survey.cores" key="{core.id}" id="{core.id}" class="systems-column">

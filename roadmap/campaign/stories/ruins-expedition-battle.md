@@ -1,6 +1,7 @@
 # Ruins expedition battle
 
-Status: PLANNED — owner direction; nothing built. Slice 3 of
+Status: IN PROGRESS — slice 1 (the objective) built, and the family plays
+in battle on interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
@@ -34,6 +35,27 @@ story's battle plays, it lifts the fork's development-only gate
    separable; never fork them. It has no employer, no allies and no employer
    support, and is never offered as a contract. Unit-test the grade mapping,
    the lift-point rule and each terminal on the objective's own inputs.
+
+   *Built.* `RuinsVaultObjective` publishes the payload projection
+   (`ExtractionPayloadObjective`, kind PACKAGE) with the vault as its source
+   and the bound lift point as its egress. Extraction's hold and escort rules
+   now live in shared `UncontestedHold`, `EscortedRoute` and `EscortPresence`,
+   which `ExtractionObjective` and the vault both use; Extraction's behaviour
+   is unchanged. A landing court becomes a lift point once the company holds
+   it for `COURT_HOLD_SECONDS`; until the haul moves it is bound for the
+   available lift point with the shortest route, then keeps it. The works set
+   the powered breach through `setVaultPowered`. `RuinsDelve` maps the grade
+   to layers, breach times and caches. A wiped-out or withdrawn company loses
+   through the battle's ordinary defeat.
+
+   *The family plays in battle.* `MissionType.RUINS` carries the grade on the
+   mission (`Mission.ruinsGrade`); `RuinsBattleFixture` (kind RUINS) builds it
+   through `BattleSetup.createRuins`, and `MissionLaunch` launches it. Until
+   slices 2 to 5 replace them, the vault and its route are Extraction's source
+   pick (`ExtractionPayloadLayout`), the landing area is the one lift point,
+   Extraction's commanders play both sides, and the rail shows the package
+   wording. The site is abandoned: no civilians, staffed buildings, ground
+   crew or reinforcements.
 2. **Disclosure.** The family's mission disclosure: the company sees the vault,
    its lift points, the haul's state and escort; the occupant's side sees what
    its own perspective allows; the occupant's layout is never in the company's

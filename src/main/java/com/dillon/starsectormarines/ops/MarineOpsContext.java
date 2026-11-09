@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
@@ -569,7 +570,9 @@ public class MarineOpsContext {
         MarineRoster roster = CompanyPreparationGuide.roster();
         screen = CompanyPreparationRoute.resolve(screen, roster,
                 selectedMission != null && selectedMission.source.isDebug());
-        if (screen != null && screen.aboard() && !shipReady()) {
+        // Fleet facilities' Engineering is the tree alone and needs no deck (`fleet-facilities.md`).
+        boolean deckless = screen == ScreenId.SHIP_VIEW && FleetFacilities.inUse();
+        if (screen != null && screen.aboard() && !deckless && !shipReady()) {
             if (!CompanyPreparation.required(roster)) return;
             screen = ScreenId.COMPANY_HQ;
         }
@@ -622,7 +625,7 @@ public class MarineOpsContext {
 
     /** Hull inspection remains reachable even when the company needs to choose a home. */
     public void openEngineering() {
-        goTo(companyDeck() == null ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
+        goTo(companyDeck() == null && !FleetFacilities.inUse() ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
     }
 
     /**

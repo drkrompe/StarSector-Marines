@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.battleview.BackdropCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipBackdrop;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
+import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -75,6 +78,8 @@ public final class ShipViewScreen implements Screen {
     private ShipConditionModel survey;
     private ShipConditionOverlay overlay;
     private boolean deckChanged, refocusPending, secondBayPending;
+    /** Whether the company's facilities are the fleet's: the tree alone, with no deck (`fleet-facilities.md`). */
+    private boolean fleet;
     /** Whether her berths have been shown the machines the company has now; once she is ready. */
     private boolean machinesSynced;
 
@@ -86,8 +91,18 @@ public final class ShipViewScreen implements Screen {
         // is reachable without a ship on purpose — it is the company rather
         // than a room — so this page can be asked for by a company that has
         // nowhere to live, and the answer is the choice rather than a crash.
-        if (ctx.companyDeck() == null) {
+        fleet = FleetFacilities.inUse();
+        if (!fleet && ctx.companyDeck() == null) {
             ctx.goTo(ScreenId.SHIP_TRANSFER);
+            return;
+        }
+        if (fleet) {
+            workshop = new WorkshopRestorationModel(reactor,
+                    () -> new CompanyWorkshopRestoration.Offer(WorkshopState.NONE, 0, null),
+                    state -> null, () -> { }, () -> { });
+            survey = ShipConditionModel.fleet(reactor, FleetFacilities::condition, FleetFacilities::offer,
+                    FleetFacilities::purchase, CampaignCommodityPresentation.INSTANCE, () -> { });
+            attachDocument(position);
             return;
         }
         var ship = CompanyShipDesignation.aboard();
@@ -108,6 +123,10 @@ public final class ShipViewScreen implements Screen {
                     // A cleared core plays across the deck; the reveal waits for it.
                     if (context != null) context.redressCompanyDeck(RefitReveal.WAVE);
                 });
+        attachDocument(position);
+    }
+
+    private void attachDocument(PositionAPI position) {
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -129,13 +148,20 @@ public final class ShipViewScreen implements Screen {
             built.theme(MarineOpsThemes.standard()).onCancel(() -> {
                 if (overlay == null || !overlay.dismiss()) close();
             });
-            shownDeck = context.companyDeck();
             backdrop = ShipBackdrop.at(context.planet);
-            deck = new ShipViewCanvas(shownDeck);
-            deck.backdrop(backdrop);
             deckElement = candidate.requireElement("ship-view-deck");
-            built.canvases().set(deckElement, deck);
+            if (fleet) {
+                shownDeck = null;
+                deck = null;
+                built.canvases().set(deckElement, new BackdropCanvas(backdrop));
+            } else {
+                shownDeck = context.companyDeck();
+                deck = new ShipViewCanvas(shownDeck);
+                deck.backdrop(backdrop);
+                built.canvases().set(deckElement, deck);
+            }
             overlay = new ShipConditionOverlay(built, candidate, survey);
+            overlay.leaveWith(() -> context.goTo(ScreenId.COMPANY_HQ));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -157,8 +183,8 @@ public final class ShipViewScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
-        props.put("roomTitle", Strings.get("openingShipViewEngineeringShipCondition"));
-        props.put("roomCopy", Strings.get("openingShipViewHoverToInspect"));
+        props.put("roomTitle", Strings.get(fleet ? "openingShipViewFleetFacilities" : "openingShipViewEngineeringShipCondition"));
+        props.put("roomCopy", Strings.get(fleet ? "openingShipViewFleetCopy" : "openingShipViewHoverToInspect"));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 context::roomAboard,
                 this::close,
@@ -194,7 +220,7 @@ public final class ShipViewScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        if (context != null && document != null && (deckChanged || context.companyDeck() != shownDeck)) {
+        if (!fleet && context != null && document != null && (deckChanged || context.companyDeck() != shownDeck)) {
             deckChanged = false;
             shownDeck = context.companyDeck();
             if (shownDeck != null) {

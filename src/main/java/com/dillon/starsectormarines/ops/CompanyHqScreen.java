@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.marine.HegemonyAuxiliaryWarrant;
 import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -196,7 +197,7 @@ public final class CompanyHqScreen implements Screen {
         if (context == null) return;
         // A company with no ship is sent to choose one rather than shown an
         // empty page called the ship.
-        context.goTo(context.companyDeck() == null
+        context.goTo(context.companyDeck() == null && !FleetFacilities.inUse()
                 ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
     }
 

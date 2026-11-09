@@ -1,6 +1,6 @@
 # Fleet facilities: the company without a company ship
 
-Status: DRAFT — direction. Nothing here is implemented.
+Status: ACTIVE — direction. The fleet's receipts, neutral start and Engineering's standalone tree are implemented; the mock rooms, lift and dropping the ship choice are not.
 Written: 2026-11-09
 
 Players ask to run the company from their own ship rather than the Second Wind.
@@ -56,11 +56,21 @@ deck. For fleet facilities it stands on its own, with no deck behind it; the
 `ShipBackdrop` starfield may stay as set dressing. Cores, tracks, tiers,
 requirements, prices and cards read the same. A purchase whose
 track owns a mock room reveals that room changed, the way `RefitReveal`
-reveals a deck room; any other purchase is confirmed in place.
+reveals a deck room; any other purchase is confirmed in place. Until the mock
+rooms exist every purchase is confirmed in place. The tree cannot be closed onto
+a deck; its back button returns to headquarters. The cards still carry the
+Second Wind's lore and Castle's portrait, which a later pass should rewrite for
+a fleet.
 
-Every track starts at **Restored**, the band missions and evidence are tuned
-at, and sells only its Improved tiers, priced as the Second Wind's are. There
-is no Deficit to buy back, because the Deficit is her story.
+Every track starts at its neutral band, the figures missions and evidence are
+tuned at, and sells only what lies past it, priced as the Second Wind's tiers
+are. There is no Deficit to buy back, because the Deficit is her story. For most
+tracks neutral is Restored. A reserved room (range, gym, sick bay, lounge) and
+the reserve hangar are neutral while sealed, so they start shut and their
+opening is bought (`FleetFacilities`, `RefitTrack.fleetStart`). Receipts are
+the fleet's, saved under no hull, and the launch reads them for every company
+not on the Second Wind start. The fabrication core stands restored and has no
+fleet orders yet, so tiers that need Fabrication I wait on them.
 
 ## Mock rooms
 

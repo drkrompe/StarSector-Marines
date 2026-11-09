@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
@@ -216,6 +217,18 @@ public final class BattleFixtureJson {
             putSprawl(root, extraction.sprawl());
             return root;
         }
+        if (fixture instanceof RuinsBattleFixture ruins) {
+            encodeCommon(root, ruins.kind(), ruins.seed(),
+                    ruins.manifest(), ruins.enemyHasHeavyArmor(),
+                    ruins.risk(), ruins.targetProfile());
+            root.put("tier", ruins.tier().name());
+            root.put("marineFighterSupport",
+                    wingsToJson(ruins.marineFighterSupport()));
+            root.put("enemyFighterSupport",
+                    wingsToJson(ruins.enemyFighterSupport()));
+            root.put("grade", ruins.grade().name());
+            return root;
+        }
         if (fixture instanceof BloomHeartBattleFixture heart) {
             root.put("kind", heart.kind());
             root.put("seed", heart.seed());
@@ -312,6 +325,7 @@ public final class BattleFixtureJson {
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
+            case RuinsBattleFixture.KIND -> decodeRuins(root);
             case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
@@ -437,6 +451,20 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 sprawlFromJson(root));
+    }
+
+    private static RuinsBattleFixture decodeRuins(JSONObject root)
+            throws Exception {
+        return new RuinsBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                enumValue(RuinsGrade.class, root.getString("grade"), "grade"));
     }
 
     private static void encodeCommon(

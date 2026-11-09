@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -146,6 +147,13 @@ class BattleFixtureJsonTest {
                     RiskLevel.LOW, TargetProfile.NEUTRAL, stoodTo);
             assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
         }
+    }
+
+    @Test void ruinsRoundTripKeepsTheGradeThatSetsTheDelve() throws Exception {
+        var fixture = new RuinsBattleFixture(31L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2)),
+                false, OperationTier.VETERAN, RiskLevel.MEDIUM, TargetProfile.NEUTRAL, List.of(), List.of(),
+                RuinsGrade.EXTENSIVE);
+        assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
     }
 
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
