@@ -140,6 +140,10 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   control by its markup id, to pixel clicks: it waits for the control, respects
   modals and fails naming what could be pressed. `ids` prints that list.
   Canvas controls, such as a battle's retreat and cheat keys, are still clicks.
+- **`-PplayStart=fleet`** plays the stand-in company on fleet facilities instead of
+  the Second Wind: no company ship, Engineering as the systems tree alone, and the
+  mock rooms its upgrades size (`fleet-facilities.md`). Quote each `-P` argument
+  in PowerShell, or a script path ending `.txt` is read as a task name.
 - **`-PplayUiScale=<scale>`** runs the window at a Starsector UI scale (in PowerShell,
   quote it: `"-PplayUiScale=1.5"`). The script step `audit <label>` reports every
   clickable control cut off by the page or a non-scrolling clip, and every label wider or taller
