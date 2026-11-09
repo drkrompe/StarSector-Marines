@@ -276,7 +276,7 @@ Each piece is built from something the mod has or nearly has:
 
 | Piece | What it is | Worked by | Built from |
 | --- | --- | --- | --- |
-| **Seal door** | A sealed door on the vault, a store or a passage | Power, or a breaching charge | The sally door's opening span (`garrisonables.md`), shut and locked until powered; the satchel and wall breach for the forced way (`SatchelChargeService`, `WallBreachSystem`) |
+| **Seal door** | A sealed door on the vault, a store or a passage | Power, or a breaching charge (the vault's: power only) | A locked door (`garrisonables.md`, Locked doors and hardened walls) unlocked by power; the satchel and wall breach for the forced way (`SatchelChargeService`, `WallBreachSystem`); the vault's door and walls hardened |
 | **Power hall** | The site's generator, cold but charged | Restarting it: infantry hold its console | A mission-owned interaction (the side objective's interact trigger and world prompt, `mission-command-nouns.md`, Side objectives) on the main path |
 | **Junction** | A switch that feeds one of two branches | Infantry at its box, either way, any number of times | Interaction as above, feeding a small power graph the mission owns (new, unit-testable) |
 | **Collapse** | Rubble choking the short way | A breaching charge, or the long way round | A breachable wall run in rubble materials |
@@ -297,14 +297,16 @@ capacity is the way on's load plus one, so one store at a time can be fed
 beside it. An overloaded hall powers nothing until a junction sheds load.
 The vault's seal is its inner door, and on scattered ground the bunker's door is
 sealed too, both on the last layer's way on; once the vault is breached they
-stay open.
-A seal door or the collapse is forced through its prompt: a satchel carrier
+stay open. The vault's door and its suite's walls are hardened: no charge and
+no heavy hull gets in, so the hall is the vault's one way.
+A store, a gate or the collapse is forced through its prompt: a satchel carrier
 brought within reach sets the charge.
 
-**Charges are the price of skipping it.** A breaching charge forces a seal door
-or clears a collapse at once, but charges are finite issue (`DemolitionKit`),
-and a forced vault seal gets the unpowered breach time. Nothing is ever locked
-for good: every puzzle has a forced way, so a wrong choice costs time and
+**Charges are the price of skipping it.** A breaching charge forces a store or
+gate or clears a collapse at once, but charges are finite issue
+(`DemolitionKit`). The vault is the exception: its door opens only by the
+hall's power. Nothing is ever locked for good: every other puzzle has a forced
+way and the hall is always on the site, so a wrong choice costs time and
 charges, never the expedition.
 
 **What the works pay.** A powered vault breaches in a third of the time. Each

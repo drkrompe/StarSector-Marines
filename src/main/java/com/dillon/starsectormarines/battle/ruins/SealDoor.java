@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 /**
- * A sealed door of the ruins' works ({@code ruins-works.md}, Seal doors): a span of open cells the works shut as wall
- * at setup, opened while its consumer is powered and shut again when it loses power. A breach through the shut wall
- * forces it open for good.
+ * A sealed door of the ruins' works ({@code ruins-works.md}, Seal doors): a span the works keep as a
+ * {@link com.dillon.starsectormarines.battle.door.LockedDoor} unlocked by its consumer's power. A breach through a
+ * forcible one forces it open for good; a hardened one opens only by its power.
  *
  * @param id       stable id; also its consumer's id in the {@link PowerGraph}
  * @param name     what the map calls it
@@ -12,8 +12,15 @@ package com.dillon.starsectormarines.battle.ruins;
  * @param keep     {minX, minY, maxX, maxY}: while anybody stands in it the door does not shut (the store room behind
  *                 a store's door, or the span itself)
  * @param store    whether it seals a store room
+ * @param hardened whether it is shut as a wall nothing breaks, so its power is the only way through (the vault's)
  */
-public record SealDoor(String id, String name, int[][] cells, int likeX, int likeY, int[] keep, boolean store) {
+public record SealDoor(String id, String name, int[][] cells, int likeX, int likeY, int[] keep, boolean store,
+                       boolean hardened) {
+    /** A forcible seal door. */
+    public SealDoor(String id, String name, int[][] cells, int likeX, int likeY, int[] keep, boolean store) {
+        this(id, name, cells, likeX, likeY, keep, store, false);
+    }
+
     public SealDoor {
         if (id == null || id.isBlank() || cells == null || cells.length == 0 || keep == null || keep.length != 4) {
             throw new IllegalArgumentException("a seal door needs an id, cells and a keep");
