@@ -44,6 +44,7 @@ public final class RuinsObjectiveDisclosure {
 
     private static RuinsObjectiveFacts company(RuinsVaultObjective vault, List<SalvageCache> caches) {
         List<RuinsObjectiveFacts.LiftPoint> lifts = new ArrayList<>();
+        List<RuinsObjectiveFacts.Entrance> entrances = new ArrayList<>();
         int[] approach = null;
         for (int i = 0; i < vault.liftPoints().size(); i++) {
             RuinsVaultObjective.LiftPoint point = vault.liftPoints().get(i);
@@ -51,7 +52,13 @@ public final class RuinsObjectiveDisclosure {
                     vault.liftPointCellX(i), vault.liftPointCellY(i), point.route().length / 2,
                     vault.liftPointAvailable(i)));
             if (point.landingArea()) approach = reversed(point.route());
+            if (point.entrance()) {
+                entrances.add(new RuinsObjectiveFacts.Entrance(point.name(), i, vault.liftPointCellX(i),
+                        vault.liftPointCellY(i), vault.entranceTaken(i), vault.liftPointAvailable(i),
+                        vault.entry() == i, vault.apronHoldProgress(i), RuinsVaultObjective.COURT_HOLD_SECONDS));
+            }
         }
+        RuinsVaultObjective.PullOutPoint pullOut = vault.pullOutPoint();
         List<RuinsObjectiveFacts.Cache> found = new ArrayList<>();
         for (SalvageCache cache : caches) {
             if (cache.discovered() && !cache.secured()) {
@@ -63,7 +70,9 @@ public final class RuinsObjectiveDisclosure {
                 vault.payloadCellX(), vault.payloadCellY(), vault.corridorGuideCellX(), vault.corridorGuideCellY(),
                 vault.breachProgress(), vault.breachDuration(), vault.vaultPowered(), lifts, vault.destination(),
                 vault.alarmActive(), vault.alarmRaisedTick(), vault.controllingSquadId(), vault.escortPresent(),
-                vault.contested(), vault.isComplete(), vault.isFailed(), vault.failureReason(), found);
+                vault.contested(), vault.isComplete(), vault.isFailed(), vault.failureReason(), found,
+                vault.ruinsPhase().name(), new RuinsObjectiveFacts.PullOut(pullOut.name(), pullOut.liftPoint(),
+                pullOut.cellX(), pullOut.cellY(), pullOut.radius(), pullOut.held()), entrances);
     }
 
     private static RuinsObjectiveFacts occupant(RuinsVaultObjective vault) {
@@ -73,7 +82,8 @@ public final class RuinsObjectiveDisclosure {
                 vault.sourceCellX(), vault.sourceCellY(), new int[0], -1, -1, -1, -1, 0f, 0f, false,
                 List.of(), -1, vault.alarmActive(), vault.alarmRaisedTick(), -1, false, false,
                 vault.isComplete(), vault.isFailed(),
-                vault.isFailed() ? vault.failureReason() : ExtractionPayloadObjective.Failure.NONE, List.of());
+                vault.isFailed() ? vault.failureReason() : ExtractionPayloadObjective.Failure.NONE, List.of(),
+                RuinsVaultObjective.RuinsPhase.APPROACH.name(), null, List.of());
     }
 
     private static int[] reversed(int[] route) {

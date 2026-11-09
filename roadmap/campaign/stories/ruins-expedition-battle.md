@@ -159,6 +159,21 @@ story's battle plays, it lifts the fork's development-only gate
    it, and taken back the same way. The **pull-out point** is the landing in
    phase A and the entry in phase B. Unit-test the phase change, the retake and
    the pull-out point on the objective's own inputs.
+
+   *Built.* Each interior entrance is a lift point of kind `ENTRANCE`
+   (`RuinsVaultObjective.LiftPoint.Kind`), its route from the vault ending on
+   its apron. `ApronHold` is the two-way hold: taken by a settled company
+   combatant with no hostile, retaken by hostiles with no company combatant,
+   each over `COURT_HOLD_SECONDS`, and taken back the same way. The first
+   entrance taken is the `entry()`, and `ruinsPhase()` is `APPROACH` until then
+   and `DELVE` for good after, even while the entry is lost. `pullOutPoint()`
+   is the landing (always held) in the approach and the entry in the delve,
+   held while its apron is. A held entrance is a lift point the haul can be
+   bound for. `RuinsObjectiveFacts` gives the company the phase, the pull-out
+   point and each entrance (apron cell, taken, held, entry, hold progress); the
+   occupant sees none of it. Interim: until the ground publishes each
+   entrance's apron, `RuinsGroundLayout.apronCell` takes the walkable cell
+   outside the interior's footprint nearest the entrance.
 10. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
     pulling out. The family's Retreat becomes **Pull out**: a Ruins battle
     resolves as pulled out when the retreat is confirmed while the pull-out
