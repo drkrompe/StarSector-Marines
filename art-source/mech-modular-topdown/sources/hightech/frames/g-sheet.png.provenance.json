@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c29e-781e-7190-b922-593f89554df7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c29e-781e-7190-b922-593f89554df7\\exec-a220e78c-69ed-4308-9596-0aa0d14c2c15.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\hightech\\frames\\g-sheet.png",
+    "sha256": "b29b2332ca29fd26cee93395a6b4ae1dbfd06685b8b5ada91bf0fc65b2306c2e",
+    "dimensions": [
+      1942,
+      809
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\hightech\\frames\\g.prompt.txt",
+  "promptSha256": "8312ae90ad7478a0ee8e029b831d88f9203fc75f7a00e1df399b93a893033eaf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/style only; not layout\n\nAsset type: concept sheet for a top-down game: the three machines of a new Tri-Tachyon HIGH-TECH combat walker row, light, medium and heavy, drawn whole (body, locomotion and weapons together) in the design language of Starsector's high-tech warships.\n\nThe row is CRAWLERS on four legs. Each machine is a low, wide, rounded carapace like a crab or a beetle shell, with four short, thick, jointed legs coming out at its four corners, the two front legs reaching forward and the two rear legs reaching back, and the shell's rim hanging over the hips. LIGHT: a small round shell, narrow and quick-looking, with a single small energy gun in a socket at the front and a shield emitter bulb. MEDIUM: a wider, flatter oval shell with two round drone cradles (empty docking rings) sunk into its back and a short energy gun at the front. HEAVY: a broad armoured shell with a long lance laser mounted along its centre line, the barrel past the front edge, and a large shield emitter bulb.\n\nLayout: one wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale so the heavy is clearly the biggest (about twice the light's length). Every machine faces the TOP edge of the sheet. Each machine is symmetric about its own vertical centre line.\n\nThe reference image is material and style reference only, never layout: Starsector's high-tech hulls, the Tempest, Aurora, Medusa and Paragon. Match their finish: pale steel-blue and blue-grey armour shells with cool blue shading, rounded, bulging and layered like carapace, set over dark, busy, finely detailed gunmetal machinery (ribbed conduits, actuators, heat-sink fins, small blue-lit ports) showing in the gaps; round recessed mounts sunk into the shells; small blue glow slots; a little wear and grime in the recesses; light from the upper left. These are compact ground machines about the size of a tank, not starships: no hangar bays, no bridge towers, no long ship hulls.\n\nStrict 90-degree zenith orthographic top-down view of the machines' top surfaces. True transparent background, including all negative space between legs and parts; no ground, shadow slab, cast shadow, halo, border, text, labels or logos. Paint at full resolution as crisp, detailed game-sprite concept art, not pixel art.\n\nAvoid: a two-legged walker with a broad torso and box missile racks on its shoulders, clean white plastic, flat untextured panels, long glowing light strips, tan or olive paint, a cockpit canopy, a pilot figure, perspective, side view, isometric view, cropped machines, more or fewer than three machines, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to generate one transparent concept sheet with the three crawler sizes and the reference’s high-tech finish."
+  ],
+  "usage": {
+    "input_tokens": 78656,
+    "cached_input_tokens": 64256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 802,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 61.6
+}

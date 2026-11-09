@@ -75,10 +75,16 @@ purchases, so the low-tech row comes first:
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
    hulls, and Tri-Tachyon already wears it on the three frames
-   (art-source/mech-modular-topdown/sources/hightech). The row's own rules wait until
-   the campaign reaches Tri-Tachyon space: a frontal shield fed from the mech's one flux
-   pool, so blocking and firing compete; a combat drone wing on the medium, relaunched
-   for flux; the lance and shield sharing one pool on the heavy.
+   (art-source/mech-modular-topdown/sources/hightech). That body still reads as a reskin
+   of the low-tech frames (owner), against law 1, so the row needs frames of its own:
+   concept sheets of skimmers, three-legged striders and four-legged crawlers
+   (`sources/hightech/frames/`) wait on the owner's pick. The shield rule is built: a
+   compartment's shield emitter (`MachineSystems.shieldEmitter`, `MechShield`) raises a
+   frontal flux shield run on the mech's one flux pool, so blocking and firing spend the
+   same headroom; the shield folds while the guns have the pool venting, and filling the
+   pool overloads the mech, shield and guns together. Only fixtures fit it so far. Still
+   to come: a combat drone wing on the medium, relaunched for flux; the lance and shield
+   sharing one pool on the heavy.
 
 ## Laws
 
