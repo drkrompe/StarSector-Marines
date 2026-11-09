@@ -69,6 +69,27 @@ story's battle plays, it lifts the fork's development-only gate
    defenders, answering for the dig first and the stash second. The pirate
    ground roster, strength by grade as a budget this slice tunes. The stash is
    one extra cache at the camp.
+
+   *Built.* `RuinsCrew` sizes the crew from the grade alone: a budget in
+   `BattleForceScore` units (12, 20, 30 and 60 from scattered to vast, a Hound
+   at vast) spent on its heavy first, then infantry at the grade's share of
+   regulars, on the pirate roster whoever owned the world; no emplacements and
+   no air. The setup posts a third of the infantry at the dig (the vault) and a
+   fifth at the camp, which stands on the vault route 30% out from the landing
+   but at least 24 cells and never past halfway; the rest walk patrol from
+   points along the route, the heavy with them. `RuinsCrewCommand` replaces
+   `ExtractionDefenderCommand` for the family. It borrows the Extraction
+   defenders' picture, alarm limit, fresh-contact rule, rally ring and
+   garrisonable manning as shared code. It answers for the dig first: one squad
+   always walks it, an alarm there takes all three, trouble at the camp alone
+   sends two to stand round the camp, and both at once split two and one.
+   Trouble means a fresh contact within rifle reach (26 cells) of the place.
+   The stash is one Supplies find at the camp (`BattleSimulation.occupantStash`),
+   beside the grade's caches. Played on an extensive fixture: the crew held the
+   dig against the company's first squad, and the camp and patrols met the
+   landing. Interim: until slice 5's ground, the vault is Extraction's source
+   pick, so the route can be short and the camp close to the landing. The
+   budgets are untuned against a player.
 5. **Stand-in ground.** The existing map nearest a ruin (decivilized or
    low-density, `SettlementLink.NONE`), the vault at the far end by route
    length, one landing court placed by hand. A ruins map that cannot place a

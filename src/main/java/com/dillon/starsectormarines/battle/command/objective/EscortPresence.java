@@ -30,6 +30,8 @@ final class EscortPresence {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE
                     || !sim.identity().type(unit).combatant
+                    // A body that cannot move, such as a boat's turret, settles nothing and escorts nothing.
+                    || !sim.world().hasMovement(unit)
                     || !sim.movement().settled(unit)) continue;
             int unitX = sim.world().cellX(unit);
             int unitY = sim.world().cellY(unit);

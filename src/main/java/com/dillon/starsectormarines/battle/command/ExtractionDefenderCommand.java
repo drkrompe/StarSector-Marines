@@ -273,7 +273,8 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         defenseSnapshot = snapshot.detail();
     }
 
-    private static List<CommanderContact> contacts(
+    /** The side's believed contacts, freshest and surest first, in a stable order. */
+    static List<CommanderContact> contacts(
             ExtractionDefenderCommandFrame frame) {
         if (frame.influence() == null) return List.of();
         return frame.influence().contacts().stream()
@@ -338,7 +339,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                     ? actionable.get((index - 1) % actionable.size()) : null;
             int[] rally = contact != null
                     ? rally(squad, index, contact.cellX(), contact.cellY(),
-                    frame, taken) : null;
+                    frame.topology(), taken) : null;
             // The published role names the ground actually taken. A contact
             // with no reachable rally position is as unactionable as no contact
             // at all, and the squad standing on the source perimeter is not
@@ -346,7 +347,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
             boolean interdicting = rally != null;
             if (rally == null) {
                 rally = rally(squad, index, payload.sourceCellX(),
-                        payload.sourceCellY(), frame, taken);
+                        payload.sourceCellY(), frame.topology(), taken);
             }
             if (rally == null) continue;
             taken.add(cellKey(rally[0], rally[1]));
@@ -355,23 +356,28 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         return choices;
     }
 
-    private static int[] rally(CommandSquadState squad, int slot,
-                               int centerX, int centerY,
-                               ExtractionDefenderCommandFrame frame,
-                               Set<Long> taken) {
+    /**
+     * The first free, walkable cell the squad can reach on the ring of rally offsets around a centre, starting at its
+     * slot's offset so a group spreads round the centre rather than stacking on it; null if none is reachable. Shared
+     * with the ruins crew ({@link RuinsCrewCommand}), whose posts rally the same way round the dig and the camp.
+     */
+    static int[] rally(CommandSquadState squad, int slot,
+                       int centerX, int centerY,
+                       CommandTopology topology,
+                       Set<Long> taken) {
         for (int i = 0; i < RALLY_OFFSETS.length; i++) {
             int[] offset = RALLY_OFFSETS[(slot + i) % RALLY_OFFSETS.length];
             int x = centerX + offset[0];
             int y = centerY + offset[1];
             if (taken.contains(cellKey(x, y))) continue;
-            if (frame.topology().isWalkable(x, y)
-                    && frame.topology().reachable(squad.anchorCellX(),
+            if (topology.isWalkable(x, y)
+                    && topology.reachable(squad.anchorCellX(),
                     squad.anchorCellY(), x, y)) return new int[]{x, y};
         }
         return null;
     }
 
-    private static long cellKey(int x, int y) {
+    static long cellKey(int x, int y) {
         return ((long) x << 32) | (y & 0xffffffffL);
     }
 
