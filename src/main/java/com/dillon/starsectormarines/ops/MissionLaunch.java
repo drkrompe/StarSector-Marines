@@ -404,7 +404,7 @@ public final class MissionLaunch {
                         m.enemyFighterSupport, sprawl);
                 // A disrupting raid the player led wrecks the named industry's works (raid-mission.md, Break).
                 if (m.source == MissionSource.MARKET_RAID && m.targetIndustryId != null) {
-                    raidFixture = raidFixture.withWorks(null, RaidWorksLayout.machinesFor(m.tier));
+                    raidFixture = raidFixture.withWorks(null, RaidWorksLayout.machinesFor(m.tier), m.targetIndustryId);
                 }
                 builder = raidFixture::build;
                 fixture = raidFixture;

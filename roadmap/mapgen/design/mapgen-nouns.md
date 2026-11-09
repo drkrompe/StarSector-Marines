@@ -1932,7 +1932,7 @@ Every place has a stable name (`places()` lists them, `area(name)` answers one):
 
 Lift points are the landing's arrival areas, then each court's; an entrance's apron joins them when the mission takes it. Which court is
 held, which rooms are stores and which branch a junction feeds are the
-mission's (`ruins-works.md`). Seven rules hold the ground together.
+mission's (`ruins-expedition.md`, Works). Seven rules hold the ground together.
 
 **The ruins are a value, not a branch.** The recipe relabels every lot as a
 ruined lot before the ordinary fill dispatch runs, so the burned-out footprints

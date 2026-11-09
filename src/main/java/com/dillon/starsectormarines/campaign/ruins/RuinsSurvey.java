@@ -85,7 +85,7 @@ public final class RuinsSurvey {
                     "ruinsSurveyScavengersSpoil"));
 
     /**
-     * An empty site: quiet, and its readings are its puzzle's first hints ({@code ruins-works.md}). Every empty site
+     * An empty site: quiet, and its readings are its puzzle's first hints ({@code ruins-expedition.md}, Works). Every empty site
      * reads the whole chain, in the order the company meets it: the power hall, the unpowered vault seal, the collapse
      * on the short way, and the sealed stores with the records system that marks them. Each is on every ruins ground
      * ({@code RuinsDelveStage}), so the readings are always true; the wiring is left to the records terminal.

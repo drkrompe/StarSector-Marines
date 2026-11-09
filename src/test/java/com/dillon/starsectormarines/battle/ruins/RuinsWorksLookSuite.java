@@ -25,7 +25,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * A ruins site's works ({@code ruins-works.md}) through the look preset at 1920x1080, centred on the first layer's store door, on a widespread site with nobody
+ * A ruins site's works ({@code ruins-expedition.md}, Works) through the look preset at 1920x1080, centred on the first layer's store door, on a widespread site with nobody
  * holding it: the first layer's sealed store and the seal gate shut, then the hall restarted and the first junction
  * thrown to the store, so the store stands open while the gate, on the way on, stays shut. The power is routed through the works'
  * own rules ({@link RuinsWorks#settle}), not drawn; the roofs are off so the interior shows. {@code -Dsnapshot.ruinsWorks.seed} picks the site (default 31).

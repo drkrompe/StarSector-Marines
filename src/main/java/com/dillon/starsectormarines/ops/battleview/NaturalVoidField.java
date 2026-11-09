@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 
 import java.util.ArrayList;
@@ -7,8 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The shape of a natural drop (`voids.md`, natural styles), worked out once per map from its void cells and
+ * The shape of a natural drop or rise (`voids.md`, natural styles), worked out once per map from its cells and
  * drawn by {@link NaturalVoidRenderSystem}. GL-free.
+ *
+ * <p>A drop and a rise are one shape with the sign of its depth turned: a drop's steps go down into the void
+ * from its edge, a rise's go up into the high ground from its foot. Depth is measured downward throughout, so
+ * a rise's steps stand at negative depths.
  *
  * <p><b>Distance in.</b> Every point of the void has a distance, in cells, to the nearest ground that stands
  * (not a bridge). Each of the {@link NaturalVoid#steps} begins where that distance, roughened by its own slow
@@ -45,11 +50,17 @@ final class NaturalVoidField {
     static final float FRAY_MIN = .55f, FRAY_WANDER = .5f;
     /** How far out the sky is looked for round a point, in cells, and in how many directions. */
     static final int SKY_REACH = 40, SKY_DIRS = 8;
+    /** Shade samples to a cell's side on the ground at a rise's foot. */
+    static final int SHADE_RES = 4;
     /** Metres of wall lit as one, top to bottom. */
     static final float WALL_LIGHT_METERS = 1.5f;
 
     final int w, h;
-    final NaturalVoid look;
+    final Shape shape;
+    /** A rise: the steps climb from the walkable ground rather than fall from it. */
+    final boolean rising;
+    /** The highest point of the shape, as a depth: {@code 0} for a drop, the top step's for a rise. */
+    final float top;
     /** Depth of each step's top, metres: {@code 0} for the lip, then each step's. */
     final float[] depth;
     /** Cells the drop shows in: void and bridges. */
@@ -80,6 +91,11 @@ final class NaturalVoidField {
      * quad's {@code spare} is its cover, fading out into the turf.
      */
     final Band fray = new Band(0, 0f);
+    /**
+     * A rise's shadow on the walkable ground at its foot, drawn over the tiles: quads whose {@code spare} is
+     * the shade's strength. Empty for a drop, whose ground the sun's own composite shades.
+     */
+    final Band floorShade = new Band(0, 0f);
     /** Bridge sides along the drop: {@code {x0, y0, x1, y1, normalX, normalY}} in cells. */
     final List<float[]> bridgeSides = new ArrayList<>();
 
@@ -117,19 +133,55 @@ final class NaturalVoidField {
     }
 
     /**
-     * A segment of a step's line, {@code (x0, y0)} to {@code (x1, y1)} in cells, with the face's normal into
-     * the drop and its light down its height, one value each {@link #WALL_LIGHT_METERS} from its top.
+     * A segment of a step's line, {@code (x0, y0)} to {@code (x1, y1)} in cells, with the face's outward normal
+     * (into the drop, or out of a rise toward the lower ground), the depths of its top and foot, and its light
+     * down its height, one value each {@link #WALL_LIGHT_METERS} from its top.
      */
-    record Wall(float x0, float y0, float x1, float y1, float nx, float ny, float[] light) { }
+    record Wall(float x0, float y0, float x1, float y1, float nx, float ny, float zTop, float zFoot, float[] light) { }
+
+    /**
+     * The steps as the field reads them: {@code depths} and {@code insets} for steps {@code 1..n}, depth signed
+     * downward; {@code spans} when narrow ground across the shape is a bridge.
+     */
+    record Shape(float[] depths, float[] insets, int seed, boolean spans) {
+        static Shape of(NaturalVoid look) {
+            int n = look.steps().size();
+            float[] d = new float[n], in = new float[n];
+            for (int k = 0; k < n; k++) {
+                d[k] = look.steps().get(k).depthMeters();
+                in[k] = look.steps().get(k).insetCells();
+            }
+            return new Shape(d, in, look.seed(), true);
+        }
+
+        static Shape of(NaturalRise look) {
+            int n = look.steps().size();
+            float[] d = new float[n], in = new float[n];
+            for (int k = 0; k < n; k++) {
+                d[k] = -look.steps().get(k).heightMeters();
+                in[k] = look.steps().get(k).insetCells();
+            }
+            // Narrow ground between two rises is a pass along the ravine floor, not a span over anything.
+            return new Shape(d, in, look.seed(), false);
+        }
+    }
 
     NaturalVoidField(int w, int h, boolean[] voidCell, NaturalVoid look, float sunX, float sunY, float risePerCell) {
+        this(w, h, voidCell, Shape.of(look), sunX, sunY, risePerCell);
+    }
+
+    NaturalVoidField(int w, int h, boolean[] voidCell, Shape shape, float sunX, float sunY, float risePerCell) {
         this.w = w;
         this.h = h;
-        this.look = look;
-        int n = look.steps().size();
+        this.shape = shape;
+        int n = shape.depths().length;
         depth = new float[n + 1];
-        for (int k = 0; k < n; k++) depth[k + 1] = look.steps().get(k).depthMeters();
-        bridge = bridges(w, h, voidCell);
+        for (int k = 0; k < n; k++) depth[k + 1] = shape.depths()[k];
+        rising = n > 0 && depth[n] < 0f;
+        float highest = 0f;
+        for (float d : depth) highest = Math.min(highest, d);
+        top = highest;
+        bridge = shape.spans() ? bridges(w, h, voidCell) : new boolean[w * h];
         open = new boolean[w * h];
         for (int i = 0; i < w * h; i++) open[i] = voidCell[i] || bridge[i];
         sw = w * RES + 1;
@@ -139,14 +191,14 @@ final class NaturalVoidField {
         reach = new float[n + 1][];
         reach[0] = dist;
         for (int k = n; k >= 1; k--) {
-            float inset = look.steps().get(k - 1).insetCells();
+            float inset = shape.insets()[k - 1];
             float[] r = new float[sw * sh];
             for (int j = 0; j < sh; j++) {
                 for (int i = 0; i < sw; i++) {
                     int s = j * sw + i;
                     float x = i / (float) RES, y = j / (float) RES;
-                    float wander = WANDER_SLOW * Noise.fbm(x / 9f, y / 9f, look.seed() * 31 + k)
-                            + WANDER_FINE * Noise.fbm(x / 1.6f, y / 1.6f, look.seed() * 57 + k);
+                    float wander = WANDER_SLOW * Noise.fbm(x / 9f, y / 9f, shape.seed() * 31 + k)
+                            + WANDER_FINE * Noise.fbm(x / 1.6f, y / 1.6f, shape.seed() * 57 + k);
                     float own = edge[s] + wander - inset;
                     r[s] = k == n ? own : Math.max(own, reach[k + 1][s]);
                 }
@@ -158,6 +210,7 @@ final class NaturalVoidField {
         cut(sunX, sunY, risePerCell);
         fray();
         sides();
+        if (rising) floorShade(sunX, sunY, risePerCell);
     }
 
     int steps() { return depth.length - 1; }
@@ -387,7 +440,7 @@ final class NaturalVoidField {
         float step = .3f;
         for (float t = step; ; t += step) {
             float rayDepth = z - t * rise;
-            if (rayDepth <= -.01f) return 1f;
+            if (rayDepth <= top - .01f) return 1f;
             float px = x + sunX * t, py = y + sunY * t;
             if (depthAt(px, py) < rayDepth) return 0f;
             if (rayDepth < DECK_METERS && onBridge(px, py)) return 0f;
@@ -396,7 +449,7 @@ final class NaturalVoidField {
 
     /** How much of the sky a point {@code z} metres down sees past the rock round it, 0 to 1. */
     float sky(float x, float y, float z) {
-        if (z <= 0f) return 1f;
+        if (z <= top) return 1f;
         float seen = 0f;
         for (int d = 0; d < SKY_DIRS; d++) {
             double a = Math.PI * 2 * (d + .5) / SKY_DIRS;
@@ -543,7 +596,12 @@ final class NaturalVoidField {
         float gy = ((tx[2] - tx[1]) * val[0] + (tx[0] - tx[2]) * val[1] + (tx[1] - tx[0]) * val[2]) / d;
         float len = (float) Math.hypot(gx, gy);
         if (len < 1e-6f) return;
-        float nx = gx / len, ny = gy / len;
+        // A drop's face looks into it, up the field; a rise's looks out of it, down toward the lower ground.
+        float nx = (rising ? -gx : gx) / len, ny = (rising ? -gy : gy) / len;
+        if (rising) {
+            riseWall(pts, nx, ny, k, sunX, sunY, rise);
+            return;
+        }
         float top = depth[k - 1], bottom = depth[k];
         int rows = Math.max(1, (int) Math.ceil((bottom - top) / WALL_LIGHT_METERS));
         float[] light = new float[rows];
@@ -558,7 +616,66 @@ final class NaturalVoidField {
             float sun = facing > 0f ? sunlit(mx, my, z, sunX, sunY, rise) : 0f;
             light[r] = .4f + .32f * open + .8f * sun * facing;
         }
-        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, light));
+        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, top, bottom, light));
+    }
+
+    /**
+     * A rise's face, from step {@code k}'s top down to the step below: lit by the sun where its march clears
+     * the rock, and by the sky a point just out from the face at each height sees.
+     */
+    private void riseWall(float[] pts, float nx, float ny, int k, float sunX, float sunY, float rise) {
+        float zTop = depth[k], zFoot = depth[k - 1];
+        int rows = Math.max(1, (int) Math.ceil((zFoot - zTop) / WALL_LIGHT_METERS));
+        float[] light = new float[rows];
+        float mx = (pts[0] + pts[2]) / 2f + nx * .05f, my = (pts[1] + pts[3]) / 2f + ny * .05f;
+        float cosE = 1f / (float) Math.sqrt(1f + rise * rise);
+        float facing = Math.max(0f, nx * sunX + ny * sunY) * cosE;
+        for (int r = 0; r < rows; r++) {
+            float z = zTop + (r + .5f) * (zFoot - zTop) / rows;
+            float open = sky(mx + nx * .6f, my + ny * .6f, z);
+            float sun = facing > 0f ? sunlit(mx, my, z, sunX, sunY, rise) : 0f;
+            light[r] = .48f + .4f * open + .7f * sun * facing;
+        }
+        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, zTop, zFoot, light));
+    }
+
+    /**
+     * A rise's shadow on the walkable ground round its foot, sampled {@link #SHADE_RES} to a cell's side as
+     * far out as its height throws it, each sample's shade the mean of four marches.
+     */
+    private void floorShade(float sunX, float sunY, float rise) {
+        int reachCells = (int) Math.ceil(-top / Math.max(.05f, rise)) + 1;
+        float[] attr = new float[8];
+        float[] poly = new float[8];
+        float step = 1f / SHADE_RES;
+        for (int cy = 0; cy < h; cy++) {
+            for (int cx = 0; cx < w; cx++) {
+                if (open[cy * w + cx] || !openWithin(cx, cy, reachCells)) continue;
+                for (int j = 0; j < SHADE_RES; j++) {
+                    for (int i = 0; i < SHADE_RES; i++) {
+                        float x0 = cx + i * step, y0 = cy + j * step;
+                        float shade = 0f;
+                        for (int q = 0; q < 4; q++) {
+                            float qx = x0 + ((q & 1) == 0 ? .25f : .75f) * step;
+                            float qy = y0 + ((q & 2) == 0 ? .25f : .75f) * step;
+                            shade += 1f - sunlit(qx, qy, 0f, sunX, sunY, rise);
+                        }
+                        if (shade <= 0f) continue;
+                        poly[0] = x0; poly[1] = y0; poly[2] = x0 + step; poly[3] = y0;
+                        poly[4] = x0 + step; poly[5] = y0 + step; poly[6] = x0; poly[7] = y0 + step;
+                        attr[0] = x0 + step / 2f;
+                        attr[1] = y0 + step / 2f;
+                        attr[7] = shade / 4f;
+                        floorShade.add(poly, 4, attr);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean openWithin(int x, int y, int r) {
+        for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++) if (openCell(x + dx, y + dy)) return true;
+        return false;
     }
 
     /**
@@ -571,7 +688,7 @@ final class NaturalVoidField {
             for (int i = 0; i < sw; i++) {
                 int s = j * sw + i;
                 float x = i / (float) RES, y = j / (float) RES;
-                float reach = FRAY_MIN + FRAY_WANDER * (.5f + .5f * Noise.fbm(x / 2.3f, y / 2.3f, look.seed() * 13 + 1));
+                float reach = FRAY_MIN + FRAY_WANDER * (.5f + .5f * Noise.fbm(x / 2.3f, y / 2.3f, shape.seed() * 13 + 1));
                 e[s] = reach + edge[s];
             }
         }
@@ -599,10 +716,12 @@ final class NaturalVoidField {
                             float mx = 0f, my = 0f;
                             for (int v = 0; v < m; v++) { mx += tmp[v * 2]; my += tmp[v * 2 + 1]; }
                             mx /= m; my /= m;
+                            // A bank's end where a bridge leaves it is the road onto the deck, not a lip.
+                            if (byBridge(mx, my)) continue;
                             // Full at the drop's edge, fading out into the turf, broken into clumps.
                             float e0 = linear(tx, ty, val, mx, my);
                             float cover = e0 >= FRAY_FADE ? 1f : e0 / FRAY_FADE
-                                    * (.55f + .45f * Noise.value(mx * 1.7f, my * 1.7f, look.seed() * 5 + 2));
+                                    * (.55f + .45f * Noise.value(mx * 1.7f, my * 1.7f, shape.seed() * 5 + 2));
                             attr[0] = mx; attr[1] = my; attr[2] = 1f;
                             attr[3] = .3f + (1f - cover) * 1.4f;
                             attr[4] = 0f; attr[5] = 0f; attr[6] = 1f; attr[7] = cover;
@@ -612,6 +731,26 @@ final class NaturalVoidField {
                 }
             }
         }
+    }
+
+    /**
+     * Whether the open cell nearest a point of ground is a bridge: the point lies at a bridge's end, where the
+     * walkable surface runs on onto the deck, rather than at the drop's edge.
+     */
+    boolean byBridge(float x, float y) {
+        float bestVoid = Float.MAX_VALUE, bestBridge = Float.MAX_VALUE;
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        for (int dy = -3; dy <= 3; dy++) {
+            for (int dx = -3; dx <= 3; dx++) {
+                int ox = cx + dx, oy = cy + dy;
+                if (!openCell(ox, oy)) continue;
+                float ex = Math.max(0f, Math.max(ox - x, x - (ox + 1))), ey = Math.max(0f, Math.max(oy - y, y - (oy + 1)));
+                float d = ex * ex + ey * ey;
+                if (bridge[oy * w + ox]) bestBridge = Math.min(bestBridge, d);
+                else bestVoid = Math.min(bestVoid, d);
+            }
+        }
+        return bestBridge < bestVoid;
     }
 
     private boolean nearOpen(int x, int y) {

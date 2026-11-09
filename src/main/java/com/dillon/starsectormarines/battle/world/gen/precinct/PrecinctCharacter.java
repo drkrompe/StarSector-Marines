@@ -89,6 +89,15 @@ public record PrecinctCharacter(String name, Map<MapDistrictTheme, Integer> mix,
             MapDistrictTheme.OUTSKIRTS, 20,
             MapDistrictTheme.MIXED, 15);
 
+    /**
+     * An industrial district: yards, sheds and works and nobody living among them. A Raid site's industry stands
+     * apart from its homes ({@code raid-mission.md}, Districts and compounds), so unlike a {@link #DEPOT} it has no
+     * mixed blocks to put a house in.
+     */
+    public static final PrecinctCharacter INDUSTRY = of("industry", null,
+            MapDistrictTheme.INDUSTRIAL, 85,
+            MapDistrictTheme.OUTSKIRTS, 15);
+
     /** One district of a city: dense and mixed, with no core of its own. */
     public static final PrecinctCharacter QUARTER = of("quarter", null,
             MapDistrictTheme.MIXED, 30,

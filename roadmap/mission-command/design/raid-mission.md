@@ -1,6 +1,6 @@
 # Raid mission: what the player came to do
 
-Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map generator waits on `raid-mapgen`. The first slice is `raid-wreck-the-works.md`.
+Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates). The slices are `raid-wreck-the-works.md` and `raid-site-templates.md`.
 
 Written: 2026-11-09
 
@@ -97,8 +97,9 @@ added this to the graded pick: the prize stands in a **compound**, in a
 | Guarded | wall, gatehouses, guards on the gates | moderate | bulk in the stores, the best in the vault |
 | Fortified | thick wall, corner towers, emplacements | wide and cleared | everything in the bonded vault |
 
-The Raid map generator (`raid-mapgen`) lays these districts and compounds; the
-first slice's works stands on today's industrial ground until it does.
+Each industry's Raid site (Site templates) lays these districts and compounds.
+An industry with no site yet keeps the derived map, where the works stands on
+the map's own industrial ground.
 
 Security never changes how many defenders there are: that is the tier's share
 of the garrison (`raid-resolution.md`, law 7). It changes where they stand.
@@ -129,13 +130,48 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
 - **Machines** rise slowly with the tier; each one is a fixed share of the
   disruption, so a bigger industry takes more work to break fully.
 
-The map's shape at each size is the open question `raid-mapgen`.
+The map's shape at each size is the industry's site (Site templates).
+
+## Site templates (owner pick)
+
+The owner picked an authored Raid site per industry (`raid-mapgen`,
+2026-11-09). A **site** (`RaidSiteTemplate`) states where the landing, the
+homes, the industrial quarter, the works and the garrison stand relative to each
+other, as regions of the map, and the generator grows the roads and blocks
+between them.
+
+- **Drawn once, from the landing.** The company comes down in the homes, the
+  near town, at the landing edge. The industrial quarter stands between the homes
+  and the works, so no house stands against the compound, and the district's
+  yards stand beyond the works. The homes' streets reach a shorter way than a
+  settlement's, so the town keeps to its district. The works compound is at the deep end,
+  in its industrial district, and the garrison is at the deep end on the works'
+  other flank, so the alarm comes from beside the prize, not from behind the
+  boat.
+- **The works is a compound.** A square place walled by security, with its
+  buffer of open ground (the glacis) as wide as security says: 3, 5 or 8 cells,
+  open to fortified. Its wall is the security's rung (picket, garrison,
+  stronghold), no harder than the operation's ceiling. Its program is one
+  machine hall per machine, a generator hall, a stores and two guard posts,
+  each a building of its own on yard enough to stand apart (a detached
+  program); the raid's machines are its halls.
+- **Varied by the seed:** the whole site mirrored east to west and north to
+  south, and every place seeded anywhere in its region.
+- **Varied by the market:** homes grow a town's streets from size 5, a
+  hamlet's below; from size 6 an outskirts suburb stands behind the homes on
+  the landing side. Map size follows the tier as before.
+- **Raid only, industry by industry.** A Raid on an industry with no site
+  keeps the derived map. Every other mission's map is unchanged; the glacis is
+  the standard 3 cells for every place but a Raid site's works.
+
+The first site is heavy industry (`heavyindustry`, `orbitalworks`). The rest
+follow in `raid-site-templates.md`.
 
 ## Break: wreck the works (owner pick)
 
-- The works stands where the industry would: laid from the market's economy
-  and walled by its security. Until the map generator places one (`raid-mapgen`),
-  the map's own industrial ground stands in.
+- The works stands where the industry's site puts it (Site templates), walled
+  by its security. For an industry with no site yet, the map's own industrial
+  ground stands in.
 - Its **machines** are the objective. Each takes a charge: a settled Marine
   combatant holding the machine's pocket, uncontested, for the charge time. An
   interrupted charge starts again. The first charge raises the alarm.
@@ -164,9 +200,6 @@ times that share.
 
 ## Open questions
 
-- `raid-mapgen` (the Raid's own map generator: districts and compounds laid
-  target-first, from the economy, or from authored site templates) is on the
-  owner's picks page.
 - Whether leaving needs every surviving squad aboard, or one at the berth as
   today. Today's law (one settled survivor at egress completes) stands for the
   first slice.

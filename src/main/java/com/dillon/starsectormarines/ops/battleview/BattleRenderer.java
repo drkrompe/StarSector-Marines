@@ -303,6 +303,8 @@ public class BattleRenderer {
         voidBackdrop.useSun(sun);
         NaturalVoidRenderSystem naturalVoid = new NaturalVoidRenderSystem(sprites);
         naturalVoid.useSun(sun);
+        NaturalVoidRenderSystem naturalRise = new NaturalVoidRenderSystem(sprites, true);
+        naturalRise.useSun(sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -331,6 +333,13 @@ public class BattleRenderer {
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
                 naturalVoid.fray(),
+                // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
+                naturalVoid.molten(),
+                // A rise's talus at its foot and its shadow on the floor, over the tiles.
+                naturalRise.fray(),
+                // The land standing up from the walkable ground through a map's rise cells, a ravine's walls:
+                // over the tiles, so a rise leaning out over the floor is seen whole, and under every unit.
+                naturalRise,
                 // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
                 cliffArt,
                 // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.

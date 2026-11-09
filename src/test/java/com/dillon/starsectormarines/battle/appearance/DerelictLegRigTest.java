@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,84 +12,113 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DerelictLegRigTest {
 
     private static final DerelictLegRig.Solid OPEN = (x, y) -> false;
-    /** A corridor two cells wide, floor at y 50 and 51, walls either side. */
-    private static final DerelictLegRig.Solid CORRIDOR = (x, y) -> y < 50 || y > 51;
     private static final float DT = 1f / 30f;
+    /** Facing +x (sprite angle -90). */
+    private static final float EAST = -90f;
+
+    /** Walks the rig east at {@code speed} for {@code ticks}, calling {@code each} after every tick. */
+    private static void walk(DerelictLegRig rig, float speed, int ticks, DerelictLegRig.Solid solid, Runnable each) {
+        for (int tick = 0; tick < ticks; tick++) {
+            rig.advance(10f + tick * speed * DT, 50.5f, EAST, DT, solid);
+            each.run();
+        }
+    }
 
     @Test
-    void fourLegsStepInDiagonalPairsSoTwoFeetAlwaysStand() {
-        DerelictLegRig rig = new DerelictLegRig(false);
-        boolean stepped = false;
-        // Walking along +x, facing +x (sprite angle -90).
-        for (int tick = 0; tick < 300; tick++) {
-            rig.advance(10f + tick * 0.03f, 10f, -90f, DT, OPEN);
+    void atAWalkTheLegsLiftOneAtATimeInAFourBeatSequence() {
+        DerelictLegRig rig = new DerelictLegRig();
+        List<Integer> liftoffs = new ArrayList<>();
+        boolean[] was = new boolean[4];
+        walk(rig, 0.7f, 600, OPEN, () -> {
             int lifted = 0;
             for (int i = 0; i < 4; i++) {
-                if (!rig.stepping(i)) continue;
-                lifted++;
-                stepped = true;
+                if (rig.stepping(i)) lifted++;
+                if (rig.stepping(i) && !was[i]) liftoffs.add(i);
+                was[i] = rig.stepping(i);
+            }
+            assertTrue(lifted <= 1, "three feet stand at a walk");
+        });
+        assertEquals(DerelictLegRig.Gait.WALK, rig.gait());
+        assertTrue(liftoffs.size() >= 8, "it steps: " + liftoffs);
+        // Back, front on one side, then back, front on the other: 1, 0, 2, 3 and round again.
+        int[] order = {1, 0, 2, 3};
+        int start = 0;
+        while (order[start] != liftoffs.get(0)) start++;
+        for (int k = 0; k < liftoffs.size(); k++) assertEquals(order[(start + k) % 4], liftoffs.get(k));
+    }
+
+    @Test
+    void atARunTheDiagonalPairsTrotAndLeaveTheGroundBetweenStrides() {
+        DerelictLegRig rig = new DerelictLegRig();
+        boolean[] airborne = {false};
+        walk(rig, 2.6f, 300, OPEN, () -> {
+            if (rig.gait() != DerelictLegRig.Gait.RUN) return;
+            int lifted = 0;
+            for (int i = 0; i < 4; i++) if (rig.stepping(i)) lifted++;
+            for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
-                    if (rig.stepping(j)) assertEquals(rig.group(i), rig.group(j), "only one diagonal pair lifts");
+                    if (rig.pair(i) == rig.pair(j) && lifted < 4) assertEquals(rig.stepping(i), rig.stepping(j));
                 }
             }
-            assertTrue(lifted <= 2);
-        }
-        assertTrue(stepped, "a walking torso steps");
-        assertEquals(rig.group(0), rig.group(2), "front-left steps with back-right");
+            if (lifted == 4) airborne[0] = true;
+        });
+        assertEquals(DerelictLegRig.Gait.RUN, rig.gait());
+        assertTrue(airborne[0], "the run has a moment with every foot off the ground");
     }
 
     @Test
-    void aPlantedFootHoldsWhileTheTorsoMovesALittle() {
-        DerelictLegRig rig = new DerelictLegRig(false);
+    void aStandingFootStaysExactlyWhereItLanded() {
+        DerelictLegRig rig = new DerelictLegRig();
+        float[] lastX = new float[4];
+        float[] lastY = new float[4];
+        boolean[] was = {true, true, true, true};
+        walk(rig, 0.7f, 400, OPEN, () -> {
+            for (int i = 0; i < 4; i++) {
+                if (!rig.stepping(i) && !was[i]) {
+                    assertEquals(lastX[i], rig.footX(i), 1e-6f);
+                    assertEquals(lastY[i], rig.footY(i), 1e-6f);
+                }
+                lastX[i] = rig.footX(i);
+                lastY[i] = rig.footY(i);
+                was[i] = rig.stepping(i);
+            }
+        });
+    }
+
+    @Test
+    void eachLegGripsAWallThatIsCloseAndStandsOnTheFloorWhereNoneIs() {
+        // A wall along the north side only (y >= 52); open floor to the south.
+        DerelictLegRig.Solid north = (x, y) -> y >= 52;
+        DerelictLegRig rig = new DerelictLegRig();
+        rig.advance(20f, 50.5f, EAST, DT, north);
+        int gripping = 0;
+        for (int i = 0; i < 4; i++) {
+            boolean northSide = rig.footY(i) > 50.5f;
+            assertEquals(northSide, rig.onWall(i), "leg " + i + " grips only on the walled side");
+            if (rig.onWall(i)) {
+                gripping++;
+                assertTrue(rig.footY(i) > 51.8f && rig.footY(i) < 52f, "up against the face");
+            } else {
+                float dx = rig.footX(i) - 20f;
+                float dy = rig.footY(i) - 50.5f;
+                assertEquals(DerelictLegRig.REST_CELLS, (float) Math.sqrt(dx * dx + dy * dy), 1e-3f);
+            }
+        }
+        assertEquals(2, gripping);
+    }
+
+    @Test
+    void inTheOpenNoLegGrips() {
+        DerelictLegRig rig = new DerelictLegRig();
         rig.advance(10f, 10f, 0f, DT, OPEN);
-        float x = rig.footX(0);
-        float y = rig.footY(0);
-        rig.advance(10.2f, 10f, 0f, DT, OPEN);
-        assertEquals(x, rig.footX(0));
-        assertEquals(y, rig.footY(0));
+        for (int i = 0; i < 4; i++) assertFalse(rig.onWall(i));
     }
 
     @Test
-    void reachingLegsBraceOnACorridorsWallsAndFloorLegsNeverEnterThem() {
-        DerelictLegRig reaching = new DerelictLegRig(true);
-        reaching.advance(20f, 51f, -90f, DT, CORRIDOR);
-        int onWall = 0;
-        for (int i = 0; i < 4; i++) {
-            float y = reaching.footY(i);
-            assertTrue(y > 50f && y < 52f, "a foot on a face stands on the floor side of it: " + y);
-            if (reaching.onWall(i)) onWall++;
-        }
-        assertEquals(4, onWall, "in a two-cell corridor every leg finds a wall");
-
-        DerelictLegRig floor = new DerelictLegRig(false);
-        floor.advance(20f, 51f, -90f, DT, CORRIDOR);
-        for (int i = 0; i < 4; i++) {
-            assertFalse(floor.onWall(i));
-            assertFalse(CORRIDOR.at((int) Math.floor(floor.footX(i)), (int) Math.floor(floor.footY(i))));
-        }
-    }
-
-    @Test
-    void inAWideHallReachingLegsSplayOutToTheWallsAndFloorLegsStayOnTheFloor() {
-        // A hall five cells wide, floor at y 48 to 52, the walker on its middle line walking along +x.
-        DerelictLegRig.Solid wide = (x, y) -> y < 48 || y > 52;
-        DerelictLegRig reaching = new DerelictLegRig(true);
-        reaching.advance(20f, 50.5f, -90f, DT, wide);
-        DerelictLegRig floor = new DerelictLegRig(false);
-        floor.advance(20f, 50.5f, -90f, DT, wide);
-        for (int i = 0; i < 4; i++) {
-            assertTrue(reaching.onWall(i), "leg " + i + " finds a wall");
-            assertTrue(Math.abs(reaching.footY(i) - 50.5f) > 2.2f, "and stands at the hall's side");
-            assertFalse(floor.onWall(i));
-            assertTrue(Math.abs(floor.footY(i) - 50.5f) < 2.0f);
-        }
-    }
-
-    @Test
-    void aTorsoThatJumpsFurtherThanALegReachesStandsFresh() {
-        DerelictLegRig rig = new DerelictLegRig(false);
+    void aTorsoThatJumpsStandsFresh() {
+        DerelictLegRig rig = new DerelictLegRig();
         rig.advance(10f, 10f, 0f, DT, OPEN);
-        rig.advance(40f, 10f, 0f, 0f, OPEN);
+        rig.advance(40f, 10f, 0f, DT, OPEN);
         for (int i = 0; i < 4; i++) {
             float dx = rig.footX(i) - 40f;
             float dy = rig.footY(i) - 10f;
@@ -96,14 +128,28 @@ class DerelictLegRigTest {
     }
 
     @Test
-    void inTheOpenAReachingLegRestsOnTheFloor() {
-        DerelictLegRig rig = new DerelictLegRig(true);
-        rig.advance(10f, 10f, 0f, DT, OPEN);
-        for (int i = 0; i < 4; i++) {
-            assertFalse(rig.onWall(i));
-            float dx = rig.footX(i) - 10f;
-            float dy = rig.footY(i) - 10f;
-            assertEquals(DerelictLegRig.REST_CELLS, (float) Math.sqrt(dx * dx + dy * dy), 1e-3f);
-        }
+    void theBodySwaysAwayFromALiftedLegAndBouncesHarderAtARun() {
+        DerelictLegRig walker = new DerelictLegRig();
+        float[] sway = {0f};
+        float[] walkHeight = {0f, 0f};
+        walk(walker, 0.7f, 600, OPEN, () -> {
+            for (int i = 0; i < 4; i++) {
+                if (walker.lift(i) < 0.9f) continue;
+                // Sideways from the path (the path runs along y = 50.5), against the lifted leg's side.
+                float side = Math.signum(walker.footY(i) - 50.5f);
+                sway[0] += -(walker.bodyY() - 50.5f) * side;
+            }
+            walkHeight[0] = Math.min(walkHeight[0], walker.bodyHeight());
+            walkHeight[1] = Math.max(walkHeight[1], walker.bodyHeight());
+        });
+        assertTrue(sway[0] > 0f, "the body leans off a lifted leg: " + sway[0]);
+        assertTrue(walkHeight[0] < 0f, "it dips as a leg lifts");
+        DerelictLegRig runner = new DerelictLegRig();
+        float[] runHeight = {0f, 0f};
+        walk(runner, 2.6f, 300, OPEN, () -> {
+            runHeight[0] = Math.min(runHeight[0], runner.bodyHeight());
+            runHeight[1] = Math.max(runHeight[1], runner.bodyHeight());
+        });
+        assertTrue(runHeight[1] - runHeight[0] > walkHeight[1] - walkHeight[0], "the run bounces harder");
     }
 }

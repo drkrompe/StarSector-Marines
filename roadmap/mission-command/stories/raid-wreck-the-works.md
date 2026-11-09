@@ -1,6 +1,6 @@
 # Raid: wreck the works (first slice)
 
-Status: IN PROGRESS — built and unit-tested on the map's industrial ground; the live pass and the works the Raid generator will lay (`raid-mapgen`) remain.
+Status: IN PROGRESS — built and unit-tested; on a heavy-industry raid the machines stand in the site's works compound (`raid-site-templates.md`), elsewhere on the map's industrial ground; the live pass remains.
 
 Written: 2026-11-09
 

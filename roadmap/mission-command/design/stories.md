@@ -59,6 +59,7 @@ Design: `raid-mission.md` (what a Raid is for), `raid-command.md` (command)
 |---|---|---|
 | `raid-objective-and-command-contract.md` | IN PROGRESS | Canonical-duration and live-accept the shipped primary-target objective, paired command duel, and diagnostics. |
 | `raid-wreck-the-works.md` | IN PROGRESS | A disrupting raid wrecks the named industry's machines; the share wrecked sets the days down. |
+| `raid-site-templates.md` | IN PROGRESS | An authored Raid site per industry: landing in the homes, the works a compound graded by security, the garrison beside it. |
 
 ## Extraction
 

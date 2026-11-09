@@ -175,7 +175,7 @@ public final class GroundRenderSystem implements RenderSystem {
         // paint over whatever it has put behind the world.
         // A map with a void backdrop shows the ground far below through its void cells, so it is not backed.
         if (ctx.hostProfile.worldBackingPainted() && topology.voidBackdrop() == null
-                && topology.naturalVoid() == null) {
+                && topology.naturalVoid() == null && topology.naturalRise() == null) {
             float wx0 = cam.cellToScreenX(0);
             float wy0 = cam.cellToScreenY(0);
             float wx1 = cam.cellToScreenX(grid.getWidth());

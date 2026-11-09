@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -22,7 +25,17 @@ import java.util.List;
  * their foot and before the ledge at their top, so a wall turned from the camera falls under the ground above
  * it and a wall facing the camera stands over the ledges below.
  *
- * <p>Presentation only. It reads the map's void cells and its {@link NaturalVoid}, never the battle.
+ * <p><b>Rises.</b> A second instance draws a map's {@link NaturalRise}, the same shape turned up: a ravine's
+ * walls standing over the walkable floor. Higher is nearer the eye, so a rise's ledges scale away from the
+ * view's centre and its walls lean out; it is drawn lowest first, and a face turned from the camera is not
+ * drawn at all, since the front faces and the top cover where it would be. Unlike a drop it is drawn after
+ * the ground tiles, so a rise that leans out past its own cells (a rock stack's top, seen from beside it) is
+ * seen whole; but before every unit, so a unit at its foot is never hidden, and one standing where a top
+ * leans over the floor is drawn over the rock. Its talus and its shadow on the floor are laid over the tiles
+ * first, with the fray pass.
+ *
+ * <p>Presentation only. It reads the map's void cells, the sight tag that tells a rise's from a drop's, and
+ * the {@link NaturalVoid} or {@link NaturalRise}, never the battle.
  */
 final class NaturalVoidRenderSystem implements RenderSystem {
 
@@ -35,12 +48,23 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     static final int MARGIN = 24;
     /** Water: how fast it runs, metres a second, and how long one pattern lasts before it fades into the next. */
     static final float FLOW_SPEED = 1.6f, FLOW_PERIOD = 5f;
+    /** How dark a rise's shadow lies on the floor at its foot, at its fullest. */
+    static final float FLOOR_SHADE = .32f;
 
     private final BattleSprites sprites;
+    /** This instance draws the map's rise rather than its drop. */
+    private final boolean rising;
+    /** A lava rift's floor, light and air, drawn into this drop's order and over the ground after it. */
+    private final MoltenVoidRenderSystem molten;
+    /** The drop this instance draws is a lava rift. */
+    private boolean lava;
     private SunLight sun;
 
     private CellTopology builtFor;
-    private NaturalVoid builtWith;
+    private Object builtWith;
+    private String wallTexture;
+    private float wallTileMeters, eyeMeters;
+    private int seed;
     private String builtSun;
     private int mapW, mapH;
     private NaturalVoidField field;
@@ -55,7 +79,23 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private int polysUsed;
 
     NaturalVoidRenderSystem(BattleSprites sprites) {
+        this(sprites, false);
+    }
+
+    NaturalVoidRenderSystem(BattleSprites sprites, boolean rising) {
         this.sprites = sprites;
+        this.rising = rising;
+        this.molten = new MoltenVoidRenderSystem(this, sprites);
+    }
+
+    /** A lava rift's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
+    RenderSystem molten() {
+        return molten;
+    }
+
+    /** The map's drop or rise, whichever this instance draws, or null. */
+    private Object look(CellTopology topology) {
+        return rising ? topology.naturalRise() : topology.naturalVoid();
     }
 
     void useSun(SunLight sun) {
@@ -67,7 +107,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         CellTopology topology = ctx.sim.getTopology();
-        NaturalVoid look = topology.naturalVoid();
+        Object look = look(topology);
         if (look == null) return;
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
@@ -75,27 +115,59 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.out = out;
         this.cam = cam;
         this.alpha = ctx.alphaMult;
-        this.polysUsed = 0;
-        this.eye = look.eyeMeters();
+        if (!rising) this.polysUsed = 0;
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
-        String sunKey = sun == null ? "none" : sun.azimuthDegrees() + "/" + sun.elevationDegrees();
-        if (builtFor != topology || builtWith != look || !sunKey.equals(builtSun)) {
-            build(topology, look);
-            builtFor = topology;
-            builtWith = look;
-            builtSun = sunKey;
-        }
+        ensureBuilt(ctx, look);
+        this.eye = eyeMeters;
         float time = FireLight.clock(ctx.animationTimeSeconds);
         int n = field.steps();
+        if (rising) {
+            // Lowest first: the foot, then each face and the ledge on top of it, the plateau last.
+            for (int k = 0; k <= n; k++) {
+                drawBand(field.bands.get(k), false, time);
+                if (k < n) drawWalls(field.walls.get(k));
+            }
+            return;
+        }
         for (int k = n; k >= 0; k--) {
             drawBand(field.bands.get(k), k == n, time);
-            if (k >= 1) drawWalls(field.walls.get(k - 1), field.depth[k - 1], field.depth[k]);
+            if (k >= 1) drawWalls(field.walls.get(k - 1));
         }
         drawBridgeSides();
     }
 
-    private void build(CellTopology topology, NaturalVoid look) {
+    /** Works the shape out again when the map, its look or the sun has changed. */
+    private void ensureBuilt(RenderContext ctx, Object look) {
+        CellTopology topology = ctx.sim.getTopology();
+        String sunKey = sun == null ? "none" : sun.azimuthDegrees() + "/" + sun.elevationDegrees();
+        if (builtFor != topology || builtWith != look || !sunKey.equals(builtSun)) {
+            build(topology, ctx.sim.getGrid(), look);
+            builtFor = topology;
+            builtWith = look;
+            builtSun = sunKey;
+        }
+    }
+
+    private void build(CellTopology topology, NavigationGrid grid, Object look) {
+        NaturalVoidField.Shape shape;
+        if (look instanceof NaturalRise rise) {
+            shape = NaturalVoidField.Shape.of(rise);
+            wallTexture = rise.wallTexture();
+            wallTileMeters = rise.wallTileMeters();
+            eyeMeters = rise.eyeMeters();
+            seed = rise.seed();
+        } else {
+            NaturalVoid drop = (NaturalVoid) look;
+            shape = NaturalVoidField.Shape.of(drop);
+            wallTexture = drop.wallTexture();
+            wallTileMeters = drop.wallTileMeters();
+            eyeMeters = drop.eyeMeters();
+            seed = drop.seed();
+        }
+        lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
+        // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
+        boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
         mapW = w;
         mapH = h;
@@ -104,24 +176,34 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         for (int y = 0; y < fh; y++) {
             for (int x = 0; x < fw; x++) {
                 int mx = Math.max(0, Math.min(w - 1, x - MARGIN)), my = Math.max(0, Math.min(h - 1, y - MARGIN));
-                voidCell[y * fw + x] = topology.getGroundKind(mx, my) == GroundKind.VOID;
+                boolean cell = topology.getGroundKind(mx, my) == GroundKind.VOID;
+                if (cell && (rising || both)) cell = rising != grid.hasTag(mx, my, CellTag.SEE_THROUGH);
+                voidCell[y * fw + x] = cell;
             }
         }
         // A sun that does not cast still lights: straight down from the default bearing, a long way up.
         float sx = sun == null ? -.7f : sun.dirX(), sy = sun == null ? -.7f : sun.dirY();
         float rise = sun == null || !sun.casts() ? 6f : sun.risePerCell();
-        field = new NaturalVoidField(fw, fh, voidCell, look, sx, sy, rise);
+        field = new NaturalVoidField(fw, fh, voidCell, shape, sx, sy, rise);
         int n = field.steps();
         colours = new float[n + 1][];
-        for (int k = 0; k < n; k++) {
+        // A drop's floor is worked out each frame; a rise's top is coloured as the rest.
+        for (int k = 0; k < (rising ? n + 1 : n); k++) {
             NaturalVoidField.Band band = field.bands.get(k);
             float[] c = new float[band.count * 3];
-            for (int q = 0; q < band.count; q++) albedo(band, q, k, look.seed(), c);
+            for (int q = 0; q < band.count; q++) {
+                if (rising && k == n) plateau(band, q, seed, c);
+                else if (lava) LavaVoidLook.rock(band, q, k, seed, field.depth[n], c);
+                else albedo(band, q, k, seed, c);
+            }
             colours[k] = c;
         }
         NaturalVoidField.Band fray = field.fray;
         frayColours = new float[fray.count * 3];
-        for (int q = 0; q < fray.count; q++) albedo(fray, q, 0, look.seed(), frayColours);
+        for (int q = 0; q < fray.count; q++) {
+            if (lava) LavaVoidLook.rock(fray, q, 0, seed, field.depth[n], frayColours);
+            else albedo(fray, q, 0, seed, frayColours);
+        }
     }
 
     /**
@@ -130,8 +212,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
      */
     RenderSystem fray() {
         return RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
-            if (ctx.sim.getTopology().naturalVoid() == null || field == null
-                    || builtFor != ctx.sim.getTopology()) return;
+            Object look = look(ctx.sim.getTopology());
+            if (look == null || ctx.camera.cellPxSize() <= 0f) return;
+            // A rise's fray is drawn before the rise itself, so it is the first of the two to run in a frame.
+            if (rising) this.polysUsed = 0;
+            ensureBuilt(ctx, look);
             this.out = out;
             this.cam = ctx.camera;
             this.alpha = ctx.alphaMult;
@@ -144,36 +229,75 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             for (int q = 0; q < band.count; q++) {
                 int o = q * 8;
                 if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
+                // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it.
+                if (lava && at[o + 7] < 1f) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
+            }
+            // A rise's shadow over the floor at its foot, and over the fray.
+            NaturalVoidField.Band shade = field.floorShade;
+            float strength = FLOOR_SHADE * (sun == null ? 1f : Math.min(1f, sun.shadowStrength() / .75f));
+            qd = shade.quads;
+            at = shade.attrs;
+            for (int q = 0; q < shade.count; q++) {
+                int o = q * 8;
+                if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
+                mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
+                        sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
+                        .02f, .03f, .06f, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
         });
     }
 
-    // ----- projection -----
+    // ----- projection, shared with the lava rift's drawing -----
 
-    private float scale(float depth) { return eye / (eye + depth); }
+    NaturalVoidField field() { return field; }
+
+    BattleCamera camera() { return cam; }
+
+    DrawList drawList() { return out; }
+
+    float alpha() { return alpha; }
+
+    int seed() { return seed; }
+
+    /**
+     * Readies the projection for a pass drawn later in the frame than this one, as the fray is: false when this map
+     * has no drop or its shape is not yet worked out.
+     */
+    boolean begin(RenderContext ctx, DrawList out) {
+        if (ctx.sim.getTopology().naturalVoid() == null || field == null || builtFor != ctx.sim.getTopology()) return false;
+        this.out = out;
+        this.cam = ctx.camera;
+        this.alpha = ctx.alphaMult;
+        this.eye = eyeMeters;
+        this.cx = cam.cellToScreenX(cam.panCellX());
+        this.cy = cam.cellToScreenY(cam.panCellY());
+        return true;
+    }
+
+    float scale(float depth) { return eye / (eye + depth); }
 
     /** Where a point of the field (map cells shifted by {@link #MARGIN}) stands on screen at scale {@code s}. */
-    private float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX - MARGIN) - cx) * s; }
+    float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX - MARGIN) - cx) * s; }
 
-    private float sy(float cellY, float s) { return cy + (cam.cellToScreenY(cellY - MARGIN) - cy) * s; }
+    float sy(float cellY, float s) { return cy + (cam.cellToScreenY(cellY - MARGIN) - cy) * s; }
 
     /** Whether a point of the field lies on the map: surface pieces past its edge are not drawn. */
-    private boolean onMap(float x, float y) {
+    boolean onMap(float x, float y) {
         return x >= MARGIN && y >= MARGIN && x < MARGIN + mapW && y < MARGIN + mapH;
     }
 
     /** Whether a plan point at scale {@code s} lands within the view, with a margin in pixels. */
-    private boolean inView(float x, float y, float s, float margin) {
+    boolean inView(float x, float y, float s, float margin) {
         float px = sx(x, s), py = sy(y, s);
         return px >= cam.vpX() - margin && px <= cam.vpX() + cam.vpW() + margin
                 && py >= cam.vpY() - margin && py <= cam.vpY() + cam.vpH() + margin;
     }
 
-    private PolyMesh poly() {
+    PolyMesh poly() {
         if (polysUsed == polys.size()) polys.add(new PolyMesh(256));
         PolyMesh mesh = polys.get(polysUsed++);
         mesh.reset();
@@ -213,14 +337,42 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         into[q * 3 + 2] = b * grain * lit;
     }
 
+    /**
+     * A rise's top: the plateau beyond the rim, turf with scrub and dark clumps of wood, bare rock breaking
+     * through along the rim itself.
+     */
+    private static void plateau(NaturalVoidField.Band band, int q, int seed, float[] into) {
+        float[] a = band.attrs;
+        int o = q * 8;
+        float x = a[o], y = a[o + 1], light = a[o + 2], inside = a[o + 3];
+        float n1 = NaturalVoidField.Noise.fbm(x * .3f, y * .3f, seed * 7 + 17);
+        float n2 = NaturalVoidField.Noise.value(x * 1.3f, y * 1.3f, seed * 7 + 19);
+        float n3 = NaturalVoidField.Noise.value(x * .7f, y * .7f, seed * 7 + 23);
+        float r = .33f, g = .37f, b = .19f;
+        // Wood: dark crowns in clumps, thickest a little back from the rim.
+        float wood = clamp01((n1 + .5f * n3 + .1f) * 2.4f) * clamp01((inside - .8f) * .8f);
+        r = lerp(r, .15f, wood); g = lerp(g, .24f, wood); b = lerp(b, .11f, wood);
+        // Rock breaking through at the rim, and a fringe of scrub just behind it.
+        float rim = clamp01(1f - inside * 1.4f + n2 * .3f);
+        r = lerp(r, .50f, rim * .8f); g = lerp(g, .46f, rim * .8f); b = lerp(b, .39f, rim * .8f);
+        float grain = .93f + .14f * (n2 * .5f + .5f);
+        float lit = Math.min(1f, light);
+        into[q * 3] = r * grain * lit;
+        into[q * 3 + 1] = g * grain * lit;
+        into[q * 3 + 2] = b * grain * lit;
+    }
+
     private void drawBand(NaturalVoidField.Band band, boolean floor, float time) {
+        if (floor && lava) {
+            molten.drawFloor(band, time);
+            return;
+        }
         float s = scale(band.depth);
-        float tint = DEEP_MIX * band.depth / Math.max(1f, field.depth[field.steps()]);
+        float tint = rising ? 0f : DEEP_MIX * band.depth / Math.max(1f, field.depth[field.steps()]);
         float margin = cam.cellPxSize() * 2f;
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
         float[] c = floor ? null : colours[band.step];
-        int seed = field.look.seed();
         float p1 = frac(time / FLOW_PERIOD), p2 = frac(time / FLOW_PERIOD + .5f);
         float w1 = 1f - Math.abs(2f * p1 - 1f);
         for (int q = 0; q < band.count; q++) {
@@ -261,15 +413,19 @@ final class NaturalVoidRenderSystem implements RenderSystem {
      * One step's faces: the rock image laid along each segment between the step's top and foot, cut where the
      * image repeats down the face, then the face's light and the depth's tint laid over it row by row.
      */
-    private void drawWalls(List<NaturalVoidField.Wall> walls, float top, float bottom) {
-        ShuttleSpriteCache rock = sprites.spriteByPath(field.look.wallTexture());
-        float tile = field.look.wallTileMeters();
+    private void drawWalls(List<NaturalVoidField.Wall> walls) {
+        ShuttleSpriteCache rock = sprites.spriteByPath(wallTexture);
+        float tile = wallTileMeters;
         float floorDepth = Math.max(1f, field.depth[field.steps()]);
-        float s0 = scale(top), s1 = scale(bottom);
         float margin = cam.cellPxSize() * 2f;
+        float px = cam.panCellX() + MARGIN, py = cam.panCellY() + MARGIN;
         PolyMesh shade = poly();
         for (NaturalVoidField.Wall wall : walls) {
+            float top = wall.zTop(), bottom = wall.zFoot();
+            float s0 = scale(top), s1 = scale(bottom);
             float mx = (wall.x0() + wall.x1()) / 2f, my = (wall.y0() + wall.y1()) / 2f;
+            // A rise's face turned from the camera lies under the top above it: only the top is seen there.
+            if (rising && wall.nx() * (px - mx) + wall.ny() * (py - my) <= 0f) continue;
             if (!inView(mx, my, s0, margin) && !inView(mx, my, s1, margin)) continue;
             if (rock != null && rock.pxW > 4) {
                 boolean alongX = Math.abs(wall.x1() - wall.x0()) >= Math.abs(wall.y1() - wall.y0());
@@ -293,8 +449,15 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 }
                 float dark = 1f - Math.min(1f, light[r]);
                 shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, dark * alpha);
-                float tint = DEEP_MIX * ((za + zb) / 2f) / floorDepth;
-                shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                if (!rising) {
+                    float tint = DEEP_MIX * ((za + zb) / 2f) / floorDepth;
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                }
+                if (lava) {
+                    float glow = LavaVoidLook.wallGlow(floorDepth - (za + zb) / 2f);
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, LavaVoidLook.GLOW_R,
+                            LavaVoidLook.GLOW_G, LavaVoidLook.GLOW_B, glow * alpha);
+                }
             }
         }
         if (!shade.isEmpty()) out.addPoly(RenderLayer.GROUND, shade);

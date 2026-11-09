@@ -1,0 +1,14 @@
+A seamless, tileable texture for a game, seen straight down (top-down,
+orthographic, no perspective, no horizon): the surface of a slow river of
+molten lava crusting over as it cools. Irregular plates of black and
+dark charcoal cooled crust, wrinkled ropy pahoehoe folds and rough
+broken slabs, from fist-sized fragments to plates several metres across,
+separated by a branching network of narrow-to-wide cracks and seams of
+incandescent molten rock glowing bright yellow-white at their centres,
+through orange to deep red at their edges. Some plates are thin and
+show a dull red glow through them. Strong contrast: the crust is near
+black, the cracks are brilliant. Even density across the whole tile with
+no focal point and no flow direction emphasised, so it repeats both
+horizontally and vertically. No smoke, no flames above the surface, no
+rocks or banks, no sky, no people, no text, no border, no vignette.
+Square canvas.

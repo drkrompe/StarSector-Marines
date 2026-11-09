@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — the gorge river, the first natural style, has a look experiment; the plan for the other natural styles and their placement.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -48,6 +48,17 @@ face and ramp, and folds into `elevation-nouns.md` when it ships.
   at the tier of the ground they join. Nothing walks under it, so "one cell, one
   level" holds. A bridge's width decides what crosses it, exactly as a ramp's
   does: infantry need one cell, a vehicle or mech needs its clearance.
+- A **rise** is the void turned up: unwalkable ground **above** the tier, which
+  no ground unit stands on, a ravine's walls rising over the floor the battle
+  is fought on. Its **height** is a whole number of metres above the tier
+  around it, read only by the look; its **foot** is its band along walkable
+  ground, drawn as a wall going up. To the battle a rise is high ground
+  without a top anyone reaches: elevation's inaccessible raised mass
+  (`elevation-nouns.md`, Purpose), not a plateau, so it needs no face width
+  and no ramp. It is natural solid, unwalkable, and **blocks sight** as higher
+  ground does; its foot gives the cover a cliff foot gives. That sight rule is
+  the one battle difference between a rise and a void, and the look tells
+  their cells apart by it.
 - Roads over roads (overpasses) are **not** voids and are out of scope. They
   need two walkable levels on one cell, which this model forbids.
 
@@ -63,6 +74,7 @@ generation, never a battle rule, as an emplacement style is
 | **Crevasse** | Ice and rock country: a narrow, jagged split | Blue-white ice or fractured rock, a snow or scree lip | Dark, narrowing to nothing | A snow bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
+| **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
 A **sea cliff** is not an elevation cliff face. A face holds a plateau up
@@ -305,6 +317,19 @@ Laws):
      depth so the towers rise out of them. The shallow deck is cool under
      the sky; the deep one warm, lit by the city below, and thinner, so its
      lights show through.
+   - **Steam, searchlights and running lights** (owner, 2026-11-09: more
+     effects). Vents on the towers' own roofs breathe steam: puffs from the
+     fog sheet leaving the roof one after another, rising, swelling, thinning
+     and leaning with the wind, whiter than the fog banks so they read as
+     columns. Searchlights stand at some corners of the playing surface,
+     their beams swinging slowly out over the drop: a chain of soft lights
+     widening and fading along the throw, drawn additively, since light
+     composited over grey fog does not brighten it; the surface's tiles cut
+     a beam off where it crosses the deck. Lamps on the city's deep crowns
+     were tried first; the nearer towers' walls hid their beams. Every craft
+     carries a red and a green light at its widest and a white strobe at
+     its tail, and its engine glow is round. Steam vents on the terraces were
+     tried and dropped: the fog banks drowned them.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
      Each structure's roof takes a corner radius hashed from its place
      (square, 6, 10 or 14 m; a plain sum of its position put every tower of
@@ -420,11 +445,114 @@ Laws):
    pattern drifting downstream and fading into the next every few seconds,
    white along the walls and where the stream breaks, the sun glinting where
    it reaches. The suite renders camera heights of 120 m and 160 m (the
-   city's 240 m makes a 50 m drop read as a ditch). Left: the owner's pick
-   of depth and camera height; a mist
+   city's 240 m makes a 50 m drop read as a ditch). The owner called the
+   first pass good and named no height, so 120 m is the working camera for
+   natural styles, accepted by default (2026-11-09). Left: the owner's pick
+   of depth; a mist
    over the water; boulders and fallen trees in the stream; trees and roots
    hanging over the lip; which way the river runs on a map that names it
    (now it runs toward the map's east or south).
+
+   **Rises: verticality up** (owner, 2026-11-09: "keep working with this for
+   verticality up as well", the player on the bottom of a ravine). A map
+   carries a `NaturalRise` beside its `NaturalVoid`: the same steps with
+   heights for depths, drawn by a second `NaturalVoidRenderSystem` from the
+   same field (`NaturalVoidField` with a rising shape), not a new renderer.
+   The look suite is `createSnapshots -Psnapshot=ravine-rise-look`: a ravine
+   floor between cliffs, a side canyon and a rock stack standing in the floor.
+   - **The camera turned over.** Higher is nearer the eye, so a ledge
+     `h` metres up stands at `eye / (eye - h)` of its distance from the
+     view's centre: a rise's walls lean **out** from the centre, its rim
+     slides outward faster than the floor as the camera pans, and the eye
+     must stand above the top. The rise is drawn lowest first: its foot,
+     each face then the ledge on it, the top last. A face turned from the
+     camera is never drawn; the faces before it and the top cover where it
+     would be.
+   - **Never over a unit.** A rise is drawn in the ground layer after the
+     tiles and before every unit. So it is seen whole where it leans out past
+     its own cells (a stack's top seen from beside it, a mesa from above),
+     and a unit at the foot of a wall, or standing where a top leans over the
+     floor, is always drawn over the rock: the picture never hides or shows a
+     unit the battle sees otherwise (Laws). Clipping a rise to its own cells,
+     as the tiles clip a drop, was tried first: a stack's top leans out of
+     its footprint and was cut away, leaving a broken ring of wall.
+   - **The rim and the top.** The steps nest as a drop's do, so a rise never
+     overhangs: a lip that juts is drawn by its ledge and its face's shade,
+     not by rock over air. The top is the plateau beyond the rim: turf with
+     clumps of wood, thickest a little back, bare rock breaking through along
+     the rim. The foot is talus, fraying onto the floor over the tiles as a
+     drop's lip frays onto the bank.
+   - **Sun.** Faces and ledges are lit as a drop's are, a face's sky taken
+     just out from it at each height. The rise casts on the floor: its shadow
+     is worked out on the walkable ground round its foot, as far as its height
+     throws it, and laid over the tiles under the units, so a narrow ravine's
+     floor lies in its walls' shade but for where the sun runs along it.
+   - Narrow floor between two rises is a pass, never a bridge.
+   First pass (ravine wall): the gorge's strata wall, two ledges and the top
+   36 m up, camera 120 m. Left: the owner's pick of height; a top with real
+   art (a canopy image rather than flat colour, which blurs as the top scales
+   up); trees and roots along the rim; the floor's own look (a dry wash, a
+   stream); the floor running off the map's edge (now black past it); a rise
+   and a drop on one map (the sight tag already tells their cells apart);
+   culling the top's pieces by chunk, since a rise covering most of a map
+   cuts many.
+
+   **Lava rift** (owner, 2026-11-09: "Also consider lava/molten worlds"): a
+   natural drop whose floor is molten rock. Look suite:
+   `createSnapshots -Psnapshot=lava-void-look`, a basalt plain cut by a rift
+   with a stone road bridge (`-Dsnapshot.lava.depth`, `-Dsnapshot.lava.eyes`,
+   `-Dsnapshot.lava.stillsOnly`).
+   - **What it reuses.** Everything that makes a drop: `NaturalVoid` with style
+     `LAVA`, its steps, the field's edge, ledges, walls, bridges and sun, and
+     the drop's renderer and painter's order. The wall is its own ImageGen
+     image (`basalt-wall.png`, columnar basalt, scoria and ash, under
+     `art-source/voids/lava/`); the lip and ledges are scorched basalt and
+     ash (`LavaVoidLook`).
+   - **What is new: a floor that gives light.** The sun and the sky the walls
+     leave open shade every other floor; the melt takes neither. It is drawn
+     by `MoltenVoidRenderSystem` in the drop's order, in place of the water:
+     the melt's heat drifting downstream, incandescent where it breaks against
+     the walls; a crust floating on it (`lava-crust.png`, ImageGen), laid
+     twice and drifting downstream, each layer fading into the other as the
+     water's pattern does, cut along a wandering line a cell in from the
+     walls; a bloom of light over it; a low smoke lit orange from below. The
+     floor and crust ripple a little in the heat.
+   - **What is new: its light on everything round it.** The melt lights the
+     rock above it, strongest just over the melt and halving every 7 m up
+     (`LavaVoidLook.wallGlow`): every wall row and every ledge takes it over
+     its own sun and sky. Over the tiles, after the lip's fray, the ground at
+     the lip takes soft pools of flickering light reaching a few cells out,
+     less over a deeper floor (`lipGlow`). The lip ends hard and scorched at
+     the drop and takes the plain's own tone back from it, so the ground
+     tiles' stepped edge does not show.
+   - **The air.** Embers rise off the melt on the wind, cooling from yellow to
+     red, each hidden wherever rock stands between it and the eye; smoke boils
+     up out of the rift at two heights above the surface and drifts
+     downwind; ash falls over everything in view. All of it is in the ground
+     layer, so every unit draws over it.
+   - **Battle.** Unchanged: a lava rift is a drop like every other style
+     (Laws). A rule that would be the first place a style touched the battle
+     is proposed, not built: **heat at the lip**, a unit standing within a
+     cell or two of a lava rift for long takes slow burn damage, or loses
+     stamina, or AI routes prefer to keep off the lip. It would need its own
+     tag on the lip cells, written by the brush, so the battle never reads the
+     style. Held for the owner (Open).
+   First pass: a lip, two ledges of cooled basalt and the melt 40 m down,
+   camera 120 m, a daylight sun. The owner settled the depth at 40 m
+   (2026-11-09): the style's standing depth, the look suite's default. A
+   bridge's ends are road onto the deck, not lip: the drop's fray, the lip's
+   light and the smoke over the rift all stop where the nearest open cell is a
+   bridge (`NaturalVoidField.byBridge`), for every natural style; no puff of
+   smoke spreads over a deck; and the crust runs on under a bridge, since the
+   melt 40 m down shows past the deck's edge. Left: a dusk or
+   night sky, under which the glow would carry the picture (the night
+   lighting draws over the ground layer, so the melt's light needs to stand
+   in it as a light source); heat shimmer as true distortion (now a ripple of
+   the floor's own pieces; a screen distortion needs a pass of its own); a
+   basalt ground tileset for the plain (now the natural talus); cooling flows
+   on the plain, crusted and glowing through their cracks; lava falls where a
+   side channel pours into the rift; the floor running out past the drop's
+   margin in the wide shot, as the gorge's water does.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
@@ -459,6 +587,8 @@ Laws):
    - A **sea cliff** where a beach map lays its shoreline (`BeachShorelineStage`)
      on a map whose landing is not from the sea: the shore band cut as void
      at the map's edge.
+   - A **lava rift** on molten and volcanic worlds, where a temperate map
+     would lay a gorge river, and as a mission's dividing line.
    - All of them refuse what a plateau refuses (roads, buildings, doorways,
      fixtures, reserved cells), and `-Dbattle.mapgen.voids=N` asks for them
      on every map for evidence.
@@ -479,14 +609,21 @@ Laws):
 - Nothing stands, lands or falls in a void.
 - Everything drawn inside a void is presentation. It neither displaces nor
   hides a unit.
+- A rise is never walkable, blocks sight as higher ground does, and never
+  changes in a battle. Nothing drawn of it, however far it leans, hides a
+  unit.
 - A map without voids behaves exactly as before.
 
 ## Open (owner)
 
+- Rises: whether a top leaning over the walkable floor (behind a rock stack,
+  or a mesa seen from above) should give way to units more visibly, for
+  example fading where a unit stands under it. Units are drawn over it now.
 - Depth: felt out from the slice 3 and 4 renders: whole storeys per style, or
   one "bottomless" look.
-- Later, not now: whether a railing ever gives low cover. It would be the one
-  place a style touched the battle.
+- Later, not now: whether a railing ever gives low cover, or a lava rift's
+  lip burns those who linger at it (slice 4, Lava rift). Either would be
+  the one place a style touched the battle.
 
 ## Acceptance
 

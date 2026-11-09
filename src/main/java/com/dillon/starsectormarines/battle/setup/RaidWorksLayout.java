@@ -19,10 +19,12 @@ import java.util.function.Predicate;
  * The machines of a disrupting raid's works ({@code raid-mission.md}, Break): the places a charge wrecks the
  * industry the player named.
  *
- * <p>Until the Raid's own generator lays a works for the named industry ({@code raid-mapgen}), the map's
- * industrial ground stands in for it. Candidates are taken in this order, the first source that has any
- * leading:
+ * <p>On an industry's own Raid site ({@code RaidSiteTemplate}) the works is a walled compound and its machines
+ * are its halls: the depots nearest the compound's seed, within {@link #WORKS_REACH}. Elsewhere, until every
+ * industry has a site, the map's industrial ground stands in for it. Candidates are taken in this order, the first
+ * source that has any leading:
  * <ol>
+ *   <li>on a site, the works compound's halls;</li>
  *   <li>the industrial zone: the buildings standing on it, then its loading bays and the middle of its
  *       factory row's service lane;</li>
  *   <li>the cordoned facility's buildings;</li>
@@ -51,7 +53,17 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
         };
     }
 
+    /** Cells from a works compound's seed within which its halls are looked for. UNTUNED. */
+    public static final int WORKS_REACH = 32;
+
     public static RaidWorksLayout select(MapResult map, List<LandingPad> landingPads, int count) {
+        return select(map, landingPads, count, null);
+    }
+
+    /**
+     * @param worksSeed the works compound's seed on an industry's own Raid site, or {@code null} on a derived map
+     */
+    public static RaidWorksLayout select(MapResult map, List<LandingPad> landingPads, int count, int[] worksSeed) {
         Objects.requireNonNull(map, "map");
         if (landingPads == null || landingPads.isEmpty()) {
             throw new IllegalArgumentException("Raid requires at least one landing pad");
@@ -61,7 +73,10 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
                 && map.grid.isWalkable(cell[0], cell[1])
                 && !map.grid.isDoorway(cell[0], cell[1])
                 && GridPathfinder.findPath(map.grid, egress.centerX, egress.centerY, cell[0], cell[1]).length > 0;
-        List<int[]> chosen = pick(worksCandidates(map), count, MIN_SPACING, usable, List.of());
+        List<int[]> chosen = worksSeed == null ? List.of()
+                : pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1]), count, MIN_SPACING, usable,
+                        List.of());
+        if (chosen.size() < count) chosen = pick(worksCandidates(map), count, MIN_SPACING, usable, chosen);
         if (chosen.size() < count) {
             chosen = pick(fallbackCandidates(map, chosen), count, MIN_SPACING, usable, chosen);
         }
@@ -89,6 +104,23 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
             }
             if (!crowded && usable.test(cell)) out.add(cell);
         }
+        return out;
+    }
+
+    /**
+     * A works compound's halls: the depots within {@link #WORKS_REACH} of its seed, nearest first. A compound packs
+     * its halls round its seed and keeps a buffer of open ground before anyone else's building, so the nearest depots
+     * are its own.
+     */
+    static List<int[]> compoundHalls(List<PointOfInterest> pois, int seedX, int seedY) {
+        int reach = WORKS_REACH * WORKS_REACH;
+        List<int[]> out = new ArrayList<>();
+        for (PointOfInterest poi : pois) {
+            if (poi.kind != PointOfInterest.Kind.DEPOT) continue;
+            int dx = poi.interiorAnchorX - seedX, dy = poi.interiorAnchorY - seedY;
+            if (dx * dx + dy * dy <= reach) out.add(new int[]{poi.interiorAnchorX, poi.interiorAnchorY});
+        }
+        out.sort(Comparator.comparingInt(c -> (c[0] - seedX) * (c[0] - seedX) + (c[1] - seedY) * (c[1] - seedY)));
         return out;
     }
 
