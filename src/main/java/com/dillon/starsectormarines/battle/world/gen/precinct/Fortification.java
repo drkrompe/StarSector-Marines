@@ -54,7 +54,7 @@ import java.util.Map;
  * ({@link GateYard}); {@code null}, as every place but the Road's town compound has it, changes nothing.
  */
 public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts,
-                            boolean square, GateYard yard) {
+                            boolean square, GateYard yard, int glacis) {
 
     /**
      * Which emplacements are placed first when the ground runs out.
@@ -79,6 +79,12 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
         this(gates, wallHp, posts, square, null);
     }
 
+    /** A place with the standard {@link #GLACIS}. */
+    public Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts, boolean square,
+                         GateYard yard) {
+        this(gates, wallHp, posts, square, yard, GLACIS);
+    }
+
     public Fortification {
         if (gates < 1) {
             throw new IllegalArgumentException(
@@ -100,6 +106,7 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
         if (yard != null && !square) {
             throw new IllegalArgumentException("a gate yard is laid inside a square place's wall");
         }
+        if (glacis < 1) throw new IllegalArgumentException("a glacis of " + glacis + " cells is no glacis");
     }
 
     /** A wall with nothing on it. Rarely what a mission wants; useful as a control. */
@@ -243,13 +250,14 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     }
 
     public Fortification withGates(int count) {
-        return new Fortification(count, wallHp, posts, square, yard);
+        return new Fortification(count, wallHp, posts, square, yard, glacis);
     }
 
     /**
      * Cells of cleared ground a square place keeps outside its wall: the strip
      * a colony leaves open round its compound so nothing stands against the
-     * wall and a watchman can see the foot of it.
+     * wall and a watchman can see the foot of it. The standard width; a place
+     * states its own as {@link #glacis()}.
      */
     public static final int GLACIS = 3;
 
@@ -272,25 +280,34 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
         return yard == null ? SQUARE_GATE_WIDTH : Math.max(SQUARE_GATE_WIDTH, yard.gateWidth());
     }
 
+    /**
+     * The same square place with a glacis {@code cells} wide: the buffer of open ground a compound keeps round its
+     * wall, wider the harder the place is held ({@code raid-mission.md}, Districts and compounds). Only a square
+     * place lays one.
+     */
+    public Fortification withGlacis(int cells) {
+        return new Fortification(gates, wallHp, posts, square, yard, cells);
+    }
+
     /** The same wall drawn on a square claim, with a glacis of open ground outside it. */
     public Fortification laidSquare() {
-        return new Fortification(gates, wallHp, posts, true, yard);
+        return new Fortification(gates, wallHp, posts, true, yard, glacis);
     }
 
     /** The same square place with a truck yard inside its gate on one side. */
     public Fortification withYard(GateYard gateYard) {
-        return new Fortification(gates, wallHp, posts, square, gateYard);
+        return new Fortification(gates, wallHp, posts, square, gateYard, glacis);
     }
 
     public Fortification withWallHp(int hp) {
-        return new Fortification(gates, hp, posts, square, yard);
+        return new Fortification(gates, hp, posts, square, yard, glacis);
     }
 
     /** The same place asked to hold {@code count} of one kind of emplacement. */
     public Fortification withPosts(DefensePostKind kind, int count) {
         EnumMap<DefensePostKind, Integer> next = new EnumMap<>(posts);
         next.put(kind, count);
-        return new Fortification(gates, wallHp, next, square, yard);
+        return new Fortification(gates, wallHp, next, square, yard, glacis);
     }
 
     /** How many of one kind this asks for. */

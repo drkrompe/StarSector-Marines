@@ -86,6 +86,13 @@ public final class FortressInterior {
     private static final RoomPacker.Massing MASSING = new RoomPacker.Massing(6, 4, 90);
 
     /**
+     * A {@link FortressProgram#detached() detached} place: no seam is free and every shared cell costs far more than
+     * wedging gains, so its buildings stand apart wherever the ground allows. A works' machine halls, each a building
+     * of its own.
+     */
+    private static final RoomPacker.Massing DETACHED = new RoomPacker.Massing(0, 40, 90);
+
+    /**
      * Rooms a garrison lives and works in, which are the ones given windows.
      *
      * <p>The distinction an ordinary building shell already draws, kept rather
@@ -233,7 +240,7 @@ public final class FortressInterior {
 
         // A shed is placed for the bay it is furnished with: its machine door is the installation's.
         RoomPacker packer = new RoomPacker(
-                ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING)
+                ctx, footings(ctx, ground, muster), muster, PALETTE, program.detached() ? DETACHED : MASSING)
                 .withFittings((purpose, shape) -> purpose == RoomPurpose.VEHICLE_BAY
                         ? RoomFittings.forInstallation(purpose)
                         : RoomFittings.forRoom(ctx, purpose, shape));

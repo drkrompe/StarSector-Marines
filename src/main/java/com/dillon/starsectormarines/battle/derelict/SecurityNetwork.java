@@ -80,7 +80,7 @@ public final class SecurityNetwork {
     }
 
     /**
-     * A loud work at a cell (a ruins site's power hall restarting, `ruins-works.md`): the zone keeping the cell stirs,
+     * A loud work at a cell (a ruins site's power hall restarting, `ruins-expedition.md`, Works): the zone keeping the cell stirs,
      * or, outside every perimeter, the zone whose node is nearest; its linked zones hear the relay as from any stir.
      */
     public void loud(int cellX, int cellY, int tick) {

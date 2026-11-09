@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ class PrecinctWardRoadAcrossTest {
             }
         }
 
-        PrecinctWardStage.roadAcross(ctx, claim, 0, strip, paved);
+        PrecinctWardStage.roadAcross(ctx, claim, 0, strip, paved, Fortification.GLACIS);
 
         for (int x = 4; x <= 6; x++) {
             assertEquals(GroundKind.STREET, topology.getGroundKind(x, 2), "glacis road cell " + x + " ground");

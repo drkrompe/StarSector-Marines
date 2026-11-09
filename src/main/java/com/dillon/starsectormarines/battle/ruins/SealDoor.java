@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 /**
- * A sealed door of the ruins' works ({@code ruins-works.md}, Seal doors): a span the works keep as a
+ * A sealed door of the ruins' works ({@code ruins-expedition.md}, Works): a span the works keep as a
  * {@link com.dillon.starsectormarines.battle.door.LockedDoor} unlocked by its consumer's power. A breach through a
  * forcible one forces it open for good; a hardened one opens only by its power.
  *

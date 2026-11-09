@@ -1169,7 +1169,7 @@ Opening a cell as passage clears the mark, which is how a hardened door opens.
 Hardened cells are chosen at setup from a published footprint, never by
 mapgen: the ruins' vault hardens the standing walls inside its `ruins.vault`
 place's footprint, and its inner door is a hardened locked door
-(`ruins-works.md`).
+(`ruins-expedition.md`, Works).
 
 ## Open questions
 

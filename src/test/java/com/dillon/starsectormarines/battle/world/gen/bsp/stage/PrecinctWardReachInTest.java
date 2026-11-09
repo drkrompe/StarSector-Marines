@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,7 @@ class PrecinctWardReachInTest {
             }
         }
 
-        PrecinctWardStage.reachIn(claim, own, road, 1, 2, W, H);
+        PrecinctWardStage.reachIn(claim, own, road, 1, 2, Fortification.GLACIS, W, H);
 
         List<PrecinctBoundary.Gate> gates = PrecinctBoundary.gates(own, road, 1, W, H);
         assertEquals(2, gates.size(), "a square with streets past two sides came out with "
@@ -52,7 +53,7 @@ class PrecinctWardReachInTest {
                 road[x][y] = x == 9 || y == 20 && x <= 15 ? 7 : GrownTrunkPlan.UNOWNED;
             }
         }
-        PrecinctWardStage.reachIn(own, own, road, 1, 2, W, H);
+        PrecinctWardStage.reachIn(own, own, road, 1, 2, Fortification.GLACIS, W, H);
         int roads = 0;
         for (int x = 10; x <= 29; x++) for (int y = 10; y <= 29; y++) if (road[x][y] != GrownTrunkPlan.UNOWNED) roads++;
         assertEquals(6, roads, "a place with a road of its own was given another");

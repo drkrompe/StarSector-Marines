@@ -77,6 +77,17 @@ class RuinsVaultObjectiveTest {
     }
 
     @Test
+    void aLiftPointWithoutPowerIsNoLiftPoint() {
+        try (BattleSimulation sim = simulation()) {
+            RuinsVaultObjective vault = vault(sim, DT, DT, List.of(LANDING, COURT));
+            vault.setLiftPowered(0, false);
+            assertFalse(vault.liftPointAvailable(0));
+            vault.setLiftPowered(0, true);
+            assertTrue(vault.liftPointAvailable(0));
+        }
+    }
+
+    @Test
     void anUnattendedHaulUnderHostileControlIsLost() {
         try (BattleSimulation sim = simulation()) {
             RuinsVaultObjective vault = vault(sim, DT, DT, List.of(LANDING));

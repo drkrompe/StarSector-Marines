@@ -1,6 +1,6 @@
 # Raid mission: what the player came to do
 
-Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal's shape waits on `raid-steal-scaling`; the map generator waits on `raid-mapgen`. The first slice is `raid-wreck-the-works.md`.
+Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates). The slices are `raid-wreck-the-works.md` and `raid-site-templates.md`.
 
 Written: 2026-11-09
 
@@ -72,8 +72,34 @@ garrison estimate's strength, quality and readiness.
 
 One rule covers both intents: **security sets how concentrated and how walled
 the prize is.** A soft market spreads its prize out to be picked over; a hard
-one gathers it behind a wall. The steal row is the owner's question
-`raid-steal-scaling`; the break row follows it.
+one gathers it behind a wall. The owner picked this graded steal row
+(`raid-steal-scaling`, 2026-11-09); the break row follows it.
+
+## Districts and compounds (owner)
+
+A government does not store its valuables next to people's homes. The owner
+added this to the graded pick: the prize stands in a **compound**, in a
+**district** of its own, behind a **buffer** of open ground.
+
+- **Districts.** The map is laid by function: homes, government, port,
+  industry and the garrison. Each prize sits in the district that owns it: the
+  works in industry, the bonded store at the port's cargo terminal, the vault
+  in the government compound. Homes stand apart from all of them.
+- **Compounds.** Each prize is a walled or fenced compound with its gates
+  facing the roads. Its **buffer** is cleared ground (yard, apron or killing
+  ground) between the compound's edge and the next block, so the approach is
+  open to its guards.
+- **Security grades the compound**, never moves it:
+
+| Security | Edge | Buffer | Inside |
+|---|---|---|---|
+| Open | fence, wide gates | narrow | goods in their own stores |
+| Guarded | wall, gatehouses, guards on the gates | moderate | bulk in the stores, the best in the vault |
+| Fortified | thick wall, corner towers, emplacements | wide and cleared | everything in the bonded vault |
+
+Each industry's Raid site (Site templates) lays these districts and compounds.
+An industry with no site yet keeps the derived map, where the works stands on
+the map's own industrial ground.
 
 Security never changes how many defenders there are: that is the tier's share
 of the garrison (`raid-resolution.md`, law 7). It changes where they stand.
@@ -104,13 +130,48 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
 - **Machines** rise slowly with the tier; each one is a fixed share of the
   disruption, so a bigger industry takes more work to break fully.
 
-The map's shape at each size is the open question `raid-mapgen`.
+The map's shape at each size is the industry's site (Site templates).
+
+## Site templates (owner pick)
+
+The owner picked an authored Raid site per industry (`raid-mapgen`,
+2026-11-09). A **site** (`RaidSiteTemplate`) states where the landing, the
+homes, the industrial quarter, the works and the garrison stand relative to each
+other, as regions of the map, and the generator grows the roads and blocks
+between them.
+
+- **Drawn once, from the landing.** The company comes down in the homes, the
+  near town, at the landing edge. The industrial quarter stands between the homes
+  and the works, so no house stands against the compound, and the district's
+  yards stand beyond the works. The homes' streets reach a shorter way than a
+  settlement's, so the town keeps to its district. The works compound is at the deep end,
+  in its industrial district, and the garrison is at the deep end on the works'
+  other flank, so the alarm comes from beside the prize, not from behind the
+  boat.
+- **The works is a compound.** A square place walled by security, with its
+  buffer of open ground (the glacis) as wide as security says: 3, 5 or 8 cells,
+  open to fortified. Its wall is the security's rung (picket, garrison,
+  stronghold), no harder than the operation's ceiling. Its program is one
+  machine hall per machine, a generator hall, a stores and two guard posts,
+  each a building of its own on yard enough to stand apart (a detached
+  program); the raid's machines are its halls.
+- **Varied by the seed:** the whole site mirrored east to west and north to
+  south, and every place seeded anywhere in its region.
+- **Varied by the market:** homes grow a town's streets from size 5, a
+  hamlet's below; from size 6 an outskirts suburb stands behind the homes on
+  the landing side. Map size follows the tier as before.
+- **Raid only, industry by industry.** A Raid on an industry with no site
+  keeps the derived map. Every other mission's map is unchanged; the glacis is
+  the standard 3 cells for every place but a Raid site's works.
+
+The first site is heavy industry (`heavyindustry`, `orbitalworks`). The rest
+follow in `raid-site-templates.md`.
 
 ## Break: wreck the works (owner pick)
 
-- The works stands where the industry would: laid from the market's economy
-  and walled by its security. Until the map generator places one (`raid-mapgen`),
-  the map's own industrial ground stands in.
+- The works stands where the industry's site puts it (Site templates), walled
+  by its security. For an industry with no site yet, the map's own industrial
+  ground stands in.
 - Its **machines** are the objective. Each takes a charge: a settled Marine
   combatant holding the machine's pocket, uncontested, for the charge time. An
   interrupted charge starts again. The first charge raises the alarm.
@@ -128,16 +189,17 @@ The map's shape at each size is the open question `raid-mapgen`.
 
 ## Steal
 
-Waiting on `raid-steal-scaling`. The model so far: each picked good is a load in
-its store (or in the bonded vault, by security); a squad loads it, carries it
+Graded by security (owner pick `raid-steal-scaling`): open security leaves the
+goods in their own stores, guarded moves the best into the vault, fortified
+gathers everything in the bonded vault; each store and vault stands in its
+compound (Districts and compounds). Each picked good is a load in its store or
+vault; a squad loads it, carries it
 slowed and the boat takes it up between squad trips; the take is the value
 share of the loads that reach the boat, committed as the raid's effectiveness
 times that share.
 
 ## Open questions
 
-- `raid-steal-scaling` (the steal row of the security table) and `raid-mapgen`
-  (the Raid's own map generator) are on the owner's picks page.
 - Whether leaving needs every surviving squad aboard, or one at the berth as
   today. Today's law (one settled survivor at egress completes) stands for the
   first slice.

@@ -70,6 +70,14 @@ public class CellTopology {
     private VoidBackdrop voidBackdrop;
     public VoidBackdrop voidBackdrop() { return voidBackdrop; }
     public void setVoidBackdrop(VoidBackdrop value) { voidBackdrop = value; }
+    private NaturalVoid naturalVoid;
+    /** The land's own drop seen through the void cells (a gorge, a crevasse), or null; never set with a backdrop. */
+    public NaturalVoid naturalVoid() { return naturalVoid; }
+    public void setNaturalVoid(NaturalVoid value) { naturalVoid = value; }
+    private NaturalRise naturalRise;
+    /** The land's own high ground seen through the rise cells (a ravine's walls), or null. */
+    public NaturalRise naturalRise() { return naturalRise; }
+    public void setNaturalRise(NaturalRise value) { naturalRise = value; }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {

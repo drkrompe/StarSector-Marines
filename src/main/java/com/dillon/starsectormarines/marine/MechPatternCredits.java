@@ -24,8 +24,6 @@ public final class MechPatternCredits {
 
     private static final String HEGEMONY = "graphics/factions/crest_hegemony.png";
     private static final String TRI_TACHYON = "graphics/factions/crest_tritachyon.png";
-    private static final String LEAGUE = "graphics/factions/crest_persean_league.png";
-    private static final String DIKTAT = "graphics/factions/crest_sindrian_diktat.png";
     private static final String LIONS_GUARD = "graphics/factions/crest_lg.png";
     private static final String PATH = "graphics/factions/crest_luddic_path.png";
     private static final String INDEPENDENT = "graphics/factions/crest_neutral_traders.png";
@@ -34,11 +32,13 @@ public final class MechPatternCredits {
     private static final Map<MechPattern, Credit> CREDITS = new HashMap<>();
 
     static {
-        chassis(MechVariant.HOUND, "independent", INDEPENDENT, "patternCreditHound");
-        chassis(MechVariant.WARDEN, "sindrian_diktat", DIKTAT, "patternCreditWarden");
-        chassis(MechVariant.BULWARK, "persean", LEAGUE, "patternCreditBulwark");
-
+        // The three walkers are Ordnance Board patterns (owner: low-tech Hegemony machines whose makers make sense):
+        // the Diktat builds the Warden under licence and the League copies the Bulwark, but the drawings are the Board's.
         String hegemony = FactionMechLoadouts.HEGEMONY_ID;
+        chassis(MechVariant.HOUND, hegemony, HEGEMONY, "patternCreditHound");
+        chassis(MechVariant.WARDEN, hegemony, HEGEMONY, "patternCreditWarden");
+        chassis(MechVariant.BULWARK, hegemony, HEGEMONY, "patternCreditBulwark");
+
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);
         vehicle(VehicleType.BREAKTHROUGH_TANK, hegemony, HEGEMONY);

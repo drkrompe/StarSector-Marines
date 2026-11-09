@@ -11,7 +11,8 @@ import java.util.List;
  *
  * <p>Shut, the span carries a door sprite of its length (art under {@code graphics/doors/}, from
  * {@code art-source/locked-doors}): a forcible door's two hazard-banded leaves with a red lamp on the seam, a hardened
- * door's ribbed armoured slab with a red lock bar. A span longer than the longest sprite stretches it. Open, the
+ * door's ribbed armoured slab with a red lock bar; a hardened door whose lock is ready but still waits (powered, keys
+ * not yet turned) draws its amber variant. A span longer than the longest sprite stretches it. Open, the
  * leaves have withdrawn into the walls either side, where a jamb with a green lamp stands at each end and the doorway is
  * left clear. The sprites are authored along x; a door
  * across y is turned a quarter.
@@ -71,7 +72,9 @@ final class LockedDoorRenderSystem implements RenderSystem {
         }
         int length = Math.round(max - min);
         int sprite = Math.max(1, Math.min(length, door.hardened() ? HARDENED_LONGEST : FORCIBLE_LONGEST));
-        piece(cam, out, kind + "-" + sprite, alongX, (min + max) * 0.5f, across, max - min, alpha);
+        // Powered but still locked: the hardened door's lock bar and lamp burn amber.
+        String ready = door.ready() && door.hardened() ? "-ready" : "";
+        piece(cam, out, kind + "-" + sprite + ready, alongX, (min + max) * 0.5f, across, max - min, alpha);
     }
 
     /** One sprite centred at {@code along} on the span's axis and {@code across} it, {@code length} cells long. */

@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c1b6-c4f8-7b12-b326-60bf0de0add8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c1b6-c4f8-7b12-b326-60bf0de0add8\\exec-8028e159-2858-4115-8d4f-481bca50a004.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\lava\\basalt-wall.png",
+    "sha256": "1d3df59c3230089ca7d76eca22a7b866bfdd57a4727090904d1d057ac1a7cf37",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\lava\\basalt-wall.prompt.txt",
+  "promptSha256": "b9a99ebe0c63aee30ce9cec0764aa0eb3793ca0b4ec9ad6cc20717a6409cf8b6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of a sheer volcanic\nrift wall above a lava river, as it would be mapped onto a vertical cliff.\nDark basalt: tall columnar joints, hexagonal columns roughly 1 to 2 m\nwide standing vertically and broken into stacked blocks, between bands of\nrough vesicular lava rock and thin layers of reddish-brown scoria and ash.\nGlassy black obsidian veins, sulphur-yellow and rust mineral crusts in\nthe cracks, pale grey ash dusting the ledges. The rock itself is cold and\nunlit: no glowing lava, no orange light, no fire in the texture (the game\nadds that light). Lit evenly by soft neutral light from straight in\nfront, no cast shadows from outside the tile. Even density across the\nwhole tile with no focal point, so it repeats horizontally and\nvertically. Palette: charcoal, blue-black, dark umber, rust, a little\nsulphur yellow. No sky, no people, no text, no border, no vignette.\nSquare canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square, seamless basalt cliff texture with neutral lighting and no glow."
+  ],
+  "usage": {
+    "input_tokens": 37401,
+    "cached_input_tokens": 33920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 351,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.4
+}

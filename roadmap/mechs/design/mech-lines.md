@@ -11,9 +11,10 @@ Updated: 2026-10-23 — order of work set by the campaign's Hegemony, Independen
 The Hound, Warden and Bulwark are the first three chassis ever built, and they are
 stand-ins. Each was made to prove a weight class (light, medium, heavy) and the systems
 behind it: mounts, flux, internals, footsteps, doctrine. None was designed as one entry
-in a roster. The result is a single chassis per weight class, no variants, and faction
-fit that the art doesn't support. Tri-Tachyon fields the Warden first, but the Warden is
-a Sindrian export walker and its hull doesn't read as Tri-Tachyon at all.
+in a roster. All three are now Ordnance Board patterns, the Hegemony's low-tech walkers
+(owner), drawn as such for the Hegemony, Independents and pirates. Every other faction
+wears a sleek shell over the same frame, which stands in for its own line: Tri-Tachyon
+fields the Warden first, and its shell does not make it a high-tech machine.
 
 ## The target: a grid of lines
 
@@ -24,11 +25,12 @@ through a trade-off.
 
 |  | Light | Medium | Heavy |
 |---|---|---|---|
-| **Low-tech** | Hound (stand-in) | open | open |
-| **Midline** | open | Warden (stand-in) | Bulwark (stand-in) |
-| **High-tech** | open | open | open |
+| **Low-tech** | Hound | Warden | Bulwark |
+| **Midline** | open (shells stand in) | open (shells stand in) | open (shells stand in) |
+| **High-tech** | open (shells stand in) | open (shells stand in) | open (shells stand in) |
 
-Nine lines in all. The three stand-ins each sit in one cell, and six cells are empty.
+Nine lines in all. The low-tech row is the three first chassis; the other six cells are
+empty, filled meanwhile by other factions' shells over those frames (a livery, not a line).
 Each stand-in stays where it is until its line is designed. At that point the stand-in
 either becomes the line's base chassis or gets reworked into it.
 
@@ -64,8 +66,8 @@ The campaign is set in Hegemony, Independent and pirate space for now (owner,
 2026-10-23). Those factions are low-tech, apart from the Independents' midline
 purchases, so the low-tech row comes first:
 
-1. **Low-tech medium and heavy.** The Hegemony and pirates get mechs of their own
-   family, and the Hound gets siblings.
+1. **Low-tech medium and heavy.** Done as the Warden and Bulwark: the Hegemony,
+   Independents and pirates walk the low-tech row (pirates in repaired-scrap bodies).
 2. **Low-tech variants** across the row, including the field-rig and salvage
    variants that pirates and Independents would build.
 3. **Midline light.** It completes the row that Independents buy into.

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A ruins site's power ({@code ruins-works.md}, The power graph): one power hall with a capacity, junctions that each
+ * A ruins site's power ({@code ruins-expedition.md}, Works): one power hall with a capacity, junctions that each
  * feed one of two branches, and the consumers hung on those branches (seal doors, the vault's seal). Pure state: the
  * battle asks it what is powered and tells it what the company did.
  *

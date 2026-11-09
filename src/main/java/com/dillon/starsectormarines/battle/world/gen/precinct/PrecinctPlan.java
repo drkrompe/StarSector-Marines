@@ -205,7 +205,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * share actually plays well is an open question, and this number should
      * move when somebody answers it.
      */
-    private static final float FIT = 0.35f;
+    static final float FIT = 0.35f;
 
     /** The edge margin this map can afford. */
     private static int marginFor(int width, int height) {
@@ -1197,7 +1197,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>What the world owes, before the map is asked whether it has room for
      * it: the caller fits the result to the ground available.
      */
-    private static FortressProgram garrisonFor(TargetProfile profile) {
+    static FortressProgram garrisonFor(TargetProfile profile) {
         return FortressProgram.garrison()
                 .withAirfields(profile.defenseLevel() >= 4 ? 2 : 1);
     }
