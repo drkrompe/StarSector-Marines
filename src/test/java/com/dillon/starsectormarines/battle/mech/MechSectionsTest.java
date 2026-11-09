@@ -245,4 +245,20 @@ class MechSectionsTest {
         assertFalse(sections.destroyed(MechSection.LEGS));
         assertEquals(sections.maxStructure(MechSection.TORSO), sections.structure(MechSection.TORSO), 1e-4f);
     }
+
+    @Test
+    void aFieldPatchLaysPlateOnTheMostWornSectionNeverStructureNorPastItsMaximum() {
+        MechSections sections = houndSections();
+        strike(sections, MechSection.LEGS, 10f);
+        float worn = sections.armor(MechSection.LEGS);
+        float max = sections.maxArmor(MechSection.LEGS);
+        float structure = sections.structure(MechSection.LEGS);
+
+        assertEquals(2f, sections.mendArmor(2f), 1e-4f);
+        assertEquals(worn + 2f, sections.armor(MechSection.LEGS), 1e-4f);
+        assertEquals(max - worn - 2f, sections.mendArmor(1000f), 1e-3f);
+        assertEquals(max, sections.armor(MechSection.LEGS), 1e-4f);
+        assertEquals(structure, sections.structure(MechSection.LEGS));
+        assertEquals(0f, sections.mendArmor(5f), "a whole mech takes no patch");
+    }
 }
