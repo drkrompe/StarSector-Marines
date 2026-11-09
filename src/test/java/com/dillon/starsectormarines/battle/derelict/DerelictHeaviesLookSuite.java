@@ -63,7 +63,7 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
     static int firstContact(JSONObject fixture) throws Exception {
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
         while (sim.getSimTickIndex() < CONTACT_BY) {
-            sim.advance(BattleSimulation.TICK_DT);
+            if (!step(sim)) break;
             for (long walker : walkers(sim)) {
                 if (sim.targetOf(walker) != 0L) {
                     System.out.printf("    [look/derelict] first walker contact at tick %d%n", sim.getSimTickIndex());
@@ -84,7 +84,9 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
             } catch (Exception e) {
                 throw new IllegalStateException("derelict fixture", e);
             }
-            while (sim.getSimTickIndex() < from) sim.advance(BattleSimulation.TICK_DT);
+            while (sim.getSimTickIndex() < from && step(sim)) {
+                // played unrecorded to the shot's start, or to the end of a battle decided before it
+            }
             return sim;
         }, placement -> List.of(walkersView(cellsAcross)), ticks, 3, 4);
     }
@@ -96,7 +98,9 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
      */
     static List<SnapshotArtifact> interior(SnapshotContext context, JSONObject fixture) throws Exception {
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
-        while (sim.getSimTickIndex() < INTERIOR_SETTLE_TICKS) sim.advance(BattleSimulation.TICK_DT);
+        while (sim.getSimTickIndex() < INTERIOR_SETTLE_TICKS && step(sim)) {
+            // played to the walkers' posts, or to the end of a battle decided before them
+        }
         List<SnapshotArtifact> out = new ArrayList<>();
         String[] names = {"derelict-interior-vault", "derelict-interior-chamber"};
         List<Long> all = walkers(sim);
@@ -137,6 +141,13 @@ public final class DerelictHeaviesLookSuite implements SnapshotSuite {
                     cellsAcross};
             return new float[] {last[0], last[1], cellsAcross};
         });
+    }
+
+    /** Advances one tick; false once the battle is decided, when the tick stops advancing. */
+    private static boolean step(BattleSimulation sim) {
+        var before = sim.getSimTickIndex();
+        sim.advance(BattleSimulation.TICK_DT);
+        return sim.getSimTickIndex() != before;
     }
 
     private static List<Long> walkers(BattleSimulation sim) {
