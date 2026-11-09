@@ -553,7 +553,7 @@ public class MarineOpsContext {
         MarineRoster roster = CompanyPreparationGuide.roster();
         if (roster != null && roster.officerInductionRequired()) {
             switch (roster.officerInduction().step(roster)) {
-                case SHIP -> { goTo(ScreenId.SHIP_TRANSFER); return; }
+                case SHIP -> { goTo(FleetFacilities.inUse() ? ScreenId.COMPANY_HQ : ScreenId.SHIP_TRANSFER); return; }
                 default -> { }
             }
         }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -40,7 +41,8 @@ public final class CompanyShipLossListener extends BaseCampaignEventListener {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script == null ? null : script.roster();
         String home = roster == null ? null : roster.companyShipId();
-        if (home == null) return;
+        // Fleet facilities go down with no ship; a loss costs only what the base game says it costs.
+        if (home == null || FleetFacilities.inUse()) return;
 
         if (!wasCasualty(result.getWinnerResult(), home)
                 && !wasCasualty(result.getLoserResult(), home)) {

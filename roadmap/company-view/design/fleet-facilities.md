@@ -1,6 +1,6 @@
 # Fleet facilities: the company without a company ship
 
-Status: ACTIVE — direction. The fleet's receipts, neutral start, Engineering's standalone tree, the mock rooms and their lift are implemented; dropping the ship choice is not.
+Status: ACTIVE — direction. The fleet's receipts, neutral start, Engineering's standalone tree, the mock rooms, their lift and the end of the ship choice are implemented.
 Written: 2026-11-09
 
 Players ask to run the company from their own ship rather than the Second Wind.
@@ -36,7 +36,8 @@ never has to say which. There is nothing to designate, transfer, refit into or
 lose (owner, 2026-11-09).
 
 - **No designation, no transfer screen**, no refusal of a hull too small to
-  live aboard, no refit fee for moving.
+  live aboard, no refit fee for moving. Founding has no ship step, and a save whose
+  company had chosen a hull simply stops reading it (`CompanyShipDesignation`).
 - **No loss of home.** Losing a ship costs what the base game says it costs;
   there is no sinking toll on the company's marines, spares or holds.
 - **No presence gate.** The company screens open wherever Marine Operations
