@@ -1,8 +1,8 @@
 # Ruins pressure: the site stirs
 
 Status: IN PROGRESS — slices 1 to 4 built: the stir, its wake points, its
-pushes fielded per occupant and its cues (comms line, Delve row). Open: the
-owner's pick `ruins-stir-row` (built on a), and a step sting. The owner picked `ruins-pressure-push` (a);
+pushes fielded per occupant and its cues (comms line, Delve row). Open: a step
+sting. The owner picked `ruins-pressure-push` (a) and `ruins-stir-row` (a);
 `ruins-pressure-clock` (a) and `ruins-pressure-reserve` (a) are built on their
 recommended options while open.
 
@@ -58,10 +58,9 @@ decision weighs.
 Every rule above has a cue the player reads, none of which names a unit the
 company has not seen:
 
-- **The Delve row** (pick `ruins-stir-row`, built on its recommended a while
-  open): the level leads the row's short line ("Site roused / 12 in a circle
-  / ..."), so a narrow rail cuts the depth before the level; the row's bar
-  fills toward the next push; the whole reading ends with the level and the
+- **The Delve row** (owner pick `ruins-stir-row` a): the level leads the
+  row's short line ("Site roused / 12 in a circle / ..."), so a narrow rail
+  cuts the depth before the level; the row's bar fills toward the next push; the whole reading ends with the level and the
   reserve as a band (untouched, thinned, spent).
 - **Dug in.** When the company counts as dug in, the warning ("Dug in: the
   site is going round you") takes the short line and the row's blocker, and
@@ -113,7 +112,7 @@ company has not seen:
    (`RuinsDelveRow.Stir`, read by `RuinsDelveWatch.stir`): the level leading
    the short line, the bar toward the next push, the dug-in warning, the way
    back contested, and the reserve band in the whole reading. Look shots:
-   `ruins-push-cue-look`; picks: `ruins-stir-row-picks`. Still to build: a
+   `ruins-push-cue-look`. Still to build: a
    step sting per occupant.
 
 ## Seams
