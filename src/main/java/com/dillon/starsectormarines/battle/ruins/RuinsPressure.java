@@ -66,8 +66,18 @@ public final class RuinsPressure {
      * @param firstInside  the first layer inside the interior: nothing comes up behind it, since the entry is the
      *                     company's for good
      * @param layers       how many layers the delve has
+     * @param closed       the layers whose wake point the company has collapsed: nothing comes up in them again
      */
-    public record Situation(boolean dugIn, int companyLayer, int firstInside, int layers) { }
+    public record Situation(boolean dugIn, int companyLayer, int firstInside, int layers, Set<Integer> closed) {
+        public Situation {
+            closed = Set.copyOf(closed);
+        }
+
+        /** A situation with every layer open. */
+        public Situation(boolean dugIn, int companyLayer, int firstInside, int layers) {
+            this(dugIn, companyLayer, firstInside, layers, Set.of());
+        }
+    }
 
     /** Stir per step: a quiet company meets a push every this many seconds inside. UNTUNED. */
     public static final float STEP = 90f;
@@ -167,13 +177,20 @@ public final class RuinsPressure {
     }
 
     /**
-     * Where a push goes: behind a dug-in company, onto the stand of the layer behind it, if that layer is inside;
-     * otherwise up in the layer ahead (the company's own at the last), to hunt it.
+     * Where a push goes: behind a dug-in company, onto the stand of the layer behind it, if that layer is inside and
+     * its wake point stands; otherwise up in the layer ahead (the next open one deeper, the vault's at the last), to
+     * hunt it.
      */
     static Push aim(int step, int squads, Situation where) {
         int behind = where.companyLayer() - 1;
-        if (where.dugIn() && behind >= where.firstInside()) return new Push(step, squads, Aim.WAY_BACK, behind);
-        int ahead = Math.min(Math.max(where.companyLayer() + 1, where.firstInside()), where.layers() - 1);
+        if (where.dugIn() && behind >= where.firstInside() && !where.closed().contains(behind)) {
+            return new Push(step, squads, Aim.WAY_BACK, behind);
+        }
+        int last = where.layers() - 1;
+        int ahead = Math.min(Math.max(where.companyLayer() + 1, where.firstInside()), last);
+        // A collapsed layer sends nothing: the push comes up in the next open layer deeper in, and the vault's layer,
+        // where the reserve is kept, is never shut.
+        while (ahead < last && where.closed().contains(ahead)) ahead++;
         return new Push(step, squads, Aim.HUNT, ahead);
     }
 
@@ -362,7 +379,14 @@ public final class RuinsPressure {
         placed = true;
         stillness.sample(elapsed, companyX, companyY);
         int firstInside = delve.interior() != null ? delve.interior().firstLayer() : 0;
-        return new Situation(stillness.dugIn(), Math.max(deepest, 0), firstInside, layers);
+        Set<Integer> closed = new HashSet<>();
+        RuinsWorks works = sim.getRuinsWorks();
+        if (works != null) {
+            for (RuinsWorks.WakePoint wake : works.wakePoints()) {
+                if (works.wakeCollapsed(wake.layer())) closed.add(wake.layer());
+            }
+        }
+        return new Situation(stillness.dugIn(), Math.max(deepest, 0), firstInside, layers, closed);
     }
 
     /**

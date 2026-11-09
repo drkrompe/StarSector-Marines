@@ -1,8 +1,8 @@
 # Ruins pressure: the site stirs
 
-Status: IN PROGRESS — slices 1 (the stir) and 3 (pushes fielded per
-occupant, with their comms line) built; slice 2 (wake points) and the rest of
-slice 4 (the Delve row) remain. The owner picked `ruins-pressure-push` (a);
+Status: IN PROGRESS — slices 1 (the stir), 2 (wake points) and 3 (pushes
+fielded per occupant, with their comms line) built; the rest of slice 4 (the
+Delve row) remains. The owner picked `ruins-pressure-push` (a);
 `ruins-pressure-clock` (a) and `ruins-pressure-reserve` (a) are built on their
 recommended options while open.
 
@@ -81,13 +81,17 @@ company has not seen:
    ruins battles and ticked in the delve, hearing company gunfire, its charges
    going off and the hall restart. Pushes are recorded (`pushes()`), not yet
    fielded. Numbers UNTUNED.
-2. **Wake points.** Where a push comes up: one per layer inside, in a side
-   room that is not a store (a service hatch for derelict security, a crawlway
-   for the scavengers, a bore mound for the Rav), published by the ruins
-   ground. A charge collapses one, so a company can spend charges to close its
-   way back. Until then a push comes up on the layer's own open ground (its
-   ways' ends inside the band, its stand, its middle), on the cell farthest
-   from the company (`RuinsPushes.wakeCell`).
+2. **Wake points.** *Built* (`RuinsWorks.WakePoint`). Each layer inside gets
+   one on the floor of its first side room past its stores, named for who
+   comes up through it: a service hatch for derelict security, a crawlway for
+   the scavengers, a bore mound for the Rav. A push comes up at its layer's
+   wake point while it stands, and on the layer's open ground where there is
+   none (`RuinsPushes.wakeCell`). Each wake point is a rail marker and offers
+   the works' force prompt; a company charge going off over it collapses it
+   for good (`RuinsWorks.collapses`). A collapsed layer sends nothing: a
+   way-back push into it hunts from ahead instead, and a hunt comes up in the
+   next open layer deeper in. The vault's layer, where the reserve is kept,
+   is never shut. So a company can spend charges to close its way back.
 3. **Fielding a push, per occupant.** *Built* (`RuinsPushes`, raised by
    `BattleSetup.fieldRuinsPushes`). Derelict security: a line frame per squad,
    each its own lance, commanded by the push and not by the network director,
