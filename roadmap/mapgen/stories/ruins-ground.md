@@ -110,11 +110,11 @@ mission's to decide (`ruins-works.md`).
 
 ## Open
 
-- **Small grades put the vault in open country.** The dead settlement grows
-  about the map's middle, so on scattered and widespread ground the vault's
-  end is open country with a few rooms; at extensive and vast the vault stands
-  deep in the ruins. Growing the settlement toward the vault is the lever if
-  the owner wants ruins round it at every grade.
+- **Scattered ground's bunker stands in open country.** The dead settlement
+  grows about the map's middle, so on scattered ground the vault's bunker
+  stands in open country with a few rooms round it; from widespread up the
+  vault is inside the megastructure. Growing the settlement toward the vault is
+  the lever if the owner wants ruins round the bunker.
 - Layer and room sizes, densities and court counts are first guesses
   (UNTUNED), to be tuned once the battle plays on the ground.
 
