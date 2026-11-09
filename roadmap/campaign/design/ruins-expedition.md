@@ -83,11 +83,18 @@ settlement) and `campaign-nouns.md` (authority boundaries).
    secures on the way in (field finds and occupant spoils) settles through
    Results as field finds: preselected, zero claim budget, normal capacity
    preview (`loot-nouns.md`). It never changes the vault's roll.
-6. **A failed expedition leaves the ruins as they were.** Lost or withdrawn
-   means nothing is salvaged and the site stays unexplored. The player may go
-   back, with the company or the salvage team. The company's casualties, boats
-   and experience settle through Results like any operation's. That is the
-   price of failing.
+6. **A failed expedition leaves the ruins as they were.** Lost or pulled out
+   means nothing comes out of the vault and the site stays unexplored. The
+   player may go back, with the company or the salvage team. A pulled-out
+   expedition keeps the finds it banked; a lost one keeps nothing. The
+   company's casualties, boats and experience settle through Results like any
+   operation's. That is the price of failing.
+   **The site remembers only what was taken.** The one fact a ruins site
+   stores is the set of its finds already brought home, written once when a
+   won or pulled-out expedition commits. A later expedition finds those places
+   empty and meets everything else as seeded: the occupant at full strength,
+   the works reset, every other cache and store in place. A won expedition's
+   set no longer matters, since vanilla then marks the site explored.
 7. **An expedition is not a contract.** It earns no MRB credibility, pays no
    fee and carries no entitlement. Its haul is vanilla's.
 8. **An expedition commits once.** Backing out of the briefing commits nothing
@@ -102,11 +109,17 @@ settlement) and `campaign-nouns.md` (authority boundaries).
    shows the fork.
 3. The briefing shows the ruins grade, what the survey suggests about the
    occupant, and the expected haul range. It may launch understrength.
-4. The battle plays: land, push through the ruins, reach and hold the vault,
-   get out by lift. Results records won or lost and the field finds.
+4. The battle plays in two phases. In the approach the company lands, fights
+   across the open ruins and takes the entrance of the megastructure or
+   bunker. In the delve it works inside to the vault, holds it, and gets the
+   haul out to a lift point. At any time the company may instead pull out from
+   its pull-out point, which stands at the landing until the entrance is taken
+   and at the entrance after. Results records **won**, **pulled out** or
+   **lost**, and the field finds: a won or pulled-out expedition brings its
+   banked finds home, and a lost one leaves them behind.
 5. When the panel closes, a won expedition re-fires the option through the
-   bypass and vanilla salvages the ruins, showing its own loot. A lost one
-   returns to the planet menu with the site unexplored.
+   bypass and vanilla salvages the ruins, showing its own loot. A pulled-out or
+   lost one returns to the planet menu with the site unexplored.
 
 ## Shape of the battle
 
@@ -132,9 +145,18 @@ vault, with works and detours off the route, and then a way out. That is
 neither Extraction's corridor (a payload moving between two fixed endpoints)
 nor Assault's search sectors.
 
-Its phases are **landfall**, the **delve** (through the layers to the vault,
-with detours to caches and works), the **breach** (holding the vault), the
-**egress** (getting the haul to a lift point) and the **lift**.
+It plays in two phases (owner, 2026-11-09):
+
+- **Phase A, the approach**: landfall, then the fight across the open ruins
+  outside, up to the megastructure or bunker, ending when the company takes
+  its entrance.
+- **Phase B, the delve**: inside, through the interior layers to the vault
+  with detours to caches and works, the **breach** (holding the vault), the
+  **egress** (getting the haul to a lift point) and the **lift**.
+
+The two phases fight differently. Outside is open ground: derelict flocks, the
+scavengers' camp and patrols. Inside is roofed rooms, corridors, seal doors and
+the works: derelict heavies, the scavengers' dig, the Rav's deeper bores.
 
 - **The vault and the breach.** The vault is the family's one source. The
   company must hold it uncontested for the grade's **breach time**. Routing
@@ -142,15 +164,16 @@ with detours to caches and works), the **breach** (holding the vault), the
 - **The haul.** The breach releases the haul, which moves only with a settled
   escort within its leash. It is lost to sustained hostile control of its cell
   while unattended, and abandoned if nobody escorts it for long.
-- **Lift points.** The haul boards at a lift point: the landing area, or any
-  **landing court** the company holds, an open court the ruins ground
-  publishes in a layer. Calling the boat to a nearer court shortens the egress
-  but means holding the court while it comes in.
+- **Lift points.** The haul boards at a lift point: the landing area, the
+  **entry** once taken (The entrance and the pull-out point), or any **landing
+  court** the company holds, an open court the ruins ground publishes in a
+  layer. Calling the boat to a nearer court shortens the egress but means
+  holding the court while it comes in.
 - **Won, pulled out and lost.** Won when the haul boards. **Pulled out** when
-  the company leaves from a lift point it holds, taking its banked finds home
-  and leaving the vault (Pressing on or pulling out). Lost when the haul is
-  lost or abandoned, the company is wiped out, or it retreats without a held
-  lift point.
+  the company leaves while its pull-out point is held, taking its banked finds
+  home and leaving the vault (Pressing on or pulling out). Lost when the haul
+  is lost or abandoned, the company is wiped out, or it retreats while its
+  pull-out point is lost.
 
 **What it borrows from Extraction** (`extraction-command.md`): the source-hold
 rule (uncontested presence for a time releases the package), the escorted
@@ -299,6 +322,50 @@ occupant: restarting a power hall is loud (it wakes the Rav's nearest bores and
 any derelict zone that hears it), and at a derelict site the power hall feeds
 the network, so a junction that cuts a branch powers down the zones on it.
 
+### The entrance and the pull-out point
+
+Owner (2026-11-09, on `ruins-pull-out`): "pull out keeps the banked, also we
+should have phase (A) - where the player fights up to the ruin entrance, then
+Phase (B) exploration - where we move up the "pull out" trigger area to be near
+the entrance so that the player doesn't need to "walk back to drop point"".
+
+**The entrance.** The interior's entrances are the ways across its first wall
+from open ground (`mapgen-nouns.md`, Ruins ground: `ruins.interior`); on
+scattered ground there is one, the bunker's door. Every entrance has an
+**apron**, the open ground outside it under open sky, which the company sees
+from the start: the map shows the megastructure's outline and its entrances,
+never what is inside.
+
+**Taking the entrance starts phase B.** The company takes an entrance by
+holding its apron uncontested for the same time a landing court takes
+(`COURT_HOLD_SECONDS`): company infantry on the apron and no hostile in it.
+The first entrance taken becomes the **entry**, and phase B begins. The door
+need not be open: a sealed bunker door is the works' first puzzle, worked from
+the apron the company now holds. Taking a second entrance later adds it as a
+further lift point; the entry stays the first one.
+
+**The pull-out point.** In phase A the pull-out point is the landing. From
+phase B on it is the entry: the boat comes to its apron, so pulling out no
+longer means walking back to the drop point. The landing and any held court
+stay lift points for the haul; the entry is where the rail and the pull-out
+point to.
+
+**Holding it.** The entry stays held without a garrison. It is lost only if the
+occupant **retakes** it: hostiles hold its apron uncontested, with no company
+infantry in it, for the same hold time. A lost entry is retaken by holding it
+again. While the pull-out point is held, PULL OUT pays every banked find,
+wherever the company stands. Where the company stands decides who gets home:
+survivors inside the pull-out point's extraction circle, or any other held lift
+point's, extract unhurt, and the rest roll to get home as in any Retreat
+(`campaign-nouns.md`, Ending an operation). So the finds depend on keeping the
+way out, and the soldiers on being near it when the call comes. A squad left on
+the apron is insurance against a retake, not a requirement.
+
+Retakes come from what each occupant already does. In the contingency the
+derelict heavies walk to the egress route, which runs through the entry. The
+scavengers' camp and patrols are outside. The Rav follow noise and the haul to
+the lift. An empty site never retakes it.
+
 ### Pressing on or pulling out
 
 The owner picked the larger maps: "The larger maps give us the more interesting
@@ -313,30 +380,28 @@ vault's haul is vanilla's, and the salvage team brings the same haul (Law 4,
 Law 6), so the haul alone is no reason to press on to the vault. What the vault
 pays the expedition is the **vault store**: the deepest find, a bundle per layer
 of the delve (one at scattered, four at vast), recovered when the haul boards
-and settled as field finds beside it (pick `ruins-vault-worth` a).
+and settled as field finds beside it (owner pick `ruins-vault-worth` a).
 
 **Banked finds.** Elsewhere a secured find comes home only on a victory
 (`loot-nouns.md`). In a Ruins battle a secured find is **banked**: it comes
 home if the expedition is won or pulled out, and it is left behind only if the
-company is wiped out or retreats without a held lift point. What the company
+company is wiped out or retreats while its pull-out point is lost. What the company
 stands to lose grows with every layer, because a wipe-out costs everything
 banked so far.
 
-**Pulling out** is the family's Retreat (pick `ruins-pull-out` a). Its
-confirmation draws the extraction circle round every lift point the company
-holds (the landing area and any held court). It lists the banked finds that
-will come home, and says the vault stays sealed and the site unexplored. It
-pays the banked finds when a company squad stands inside a lift point's circle
-and no hostile holds that lift point. Then, as with any Retreat, survivors
-inside a circle extract unhurt and the rest roll to get home (`campaign-nouns.md`,
-Ending an operation). Without a held lift point it is an ordinary Retreat, and
-the finds stay behind. Pulling out is a move, not a button: bring the company
-back to a lift point or take a nearer court, then call it.
+**Pulling out** is the family's Retreat (owner pick `ruins-pull-out` a).
+Its confirmation draws the extraction circle round the pull-out point and every
+other held lift point, lists the banked finds that will come home, and says
+the vault stays sealed and the site unexplored. It pays the banked finds while
+the pull-out point is held (The entrance and the pull-out point). Survivors
+inside a circle extract unhurt, and the rest roll to get home. With the
+pull-out point lost it is an ordinary Retreat, and the finds stay behind.
 
 | Pull out | Comes home | Stays in the ruins |
 | --- | --- | --- |
 | Before any find | Nothing; the losses settle | Everything |
-| After some layers | Every banked find, each store opened | The deeper caches, the vault and its store |
+| In phase A, from the landing | Every find banked outside | The interior, the vault and its store |
+| In phase B, from the entry | Every banked find, each store opened | The deeper caches, the vault and its store |
 | During the breach or the egress | Every banked find | The haul, abandoned; the vault store |
 | (Won) The haul boards | Banked finds, the vault store, then vanilla's haul | Nothing |
 
@@ -345,22 +410,29 @@ back to a lift point or take a nearer court, then call it.
 company's losses. Nothing comes out of the vault and the site stays unexplored
 (Law 6), so the player may come back with the company or send the salvage team.
 
-**What the site remembers** (pick `ruins-after-pull-out` a). The finds the
-company brought home stay taken; everything else is as seeded on a return: the
-occupant at full strength, the works reset, every unrecovered cache and store in
-place. This is the one fact a ruins site stores: the set of its finds already
-recovered, per market, written once at commit. Without it an empty scattered
-site is a farm, with its caches and two stores free of risk on every visit.
+**What the site remembers** (owner pick `ruins-after-pull-out` a): what was
+taken stays taken (Law 6). Without it an empty scattered site is a farm, with
+its caches and two stores free of risk on every visit.
 
-**Judging the forces.** The rail's **Delve row** sits with the vault's card.
-It gives the player three honest reads, none of which names an enemy unit or
-place:
+**The rail shows the phase.** The vault's card gains a first step, so its
+steps read **Entrance > Breach > Escort > Board**. In phase A the card reads
+"Take the entrance": every entrance is marked on the map with its apron, and an
+apron being held shows its hold timer, as a court does. When the entry is taken
+the card reads "Entry held" for a moment, then "Reach the vault", and the map
+moves the pull-out marker from the landing to the entry. The **Delve row**, with
+the vault's card, heads with the phase and the pull-out point: "Approach · pull
+out at the landing", then "Delve · pull out at the entry", or "Delve · ENTRY
+LOST" in the alert colour while the occupant holds it, with PULL OUT dimmed to
+an ordinary Retreat.
+
+**Judging the forces.** The Delve row gives the player three honest reads, none
+of which names an enemy unit or place:
 
 - **The company**: effectives on the ground against the number landed, squads
   below half strength, machines lost, and breaching charges left (the works'
   forced ways spend them).
 - **What it has**: the banked finds by material, the stores opened, and the
-  nearest held lift point with its route length.
+  route length back to the pull-out point.
 - **What lies ahead**: how deep the company is ("Layer 2 of 4"), and a **close
   reading** of the next layer once the company holds a layer's stand. The close
   reading is the briefing's survey reading sharpened by the company's own
@@ -373,10 +445,12 @@ place:
 lift point under the occupant's heaviest pressure: the breach wakes every
 derelict zone, peaks the Rav and brings the crew to the dig. A company that
 just reaches the vault has still to come out. Once the vault is sighted, the
-Delve row shows its route to the nearest held lift point. A held court near the
-vault is the answer, and holding one costs a squad.
+Delve row shows its route to the nearest held lift point, usually the entry. A
+held court inside, nearer the vault, is shorter, and holding one costs a squad.
 
-**Losses are felt at the stands.** Each time the company holds a layer's stand,
+**Losses are felt at the stands.** Taking the entry is the first stand of the
+delve: the interior's close reading comes in and the phase A tally is shown.
+After that, each time the company holds a layer's stand,
 the Delve row reports the tally since the last one ("Layer 2 held: 6 down, a
 Hound lost, 2 finds banked") and offers PULL OUT beside it. A stand is the
 natural place to judge: the layer behind is cleared, the next one's close
@@ -386,8 +460,9 @@ the rail, and the comms feed reports each squad that breaks and each machine
 lost.
 
 **The briefing frames it.** Beside the grade's strength band, the briefing
-gives the delve's depth in layers and one line on leaving: the company may pull
-out from any lift point it holds, and what it has recovered comes home. The band
+gives the delve's depth in layers, outside and inside, and one line on
+leaving: the company may pull out from the landing, and from the entrance once
+it is taken, and what it has recovered comes home. The band
 already tells a starter company that a vast site is too much; the pull-out
 makes it worth going in anyway, as deep as the company can, and coming back.
 
@@ -537,9 +612,6 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
-- Pressing on or pulling out: three owner picks are open (`ruins-pull-out`,
-  `ruins-after-pull-out`, `ruins-vault-worth`); the section is written on
-  option (a) of each.
 - Ruins ground tuning waits on played battles: the dead town's densities,
   layer, room and court sizes, and the interior's chamber count and spine width
   are first guesses, to be tuned against a player giving orders.
