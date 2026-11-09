@@ -170,9 +170,15 @@ The sites so far, each the same districts with the industry's own works:
 |---|---|---|
 | Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`FortressProgram.works`) | a dense industrial quarter and yards |
 | Mining (`mining`, `techmining`) | the head works: a winding house over each shaft, the ore mill they feed, stores, on wide ore yards (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
+| Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RaidWorksPrograms.refinery`) | a dense industrial quarter |
+| Light industry (`lightindustry`) | shop floors, a loading shed, stores (`RaidWorksPrograms.shops`) | a dense industrial quarter |
+| Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`RaidWorksPrograms.farmPlant`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
+| Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`RaidWorksPrograms.cargoTerminal`) | a dense industrial quarter |
+| Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`RaidWorksPrograms.motorPool`); the barracks are the garrison beside it | depots |
 
 The owner accepted heavy industry's site and asked for the rest in order
-(2026-11-09). The rest follow in `raid-site-templates.md`.
+(2026-11-09); every industry a raid can name now has a site, each awaiting the
+owner's verdict (`raid-site-templates.md`).
 
 ## Break: wreck the works (owner pick)
 

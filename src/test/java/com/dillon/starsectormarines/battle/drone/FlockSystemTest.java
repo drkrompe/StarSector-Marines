@@ -29,6 +29,16 @@ class FlockSystemTest {
     }
 
     @Test
+    void aGuardiansFlockIsKeptToItsOwnLightWell() {
+        boolean[] well = FlockSystem.body(20, 10, FlockSystemTest::open, 13, 4);
+        FlockField.Open inWell = FlockSystem.within(FlockSystemTest::open, well, 20);
+        assertTrue(inWell.open(14, 5), "the whole well");
+        assertFalse(inWell.open(2, 5), "never the outside");
+        assertFalse(FlockSystem.body(20, 10, FlockSystemTest::open, 12, 4)[4 * 20 + 13],
+                "a roofed cell has no body of its own");
+    }
+
+    @Test
     void launchCellsComeFromTheOpenGroundBeyondACrampedHome() {
         // Home at the mouth of a one-cell alley (x 0, y 0..4) that opens onto a yard at y 5.
         FlockField.Open alley = (x, y) -> (x == 0 && y >= 0 && y <= 4) || (x >= 0 && x <= 5 && y >= 5 && y <= 8);
