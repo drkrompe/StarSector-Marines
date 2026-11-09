@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 /**
@@ -109,13 +110,17 @@ public final class PrecinctLandingAreaStage implements GenStage {
             lateralLow += ConquestLandingAreaStage.LATERAL_MARGIN;
             lateralHigh -= ConquestLandingAreaStage.LATERAL_MARGIN;
         }
+        // An inset beachhead is slid into the town whatever the garrison's claim
+        // (Standoff.INSET), so it is this stage that keeps it off that ground.
+        int avoid = plan.standoff() == Standoff.INSET && claim != null && plan.objective() != null
+                ? plan.precincts().indexOf(plan.objective()) : -1;
         int authored = 0;
         LandingArea first = null;
         int[] hull = null;
         for (int lateral = lateralLow; lateral <= lateralHigh;
              lateral += ConquestLandingAreaStage.LATERAL_STEP) {
             LandingArea area = firstClearArea(ctx, scan, approach, advanceAlongY, lateral,
-                    onItsPlace ? claim : null, landingIndex);
+                    onItsPlace ? claim : null, landingIndex, avoid < 0 ? null : claim, avoid);
             if (area == null) continue;
             ctx.landingAreas.add(area);
             ctx.landingPads.addAll(area.berths());
@@ -216,7 +221,8 @@ public final class PrecinctLandingAreaStage implements GenStage {
     private static LandingArea firstClearArea(GenContext ctx, int[] region,
                                               LandingPad.Approach approach,
                                               boolean advanceAlongY, int lateral,
-                                              int[][] claim, int landingIndex) {
+                                              int[][] claim, int landingIndex,
+                                              int[][] everyClaim, int avoid) {
         // A 5x5 berth needs two cells of inset on every side, and the whole area
         // has to sit inside the region the mission named.
         int forwardLow = (advanceAlongY ? region[1] : region[0]) + 2;
@@ -236,7 +242,8 @@ public final class PrecinctLandingAreaStage implements GenStage {
             if (!isLegalBerth(ctx, first) || !isLegalBerth(ctx, second)) continue;
             LandingArea area = new LandingArea(
                     "precinct-arrival-" + lateral + "-" + forward, first, second);
-            if (isLegalArea(ctx, region, area, claim, landingIndex)) return area;
+            if (isLegalArea(ctx, region, area, claim, landingIndex)
+                    && clearOf(area, everyClaim, avoid)) return area;
         }
         return null;
     }
@@ -246,6 +253,17 @@ public final class PrecinctLandingAreaStage implements GenStage {
             for (int x = berth.left(); x <= berth.right(); x++) {
                 if (!LandingGround.isOpen(ctx, x, y)) return false;
                 if (ctx.topology.getGroundKind(x, y) == GroundKind.WATER) return false;
+            }
+        }
+        return true;
+    }
+
+    /** Whether no cell of the area is on precinct {@code avoid}'s claim; always, with no claim to avoid. */
+    static boolean clearOf(LandingArea area, int[][] claim, int avoid) {
+        if (claim == null || avoid < 0) return true;
+        for (int y = area.bottom; y <= area.top; y++) {
+            for (int x = area.left; x <= area.right; x++) {
+                if (claim[x][y] == avoid) return false;
             }
         }
         return true;

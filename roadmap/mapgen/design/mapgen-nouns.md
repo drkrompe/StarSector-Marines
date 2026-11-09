@@ -1905,7 +1905,8 @@ to continue." 200x112 at scattered, 280x168 (the full-strength map), 400x240
 so the dead town fills the route and the layers cross ruins, not open country. A Raid's
 town takes the same two steps (`MapScale.forRaid`, the owner's pick
 `raid-map-size` b: 200x112, 280x168, 400x240), and its precinct plan derives at
-that size. The profile gives only the
+that size; its force lands `Standoff.INSET`, 40 cells in from the map edge and
+off the garrison's claim, not on the edge (`precincts.md`). The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
