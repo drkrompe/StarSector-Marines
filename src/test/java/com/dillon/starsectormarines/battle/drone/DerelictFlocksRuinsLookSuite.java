@@ -8,11 +8,13 @@ import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -27,6 +29,20 @@ public final class DerelictFlocksRuinsLookSuite implements SnapshotSuite {
     static final String FIXTURE = "src/test/resources/battle-fixtures/ruins-derelict-extensive-v1.json";
     static final int PLAY_TICKS = 6000;
     static final int RECORD_TICKS = 600;
+    /** {@code -Dsnapshot.flocks.lineage=contingency} plays the fixture as contingency security, for its livery. */
+    static final String LINEAGE_PROPERTY = "snapshot.flocks.lineage";
+    static final String CONTINGENCY = "contingency";
+    /** {@code -Dsnapshot.flocks.closeOnly=true} records only {@link #closeShot}, the look candidates' shot. */
+    static final String CLOSE_ONLY_PROPERTY = "snapshot.flocks.closeOnly";
+    static final float CLOSE_CELLS = 20f;
+    /**
+     * {@code -Dsnapshot.flocks.whineOnly=true} records only the whine candidates' clip (with
+     * {@code -Dsnapshot.lookSound=true} for its soundtrack): close on the busiest flock from a little before its first
+     * strike.
+     */
+    static final String WHINE_ONLY_PROPERTY = "snapshot.flocks.whineOnly";
+    static final int WHINE_LEAD_TICKS = 300, WHINE_TICKS = 1200;
+    static final float WHINE_CELLS = 28f;
 
     @Override public String id() { return "derelict-flocks-ruins-look"; }
 
@@ -39,12 +55,57 @@ public final class DerelictFlocksRuinsLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             JSONObject fixture = new JSONObject(Files.readString(context.projectRoot().resolve(FIXTURE),
                     StandardCharsets.UTF_8));
+            if (CONTINGENCY.equals(System.getProperty(LINEAGE_PROPERTY))) occupant(fixture, "CONTINGENCY_SECURITY");
+            if (Boolean.getBoolean(CLOSE_ONLY_PROPERTY)) {
+                return LookReview.record(context.modRoot(), closeShot(fixture));
+            }
             int engaged = survey(fixture);
+            if (Boolean.getBoolean(WHINE_ONLY_PROPERTY)) {
+                // The whine candidates' clip: a flock rising from its wait into its first strike, heard from close by.
+                LookReview.Shot base = shot("flocks-whine", fixture, Math.max(1, engaged - WHINE_LEAD_TICKS),
+                        WHINE_TICKS, WHINE_CELLS, -1);
+                return LookReview.record(context.modRoot(), new LookReview.Shot(base.name(), base.ground(),
+                        base.footprintW(), base.footprintH(), base.stage(),
+                        placement -> List.of(flockView("close", WHINE_CELLS, -1)), base.ticks(), base.everyTicks(),
+                        base.stills(), base.stillFrames(), base.speed()));
+            }
             List<SnapshotArtifact> out = new ArrayList<>(LookReview.record(context.modRoot(),
                     shot("flocks-waiting", fixture, 30, 240, 60f, 0)));
             out.addAll(LookReview.record(context.modRoot(),
                     shot("flocks-engaged", fixture, Math.max(1, engaged - 30), RECORD_TICKS, 60f, -1)));
             return out;
+        }
+    }
+
+    /**
+     * The look candidates' shot (`derelict-drone-flocks.md`, slice 7): close on a flock waiting by its cradle out in the
+     * open, so the drones and the cradle read at their own size. Without the long survey.
+     */
+    static LookReview.Shot closeShot(JSONObject fixture) throws Exception {
+        BattleSimulation sim = HeadlessBattles.fixture(fixture);
+        FlockField.Open open = FlockSystem.open(sim.getGrid(), sim.getTopology());
+        int flockId = 0;
+        for (Flock flock : sim.flocks().flocks()) {
+            if (open.open((int) flock.homeX(), (int) flock.homeY())) flockId = flock.id();
+        }
+        sim.close();
+        int pinned = flockId;
+        LookReview.Shot base = shot("flocks-close", fixture, 60, 120, CLOSE_CELLS, pinned);
+        return new LookReview.Shot(base.name(), base.ground(), base.footprintW(), base.footprintH(), base.stage(),
+                placement -> List.of(flockView("close", CLOSE_CELLS, pinned)), base.ticks(), base.everyTicks(),
+                base.stills(), base.stillFrames(), base.speed());
+    }
+
+    /** Sets every {@code occupant} in the fixture, at any depth. */
+    static void occupant(Object node, String occupant) throws Exception {
+        if (node instanceof JSONObject o) {
+            for (Iterator<?> keys = o.keys(); keys.hasNext(); ) {
+                String key = (String) keys.next();
+                if (key.equals("occupant")) o.put(key, occupant);
+                else occupant(o.opt(key), occupant);
+            }
+        } else if (node instanceof JSONArray a) {
+            for (int i = 0; i < a.length(); i++) occupant(a.get(i), occupant);
         }
     }
 

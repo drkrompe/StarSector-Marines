@@ -155,6 +155,7 @@
   "marines_tender_hit": [{"file": "sounds/battle/tender/marines_tender_hit.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_tender_alert": [{"file": "sounds/battle/tender/marines_tender_alert.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_tender_complete": [{"file": "sounds/battle/tender/marines_tender_complete.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_flock_whine": [{"file": "sounds/battle/flock/marines_flock_whine.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_tender_weld": [{"file": "sounds/battle/tender/marines_tender_weld_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/tender/marines_tender_weld_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/tender/marines_tender_weld_3.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_hound_found": [{"file": "sounds/story/wayline/marines_mara_hound_found.ogg"}],
   "marines_castle_hound_ready": [{"file": "sounds/story/wayline/marines_castle_hound_ready.ogg"}],
