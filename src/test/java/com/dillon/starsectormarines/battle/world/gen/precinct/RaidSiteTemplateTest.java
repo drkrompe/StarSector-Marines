@@ -58,7 +58,7 @@ class RaidSiteTemplateTest {
         assertNotNull(RaidSiteTemplate.forIndustry("orbitalworks"));
         assertEquals("mining", RaidSiteTemplate.forIndustry("mining").key());
         assertEquals("mining", RaidSiteTemplate.forIndustry("techmining").key());
-        assertNull(RaidSiteTemplate.forIndustry("farming"));
+        assertNull(RaidSiteTemplate.forIndustry("waystation"));
         assertNull(RaidSiteTemplate.forIndustry(null));
     }
 
@@ -111,7 +111,10 @@ class RaidSiteTemplateTest {
      */
     @Test
     void theHomesStandBetweenTheLandingAndTheWorks() {
-        for (RaidSiteTemplate site : List.of(SITE, MINE)) theHomesStandBetweenTheLandingAndTheWorks(site);
+        for (String id : List.of("heavyindustry", "mining", "refining", "lightindustry", "farming", "spaceport",
+                "militarybase")) {
+            theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate.forIndustry(id));
+        }
     }
 
     private static void theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate site) {
@@ -191,6 +194,26 @@ class RaidSiteTemplateTest {
         assertTrue(works.program().detached());
         assertEquals(1, RaidWorksPrograms.mine(4).countOf(RoomPurpose.ENGINE_ROOM), "one ore mill the shafts feed");
         assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more shafts, more ore yard");
+    }
+
+    /** Every industry a raid can name has its site, and each site's works holds one machine per machine asked for. */
+    @Test
+    void everyIndustryHasASiteWhoseWorksHoldsTheMachines() {
+        Set<String> keys = new HashSet<>();
+        for (String id : List.of("heavyindustry", "orbitalworks", "mining", "techmining", "refining", "fuelprod",
+                "lightindustry", "farming", "aquaculture", "spaceport", "megaport", "militarybase", "patrolhq",
+                "highcommand")) {
+            RaidSiteTemplate site = RaidSiteTemplate.forIndustry(id);
+            assertNotNull(site, id);
+            keys.add(site.key());
+            Precinct works = lay(site, market(5, 3), 4L).objective();
+            assertEquals(RaidSiteTemplate.WORKS, works.name(), id);
+            assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE), id);
+            assertTrue(works.program().detached(), id);
+        }
+        assertEquals(7, keys.size(), "seven sites, one per kind of industry");
+        assertEquals(PrecinctCharacter.FARMSTEAD, RaidSiteTemplate.forIndustry("farming").industryCharacter(),
+                "a farm stands among farmsteads, not sheds");
     }
 
     /** A mine's ore yards are sparser than heavy industry's quarter. */
