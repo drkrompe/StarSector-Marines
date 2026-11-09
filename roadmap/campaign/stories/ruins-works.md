@@ -83,8 +83,10 @@ one, and the sealed stores behind them are the reward.
    one before. Laid by hand on the stand-in ground first, then by
    the ruins ground's works sites (`mapgen-nouns.md`, Ruins ground).
 7. **Occupied sites.** Fewer works, all optional. The noise hook for the Rav
-   and derelict zones, and the derelict branch power-down, land with
-   `ruins-occupants.md` and `derelict-security-network.md`.
+   and derelict zones lands with `ruins-occupants.md`. The derelict branch
+   power-down is built (`derelict-security-network.md`, slice 8): each zone is
+   fed by its node's layer's junction on the way-on branch, and throwing it
+   to the store darkens the zone.
 8. **Evidence.** `sceneEvidence` scenes for the chain: powered and forced vault,
    store opened, collapse cleared, with look shots for the owner.
    *Built*: `sceneEvidence -Pscene=ruins-works` (`RuinsWorksScene`): powered

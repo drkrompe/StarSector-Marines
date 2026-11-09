@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.derelict;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
@@ -13,6 +16,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -28,7 +32,7 @@ import java.util.Set;
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
  * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
  * up from its open-sky home (`derelict-drone-flocks.md`, which stands its cradle) and stands its node
- * ({@link DerelictNode}) and its folded posts ({@link DerelictPost}).
+ * ({@link DerelictNode}), its repair drone ({@link RepairDrone}) and its folded posts ({@link DerelictPost}).
  */
 public final class DerelictSecurity {
 
@@ -195,6 +199,12 @@ public final class DerelictSecurity {
             director.standNode(plan.id(), node);
         }
         standPosts(sim, route, plans, network, delve, director);
+        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
+        if (delve != null && !delve.layers().isEmpty()) {
+            for (ZonePlan plan : plans) {
+                director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
+            }
+        }
         sim.installDerelictSecurity(director);
         return director;
     }
@@ -264,6 +274,23 @@ public final class DerelictSecurity {
                 placed++;
             }
         }
+    }
+
+    /** Puts a zone's repair drone up over its node, homed there. */
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director) {
+        Long node = director.nodes().get(zoneId);
+        if (node == null) return 0L;
+        float hx = sim.world().x(node);
+        float hy = sim.world().y(node);
+        EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
+                (int) Math.floor(hy), 0L, DroneLook.TENDER).role(UnitRole.STRUCTURE);
+        long id = sim.spawn(drone);
+        if (id == 0L) return 0L;
+        AirBody body = sim.world().kinematics(id);
+        if (body != null) body.teleport(hx, hy, 0f);
+        sim.world().setPos(id, hx, hy);
+        director.standRepairDrone(zoneId, id, hx, hy);
+        return id;
     }
 
     /** Spawns one folded post of a zone at a cell, as an emplacement is stood, its power cut; 0 when it cannot. */

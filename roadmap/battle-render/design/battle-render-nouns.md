@@ -271,7 +271,7 @@ world or grants visibility. Both live and headless hosts consume the same comman
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → CORPSES → HIGHLIGHTS → FOG → UNITS → HAZARDS → SMOKE → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it. The dead lie below the fog so it dims them as it dims the ground; the units pass collects them with the living and moves them to `CORPSES`, which is drawn wherever `UNITS` is. Roofs lie above the fog and so carry a building's fog shade in their own colour. A cell that current clear-air observation would reveal but smoke actually conceals receives half the ordinary fog shadow, then smoke paints above it with a bounded opacity boost. This exposes a muted terrain silhouette as context while leaving the actual cell unrevealed and its actors hidden; naturally unseen smoke remains under ordinary fog.
 
-Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
+Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. Decals alone keep a view-resident projection of cell blocks, the **decal tiles** below; a tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system.
 
 The fog layer finishes by painting observed solid props through the ordinary
 prop sprite emitter. A revealed opaque cell in the prop's rotated and mirrored
@@ -351,6 +351,20 @@ rotation and frame. Battle-review captures include that layer. This source
 replay is bounded by the simulation's retained decal list, while an already
 stamped live accumulator can retain older pixels after source eviction.
 Persistent cell-backed terrain scars do not depend on that decal retention.
+
+The accumulator's map-wide surface holds every mark at the density the whole
+map affords: 32 px a cell at most under a 4096x4096 ceiling, so a large map
+falls to 10-17. Zoomed in past that density (by a quarter), the view draws
+from **decal tiles** instead (`DecalTiles`): blocks of 16 cells at 64 px a
+cell, held only while in view, least recently drawn evicted first, at most 20
+(about 85 MB). A tile is filled by replaying the retained marks that reach it,
+its padding included so linear filtering crosses tile borders cleanly, and
+new marks stamp into every filled tile they reach. At most four tiles fill a
+frame; a tile not yet filled draws its block from the map-wide surface, and a
+view needing more than 20 tiles draws wholly from it. Marks evicted from the
+retained list live only on the map-wide surface. A tile target the driver
+refuses turns tiles off for the battle. `renderEvidence` prices the tiles at a
+few hundredths of a millisecond a frame at the close framing.
 
 An **impact mark** is what a weapon's round leaves where it lands: the weapon's
 `render.impactMark` (`ImpactMark`), naming the calibre and kind of weapon that
@@ -753,7 +767,7 @@ not actor size or scene composition.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
-The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; decals hold view tiles (decal tiles, above), and the baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
 **The frame is bounded by the view at every framing, and what `renderEvidence`
 names next is per-cell work.** Culling closed the gap between what a framing

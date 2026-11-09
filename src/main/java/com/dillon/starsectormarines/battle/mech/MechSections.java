@@ -150,6 +150,30 @@ public final class MechSections {
         return destroyed[section.ordinal()];
     }
 
+    /**
+     * A field patch: lays up to {@code amount} of plate on the most worn fitted section still standing, never past its
+     * maximum and never on structure. A destroyed section stays destroyed. The caller writes the chassis's armor column
+     * from {@link #totalArmor()} afterwards, as the damage path does.
+     *
+     * @return the plate laid
+     */
+    public float mendArmor(float amount) {
+        int worst = -1;
+        float worstShare = 1f;
+        for (int i = 0; i < armor.length; i++) {
+            if (!fitted[i] || destroyed[i] || maxArmor[i] <= 0f) continue;
+            float share = armor[i] / maxArmor[i];
+            if (share < worstShare) {
+                worstShare = share;
+                worst = i;
+            }
+        }
+        if (worst < 0 || amount <= 0f) return 0f;
+        float laid = Math.min(amount, maxArmor[worst] - armor[worst]);
+        armor[worst] += laid;
+        return laid;
+    }
+
     /** Legs at zero: the chassis walks on at a crawl ({@code Crippled}). */
     public boolean crippled() {
         return destroyed[MechSection.LEGS.ordinal()];

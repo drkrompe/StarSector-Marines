@@ -69,7 +69,7 @@ public final class SecurityNetwork {
     public void stir(int zoneId, int tick) {
         SecurityZone zone = zones.get(zoneId);
         if (zone == null) return;
-        if (zone.stir(tick) && zone.nodeAlive()) relayFrom(zone);
+        if (zone.stir(tick) && zone.online()) relayFrom(zone);
     }
 
     /** Gunfire at a cell: every zone whose perimeter holds it stirs. */
@@ -107,7 +107,7 @@ public final class SecurityNetwork {
     /** Settles quiet zones; zones in the contingency stay awake while their node stands. */
     public void settle(int tick) {
         for (SecurityZone zone : zones.values()) {
-            if (contingency && zone.nodeAlive()) zone.stir(tick);
+            if (contingency && zone.online()) zone.stir(tick);
             else zone.settle(tick);
         }
     }

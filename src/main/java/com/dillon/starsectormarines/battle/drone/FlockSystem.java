@@ -118,8 +118,9 @@ public final class FlockSystem {
             spawnMember(sim, flock, cell[0], cell[1]);
         }
         flocks.add(flock);
-        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side,
-                (int) Math.floor(x), (int) Math.floor(y)));
+        int[] site = FlockCradle.site((int) Math.floor(x), (int) Math.floor(y), open, LAUNCH_SEARCH);
+        if (site == null) site = new int[]{(int) Math.floor(x), (int) Math.floor(y)};
+        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side, site[0], site[1]));
         if (flock.cradleId != 0L) cradles.put(flock.cradleId, livery);
         publish(flock, sim, true);
         return flock;

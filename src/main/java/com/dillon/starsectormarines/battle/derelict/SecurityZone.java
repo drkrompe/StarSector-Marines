@@ -10,6 +10,9 @@ package com.dillon.starsectormarines.battle.derelict;
  * ({@link State#AWAKE}); a relay from a linked zone makes a dormant zone {@link State#ALERT} where it stands. An awake
  * zone that hears nothing for {@link #SETTLE_TICKS} settles to alert, never back to dormant. A zone whose node is dead
  * is isolated: it still wakes on its own senses, but neither relays nor hears a relay.
+ *
+ * <p><b>Power.</b> A zone whose branch is cut ({@link #powerDown()}, slice 8) is dark: dormant, deaf to every stir,
+ * relay and call, until its power is restored, when it comes back dormant.
  */
 public final class SecurityZone {
 
@@ -26,6 +29,7 @@ public final class SecurityZone {
 
     private State state = State.DORMANT;
     private boolean nodeAlive = true;
+    private boolean powered = true;
     private int lastStirTick = Integer.MIN_VALUE;
 
     public SecurityZone(int id, int nodeCellX, int nodeCellY, int perimeterCells) {
@@ -44,6 +48,27 @@ public final class SecurityZone {
         return nodeAlive;
     }
 
+    /** Whether the zone's branch feeds it. */
+    public boolean powered() {
+        return powered;
+    }
+
+    /** Whether the zone can relay and answer the network: its node stands and its branch feeds it. */
+    public boolean online() {
+        return nodeAlive && powered;
+    }
+
+    /** Its branch is cut: the zone goes dark and dormant. */
+    public void powerDown() {
+        powered = false;
+        state = State.DORMANT;
+    }
+
+    /** Its branch feeds it again: it comes back dormant and hears from here on. */
+    public void powerUp() {
+        powered = true;
+    }
+
     /** Whether a cell is inside the ground this zone keeps. */
     public boolean inside(int cellX, int cellY) {
         return Math.max(Math.abs(cellX - nodeCellX), Math.abs(cellY - nodeCellY)) <= perimeterCells;
@@ -55,6 +80,7 @@ public final class SecurityZone {
      * @return whether the zone was not awake before, so the network relays the alarm
      */
     public boolean stir(int tick) {
+        if (!powered) return false;
         lastStirTick = tick;
         boolean woke = state != State.AWAKE;
         state = State.AWAKE;
@@ -68,14 +94,14 @@ public final class SecurityZone {
 
     /** A linked zone's alarm: a dormant zone with a live node goes alert where it stands; anything else is unchanged. */
     public boolean hearRelay() {
-        if (!nodeAlive || state != State.DORMANT) return false;
+        if (!online() || state != State.DORMANT) return false;
         state = State.ALERT;
         return true;
     }
 
     /** The contingency's call: a zone with a live node wakes, wherever it stood. A dead node is out of the call. */
     public boolean call(int tick) {
-        return nodeAlive && stir(tick);
+        return online() && stir(tick);
     }
 
     /** Settles an awake zone that has heard nothing for {@link #SETTLE_TICKS} to alert. */

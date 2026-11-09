@@ -32,6 +32,6 @@ profiling confirms the allocations are material.
 
 ## Out of scope
 
-- Baked terrain or FBO residency; see `dense-render-tiles.md`.
+- Baked terrain or FBO residency; static ground is a resident mesh and decals hold view tiles (`battle-render-nouns.md`).
 - Changes to tileset/generation authority.
 - Unmeasured micro-optimization elsewhere in the renderer.
