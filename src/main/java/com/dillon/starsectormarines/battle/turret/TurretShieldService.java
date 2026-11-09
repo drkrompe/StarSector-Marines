@@ -59,6 +59,16 @@ public final class TurretShieldService {
         byId.put(id, new Fitted(id, new FluxShield(spec, facingDegrees), tint));
     }
 
+    /**
+     * Fits machine {@code id} with a shield of {@code spec} run on its flux {@code pool} ({@link FluxShield#pooled}), a
+     * mech's emitter; a machine already fitted keeps the shield it has.
+     */
+    public void fitPooled(long id, FluxShieldSpec spec, ShieldTint tint, float facingDegrees, FluxPool pool) {
+        if (byId.containsKey(id)) return;
+        order.add(id);
+        byId.put(id, new Fitted(id, FluxShield.pooled(spec, facingDegrees, pool), tint));
+    }
+
     /** Takes turret {@code id}'s shield away: it was destroyed, or rebuilt without one. */
     public void remove(long id) {
         if (byId.remove(id) != null) order.rem(id);

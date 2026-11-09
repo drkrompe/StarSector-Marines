@@ -110,8 +110,9 @@ public final class TurretFx {
         TurretShieldService shields = sim.turretShields();
         for (int i = 0, n = shields.size(); i < n; i++) {
             TurretShieldService.Fitted fitted = shields.at(i);
-            // A boat's shield has no plinth device to vent: only a hardpoint's does.
-            if (!sim.world().isAlive(fitted.id) || sim.world().mission(fitted.id) != null) continue;
+            // A boat's or a mech's shield has no plinth device to vent: only a hardpoint's does.
+            if (!sim.world().isAlive(fitted.id) || sim.world().mission(fitted.id) != null
+                    || sim.world().hasMechLoadout(fitted.id)) continue;
             float x = sim.world().x(fitted.id);
             float y = sim.world().y(fitted.id);
             // Vent once per break, on the first step that sees it, so a feed that starts late still shows it.
