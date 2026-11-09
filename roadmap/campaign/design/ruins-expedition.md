@@ -567,9 +567,9 @@ makes it worth going in anyway, as deep as the company can, and coming back.
 
 The owner: "vault theming around what the pickup will be as a hint. Example
 industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
-`ruins-find-tiers` a, `ruins-prize-forced` a and `ruins-theme-defences` a are
-decided; this is built on the recommended options while `ruins-vault-prize` and
-`ruins-prize-hint` are open (`ruins-vault-prize.md`).
+`ruins-vault-prize` a, `ruins-prize-hint` a, `ruins-find-tiers` a,
+`ruins-prize-forced` a and `ruins-theme-defences` a. What is still owed is in
+`ruins-vault-prize.md`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
@@ -664,6 +664,10 @@ mission (`Mission.ruinsBatteries`) and the battle fixture. They stand on the
 defenders' side, so they fire on the company and its allies. Firing on the
 occupant too needs a side hostile to everyone, which the battle does not have
 yet. Dark and awake still look the same; a powered-down look is owed.
+The batteries are a works hazard, not a guardian (`ruins-guardians.md`). An
+occupied site with batteries keeps its vault guardian, and a layer guardian
+from extensive up. On an empty site the batteries count as the vault's own
+battery guardian, and nothing else is added.
 `createSnapshots -Psnapshot=ruins-themed-site-look` shows them.
 
 ## Occupants

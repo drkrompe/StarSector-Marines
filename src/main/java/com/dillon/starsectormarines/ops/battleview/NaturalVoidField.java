@@ -753,6 +753,23 @@ final class NaturalVoidField {
         return bestBridge < bestVoid;
     }
 
+    /**
+     * Whether a bridge's deck lies within {@code radius} cells of a point. A bridge is ground to the air over a drop:
+     * a puff of smoke or mist that would spread over its deck is not drawn, so the deck never reads stained.
+     */
+    boolean nearBridge(float x, float y, float radius) {
+        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
+        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
+        for (int cy = Math.max(0, y0); cy <= Math.min(h - 1, y1); cy++) {
+            for (int cx = Math.max(0, x0); cx <= Math.min(w - 1, x1); cx++) {
+                if (!bridge[cy * w + cx]) continue;
+                float ex = Math.max(0f, Math.max(cx - x, x - (cx + 1))), ey = Math.max(0f, Math.max(cy - y, y - (cy + 1)));
+                if (ex * ex + ey * ey < radius * radius) return true;
+            }
+        }
+        return false;
+    }
+
     private boolean nearOpen(int x, int y) {
         for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) if (openCell(x + dx, y + dy)) return true;
         return false;

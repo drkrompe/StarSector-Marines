@@ -1,0 +1,15 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of the sheer wall of a
+glacial crevasse, as it would be mapped onto a vertical cliff of ice.
+Old glacier ice: horizontal layered strata of blue-white firn and clear
+blue ice running across the tile in bands of uneven thickness, some bands
+milky white with trapped air, some glassy turquoise-blue, a few thin dark
+grey bands of wind-blown grit and rock dust. Vertical meltwater streaks and
+runnels of smoother glazed ice running down across the strata, small icicle
+fringes under the overhanging bands, fine fracture lines and a few
+conchoidal chips. Lit evenly by soft neutral light from straight in front,
+no cast shadows from outside the tile, no bright sky glare. Even density
+across the whole tile with no focal point, so it repeats horizontally and
+vertically. Palette: blue-white, pale cyan, glacier turquoise, slate blue,
+a little grey grit. No snow surface, no sky, no people, no text, no
+border, no vignette. Square canvas.
