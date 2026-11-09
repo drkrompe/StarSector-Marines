@@ -1,9 +1,9 @@
 # Derelict drone flocks
 
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
-behaviors) and heavy mechs"). Slices 1, 2, 4 and 5 built, slice 3's unit, tasks
-and strike built; flocks play in the derelict ruins battle. Counters and look to
-come.
+behaviors) and heavy mechs"). Slices 1, 2, 4, 5 and 6 built, slice 3's unit,
+tasks and strike built; flocks play in the derelict ruins battle. The look is to
+come, and an open question on area fire against fliers.
 
 Written: 2026-11-09
 
@@ -175,6 +175,29 @@ outside 0.9 ms (every `SKY_TICKS`). The neighbour search is bounded to the
 flock's own members by construction (`FlockSteering` reads only the flock's
 roster). No further work is needed for the owner's sizes.
 
+**Counters measured** (slice 6, `sceneEvidence -Pscene=derelict-flock-counters`,
+2026-11-09): one flock of sixteen strikes a stationary fire team of six, four
+ways. Readings, not a balance target:
+
+| loop | drones lost | men lost | flock broke (tick) | most members hurt in one tick |
+| --- | --- | --- | --- | --- |
+| rifles in the open | 9 | 6 | never | 2 |
+| squad automatics in the open | 11 | 6 | 409 | 1 |
+| rifles with frag grenades | 9 | 6 | never | 2 |
+| rifles indoors, door in the flock's line | 9 | 6 | never | 1 |
+
+- Squad automatics are the counter that works today: the highest volume
+  breaks the flock.
+- **Area fire does not fall out of the model yet.** The grenade loop is
+  identical to the rifle loop: frag grenades are thrown only at ground
+  clusters (`FragGrenadeTactics`), never at fliers, and no infantry weapon's
+  blast reaches a low flier, so no tick hurt more than two members. Whether
+  frags, shotguns and other bursts should engage a low flock is an open
+  question for the owner (below).
+- Indoors works only out of the door's line: with the door facing the flock,
+  the team dies as in the open; hidden behind a partition (`derelict-flock`,
+  `strike-indoors`) it is untouched while the flock waits at the door.
+
 The seam with the network (`derelict-security-network.md`): the network
 launches one flock per zone with `FlockSystem.launch`, homed on the zone's node
 (the cradle point once cradles exist) and leashed to its perimeter plus
@@ -200,7 +223,15 @@ on generated colony ground.
 
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags
 and fences are walls to a flock for now); screen, probe, pursue and return
-scenes; docking; counters (slice 6); the look (slice 7).
+scenes; docking; the look (slice 7).
+
+## Open questions
+
+- **Area fire against a flock** (from slice 6): the owner's counters pick names
+  area fire, but frag grenades never target fliers and no infantry blast
+  reaches one. Should a low flock be a grenade target (an airburst at drone
+  height) and should bursts hit fliers near their point? This touches the
+  shared grenade tactics, so it waits for the owner's answer.
 
 ## Slices
 
