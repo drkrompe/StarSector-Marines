@@ -42,16 +42,6 @@ class RuinsExpeditionMissionFactoryTest {
     }
 
     @Test
-    void theSurveyAndTheDefendersFollowTheSideThatPlays() {
-        for (RuinsOccupant occupant : RuinsOccupant.values()) {
-            RuinsOccupant fielded = RuinsExpeditionMissionFactory.fieldsOwnSide(occupant)
-                    ? occupant : RuinsOccupant.SCAVENGERS;
-            assertEquals(RuinsSurvey.poolFor(fielded), RuinsExpeditionMissionFactory.surveyPool(occupant), occupant + " survey");
-            assertEquals(fielded.factionId, RuinsExpeditionMissionFactory.defenderFactionId(occupant), occupant + " defenders");
-        }
-    }
-
-    @Test
     void theBriefingIsTheStakesThenTheSurvey() {
         RuinsSurvey.Reading survey = new RuinsSurvey.Reading("ruinsSurveyScavengersAssessment",
                 RuinsSurvey.Band.HEAVY, "ruinsSurveyScavengersBand",

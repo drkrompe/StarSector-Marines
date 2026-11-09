@@ -99,4 +99,16 @@ class DerelictSecurityTest {
         DerelictSecurity.ZonePlan outside = DerelictSecurity.zonesAlong(route, 3).get(2);
         assertEquals(outside.nodeX(), DerelictSecurity.openSkyHome(route, outside, (x, y) -> x < 30)[0]);
     }
+
+    @Test
+    void aNodeStandsAgainstAWallOffTheRouteLeavingTheWayOpen() {
+        int[] route = straight();
+        DerelictSecurity.ZonePlan plan = new DerelictSecurity.ZonePlan(0, 40, 50, 8, List.of());
+        // A hall six cells wide along the route: the node goes to the nearest cell against its wall.
+        assertArrayEquals(new int[] {38, 48},
+                DerelictSecurity.nodeCell(route, plan, (x, y) -> y >= 48 && y <= 53));
+        // A corridor two cells wide has no room beside the route: the node keeps its own cell.
+        assertArrayEquals(new int[] {40, 50},
+                DerelictSecurity.nodeCell(route, plan, (x, y) -> y >= 50 && y <= 51));
+    }
 }
