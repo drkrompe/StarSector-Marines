@@ -239,8 +239,36 @@ Laws):
      inside a hatched keep-clear rim; the marked apron for freight lanes; plant
      blocks in dark concrete on staging deck. One-cell plates were tried
      first: at battle zoom their seams vanished and the tread aliased.
-   Left: cranes and gantries, the city's own layers. The play area's size and chokepoints will change (owner,
-   2026-11-07); the structure follows whatever footprint the deck has.
+   The owner turned from one roof to a **tower cluster** (2026-11-09): a
+   crowded tower space with walkways, so a map can start on one tower and
+   move to the next. It needs no battle rule: tower roofs are surface, the
+   gaps are void, and walkways are bridges.
+   - **Towers and walkways by shape.** The renderer opens the surface by a
+     walkway's width (7 cells): whatever survives stands on a tower, one to
+     each connected piece, each with its own walls and terraces; the
+     narrower ground left over is a walkway, drawn as a deck on braced
+     girders 2.5 m deep with the drop under it. The map marks neither; a
+     generator lays ground and the look follows.
+   - **Neighbouring towers** (`VoidBackdrop.neighbours`): rectangles with a
+     roof depth, stepping down in the backdrop's tiers deeper than their
+     roof, so the drop between the walkable roofs is crowded at several
+     depths. Every level of every structure is drawn in one order, deepest
+     roof first, and each roof is shaded by everything standing higher.
+   - Roofs below the surface carry a dark veil as well as haze, so no roof
+     in the drop reads as walkable; freight bays open only onto terraces at
+     least 8 m deep, and freighters park only on ones at least 20 m deep,
+     which keeps a cluster's shallow setbacks clear of traffic.
+   - The look suite's default layout is the cluster (`SkyPortCluster`):
+     three roofs, a two-cell catwalk, a catwalk with a corner over the drop
+     and a six-cell skybridge a vehicle could cross, ten neighbours from
+     45 m to 180 m down. `-Dsnapshot.skyPort.layout=deck` keeps the single
+     roof deck.
+   Left: whether squads route across the walkways as expected (a behaviour
+   scene, slice 1); towers at different roof heights (a tier up by stairs or
+   lifts); the walkway's own surface past the ship-bay grate; cranes and
+   gantries; the city's own layers. The play area's size and chokepoints will
+   change (owner, 2026-11-07); the structures follow whatever footprint the
+   surface has.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
    bake, each shown to the owner.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the

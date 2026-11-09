@@ -30,6 +30,11 @@ import java.util.Locale;
  *
  * <p>{@code -Dsnapshot.skyPort.depth=400} picks the depth in metres, the terraces and the ground below scaled
  * with it; {@code -Dsnapshot.skyPort.eyes=1,2} the camera heights to compare, as multiples of the view's width.
+ *
+ * <p>{@code -Dsnapshot.skyPort.layout=cluster} (the default) lays three tower roofs joined by walkways over the
+ * drop, neighbouring towers standing lower all round: stills on the catwalk, the skybridge, the dogleg's corner
+ * and a tower's edge, one of the whole cluster, and a pan along the catwalk from one tower to the next.
+ * {@code deck} lays the single roof deck with its pier.
  */
 public final class SkyPortVoidLookSuite implements SnapshotSuite {
 
@@ -55,13 +60,31 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
 
     static VoidBackdrop industrial(float depth, float eye) {
         float f = depth / 400f;
+        return backdrop(depth, eye, List.of(new VoidBackdrop.Tier(60f * f, 14f), new VoidBackdrop.Tier(130f * f, 34f),
+                new VoidBackdrop.Tier(220f * f, 60f), new VoidBackdrop.Tier(310f * f, 90f)), List.of());
+    }
+
+    /**
+     * The cluster's backdrop: slender towers, stepping out only a little as they fall so the drop between them
+     * stays open, and lower towers standing round them in the drop.
+     */
+    static VoidBackdrop clustered(float depth, float eye) {
+        float f = depth / 400f;
+        return backdrop(depth, eye, List.of(new VoidBackdrop.Tier(50f * f, 4f), new VoidBackdrop.Tier(120f * f, 10f),
+                new VoidBackdrop.Tier(210f * f, 18f), new VoidBackdrop.Tier(300f * f, 28f)), List.of(
+                new VoidBackdrop.Tower(180, 40, 215, 80, 50f * f), new VoidBackdrop.Tower(88, 115, 108, 160, 45f * f),
+                new VoidBackdrop.Tower(0, 115, 22, 150, 90f * f), new VoidBackdrop.Tower(185, 110, 230, 160, 140f * f),
+                new VoidBackdrop.Tower(85, 0, 105, 22, 65f * f), new VoidBackdrop.Tower(0, 10, 25, 45, 55f * f),
+                new VoidBackdrop.Tower(175, 0, 205, 25, 180f * f), new VoidBackdrop.Tower(40, 125, 70, 160, 55f * f),
+                new VoidBackdrop.Tower(-40, 60, -5, 100, 120f * f), new VoidBackdrop.Tower(245, 70, 280, 105, 70f * f)));
+    }
+
+    private static VoidBackdrop backdrop(float depth, float eye, List<VoidBackdrop.Tier> tiers,
+                                         List<VoidBackdrop.Tower> neighbours) {
         return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
                 .42f, .41f, .40f,
                 "graphics/battle/voids/industrial-facade.png", 32f,
-                "graphics/battle/voids/industrial-terrace-roof.png", 40f,
-                List.of(new VoidBackdrop.Tier(60f * f, 14f), new VoidBackdrop.Tier(130f * f, 34f),
-                        new VoidBackdrop.Tier(220f * f, 60f), new VoidBackdrop.Tier(310f * f, 90f)), eye,
-                CRAFT, .2f);
+                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .2f, neighbours);
     }
 
     @Override public String id() { return "sky-port-void-look"; }
@@ -76,6 +99,21 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         boolean video = FfmpegVideo.executable() != null;
         List<SnapshotArtifact> out = new ArrayList<>();
         float depth = Float.parseFloat(System.getProperty("snapshot.skyPort.depth", "400"));
+        if (!"deck".equals(System.getProperty("snapshot.skyPort.layout", "cluster"))) {
+            for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
+                float eye = Float.parseFloat(eyeText.trim());
+                String tag = String.format(Locale.ROOT, "cluster-%04dm-eye%.1f", Math.round(depth), eye);
+                try (BattleSimulation sim = SkyPortCluster.build(clustered(depth, eye))) {
+                    out.add(shot(context, sim, tag + "-1-catwalk.png", 100f, 100f, PLAY));
+                    out.add(shot(context, sim, tag + "-2-skybridge.png", 138f, 74f, PLAY));
+                    out.add(shot(context, sim, tag + "-3-wide.png", SkyPortCluster.W / 2f, SkyPortCluster.H / 2f, 210f));
+                    out.add(shot(context, sim, tag + "-5-dogleg.png", 76f, 36f, PLAY));
+                    out.add(shot(context, sim, tag + "-6-tower-edge.png", 158f, 136f, PLAY));
+                    if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", 55f, 82f, 142f, 120f));
+                }
+            }
+            return out;
+        }
         for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
             String tag = String.format(Locale.ROOT, "industrial-%04dm-eye%.1f", Math.round(depth), eye);
@@ -84,17 +122,17 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
                 out.add(shot(context, sim, tag + "-2-corner.png", DX0 + 14, DY0 + 6, PLAY));
                 out.add(shot(context, sim, tag + "-3-wide.png", W / 2f, H / 2f, 150f));
                 out.add(shot(context, sim, tag + "-5-off-corner.png", DX1 + 22f, DY0 - 14f, PLAY));
-                if (video) out.add(pan(context, sim, tag + "-4-pan.mp4"));
+                if (video) out.add(pan(context, sim, tag + "-4-pan.mp4", (DX0 + DX1) / 2f, (DY0 + DY1) / 2f,
+                        DX1 + 22f, DY0 - 14f));
             }
         }
         return out;
     }
 
-    /** From the deck's middle out past its north-east corner and back, at play zoom. */
-    private static SnapshotArtifact pan(SnapshotContext context, BattleSimulation sim, String name) throws Exception {
+    /** From one point to another and back, at play zoom. */
+    private static SnapshotArtifact pan(SnapshotContext context, BattleSimulation sim, String name,
+                                        float x0, float y0, float x1, float y1) throws Exception {
         Path encoded = Files.createTempFile("sky-port-pan", ".mp4");
-        float x0 = (DX0 + DX1) / 2f, y0 = (DY0 + DY1) / 2f;
-        float x1 = DX1 + 22f, y1 = DY0 - 14f;
         try (FfmpegVideo encoder = FfmpegVideo.open(encoded, 1920, 1080, "30")) {
             for (int i = 0; i < PAN_FRAMES; i++) {
                 float t = i / (float) (PAN_FRAMES - 1);

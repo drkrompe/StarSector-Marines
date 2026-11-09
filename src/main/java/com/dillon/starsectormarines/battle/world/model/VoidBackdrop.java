@@ -24,19 +24,28 @@ import java.util.List;
  * @param craftMetersPerPx how many metres one pixel of a hull's sprite spans below the surface: the battle's
  *                         own craft are drawn small to sit beside infantry, and the structure's traffic is
  *                         sized to the structure instead
+ * @param neighbours       towers standing in the drop around the playing surface, their roofs below it: no one
+ *                         stands on them, they fill the space between the surface and the ground below
  */
 public record VoidBackdrop(String cityTexture, float depthMeters, float cityTileMeters,
                            float hazeR, float hazeG, float hazeB,
                            String facadeTexture, float facadeTileMeters,
                            String roofTexture, float roofTileMeters,
                            List<Tier> tiers, float eyeHeight,
-                           List<String> craft, float craftMetersPerPx) {
+                           List<String> craft, float craftMetersPerPx, List<Tower> neighbours) {
 
     /** A terrace: its roof stands {@code depthMeters} below the surface, {@code outsetMeters} out past its edge. */
     public record Tier(float depthMeters, float outsetMeters) { }
 
+    /**
+     * A tower standing in the drop: its roof covers cells {@code x0..x1-1} by {@code y0..y1-1}, {@code
+     * roofDepthMeters} below the playing surface, and it steps down in the backdrop's tiers deeper than that.
+     */
+    public record Tower(int x0, int y0, int x1, int y1, float roofDepthMeters) { }
+
     public VoidBackdrop {
         tiers = List.copyOf(tiers);
         craft = List.copyOf(craft);
+        neighbours = List.copyOf(neighbours);
     }
 }

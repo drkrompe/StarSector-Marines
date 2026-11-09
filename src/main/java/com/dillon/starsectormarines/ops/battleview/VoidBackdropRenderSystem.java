@@ -10,9 +10,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The structure a map's playing surface is the roof of, stepping down in terraces to the ground far below, and
- * that ground, seen through the map's void cells (the city drop void style, `voids.md`). Drawn first in the
- * ground layer, so the ground tiles cover it everywhere but the void cells, which paint nothing.
+ * The towers a map's playing surface is the roof of, stepping down in terraces to the ground far below, the
+ * walkways spanning the drop between them, the neighbouring towers standing in it, and that ground, seen through
+ * the map's void cells (the city drop void style, `voids.md`). Drawn first in the ground layer, so the ground
+ * tiles cover it everywhere but the void cells, which paint nothing.
+ *
+ * <p><b>Towers and walkways.</b> The surface is split by its shape: whatever is at least {@link #SPAN_CELLS}
+ * wide stands on a tower of its own, one to each connected piece, and the narrower ground left between them is
+ * a walkway, a girder span a few metres deep with the drop under it. Nothing in the map marks which is which.
  *
  * <p><b>Depth.</b> The view is a pinhole camera looking straight down from a height in proportion to the view's
  * width in cells ({@link VoidBackdrop#eyeHeight}), so a point {@code d} metres below the surface stands on screen at {@code h / (h + d)} of its
@@ -23,7 +28,8 @@ import java.util.List;
  * it, then each level from the deepest: its walls, far faces first, then the roof it stands under, which
  * covers the faces turned away from the camera, and the freight lanes on that roof. The surface's own tiles,
  * drawn after, close the top. A level is the surface's footprint grown by its terrace's outset, its walls
- * running from its roof down to the next terrace or the ground.
+ * running from its roof down to the next terrace or the ground. Every tower's levels, the walkways' and the
+ * neighbouring towers' are drawn in one order, deepest roof first.
  *
  * <p>Presentation only. It reads the map's void cells and its {@link VoidBackdrop}, never the battle.
  */
@@ -41,21 +47,35 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     static final float BACKING_R = 0x18 / 255f, BACKING_G = 0x22 / 255f, BACKING_B = 0x30 / 255f;
     /** Freight bay mouths: spacing along a wall, width and height in metres, and the lane each feeds. */
     static final float MOUTH_SPACING = 64f, MOUTH_W = 28f, MOUTH_H = 16f, LANE_W = 24f;
+    /** The least width of terrace a freight bay opens onto, in metres. */
+    static final float BAY_REACH = 8f;
+    /** A roof below the surface is veiled this dark at least, so no roof in the drop reads as walkable. */
+    static final float ROOF_VEIL = .28f;
     /** Craft flying in and out of a bay: how far out they come from, how fast, how many to a bay. */
     static final float APPROACH_METERS = 170f, BAY_SPEED = 16f;
     static final int BAY_CRAFT = 2;
     /** Skyways crossing the drop: their length, the spacing of craft along them, and their speed. */
     static final float SKYWAY_METERS = 1600f, SKYWAY_SPACING = 70f, SKYWAY_SPEED = 28f;
+    /** How wide ground must be to stand on a tower of its own; anything narrower is a walkway. */
+    static final int SPAN_CELLS = 7;
+    /** How deep a walkway's girders run under its deck, in metres. */
+    static final float SPAN_METERS = 2.5f;
+    /** The least width of terrace a freighter is parked on, in metres. */
+    static final float PARK_REACH = 20f;
 
     private final BattleSprites sprites;
     private SunLight sun;
 
     private CellTopology builtFor;
     private VoidBackdrop builtWith;
-    /** The surface (level 0) and each terrace below it, shallowest first. */
+    /** Every structure: each tower's levels, its surface or roof first, then its terraces; the walkways. */
+    private final List<List<Level>> structures = new ArrayList<>();
+    /** Every level of every structure, deepest roof first: the order they are drawn in. */
     private final List<Level> levels = new ArrayList<>();
     /** Everything not void, as rectangles {@code {x0, y0, x1, y1}} in cells. */
     private final List<float[]> surface = new ArrayList<>();
+    /** The surface's edge along the void, where its railing runs. */
+    private final List<float[]> rails = new ArrayList<>();
     private String shadowKey;
     private final List<float[]> shadow = new ArrayList<>();
     /** Paths craft fly: {@code {count, speed, spacing, x0, y0, z0, x1, y1, z1, ...}}, looping from first to last. */
@@ -70,6 +90,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** A footprint and the depths its walls run between. */
     private static final class Level {
         float top, bottom, outset;
+        /** Its roof is the playing surface, which the ground tiles draw. */
+        boolean surface;
+        /** A walkway's girders, not a tower's walls. */
+        boolean span;
         /** Each edge run: {@code {x0, y0, x1, y1, normalX, normalY}} in cells along a cell boundary. */
         final List<float[]> runs = new ArrayList<>();
         /** The footprint as rectangles in cells. */
@@ -120,19 +144,21 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         drawShadow();
         fly(ctx.animationTimeSeconds);
         float px = cam.panCellX(), py = cam.panCellY();
-        for (int i = levels.size() - 1; i >= 0; i--) {
-            Level level = levels.get(i);
+        for (Level level : levels) {
             List<float[]> order = new ArrayList<>(level.runs);
             order.sort((a, b) -> Float.compare(planDistance(b, px, py), planDistance(a, px, py)));
-            for (float[] run : order) drawWall(level, run);
+            for (float[] run : order) {
+                if (level.span) drawGirder(run);
+                else drawWall(level, run);
+            }
             // Craft in this level's band of depth fly outside its walls, deepest first, under the roof above.
             level.flying.sort((a, b) -> Float.compare(b[2], a[2]));
             for (float[] craft : level.flying) {
                 drawCraft(craft[0], craft[1], craft[2], craft[3], (int) craft[4], craft[5]);
             }
-            if (i > 0) drawRoof(level);
+            if (!level.surface) drawRoof(level);
         }
-        for (float[] run : levels.get(0).runs) drawRail(run);
+        for (float[] run : rails) drawRail(run);
         // The surface's own backing, which the ground system leaves off on a map with a backdrop: wall art is
         // not opaque everywhere, and through it the structure under the surface would show.
         for (float[] r : surface) rect(r[0], r[1], r[2], r[3], 0f, BACKING_R, BACKING_G, BACKING_B, alpha);
@@ -212,12 +238,13 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         List<float[]> hulls = new ArrayList<>();
         for (Level level : levels) hulls.add(cast(level, depth));
         shade(hulls, null, shadow);
-        // Each terrace is shaded by the levels above it, which stand on it.
-        for (int i = 1; i < levels.size(); i++) {
-            Level level = levels.get(i);
+        // Each roof below the surface is shaded by everything standing higher: its own tower's levels above it,
+        // the towers beside it and the walkways.
+        for (Level level : levels) {
             level.shadow.clear();
+            if (level.surface) continue;
             List<float[]> above = new ArrayList<>();
-            for (int j = 0; j < i; j++) above.add(cast(levels.get(j), level.top));
+            for (Level other : levels) if (other.top < level.top) above.add(cast(other, level.top));
             shade(above, level.roofs, level.shadow);
         }
     }
@@ -225,13 +252,13 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /**
      * Where a level's shadow falls on ground {@code onto} metres down: the sun lays a point {@code d} metres
      * above that ground {@code d / tan(elevation)} metres away from itself, so it is the hull of the level's
-     * footprint laid from its foot and from its roof.
+     * footprint laid from its foot and from its roof. Only what stands above that ground casts on it.
      */
     private float[] cast(Level level, float onto) {
         float perMetre = 1f / sun.risePerCell();
         float dx = -sun.dirX(), dy = -sun.dirY();
         List<float[]> points = new ArrayList<>();
-        for (float lift : new float[]{onto - level.bottom, onto - level.top}) {
+        for (float lift : new float[]{onto - Math.min(level.bottom, onto), onto - level.top}) {
             float ox = dx * lift * perMetre, oy = dy * lift * perMetre;
             for (float[] r : level.roofs) {
                 points.add(new float[]{r[0] + ox, r[1] + oy});
@@ -348,6 +375,25 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         }
         int index = level.runs.indexOf(run);
         for (float[] mouth : level.mouths) if ((int) mouth[0] == index) drawMouth(level, horizontal, line, mouth[1]);
+    }
+
+    /**
+     * One side of a walkway: the edge of its deck plate over the girders under it, braced every few metres, lit
+     * by the sun on the side turned to it.
+     */
+    private void drawGirder(float[] run) {
+        boolean horizontal = run[1] == run[3];
+        float a = horizontal ? run[0] : run[1], b = horizontal ? run[2] : run[3];
+        float line = horizontal ? run[1] : run[0];
+        float toSun = sun == null ? 0f : run[4] * sun.dirX() + run[5] * sun.dirY();
+        float lit = .75f + .25f * toSun;
+        float s0 = scale(0f), sd = scale(.5f), s1 = scale(SPAN_METERS), sm = scale(SPAN_METERS / 2f);
+        band(horizontal, line, a, b, sd, s1, sm, .13f * lit, .14f * lit, .16f * lit, alpha);
+        for (float u = (float) Math.ceil(a / 3f) * 3f; u < b; u += 3f) {
+            float u0 = Math.max(a, u - .25f), u1 = Math.min(b, u + .25f);
+            band(horizontal, line, u0, u1, sd, s1, sm, .30f * lit, .30f * lit, .31f * lit, alpha);
+        }
+        band(horizontal, line, a, b, s0, sd, scale(.25f), .46f * lit, .45f * lit, .42f * lit, alpha);
     }
 
     /** One tile-aligned piece of facade, between two depths and two points along its run. */
@@ -503,6 +549,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         }
         float haze = hazeAt(depth);
         for (float[] r : level.roofs) {
+            rect(r[0], r[1], r[2], r[3], depth, 0f, 0f, 0f, ROOF_VEIL * alpha);
             rect(r[0], r[1], r[2], r[3], depth, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(), haze * alpha);
         }
     }
@@ -536,9 +583,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 // Craft fade in at the start of a path and out at its end, into a bay's dark or the haze.
                 float fade = Math.min(1f, Math.min(d, total - d) / 25f);
                 int hull = Math.floorMod(r * 5 + c * 3 + r / 3, backdrop.craft().size());
-                Level band = levels.get(0);
-                for (Level level : levels) if (level.top <= z) band = level;
-                if (z < backdrop.depthMeters()) band.flying.add(new float[]{x, y, z, heading, hull, fade});
+                Level band = null;
+                for (Level level : levels) if (level.top <= z && (band == null || level.top > band.top)) band = level;
+                if (band != null && z < backdrop.depthMeters()) band.flying.add(new float[]{x, y, z, heading, hull, fade});
             }
         }
     }
@@ -589,8 +636,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         routes.clear();
         if (backdrop.craft().isEmpty()) return;
         int bay = 0;
-        for (int i = 0; i + 1 < levels.size(); i++) {
-            Level level = levels.get(i), below = levels.get(i + 1);
+        for (List<Level> structure : structures) for (int i = 0; i + 1 < structure.size(); i++) {
+            Level level = structure.get(i), below = structure.get(i + 1);
             float reach = below.outset - level.outset;
             for (float[] mouth : level.mouths) {
                 float[] run = level.runs.get((int) mouth[0]);
@@ -606,6 +653,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 routes.add(route(BAY_CRAFT, BAY_SPEED, 90f, path));
             }
             // Parked hulls between the bays, a third of the way out across the terrace, nose along the wall.
+            if (reach < PARK_REACH) continue;
             for (int k = 0; k < level.runs.size(); k++) {
                 float[] run = level.runs.get(k);
                 boolean horizontal = run[1] == run[3];
@@ -621,9 +669,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 }
             }
         }
-        Level last = levels.get(levels.size() - 1);
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
-        for (float[] r : last.roofs) {
+        for (Level level : levels) for (float[] r : level.roofs) {
             minX = Math.min(minX, r[0]); minY = Math.min(minY, r[1]);
             maxX = Math.max(maxX, r[2]); maxY = Math.max(maxY, r[3]);
         }
@@ -678,8 +725,10 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         builtFor = topology;
         builtWith = backdrop;
         shadowKey = null;
+        structures.clear();
         levels.clear();
         surface.clear();
+        rails.clear();
         int w = topology.getWidth(), h = topology.getHeight();
         float widest = 0f;
         for (VoidBackdrop.Tier tier : backdrop.tiers()) widest = Math.max(widest, tier.outsetMeters());
@@ -692,23 +741,41 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
         }
         mergeRects(base, mw, mh, 1, -m, -m, surface);
-        List<VoidBackdrop.Tier> tiers = backdrop.tiers();
-        for (int i = 0; i <= tiers.size(); i++) {
-            Level level = new Level();
-            level.top = i == 0 ? 0f : tiers.get(i - 1).depthMeters();
-            level.bottom = i < tiers.size() ? tiers.get(i).depthMeters() : backdrop.depthMeters();
-            level.outset = i == 0 ? 0f : tiers.get(i - 1).outsetMeters();
-            boolean[] mask = i == 0 ? base : dilate(base, mw, mh, Math.round(level.outset));
-            findRuns(mask, mw, mh, m, level.runs);
-            mergeRects(mask, mw, mh, 1, -m, -m, level.roofs);
-            if (i > 0) level.footings = levels.get(i - 1).runs;
-            levels.add(level);
+        findRuns(base, mw, mh, m, rails);
+        boolean[] towers = towers(base, mw, mh);
+        boolean[] spans = new boolean[mw * mh];
+        boolean anySpan = false;
+        for (int k = 0; k < base.length; k++) {
+            spans[k] = base[k] && !towers[k];
+            anySpan |= spans[k];
         }
+        for (boolean[] footprint : pieces(towers, mw, mh)) addStructure(footprint, mw, mh, m, 0f, backdrop);
+        if (anySpan) {
+            Level span = new Level();
+            span.top = 0f;
+            span.bottom = SPAN_METERS;
+            span.surface = true;
+            span.span = true;
+            findRuns(spans, mw, mh, m, span.runs);
+            mergeRects(spans, mw, mh, 1, -m, -m, span.roofs);
+            structures.add(List.of(span));
+        }
+        for (VoidBackdrop.Tower tower : backdrop.neighbours()) {
+            boolean[] footprint = new boolean[mw * mh];
+            for (int y = Math.max(-m, tower.y0()); y < Math.min(h + m, tower.y1()); y++) {
+                for (int x = Math.max(-m, tower.x0()); x < Math.min(w + m, tower.x1()); x++) {
+                    footprint[(y + m) * mw + x + m] = true;
+                }
+            }
+            addStructure(footprint, mw, mh, m, tower.roofDepthMeters(), backdrop);
+        }
+        for (List<Level> structure : structures) levels.addAll(structure);
+        levels.sort((a, b) -> Float.compare(b.top, a.top));
         // Freight bays in the foot of every wall that stands on a terrace, each feeding a lane across it.
-        for (int i = 0; i + 1 < levels.size(); i++) {
-            Level level = levels.get(i), below = levels.get(i + 1);
+        for (List<Level> structure : structures) for (int i = 0; i + 1 < structure.size(); i++) {
+            Level level = structure.get(i), below = structure.get(i + 1);
             float reach = below.outset - level.outset;
-            if (reach < 4f || level.bottom - level.top < MOUTH_H + 4f) continue;
+            if (reach < BAY_REACH || level.bottom - level.top < MOUTH_H + 4f) continue;
             for (int k = 0; k < level.runs.size(); k++) {
                 float[] run = level.runs.get(k);
                 boolean horizontal = run[1] == run[3];
@@ -731,6 +798,77 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
         }
         plotTraffic(backdrop);
+    }
+
+    /**
+     * One tower: its roof {@code top} metres down (the surface, at 0), then a terrace at each of the backdrop's
+     * tiers deeper than that, its footprint grown by the tier's outset, down to the ground.
+     */
+    private void addStructure(boolean[] footprint, int mw, int mh, int m, float top, VoidBackdrop backdrop) {
+        List<VoidBackdrop.Tier> tiers = new ArrayList<>();
+        for (VoidBackdrop.Tier tier : backdrop.tiers()) if (tier.depthMeters() > top) tiers.add(tier);
+        List<Level> structure = new ArrayList<>();
+        for (int i = 0; i <= tiers.size(); i++) {
+            Level level = new Level();
+            level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
+            level.bottom = i < tiers.size() ? tiers.get(i).depthMeters() : backdrop.depthMeters();
+            level.outset = i == 0 ? 0f : tiers.get(i - 1).outsetMeters();
+            level.surface = i == 0 && top <= 0f;
+            boolean[] mask = i == 0 ? footprint : dilate(footprint, mw, mh, Math.round(level.outset));
+            findRuns(mask, mw, mh, m, level.runs);
+            mergeRects(mask, mw, mh, 1, -m, -m, level.roofs);
+            if (i > 0) level.footings = structure.get(i - 1).runs;
+            structure.add(level);
+        }
+        structures.add(structure);
+    }
+
+    /**
+     * The part of the surface that stands on towers: the surface opened by a walkway's width, so whatever is at
+     * least {@link #SPAN_CELLS} wide stays and the narrower ground the opening takes away is walkway.
+     */
+    static boolean[] towers(boolean[] surface, int mw, int mh) {
+        boolean[] towers = dilate(erode(surface, mw, mh, SPAN_CELLS / 2), mw, mh, SPAN_CELLS / 2);
+        for (int k = 0; k < towers.length; k++) towers[k] &= surface[k];
+        return towers;
+    }
+
+    /** The mask's 4-connected pieces, each as a mask of its own. */
+    private static List<boolean[]> pieces(boolean[] mask, int mw, int mh) {
+        List<boolean[]> out = new ArrayList<>();
+        boolean[] seen = new boolean[mask.length];
+        int[] queue = new int[mask.length];
+        for (int start = 0; start < mask.length; start++) {
+            if (!mask[start] || seen[start]) continue;
+            boolean[] piece = new boolean[mask.length];
+            int head = 0, tail = 0;
+            queue[tail++] = start;
+            seen[start] = true;
+            while (head < tail) {
+                int k = queue[head++];
+                piece[k] = true;
+                int x = k % mw, y = k / mw;
+                int[] next = {x > 0 ? k - 1 : -1, x + 1 < mw ? k + 1 : -1, y > 0 ? k - mw : -1, y + 1 < mh ? k + mw : -1};
+                for (int n : next) {
+                    if (n >= 0 && mask[n] && !seen[n]) {
+                        seen[n] = true;
+                        queue[tail++] = n;
+                    }
+                }
+            }
+            out.add(piece);
+        }
+        return out;
+    }
+
+    /** The mask shrunk by {@code r} cells in every direction, square-cornered: its outside grown. */
+    private static boolean[] erode(boolean[] mask, int mw, int mh, int r) {
+        boolean[] outside = new boolean[mask.length];
+        for (int k = 0; k < mask.length; k++) outside[k] = !mask[k];
+        boolean[] grown = dilate(outside, mw, mh, r);
+        boolean[] shrunk = new boolean[mask.length];
+        for (int k = 0; k < mask.length; k++) shrunk[k] = !grown[k];
+        return shrunk;
     }
 
     /** The mask grown by {@code r} cells in every direction, square-cornered. */
