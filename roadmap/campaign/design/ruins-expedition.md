@@ -631,6 +631,22 @@ the company commits. The prize's **theme** shows four ways:
 | Catalytic core, fullerene spool | Refinery, tether anchor | Pressure doors |
 | Drone replicator | Drone foundry | Live flocks in the halls (derelict only) |
 
+**Inside the ruin** the theme shows two ways:
+- **Furniture** (`RuinsThemeDressing`, laid by the ruins ground as a
+  `RuinsDressing`). The vault room and the interior's chambers are furnished
+  from the game's own props: server racks for a server hall, rifle racks and
+  ammunition lockers for an armory, reactor housings and pumps for reactor
+  halls, crates for a depot, and so on. Each prop stands against a room's wall,
+  never in a doorway, and only where the room stays one floor. The dressing
+  draws nothing from the layout's random stream, so a site's ground is the
+  same whatever its prize.
+- **A close reading.** At the stand before the vault's layer, the Delve row's
+  close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
+  the occupant's sign: the survey's tell, seen up close.
+
+The works' own twists (heat valves, magnet gates) and theme-made art are still
+owed.
+
 **How sure the hint is** (pick `ruins-prize-hint` a): the family is always
 true, and so is a colony item, since the item is the site. A core's tier reads
 as "likely": right three times in four, else one step off.

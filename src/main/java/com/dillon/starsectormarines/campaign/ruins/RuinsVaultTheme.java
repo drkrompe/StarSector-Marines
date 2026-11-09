@@ -58,6 +58,11 @@ public enum RuinsVaultTheme {
         return key.toString();
     }
 
+    /** The string key of the close reading the company takes of the vault's layer, inside the ruin. */
+    public String insideTellKey() {
+        return "ruinsInside" + tellKey().substring("ruinsTell".length());
+    }
+
     /** Whether a site held by {@code occupant} may be built round this theme. */
     boolean allowedFor(RuinsOccupant occupant) {
         if (this == DRONE_REPLICATOR) return occupant.isDerelict();
