@@ -1,8 +1,8 @@
 # Ruins occupants
 
 Status: IN PROGRESS — the draw (1), the Rav (3), derelict security (4) and the
-briefing (5) built; nobody (2) waits on `ruins-works.md` and plays the
-scavengers' stand-in. Slice 5 of `ruins-expedition-fork.md`.
+briefing (5) built; an empty site (2) fields no one, and its puzzle is
+`ruins-works.md`'s. Slice 5 of `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
 
@@ -31,14 +31,12 @@ of the occupant's own kind.
   `Mission.ruinsOccupant`; `MissionLaunch` puts it on `RuinsBattleFixture`
   (serialized as `occupant`, read as scavengers when absent) and the fixture on
   `BattleSetup.createRuins`.
-- **The seam**: `BattleSetup.createRuins` hands the occupant to
-  `createPlaceholder`, which installs derelict security or the Rav in place of
-  the generic squads; nobody logs and plays the scavengers' stand-in. When an occupant's side plugs
-  in there, it joins `RuinsExpeditionMissionFactory.fieldsOwnSide`, and the
-  mission's defending faction (`targetFactionId` and
-  `defenderFactionOverride`, since an uncolonized world's market has no owner)
-  and its survey pool both switch to the occupant's own. Until then the
-  briefing reads the scavengers it will actually meet.
+- **The seam**: `RuinsDefence.of(occupant)` decides a site's force, and
+  `createPlaceholder` fields only that: the scavengers' crew, derelict
+  security, the Rav's sleepers, or no one for an empty site. No ruins site gets
+  the generic garrison, patrols, emplacements or air. The mission names the
+  occupant's faction (none for nobody or the Rav) and the briefing reads the
+  occupant's own pool. Tested in `RuinsDefenceTest`.
 - **The briefing pools** are in `RuinsSurvey`, one per occupant through
   `poolFor`: nobody reads quiet, with a power hall, a dead seal, a collapse and
   a records system hinting at the works; the Rav read as cold, clustered
@@ -70,7 +68,7 @@ of the occupant's own kind.
    that changes over a campaign and stores nothing. Unit-test that it is stable
    across calls, that only a scattered site draws nobody, that a reservoir
    world draws the Rav one time in two, and the theme modifiers.
-2. **Nobody.** An empty site plays the expedition with no opposing side, its
+2. **Nobody.** (Its side built: no one. The works chain is `ruins-works.md`'s.) An empty site plays the expedition with no opposing side, its
    way to the vault through the works chain (`ruins-works.md`).
 3. **Rav.** (Built; a `sceneEvidence` scene was not added, as the bore-opening
    rule is unit-tested where it is decided.) The swarm director's ruins profile: closed bores in the deeper
