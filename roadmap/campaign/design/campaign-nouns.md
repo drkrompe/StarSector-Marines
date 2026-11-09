@@ -134,6 +134,9 @@ owns how the polity's own ground forces are composed: a roster derived from
 its markets the way vanilla derives fleet quality, never authored.
 `raid-resolution.md` owns leading the player's own raid on a market as an
 operation, committed through the game's own raid command.
+`ruins-expedition.md` (draft) owns sending the company into an uncolonized
+world's ruins in place of vanilla's salvage team, committed through the game's
+own ruins salvage.
 
 `themes.md`, `economy.md`, and `backgrounds.md` are direction for future
 campaign work. `moral-compass.md` owns the hidden record that can connect
