@@ -75,6 +75,25 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * of these metres. The terraces below round on the same centres, so each step is a ring of even width.
      */
     static final int[] ROOF_RADII = {0, 6, 10, 14};
+    /**
+     * How much of the ground image a backdrop with an atmosphere covers in its haze before the city's lights are laid
+     * on it: the image carries a daylight haze of its own.
+     */
+    static final float GROUND_GRADE = .42f;
+    /** Lights see through the haze better than what they light: this much of the haze dims them. */
+    static final float GLOW_HAZE = .3f;
+    /** The cool of ambient light on unlit metal, against the lights' warmth. */
+    static final float AMBIENT_R = .86f, AMBIENT_G = .9f, AMBIENT_B = 1f;
+    /** A soft round light, white, for lamps and beacons. */
+    static final String LIGHT_SPRITE = "graphics/fx/particlealpha64sq.png";
+    /** Lamps along a roof's edge: their spacing and how far in from the edge, in metres. */
+    static final float EDGE_LAMP_SPACING = 7f, EDGE_LAMP_INSET = 1.1f;
+    /** Fog: the deep decks' colour, lit from the city below, and how fast the puffs drift, in metres a second. */
+    static final float FOG_WARM_R = .86f, FOG_WARM_G = .64f, FOG_WARM_B = .44f, FOG_DRIFT = 1.6f;
+    /** The shallow decks' fog, cool under the sky. */
+    static final float FOG_COOL_R = .58f, FOG_COOL_G = .64f, FOG_COOL_B = .76f;
+    /** Floodlight thrown up a wall from the terrace at its foot: how high it reaches, in metres, and its colour. */
+    static final float FLOOD_METERS = 14f, FLOOD_R = 1f, FLOOD_G = .66f, FLOOD_B = .34f;
     /** Wall facets to a rounded corner's quarter turn. */
     static final int CORNER_FACETS = 5;
     /** Marker lights down a skyway's edges: their spacing in metres and how often they blink. */
@@ -104,14 +123,14 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private DrawList out;
     private BattleCamera cam;
     private VoidBackdrop backdrop;
-    private float eye, cx, cy, alpha;
+    private float eye, cx, cy, alpha, time;
 
     /**
      * One thing drawn at one depth: a band of wall, a girder side, a roof, a freight bay or a band of a rounded
      * corner. {@code piece} is the bay or the corner; a corner's {@code run} is its chord, for culling and order.
      */
     private record Item(float depth, int kind, Level level, float[] run, float z0, float z1, float[] piece) {
-        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3, CORNER = 4;
+        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3, CORNER = 4, FOG = 5;
     }
 
     /** Everything the structures draw, deepest first: the painter's order before the camera's far-first pass. */
@@ -127,6 +146,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         float reach;
         /** Its roof is the playing surface, which the ground tiles draw. */
         boolean surface;
+        /** The top of its structure: its roof's corners carry beacons. */
+        boolean crown;
         /** A walkway's girders, not a tower's walls. */
         boolean span;
         /** Each edge run: {@code {x0, y0, x1, y1, normalX, normalY}} in cells along a cell boundary. */
@@ -192,7 +213,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         drawShadow();
         // A host that keeps no animation clock (the game itself) passes NaN: fly by the wall clock then, or every
         // craft's place along its route is NaN and none is drawn.
-        fly(FireLight.clock(ctx.animationTimeSeconds));
+        this.time = FireLight.clock(ctx.animationTimeSeconds);
+        fly(time);
         float px = cam.panCellX(), py = cam.panCellY();
         List<float[]> flying = new ArrayList<>();
         for (Level level : levels) flying.addAll(level.flying);
@@ -252,6 +274,18 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private void drawGround(float cellPx) {
         ShuttleSpriteCache image = sprites.spriteByPath(backdrop.cityTexture());
         if (image == null) return;
+        tileGround(image, cellPx, 1f, 1f, 1f, alpha);
+        VoidBackdrop.Atmosphere air = backdrop.atmosphere();
+        if (air == null) return;
+        // The ground's own daylight haze sunk into the drop's, then the city's lights laid on it, through it.
+        out.addSolidRect(RenderLayer.GROUND, cam.vpX(), cam.vpY(), cam.vpX() + cam.vpW(), cam.vpY() + cam.vpH(),
+                backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(), GROUND_GRADE * alpha);
+        ShuttleSpriteCache glow = sprites.spriteByPath(air.cityGlow());
+        if (glow != null) tileGround(glow, cellPx, 1f, 1f, 1f, alpha);
+    }
+
+    /** The ground image, or its light mask, tiled over the view at the ground's depth. */
+    private void tileGround(ShuttleSpriteCache image, float cellPx, float r, float g, float b, float a) {
         float s = scale(backdrop.depthMeters());
         float tile = backdrop.cityTileMeters();
         float tilePx = tile * cellPx * s;
@@ -269,9 +303,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 float tx = sx((i + .5f) * tile, s), ty = sy((j + .5f) * tile, s);
                 if (pw > 4 && ph > 4) {
                     out.addImageRegion(RenderLayer.GROUND, image.sprite, pw, ph, 2, 2, pw - 4, ph - 4,
-                            tx, ty, size, size, 0f, 1f, 1f, 1f, alpha);
+                            tx, ty, size, size, 0f, r, g, b, a);
                 } else {
-                    out.addSprite(RenderLayer.GROUND, image.sprite, tx, ty, size, size, 0f, 1f, 1f, 1f, alpha);
+                    out.addSprite(RenderLayer.GROUND, image.sprite, tx, ty, size, size, 0f, r, g, b, a);
                 }
             }
         }
@@ -437,10 +471,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
     private void draw(Item item) {
         switch (item.kind()) {
-            case Item.WALL -> drawWallBand(item.run(), item.z0(), item.z1());
+            case Item.WALL -> drawWallBand(item.run(), item.z0(), item.z1(), item.level().bottom,
+                    item.level().bottom < backdrop.depthMeters());
             case Item.GIRDER -> drawGirder(item.run());
             case Item.ROOF -> drawRoof(item.level());
             case Item.CORNER -> drawCornerBand(item.piece(), item.z0(), item.z1());
+            case Item.FOG -> drawFog(item.depth(), (int) item.z0());
             default -> {
                 float[] run = item.run();
                 boolean horizontal = run[1] == run[3];
@@ -501,13 +537,19 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
             if (!level.surface) items.add(new Item(level.top, Item.ROOF, level, null, 0f, 0f, null));
         }
+        VoidBackdrop.Atmosphere air = builtWith.atmosphere();
+        if (air != null && air.fogTexture() != null) {
+            for (int k = 0; k < air.fogDecks().size(); k++) {
+                items.add(new Item(air.fogDecks().get(k), Item.FOG, null, null, k, 0f, null));
+            }
+        }
         // Deepest first; at one depth a roof after the walls standing to it, so it covers its own far faces.
         items.sort((a, b) -> a.depth() != b.depth() ? Float.compare(b.depth(), a.depth())
                 : Integer.compare(a.kind() == Item.ROOF ? 1 : 0, b.kind() == Item.ROOF ? 1 : 0));
     }
 
     /** One band of a face, between two depths, in tiles of facade under the haze at its depth. */
-    private void drawWallBand(float[] run, float z, float z1) {
+    private void drawWallBand(float[] run, float z, float z1, float foot, boolean onTerrace) {
         boolean horizontal = run[1] == run[3];
         float a = horizontal ? run[0] : run[1], b = horizontal ? run[2] : run[3];
         float line = horizontal ? run[1] : run[0];
@@ -516,6 +558,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         ShuttleSpriteCache facade = backdrop.facadeTexture() == null ? null
                 : sprites.spriteByPath(backdrop.facadeTexture());
         float tile = backdrop.facadeTileMeters();
+        boolean air = backdrop.atmosphere() != null;
+        float ambR = air ? AMBIENT_R : 1f, ambG = air ? AMBIENT_G : 1f, ambB = air ? AMBIENT_B : 1f;
         {
             float s0 = scale(z), s1 = scale(z1), sm = scale((z + z1) / 2f);
             // An opaque underlay in the band's true shape: the facade art is not opaque everywhere, and its
@@ -526,7 +570,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 float u = a;
                 while (u < b - .01f) {
                     float u1 = Math.min(b, (float) (Math.floor(u / tile) + 1) * tile);
-                    facadeQuad(facade, horizontal, line, u, u1, z, z1, s0, s1, sm, lit);
+                    facadeQuad(facade, horizontal, line, u, u1, z, z1, s0, s1, sm, lit * ambR, lit * ambG, lit * ambB, alpha);
                     u = u1;
                 }
             } else {
@@ -536,7 +580,43 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             float haze = hazeAt((z + z1) / 2f);
             band(horizontal, line, a, b, s0, s1, sm, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(),
                     haze * alpha);
+            // Floodlight thrown up the wall from the terrace it stands on, fading as it climbs.
+            if (air && onTerrace && z1 > foot - FLOOD_METERS) {
+                float near = 1f - Math.max(0f, foot - z1) / FLOOD_METERS;
+                float far = 1f - Math.max(0f, foot - z) / FLOOD_METERS;
+                float fa = .42f * (1f - haze * GLOW_HAZE) * alpha;
+                PolyMesh mesh = poly();
+                if (horizontal) {
+                    float y0 = sy(line, s0), y1 = sy(line, s1);
+                    mesh.appendQuad(sx(a, s0), y0, sx(b, s0), y0, sx(b, s1), y1, sx(a, s1), y1,
+                            FLOOD_R, FLOOD_G, FLOOD_B, fa * (far + near) / 2f);
+                } else {
+                    float x0 = sx(line, s0), x1 = sx(line, s1);
+                    mesh.appendQuad(x0, sy(a, s0), x0, sy(b, s0), x1, sy(b, s1), x1, sy(a, s1),
+                            FLOOD_R, FLOOD_G, FLOOD_B, fa * (far + near) / 2f);
+                }
+                out.addPoly(RenderLayer.GROUND, mesh);
+            }
+            // The facade's own lights, over the haze.
+            ShuttleSpriteCache glow = glow(true);
+            if (glow != null) {
+                float u = a;
+                float ga = (1f - haze * GLOW_HAZE) * alpha;
+                while (u < b - .01f) {
+                    float u1 = Math.min(b, (float) (Math.floor(u / tile) + 1) * tile);
+                    facadeQuad(glow, horizontal, line, u, u1, z, z1, s0, s1, sm, 1f, 1f, 1f, ga);
+                    u = u1;
+                }
+            }
         }
+    }
+
+    /** The facade's light mask, or the roof's, when the backdrop has an atmosphere that names it. */
+    private ShuttleSpriteCache glow(boolean facade) {
+        VoidBackdrop.Atmosphere air = backdrop.atmosphere();
+        if (air == null) return null;
+        ShuttleSpriteCache glow = sprites.spriteByPath(facade ? air.facadeGlow() : air.roofGlow());
+        return glow == null || glow.pxW <= 0 ? null : glow;
     }
 
     /**
@@ -553,6 +633,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         PolyMesh under = poly();
         PolyMesh shade = poly();
         PolyMesh veil = poly();
+        List<float[]> glows = new ArrayList<>();
+        List<float[]> glowPatches = new ArrayList<>();
         float u = 0f;
         for (int k = 0; k < CORNER_FACETS; k++) {
             float[] a = arc[k], b = arc[k + 1];
@@ -589,6 +671,9 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                             0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f};
                     out.addSheetPatch(RenderLayer.GROUND, facade.sprite, srcX, srcY, srcW, srcH,
                             minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
+                    glows.add(new float[]{srcX / (float) pw, srcY / (float) ph, srcW / (float) pw, srcH / (float) ph,
+                            minX + w / 2f, minY + h / 2f, w, h});
+                    glowPatches.add(patch);
                     // The patch takes no tint: the facet's turn from the sun is a shade laid over it.
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, (1f - lit) * alpha);
                 }
@@ -598,6 +683,17 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         out.addPoly(RenderLayer.GROUND, under);
         out.addPoly(RenderLayer.GROUND, shade);
         out.addPoly(RenderLayer.GROUND, veil);
+        ShuttleSpriteCache glow = glow(true);
+        if (glow != null) {
+            float ga = (1f - haze * GLOW_HAZE) * alpha;
+            for (int k = 0; k < glows.size(); k++) {
+                float[] g = glows.get(k);
+                int gx = Math.round(g[0] * glow.pxW), gy = Math.round(g[1] * glow.pxH);
+                int gw = Math.max(1, Math.round(g[2] * glow.pxW)), gh = Math.max(1, Math.round(g[3] * glow.pxH));
+                out.addSheetPatch(RenderLayer.GROUND, glow.sprite, gx, gy, gw, gh, g[4], g[5], g[6], g[7], ga,
+                        glowPatches.get(k));
+            }
+        }
     }
 
     /**
@@ -643,7 +739,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
     /** One tile-aligned piece of facade, between two depths and two points along its run. */
     private void facadeQuad(ShuttleSpriteCache facade, boolean horizontal, float line, float u0, float u1,
-                            float z0, float z1, float s0, float s1, float sm, float lit) {
+                            float z0, float z1, float s0, float s1, float sm, float r, float g, float b,
+                            float a) {
         float tile = backdrop.facadeTileMeters();
         int pw = facade.pxW, ph = facade.pxH;
         float fu = (float) (u0 / tile - Math.floor(u0 / tile));
@@ -675,7 +772,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             angle = xb > xa ? 90f : 270f;
         }
         out.addImageRegion(RenderLayer.GROUND, facade.sprite, pw, ph, srcX, srcY, srcW, srcH,
-                qx, qy, w, h, angle, lit, lit, lit, alpha);
+                qx, qy, w, h, angle, r, g, b, a);
     }
 
     /**
@@ -741,31 +838,13 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         ShuttleSpriteCache roof = backdrop.roofTexture() == null ? null : sprites.spriteByPath(backdrop.roofTexture());
         float tile = backdrop.roofTileMeters();
         float vx0 = cam.vpX(), vx1 = cam.vpX() + cam.vpW(), vy0 = cam.vpY(), vy1 = cam.vpY() + cam.vpH();
-        for (float[] r : level.roofs) {
-            if (roof == null || roof.pxW <= 0) {
-                rect(r[0], r[1], r[2], r[3], depth, .30f, .29f, .28f, alpha);
-                continue;
-            }
-            int pw = roof.pxW, ph = roof.pxH;
-            for (int ty = (int) Math.floor(r[1] / tile); ty * tile < r[3]; ty++) {
-                for (int tx = (int) Math.floor(r[0] / tile); tx * tile < r[2]; tx++) {
-                    float ux0 = Math.max(r[0], tx * tile), ux1 = Math.min(r[2], (tx + 1) * tile);
-                    float uy0 = Math.max(r[1], ty * tile), uy1 = Math.min(r[3], (ty + 1) * tile);
-                    if (ux1 <= ux0 || uy1 <= uy0) continue;
-                    float x0 = sx(ux0, s), x1 = sx(ux1, s), y0 = sy(uy0, s), y1 = sy(uy1, s);
-                    if (Math.max(x0, x1) < vx0 || Math.min(x0, x1) > vx1
-                            || Math.max(y0, y1) < vy0 || Math.min(y0, y1) > vy1) continue;
-                    int srcX = Math.round((ux0 - tx * tile) / tile * pw);
-                    int srcY = Math.round((uy0 - ty * tile) / tile * ph);
-                    int srcW = Math.max(1, Math.min(pw - srcX, Math.round((ux1 - ux0) / tile * pw)));
-                    int srcH = Math.max(1, Math.min(ph - srcY, Math.round((uy1 - uy0) / tile * ph)));
-                    out.addImageRegion(RenderLayer.GROUND, roof.sprite, pw, ph, srcX, srcY, srcW, srcH,
-                            (x0 + x1) / 2f, (y0 + y1) / 2f, Math.abs(x1 - x0) + .5f, Math.abs(y1 - y0) + .5f,
-                            0f, 1f, 1f, 1f, alpha);
-                }
-            }
+        if (roof == null || roof.pxW <= 0) {
+            for (float[] r : level.roofs) rect(r[0], r[1], r[2], r[3], depth, .30f, .29f, .28f, alpha);
+        } else {
+            boolean air = backdrop.atmosphere() != null;
+            roofTiles(level, s, roof, air ? AMBIENT_R : 1f, air ? AMBIENT_G : 1f, air ? AMBIENT_B : 1f, alpha);
         }
-        for (float[] fan : level.fans) drawFan(fan, s, roof, tile);
+        for (float[] fan : level.fans) drawFan(fan, s, roof, tile, alpha);
         for (float[] lane : level.lanes) {
             rect(lane[0], lane[1], lane[2], lane[3], depth, .07f, .07f, .08f, .88f * alpha);
             boolean alongX = lane[2] - lane[0] > lane[3] - lane[1];
@@ -846,13 +925,175 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
             out.addPoly(RenderLayer.GROUND, veil);
         }
+        // The roof's own lights over its veil and haze, lamps along its edge, beacons on a crown's corners.
+        ShuttleSpriteCache glow = glow(false);
+        float ga = (1f - haze * GLOW_HAZE) * alpha;
+        if (glow != null) {
+            roofTiles(level, s, glow, 1f, 1f, 1f, ga);
+            for (float[] fan : level.fans) drawFan(fan, s, glow, tile, ga);
+        }
+        if (backdrop.atmosphere() != null) edgeLights(level, depth, ga);
+    }
+
+    /** The roof image, or its light mask, laid over the level's roof rectangles a tile at a time. */
+    private void roofTiles(Level level, float s, ShuttleSpriteCache roof, float r, float g, float b, float a) {
+        float tile = backdrop.roofTileMeters();
+        float vx0 = cam.vpX(), vx1 = cam.vpX() + cam.vpW(), vy0 = cam.vpY(), vy1 = cam.vpY() + cam.vpH();
+        int pw = roof.pxW, ph = roof.pxH;
+        for (float[] rr : level.roofs) {
+            for (int ty = (int) Math.floor(rr[1] / tile); ty * tile < rr[3]; ty++) {
+                for (int tx = (int) Math.floor(rr[0] / tile); tx * tile < rr[2]; tx++) {
+                    float ux0 = Math.max(rr[0], tx * tile), ux1 = Math.min(rr[2], (tx + 1) * tile);
+                    float uy0 = Math.max(rr[1], ty * tile), uy1 = Math.min(rr[3], (ty + 1) * tile);
+                    if (ux1 <= ux0 || uy1 <= uy0) continue;
+                    float x0 = sx(ux0, s), x1 = sx(ux1, s), y0 = sy(uy0, s), y1 = sy(uy1, s);
+                    if (Math.max(x0, x1) < vx0 || Math.min(x0, x1) > vx1
+                            || Math.max(y0, y1) < vy0 || Math.min(y0, y1) > vy1) continue;
+                    int srcX = Math.round((ux0 - tx * tile) / tile * pw);
+                    int srcY = Math.round((uy0 - ty * tile) / tile * ph);
+                    int srcW = Math.max(1, Math.min(pw - srcX, Math.round((ux1 - ux0) / tile * pw)));
+                    int srcH = Math.max(1, Math.min(ph - srcY, Math.round((uy1 - uy0) / tile * ph)));
+                    out.addImageRegion(RenderLayer.GROUND, roof.sprite, pw, ph, srcX, srcY, srcW, srcH,
+                            (x0 + x1) / 2f, (y0 + y1) / 2f, Math.abs(x1 - x0) + .5f, Math.abs(y1 - y0) + .5f,
+                            0f, r, g, b, a);
+                }
+            }
+        }
+    }
+
+    /**
+     * Warm lamps a little in from a roof's edge, and on the top of a structure a red beacon at each corner, blinking
+     * out of step with its neighbours.
+     */
+    private void edgeLights(Level level, float depth, float a) {
+        float s = scale(depth);
+        float vx0 = cam.vpX(), vx1 = cam.vpX() + cam.vpW(), vy0 = cam.vpY(), vy1 = cam.vpY() + cam.vpH();
+        for (float[] run : level.runs) {
+            boolean horizontal = run[1] == run[3];
+            float a0 = horizontal ? run[0] : run[1], a1 = horizontal ? run[2] : run[3];
+            float line = horizontal ? run[1] - run[5] * EDGE_LAMP_INSET : run[0] - run[4] * EDGE_LAMP_INSET;
+            float ex0 = sx(horizontal ? a0 : line, s), ey0 = sy(horizontal ? line : a0, s);
+            float ex1 = sx(horizontal ? a1 : line, s), ey1 = sy(horizontal ? line : a1, s);
+            if (Math.max(ex0, ex1) < vx0 || Math.min(ex0, ex1) > vx1 || Math.max(ey0, ey1) < vy0
+                    || Math.min(ey0, ey1) > vy1) continue;
+            int count = (int) Math.floor((a1 - a0) / EDGE_LAMP_SPACING);
+            for (int k = 0; k < count; k++) {
+                float t = a0 + (k + .5f) * (a1 - a0) / count;
+                float x = horizontal ? t : line, y = horizontal ? line : t;
+                lamp(x, y, depth, 1f, .80f, .52f, .45f, a);
+            }
+            // A warm strip of light along the edge itself.
+            if (horizontal) rect(a0, run[1] - run[5] * .45f, a1, run[1] - run[5] * .15f, depth, 1f, .72f, .40f, .55f * a);
+            else rect(run[0] - run[4] * .45f, a0, run[0] - run[4] * .15f, a1, depth, 1f, .72f, .40f, .55f * a);
+        }
+        if (!level.crown) return;
+        for (float[] run : level.runs) {
+            for (int end = 0; end < 2; end++) {
+                float x = run[end * 2] - run[4] * EDGE_LAMP_INSET, y = run[end * 2 + 1] - run[5] * EDGE_LAMP_INSET;
+                beacon(x, y, depth, a);
+            }
+        }
+        for (float[] corner : level.corners) {
+            float[] mid = arc(corner)[CORNER_FACETS / 2];
+            beacon(mid[0] - mid[2] * EDGE_LAMP_INSET, mid[1] - mid[3] * EDGE_LAMP_INSET, depth, a);
+        }
+    }
+
+    private void beacon(float x, float y, float depth, float a) {
+        double phase = time * .8 + Math.floorMod((int) (x * 7 + y * 13), 97) / 97.0;
+        float on = phase - Math.floor(phase) < .45 ? 1f : .18f;
+        lamp(x, y, depth, 1f, .16f, .10f, .7f, a * on);
+    }
+
+    /** A point of light at a depth: a bright core in a soft round halo, {@code size} metres across its core. */
+    private void lamp(float x, float y, float depth, float r, float g, float b, float size, float a) {
+        float s = scale(depth);
+        float qx = sx(x, s), qy = sy(y, s);
+        if (qx < cam.vpX() || qx > cam.vpX() + cam.vpW() || qy < cam.vpY() || qy > cam.vpY() + cam.vpH()) return;
+        float px = size * s * cam.cellPxSize();
+        ShuttleSpriteCache dot = sprites.spriteByPath(LIGHT_SPRITE);
+        if (dot == null || px < .6f) {
+            rect(x - size / 2f, y - size / 2f, x + size / 2f, y + size / 2f, depth, r, g, b, .95f * a);
+            return;
+        }
+        out.addSprite(RenderLayer.GROUND, dot.sprite, qx, qy, px * 10f, px * 10f, 0f, r, g, b, .45f * a);
+        out.addSprite(RenderLayer.GROUND, dot.sprite, qx, qy, px * 3f, px * 3f, 0f, Math.min(1f, r + .2f),
+                Math.min(1f, g + .2f), Math.min(1f, b + .2f), a);
+    }
+
+    // ----- fog -----
+
+    /**
+     * A bank of fog at one deck's depth: soft puffs from the fog sheet on a grid that drifts with the wind, thick
+     * where a slow noise says so and thin or clear between, so the city shows through the gaps. Drawn in the
+     * painter's order at its depth, so the towers rise out of it and what is below it is veiled. A deeper deck is
+     * lit warmer by the city's lights below it.
+     */
+    private void drawFog(float depth, int deck) {
+        VoidBackdrop.Atmosphere air = backdrop.atmosphere();
+        ShuttleSpriteCache sheet = sprites.spriteByPath(air.fogTexture());
+        if (sheet == null || sheet.pxW <= 0) return;
+        float s = scale(depth);
+        float cellPx = cam.cellPxSize();
+        float x0c = cam.cellToScreenX(0f), y0c = cam.cellToScreenY(0f);
+        float dxc = cam.cellToScreenX(1f) - x0c, dyc = cam.cellToScreenY(1f) - y0c;
+        if (dxc == 0f || dyc == 0f) return;
+        float ax = (cx + (cam.vpX() - cx) / s - x0c) / dxc, bx = (cx + (cam.vpX() + cam.vpW() - cx) / s - x0c) / dxc;
+        float ay = (cy + (cam.vpY() - cy) / s - y0c) / dyc, by = (cy + (cam.vpY() + cam.vpH() - cy) / s - y0c) / dyc;
+        float puff = air.fogPuffMeters(), step = puff * .5f;
+        float drift = time * FOG_DRIFT * (deck % 2 == 0 ? 1f : -.7f);
+        int i0 = (int) Math.floor((Math.min(ax, bx) - puff - drift) / step);
+        int i1 = (int) Math.ceil((Math.max(ax, bx) + puff - drift) / step);
+        int j0 = (int) Math.floor((Math.min(ay, by) - puff) / step), j1 = (int) Math.ceil((Math.max(ay, by) + puff) / step);
+        if ((long) (i1 - i0) * (j1 - j0) > 6000) return;
+        float t = air.fogDecks().size() <= 1 ? 0f : deck / (float) (air.fogDecks().size() - 1);
+        float fr = lerp(FOG_COOL_R, FOG_WARM_R, t), fg = lerp(FOG_COOL_G, FOG_WARM_G, t);
+        float fb = lerp(FOG_COOL_B, FOG_WARM_B, t);
+        int cells = Math.max(1, air.fogSheetCells());
+        int cw = sheet.pxW / cells, ch = sheet.pxH / cells;
+        for (int j = j0; j <= j1; j++) {
+            for (int i = i0; i <= i1; i++) {
+                float n = valueNoise(i * .16f, j * .16f, deck * 101);
+                if (n < .42f) continue;
+                int h = hash(i, j, deck);
+                float x = i * step + drift + ((h & 255) / 255f - .5f) * step;
+                float y = j * step + (((h >> 8) & 255) / 255f - .5f) * step;
+                float size = puff * (.8f + ((h >> 16) & 255) / 255f * .6f);
+                float px = sx(x, s), py = sy(y, s), pz = size * cellPx * s;
+                int cell = (h >>> 24) % (cells * cells);
+                // A deeper deck is thinner, so the city's lights below still show through it.
+                float a = air.fogAlpha() * (1f - .5f * t) * Math.min(1f, (n - .42f) / .3f) * alpha;
+                out.addImageRegion(RenderLayer.GROUND, sheet.sprite, sheet.pxW, sheet.pxH,
+                        cell % cells * cw, cell / cells * ch, cw, ch, px, py, pz, pz,
+                        (h >> 4 & 1023) * .35f, fr, fg, fb, a);
+            }
+        }
+    }
+
+    private static float lerp(float a, float b, float t) { return a + (b - a) * t; }
+
+    private static int hash(int i, int j, int k) {
+        int h = i * 374761393 + j * 668265263 + k * 1274126177;
+        h = (h ^ (h >>> 13)) * 1103515245;
+        return h ^ (h >>> 16);
+    }
+
+    /** Smooth noise in 0..1 from a hashed lattice, bilinear with a smoothstep. */
+    private static float valueNoise(float x, float y, int seed) {
+        int xi = (int) Math.floor(x), yi = (int) Math.floor(y);
+        float fx = x - xi, fy = y - yi;
+        fx = fx * fx * (3f - 2f * fx);
+        fy = fy * fy * (3f - 2f * fy);
+        float v00 = (hash(xi, yi, seed) & 1023) / 1023f, v10 = (hash(xi + 1, yi, seed) & 1023) / 1023f;
+        float v01 = (hash(xi, yi + 1, seed) & 1023) / 1023f, v11 = (hash(xi + 1, yi + 1, seed) & 1023) / 1023f;
+        return lerp(lerp(v00, v10, fx), lerp(v01, v11, fx), fy);
     }
 
     /**
      * One quad of a roof's curved piece, cut from the roof texture laid over its corner square as the
      * rectangles are laid over theirs.
      */
-    private void drawFan(float[] fan, float s, ShuttleSpriteCache roof, float tile) {
+    private void drawFan(float[] fan, float s, ShuttleSpriteCache roof, float tile, float a) {
         float bx0 = sx(fan[0], s), bx1 = sx(fan[2], s), by0 = sy(fan[1], s), by1 = sy(fan[3], s);
         float minX = Math.min(bx0, bx1), minY = Math.min(by0, by1);
         float w = Math.abs(bx1 - bx0), h = Math.abs(by1 - by0);
@@ -877,7 +1118,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         int srcX = Math.min(pw - srcW, Math.round((float) (fan[0] / tile - Math.floor(fan[0] / tile)) * pw));
         int srcY = Math.min(ph - srcH, Math.round((float) (fan[1] / tile - Math.floor(fan[1] / tile)) * ph));
         out.addSheetPatch(RenderLayer.GROUND, roof.sprite, srcX, srcY, srcW, srcH,
-                minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
+                minX + w / 2f, minY + h / 2f, w, h, a, patch);
     }
 
     // ----- traffic -----
@@ -1202,6 +1443,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         for (int i = 0; i <= tiers.size(); i++) {
             Level level = new Level();
             level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
+            level.crown = i == 0;
             level.bottom = i < tiers.size() ? tiers.get(i).depthMeters() : backdrop.depthMeters();
             level.outset = i == 0 ? 0f : tiers.get(i - 1).outsetMeters();
             level.surface = i == 0 && top <= 0f;
