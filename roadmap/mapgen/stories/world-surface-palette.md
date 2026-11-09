@@ -4,7 +4,7 @@ Status: IN PROGRESS — the palette reaches wild ground and the wild/cultivated
 line is pinned; worlds beyond rock, dust and ice are open.
 
 Written: 2026-08-31
-Updated: 2026-10-11 — remaining work is distinct toxic, irradiated, volcanic and ash material families.
+Updated: 2026-11-09 — IRRADIATED ships; remaining work is distinct toxic, volcanic and ash material families.
 
 ## What this is
 
@@ -75,7 +75,7 @@ correctly grows nothing.
 
 ## What is open
 
-**Non-living worlds currently use ROCK, ARID and FROZEN.** Toxic, irradiated, volcanic and
+**Non-living worlds currently use ROCK, ARID, FROZEN and IRRADIATED.** Toxic, volcanic and
 ash worlds all collapse into `ROCK`. Splitting them is a JSON block each plus a
 material family, once the art supports a visible difference.
 
