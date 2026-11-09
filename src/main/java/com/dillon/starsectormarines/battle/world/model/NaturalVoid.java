@@ -22,7 +22,9 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
     /** A natural void style: what the walls and the floor are, and where a generator lays it. */
     public enum Style {
         /** A river cut deep: rock strata walls with mossy ledges down to running water. */
-        GORGE_RIVER
+        GORGE_RIVER,
+        /** A volcanic rift: basalt walls lit orange from below by a river of molten rock crusting as it flows. */
+        LAVA
     }
 
     /** A ledge: its depth below the surface, and how far into the void from the edge it begins. */
