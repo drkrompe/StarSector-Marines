@@ -163,7 +163,8 @@ public final class WallCrush {
                                   int most) {
         if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
                 || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
-                || grid.hasTag(x, y, NavigationGrid.CellTag.WORKS)) return false;
+                || grid.hasTag(x, y, NavigationGrid.CellTag.WORKS)
+                || grid.hasTag(x, y, NavigationGrid.CellTag.HARDENED)) return false;
         int structure = structure(grid, topology, doodads, x, y);
         return structure > 0 && structure <= most;
     }
@@ -192,7 +193,9 @@ public final class WallCrush {
         if (!grid.inBounds(x, y) || !grid.inBounds(nx, ny)) return false;
         SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
         if (barrier == null || !barrier.kind().blocksMovement()) return false;
-        if (grid.hasTag(x, y, NavigationGrid.CellTag.WORKS) || grid.hasTag(nx, ny, NavigationGrid.CellTag.WORKS)) {
+        if (grid.hasTag(x, y, NavigationGrid.CellTag.WORKS) || grid.hasTag(nx, ny, NavigationGrid.CellTag.WORKS)
+                || grid.hasTag(x, y, NavigationGrid.CellTag.HARDENED)
+                || grid.hasTag(nx, ny, NavigationGrid.CellTag.HARDENED)) {
             return false;
         }
         return barrier.structure() > 0 && barrier.structure() <= most;

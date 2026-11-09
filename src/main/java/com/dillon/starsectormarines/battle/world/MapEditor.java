@@ -148,6 +148,8 @@ public final class MapEditor {
     }
 
     private boolean damageWall(int x, int y, int amount, long attack) {
+        // A hardened wall takes nothing from anything (HardenedWalls).
+        if (grid.hasTag(x, y, NavigationGrid.CellTag.HARDENED)) return false;
         if (doodads != null) {
             RockDamage.Result rock = doodads.damageRock(x, y, amount, topology);
             if (rock == RockDamage.Result.DESTROYED) {
@@ -316,7 +318,8 @@ public final class MapEditor {
     public boolean damageEdgeBarrier(int x, int y, Direction direction,
                                      int amount) {
         SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
-        if (barrier == null) return false;
+        if (barrier == null || grid.hasTag(x, y, NavigationGrid.CellTag.HARDENED)
+                || grid.hasTag(x + direction.dx, y + direction.dy, NavigationGrid.CellTag.HARDENED)) return false;
         boolean blockedMovement = barrier.kind().blocksMovement();
         if (!grid.damageEdgeBarrier(x, y, direction, amount)) return false;
         if (blockedMovement) {
@@ -460,6 +463,7 @@ public final class MapEditor {
         grid.setSeeThrough(x, y, false);
         grid.setDoorway(x, y, false);
         grid.setWallHp(x, y, 0);
+        grid.markHardened(x, y, false);
         grid.openAllEdges(x, y);
         topology.setWall(x, y, false);
         topology.setWindow(x, y, false);
@@ -478,8 +482,9 @@ public final class MapEditor {
     }
 
     public void flipCellToRubble(int cellX, int cellY) {
-        // Destroying a summit emplacement does not demolish the mountain beneath it.
-        if (grid.hasTag(cellX, cellY, NavigationGrid.CellTag.NATURAL_SOLID)) return;
+        // Destroying a summit emplacement does not demolish the mountain beneath it, nor a hardened wall around it.
+        if (grid.hasTag(cellX, cellY, NavigationGrid.CellTag.NATURAL_SOLID)
+                || grid.hasTag(cellX, cellY, NavigationGrid.CellTag.HARDENED)) return;
         grid.setWalkable(cellX, cellY, true);
         grid.setWallHp(cellX, cellY, 0);
         topology.setWall(cellX, cellY, false);

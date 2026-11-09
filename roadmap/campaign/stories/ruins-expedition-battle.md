@@ -154,23 +154,25 @@ story's battle plays, it lifts the fork's development-only gate
    open cells outside it. An entrance is taken by holding its apron as a
    landing court is held (`COURT_HOLD_SECONDS`, company infantry present, no
    hostile); the first taken is the entry and moves the mission from phase A
-   to phase B, and every taken entrance is a lift point. The entry is retaken
-   by hostiles holding its apron for the same time with no company infantry in
-   it, and taken back the same way. The **pull-out point** is the landing in
-   phase A and the entry in phase B. Unit-test the phase change, the retake and
-   the pull-out point on the objective's own inputs.
+   to phase B, and every taken entrance is a lift point. Once taken, an
+   entrance is the company's for the rest of the battle: nothing retakes it
+   (the owner's model: in phase B the occupant is inside, and its threats come
+   from deeper in, `ruins-expedition.md`, Where phase B's threats come from).
+   The **pull-out point** is the landing in phase A and the entry in phase B.
+   Unit-test the phase change and the pull-out point on the objective's own
+   inputs.
 10. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
-    pulling out. The family's Retreat becomes **Pull out**: a Ruins battle
-    resolves as pulled out when the retreat is confirmed while the pull-out
-    point is held, wherever the company stands, and as an ordinary defeat while
-    it is lost. A pulled-out resolution keeps its secured finds claimable at
+    pulling out. The family's Retreat becomes **Pull out**: a confirmed
+    retreat in a Ruins battle always resolves as pulled out, in either phase
+    and wherever the company stands. A pulled-out resolution keeps its secured
+    finds claimable at
     Results. This is the one exception to "defeat or withdrawal leaves them
     behind", and `loot-nouns.md` names it in the same commit. The casualty roll
     is Retreat's, with the extraction circles drawn round the pull-out point
     and every held lift point. The confirmation lists the banked finds and draws
     those circles. The fork's commit path reads pulled out as it reads lost for
     the vault (nothing salvaged, site unexplored). Unit-test the resolution
-    rule: pull-out point held or lost, phase A or B.
+    and which circles count in phase A and phase B.
 11. **What the site remembers.** The finds recovered at a won or pulled-out
     commit are written once to the site's market as a set of find ids (Law 6).
     A later expedition's placement leaves them out; the occupant, works and
@@ -184,8 +186,8 @@ story's battle plays, it lifts the fork's development-only gate
     entrance" in phase A, with every entrance and apron marked and an apron's
     hold timer shown; the pull-out marker moves from the landing to the entry.
     The Delve row heads with the phase and the pull-out point ("Approach · pull
-    out at the landing", "Delve · pull out at the entry", "Delve · ENTRY LOST"
-    in the alert colour, PULL OUT then dimmed to Retreat). It shows effectives
+    out at the landing", "Delve · pull out at the entry") and how many of the
+    company stand inside a circle. It shows effectives
     against the number landed, squads below half strength, machines lost,
     charges left, banked finds, stores opened, the route back to the pull-out
     point, the layer count, and, once the vault is sighted, the vault's route

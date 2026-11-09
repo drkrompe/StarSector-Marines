@@ -52,6 +52,8 @@ public final class LayeredMechAppearance {
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;
     public static final int CHASSIS_WARDEN = 3;
+    /** The derelict security walker: a torso on reaching legs, drawn by its own rig, never a company chassis. */
+    public static final int CHASSIS_DERELICT = 4;
     public static final int POD_NONE = 0;
     public static final int POD_SMALL_SRM = 1;
     public static final int POD_SMALL_LRM = 2;

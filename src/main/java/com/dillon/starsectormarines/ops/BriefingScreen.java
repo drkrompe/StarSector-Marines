@@ -838,8 +838,8 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * Steps the DEBUG briefing through the mission type's default and the three
-     * stated approaches, so one map can be played at each of them.
+     * Steps the DEBUG briefing through the mission type's default and each
+     * stated approach, so one map can be played at each of them.
      */
     private void cycleDebugStandoff(int step) {
         Mission mission = ctx.getSelectedMission();

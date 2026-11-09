@@ -87,6 +87,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * of these metres. The terraces below round on the same centres, so each step is a ring of even width.
      */
     static final int[] ROOF_RADII = {0, 6, 10, 14};
+    /** How much of the traffic flies the backdrop's first two hulls, the common ones (owner: mostly shuttles and Hounds). */
+    static final int COMMON_HULL_PERCENT = 80;
     /**
      * How much of the ground image a backdrop with an atmosphere covers in its haze before the city's lights are laid
      * on it: the image carries a daylight haze of its own.
@@ -1148,7 +1150,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             if (z >= backdrop.depthMeters()) continue;
             Level band = null;
             for (Level level : levels) if (level.top <= z && (band == null || level.top > band.top)) band = level;
-            c[4] = (int) c[4] % backdrop.craft().size();
+            c[4] = flyingHull((int) c[4], backdrop.craft().size());
             if (band != null) band.flying.add(c);
         }
         // The lane lights run a chase along each lane, so the lane reads as a lane between the craft.
@@ -1534,7 +1536,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         // lays them, and only its terraces round.
         int first = 0;
         while (first < footprint.length && !footprint[first]) first++;
-        int roofRadius = top <= 0f ? 0 : ROOF_RADII[Math.floorMod(first * 31 + first / mw * 17, ROOF_RADII.length)];
+        int roofRadius = top <= 0f ? 0 : roofRadius(first);
         for (int i = 0; i <= tiers.size(); i++) {
             Level level = new Level();
             level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
@@ -1597,6 +1599,21 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             structure.add(level);
         }
         structures.add(structure);
+    }
+
+    /**
+     * A structure's roof corner radius from {@code key} (where its footprint starts), hashed so towers laid on a
+     * regular grid still take every radius: a plain sum of the key's multiples falls on one radius whenever the
+     * grid's pitch and the mask's width share a factor with the number of radii.
+     */
+    static int roofRadius(int key) {
+        return ROOF_RADII[VoidTraffic.hash(key, 41) % ROOF_RADII.length];
+    }
+
+    /** The hull a craft flies, from its hash: mostly one of the first two, now and then any of them. */
+    static int flyingHull(int hash, int hulls) {
+        int pick = hash >>> 8;
+        return hash % 100 < COMMON_HULL_PERCENT ? pick % Math.min(2, hulls) : pick % hulls;
     }
 
     /**

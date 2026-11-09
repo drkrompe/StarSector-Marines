@@ -1905,7 +1905,8 @@ to continue." 200x112 at scattered, 280x168 (the full-strength map), 400x240
 so the dead town fills the route and the layers cross ruins, not open country. A Raid's
 town takes the same two steps (`MapScale.forRaid`, the owner's pick
 `raid-map-size` b: 200x112, 280x168, 400x240), and its precinct plan derives at
-that size. The profile gives only the
+that size; its force lands `Standoff.INSET`, 40 cells in from the map edge and
+off the garrison's claim, not on the edge (`precincts.md`). The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
@@ -1927,8 +1928,9 @@ Every place has a stable name (`places()` lists them, `area(name)` answers one):
 | `ruins.works.records` | The records office in the first layer. |
 | `ruins.works.collapse` | The short way through the last layer, in line with the vault's door, choked by breachable wall: a way of its own kind; the layer's open ways are the long way round. On scattered ground its layer is outside, so it is only a choked heap on the boundary, no shorter than walking round. |
 | `ruins.interior` | The roofed part of the site, with its entrances from open ground; `ruins.interior.chamber.M` are its unnamed chambers. |
+| `ruins.interior.entrance.M` | The apron outside entrance M (`RuinsDelve.Apron`): open ground under open sky cleared west of the door, clear of the hull face's jogs, with an arrival area of two berths for the boat. It is not a lift point until the mission takes the entrance (`ruins-expedition.md`, The entrance and the pull-out point). |
 
-Lift points are the landing's arrival areas, then each court's. Which court is
+Lift points are the landing's arrival areas, then each court's; an entrance's apron joins them when the mission takes it. Which court is
 held, which rooms are stores and which branch a junction feeds are the
 mission's (`ruins-works.md`). Seven rules hold the ground together.
 

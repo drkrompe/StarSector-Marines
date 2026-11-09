@@ -1145,6 +1145,27 @@ standing in it, and a round trip out and home) and `sally-port` (the fort, with
 the defender's commander, and the port barred behind a sortie and in the face
 of raiders come up to it). Every loop asks that no door shuts on a body.
 
+## Locked doors and hardened walls
+
+A **locked door** (`LockedDoor`) is a span shut at setup as a copy of the
+nearest wall beside it, which stands open while something unlocks it and shuts
+again once locked and clear: nobody in its cells or the room it keeps, and any
+route through it dropped, as a sally door is barred. What unlocks it is the
+mission's puzzle (a ruins site's power, a code, a trigger); the door reads only
+whether it is unlocked. A **forcible** door is shut as ordinary wall, so a
+breach through it forces it open for good. A **hardened** door is shut as
+hardened wall, so its lock is the only way through.
+
+A **hardened wall** (`HardenedWalls`, `NavigationGrid.CellTag.HARDENED`) is a
+wall nothing breaks: every way a wall comes down refuses it (a round's or a
+blast's wall damage, a shared edge's, a heavy hull's crush and push, a ram, a
+demolished emplacement's rubble). Movement, sight and cover are unchanged.
+Opening a cell as passage clears the mark, which is how a hardened door opens.
+Hardened cells are chosen at setup from a published footprint, never by
+mapgen: the ruins' vault hardens the standing walls inside its `ruins.vault`
+place's footprint, and its inner door is a hardened locked door
+(`ruins-works.md`).
+
 ## Open questions
 
 - **Marching late.** A stretch is pressed only when an attack is near it, and

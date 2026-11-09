@@ -84,8 +84,10 @@ public record ApproachRegion(int x0, int y0, int x1, int y1,
                     approach, gap);
         }
         // Never backward: a standoff longer than the band already gives would
-        // slide the region off the edge it arrived across.
-        long slide = Math.max(0L, (long) gap - standoff.cells());
+        // slide the region off the edge it arrived across. An inset is a depth
+        // from the edge, not a walk to the claim, so the gap does not bound it.
+        long slide = standoff == Standoff.INSET ? Standoff.INSET_DEPTH
+                : Math.max(0L, (long) gap - standoff.cells());
         slide = Math.min(slide, headroom(stated, approach, width, height));
         int step = (int) slide;
         return switch (approach) {

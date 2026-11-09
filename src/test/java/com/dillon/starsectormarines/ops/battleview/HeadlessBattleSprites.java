@@ -131,6 +131,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteSheetFrames urban3Frames;
     private final SpriteSheetFrames natureFrames;
     private final LayeredMechAssets mech;
+    private final DerelictWalkerAssets derelictWalker;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private final LayeredSpriteCache turretCollar;
@@ -202,6 +203,13 @@ final class HeadlessBattleSprites extends BattleSprites {
         ensureObjectiveIcons();
         loadDecals();
         mech = loadMech();
+        derelictWalker = DerelictWalkerAssets.load(path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = optionalLayer("graphics/battle/vehicles/" + style.ringTexture);
             if (ring != null) gunMounts.put(style, ring);
@@ -381,6 +389,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
     @Override public RavBombardAssets ravBombardSprites() { return ravBombard; }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
+    @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }

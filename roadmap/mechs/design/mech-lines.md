@@ -88,8 +88,9 @@ fields, builds, buys or refits, because the Sector's law keeps armed machines
 under crewed control. The first is derelict security's walker
 (`MechVariant.SECURITY_WALKER`, `MechVariant.automated()`), one heavy chassis
 whose line, siege and vault frames are loadouts on it
-(`derelict-security-network.md`). The laws hold for it as for any line; until
-its own art, sound and doctrine are picked it is drawn on the Bulwark's body.
+(`derelict-security-network.md`). The laws hold for it as for any line: it
+shares nothing with the Bulwark, and is a torso on reaching legs drawn by its
+own rig, with its own body plan.
 
 ## Open
 

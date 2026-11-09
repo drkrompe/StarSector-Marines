@@ -18,7 +18,10 @@ public final class DerelictPost {
 
     /** Posts each zone stands. UNTUNED. */
     public static final int PER_ZONE = 2;
-    /** The emplacement a post is until the derelict post's own look and gun are picked. */
+    /**
+     * The emplacement a post is built on: the Vulcan's gun and durability. It is drawn as its lineage's folding post,
+     * shut while its power is cut and its gun head up while powered ({@link DerelictLook#postLook}).
+     */
     public static final String STAND_IN_STRUCTURE = "structure.turret-vulcan";
 
     private DerelictPost() {}

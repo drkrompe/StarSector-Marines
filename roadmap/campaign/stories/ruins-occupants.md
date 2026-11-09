@@ -38,8 +38,10 @@ of the occupant's own kind.
   occupant's faction (none for nobody or the Rav) and the briefing reads the
   occupant's own pool. Tested in `RuinsDefenceTest`.
 - **The briefing pools** are in `RuinsSurvey`, one per occupant through
-  `poolFor`: nobody reads quiet, with a power hall, a dead seal, a collapse and
-  a records system hinting at the works; the Rav read as cold, clustered
+  `poolFor`: an empty site always reads its whole works chain, in order (a
+  power hall, the unpowered vault seal, the collapse on the short way, and the
+  sealed stores with the records system that marks them), each on every ruins
+  ground, so the hints are always true; the Rav read as cold, clustered
   biological lifesigns and seismic chatter; Domain security as fixed patrols,
   power draw and sweeps answering the ping; contingency security names
   Tri-Tachyon in its assessment and adds the codes and a lockdown reading. The

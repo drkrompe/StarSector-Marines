@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c180-c3da-7c32-8172-398e0757894e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c180-c3da-7c32-8172-398e0757894e\\exec-6ede8ae6-81d2-41c0-a77b-daba57f0388c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\a-master.png",
+    "sha256": "130d9a6d8831f3cab9b8da312a02ec3a8db1becd3b361e4b552e2dc066810431",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\a.prompt.txt",
+  "promptSha256": "6437f710aea380893d6ee28f2204d50596a4896021734cd2ce287328c604bbca",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the chassis of the HOUND, a fast, light close-assault walking machine, rebuilt in the old, low-tech Hegemony armour line's style.\n\nImage 1 is the exact geometry and layout authority: reskin it in place. Keep its exact outline, every panel boundary, the pointed nose, the flank leg pods, the spine and vents, its canvas registration, scale and transparent padding; change only paint, surface material and plate-face detail. Turn its sleek olive skin into riveted, welded, piped Hegemony plate.\n\nImage 2 is material and style reference only, never layout: the Hegemony medium tank this walker serves beside. Match its finish exactly: warm tan and khaki cast and welded plate with olive-green panels, heavy rivet rows, exposed piping and cable runs in the seams, worn bright edges, chips, grime and dust, a few orange hazard panels on leading corners, dark gunmetal working parts, crisp painted game-sprite finish, light from the upper left. It is old, low-tech, depot-built Hegemony military hardware: blunt, boxy, bolted and repairable, never sleek, smooth or high-tech.\n\nStrict 90-degree zenith orthographic top-down view of the chassis's top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, labels or logos.\n\nDraw only the chassis body: no weapons, missile racks, legs or feet, which are separate layers drawn later.\n\nAvoid: sci-fi smooth plastic, glowing lights, blue or cyan, white paint, perspective, side view, isometric view, cropped edges, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\guide-a.png",
+      "sha256": "9a2dcff9a7e93574611a791f18412c538864e29e463f4311541c2bcc05732522",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll reskin the HOUND in place, preserving Image 1’s geometry and using Image 2 only for the Hegemony materials and finish."
+  ],
+  "usage": {
+    "input_tokens": 45832,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 507,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.7
+}
