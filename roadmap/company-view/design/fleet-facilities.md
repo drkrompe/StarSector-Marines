@@ -1,6 +1,6 @@
 # Fleet facilities: the company without a company ship
 
-Status: ACTIVE — direction. The fleet's receipts and neutral start are implemented; Engineering, the mock rooms and lift are not.
+Status: ACTIVE — direction. The fleet's receipts, neutral start and Engineering's standalone tree are implemented; the mock rooms, lift and dropping the ship choice are not.
 Written: 2026-11-09
 
 Players ask to run the company from their own ship rather than the Second Wind.
@@ -56,7 +56,11 @@ deck. For fleet facilities it stands on its own, with no deck behind it; the
 `ShipBackdrop` starfield may stay as set dressing. Cores, tracks, tiers,
 requirements, prices and cards read the same. A purchase whose
 track owns a mock room reveals that room changed, the way `RefitReveal`
-reveals a deck room; any other purchase is confirmed in place.
+reveals a deck room; any other purchase is confirmed in place. Until the mock
+rooms exist every purchase is confirmed in place. The tree cannot be closed onto
+a deck; its back button returns to headquarters. The cards still carry the
+Second Wind's lore and Castle's portrait, which a later pass should rewrite for
+a fleet.
 
 Every track starts at its neutral band, the figures missions and evidence are
 tuned at, and sells only what lies past it, priced as the Second Wind's tiers

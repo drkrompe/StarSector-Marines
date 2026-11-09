@@ -39,6 +39,8 @@ public final class ShipConditionOverlay {
     private boolean pinned;
     private float leaveTime, pointerX, pointerY;
     private float measuredWidth;
+    private Runnable leave = () -> { };
+    private final UiElement close;
 
     public ShipConditionOverlay(UiDocument document, MarkupInstance markup, ShipConditionModel model) {
         this.document = document;
@@ -51,8 +53,9 @@ public final class ShipConditionOverlay {
         systems = markup.requireElement("ship-systems");
         tree = markup.requireElement("systems-tree");
         strip = markup.requireElement("systems-strip");
-        markup.requireElement("survey-close").onClick(this::dismiss);
-        markup.requireElement("systems-back").onClick(this::dismiss);
+        close = markup.requireElement("survey-close");
+        close.onClick(this::dismiss);
+        markup.requireElement("systems-back").onClick(() -> { if (!dismiss()) leave.run(); });
         curtain = markup.requireElement("reveal-curtain");
         frame = markup.requireElement("reveal-frame");
         caption = markup.requireElement("reveal-caption");
@@ -60,7 +63,8 @@ public final class ShipConditionOverlay {
         captionEffect = markup.requireElement("reveal-effect");
         captionHint = markup.requireElement("reveal-hint");
         curtain.onPointerDown(event -> skipReveal());
-        model.stageWith((order, commit) -> {
+        // With no deck there is no room to fly to, so a refit is paid for where it is authorized.
+        if (!model.deckless()) model.stageWith((order, commit) -> {
             reveal = new RefitReveal(order, commit);
             revealCanvas = null;
             flown = false;
@@ -73,8 +77,12 @@ public final class ShipConditionOverlay {
         canvas.onPointerMove(event -> { pointerX = event.x(); pointerY = event.y(); });
     }
 
+    /** Who takes the player away when the tree is all there is and they ask to go back. */
+    public void leaveWith(Runnable leave) { this.leave = leave; }
+
     public boolean dismiss() {
         if (reveal != null) { skipReveal(); return true; }
+        if (model.deckless()) return false;
         if (model.systemsOpen()) {
             model.closeSystems();
             markup.flush();
@@ -109,6 +117,13 @@ public final class ShipConditionOverlay {
 
     /** Call after camera movement and binding flush, before painting or dispatching input. */
     public void update(float dt, CompanyDeck ship, ShipViewCanvas deck) {
+        if (model.deckless()) {
+            // The card is the tree's own and cannot be closed away from it.
+            style(close, HIDDEN);
+            document.advance(0f);
+            showTree(stage.box().contentBox());
+            return;
+        }
         if (ship == null || !ship.ready() || deck.camera() == null) {
             style(card, HIDDEN);
             style(systems, HIDDEN);
