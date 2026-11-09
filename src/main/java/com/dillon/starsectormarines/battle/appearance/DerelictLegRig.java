@@ -4,19 +4,19 @@ import java.util.Arrays;
 
 /**
  * The derelict security walker's legs, seen from above (`derelict-security-network.md`, slice 9): a low torso slung
- * between three or four legs that reach out from a ring of hips and plant their feet. Presentation only, like the Rav
+ * between four legs that reach out from a ring of hips and plant their feet. Presentation only, like the Rav
  * rigs: the walker moves as any mech does and nothing in the battle reads its feet back.
  *
  * <p><b>Stepping.</b> Each foot stays planted where it landed while the torso moves over it. When the feet of a step
  * group have strayed past {@link #RESTEP_CELLS} from where they would rest, that group lifts and swings to new spots
- * over {@link #STEP_SECONDS}; the others hold. Four legs step in diagonal pairs (front-left with back-right), three
- * one at a time, so the torso always stands on at least two feet.
+ * over {@link #STEP_SECONDS}; the others hold. The legs step in diagonal pairs (front-left with back-right), so
+ * the torso always stands on two feet.
  *
- * <p><b>Reaching to walls.</b> With {@link #wallReach()} a leg reaches along its line up to {@link #MAX_REACH_CELLS}
- * and plants its foot on the face of the first wall it meets, so in a corridor the walker braces across it and in the
- * vault's halls it hangs off the walls; past every wall, or in the open, the foot plants on the floor at
- * {@link #REST_CELLS}. Without it a foot never reaches past the open floor in front of a wall. The torso itself keeps to
- * the floor cells it walks: its footprint and its pathing are a mech's.
+ * <p><b>Reaching to walls.</b> With {@link #wallReach()} a leg swings out sideways from its own line, up to
+ * {@link #SPLAY_STEPS} steps of {@link #SPLAY_DEGREES}, to the first wall face within {@link #MAX_REACH_CELLS} and
+ * plants its foot up on it, so in a hall the walker pulls itself along between the walls; with no wall in reach the
+ * foot plants on the floor at {@link #REST_CELLS}. Without it a foot stays on the floor, tucked short of a wall in its
+ * way. The torso itself keeps to floor cells either way.
  */
 public final class DerelictLegRig {
 
@@ -26,16 +26,21 @@ public final class DerelictLegRig {
     }
 
     /** Hips sit on a ring this far from the torso's centre, cells. */
-    public static final float HIP_CELLS = 0.42f;
+    public static final float HIP_CELLS = 0.55f;
     /** Where a foot rests on open floor, cells from the torso's centre. */
-    public static final float REST_CELLS = 1.5f;
+    public static final float REST_CELLS = 1.9f;
     /** How far a leg reaches for a wall, cells from the torso's centre. */
     public static final float MAX_REACH_CELLS = 3.0f;
     /** A foot further than this from its rest spot steps. */
-    public static final float RESTEP_CELLS = 0.7f;
+    public static final float RESTEP_CELLS = 0.8f;
     public static final float STEP_SECONDS = 0.28f;
     /** A foot on a wall's face stands this far off it, cells, so it reads as gripping the face, not inside it. */
     static final float FACE_OFFSET = 0.08f;
+    /** A floor foot stops this far short of a wall in its way. */
+    static final float TUCK_CELLS = 0.35f;
+    /** A reaching leg swings out sideways in steps of this many degrees, up to {@link #SPLAY_STEPS}, to find a wall. */
+    static final float SPLAY_DEGREES = 15f;
+    static final int SPLAY_STEPS = 2;
     private static final float MARCH = 0.05f;
 
     private final int legs;
@@ -60,17 +65,15 @@ public final class DerelictLegRig {
     private float facing;
 
     /**
-     * @param legs      three or four
      * @param wallReach whether legs reach out to plant on walls
      */
-    public DerelictLegRig(int legs, boolean wallReach) {
-        if (legs != 3 && legs != 4) throw new IllegalArgumentException("three or four legs");
-        this.legs = legs;
+    public DerelictLegRig(boolean wallReach) {
+        this.legs = 4;
         this.wallReach = wallReach;
-        hipAngle = legs == 4 ? new float[] {45f, 135f, 225f, 315f} : new float[] {0f, 120f, 240f};
-        // Four legs: front-left (45) with back-right (225), then back-left (135) with front-right (315).
-        group = legs == 4 ? new int[] {0, 1, 0, 1} : new int[] {0, 1, 2};
-        groups = legs == 4 ? 2 : 3;
+        hipAngle = new float[] {45f, 135f, 225f, 315f};
+        // Front-left (45) with back-right (225), then back-left (135) with front-right (315).
+        group = new int[] {0, 1, 0, 1};
+        groups = 2;
         footX = new float[legs];
         footY = new float[legs];
         fromX = new float[legs];
@@ -169,28 +172,45 @@ public final class DerelictLegRig {
      * reach when it reaches for walls, else on the floor at {@link #REST_CELLS}, short of any wall in between.
      */
     void rest(int i, Solid solid, float[] out) {
-        float angle = facing + hipAngle[i];
+        float own = facing + hipAngle[i];
+        if (wallReach) {
+            // Swing the leg out toward the walker's side, a SPLAY step at a time, until it finds a wall face in reach.
+            float side = sideOf(hipAngle[i]);
+            for (int k = 0; k <= SPLAY_STEPS; k++) {
+                float angle = own + side * k * SPLAY_DEGREES;
+                float hit = wallDistance(angle, MAX_REACH_CELLS, solid);
+                if (hit > 0f) {
+                    float at = hit - FACE_OFFSET;
+                    out[0] = bodyX + dirX(angle) * at;
+                    out[1] = bodyY + dirY(angle) * at;
+                    out[2] = 1f;
+                    return;
+                }
+            }
+        }
+        // On the floor: at rest, or tucked in short of a wall in the way.
+        float hit = wallDistance(own, REST_CELLS, solid);
+        float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
+        out[0] = bodyX + dirX(own) * at;
+        out[1] = bodyY + dirY(own) * at;
+        out[2] = 0f;
+    }
+
+    /** How far from the torso's centre a ray at {@code angle} meets a wall, within reach; 0 when it meets none. */
+    private float wallDistance(float angle, float reach, Solid solid) {
         float dx = dirX(angle);
         float dy = dirY(angle);
-        float reach = wallReach ? MAX_REACH_CELLS : REST_CELLS;
-        float lastX = bodyX + dx * HIP_CELLS;
-        float lastY = bodyY + dy * HIP_CELLS;
         for (float d = HIP_CELLS + MARCH; d <= reach + 1e-4f; d += MARCH) {
-            float px = bodyX + dx * d;
-            float py = bodyY + dy * d;
-            if (solid.at((int) Math.floor(px), (int) Math.floor(py))) {
-                out[0] = lastX - dx * FACE_OFFSET;
-                out[1] = lastY - dy * FACE_OFFSET;
-                out[2] = wallReach ? 1f : 0f;
-                return;
-            }
-            lastX = px;
-            lastY = py;
+            if (solid.at((int) Math.floor(bodyX + dx * d), (int) Math.floor(bodyY + dy * d))) return d;
         }
-        // No wall within reach: the foot plants on the floor at rest.
-        out[0] = bodyX + dx * REST_CELLS;
-        out[1] = bodyY + dy * REST_CELLS;
-        out[2] = 0f;
+        return 0f;
+    }
+
+    /** +1 or -1: which way from its own line a leg swings to splay out sideways, away from the fore-and-aft axis. */
+    private static float sideOf(float hipAngle) {
+        float a = ((hipAngle % 360f) + 360f) % 360f;
+        if (a < 90f || (a >= 180f && a < 270f)) return 1f;
+        return -1f;
     }
 
     /** Whether leg {@code i} is lifted in a step. */

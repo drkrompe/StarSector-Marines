@@ -1,7 +1,7 @@
 """Placeholder art for the derelict security walker (derelict-security-network.md, slice 9).
 
 Deliberately plain and machine-drawn, so it never reads as finished art or as any company mech: a hexagonal torso
-plate in Domain grey with hazard chevrons and a sensor eye, a leg bone, and a three-toed foot. Head-up (forward is
+plate in Domain grey with hazard chevrons and a sensor eye, a thigh, and a shin ending in a three-toed foot. Head-up (forward is
 the top of the image). The owner picks the real look; this keeps the walker its own shape meanwhile.
 
 Run: python art-source/derelict-walker/placeholder.py  (writes mod/graphics/battle/derelict-walker/)
@@ -64,11 +64,34 @@ def foot(size=40):
     return img
 
 
+def joint(size=48):
+    """The knee: a pivot drum."""
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.ellipse([4, 4, size - 5, size - 5], fill=DARK, outline=EDGE, width=3)
+    d.ellipse([size / 2 - 8, size / 2 - 8, size / 2 + 8, size / 2 + 8], fill=GREY, outline=EDGE, width=2)
+    return img
+
+
+def shin():
+    """The shin with its foot at the top (DerelictWalkerAssets: knee at the bottom, foot at the top)."""
+    bone = leg(36, 170)
+    claw = foot(48)
+    img = Image.new('RGBA', (48, 204), (0, 0, 0, 0))
+    img.alpha_composite(bone, (6, 34))
+    img.alpha_composite(claw, (0, 0))
+    return img
+
+
 def main():
     os.makedirs(ROOT, exist_ok=True)
-    torso().save(os.path.join(ROOT, 'torso.png'))
-    leg().save(os.path.join(ROOT, 'leg.png'))
-    foot().save(os.path.join(ROOT, 'foot.png'))
+    for stale in ('leg.png', 'foot.png'):
+        if os.path.exists(os.path.join(ROOT, stale)):
+            os.remove(os.path.join(ROOT, stale))
+    torso(216).save(os.path.join(ROOT, 'torso.png'))
+    leg(36, 166).save(os.path.join(ROOT, 'thigh.png'))
+    shin().save(os.path.join(ROOT, 'shin.png'))
+    joint().save(os.path.join(ROOT, 'joint.png'))
     print('wrote', os.path.abspath(ROOT))
 
 

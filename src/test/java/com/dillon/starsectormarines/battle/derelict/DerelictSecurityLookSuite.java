@@ -1,7 +1,14 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
@@ -23,7 +30,9 @@ import java.util.List;
  * extensive-grade fixture's first gun post folded, the same post unfolded, and its first zone's control node, one still
  * each through the look preset, close and with the roof lifted (a post or node may stand inside the site). The look
  * candidates are shown through {@code -Dsnapshot.artOverlay}; {@code -Dsnapshot.derelict.lineage=contingency} plays the
- * site as contingency security. Opt-in. No outcome is judged: the site plays a moment and is looked at.
+ * site as contingency security. A company Hound is stood a few cells beside each post and node, after the site has
+ * settled and with no tick played after it, so every still shows the derelict art beside a shipped mech for scale and
+ * style. Opt-in. No outcome is judged: the site plays a moment and is looked at.
  */
 public final class DerelictSecurityLookSuite implements SnapshotSuite {
 
@@ -34,6 +43,8 @@ public final class DerelictSecurityLookSuite implements SnapshotSuite {
     static final int SETTLE_TICKS = 30;
     static final float CLOSE_CELLS = 16f;
     static final float DRONE_ASIDE_CELLS = 3f;
+    /** How far to the left of the post or node the scale Hound is looked for, in cells. */
+    static final int HOUND_ASIDE_CELLS = 3;
 
     @Override public String id() { return "derelict-security-look"; }
 
@@ -58,10 +69,11 @@ public final class DerelictSecurityLookSuite implements SnapshotSuite {
                     + " posts, " + director.nodes().size() + " nodes");
             if (!director.posts().isEmpty()) {
                 long post = director.posts().keySet().iterator().next();
-                out.add(still(context, sim, post, "derelict-post-folded"));
+                long hound = hound(sim, post);
+                out.add(still(context, sim, post, hound, "derelict-post-folded"));
                 // Unfolded: the zone's power on, as when it wakes. Rendered before the director's next pulse cuts it.
                 for (long id : director.posts().keySet()) sim.turretState().restorePower(id);
-                out.add(still(context, sim, post, "derelict-post-unfolded"));
+                out.add(still(context, sim, post, hound, "derelict-post-unfolded"));
             }
             if (!director.nodes().isEmpty()) {
                 // The zone's repair drone waits over its node; it is moved aside so the node is seen whole.
@@ -72,7 +84,8 @@ public final class DerelictSecurityLookSuite implements SnapshotSuite {
                     if (body != null) body.teleport(x, y, 0f);
                     sim.world().setPos(drone, x, y);
                 }
-                out.add(still(context, sim, director.nodes().values().iterator().next(), "derelict-node"));
+                long node = director.nodes().values().iterator().next();
+                out.add(still(context, sim, node, hound(sim, node), "derelict-node"));
             }
             return out;
         }
@@ -80,9 +93,10 @@ public final class DerelictSecurityLookSuite implements SnapshotSuite {
 
     /**
      * One look-preset still centred on a unit, close, the roof lifted. Prints where the unit falls in the image (the
-     * camera keeps to the map, so a unit by its edge is off centre), for the picks cards' crops.
+     * camera keeps to the map, so a unit by its edge is off centre), and where the scale Hound {@code beside} falls
+     * when there is one, for the picks cards' crops.
      */
-    static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, long unit, String name)
+    static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, long unit, long beside, String name)
             throws Exception {
         float x = sim.world().renderX(unit);
         float y = sim.world().renderY(unit);
@@ -91,7 +105,38 @@ public final class DerelictSecurityLookSuite implements SnapshotSuite {
         BattleCamera camera = renderer.cameraOf(sim);
         System.out.printf("    [look/derelict] %s at %d,%d%n", name, Math.round(camera.cellToScreenX(x)),
                 Math.round(1080 - camera.cellToScreenY(y)));
+        if (beside != 0L) System.out.printf("    [look/derelict] %s-hound at %d,%d%n", name,
+                Math.round(camera.cellToScreenX(sim.world().renderX(beside))),
+                Math.round(1080 - camera.cellToScreenY(sim.world().renderY(beside))));
         return new SnapshotArtifact(name + ".png", renderer.render(sim, name));
+    }
+
+    /**
+     * A company Hound set down on standable ground a few cells to the left of {@code unit}, facing nothing in
+     * particular, for scale and style beside the derelict art; 0 when no ground near it stands one.
+     */
+    static long hound(BattleSimulation sim, long unit) {
+        int x = (int) Math.floor(sim.world().x(unit)) - HOUND_ASIDE_CELLS;
+        int y = (int) Math.floor(sim.world().y(unit));
+        MechSpawnPlacement.Point at = null;
+        for (int r = 0; at == null && r <= 6; r++)
+            for (int dy = -r; at == null && dy <= r; dy++) for (int dx = -r; at == null && dx <= r; dx++)
+                if (Math.max(Math.abs(dx), Math.abs(dy)) == r)
+                    at = MechSpawnPlacement.nearCell(sim.getGrid(), MechVariant.HOUND.radius, x + dx, y + dy,
+                            (px, py) -> true, (px, py) -> true);
+        if (at == null) {
+            System.out.println("    [look/derelict] no standable ground for the scale Hound");
+            return 0L;
+        }
+        int squad = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long mech = sim.spawn(new EntitySpec("Scale Hound", Faction.MARINE, UnitType.HEAVY_MECH, at.cellX(),
+                at.cellY()).atPosition(at.x(), at.y()).mechVariant(MechVariant.HOUND).squad(squad));
+        sim.world().attachMechLoadout(mech, FactionMechLoadouts.create(MechVariant.HOUND,
+                MechVariant.HOUND.defaultRole, "independent"));
+        Squad s = sim.getSquad(squad);
+        s.leaderId = mech;
+        s.originalSize = 1;
+        return mech;
     }
 
     /** Sets every {@code occupant} in the fixture, at any depth. */

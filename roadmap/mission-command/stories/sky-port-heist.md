@@ -1,7 +1,7 @@
 # Story — Sky port heist: a raid on a freighter at its berth
 
-Status: IN PROGRESS — the timed raid, the called freighter and the debug mission are built; the owner's playtest, the
-station's owner and the next layer of the job remain.
+Status: IN PROGRESS — the timed raid, the called freighter and the debug mission are built; the owner's playtest and
+the next layer of the job remain.
 
 Written: 2026-11-09
 
@@ -33,7 +33,8 @@ leaves; if early, the company holds the platform under fire until it comes.
   instruction and its blocker; while berthed, how long until it leaves.
 - **Port security** holds the two viaduct heads on the concourse and the berth as garrisons, outside mission
   command; a mobile reserve of two squads on the concourse answers the raid's alarm under `RaidDefenderCommand`.
-  The station's owner is an open question; the roster is Tri-Tachyon's until the owner says otherwise.
+  The station is an independent port and its security is **independent customs** (owner, 2026-11-09), drawn from
+  the independent ground roster.
 
 ## Built
 
@@ -52,7 +53,5 @@ leaves (7:00), where port security stands and how many. Balance is the owner's p
 ## Left
 
 - The owner's playtest of the clock, the defence and the route.
-- Whose station it is (Hegemony customs, a Tri-Tachyon corporate port, a pirate free port), which sets the roster,
-  the briefing and who hires the company.
 - The freighter's own crew and guns, and port security reinforcing by air down the canyons once the alarm is up.
 - Briefing art and a campaign offer: the heist is a debug mission only.
