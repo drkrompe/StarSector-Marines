@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.PolyMesh;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,15 +21,19 @@ import java.util.List;
  * wide stands on a tower of its own, one to each connected piece, and the narrower ground left between them is
  * a walkway, a girder span a few metres deep with the drop under it. Nothing in the map marks which is which.
  *
- * <p><b>Depth.</b> The view is a pinhole camera looking straight down from a height in proportion to the view's
- * width in cells ({@link VoidBackdrop#eyeHeight}), so a point {@code d} metres below the surface stands on screen at {@code h / (h + d)} of its
- * distance from the view's centre. The ground below moves slower than the surface when the camera pans, and
- * grows less when it zooms.
+ * <p><b>Depth.</b> The view is a pinhole camera looking straight down from a fixed height above the surface
+ * ({@link VoidBackdrop#eyeMeters}), so a point {@code d} metres below the surface stands on screen at
+ * {@code h / (h + d)} of its distance from the view's centre. The ground below moves slower than the surface
+ * when the camera pans; zooming is a lens, not a dolly, so the drop keeps its proportions at every zoom rather
+ * than plunging as the view closes in.
  *
- * <p><b>Painter's order.</b> The structure is drawn from the bottom up: the ground, the structure's shadow on
- * it, then each level from the deepest: its walls, far faces first, then the roof it stands under, which
- * covers the faces turned away from the camera, and the freight lanes on that roof. The surface's own tiles,
- * drawn after, close the top. A level is the surface's footprint grown by its terrace's outset, its walls
+ * <p><b>Painter's order.</b> Everything is drawn from the bottom up in slices of depth, across every structure
+ * at once: the ground, the shadows on it, then each wall in bands of {@link #BAND_METERS}, each roof, each
+ * freight bay and each craft by its depth, deepest first, and at one depth the faces far from the camera first.
+ * A roof covers its own walls' faces turned away from the camera, and a nearer tower's upper walls cover a deeper
+ * one's roof, while its lower walls go behind it: ordering whole towers or whole levels by their roofs would let
+ * a tower's walls cut through a neighbour standing in front of them. The surface's own tiles, drawn after, close
+ * the top. A level is the surface's footprint grown by its terrace's outset, its walls
  * running from its roof down to the next terrace or the ground. Every tower's levels, the walkways' and the
  * neighbouring towers' are drawn in one order, deepest roof first.
  *
@@ -43,7 +48,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     /** The railing along the surface's edge, as a fraction of a cell. */
     static final float RAIL_CELLS = .16f;
     /** Shadow mask cells per map cell. */
-    static final int SHADOW_RES = 2;
+    static final int SHADOW_RES = 4;
     /** The ground system's own backing colour, laid under the surface. */
     static final float BACKING_R = 0x18 / 255f, BACKING_G = 0x22 / 255f, BACKING_B = 0x30 / 255f;
     /** Freight bay mouths: spacing along a wall, width and height in metres, and the lane each feeds. */
@@ -87,6 +92,17 @@ final class VoidBackdropRenderSystem implements RenderSystem {
     private BattleCamera cam;
     private VoidBackdrop backdrop;
     private float eye, cx, cy, alpha;
+
+    /** One thing drawn at one depth: a band of wall, a girder side, a roof or a freight bay. */
+    private record Item(float depth, int kind, Level level, float[] run, float z0, float z1, float[] mouth) {
+        static final int WALL = 0, GIRDER = 1, ROOF = 2, MOUTH = 3;
+    }
+
+    /** Everything the structures draw, deepest first: the painter's order before the camera's far-first pass. */
+    private final List<Item> items = new ArrayList<>();
+    /** Single-quad meshes for this frame's slanted bands, reused frame to frame. */
+    private final List<PolyMesh> polys = new ArrayList<>();
+    private int polysUsed;
 
     /** A footprint and the depths its walls run between. */
     private static final class Level {
@@ -136,7 +152,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         this.cam = cam;
         this.backdrop = backdrop;
         this.alpha = ctx.alphaMult;
-        this.eye = cam.vpW() / cellPx * backdrop.eyeHeight();
+        this.polysUsed = 0;
+        this.eye = backdrop.eyeMeters();
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
         if (builtFor != topology || builtWith != backdrop) build(topology, ctx.sim.getGrid().elevation(), backdrop);
@@ -145,19 +162,31 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         drawShadow();
         fly(ctx.animationTimeSeconds);
         float px = cam.panCellX(), py = cam.panCellY();
-        for (Level level : levels) {
-            List<float[]> order = new ArrayList<>(level.runs);
-            order.sort((a, b) -> Float.compare(planDistance(b, px, py), planDistance(a, px, py)));
-            for (float[] run : order) {
-                if (level.span) drawGirder(run);
-                else drawWall(level, run);
+        List<float[]> flying = new ArrayList<>();
+        for (Level level : levels) flying.addAll(level.flying);
+        flying.sort((a, b) -> Float.compare(b[2], a[2]));
+        int craft = 0;
+        int i = 0;
+        while (i < items.size()) {
+            // One slice: every item at this depth, faces far from the camera first.
+            float depth = items.get(i).depth();
+            int j = i;
+            while (j < items.size() && items.get(j).depth() == depth) j++;
+            while (craft < flying.size() && flying.get(craft)[2] > depth) {
+                float[] c = flying.get(craft++);
+                drawCraft(c[0], c[1], c[2], c[3], (int) c[4], c[5]);
             }
-            // Craft in this level's band of depth fly outside its walls, deepest first, under the roof above.
-            level.flying.sort((a, b) -> Float.compare(b[2], a[2]));
-            for (float[] craft : level.flying) {
-                drawCraft(craft[0], craft[1], craft[2], craft[3], (int) craft[4], craft[5]);
+            List<Item> slice = items.subList(i, j);
+            if (slice.size() > 1) {
+                slice = new ArrayList<>(slice);
+                slice.sort((a, b) -> Float.compare(itemDistance(b, px, py), itemDistance(a, px, py)));
             }
-            if (!level.surface) drawRoof(level);
+            for (Item item : slice) if (onScreen(item)) draw(item);
+            i = j;
+        }
+        while (craft < flying.size()) {
+            float[] c = flying.get(craft++);
+            drawCraft(c[0], c[1], c[2], c[3], (int) c[4], c[5]);
         }
         for (float[] run : rails) drawRail(run);
         // The surface's own backing, which the ground system leaves off on a map with a backdrop: wall art is
@@ -244,9 +273,14 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         for (Level level : levels) {
             level.shadow.clear();
             if (level.surface) continue;
+            float[] box = bounds(level.roofs);
             List<float[]> above = new ArrayList<>();
-            for (Level other : levels) if (other.top < level.top) above.add(cast(other, level.top));
-            shade(above, level.roofs, level.shadow);
+            for (Level other : levels) {
+                if (other.top >= level.top) continue;
+                float[] hull = cast(other, level.top);
+                if (meets(hull, box)) above.add(hull);
+            }
+            if (!above.isEmpty()) shade(above, level.roofs, level.shadow);
         }
     }
 
@@ -271,6 +305,26 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         return hull(points);
     }
 
+    /** The rectangle {@code {x0, y0, x1, y1}} round some rectangles. */
+    private static float[] bounds(List<float[]> rects) {
+        float[] b = {Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+        for (float[] r : rects) {
+            b[0] = Math.min(b[0], r[0]); b[1] = Math.min(b[1], r[1]);
+            b[2] = Math.max(b[2], r[2]); b[3] = Math.max(b[3], r[3]);
+        }
+        return b;
+    }
+
+    /** Whether a hull's bounding box meets a rectangle. */
+    private static boolean meets(float[] hull, float[] box) {
+        float x0 = Float.MAX_VALUE, y0 = Float.MAX_VALUE, x1 = -Float.MAX_VALUE, y1 = -Float.MAX_VALUE;
+        for (int k = 0; k < hull.length; k += 2) {
+            x0 = Math.min(x0, hull[k]); x1 = Math.max(x1, hull[k]);
+            y0 = Math.min(y0, hull[k + 1]); y1 = Math.max(y1, hull[k + 1]);
+        }
+        return x1 >= box[0] && x0 <= box[2] && y1 >= box[1] && y0 <= box[3];
+    }
+
     /** The union of some convex hulls, kept only inside {@code clip}'s rectangles if given, as rectangles. */
     private static void shade(List<float[]> hulls, List<float[]> clip, List<float[]> into) {
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
@@ -280,7 +334,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 minY = Math.min(minY, hull[k + 1]); maxY = Math.max(maxY, hull[k + 1]);
             }
         }
-        if (minX > maxX) return;
+        if (clip != null) {
+            float[] c = bounds(clip);
+            minX = Math.max(minX, c[0]); minY = Math.max(minY, c[1]);
+            maxX = Math.min(maxX, c[2]); maxY = Math.min(maxY, c[3]);
+        }
+        if (minX > maxX || minY > maxY) return;
         int res = SHADOW_RES;
         int ox = (int) Math.floor(minX * res) - 1, oy = (int) Math.floor(minY * res) - 1;
         int mw = (int) Math.ceil(maxX * res) - ox + 2, mh = (int) Math.ceil(maxY * res) - oy + 2;
@@ -344,8 +403,67 @@ final class VoidBackdropRenderSystem implements RenderSystem {
 
     // ----- the structure -----
 
-    /** One face of a level, from its roof down to its foot, in bands of facade, then its freight bays. */
-    private void drawWall(Level level, float[] run) {
+    private void draw(Item item) {
+        switch (item.kind()) {
+            case Item.WALL -> drawWallBand(item.run(), item.z0(), item.z1());
+            case Item.GIRDER -> drawGirder(item.run());
+            case Item.ROOF -> drawRoof(item.level());
+            default -> {
+                float[] run = item.run();
+                boolean horizontal = run[1] == run[3];
+                drawMouth(item.level(), horizontal, horizontal ? run[1] : run[0], item.mouth()[1]);
+            }
+        }
+    }
+
+    /** Whether any of an item can be on screen: a wall band or girder by its run's ends at both its depths. */
+    private boolean onScreen(Item item) {
+        float[] run = item.run();
+        if (run == null || item.kind() == Item.MOUTH) return true;
+        float s0 = scale(item.z0()), s1 = scale(item.z1());
+        float x0 = Math.min(Math.min(sx(run[0], s0), sx(run[2], s0)), Math.min(sx(run[0], s1), sx(run[2], s1)));
+        float x1 = Math.max(Math.max(sx(run[0], s0), sx(run[2], s0)), Math.max(sx(run[0], s1), sx(run[2], s1)));
+        float y0 = Math.min(Math.min(sy(run[1], s0), sy(run[3], s0)), Math.min(sy(run[1], s1), sy(run[3], s1)));
+        float y1 = Math.max(Math.max(sy(run[1], s0), sy(run[3], s0)), Math.max(sy(run[1], s1), sy(run[3], s1)));
+        return x1 >= cam.vpX() && x0 <= cam.vpX() + cam.vpW() && y1 >= cam.vpY() && y0 <= cam.vpY() + cam.vpH();
+    }
+
+    /** How far an item lies from the camera's point, seen from above: a roof counts as at the point. */
+    private static float itemDistance(Item item, float px, float py) {
+        return item.run() == null ? 0f : planDistance(item.run(), px, py);
+    }
+
+    /** The painter's list: every wall band, girder side, roof and freight bay, deepest first. */
+    private void plotItems() {
+        items.clear();
+        for (Level level : levels) {
+            for (float[] run : level.runs) {
+                if (level.span) {
+                    items.add(new Item(SPAN_METERS / 2f, Item.GIRDER, level, run, 0f, SPAN_METERS, null));
+                    continue;
+                }
+                float z = level.top;
+                while (z < level.bottom - .01f) {
+                    float z1 = Math.min(level.bottom, (float) (Math.floor(z / BAND_METERS) + 1) * BAND_METERS);
+                    items.add(new Item((z + z1) / 2f, Item.WALL, level, run, z, z1, null));
+                    z = z1;
+                }
+            }
+            // A bay is drawn over the wall it opens in, just shallower than the band at its middle.
+            for (float[] mouth : level.mouths) {
+                float zb = level.bottom - 1f, mid = zb - MOUTH_H / 2f;
+                float band = (float) (Math.floor(mid / BAND_METERS) + .5f) * BAND_METERS;
+                items.add(new Item(band - .01f, Item.MOUTH, level, level.runs.get((int) mouth[0]), 0f, 0f, mouth));
+            }
+            if (!level.surface) items.add(new Item(level.top, Item.ROOF, level, null, 0f, 0f, null));
+        }
+        // Deepest first; at one depth a roof after the walls standing to it, so it covers its own far faces.
+        items.sort((a, b) -> a.depth() != b.depth() ? Float.compare(b.depth(), a.depth())
+                : Integer.compare(a.kind() == Item.ROOF ? 1 : 0, b.kind() == Item.ROOF ? 1 : 0));
+    }
+
+    /** One band of a face, between two depths, in tiles of facade under the haze at its depth. */
+    private void drawWallBand(float[] run, float z, float z1) {
         boolean horizontal = run[1] == run[3];
         float a = horizontal ? run[0] : run[1], b = horizontal ? run[2] : run[3];
         float line = horizontal ? run[1] : run[0];
@@ -354,10 +472,12 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         ShuttleSpriteCache facade = backdrop.facadeTexture() == null ? null
                 : sprites.spriteByPath(backdrop.facadeTexture());
         float tile = backdrop.facadeTileMeters();
-        float z = level.top;
-        while (z < level.bottom - .01f) {
-            float z1 = Math.min(level.bottom, (float) (Math.floor(z / BAND_METERS) + 1) * BAND_METERS);
+        {
             float s0 = scale(z), s1 = scale(z1), sm = scale((z + z1) / 2f);
+            // An opaque underlay in the band's true shape: the facade art is not opaque everywhere, and its
+            // tiles are cut to fit inside the band, so the underlay alone draws the band's slanted ends.
+            float under = .19f * lit;
+            band(horizontal, line, a, b, s0, s1, sm, under, under * .98f, under * .96f, alpha);
             if (facade != null && facade.pxW > 0) {
                 float u = a;
                 while (u < b - .01f) {
@@ -372,10 +492,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             float haze = hazeAt((z + z1) / 2f);
             band(horizontal, line, a, b, s0, s1, sm, backdrop.hazeR(), backdrop.hazeG(), backdrop.hazeB(),
                     haze * alpha);
-            z = z1;
         }
-        int index = level.runs.indexOf(run);
-        for (float[] mouth : level.mouths) if ((int) mouth[0] == index) drawMouth(level, horizontal, line, mouth[1]);
     }
 
     /**
@@ -410,14 +527,22 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         srcH = Math.min(srcH, ph - srcY);
         if (srcW <= 0 || srcH <= 0) return;
         float qx, qy, w, h, angle;
+        // Along the wall the piece keeps to what the band covers at both its depths, so it never overhangs the
+        // band's slanted ends: the underlay draws those.
         if (horizontal) {
-            float x0 = sx(u0, sm), x1 = sx(u1, sm), ya = sy(line, s0), yb = sy(line, s1);
+            float x0 = Math.max(Math.min(sx(u0, s0), sx(u1, s0)), Math.min(sx(u0, s1), sx(u1, s1)));
+            float x1 = Math.min(Math.max(sx(u0, s0), sx(u1, s0)), Math.max(sx(u0, s1), sx(u1, s1)));
+            if (x1 <= x0) return;
+            float ya = sy(line, s0), yb = sy(line, s1);
             qx = (x0 + x1) / 2f; qy = (ya + yb) / 2f;
             w = Math.abs(x1 - x0) + .5f; h = Math.abs(yb - ya) + .5f;
             // The facade's top is the shallow end: turn it over where the deep end lies above.
             angle = yb < ya ? 180f : 0f;
         } else {
-            float y0 = sy(u0, sm), y1 = sy(u1, sm), xa = sx(line, s0), xb = sx(line, s1);
+            float y0 = Math.max(Math.min(sy(u0, s0), sy(u1, s0)), Math.min(sy(u0, s1), sy(u1, s1)));
+            float y1 = Math.min(Math.max(sy(u0, s0), sy(u1, s0)), Math.max(sy(u0, s1), sy(u1, s1)));
+            if (y1 <= y0) return;
+            float xa = sx(line, s0), xb = sx(line, s1);
             qx = (xa + xb) / 2f; qy = (y0 + y1) / 2f;
             w = Math.abs(y1 - y0) + .5f; h = Math.abs(xb - xa) + .5f;
             angle = xb > xa ? 90f : 270f;
@@ -426,18 +551,30 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 qx, qy, w, h, angle, lit, lit, lit, alpha);
     }
 
-    /** A band of a face between two depths, filled with one colour. */
+    /**
+     * A band of a face between two depths, filled with one colour, in its true shape: the quad between the run's
+     * ends at the shallow depth and at the deep one, so a wall converging on the view's centre has straight slanted
+     * ends rather than steps.
+     */
     private void band(boolean horizontal, float line, float a, float b, float s0, float s1, float sm,
                       float r, float g, float bl, float al) {
-        float ax, ay, bx, by;
+        PolyMesh mesh = poly();
         if (horizontal) {
-            ax = sx(a, sm); bx = sx(b, sm); ay = sy(line, s0); by = sy(line, s1);
+            float y0 = sy(line, s0), y1 = sy(line, s1);
+            mesh.appendQuad(sx(a, s0), y0, sx(b, s0), y0, sx(b, s1), y1, sx(a, s1), y1, r, g, bl, al);
         } else {
-            ay = sy(a, sm); by = sy(b, sm); ax = sx(line, s0); bx = sx(line, s1);
+            float x0 = sx(line, s0), x1 = sx(line, s1);
+            mesh.appendQuad(x0, sy(a, s0), x0, sy(b, s0), x1, sy(b, s1), x1, sy(a, s1), r, g, bl, al);
         }
-        float minX = Math.min(ax, bx), maxX = Math.max(ax, bx), minY = Math.min(ay, by), maxY = Math.max(ay, by);
-        if (horizontal) { minY -= .25f; maxY += .25f; } else { minX -= .25f; maxX += .25f; }
-        out.addSolidRect(RenderLayer.GROUND, minX, minY, maxX, maxY, r, g, bl, al);
+        out.addPoly(RenderLayer.GROUND, mesh);
+    }
+
+    /** A cleared mesh from this frame's pool, queued once: each keeps its own place in the painter's order. */
+    private PolyMesh poly() {
+        if (polysUsed == polys.size()) polys.add(new PolyMesh(1));
+        PolyMesh mesh = polys.get(polysUsed++);
+        mesh.reset();
+        return mesh;
     }
 
     /** A freight bay: a dark mouth in the foot of a wall, lit along its sill, a beacon at each upper corner. */
@@ -545,8 +682,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         for (float[] run : level.runs) {
             boolean horizontal = run[1] == run[3];
             float w = .6f;
-            if (horizontal) rect(run[0], run[1] - run[5] * w, run[2], run[1], depth, .62f, .60f, .55f, .9f * alpha);
-            else rect(run[0] - run[4] * w, run[1], run[0], run[3], depth, .62f, .60f, .55f, .9f * alpha);
+            if (horizontal) rect(run[0], run[1] - run[5] * w, run[2], run[1], depth, .44f, .42f, .39f, .7f * alpha);
+            else rect(run[0] - run[4] * w, run[1], run[0], run[3], depth, .44f, .42f, .39f, .7f * alpha);
         }
         float haze = hazeAt(depth);
         for (float[] r : level.roofs) {
@@ -670,6 +807,23 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                 }
             }
         }
+        if (!backdrop.skyways().isEmpty()) {
+            // Skyways the backdrop names, down the city's streets: two streams apiece, opposite ways, either side
+            // of the street's middle.
+            for (VoidBackdrop.Skyway way : backdrop.skyways()) {
+                float dx = way.x1() - way.x0(), dy = way.y1() - way.y0();
+                float length = (float) Math.hypot(dx, dy);
+                if (length <= 0f) continue;
+                float nx = -dy / length * 4f, ny = dx / length * 4f;
+                int count = Math.max(1, Math.round(length / SKYWAY_SPACING));
+                float z = way.depthMeters();
+                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING, new float[][]{
+                        {way.x0() + nx, way.y0() + ny, z}, {way.x1() + nx, way.y1() + ny, z}}));
+                routes.add(route(count, SKYWAY_SPEED, SKYWAY_SPACING, new float[][]{
+                        {way.x1() - nx, way.y1() - ny, z}, {way.x0() - nx, way.y0() - ny, z}}));
+            }
+            return;
+        }
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
         for (Level level : levels) for (float[] r : level.roofs) {
             minX = Math.min(minX, r[0]); minY = Math.min(minY, r[1]);
@@ -734,6 +888,11 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         float widest = 0f;
         for (VoidBackdrop.Tier tier : backdrop.tiers()) widest = Math.max(widest, tier.outsetMeters());
         int m = (int) Math.ceil(widest) + 2;
+        // The mask reaches past the map far enough to hold every neighbouring tower and its terraces.
+        for (VoidBackdrop.Tower tower : backdrop.neighbours()) {
+            m = Math.max(m, Math.max(Math.max(-tower.x0(), -tower.y0()), Math.max(tower.x1() - w, tower.y1() - h))
+                    + (int) Math.ceil(widest) + 2);
+        }
         int mw = w + 2 * m, mh = h + 2 * m;
         boolean[] base = new boolean[mw * mh];
         for (int y = 0; y < h; y++) {
@@ -807,6 +966,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             }
         }
         plotTraffic(backdrop);
+        plotItems();
     }
 
     /**

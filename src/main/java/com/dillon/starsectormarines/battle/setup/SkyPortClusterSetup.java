@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.VoidBackdrop;
 import com.dillon.starsectormarines.i18n.Strings;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +54,12 @@ public final class SkyPortClusterSetup {
     private static final int ARRIVAL_X = 62, ARRIVAL_Y = 96;
     /** How far below the roofs the city lies, in metres. */
     public static final float DEPTH = 400f;
+    /**
+     * How high above the roofs the camera looks down from, in metres, at every zoom: high enough that close in the
+     * canyons between towers keep their proportions instead of plunging, low enough that the drop still moves
+     * against the roofs when the view pans.
+     */
+    public static final float EYE_METERS = 240f;
 
     /** Vanilla hulls flying the bays and skyways; the last three, the freighters, stand parked on the terraces. */
     public static final List<String> CRAFT = List.of(
@@ -77,30 +84,109 @@ public final class SkyPortClusterSetup {
         return sim;
     }
 
+    /** The city's street grid round the port: a plot's pitch and the street between plots, in metres. */
+    public static final int PLOT_PITCH = 60, STREET = 24;
+    /** The least side of a plot left standing once trimmed clear of the port's towers. */
+    private static final int MIN_PLOT = 14;
+    /** How far round the map the city's towers stand, in metres. */
+    private static final int CITY_MARGIN = 110;
+
     /**
      * The industrial hive sky port seen from its roofs: slender towers stepping out only a little as they fall, so
-     * the drop between them stays open, and lower towers standing round them in it. {@code depth} scales the
-     * terraces and neighbours with it; {@code eye} is the camera's height as a multiple of the view's width.
+     * the streets between them stay open, and the city's towers round them on a street grid. {@code depth} scales
+     * the terraces and the city's roofs with it; {@code eye} is the camera's height above the roofs in metres.
      */
     public static VoidBackdrop backdrop(float depth, float eye) {
         float f = depth / 400f;
-        return industrial(depth, eye, List.of(new VoidBackdrop.Tier(50f * f, 4f),
-                new VoidBackdrop.Tier(120f * f, 10f), new VoidBackdrop.Tier(210f * f, 18f),
-                new VoidBackdrop.Tier(300f * f, 28f)), List.of(
-                new VoidBackdrop.Tower(180, 40, 215, 80, 50f * f), new VoidBackdrop.Tower(88, 115, 108, 160, 45f * f),
-                new VoidBackdrop.Tower(0, 115, 22, 150, 90f * f), new VoidBackdrop.Tower(185, 110, 230, 160, 140f * f),
-                new VoidBackdrop.Tower(85, 0, 105, 22, 65f * f), new VoidBackdrop.Tower(0, 10, 25, 45, 55f * f),
-                new VoidBackdrop.Tower(175, 0, 205, 25, 180f * f), new VoidBackdrop.Tower(40, 125, 70, 160, 55f * f),
-                new VoidBackdrop.Tower(-40, 60, -5, 100, 120f * f), new VoidBackdrop.Tower(245, 70, 280, 105, 70f * f)));
+        // Two bold setbacks rather than many slight ones: a terrace a couple of metres deep reads as a sliver.
+        return industrial(depth, eye, List.of(new VoidBackdrop.Tier(110f * f, 4f),
+                new VoidBackdrop.Tier(250f * f, 9f)), city(f), skyways(f));
+    }
+
+    /**
+     * Traffic down the city's streets: a lane along the middle of every street of the grid that keeps clear of
+     * the port's towers, at depths stepping down from lane to lane, so craft fly the canyons between the towers.
+     */
+    static List<VoidBackdrop.Skyway> skyways(float f) {
+        List<VoidBackdrop.Skyway> ways = new ArrayList<>();
+        int[][] port = {A, B, C, OUTPOST};
+        float lo = -CITY_MARGIN, hiX = W + CITY_MARGIN, hiY = H + CITY_MARGIN;
+        float[] depths = {170f, 230f, 290f, 340f};
+        int lane = 0;
+        for (int axis = 0; axis < 2; axis++) {
+            float hi = axis == 0 ? hiX : hiY;
+            for (int street = -CITY_MARGIN + PLOT_PITCH - STREET / 2; street < hi; street += PLOT_PITCH) {
+                boolean clear = true;
+                for (int[] roof : port) {
+                    int a0 = axis == 0 ? roof[0] : roof[1], a1 = axis == 0 ? roof[2] : roof[3];
+                    if (street >= a0 - STREET / 2 && street <= a1 + STREET / 2) clear = false;
+                }
+                if (!clear) continue;
+                float z = depths[lane++ % depths.length] * f;
+                ways.add(axis == 0 ? new VoidBackdrop.Skyway(street, lo, street, hiY, z)
+                        : new VoidBackdrop.Skyway(lo, street, hiX, street, z));
+            }
+        }
+        return ways;
+    }
+
+    /**
+     * The city's towers round the port, on a street grid: square plots of {@link #PLOT_PITCH} less a street of
+     * {@link #STREET}, each trimmed to keep a street's width from every roof the battle stands on, and dropped if
+     * too little is left. The city rises toward the port: a roof's depth grows with its plot's distance from the
+     * cluster's middle, with a little of each plot's own.
+     */
+    static List<VoidBackdrop.Tower> city(float f) {
+        List<VoidBackdrop.Tower> towers = new ArrayList<>();
+        int[][] port = {A, B, C, OUTPOST};
+        float mx = W / 2f, my = H / 2f;
+        for (int py = -CITY_MARGIN; py < H + CITY_MARGIN; py += PLOT_PITCH) {
+            for (int px = -CITY_MARGIN; px < W + CITY_MARGIN; px += PLOT_PITCH) {
+                int[] plot = {px, py, px + PLOT_PITCH - STREET - 1, py + PLOT_PITCH - STREET - 1};
+                for (int[] roof : port) {
+                    plot = clear(plot, new int[]{roof[0] - STREET, roof[1] - STREET, roof[2] + STREET, roof[3] + STREET});
+                    if (plot == null) break;
+                }
+                if (plot == null) continue;
+                float cx = (plot[0] + plot[2]) / 2f, cy = (plot[1] + plot[3]) / 2f;
+                float reach = (float) Math.hypot(cx - mx, cy - my);
+                int own = Math.floorMod(px * 73 + py * 151, 7);
+                float roofDepth = Math.min(260f, 28f + reach * .55f + own * 9f);
+                towers.add(new VoidBackdrop.Tower(plot[0], plot[1], plot[2] + 1, plot[3] + 1, roofDepth * f));
+            }
+        }
+        return towers;
+    }
+
+    /**
+     * The plot trimmed off one side so it no longer meets {@code keepOut}, keeping the most of it; null if what is
+     * left is narrower than {@link #MIN_PLOT}. Rectangles are inclusive.
+     */
+    static int[] clear(int[] plot, int[] keepOut) {
+        if (plot[2] < keepOut[0] || plot[0] > keepOut[2] || plot[3] < keepOut[1] || plot[1] > keepOut[3]) return plot;
+        int[][] options = {
+                {plot[0], plot[1], keepOut[0] - 1, plot[3]}, {keepOut[2] + 1, plot[1], plot[2], plot[3]},
+                {plot[0], plot[1], plot[2], keepOut[1] - 1}, {plot[0], keepOut[3] + 1, plot[2], plot[3]}};
+        int[] best = null;
+        long bestArea = 0;
+        for (int[] o : options) {
+            int w = o[2] - o[0] + 1, h = o[3] - o[1] + 1;
+            if (w < MIN_PLOT || h < MIN_PLOT) continue;
+            if ((long) w * h > bestArea) {
+                bestArea = (long) w * h;
+                best = o;
+            }
+        }
+        return best;
     }
 
     /** The industrial hive city, facade and terrace roof, with the given terraces and neighbouring towers. */
     public static VoidBackdrop industrial(float depth, float eye, List<VoidBackdrop.Tier> tiers,
-                                         List<VoidBackdrop.Tower> neighbours) {
+                                         List<VoidBackdrop.Tower> neighbours, List<VoidBackdrop.Skyway> skyways) {
         return new VoidBackdrop("graphics/battle/voids/industrial-city-floor.png", depth, Math.max(96f, depth),
                 .42f, .41f, .40f,
                 "graphics/battle/voids/industrial-facade.png", 32f,
-                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .2f, neighbours);
+                "graphics/battle/voids/industrial-terrace-roof.png", 40f, tiers, eye, CRAFT, .2f, neighbours, skyways);
     }
 
     /**
@@ -133,7 +219,7 @@ public final class SkyPortClusterSetup {
         block(grid, topology, 150, 126, 158, 138);
         block(grid, topology, 121, 15, 133, 27);
         raise(grid, catwalk);
-        topology.setVoidBackdrop(backdrop(DEPTH, 1f));
+        topology.setVoidBackdrop(backdrop(DEPTH, EYE_METERS));
         return new Ground(grid, topology);
     }
 

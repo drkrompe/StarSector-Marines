@@ -212,9 +212,10 @@ Laws):
      traffic would come in.
    - The tiers above shade each terrace, and every wall's foot darkens the
      roof it stands on.
-   - The camera's height is a map's own (`eyeHeight`): a wide lens deepens
-     the drop, a long one keeps the terraces large. Both are on the picks
-     page.
+   - The camera's height is a map's own (`eyeMeters`), fixed in metres at
+     every zoom: zooming is a lens, not a dolly. Tied to the view's width it
+     plunged as the view closed in, so at play zoom the canyons were all
+     wall (owner, 2026-11-09). The cluster stands it at 240 m.
    Seen straight down, a stepped pyramid is mostly its terraces' roofs: its
    walls show only past the edge of the level the camera is over, so
    scale and movement carry the depth:
@@ -252,17 +253,30 @@ Laws):
    - **Neighbouring towers** (`VoidBackdrop.neighbours`): rectangles with a
      roof depth, stepping down in the backdrop's tiers deeper than their
      roof, so the drop between the walkable roofs is crowded at several
-     depths. Every level of every structure is drawn in one order, deepest
-     roof first, and each roof is shaded by everything standing higher.
+     depths. Each roof is shaded by everything standing higher.
+   - **The city** round the cluster is a street grid (owner, 2026-11-09:
+     the hand-placed towers were messy and without reason): 60 m plots less
+     a 24 m street, each trimmed to keep a street's width from every roof
+     the battle stands on, roofs deeper the farther from the port. Its
+     towers take two bold setbacks rather than many slight ones, which read
+     as slivers. **Skyways** (`VoidBackdrop.skyways`) fly down the streets
+     clear of the port, two streams apiece.
+   - **Painter's order in depth slices.** Ordering whole levels by their
+     roofs let a deeper tower's walls cut through a nearer one up close.
+     Every wall band (8 m), roof, freight bay and craft is drawn by its own
+     depth, deepest first and far faces first within a slice, so a tower's
+     upper walls cover a deeper roof and its lower walls go behind it. Each
+     band is drawn in its true slanted shape with an opaque underlay, the
+     facade cut to fit inside it, so walls neither step nor show through.
    - Roofs below the surface carry a dark veil as well as haze, so no roof
      in the drop reads as walkable; freight bays open only onto terraces at
      least 8 m deep, and freighters park only on ones at least 20 m deep,
      which keeps a cluster's shallow setbacks clear of traffic.
-   - The look suite's default layout is the cluster (`SkyPortCluster`):
+   - The look suite's default layout is the cluster (`SkyPortClusterSetup`):
      three roofs, a two-cell catwalk, a catwalk with a corner over the drop
-     and a six-cell skybridge a vehicle could cross, ten neighbours from
-     45 m to 180 m down. `-Dsnapshot.skyPort.layout=deck` keeps the single
-     roof deck.
+     and a six-cell skybridge a vehicle could cross, in the city.
+     `-Dsnapshot.skyPort.layout=deck` keeps the single roof deck;
+     `-Dsnapshot.skyPort.eyes=120,240,400` compares camera heights.
    - The cluster ships as a diagnostic battle (`SkyPortClusterSetup`): **Sky
      Port Towers** on the debug missions' Diagnostics tab, and
      `playBattle -Pbattle=sky-port`. Two squads land on tower A; no enemy
@@ -284,8 +298,11 @@ Laws):
      dogleg and the skybridge; in every loop no one stands on a void cell,
      and no one stands on C's raised roof without having climbed a ramp.
      The lone roof in the cluster's far corner holds the scene's other side.
-   Left: towers more than a tier up (chained ramps, or lifts); the walkway's own surface past the ship-bay grate; cranes and
-   gantries; the city's own layers. The play area's size and chokepoints will
+   Left: **U-shaped stairs** (owner, 2026-11-09): two ramps joined by a
+   landing, turning back on themselves, to read as a floor transition
+   inside a building though cells never stack; towers more than a tier up
+   (chained ramps, or lifts); the walkway's own surface past the ship-bay grate; cranes and
+   gantries. The play area's size and chokepoints will
    change (owner, 2026-11-07); the structures follow whatever footprint the
    surface has.
 4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same

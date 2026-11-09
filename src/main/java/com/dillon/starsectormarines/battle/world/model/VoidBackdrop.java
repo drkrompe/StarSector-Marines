@@ -17,7 +17,7 @@ import java.util.List;
  * @param roofTileMeters   how many metres of roof one copy of the roof image covers
  * @param tiers            the terraces below the surface, shallowest first: each stands at its depth and
  *                         reaches its outset beyond the surface's own edge
- * @param eyeHeight        how high the camera looks down from, as a multiple of the view's width: higher
+ * @param eyeMeters        how high above the surface the camera looks down from, in metres, at every zoom: higher
  *                         flattens the drop (a long lens), lower deepens it (a wide one)
  * @param craft            sprite paths of the hulls that fly in and out of the structure's bays, cross the
  *                         skyways below and stand parked on its terraces; empty for none
@@ -26,13 +26,16 @@ import java.util.List;
  *                         sized to the structure instead
  * @param neighbours       towers standing in the drop around the playing surface, their roofs below it: no one
  *                         stands on them, they fill the space between the surface and the ground below
+ * @param skyways          straight lanes of traffic through the drop, each flown both ways; empty to let the
+ *                         renderer cross the drop beside the structures instead
  */
 public record VoidBackdrop(String cityTexture, float depthMeters, float cityTileMeters,
                            float hazeR, float hazeG, float hazeB,
                            String facadeTexture, float facadeTileMeters,
                            String roofTexture, float roofTileMeters,
-                           List<Tier> tiers, float eyeHeight,
-                           List<String> craft, float craftMetersPerPx, List<Tower> neighbours) {
+                           List<Tier> tiers, float eyeMeters,
+                           List<String> craft, float craftMetersPerPx, List<Tower> neighbours,
+                           List<Skyway> skyways) {
 
     /** A terrace: its roof stands {@code depthMeters} below the surface, {@code outsetMeters} out past its edge. */
     public record Tier(float depthMeters, float outsetMeters) { }
@@ -43,7 +46,11 @@ public record VoidBackdrop(String cityTexture, float depthMeters, float cityTile
      */
     public record Tower(int x0, int y0, int x1, int y1, float roofDepthMeters) { }
 
+    /** A lane of traffic from {@code (x0, y0)} to {@code (x1, y1)} in cells, {@code depthMeters} below the surface. */
+    public record Skyway(float x0, float y0, float x1, float y1, float depthMeters) { }
+
     public VoidBackdrop {
+        skyways = List.copyOf(skyways);
         tiers = List.copyOf(tiers);
         craft = List.copyOf(craft);
         neighbours = List.copyOf(neighbours);
