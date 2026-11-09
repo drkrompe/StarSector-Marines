@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -162,5 +163,16 @@ class RuinsPressureTest {
         assertEquals(5f, front[1]);
         assertEquals(2f, front[2]);
         assertNull(RuinsPressure.forward(List.of(), List.of()));
+    }
+
+    @Test
+    void aCollapsedLayerSendsNothingSoThePushComesUpDeeperIn() {
+        Push wayBackShut = RuinsPressure.aim(1, 1, new Situation(true, 2, 1, 4, Set.of(1)));
+        assertEquals(Aim.HUNT, wayBackShut.aim(), "the way back's wake point is collapsed");
+        assertEquals(3, wayBackShut.layer());
+        assertEquals(2, RuinsPressure.aim(1, 1, new Situation(false, 0, 1, 4, Set.of(1))).layer(),
+                "the next open layer deeper");
+        assertEquals(3, RuinsPressure.aim(1, 1, new Situation(false, 1, 1, 4, Set.of(2, 3))).layer(),
+                "the vault's layer is never shut");
     }
 }
