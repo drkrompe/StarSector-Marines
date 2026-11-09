@@ -19,7 +19,7 @@ disclosure), `extraction-command.md` (what the family borrows) and
 
 The fork's "send the company" plays a real expedition: land, delve to the vault,
 hold it through the breach time, get the haul to a lift point. It plays on an
-existing map until `ruins-ground.md` lands, against a scavenger crew sized by
+existing map until ruins ground lands (`mapgen-nouns.md`, Ruins ground), against a scavenger crew sized by
 the ruins grade. The fork story's commit path reads its won or lost. When this
 story's battle plays, it lifts the fork's development-only gate
 (`MarineRuinsCMD.EXPEDITION_BUILT`), as the fork story's slice 1 says.
@@ -82,7 +82,7 @@ story's battle plays, it lifts the fork's development-only gate
    played battle the player commands the company, and the ground is still
    changing, so `ExtractionCommand` stays the company's commander for
    `MissionType.RUINS`; it is enough for headless evidence. Take this slice up
-   only once `ruins-ground.md` has landed, and only if evidence needs more
+   only once ruins ground (`mapgen-nouns.md`, Ruins ground) has landed, and only if evidence needs more
    than `ExtractionCommand`. If it is taken up, it reads the layers and the
    vault route from what setup publishes, never open streets: a layer may be
    inside, behind a threshold or seal door.
@@ -150,7 +150,7 @@ story's battle plays, it lifts the fork's development-only gate
    up and whether it ended or stuck: the autopilot company is no player, so
    its wins and times say nothing. Every run that set up has ended. Extensive
    seed 91104 cannot lay its ground (`ruins.layer.2 seats no power hall`), so
-   the task fails until the ground does (`ruins-ground.md`).
+   the task fails until the ground does (`mapgen-nouns.md`, Ruins ground).
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change

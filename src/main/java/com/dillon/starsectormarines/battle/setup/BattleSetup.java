@@ -1212,7 +1212,7 @@ public final class BattleSetup {
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
-        // A ruins site is a dead settlement laid as a delve, never a living town (ruins-ground.md).
+        // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         ColdAccountForce.FORTIFICATION)

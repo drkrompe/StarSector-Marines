@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
- * One roof over the whole megastructure ({@code ruins-ground.md}, Interior). A roof is laid over a building's floor
+ * One roof over the whole megastructure ({@code mapgen-nouns.md}, Ruins ground). A roof is laid over a building's floor
  * and the walls beside it, so the interior's solid hull, more than a cell from any open cell, would show bare
  * between the roofs over its corridors and rooms. This stage makes that mass a building of its own: the hull cells
  * inside the interior that touch no open cell, even across a corner, are registered as one more building, in the

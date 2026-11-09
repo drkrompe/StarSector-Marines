@@ -66,7 +66,7 @@ own (`derelict-mech-line`); area fire and cover as the counters, flocks keeping
 out of roofed rooms (`derelict-flock-counters`). On the last the owner added
 that some ruins sites are megastructures the company explores from inside, and
 ruins maps are to be hybrids: an exterior drop-off and an interior section in a
-megastructure or bunker (`ruins-ground.md`).
+megastructure or bunker (`mapgen-nouns.md`, Ruins ground).
 
 So roofed-room exclusion is a central rule, not an edge case:
 

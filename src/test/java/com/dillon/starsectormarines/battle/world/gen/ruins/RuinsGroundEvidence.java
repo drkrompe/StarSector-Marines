@@ -23,7 +23,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Ruins ground over every grade and surface ({@code ruins-ground.md}, slice 5): each map generates, keeps every
+ * Ruins ground over every grade and surface ({@code mapgen-nouns.md}, Ruins ground): each map generates, keeps every
  * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it, its streets
  * end short of every edge, and it has no berth but its own landing's. The vault, every room inside the interior
  * and every chamber is under a roof; every lift point is under open sky. Writes {@code build/reports/ruins-ground/summary.md} with each map's

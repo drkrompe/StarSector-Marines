@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Lays a ruins site's delve over the dead settlement ({@code ruins-ground.md}): the cleared landing ground at the
+ * Lays a ruins site's delve over the dead settlement ({@code mapgen-nouns.md}, Ruins ground): the cleared landing ground at the
  * west end, the vault suite at the east end, the grade's layers across the route between them with their ways
  * through, and, behind each layer, its small ruined rooms, its landing court (every layer past the first) and the
  * works sites; the vault's end is the interior, a roofed megastructure carved out of hull (a bunker round the
