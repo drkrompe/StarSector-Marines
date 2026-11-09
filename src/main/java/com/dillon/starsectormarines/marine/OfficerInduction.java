@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
 import java.io.Serializable;
 
 /** New-company introduction. Null on a roster means a grandfathered company. */
@@ -35,7 +36,8 @@ public final class OfficerInduction implements Serializable {
 
     public Step step(MarineRoster roster) {
         if (complete) return Step.COMPLETE;
-        if (companyPreparation && roster.companyShipId() == null) return Step.SHIP;
+        // A company on fleet facilities has no ship to choose (`fleet-facilities.md`).
+        if (companyPreparation && roster.companyShipId() == null && !FleetFacilities.inUse()) return Step.SHIP;
         MarineCaptain officer = officer(roster);
         if (!introduced || officer == null) return Step.INTRODUCTION;
         if (OfficerSpecialty.offered().stream().noneMatch(s -> officer.career().level(s) > 0))
