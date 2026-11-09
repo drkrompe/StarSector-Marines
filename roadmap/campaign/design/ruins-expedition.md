@@ -500,6 +500,71 @@ it is taken, and what it has recovered comes home. The band
 already tells a starter company that a vast site is too much; the pull-out
 makes it worth going in anyway, as deep as the company can, and coming back.
 
+### The vault and its prize
+
+The owner: "vault theming around what the pickup will be as a hint. Example
+industrial upgrades for planets or gamma/beta/alpha cores". Built on the
+recommended options while picks `ruins-vault-prize`, `ruins-prize-hint` and
+`ruins-prize-forced` are open (`ruins-vault-prize.md`).
+
+**One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one
+**prize**, drawn from the site alone like the occupant and never stored
+(`RuinsVaultPrizes`). It comes out with the haul, so only a won expedition
+takes it. A prize is one of four families:
+
+- **Goods**: a larger bundle of the ordinary finds.
+- **Tech**: a tech cache (weapons, fighter wings, hullmods or blueprints from the
+  site's own vanilla drop groups).
+- **AI core**: a gamma, beta or alpha core.
+- **Colony item**: one of vanilla's industry upgrades (`special_items.csv`),
+  drawn by vanilla's own `rare_tech` weights.
+
+**The grade weighs it.** Goods lead at a scattered site, which never holds a
+colony item and only ever a gamma core; a vast site leans to cores (beta and
+alpha) and colony items. **The occupant leans it.** Derelict security doubles
+the core weight; the Rav and an empty site keep no core, and the Rav only living
+or deep-ground items (soil nanites, a biofactory embryo, a mantle bore). Only
+derelict security keeps a drone replicator. The weights are untuned starting
+points.
+
+**The site is built round its prize**, so reading it hints what is inside before
+the company commits. The prize's **theme** shows four ways:
+
+- **The survey's tell**: a line in the briefing in the occupant's instruments,
+  for example "cold racks humming below; repair drones at work in lit halls".
+- **The approach**: what the company sees outside.
+- **The interior's art.**
+- **The works' twist.**
+
+| Prize | Theme | Tells |
+| --- | --- | --- |
+| Goods | Depot | Warehouse racks, dead habitat blocks |
+| Tech | Armory | Racked hardware, shielded storage, munitions bunkers |
+| AI core | Server hall | Cold racks humming, lit halls, repair drones at work; the higher the core, the livelier the hall |
+| Nanoforge | Factory floor | Assembly lines, a drone foundry |
+| Cryoarithmetic engine | Frozen site | Heatsink tendrils frozen across the ruins; heat valves thaw its doors |
+| Synchrotron core | Ring tunnels | Magnet halls whose gates cycle on power |
+| Mantle bore | Shaft and spoil | Hoists and a collapse-heavy delve |
+| Soil nanites, biofactory embryo | Vats and greenhouses | Overgrown, flooded ways |
+| Fusion lamp, plasma dynamo | Reactor halls | Coolant runs and junctions |
+| Catalytic core, fullerene spool | Refinery, tether anchor | Pressure doors |
+| Drone replicator | Drone foundry | Live flocks in the halls (derelict only) |
+
+**How sure the hint is** (pick `ruins-prize-hint` a): the family is always
+true, and so is a colony item, since the item is the site. A core's tier reads
+as "likely": right three times in four, else one step off.
+
+**Stakes.** A prize carries a stake from 0 (goods) to 3 (an alpha core, a
+pristine nanoforge), for the other systems to read. A higher stake means a
+deeper reserve and a faster stir (`ruins-pressure.md`) and a stronger guardian
+(the mini-boss design). So a server hall that hums loud is a harder site, and
+the player sees that coming.
+
+**A forced vault** (pick `ruins-prize-forced` a): a core or a colony item comes
+out whole only if the vault's seal was powered. Forced with charges, it breaks
+into tech caches. Goods and tech survive either way. The better the prize, the
+more the power puzzle is worth solving, and nothing is lost outright.
+
 ## Occupants
 
 **Who holds a site is a seeded fact.** The occupant is drawn from a hash of the
