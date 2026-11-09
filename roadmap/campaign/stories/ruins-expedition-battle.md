@@ -126,8 +126,8 @@ story's battle plays, it lifts the fork's development-only gate
 6. **Deeper caches.** The grade's cache count (2 to 5) on the existing
    field-cache placement, weighted to the far half of the route.
 7. **Briefing.** The assessment, the grade's strength band and the scavengers'
-   readings pool (`ruins-expedition.md`, Briefing); the other pools are
-   `ruins-occupants.md`'s.
+   readings pool (`ruins-expedition.md`, Briefing); the other occupants' pools
+   are in the same section.
 
    *Slices 6 and 7 built.* A Ruins battle hands the field-cache placement a
    `SalvagePlacement.Delve`: the grade's `RuinsDelve.fieldCaches` and the vault
@@ -192,19 +192,39 @@ story's battle plays, it lifts the fork's development-only gate
     out** and lists them as coming home, `RuinsExpeditionLedger` records
     `PULLED_OUT` and `MarineRuinsCMD` commits it as it does a loss for the
     vault, with its own line. `BattleSimulation.withdrawalPads` adds the
-    pull-out point (`RuinsVaultObjective.pullOutPointCellX/Y`) and every held
+    pull-out point (`RuinsVaultObjective.pullOutPoint`) and every held
     lift point to the landing's circles, for the casualty roll and the circles
     drawn. In a Ruins battle Retreat reads Pull out and its confirmation lists
-    the banked finds (`RuinsPullOutWording`). Until slice 9 lands, the pull-out
-    point is the landing. Not yet seen in a played battle.
+    the banked finds (`RuinsPullOutWording`).
+    Not yet seen in a played battle.
 11. **What the site remembers.** The finds recovered at a won or pulled-out
     commit are written once to the site's market as a set of find ids (Law 6).
     A later expedition's placement leaves them out; the occupant, works and
     every other find are seeded as before. Unit-test the placement filter and
     the exactly-once write.
+
+    *Built.* A ruins expedition's battle seed is the site's
+    (`RuinsSiteFinds.battleSeed`), so every expedition meets the same ground
+    and the same find ids. `MissionResolver` records the ids brought home with
+    the outcome; `RuinsSiteFinds.commit` takes it from the ledger and merges
+    them into the market's memory (`RuinsSiteFinds.MEMORY_KEY`) on a won or
+    pulled-out take, so the write rides the take's exactly-once. The briefing
+    passes the set to `Mission.ruinsTakenFinds`, the fixture carries it as
+    `takenFinds`, and `BattleSimulation.setTakenFinds` has
+    `FieldSalvage.leavingOut` drop them after seeded placement. Not yet seen in
+    a played battle.
 12. **The vault store.** One find per layer of the delve, placed at the vault,
     recovered when the haul boards and settled with the banked finds. It is
     left behind on a pull-out, and is subject to slice 11 like any find.
+
+    *Built.* `RuinsVaultStore.of` lays a find per layer at the vault's cell,
+    `vault-store-1` onward; `BattleSetup` hands it to
+    `BattleSimulation.setVaultStore`, which leaves out the site's taken finds.
+    It is no field cache, so nobody secures it by standing at it.
+    `MissionResolver` settles it after the banked finds only on a win
+    (`RuinsVaultStore.settled`), so it comes home and is remembered with them,
+    and a pull-out leaves it. It is not yet drawn at the vault. Not yet seen in
+    a played battle.
 13. **The rail: phase, Delve row and close readings.** The vault's card gains
     the Entrance step (Entrance > Breach > Escort > Board) and reads "Take the
     entrance" in phase A, with every entrance and apron marked and an apron's

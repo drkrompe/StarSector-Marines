@@ -328,11 +328,6 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     @Override public boolean isFailed() { return failed; }
     @Override public String displayName() { return "Breach " + vaultName + " and lift out " + haulName; }
 
-    /** The pull-out point's cell: the landing's in phase A, the entry's apron in phase B. */
-    public int pullOutPointCellX() { return liftPointCellX(entry >= 0 ? entry : landing); }
-
-    public int pullOutPointCellY() { return liftPointCellY(entry >= 0 ? entry : landing); }
-
     /** Seconds since the company took the entry, or {@code -1} in the approach. */
     public float secondsSinceEntry() { return entrySeconds; }
 }

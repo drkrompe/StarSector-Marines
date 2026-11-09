@@ -1,0 +1,11 @@
+Asset type: production-source master for a top-down game sprite: the chassis of the WARDEN, a long-range fire-support walking machine, in the old, low-tech Hegemony armour line, sibling of the Hound.
+
+Image 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize, widen or add to its shapes, and keep all empty canvas empty, including the open channel between the two nose cheeks where a heavy cannon barrel shows. From front to back: two narrow cheek plates at the nose with the open channel between them; the pilot canopy; a broad armoured wedge body widening toward the rear; a raised flat deck down the spine, an ammunition and sensor housing with hatches; two round hip bearing housings at the waist; an angled armoured sponson on each rear flank over the missile-rack roots; a squat engine block at the very rear with exhaust grilles. Symmetric about the vertical centre line.
+
+Image 2 is family identity reference only, never layout: the accepted low-tech Hegemony HOUND, the light machine of the same line. Match it exactly in finish and parts: the same warm tan and khaki riveted plate with olive-green panels, the same rivet rows, weld seams, exposed pipe runs in the seams, worn bright edges and orange hazard panels on leading corners, and the SAME faceted pilot canopy: dark smoked grey-green glass panes, narrow at the front, split by thick riveted tan frame bars, in a hinged armour rim. Image 3 is material reference only: the Hegemony medium tank the line serves beside.
+
+The lighter grey shape on the spine is the pilot canopy: draw it as that faceted framed canopy, filling the shape exactly. Old, low-tech, depot-built Hegemony military hardware: blunt, boxy, bolted and repairable, never sleek, smooth or high-tech.
+
+Strict 90-degree zenith orthographic top-down view of the chassis top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, labels or logos. Draw only the chassis body: no weapons, missile racks, legs or feet, which are separate layers drawn later.
+
+Avoid: sci-fi smooth plastic, glowing lights, bright blue or cyan, white paint, perspective, side view, isometric view, cropped edges, a second machine, text.

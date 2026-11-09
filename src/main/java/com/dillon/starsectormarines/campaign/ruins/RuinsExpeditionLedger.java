@@ -2,6 +2,10 @@ package com.dillon.starsectormarines.campaign.ruins;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Makes a ruins expedition commit exactly once, in two steps ({@code ruins-expedition.md}, law 8).
  *
@@ -39,13 +43,28 @@ public final class RuinsExpeditionLedger {
      * @param outcome {@link Pending#WON}, {@link Pending#PULLED_OUT} or {@link Pending#LOST}
      */
     public static boolean record(CampaignState state, int serial, Pending outcome) {
+        return record(state, serial, outcome, List.of());
+    }
+
+    /**
+     * Records the battle fought for {@code serial} with the ids of the finds it brought home, which the commit writes
+     * into the site's set ({@link RuinsSiteFinds}).
+     */
+    public static boolean record(CampaignState state, int serial, Pending outcome, Collection<String> broughtHome) {
         if (outcome == null || outcome == Pending.NONE) throw new IllegalArgumentException("a fought expedition has an outcome");
         if (state == null || serial <= 0 || serial > state.ruinsExpeditionIssued) return false;
         if (serial <= state.ruinsExpeditionRecorded) return false;
         state.ruinsExpeditionRecorded = serial;
         state.ruinsExpeditionRecordedVictory = outcome == Pending.WON;
         state.ruinsExpeditionRecordedPulledOut = outcome == Pending.PULLED_OUT;
+        state.ruinsExpeditionRecordedFinds = outcome == Pending.LOST ? "" : RuinsSiteFinds.merged("", broughtHome);
         return true;
+    }
+
+    /** The finds recorded for {@code serial} as brought home; empty when none, or when it is not the one recorded. */
+    public static Set<String> recordedFinds(CampaignState state, int serial) {
+        if (state == null || serial <= 0 || state.ruinsExpeditionRecorded != serial) return Set.of();
+        return RuinsSiteFinds.parse(state.ruinsExpeditionRecordedFinds);
     }
 
     /** Takes the outcome recorded for {@code serial}, once; {@link Pending#NONE} when there is none to take. */

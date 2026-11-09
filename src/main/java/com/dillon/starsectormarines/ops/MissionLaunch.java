@@ -420,7 +420,8 @@ public final class MissionLaunch {
                                 m.tier, m.risk, profile, constructionDetachment.marineWings,
                                 m.enemyFighterSupport,
                                 m.ruinsGrade != null ? m.ruinsGrade : RuinsGrade.SCATTERED,
-                                m.ruinsOccupant != null ? m.ruinsOccupant : RuinsOccupant.SCAVENGERS);
+                                m.ruinsOccupant != null ? m.ruinsOccupant : RuinsOccupant.SCAVENGERS,
+                                m.ruinsTakenFinds);
                 builder = ruinsFixture::build;
                 fixture = ruinsFixture;
                 break;

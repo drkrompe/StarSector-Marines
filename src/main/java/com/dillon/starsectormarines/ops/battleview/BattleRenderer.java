@@ -351,6 +351,8 @@ public class BattleRenderer {
                 new RoomDoorRenderSystem(),
                 // A battle map's one-cell doorways hang hinged doors that swing for whoever walks through.
                 new SwingDoorRenderSystem(),
+                // A locked door stands shut over the wall it is shut as: plated, lamped red, banded if a charge opens it.
+                new LockedDoorRenderSystem(),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,

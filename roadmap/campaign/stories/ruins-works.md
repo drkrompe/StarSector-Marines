@@ -1,10 +1,12 @@
 # Ruins works
 
-Status: IN PROGRESS — slices 1 to 5 built, with the noise hook, the vault's
-seal and the scattered bunker's door (built on the recommended pick while the
-owner decides); whether the chain plays well is the owner's playtest. Part of
+Status: IN PROGRESS — slices 1 to 6 built, with the noise hook, the vault's
+hardened locked door and the scattered bunker's door. Open: a landing court's
+lift as a consumer (slice 1) and which works an occupied site keeps (slice 7);
+whether the chain plays well is the owner's playtest. Part of
 slice 5 of
-`ruins-expedition-fork.md`, beside `ruins-occupants.md`.
+`ruins-expedition-fork.md`, beside the occupants (`ruins-expedition.md`,
+Occupants).
 
 Written: 2026-11-09
 
@@ -85,15 +87,17 @@ one, and the sealed stores behind them are the reward.
    *Built*: holding the terminal's console 4 s reads it. Until then every
    sealed store is unmarked and offers no prompt, and a junction says what it
    feeds only once it has been thrown (FEEDS ?, verb THROW); reading marks every
-   store and junction. Still one store per layer on every site; the two-store
-   empty site waits on slice 6.
+   store and junction. An empty site (`RuinsDefence.NONE`) also seals its last
+   layer's second side room, so it has two stores (`RuinsWorks.storesIn`).
+   Without the records a store is still there and opens when its junction is
+   thrown blind; only its marker and charge prompt wait on the records.
 6. **The empty site's chain.** On a scattered site with nobody: the vault seal
    unpowered, a collapse across the short way, the power hall in a side layer,
    capacity for the vault and one other consumer, every step visible from the
    one before. Laid by hand on the stand-in ground first, then by
    the ruins ground's works sites (`mapgen-nouns.md`, Ruins ground).
 7. **Occupied sites.** Fewer works, all optional. The noise hook for the Rav
-   and derelict zones lands with `ruins-occupants.md`. The derelict branch
+   and derelict zones is built (`ruins-expedition.md`, Occupants). The derelict branch
    power-down is built (`derelict-security-network.md`, slice 8): each zone is
    fed by its node's layer's junction on the way-on branch, and throwing it
    to the store darkens the zone.
