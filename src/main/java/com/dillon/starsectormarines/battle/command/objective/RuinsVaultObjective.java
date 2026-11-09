@@ -321,16 +321,4 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     @Override public boolean isComplete() { return complete; }
     @Override public boolean isFailed() { return failed; }
     @Override public String displayName() { return "Breach " + vaultName + " and lift out " + haulName; }
-
-    // Pull-out point (slice 9 replaces these bodies; ruins-expedition.md, The entrance and the pull-out point).
-
-    /** The pull-out point's cell: the landing's in phase A, the entry's apron in phase B. */
-    public int pullOutPointCellX() { return liftPointCellX(landingLiftPoint()); }
-
-    public int pullOutPointCellY() { return liftPointCellY(landingLiftPoint()); }
-
-    private int landingLiftPoint() {
-        for (int i = 0; i < liftPoints.size(); i++) if (liftPoints.get(i).landingArea()) return i;
-        return 0;
-    }
 }
