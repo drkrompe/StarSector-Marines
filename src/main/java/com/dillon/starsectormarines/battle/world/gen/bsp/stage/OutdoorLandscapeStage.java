@@ -1038,7 +1038,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static boolean brookGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
@@ -1258,7 +1258,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** Walkable natural ground outside any building, door, fixture or road, whatever surface dresses it. */
     private static boolean naturalGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)

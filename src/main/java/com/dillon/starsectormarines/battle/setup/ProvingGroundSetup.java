@@ -328,7 +328,7 @@ public final class ProvingGroundSetup {
             for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
                 if (!tree.blocks(x, y)) continue;
                 boolean natural = switch (topology.getGroundKind(x, y)) {
-                    case GRASS, DIRT, STONE, SAND, SNOW -> true;
+                    case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
                     default -> false;
                 };
                 if (!natural || site.holds(x, y) || blocked(map.grid, topology, x, y) || topology.isWall(x, y)
