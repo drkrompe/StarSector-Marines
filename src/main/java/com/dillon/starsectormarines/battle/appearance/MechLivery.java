@@ -28,13 +28,14 @@ public enum MechLivery {
     }
 
     /**
-     * Whether this livery wears the low-tech bodies with legs to match, rather than the shared outlines repainted: the
-     * Hegemony's masters and the Independent and pirate paints of them, as the Hegemony vehicle line is painted
-     * (art-source/mech-modular-topdown/sources/lowtech). Its folder then holds a {@code foot.png} and a
-     * {@code thigh-bone.png}; every other livery walks on the shared legs.
+     * Whether this livery wears bodies of its own with legs to match, rather than the shared outlines repainted: the
+     * low-tech bodies (the Hegemony's masters and the Independent and pirate paints of them, as the Hegemony vehicle
+     * line is painted; art-source/mech-modular-topdown/sources/lowtech) and Tri-Tachyon's high-tech row
+     * (sources/hightech). Its folder then holds a {@code foot.png} and a {@code thigh-bone.png}; every other livery
+     * walks on the shared legs.
      */
     public boolean ownsLegs() {
-        return this == HEGEMONY || this == INDEPENDENT || this == PIRATES;
+        return this == HEGEMONY || this == INDEPENDENT || this == PIRATES || this == TRI_TACHYON;
     }
 
     /** Folder below {@code factions/}, or {@code null} for the base assets. */
