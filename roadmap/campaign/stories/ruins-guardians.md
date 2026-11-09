@@ -83,7 +83,7 @@ No new chassis: its boss read is the walker's look, the sentinel
   every rear hit throws it out of its brace to turn. A target that leaves its
   front arc does the same. A satchel at a planted foot.
 - **What it guards.** The vault, and the keypad on its antechamber floor
-  (`ruins-works.md`, Vault access).
+  (`ruins-expedition.md`, Works).
 - **What it drops.** Its hall's store: a tech cache (or a field cache). The
   vault store stays the vault's own reward.
 - **Signposting.** The vault's layer always reads strongest. Its footfalls
@@ -109,7 +109,7 @@ No new chassis: its boss read is the walker's look, the sentinel
    with `derelict-security-network.md`'s heavy line; its art and gait are
    that story's.
 4. **Stores and drops.** A guardian's store opens when it falls, as a sealed
-   store does when it is powered (`ruins-works.md`).
+   store does when it is powered (`ruins-expedition.md`, Works).
 5. **Signposts.** The close reading's guardian line, the court's guarded
    marker, the hatch's lamps and tone, the walker's footfalls.
 6. **Looks.** The hive's own housing: a heavier cradle over a well hatch,
