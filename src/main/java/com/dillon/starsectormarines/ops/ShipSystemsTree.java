@@ -49,7 +49,7 @@ final class ShipSystemsTree {
         if (tier.ordinal() > RefitOrder.ceiling(track).ordinal()) return Node.ABSENT;
         if (state.band(track).atLeast(tier)) return Node.OWNED;
         RefitOrder order = state.next(track);
-        if (track == RefitTrack.FABRICATION || order == null || order.band != tier) return Node.LOCKED;
+        if (track == RefitTrack.FABRICATION && !state.fleet() || order == null || order.band != tier) return Node.LOCKED;
         return state.missing(order) == null ? Node.AVAILABLE : Node.LOCKED;
     }
 
@@ -128,7 +128,7 @@ final class ShipSystemsTree {
             }
         }
         RefitOrder next = state.next(track);
-        var needs = next == null || track == RefitTrack.FABRICATION ? List.<Map.Entry<RefitTrack, RefitBand>>of()
+        var needs = next == null || track == RefitTrack.FABRICATION && !state.fleet() ? List.<Map.Entry<RefitTrack, RefitBand>>of()
                 : List.copyOf(next.requires.entrySet());
         m.put("needsId", id + "-needs");
         for (int j = 1; j <= 3; j++) {
