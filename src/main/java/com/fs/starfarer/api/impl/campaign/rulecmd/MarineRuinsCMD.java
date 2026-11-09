@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsRoute;
+import com.dillon.starsectormarines.campaign.ruins.SectorRuinsOccupants;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
@@ -19,14 +20,12 @@ import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RuleBasedDialog;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
-import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.util.Misc.Token;
 import org.apache.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -124,9 +123,7 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
     }
 
     private static RuinsGrade grade(MarketAPI market) {
-        List<String> ids = new ArrayList<>();
-        for (MarketConditionAPI condition : market.getConditions()) ids.add(condition.getId());
-        return RuinsGrade.of(ids);
+        return SectorRuinsOccupants.gradeOf(market);
     }
 
     /** Re-fires Explore the ruins with the bypass set, so vanilla's own row sends the salvage team. */
@@ -164,9 +161,10 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         if (!(dialog.getInteractionTarget() instanceof PlanetAPI planet) || planet.getMarket() == null) return false;
         MarketAPI market = planet.getMarket();
         int serial = RuinsExpeditionLedger.issue(state());
-        Mission mission = RuinsExpeditionMissionFactory.create(serial, market.getId(), planet.getName(), grade(market));
+        Mission mission = RuinsExpeditionMissionFactory.create(serial, market.getId(), planet.getName(), grade(market),
+                SectorRuinsOccupants.of(market));
         if (mission == null) return false;
-        LOG.info("MarineRuinsCMD: opening expedition briefing " + mission.id);
+        LOG.info("MarineRuinsCMD: opening expedition briefing " + mission.id + " (" + mission.ruinsOccupant + ")");
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(MarineOpsDialogSize.requestedWidth(), MarineOpsDialogSize.requestedHeight(),

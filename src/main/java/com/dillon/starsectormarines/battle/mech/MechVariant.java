@@ -33,7 +33,21 @@ public enum MechVariant {
             // Artillery against men; the heavy cannon is the Warden's answer to armor.
             MechWeaponComponent.LRM_5_FRAG,
             MechWeaponComponent.LRM_5_FRAG,
-            MechRole.LR_SUPPORT);
+            MechRole.LR_SUPPORT),
+
+    /**
+     * The derelict security walker (`derelict-lore-guide.md`, Units): an unpiloted Mbaye-Gogol heavy built where it
+     * stands to guard a site, outside the company's tech-by-weight grid ({@link #automated()}). Its stock fit is the line
+     * frame; the siege and vault frames are loadouts on this one chassis ({@code DerelictWalkerFrame}). Drawn on the
+     * Bulwark's body until its own art is picked (`derelict-security-network.md`, slice 3).
+     */
+    SECURITY_WALKER("security_walker", "@gearMechVariantSECURITY_WALKER", 820f, 1100f, 22f, 0.82f, 0.40f, 50f,
+            1.90f, 1.70f, 0.72f, 0.95f, 2.6f,
+            LayeredMechAppearance.CHASSIS_CLEAN,
+            null, MechWeaponComponent.HC_10, MechWeaponComponent.AC_6,
+            MechWeaponComponent.SRM_5,
+            MechWeaponComponent.SRM_5,
+            MechRole.ARMORED_SUPPORT);
 
     public final String id;
     private final String displayName;
@@ -98,6 +112,7 @@ public enum MechVariant {
     public boolean hostsDrones() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
+            case SECURITY_WALKER -> false;
         };
     }
 
@@ -108,7 +123,17 @@ public enum MechVariant {
     public boolean hostsPointDefence() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
+            case SECURITY_WALKER -> false;
         };
+    }
+
+    /**
+     * Whether this chassis is an automated line (`mech-lines.md`, outside the grid): no cockpit and no pilot, never
+     * fielded, built, bought or refitted by the company, since the Sector's law keeps armed machines under crewed control.
+     * Only an opposition spawns it.
+     */
+    public boolean automated() {
+        return this == SECURITY_WALKER;
     }
 
     public static MechVariant fromId(String id) {
@@ -145,7 +170,7 @@ public enum MechVariant {
 
     /** Whether this chassis carries its arm guns on two arms rather than on one centreline mount. */
     public boolean twoArmed() {
-        return this == BULWARK;
+        return this == BULWARK || this == SECURITY_WALKER;
     }
 
     /** Whether this chassis exposes {@code slot} at all: the centreline mount or the two arms, never both. */
@@ -185,6 +210,8 @@ public enum MechVariant {
             case HOUND -> MechBodyPlan.HOUND;
             case BULWARK -> MechBodyPlan.BULWARK;
             case WARDEN -> MechBodyPlan.WARDEN;
+            // Stand-in: the walker is drawn on the Bulwark's body, so it is struck as one until its own art is picked.
+            case SECURITY_WALKER -> MechBodyPlan.BULWARK;
         };
     }
 
@@ -196,7 +223,7 @@ public enum MechVariant {
         return switch (this) {
             case HOUND -> LiftClass.LIGHT;
             case WARDEN -> LiftClass.MEDIUM;
-            case BULWARK -> LiftClass.HEAVY;
+            case BULWARK, SECURITY_WALKER -> LiftClass.HEAVY;
         };
     }
 }

@@ -67,6 +67,16 @@ public final class BarracksCommandModel {
     private Consumer<String> editEquipment = id -> { };
     private boolean boardHere;
     private int page;
+    /** Marines the company can billet; a squad is raised only when all of it has a rack. */
+    private IntSupplier billets = () -> Integer.MAX_VALUE;
+
+    /** Bound the squads raised by {@code billets}, the fleet's barracks (`fleet-facilities.md`). */
+    public void billets(IntSupplier billets) { this.billets = billets; refresh(); }
+
+    /** Whether one more full squad has a rack in the barracks. */
+    boolean billetFree() {
+        return (long) (lineSquads().size() + 1) * MarineSquad.CAPACITY <= billets.getAsInt();
+    }
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 SquadFoundingResources foundingResources,
@@ -437,7 +447,7 @@ public final class BarracksCommandModel {
         row.put("founderId", id);
         for (String part : List.of("Heading", "Title", "Middle", "Emblem", "EmblemIcon", "Destination", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
-        boolean ready = shown && raiseCommander() != null
+        boolean ready = shown && raiseCommander() != null && billetFree()
                 && (roster.firstSquadFree() || foundingResources.canAfford(SquadFoundingCost.STANDARD));
         row.put("founderClasses", shown ? "raise-squad" : "hidden");
         row.put("founderDisabled", !ready);
@@ -485,6 +495,7 @@ public final class BarracksCommandModel {
         return held < officer.rank().squadCommandCap();
     }
     private String raiseDestination() {
+        if (!billetFree()) return Strings.format("openingBarracksCommandRaiseSquadNoBillets", billets.getAsInt());
         MarineCaptain officer = raiseCommander();
         if (officer != null) return Strings.format("openingBarracksCommandRaiseSquadJoins", captainName(officer));
         return selectedOfficer() != null
@@ -494,7 +505,7 @@ public final class BarracksCommandModel {
     /** Founds a full line squad from stores into a free command slot; refuses when there is none. */
     public void raiseSquad() {
         MarineCaptain officer = raiseCommander();
-        if (officer == null) return;
+        if (officer == null || !billetFree()) return;
         SquadFoundingWorkshop.Result result = founding.foundSquad();
         if (!result.succeeded()) {
             refresh();

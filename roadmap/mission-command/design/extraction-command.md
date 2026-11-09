@@ -274,7 +274,10 @@ family of its own (`ruins-expedition.md`, The Ruins mission family). It borrows
 this family's source-hold rule, escorted package with its leash, loss and
 abandonment, boarding, payload projection and disclosure law, and shares their
 code rather than copying it. It does not take the corridor, the corridor
-commander or the fixed egress. Its scavengers' crew commander borrows the
+commander or the fixed egress (until its own delve commander is built,
+`ExtractionCommand` plays the company there). Presence counts only a settled
+Marine combatant that moves: an emplacement guards, it never escorts.
+Its scavengers' crew commander borrows the
 generic defenders' posting, patrol pool and alarm, and its derelict security is
 the security-network director this document leaves open for Silent Colony,
 built for ruins in `derelict-security-network.md`.

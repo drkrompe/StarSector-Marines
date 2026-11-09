@@ -94,6 +94,14 @@ public interface DroneAnchor {
         return true;
     }
 
+    /**
+     * The flock this anchor is, when its squad flies by flocking ({@link FlockFlight}) rather than by the hub's
+     * patrol and orbit; {@code null} for every other anchor.
+     */
+    default Flock flock() {
+        return null;
+    }
+
     long[] NO_IDS = new long[0];
 
     float[] NO_POSITIONS = new float[0];

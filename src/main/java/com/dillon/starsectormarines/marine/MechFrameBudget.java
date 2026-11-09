@@ -30,6 +30,8 @@ public final class MechFrameBudget {
             case WARDEN -> 36f + 3f;
             // Two single arm guns weigh what the old twin mount did plus one footprint row (4).
             case BULWARK -> 50f;
+            // The automated walker is never refitted (MechVariant.automated): these keep the switch whole.
+            case SECURITY_WALKER -> 60f;
         };
     }
 
@@ -39,6 +41,7 @@ public final class MechFrameBudget {
             case HOUND -> 3f;
             case WARDEN -> 4f;
             case BULWARK -> 6f;
+            case SECURITY_WALKER -> 7f;
         };
     }
 
@@ -48,6 +51,7 @@ public final class MechFrameBudget {
             case HOUND -> 500f;
             case WARDEN -> 400f;
             case BULWARK -> 950f;
+            case SECURITY_WALKER -> 1100f;
         };
     }
 
@@ -57,6 +61,7 @@ public final class MechFrameBudget {
             case HOUND -> 1.70f;
             case WARDEN -> 1.45f;
             case BULWARK -> 1.15f;
+            case SECURITY_WALKER -> 0.82f;
         };
     }
 

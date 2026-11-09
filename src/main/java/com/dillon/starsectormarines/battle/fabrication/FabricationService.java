@@ -230,7 +230,7 @@ public final class FabricationService {
     private static List<MechVariant> fieldBuildable() {
         List<MechVariant> light = new ArrayList<>();
         for (MechVariant variant : MechVariant.values()) {
-            if (variant.maxStructure <= FIELD_SHED_STRUCTURE_LIMIT) light.add(variant);
+            if (!variant.automated() && variant.maxStructure <= FIELD_SHED_STRUCTURE_LIMIT) light.add(variant);
         }
         return List.copyOf(light);
     }

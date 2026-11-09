@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.campaign.refit.FleetFacilities;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
 import com.dillon.starsectormarines.campaign.refit.RefitOrder;
 import com.dillon.starsectormarines.campaign.refit.RefitTrack;
 import com.dillon.starsectormarines.campaign.refit.ShipCondition;
@@ -39,7 +40,10 @@ class FleetEngineeringModelTest {
     }
 
     @Test void progressCountsOnlyWhatLiesPastTheFleetStart() {
-        assertEquals(0, ShipConditionModel.tiersDone(fresh, RefitTrack::fleetStart));
-        assertTrue(ShipConditionModel.tiersOffered(RefitTrack::fleetStart) < ShipConditionModel.tiersOffered());
+        assertEquals(0, ShipConditionModel.tiersDone(fresh, true));
+        var gantry = fresh.with(RefitTrack.MECH_GANTRIES, RefitBand.RESTORED);
+        assertEquals(1, ShipConditionModel.tiersDone(gantry, true));
+        assertEquals(ShipConditionModel.tiersDone(fresh, false), ShipConditionModel.tiersDone(gantry, false),
+                "the Second Wind's count never includes the fleet's rooms");
     }
 }

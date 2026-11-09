@@ -50,6 +50,8 @@ public final class ShipConditionStage implements GenStage {
             // Reserves are sealed or opened by their own stage, whatever the wreck's state.
             if (graph.reserved(room.id())) continue;
             if (!sealed(graph, room, state)) {
+                // Fleet facilities are new-built: nothing in them has been patched.
+                if (state.fleet()) continue;
                 if (room.purpose() == RoomPurpose.VEHICLE_BAY || room.purpose() == RoomPurpose.MESS_HALL || spareBillets(graph).contains(room))
                     WorkshopConditionStage.overlay(ctx, room, new RoomFloor(ctx, room, RoomFit.STANDARD), room.purpose() == RoomPurpose.VEHICLE_BAY ? 5 : 1,
                             room.purpose() == RoomPurpose.VEHICLE_BAY ? 5 : 1, "patch", true, false);
@@ -86,7 +88,8 @@ public final class ShipConditionStage implements GenStage {
             var room = graph.compartments().stream().filter(r -> r.contains(gantry.centerX, gantry.centerY))
                     .findFirst().orElseThrow();
             if (closed.contains(room)) continue;
-            wreckBerth(ctx, room, gantry);
+            // A fleet's lab has bought only some of its gantries; the rest stand idle, never wrecked.
+            if (state.fleet()) idleBerth(ctx, room, gantry); else wreckBerth(ctx, room, gantry);
         }
         ctx.put(ShipKeys.OFFLINE_MACHINE_BERTHS, List.copyOf(offline));
         ctx.gantries.removeAll(offline);
@@ -105,18 +108,38 @@ public final class ShipConditionStage implements GenStage {
     /** Damage stays within this berth's five-by-seven servicing module, clear of the shared aisle. */
     private static void wreckBerth(GenContext ctx, DeckGraph.Compartment room, Gantry gantry) {
         RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
+        int[] module = module(floor, room, gantry);
+        int x = module[0], y = module[1];
+        ctx.doodads.removeIf(d -> inModule(floor, room, d.cellX, d.cellY, x, y));
+        clearWork(ctx, floor, room, x, y);
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "scorch", true, false);
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "mill", false, false);
+        WorkshopConditionStage.overlay(ctx, room, floor, x, y + 3, "collapse", false, false);
+    }
+
+    /**
+     * A gantry the fleet has not bought: its fittings stay, but nobody works its closed floor. See
+     * `fleet-facilities.md`.
+     */
+    private static void idleBerth(GenContext ctx, DeckGraph.Compartment room, Gantry gantry) {
+        RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
+        int[] module = module(floor, room, gantry);
+        clearWork(ctx, floor, room, module[0], module[1]);
+    }
+
+    /** The canonical corner of a berth's servicing module, its outboard head station included. */
+    private static int[] module(RoomFloor floor, DeckGraph.Compartment room, Gantry gantry) {
         int[] near = floor.toCanonical(gantry.left() - room.left(), gantry.bottom() - room.top());
         int[] far = floor.toCanonical(gantry.right() - room.left(), gantry.top() - room.top());
         int x = Math.min(near[0], far[0]) - 1;
         int y = Math.min(near[1], far[1]);
         if (y < floor.canonicalHeight() / 2) y--; // Include the outboard head station.
-        int band = y;
-        ctx.doodads.removeIf(d -> inModule(floor, room, d.cellX, d.cellY, x, band));
-        ctx.fixtureTasks.removeIf(t -> inModule(floor, room, t.cellX(), t.cellY(), x, band)
-                || inModule(floor, room, t.fixtureX(), t.fixtureY(), x, band));
-        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "scorch", true, false);
-        WorkshopConditionStage.overlay(ctx, room, floor, x, y, "mill", false, false);
-        WorkshopConditionStage.overlay(ctx, room, floor, x, y + 3, "collapse", false, false);
+        return new int[]{x, y};
+    }
+
+    private static void clearWork(GenContext ctx, RoomFloor floor, DeckGraph.Compartment room, int x, int y) {
+        ctx.fixtureTasks.removeIf(t -> inModule(floor, room, t.cellX(), t.cellY(), x, y)
+                || inModule(floor, room, t.fixtureX(), t.fixtureY(), x, y));
     }
 
     private static boolean inModule(RoomFloor floor, DeckGraph.Compartment room,

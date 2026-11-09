@@ -43,6 +43,11 @@ public final class SectorBloomWorld implements BloomWorld {
 
     @Override
     public long seed() {
+        return sectorSeed();
+    }
+
+    /** The live save's fixed seed, which reservoirs and other seeded sector facts hash from; 0 with no sector. */
+    public static long sectorSeed() {
         SectorAPI sector = Global.getSector();
         String seed = sector != null ? sector.getSeedString() : null;
         return seed != null ? RavBloomRules.mix(seed.hashCode(), seed.length()) : 0L;

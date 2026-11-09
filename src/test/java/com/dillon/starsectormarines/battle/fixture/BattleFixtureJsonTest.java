@@ -62,6 +62,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -149,10 +150,10 @@ class BattleFixtureJsonTest {
         }
     }
 
-    @Test void ruinsRoundTripKeepsTheGradeThatSetsTheDelve() throws Exception {
+    @Test void ruinsRoundTripKeepsTheGradeAndTheOccupant() throws Exception {
         var fixture = new RuinsBattleFixture(31L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2)),
                 false, OperationTier.VETERAN, RiskLevel.MEDIUM, TargetProfile.NEUTRAL, List.of(), List.of(),
-                RuinsGrade.EXTENSIVE);
+                RuinsGrade.EXTENSIVE, RuinsOccupant.CONTINGENCY_SECURITY);
         assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
     }
 

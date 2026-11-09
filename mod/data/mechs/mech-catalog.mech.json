@@ -10,6 +10,13 @@
       "description": "@gearCatalogBulwarkDescription"
     },
     {
+      "variant": "security_walker",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-40",
+      "role": "@gearCatalogSecurityWalkerRole",
+      "description": "@gearCatalogSecurityWalkerDescription"
+    },
+    {
       "variant": "hound",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "HND-3",

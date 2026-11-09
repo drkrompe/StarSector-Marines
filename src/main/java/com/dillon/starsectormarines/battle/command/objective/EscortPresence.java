@@ -20,6 +20,7 @@ final class EscortPresence {
 
     /**
      * The settled Marine combatant within {@code radius} of the cell, in {@code requiredZone} when it is not negative.
+     * Only a unit that moves can escort.
      */
     static Escort nearestMarine(BattleView sim, int x, int y, int radius, int requiredZone) {
         int radiusSquared = radius * radius;
@@ -30,8 +31,8 @@ final class EscortPresence {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE
                     || !sim.identity().type(unit).combatant
-                    // A body that cannot move, such as a boat's turret, settles nothing and escorts nothing.
-                    || !sim.world().hasMovement(unit)
+                    // An emplacement has no movement: it guards, it never escorts.
+                    || !sim.movement().has(unit)
                     || !sim.movement().settled(unit)) continue;
             int unitX = sim.world().cellX(unit);
             int unitY = sim.world().cellY(unit);

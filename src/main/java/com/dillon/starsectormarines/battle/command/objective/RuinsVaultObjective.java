@@ -201,6 +201,23 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     public float breachProgress() { return breach.progress(); }
     public float breachDuration() { return breach.duration(); }
     public boolean contested() { return contested; }
+    public float boardingProgress() { return boarding.progress(); }
+    public float boardingDuration() { return boarding.duration(); }
+    /** How far the haul has come along its bound route, in route cells. */
+    public int haulRouteIndex() { return routes.get(destination).index(); }
+    public int haulRouteCellCount() { return routes.get(destination).cellCount(); }
+    public float haulLossProgress() { return routes.get(destination).lossProgress(); }
+    public float haulLossDuration() { return routes.get(destination).lossDuration(); }
+    public float haulAbandonmentProgress() { return routes.get(destination).abandonmentProgress(); }
+    public float haulAbandonmentDuration() { return routes.get(destination).abandonmentDuration(); }
+    /** The end cell of a lift point's route: where the boat comes down. */
+    public int liftPointCellX(int liftPoint) { return routes.get(liftPoint).endX(); }
+    public int liftPointCellY(int liftPoint) { return routes.get(liftPoint).endY(); }
+    /** How long the company has held an unopened landing court, or 0 for the landing area. */
+    public float courtHoldProgress(int liftPoint) {
+        UncontestedHold court = courts.get(liftPoint);
+        return court == null ? 0f : court.progress();
+    }
 
     @Override public String payloadId() { return haulId; }
     @Override public String payloadName() { return haulName; }

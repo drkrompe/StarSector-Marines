@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
@@ -725,7 +728,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind, null);
+                sprawl, null, 1f, false, targetName, targetKind, null, null, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -752,16 +755,32 @@ public final class BattleSetup {
     /**
      * The Ruins Expedition ({@code ruins-expedition.md}): the vault at the far end of the ground, its breach time
      * from the ruins grade, and the haul out to the landing area. An abandoned site: no civilians, no staffed
-     * buildings and no reinforcements come.
+     * buildings and no reinforcements come. The site's occupant chooses who defends it.
      */
     public static BattleSimulation createRuins(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport, RuinsGrade grade) {
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants). Only the scavengers' side
+        // plays yet; each other occupant's side plugs in at its own case, and until it does that site plays the
+        // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
+        switch (occupant) {
+            case SCAVENGERS:
+            // Derelict security: its walkers under the security-network director (derelict-security-network.md).
+            case DOMAIN_SECURITY:
+            case CONTINGENCY_SECURITY:
+                break;
+            case NOBODY: // the works chain with no opposing side: ruins-works.md
+            case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
+                LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
+                break;
+        }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
-                null, 1f, false, null, null, grade);
+                null, 1f, false, null, null, RuinsDelve.of(grade), occupant.isDerelict() ? grade : null,
+                occupant.isDerelict() ? null
+                        : RuinsCrew.of(grade, GroundRosterRegistry.resolve(RuinsCrew.FACTION_ID)));
     }
 
     /**
@@ -1142,14 +1161,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null, null, null);
     }
 
     /**
@@ -1180,7 +1199,7 @@ public final class BattleSetup {
     }
 
     static final String RUINS_HAUL_ID = "RUINS-01";
-    static final String RUINS_HAUL_NAME = "vault haul";
+    static final String RUINS_HAUL_NAME = "Vault haul";
     static final String RUINS_VAULT_NAME = "The vault";
     static final String RUINS_LANDING_NAME = "Landing area";
 
@@ -1189,29 +1208,34 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
-            PointOfInterest.Kind raidTargetKind, RuinsGrade ruinsGrade) {
-        RuinsDelve ruinsDelve = ruinsGrade != null ? RuinsDelve.of(ruinsGrade) : null;
-        // A ruins site is held by a scavenger crew on the pirate roster, whoever once owned the world.
-        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(type == MissionType.RUINS
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade liveRuinGrade,
+            RuinsCrew ruinsCrew) {
+        boolean liveRuin = type == MissionType.RUINS && liveRuinGrade != null;
+        // A scavenger crew is on the pirate roster, whoever once owned the world.
+        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
-        RuinsCrew ruinsCrew = type == MissionType.RUINS ? RuinsCrew.of(ruinsGrade, groundRoster) : null;
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
+        // A ruins site is a dead settlement laid as a delve, never a living town (ruins-ground.md).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         ColdAccountForce.FORTIFICATION)
+                : type == MissionType.RUINS
+                ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers()))
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
         if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
+        // Nobody parks a vehicle or mans an emplacement on a dead site.
+        boolean ruins = type == MissionType.RUINS;
+        List<Doodad> vehiclePlacements = ruins ? new ArrayList<>() : stampVehicles(map, rng);
         List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
         // A fortified place stated its own emplacements, so the setup-time
         // scatter is skipped: a second random layer on top of an authored
         // fortification was never a decision anybody made.
-        if (defensePosts.isEmpty()) {
+        if (defensePosts.isEmpty() && !ruins) {
             DefensePostStamper.stampNonConquest(map.grid, map.topology,
                     RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                     map.pointsOfInterest, map.doodads, defensePosts, rng);
@@ -1229,8 +1253,9 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
                 ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
-        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION || type == MissionType.RUINS
+        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
+        RuinsGroundLayout ruinsLayout = ruins ? RuinsGroundLayout.of(map) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
@@ -1251,13 +1276,14 @@ public final class BattleSetup {
                     raidTargetName == null ? raidLayout.targetName() : raidTargetName, raidLayout.targetCellX(),
                     raidLayout.targetCellY(), targetZone,
                     raidLayout.egressCellX(), raidLayout.egressCellY()));
-        } else if (extractionLayout != null && type == MissionType.RUINS) {
-            int vaultZone = sim.getZoneGraph().zoneIdAt(
-                    extractionLayout.sourceCellX(), extractionLayout.sourceCellY());
+        } else if (ruinsLayout != null) {
+            int vaultZone = sim.getZoneGraph().zoneIdAt(ruinsLayout.sourceX(), ruinsLayout.sourceY());
             sim.addObjective(new RuinsVaultObjective(RUINS_HAUL_ID, RUINS_HAUL_NAME, RUINS_VAULT_NAME,
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
-                    List.of(new RuinsVaultObjective.LiftPoint(RUINS_LANDING_NAME, true,
-                            extractionLayout.route()))));
+                    ruinsLayout.liftPoints()));
+            // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
+            sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
+                    ruinsLayout.liftPoints().get(0).route()));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
@@ -1326,11 +1352,13 @@ public final class BattleSetup {
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
         };
-        int[] ruinsCamp = ruinsCrew != null ? RuinsCrew.camp(extractionLayout.route())
-                : null;
+        // A live ruin's opposition is its security alone: no posted squads or patrols. A scavenger crew posts at its
+        // dig and its camp.
+        int[] ruinsCamp = ruinsCrew != null ? RuinsCrew.camp(ruinsLayout.liftPoints().get(0).route()) : null;
         if (ruinsCrew != null) {
-            allocateRuinsCrew(sim, map, ruinsCrew, groundRoster, rng, extractionLayout.route(), ruinsCamp);
-        } else {
+            allocateRuinsCrew(sim, map, ruinsCrew, groundRoster, rng,
+                    ruinsLayout.liftPoints().get(0).route(), ruinsCamp);
+        } else if (!liveRuin) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
         }
@@ -1399,15 +1427,13 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
-            if (type == MissionType.RUINS) {
-                sim.setAutonomousCommander(Faction.DEFENDER,
-                        new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
-                        ExtractionDefenderCommandDisclosure.INSTANCE);
-            } else {
-                sim.setAutonomousCommander(Faction.DEFENDER,
-                        new ExtractionDefenderCommand(extractionMobileSquads),
-                        ExtractionDefenderCommandDisclosure.INSTANCE);
-            }
+            if (liveRuin) DerelictSecurity.install(sim, liveRuinGrade);
+            else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
+                    new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
+                    ExtractionDefenderCommandDisclosure.INSTANCE);
+            else sim.setAutonomousCommander(Faction.DEFENDER,
+                    new ExtractionDefenderCommand(extractionMobileSquads),
+                    ExtractionDefenderCommandDisclosure.INSTANCE);
         }
         return sim;
     }

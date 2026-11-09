@@ -32,10 +32,30 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
+                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration,
+                          FleetRooms fleetRooms) {
+
+    public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew, int cargo, float aspect,
+                       HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay,
+                       WorkshopState workshop, ShipRestoration restoration) {
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, restoration, null);
+    }
+
+    /**
+     * Fleet facilities' standard deck (`fleet-facilities.md`): no hull, only the rooms the fleet
+     * has bought, laid out on a deck no screen shows whole. It carries the same boats the
+     * Second Wind does.
+     */
+    public static CompanyShip fleet(FleetRooms rooms) {
+        return new CompanyShip(HullClass.DESTROYER, HullRole.FREIGHTER, 0, 0, 0, FLEET_ASPECT, null, null, false,
+                BoatBayState.NONE, WorkshopState.NONE, ShipRestoration.fleet(rooms.gantries()), rooms);
+    }
+
+    /** Beam over length of the fleet's standard deck: broad enough that its bays stand abreast. */
+    static final float FLEET_ASPECT = 0.45f;
 
     public CompanyShip withRestoration(ShipRestoration state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, state);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, state, fleetRooms);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -50,7 +70,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, WorkshopState.NONE);
     }
     public CompanyShip withWorkshop(WorkshopState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, restoration, fleetRooms);
     }
 
     public enum BoatBayState { NONE, DAMAGED, RESTORED }
@@ -61,7 +81,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip withBoatBay(BoatBayState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, restoration, fleetRooms);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -70,7 +90,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip converted() {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, restoration, fleetRooms);
     }
 
     public boolean quarters() { return mercenaryConversion || hullClass.quarters(); }
@@ -114,6 +134,8 @@ public record CompanyShip(HullClass hullClass, HullRole role,
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */
     public DeckSizing.DeckPlan deckPlan() {
+        if (fleetRooms != null)
+            return DeckSizing.fleetPlan(fleetRooms, aspect).withRestoration(restoration).withBoats(ShipsBoats.carriedBy(this));
         return DeckSizing.planFor(hullClass, role, minCrew, maxCrew, cargo, aspect, mercenaryConversion, boatBay).withWorkshop(workshop).withRestoration(restoration).withBoats(ShipsBoats.carriedBy(this));
     }
 

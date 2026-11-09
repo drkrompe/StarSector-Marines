@@ -219,7 +219,18 @@ supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
 `ruins-ground.md` is the mapgen story: a landing area at one end, the vault at
 the other, the grade's layers between with their side rooms, landing courts and
 works sites, built from mapgen's ruined-lot vocabulary (`mapgen-nouns.md`).
-Before it exists, the stand-in battle plays on an existing map.
+`BattleSetup.createRuins` plays on it: the vault and every lift point come from
+the ground's published places, never from a search of the map.
+
+**Outside, then inside** (owner, 2026-11-09). A ruins site is a hybrid: the
+company lands outside, on the landing area or a court, and works into a
+megastructure or bunker, roofed rooms, corridors and seal doors with the vault
+deep inside, then brings the haul back out to a lift point. The interior grows
+with the grade: a bunker round the vault on scattered ground, the last layer
+at widespread, the last two at extensive and vast (`ruins-ground.md`,
+Interior). Inside is where derelict flocks
+cannot follow and heavies hold, and where the works' seal doors and power hall
+stand.
 
 ### Works
 

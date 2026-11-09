@@ -1,10 +1,18 @@
 # Derelict security network
 
-Status: PLANNED — owner direction (flocks and heavy mechs, 2026-11-09);
-nothing built. Feeds slice 5 of `ruins-expedition-fork.md` through
-`ruins-occupants.md`.
+Status: IN PROGRESS — zones, the director over walkers and flocks, the
+derelict heavy line and spotting are built (What is built); the node, repair
+drones, waking posts, power branches and every look are not. Feeds slice 5 of
+`ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
+
+Updated: 2026-11-09 — slices 1 to 4 built. Owner picks (2026-11-09), all on
+the recommended options: `derelict-mech-line` (a), a heavy line of its own;
+`derelict-swarm-size` (a), one flock of twelve to sixteen per zone;
+`derelict-flock-counters` (a), area fire and cover, flocks keeping out of
+roofed rooms. Interiors added (Interiors), from the owner's note that some
+sites are megastructures the company explores inside.
 
 Read `derelict-lore-guide.md` in full first, then `ruins-expedition.md`
 (The Ruins mission family, Derelict security), `extraction-command.md` (the
@@ -60,6 +68,123 @@ swarm director, and it commands flocks as units.
    junction that cuts a branch powers down the zones on it (`ruins-works.md`).
 9. **Looks.** Domain and contingency looks for the cradles, posts and node
    (`tech-families.md`), with picks.
+
+## Interiors
+
+Owner, 2026-11-09: some ruin sites are megastructures or bunkers; the company
+lands outside and works into roofed rooms and corridors with the vault deep
+inside (`ruins-ground.md`, Interior: outside, then inside). The two halves of
+the force split along the roofline:
+
+- **Flocks own the exterior and the approaches.** A flock never enters a
+  roofed cell; a strike on a unit under a roof holds the threshold, the doorway
+  or breach where its way out meets open ground (`derelict-drone-flocks.md`,
+  Roofs are the flock's limit). The company indoors is out of the flocks'
+  reach, which is the counter the owner picked.
+- **Heavies and posts hold the interior.** Zones laid along the vault's route
+  put the vault's zone, and at the larger grades the next, inside, so their
+  walkers stand in halls, corridors and antechambers. A pin under a roof still
+  counts: the flock holding the doorway pins the unit inside, and the zone's
+  line frames come to it through the corridors the flock cannot use.
+- **The vault frame is the interior guardian.** It stands on the vault, comes
+  only to what enters `VAULT_REACH_CELLS` of it, and stays there in the
+  contingency, when the line frames walk out to the egress; a vault breach
+  inside is fought by the heavies, the haul's way out by the flocks.
+- **Sized for corridors.** The walker fits the narrowest passage an interior is
+  carved with: its radius (0.72) stands in a `CorridorStage.CORRIDOR_WIDTH`
+  corridor (2 cells), tested by `DerelictWalkerFrameTest`. A narrower door or
+  seal door would shut it out; the interior's ways must stay corridor width
+  wherever a walker is posted beyond them.
+- **Posts that wake** (slice 7) stand at interior doors and courts as well as
+  outside.
+
+Not built: posting walkers by the interior's own places (`ruins.interior`, its
+rooms and doors) rather than by route cells; that waits on the interior ground.
+
+## What is built
+
+Everything is in `battle.derelict`.
+
+- **Zones (slice 1).** `SecurityZone` holds one zone's state (dormant, alert,
+  awake), its node cell and a Chebyshev perimeter. A stir (contact, gunfire
+  inside the perimeter, damage) wakes it; an awake zone quiet for
+  `SETTLE_TICKS` settles to alert, never to dormant; a dead node still wakes
+  on its own senses but neither relays nor hears a relay, and is out of the
+  contingency's call. `SecurityNetwork` holds the zones and their relay links:
+  a waking zone alerts its linked neighbours one hop; `breachVault` calls the
+  contingency, which keeps every live zone awake for the rest of the battle.
+- **Posture (slice 2, walkers).** `WalkerPosture.decide` is the pure rule per
+  walker: dormant or alert holds the post; awake, a line frame comes to the
+  nearest pin inside its own perimeter, a vault frame only to a pin within
+  `VAULT_REACH_CELLS` of its post, a siege frame holds and fires on the
+  freshest sighting within its reach; in the contingency line frames hold the
+  egress cell nearest their post (past the perimeter), the vault frame stays on
+  the vault, and a siege frame fires on the haul's escort first.
+- **Tasks (slice 2, flocks).** `FlockTasking.decide` is the pure rule per
+  flock: under a third of strength it goes home; in the contingency it
+  strikes the haul's escort off the leash; a dormant zone's flock stays home,
+  an alert one screens its node; an awake one strikes inside the perimeter,
+  pursues to `LEASH_CELLS` past it, screens the perimeter's edge toward
+  anything beyond, and probes where its zone was stirred when it holds
+  nothing.
+- **The director.** `DerelictSecurityDirector`, ticked by `BattleSimulation`
+  every half second, learns only the side's merged contacts
+  (`getCommanderInfluence(DEFENDER)`) and its flocks' reports, stirs the zones
+  they fall in and the zones whose walkers lost plate or structure, calls the
+  contingency when `RuinsVaultObjective.breached()`, and then gives each
+  walker lance its posture as a `MISSION_COMMAND` assignment (`defendArea` at
+  the post or egress, `attackMove` onto a pin) and each flock its task. A zone
+  with no flock up is its walkers' own eyes: they come to and fire on what the
+  network's units hold. The haul's escort is the units the network has seen
+  within `ESCORT_RADIUS` of the vault since the breach.
+- **The flock seam.** `FlockCommandPort` (reports in, task and anchor out) is
+  the director's only view of flocks; `FlockSystemPort` implements it on the
+  shipped `FlockSystem` (`derelict-drone-flocks.md`), launching one `WASP`
+  flock of `FLOCK_SIZE` per zone over its node with the zone's perimeter plus
+  the leash, and not re-giving an order the flock already stands on.
+- **The heavy line (slice 3).** `MechVariant.SECURITY_WALKER` (`MG-40`, catalog
+  `security_walker`) is one new heavy chassis, `automated()`: kept out of the
+  Mech Lab's ceilings, the debug bay, field sheds and every pattern list, so
+  the company never fields, builds or refits it. `DerelictWalkerFrame` gives
+  its three loadouts (line: HC-10, AC-6, two SRM-5; siege: two chainguns, two
+  LRM-15 frag racks; vault: two HC-10, two SRM-15) and their plate as a share
+  of the chassis's (siege 0.85, vault 1.45). Its art, body plan and sound are
+  the Bulwark's until the line's own are picked; it is two-armed like the
+  Bulwark so the stand-in draws its arms.
+- **Spotting (slice 4).** The director hands a siege frame's squad each fresh
+  sighting it fires on as a `BeliefSource.SPOTTED` contact
+  (`Squad.observeSpottedContact`). `MechTargeting`, when nothing else is
+  engageable, takes a spotted belief seen within `SPOTTED_FRESH_TICKS` for a
+  mech with an indirect mount, within that mount's range and the hips'
+  traverse, without a line of sight; the shipped no-sight accuracy penalty of
+  indirect fire applies. Not built: firing on a cell after the sighting goes
+  stale, so a blinded flock leaves the siege frame without a target rather
+  than firing on the old contact.
+- **The seam into the battle.** `BattleSetup.createRuins` with a derelict
+  occupant (`RuinsOccupant.isDerelict`) posts no generic squads or patrols and
+  calls `DerelictSecurity.install(sim, grade)`, which lays the grade's zones
+  along the vault's first lift route (`zonesAlong`: the vault first, the last
+  fifth of the route left to the company, perimeters meeting), posts the
+  grade's walkers (`heavies`, `zoneOf`: the vault frame at the vault, the siege
+  frame mid-route, line frames outward in turn), sets the egress cells
+  (`egressAlong`), launches the flocks and installs the director in place of
+  `ExtractionDefenderCommand`. `RuinsExpeditionMissionFactory` names the
+  occupant's own faction for a derelict site.
+
+Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
+`DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
+`ruins-derelict-extensive-v1`; `createSnapshots
+-Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
+from the first walker contact). Played headless through `battleProbe`: line
+frames hold their posts until a pin falls inside their perimeter and then
+attack-move onto it; the siege frame engages from its post at twenty-odd
+cells.
+
+Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
+coming to a pin and the contingency; the node (slice 5); repair drones (6);
+waking posts (7); power branches (8); looks for the walker, cradles, posts and
+node (3, 9). Balance is not tuned: on the vast fixture the flocks alone wipe a
+four-boat company at the landing, outside every zone.
 
 ## Constraints
 

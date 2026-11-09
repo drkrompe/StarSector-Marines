@@ -18,8 +18,10 @@ import java.util.Set;
  * Pure: the campaign reads receipts into one of these, and everything a band
  * does is answered here so Engineering and the launch freeze cannot disagree. {@link #NONE} is every other hull: neutral on every track.
  */
-public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
+public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands, boolean fleet) {
     public static final ShipCondition NONE = new ShipCondition(false, Map.of());
+
+    public ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) { this(applies, bands, false); }
 
     public ShipCondition {
         var copy = new EnumMap<RefitTrack, RefitBand>(RefitTrack.class);
@@ -36,7 +38,7 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         if (!applies) return this;
         var copy = new EnumMap<>(bands);
         copy.put(track, band);
-        return new ShipCondition(true, copy);
+        return new ShipCondition(true, copy, fleet);
     }
 
     /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it, the reclamation line further. */
@@ -68,7 +70,7 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
     }
 
     /** The order that would advance {@code track}, or null when it is at its ceiling. */
-    public RefitOrder next(RefitTrack track) { return RefitOrder.after(track, band(track)); }
+    public RefitOrder next(RefitTrack track) { return RefitOrder.after(track, band(track), fleet); }
 
     /** The first unmet requirement of {@code order}, in its declared order, or null when none. */
     public Map.Entry<RefitTrack, RefitBand> missing(RefitOrder order) {
@@ -161,6 +163,39 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
             case IMPROVED_I -> first;
             case IMPROVED_II -> second;
             default -> 1f;
+        };
+    }
+
+    // --- Fleet facilities: the mock rooms' sizes (`fleet-facilities.md`) ---
+
+    /** Working gantries in the fleet's Mech Lab: none, one, two, then the full lance of four. */
+    public int mechGantries() {
+        return switch (band(RefitTrack.MECH_GANTRIES)) {
+            case DEFICIT -> 0;
+            case RESTORED -> 1;
+            case IMPROVED_I -> 2;
+            case IMPROVED_II -> 4;
+        };
+    }
+
+    /** Working boat berths in the fleet's bay, each a boat of lift: one to start, then two, then three. */
+    public int boatBerths() {
+        return switch (band(RefitTrack.BOAT_BERTHS)) {
+            case DEFICIT, RESTORED -> 1;
+            case IMPROVED_I -> 2;
+            case IMPROVED_II -> 3;
+        };
+    }
+
+    /**
+     * Bunkrooms in the fleet's barracks, nine billets each: four to start, the Second Wind's 36
+     * usable billets and three full squads, then six, then eight.
+     */
+    public int bunkrooms() {
+        return switch (band(RefitTrack.BARRACKS)) {
+            case DEFICIT, RESTORED -> 4;
+            case IMPROVED_I -> 6;
+            case IMPROVED_II -> 8;
         };
     }
 
