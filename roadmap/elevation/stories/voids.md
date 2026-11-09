@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-07 — the industrial stepped sky port has traffic: vanilla hulls flying its bays and skyways, freighters parked on its terraces.
+Updated: 2026-11-09 — the gorge river, the first natural style, has a look experiment; the plan for the other natural styles and their placement.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -357,8 +357,107 @@ Laws):
    gantries. The play area's size and chokepoints will
    change (owner, 2026-11-07); the structures follow whatever footprint the
    surface has.
-4. **Look, the other styles.** Crevasse, gorge river and sea cliff on the same
-   bake, each shown to the owner.
+4. **Look, the natural styles.** Crevasse, gorge river, canyon and sea cliff,
+   each shown to the owner. The gorge river is first; its look experiment is
+   built on a hand-laid meadow (`createSnapshots -Psnapshot=gorge-void-look`).
+
+   **Beside the city drop, not inside it.** A natural drop differs from the
+   city drop in every part the city's drawing is built from. Its edge is an
+   eroded line that wanders off the cells, not runs along them; its walls are
+   rock strata stepping down in ledges, not facades over terraces grown from a
+   footprint; its floor is water, scree, dark ice or surf, not a city plate;
+   it has no towers, walkways, traffic or lit windows. So a map carries a
+   `NaturalVoid` instead of a `VoidBackdrop` (never both), drawn by
+   `NaturalVoidRenderSystem` beside `VoidBackdropRenderSystem`. What they
+   share is the camera and the rules, not code: the pinhole eye in metres
+   above the surface, painter's order by depth, the battle's sun, and the
+   ground tiles drawn after, covering everything but the void cells. Neither
+   changes the other's pictures.
+
+   **The natural drop's shape** (`NaturalVoidField`), worked out once per map
+   and sun:
+   - **Distance in.** Every point of the void has a distance in cells to the
+     nearest ground that stands. The `NaturalVoid` names its **steps**, each
+     a depth and an inset; a step begins where the distance, roughened by
+     that step's own slow and fine noise, passes its inset. So the edge and
+     every ledge wander independently of the cells and of each other, a ledge
+     may pinch out where two walls meet, and the drop narrows as it falls.
+     The steps nest, so the drop never rises again. The last step is the
+     floor. The distance is signed and smoothed over a cell or so, so no
+     line follows the cells' stair steps.
+   - **The lip** is the strip between the smoothed edge and the first wall:
+     rock and earth at the surface. It **frays** a little way onto the
+     walkable cells beside the drop, drawn over the ground tiles: opaque to
+     a wandering line just past the cells' edge, so the stair-step corners
+     of the ground are covered, then breaking into clumps in the turf.
+     What lies deeper under that strip of ground is drawn too, so it shows
+     past the edge once the camera scales it toward the view's centre.
+   - **Walls** stand on each step's line, the quad between the line at its
+     top's scale and at its foot's, the strata image laid along them,
+     repeating down the face in metres (`gorge-wall.png`, ImageGen,
+     `art-source/voids/gorge/`). **Ledges** are flat at their depth: rock,
+     moss and fern, pale scree where a ledge breaks over the face below.
+   - **Light.** Each piece of ledge, floor and face is lit once: the sun if
+     its march toward the sun clears the rock and the bridges, and how much
+     sky the walls round it leave open, so a narrow floor stands dim and a
+     face turned from the sun is in its own shade. Depth adds a cool tint.
+   - **Bridges by shape**, as the city's walkways: ground narrower than
+     seven cells with the drop on two opposite sides, joining wider ground at
+     two ends a span apart, is a built span; a spur or notch of the bank,
+     joined along one side only, stays ground. The drop runs on under a
+     span, it is a slab to the sun, and its deck edge shows over the drop.
+     The map marks neither.
+   - **Off the map.** The drop is worked out a margin past the map's edges,
+     the edge cells carried outward, so a drop that runs off the map runs on
+     rather than ending in a wall.
+
+   **Gorge river** (first pass): a lip, two ledges and the water 50 m down;
+   a meadow's grass to the edge; a timber footbridge and a stone road bridge; the river runs along the gorge,
+   pattern drifting downstream and fading into the next every few seconds,
+   white along the walls and where the stream breaks, the sun glinting where
+   it reaches. The suite renders camera heights of 120 m and 160 m (the
+   city's 240 m makes a 50 m drop read as a ditch). Left: the owner's pick
+   of depth and camera height; a mist
+   over the water; boulders and fallen trees in the stream; trees and roots
+   hanging over the lip; which way the river runs on a map that names it
+   (now it runs toward the map's east or south).
+
+   **The other styles**, each the same field with its own steps, wall image,
+   lip and floor, and each its own ImageGen wall under `art-source/voids/`:
+   - **Canyon**: the gorge river's dry sister for desert and barren worlds.
+     Wider and deeper, more and wider ledges, a red or ochre sandstone wall;
+     the floor a dry wash of sand and scree with scattered boulders.
+   - **Crevasse**: ice and rock country. Narrow (two to five cells), few or
+     no ledges, a blue-white ice wall, a snow lip. Its floor is not drawn:
+     the depth tint runs to a near-black blue, "narrowing to nothing". Its
+     bridges are snow bridges: the same span, its edge drawn as a sagging
+     snow arch.
+   - **Sea cliff**: the land ends at a map's edge. The void runs to the map's
+     edge, so there is no far wall; the steps are fewer and taller, the
+     floor is sea: swell drifting in toward the foot, surf breaking along it,
+     a few skerries. A causeway is a bridge.
+   The field takes these as they are. Each style adds its floor drawing and
+   its palette, and a crevasse its "no floor"; none needs a new shape rule.
+
+   **Placement in generated maps** (slice 2 for the natural styles), each
+   where the generator already lays the feature it deepens:
+   - A **gorge river** in place of a brook (`Landscape.Brook`): the brook's
+     path cut as a void its width plus banks, its fords becoming bridges,
+     a footbridge or a road bridge by what crosses there. A brook's valley
+     sides (`elevation-nouns.md`, Ridges) are not raised beside a gorge: the
+     gorge is the valley. The same proofs as a brook's: every required place
+     stays connected through the bridges.
+   - A **canyon** where a barren or desert map would lay a gorge river, and
+     as a mission's dividing line between two halves of a map.
+   - A **crevasse** in ice and rock country, a short seeded split laid
+     across open ground off the mission's lines, never across a road, with a
+     snow bridge where a route must cross.
+   - A **sea cliff** where a beach map lays its shoreline (`BeachShorelineStage`)
+     on a map whose landing is not from the sea: the shore band cut as void
+     at the map's edge.
+   - All of them refuse what a plateau refuses (roads, buildings, doorways,
+     fixtures, reserved cells), and `-Dbattle.mapgen.voids=N` asks for them
+     on every map for evidence.
 5. **Raymarched depth (optional).** Only if slices 3 and 4 do not sell the
    depth: the composite raymarches inside void cells into a virtual space below
    (the owner's MoonLightEngine technique), reading the resident macro-relief

@@ -301,6 +301,8 @@ public class BattleRenderer {
         cliffArt.useSun(sun);
         VoidBackdropRenderSystem voidBackdrop = new VoidBackdropRenderSystem(sprites);
         voidBackdrop.useSun(sun);
+        NaturalVoidRenderSystem naturalVoid = new NaturalVoidRenderSystem(sprites);
+        naturalVoid.useSun(sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -324,7 +326,11 @@ public class BattleRenderer {
         this.worldSystems = List.of(
                 // The ground far below a map's void cells, under the tiles that cover it everywhere else.
                 voidBackdrop,
+                // The land falling away below a map's void cells: a gorge, a crevasse, a sea cliff.
+                naturalVoid,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
+                // A natural drop's lip fraying onto the ground beside it, over the tiles.
+                naturalVoid.fray(),
                 // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
                 cliffArt,
                 // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.
