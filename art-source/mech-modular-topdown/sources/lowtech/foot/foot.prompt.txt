@@ -1,0 +1,9 @@
+Asset type: production-source master for a top-down game sprite: the FOOT PAD of a walking machine in the old, low-tech Hegemony armour line, seen straight from above. It is drawn under the machine's body, so mostly its front edge shows as the leg steps.
+
+Image 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize or add to its shape, and keep all empty canvas empty. The wide upper part is the front of the pad; the stepped lower part is the heel where the leg meets it.
+
+Image 2 is family identity reference only, never layout: the accepted low-tech Hegemony Hound this foot belongs to. Match its finish: warm tan and khaki riveted plate, dark gunmetal working parts, rivet rows, worn bright edges, grime, crisp painted game-sprite finish, light from the upper left. Draw a heavy, flat cast foot: a riveted tan toe plate with a worn steel grip edge along the front, a dark ankle bearing at the heel, perhaps one small orange hazard strip on a corner.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, cast shadow, halo, border, text or labels.
+
+Avoid: a leg, a second foot, glowing lights, blue or cyan, perspective, side view, text.

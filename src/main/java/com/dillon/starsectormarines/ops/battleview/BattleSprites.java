@@ -1555,9 +1555,10 @@ public class BattleSprites {
                     + " incomplete; actors using it keep the complete base set");
             return;
         }
+        LayeredSpriteCache liveryFoot = livery.ownsFoot() ? loadLayeredSprite(root + "foot.png") : null;
         layeredMechLiveries.put(livery, new LayeredMechAssets(
                 chassis, socketedChassis, houndChassis, wardenChassis,
-                foot, thighBone, arm, hc10, hc20,
+                liveryFoot != null ? liveryFoot : foot, thighBone, arm, hc10, hc20,
                 srm, lrm, ll3, pl2Ap, ac6,
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,

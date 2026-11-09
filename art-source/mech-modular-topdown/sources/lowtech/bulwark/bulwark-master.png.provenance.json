@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c18b-d583-7f02-9483-0a8bc052b61b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c18b-d583-7f02-9483-0a8bc052b61b\\exec-04c524b3-204b-4ecc-bee9-13d06a197db1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\bulwark\\bulwark-master.png",
+    "sha256": "b8c5bb0104db6eec49c821085c79590835d9b57da044bb26e0684d73eea2aecc",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\bulwark\\bulwark.prompt.txt",
+  "promptSha256": "8bf4381e17ffe0f5aaa430a4824aa124f95a5fcf6a594ece99bd33e6487a692f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Family identity: finish and canopy design only; not layout\nImage 3: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the chassis of the BULWARK, a heavy all-round anchor walking machine, in the old, low-tech Hegemony armour line, big brother of the Hound.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize, widen or add to its shapes, and keep all empty canvas empty. From front to back: a small armoured head plate at the very front; the pilot canopy behind it; a broad, heavy, chamfered body box with wide shoulders; on each flank a darker rectangular shoulder pad, a flat riveted mounting plate with bolt points where a missile rack is bolted on later (nothing standing on it); a lighter flat deck down the spine with hatches; a wide engine block at the very rear with exhaust grilles. Thick glacis plates, heavy rivet rows, stowage boxes and grab handles. Symmetric about the vertical centre line.\n\nImage 2 is family identity reference only, never layout: the accepted low-tech Hegemony HOUND, the light machine of the same line. Match it exactly in finish and parts: the same warm tan and khaki riveted plate with olive-green panels, the same rivet rows, weld seams, exposed pipe runs in the seams, worn bright edges and orange hazard panels on leading corners, and the SAME faceted pilot canopy: dark smoked grey-green glass panes, narrow at the front, split by thick riveted tan frame bars, in a hinged armour rim. Image 3 is material reference only: the Hegemony medium tank the line serves beside.\n\nThe lighter grey shape on the spine is the pilot canopy: draw it as that faceted framed canopy, filling the shape exactly. Old, low-tech, depot-built Hegemony military hardware: blunt, boxy, bolted and repairable, never sleek, smooth or high-tech.\n\nStrict 90-degree zenith orthographic top-down view of the chassis top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, labels or logos. Draw only the chassis body: no weapons, missile racks, legs or feet, which are separate layers drawn later.\n\nAvoid: sci-fi smooth plastic, glowing lights, bright blue or cyan, white paint, perspective, side view, isometric view, cropped edges, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\bulwark\\guide.png",
+      "sha256": "d02533dfdbb20b610c7c07f957fc24e839cef9302fc76fdb8ac3a896abc36bca",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-1-master.png",
+      "sha256": "93c71ce7ce33d191178a7ac3ba39053d6e8efbfa8919e127f09c6d698882d298",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Family identity: finish and canopy design only; not layout"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent chassis image, preserving Image 1’s geometry and using Images 2 and 3 only for the specified canopy and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 50193,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 565,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 75.8
+}

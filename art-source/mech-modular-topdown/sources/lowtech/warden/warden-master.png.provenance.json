@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c18b-d59d-7100-b450-a00df65a4acd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c18b-d59d-7100-b450-a00df65a4acd\\exec-246b2d36-2375-41cb-a41a-256321456416.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\warden\\warden-master.png",
+    "sha256": "efb309a37bc2450c0c7f62e01ebc404a7fa2d307afc72fe0eb8496df49b78b82",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\warden\\warden.prompt.txt",
+  "promptSha256": "ad76db083448fd7b3c02bfbe6a014453970fc6647dc93994053293c0641eddac",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Family identity: finish and canopy design only; not layout\nImage 3: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the chassis of the WARDEN, a long-range fire-support walking machine, in the old, low-tech Hegemony armour line, sibling of the Hound.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize, widen or add to its shapes, and keep all empty canvas empty, including the open channel between the two nose cheeks where a heavy cannon barrel shows. From front to back: two narrow cheek plates at the nose with the open channel between them; the pilot canopy; a broad armoured wedge body widening toward the rear; a raised flat deck down the spine, an ammunition and sensor housing with hatches; two round hip bearing housings at the waist; an angled armoured sponson on each rear flank over the missile-rack roots; a squat engine block at the very rear with exhaust grilles. Symmetric about the vertical centre line.\n\nImage 2 is family identity reference only, never layout: the accepted low-tech Hegemony HOUND, the light machine of the same line. Match it exactly in finish and parts: the same warm tan and khaki riveted plate with olive-green panels, the same rivet rows, weld seams, exposed pipe runs in the seams, worn bright edges and orange hazard panels on leading corners, and the SAME faceted pilot canopy: dark smoked grey-green glass panes, narrow at the front, split by thick riveted tan frame bars, in a hinged armour rim. Image 3 is material reference only: the Hegemony medium tank the line serves beside.\n\nThe lighter grey shape on the spine is the pilot canopy: draw it as that faceted framed canopy, filling the shape exactly. Old, low-tech, depot-built Hegemony military hardware: blunt, boxy, bolted and repairable, never sleek, smooth or high-tech.\n\nStrict 90-degree zenith orthographic top-down view of the chassis top surfaces, the machine facing the TOP edge of the canvas. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, labels or logos. Draw only the chassis body: no weapons, missile racks, legs or feet, which are separate layers drawn later.\n\nAvoid: sci-fi smooth plastic, glowing lights, bright blue or cyan, white paint, perspective, side view, isometric view, cropped edges, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\warden\\guide.png",
+      "sha256": "84de00c1941785ab529f2fa717fc2e1acf0479ef769145ba453dccd9c3269175",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\hound\\canopy-1-master.png",
+      "sha256": "93c71ce7ce33d191178a7ac3ba39053d6e8efbfa8919e127f09c6d698882d298",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Family identity: finish and canopy design only; not layout"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Warden chassis image using the blockout as the exact layout and the other references for finish and canopy details."
+  ],
+  "usage": {
+    "input_tokens": 50432,
+    "cached_input_tokens": 38016,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 829,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.6
+}

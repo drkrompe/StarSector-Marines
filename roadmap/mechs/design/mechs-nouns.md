@@ -24,7 +24,14 @@ increasing an encounter's total armored threat.
   known chassis and the authored paintable casing of its installed equipment.
   It may change paint, plate-face material, wear, and non-readable markings,
   but it is not a hardware variant and owns no geometry, mount, loadout,
-  durability, movement, doctrine, or faction-wide bonus.
+  durability, movement, doctrine, or faction-wide bonus. A livery may instead
+  wear **bodies of its own**: the Hegemony's low-tech family (owner), drawn in
+  the Hegemony armour line's riveted tan plate with a faceted pilot canopy
+  and a matching foot pad (`MechLivery.ownsFoot`;
+  art-source/mech-modular-topdown/sources/lowtech). Its outlines differ from
+  the shared ones, but every mount, the chassis square and the runtime scale
+  are the shared chassis's, so it still owns no hardware. Its weapon casings
+  take its own plate colour, as every livery's do.
 - A **role** is tactical doctrine. It owns where a mech attempts to operate,
   what it supports, and when it advances, holds, or withdraws. A recommended
   role is not a chassis lock; the same hardware may receive another doctrine.
@@ -1738,11 +1745,16 @@ support sortie, subject only to practical runtime resources.
   render scale may not retain heavy-sized picking, collision, hit, blast, or
   morale behavior.
 - A livery consumes the accepted chassis silhouette and shared equipment
-  geometry. Equipment color may change only through its authored paintable
-  casing; exposed mechanisms, ordnance, and functional indicators remain the
-  shared hardware. No livery may alter alpha footprint, hardpoint openings,
-  layer order, runtime scale, or mechanical authority merely to strengthen
-  faction flavor.
+  geometry, or wears bodies of its own drawn round the same mounts. Equipment
+  color may change only through its authored paintable casing; exposed
+  mechanisms, ordnance, and functional indicators remain the shared hardware.
+  No livery may move a hardpoint, change layer order or runtime scale, or touch
+  mechanical authority merely to strengthen faction flavor.
+- Shoulder racks stand over the body on the Bulwark, the Hound and the Warden
+  (owner: the Warden's racks drawn under its hull read wrong); a centreline
+  chaingun is drawn at the half width the Bulwark's arms draw it at, since at
+  full width it was as broad as the Hound's nose
+  (`LayeredMechComposer.centrelineWidthScale`).
 - Hardware and doctrine are independent. Do not encode a planner behavior in
   a variant name or infer a chassis solely from its assigned role.
 - A battle role override changes only local tactical manner. It does not author
