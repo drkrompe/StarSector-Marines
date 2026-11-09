@@ -113,6 +113,7 @@ public final class TileRegistry {
             "data/tilesets/ice-terrain.tileset.json",
             "data/tilesets/glassed-terrain.tileset.json",
             "data/tilesets/planet-formations.tileset.json",
+            "data/tilesets/irradiated-formations.tileset.json",
             "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/forest-damaged.tileset.json",
             "data/tilesets/rock-damage.tileset.json",
