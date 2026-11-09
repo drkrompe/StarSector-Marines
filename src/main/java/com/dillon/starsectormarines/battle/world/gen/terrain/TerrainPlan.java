@@ -9,10 +9,15 @@ import java.util.List;
 /** Ordered brush intent in cell-center coordinates. Raised masses and excavations are inaccessible. */
 public record TerrainPlan(int width, int height, Finish finish, double faceDepth,
                           double ruggedness, long seed, List<Stroke> strokes) {
-    public enum Finish { ROCK, GRASS_TOP, ICE;
-        public String materialPrefix() { return this==ICE?"terrain.ice.":"terrain."; }
+    public enum Finish { ROCK, GRASS_TOP, ICE,
+        /** Scorched, glass-fused escarpment on an irradiated world. */
+        GLASSED;
+        public String materialPrefix() { return switch(this) {
+            case ICE -> "terrain.ice."; case GLASSED -> "terrain.glassed."; default -> "terrain.";
+        }; }
         @Override public String toString() { return switch(this) {
             case ROCK -> "Rock escarpment"; case GRASS_TOP -> "Grass-topped cliff"; case ICE -> "Glacial ice ridge";
+            case GLASSED -> "Glassed escarpment";
         }; }
     }
     public enum Mode { RAISE, ERASE, EXCAVATE;
