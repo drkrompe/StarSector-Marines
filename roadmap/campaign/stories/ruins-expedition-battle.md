@@ -171,6 +171,18 @@ story's battle plays, it lifts the fork's development-only gate
     those circles. The fork's commit path reads pulled out as it reads lost for
     the vault (nothing salvaged, site unexplored). Unit-test the resolution
     rule: pull-out point held or lost, phase A or B.
+    *Built.* `RuinsPullOut.resolve` is the rule (won; pulled out on a
+    confirmed retreat with `RuinsVaultObjective.pullOutPointHeld`; lost
+    otherwise). `MissionOutcome.pulledOut` carries it: `LootGenerator` banks the
+    field finds, Results reads **Pulled out** and lists them as coming home,
+    `RuinsExpeditionLedger` records `PULLED_OUT` and `MarineRuinsCMD` commits it
+    as it does a loss for the vault, with its own line.
+    `BattleSimulation.withdrawalPads` adds the pull-out point and every held
+    lift point to the landing's circles, for the casualty roll and the circles
+    drawn. The battle's Retreat reads Pull out while the pull-out point is held,
+    and its confirmation lists the banked finds (`RuinsPullOutWording`). Until
+    slice 9 lands, the pull-out point is the landing and always held. Not yet
+    seen in a played battle.
 11. **What the site remembers.** The finds recovered at a won or pulled-out
     commit are written once to the site's market as a set of find ids (Law 6).
     A later expedition's placement leaves them out; the occupant, works and

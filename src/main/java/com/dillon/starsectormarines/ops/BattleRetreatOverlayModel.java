@@ -91,6 +91,13 @@ final class BattleRetreatOverlayModel {
                   String confirmPrompt, String confirmDetail, String cancel, String withdraw) {
     }
 
+    /**
+     * What leaving the battle is called and what its confirmation says, when a mission words it its own way (a
+     * Ruins expedition's Pull out). Null keeps the {@link Labels}.
+     */
+    record Wording(String retreat, String confirmPrompt, String confirmDetail, String withdraw) {
+    }
+
     private final MutableSignal<String> exitRowClasses;
     private final MutableSignal<String> actionClasses;
     private final MutableSignal<String> actionLabel;
@@ -98,6 +105,10 @@ final class BattleRetreatOverlayModel {
     private final MutableSignal<String> retryLabel;
     private final MutableSignal<Boolean> retryDisabled;
     private final MutableSignal<String> confirmClasses;
+    private final MutableSignal<String> confirmPrompt;
+    private final MutableSignal<String> confirmDetail;
+    private final MutableSignal<String> confirmLabel;
+    private String retreatLabel;
     private final MutableSignal<String> restartClasses;
     private final MutableSignal<String> restartLabel;
     private final MutableSignal<Boolean> restartDisabled;
@@ -117,6 +128,10 @@ final class BattleRetreatOverlayModel {
         retryLabel = reactor.signal("");
         retryDisabled = reactor.signal(false);
         confirmClasses = reactor.signal(CONFIRM_HIDDEN_CLASSES);
+        retreatLabel = labels.retreat();
+        confirmPrompt = reactor.signal(labels.confirmPrompt());
+        confirmDetail = reactor.signal(labels.confirmDetail());
+        confirmLabel = reactor.signal(labels.withdraw());
         restartClasses = reactor.signal(RESTART_HIDDEN_CLASSES);
         restartLabel = reactor.signal("");
         restartDisabled = reactor.signal(false);
@@ -133,17 +148,26 @@ final class BattleRetreatOverlayModel {
         props.put("retryDisabled", retryDisabled);
         props.put("retryAction", (Runnable) this::retryAfterDefeat);
         props.put("confirmClasses", confirmClasses);
-        props.put("confirmPrompt", labels.confirmPrompt());
-        props.put("confirmDetail", labels.confirmDetail());
+        props.put("confirmPrompt", confirmPrompt);
+        props.put("confirmDetail", confirmDetail);
         props.put("restartClasses", restartClasses);
         props.put("restartLabel", restartLabel);
         props.put("restartDisabled", restartDisabled);
         props.put("restartAction", (Runnable) this::restart);
         props.put("cancelLabel", labels.cancel());
         props.put("cancelAction", (Runnable) this::cancelRetreat);
-        props.put("confirmLabel", labels.withdraw());
+        props.put("confirmLabel", confirmLabel);
         props.put("confirmAction", (Runnable) this::confirmRetreat);
         return props;
+    }
+
+    /** The mission's own wording for leaving, or null for the ordinary Retreat. */
+    void wording(Wording wording) {
+        retreatLabel = wording != null ? wording.retreat() : labels.retreat();
+        confirmPrompt.set(wording != null ? wording.confirmPrompt() : labels.confirmPrompt());
+        confirmDetail.set(wording != null ? wording.confirmDetail() : labels.confirmDetail());
+        confirmLabel.set(wording != null ? wording.withdraw() : labels.withdraw());
+        if (presentation == Presentation.RETREAT) actionLabel.set(retreatLabel);
     }
 
     Presentation update(Phase phase, RetryOffer nextOffer) {
@@ -197,7 +221,7 @@ final class BattleRetreatOverlayModel {
         exitRowClasses.set(confirming ? EXIT_ROW_HIDDEN_CLASSES : EXIT_ROW_CLASSES);
         actionClasses.set(confirming ? ACTION_HIDDEN_CLASSES : ACTION_CLASSES);
         actionLabel.set(next == Presentation.DEFEAT_RETRY ? labels.acceptDefeat()
-                : next == Presentation.CONTINUE ? labels.continueLabel() : labels.retreat());
+                : next == Presentation.CONTINUE ? labels.continueLabel() : retreatLabel);
         retryClasses.set(next == Presentation.DEFEAT_RETRY ? RETRY_CLASSES : RETRY_HIDDEN_CLASSES);
         retryLabel.set(offer.defeatLabel());
         retryDisabled.set(!offer.affordable());

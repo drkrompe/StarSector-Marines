@@ -64,7 +64,11 @@ collision or reward authority, and the existing marker reports recovery state.
 Current bundles are 40 metals, 8 heavy machinery, and 12 supplies. The battle
 owns only identities, quantities and recovery state. Resolution freezes secured
 finds into the outcome; victory permits their claim, defeat/withdrawal leaves
-them behind, and debug missions never grant campaign cargo. Secured means tagged
+them behind, and debug missions never grant campaign cargo. The one exception
+is a Ruins expedition, where a secured find is **banked**: it also comes home
+when the company pulls out while its pull-out point is held, and is left
+behind only on a wipe-out, a lost haul or a retreat with the pull-out point
+lost (`ruins-expedition.md`, Pressing on or pulling out). Secured means tagged
 for post-victory recovery, not physically carried by a soldier or an extraction
 shuttle. These materials are campaign commodities, not battlefield ammunition.
 
