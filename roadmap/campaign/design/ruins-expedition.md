@@ -53,10 +53,10 @@ settlement) and `campaign-nouns.md` (authority boundaries).
   recovered from. Reaching and holding it is what makes the expedition won.
 - The **occupant** is whoever holds the ruins: a fixed, seeded fact of the site,
   hashed from the sector seed and the market and never stored, like a bloom
-  reservoir (`colony-breach-nouns.md`). Candidates are scavengers (pirate or
-  independent salvage crews), the ruins' own automated Domain security, and,
-  on a reservoir world, the Rav. A small scattered site may hold nobody, so its
-  danger is the ground itself.
+  reservoir (`colony-breach-nouns.md`). Candidates are scavengers (a pirate
+  salvage crew), derelict security (`derelict-lore-guide.md`), and, on a
+  reservoir world, the Rav. Only a scattered site may hold nobody; its only
+  obstacle is then the map's own terrain, with no hazard system of its own.
 
 ## Laws
 
