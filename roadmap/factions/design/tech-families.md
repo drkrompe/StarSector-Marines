@@ -135,7 +135,9 @@ All three are drawn as low-tech machines for the Hegemony, Independents and pira
 (`mechs-nouns.md`, livery: the low-tech bodies). The other factions' sleek bodies are
 those powers' shells hung on the same frames, stand-ins for their own lines
 (`mech-lines.md`). Tri-Tachyon's stand-in is the high-tech row's own look: lobed
-steel-blue bodies on the same frames, ahead of the row's rules.
+steel-blue bodies on the same frames. Its own force is meant to be skimmers, a hover
+vehicle line from light to heavy, and light crawlers, with no heavy walker
+(`mech-lines.md`, order of work).
 
 ### Infantry armor
 

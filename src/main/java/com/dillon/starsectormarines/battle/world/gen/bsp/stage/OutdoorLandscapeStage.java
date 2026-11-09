@@ -4,17 +4,13 @@ import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
-import com.dillon.starsectormarines.battle.world.gen.StormWind;
-import com.dillon.starsectormarines.battle.world.gen.StormDrift;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
@@ -74,13 +70,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
-        // Every lawn has been laid by now; the planet decides whether it is lawn. Before the landscape, so a hill
+        // Every lawn and lot has been laid by now; the planet decides whether it is lawn or bare earth. Before the landscape, so a hill
         // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
-        CultivatedGround.settle(c.topology, field);
-        // A storm world banks its own ground against the windward face of every wall.
-        TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
-        if (profile != null && profile.climate().has(Climate.Hazard.STORMS))
-            StormDrift.paint(c.topology, field, StormWind.windward(c.seed));
+        CultivatedGround.settle(c.topology, field, c::isMadeGround);
         landscape(c, field);
     }
 

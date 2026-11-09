@@ -635,7 +635,7 @@ Laws):
    `createSnapshots -Psnapshot=raid-mine-pit-look`.
    - **Benches.** `NaturalVoid` with style `OPEN_PIT` and six benches 7 m
      apart, each cut 2 cells back from the face above, to a floor 42 m down
-     (`OpenPit.STEPS`). Cut, not eroded: the field's wander is a fifth of a
+     (`OpenPit.STEPS`; owner pick `raid-mine-pit-depth`, 2026-11-09). Cut, not eroded: the field's wander is a fifth of a
      natural drop's (`NaturalVoidField.Shape.CUT_WANDER`), so the benches run
      evenly round the pit. The faces are their own ImageGen image
      (`pit-bench-wall.png`, blasted rock with presplit drill traces, under
@@ -665,10 +665,21 @@ Laws):
      outside it stays connected as before, a pocket wholly inside the site on
      open ground is taken into the pit, and any other stranding refuses the
      pit and the map keeps none. No bridge is ever needed.
+   - **Machines** (owner, 2026-11-09: "mining equipment or other evidence of
+     large scale excavation"). `PitMachines`: a face shovel at the toe of a
+     face on the dry floor loading a haul truck, the next truck queued behind
+     it, a dozer and a wheel loader elsewhere on the floor, two blasthole
+     drills a pattern apart on the first bench with room clear of the road,
+     and two haul trucks on the road, the deeper loaded and climbing, the
+     upper empty and coming down. Each is drawn at its depth's scale, after
+     its bench and before the face above it, so the rock in front hides it.
+     The battle's vehicle scale: a haul truck is three cells by two, and the
+     haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen sheet,
+     `pit-machines.png`, filled in over a geometry guide
+     (`art-source/voids/open-pit/machines-guide.py`). Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
-   Left: the owner's pick of depth and bench count; haul trucks on the road and
-   a shovel at the face; more than one conveyor (to the stores, or from the
-   shafts); dust over the working bench.
+   Left: spoil heaps and parked machines on the rim; more than one conveyor
+   (to the stores, or from the shafts); dust over the working bench.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
