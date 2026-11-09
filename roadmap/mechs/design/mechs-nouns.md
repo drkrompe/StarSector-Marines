@@ -482,8 +482,8 @@ increasing an encounter's total armored threat.
   mechs in gantry order, then its vehicles, each with chassis or hull, weight
   class and callsign. Vehicles carry their campaign id across the launch-fixture
   seam as mechs carry theirs. Mech Support carries the whole manifest: one bay,
-  one picker. A story battle whose employer arranges the heavy lift grants Mech
-  Support for a bay that holds only vehicles. There is no separate vehicle
+  one picker. Every mission grants Mech Support for whatever the bay holds,
+  vehicles alone included (`command-powers-nouns.md`). There is no separate vehicle
   power (Armour Support was removed; a frozen one restores as Mech Support).
 - An **armor drop** is one machine ordered down by Mech Support. Arming the card
   pauses the battle and opens the picker: every manifest entry with its state (aboard, queued,

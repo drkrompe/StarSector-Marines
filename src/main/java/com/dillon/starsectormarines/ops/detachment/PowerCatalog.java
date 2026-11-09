@@ -24,7 +24,6 @@ import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
 import com.dillon.starsectormarines.ops.CompletedReplays;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog.Scenario;
-import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -48,7 +47,8 @@ import java.util.Set;
  *
  * <p>Mapping is many-to-one and one-to-many (several ships can grant the same
  * power; one ship can grant several); {@link #resolve} dedupes by power id, so
- * two Valkyries still surface one Mech Support.
+ * two Onslaughts still surface one Orbital Barrage. Mech Support is no ship's: the bay's
+ * machines are the call, and the company's boats lift them.
  */
 public final class PowerCatalog {
 
@@ -62,7 +62,6 @@ public final class PowerCatalog {
             "recon_ping", "emergency_resupply", "marine_insertion", "vehicle_support");
     /** Armour Support's retired id: the bay vehicles it froze now ride Mech Support. */
     private static final String RETIRED_ARMOUR_SUPPORT = "vehicle_support";
-    private static final String VALKYRIE_HULL = "valkyrie";
     private static final String GROUND_SUPPORT_MOD = "ground_support";
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
     /** The Onslaught's base hull: the Onslaught (XIV) and other skins report it too. */
@@ -106,10 +105,10 @@ public final class PowerCatalog {
                                              List<VehicleDeploymentSpec> configuredVehicles,
                                              List<FittedBoat> committedBoats) {
         List<CommandPower> powers = bayManifest(resolveSourced(committedShips, m, configuredMechs),
-                companyBayDrop(m), configuredMechs, configuredVehicles);
+                configuredMechs, configuredVehicles);
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
-        assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, providesHeavyLift(m));
+        assignCompanyLift(byId, committedBoats, providesHeavyLift(m));
         return List.copyOf(byId.values());
     }
 
@@ -138,11 +137,10 @@ public final class PowerCatalog {
     /**
      * One bay, one call: Mech Support carries the bay's vehicles in its manifest after its
      * mechs, so the player calls any bay space from one picker ({@code mechs-nouns.md}, Armor
-     * drop). The story battles whose drop is the company's own bay ({@link #companyBayDrop})
-     * grant Mech Support for a bay that holds only vehicles, as they do for its mechs. {@code null} vehicles means no
-     * bay was consulted, and the roster is unchanged.
+     * drop). A bay that holds only vehicles is called as one that holds mechs. {@code null}
+     * vehicles means no bay was consulted, and the roster is unchanged.
      */
-    static List<CommandPower> bayManifest(List<CommandPower> powers, boolean companyBay,
+    static List<CommandPower> bayManifest(List<CommandPower> powers,
                                           List<MechDeploymentSpec> configuredMechs,
                                           List<VehicleDeploymentSpec> configuredVehicles) {
         if (configuredVehicles == null || configuredVehicles.isEmpty()) return powers;
@@ -157,7 +155,7 @@ public final class PowerCatalog {
                 out.add(power);
             }
         }
-        if (!carried && companyBay) {
+        if (!carried) {
             out.add(MechSupport.configured(configuredMechs != null ? configuredMechs : List.of(),
                     configuredVehicles, null, true));
         }
@@ -165,60 +163,21 @@ public final class PowerCatalog {
     }
 
     /**
-     * Powers a fleet ship (or a debug grant) brings, as opposed to the employer's
-     * offer or a story mission's own-bay drop; Conquest reads it to keep its heavy lift
-     * behind a fleet ship's power.
-     */
-    static Set<String> fleetGranted(List<FleetMemberAPI> committedShips, Mission m) {
-        if (AgreusArcCampaign.isBattle(m) || SupplyRouteCampaign.isBattle(m)
-                || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
-                || DistrictEscortCampaign.isBattle(m) || replaysCompanyBay(m)) {
-            return Set.of();
-        }
-        Set<String> ids = new LinkedHashSet<>();
-        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MECH_SUPPORT) ids.add(MechSupport.ID);
-        if (committedShips != null) {
-            for (FleetMemberAPI ship : committedShips) {
-                for (CommandPower power : contributedBy(ship)) {
-                    if (!(power instanceof ShipOnStation)) ids.add(power.id);
-                }
-            }
-        }
-        return ids;
-    }
-
-    /**
      * Hands Mech Support the company boat best suited to its manifest: the company's own boat
      * drops its own armour (owner, 2026-10-27), and without {@code heavyLift} nothing stands
-     * behind her (owner, 2026-10-29). Where heavy lift is provided (Conquest) a fleet ship's
-     * power keeps its Valkyrie behind her, and an employer's offer keeps only its own carrier.
+     * behind her (owner, 2026-10-29). Where heavy lift is provided (Conquest) it stands behind
+     * the company's boat.
      */
-    static void assignCompanyLift(Map<String, CommandPower> byId, Set<String> fleetGranted,
-                                  List<FittedBoat> committedBoats, boolean heavyLift) {
+    static void assignCompanyLift(Map<String, CommandPower> byId, List<FittedBoat> committedBoats,
+                                  boolean heavyLift) {
         if (!(byId.get(MechSupport.ID) instanceof MechSupport mech)) return;
-        if (heavyLift && !fleetGranted.contains(MechSupport.ID)) return;
         byId.put(MechSupport.ID, flownBy(mech, committedBoats, heavyLift));
     }
 
     /**
-     * The story battles whose armour drop is simply the company's own: the machines in its bay,
-     * flown by its configured shuttles. The mission offers no lift and no drop call of its own
-     * (owner, 2026-10-29); see {@link #resolveSourced}.
-     */
-    private static boolean companyBayDrop(Mission m) {
-        if (AgreusArcCampaign.isBattle(m)) {
-            return AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id)
-                    || AgreusArcProgress.smallWar(m.id);
-        }
-        return SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m)
-                || ShepherdRecoveryCampaign.isBattle(m) || DistrictEscortCampaign.isBattle(m)
-                || replaysCompanyBay(m);
-    }
-
-    /**
-     * Whether {@code m} replays ({@link CompletedReplays}) a chapter whose drop is the company's own
-     * bay: the replay carries a replay id and source, so the arcs' own tests miss it, yet it drops
-     * the bay on the company's boats exactly as the chapter did.
+     * Whether {@code m} replays ({@link CompletedReplays}) a story chapter that takes no employer or
+     * debug gifts: the replay carries a replay id and source, so the arcs' own tests miss it, yet it
+     * resolves exactly as the chapter did.
      */
     static boolean replaysCompanyBay(Mission m) {
         Scenario scenario = CompletedReplays.scenario(m);
@@ -238,13 +197,11 @@ public final class PowerCatalog {
             var tenders = AgreusArcCampaign.requiresConstructionTender(m) ? AgreusConstructionSupport.sources(committedShips) : List.<ShipSupportSource>of();
             List<CommandPower> powers = new ArrayList<>();
             if (!tenders.isEmpty()) powers.add(new ShipOnStation(tenders));
-            if ((AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id) || AgreusArcProgress.smallWar(m.id)) && configuredMechs != null && !configuredMechs.isEmpty())
-                powers.add(MechSupport.configured(configuredMechs));
+            if (configuredMechs != null && !configuredMechs.isEmpty()) powers.add(MechSupport.configured(configuredMechs));
             return List.copyOf(powers);
         }
-        // The company drops what its bay holds on its own shuttles; the mission supplies
-        // neither lift nor chassis. Empty bays must not fall through MechSupport's legacy
-        // debug default.
+        // The story battles take no employer or debug gifts. Empty bays must not fall through
+        // MechSupport's legacy debug default.
         if (SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
                 || DistrictEscortCampaign.isBattle(m) || replaysCompanyBay(m)) {
             return configuredMechs == null || configuredMechs.isEmpty() ? List.of()
@@ -279,11 +236,12 @@ public final class PowerCatalog {
                 continue;
             }
             CommandPower p = forId(id);
-            if (p != null) byId.putIfAbsent(p.id, p);
+            // The bay is the company's own call: an employer cannot offer it.
+            if (p != null && !(p instanceof MechSupport)) byId.putIfAbsent(p.id, p);
         }
         if (!ships.isEmpty()) byId.put(ShipOnStation.ID, new ShipOnStation(ships));
-        if (byId.containsKey(MechSupport.ID)
-                && configuredMechs != null && !configuredMechs.isEmpty()) {
+        // Mech Support is the bay's machines, flown on the company's boats ({@link #assignCompanyLift}).
+        if (configuredMechs != null && !configuredMechs.isEmpty()) {
             byId.put(MechSupport.ID, MechSupport.configured(configuredMechs));
         }
 
@@ -454,10 +412,8 @@ public final class PowerCatalog {
         Set<String> ids = new LinkedHashSet<>();
         Collection<String> fitted = mods != null ? mods : Set.of();
         if (fitted.contains(GROUND_SUPPORT_MOD) || fitted.contains(ADVANCED_GROUND_SUPPORT_MOD)) {
-            ids.add(MechSupport.ID);
             ids.add(OrbitalBarrage.ID);
         }
-        if (VALKYRIE_HULL.equals(baseId)) ids.add(MechSupport.ID);
         if (baseId != null && ShuttleType.MUDSKIPPER.matchingHullIds.contains(baseId)) {
             ids.add(CloseAirSupport.ID);
         }

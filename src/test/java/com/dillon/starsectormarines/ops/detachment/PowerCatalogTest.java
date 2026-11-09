@@ -58,15 +58,29 @@ class PowerCatalogTest {
     }
 
     @Test
-    void valkyrieGrantsMechSupportForTheWholeBay() {
-        assertEquals(List.of(MechSupport.ID), PowerCatalog.contributedPowerIds("valkyrie", Set.of()));
+    void noShipGrantsMechSupport() {
+        assertEquals(List.of(), PowerCatalog.contributedPowerIds("valkyrie", Set.of()));
+        assertEquals(List.of(OrbitalBarrage.ID), PowerCatalog.contributedPowerIds("hound", Set.of("ground_support")));
+    }
+
+    @Test
+    void anOrdinaryContractCallsTheBayWithNoShipOrEmployerAndAnOfferCannotCallAnEmptyOne() {
+        Mission contract = Mission.builder().id("raid-test").name("Raid").type(MissionType.RAID)
+                .source(MissionSource.GENERATED).risk(RiskLevel.MEDIUM).build();
+        MechSupport drop = assertInstanceOf(MechSupport.class,
+                PowerCatalog.resolve(List.of(), contract, List.of(), BAY).get(0));
+        assertEquals(BAY, drop.vehicles());
+
+        Mission offered = Mission.builder().id("offer-test").name("Offer").type(MissionType.RAID)
+                .source(MissionSource.GENERATED).risk(RiskLevel.MEDIUM)
+                .employerPowerIds(List.of(MechSupport.ID)).build();
+        assertEquals(List.of(), PowerCatalog.resolve(List.of(), offered, List.of(), List.of()));
     }
 
     @Test
     void theBayVehiclesRideMechSupportAcrossTheFrozenSeam() {
         Mission mission = Mission.builder().id("bay-test").name("Bay Test").type(MissionType.ASSAULT)
-                .source(MissionSource.GENERATED).risk(RiskLevel.LOW)
-                .employerPowerIds(List.of(MechSupport.ID)).build();
+                .source(MissionSource.GENERATED).risk(RiskLevel.LOW).build();
 
         List<CommandPower> powers = PowerCatalog.resolve(List.of(), mission, List.of(), BAY);
 
@@ -134,13 +148,6 @@ class PowerCatalogTest {
     void theDebugOnslaughtSurvivesTheLaunchCommitmentRoundTrip() {
         CommandPower restored = CommandPowerCommitment.capture(new SpawnInOnslaught()).toPower();
         assertEquals(SpawnInOnslaught.ID, restored.id);
-    }
-
-    @Test
-    void groundSupportHullmodContributesMechAndOrbitalSupport() {
-        assertEquals(List.of(MechSupport.ID, OrbitalBarrage.ID),
-                PowerCatalog.contributedPowerIds("hammerhead",
-                        Set.of("ground_support")));
     }
 
     @Test
