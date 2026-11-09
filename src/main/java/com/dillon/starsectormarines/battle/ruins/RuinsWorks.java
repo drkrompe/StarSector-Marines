@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A ruins site's works while the battle runs ({@code ruins-works.md}): the power hall, a junction per layer, and the
+ * A ruins site's works while the battle runs ({@code ruins-expedition.md}, Works): the power hall, a junction per layer, and the
  * seal doors they power. The company restarts the hall by holding its console, and works a junction either way, any
  * number of times; both are offered on the field through the side objective's world prompt, though neither is a job
  * with an outcome. What the works pay: a sealed store's field cache, and the vault's powered breach.
@@ -110,7 +110,7 @@ public final class RuinsWorks {
     Site keypad;
     /** How this site's vault door opens beyond its power, drawn from the site's ground. */
     VaultAccess access = VaultAccess.TWO_KEYS;
-    /** The vault door's keys ({@code ruins-works.md}, Vault access). */
+    /** The vault door's keys ({@code ruins-expedition.md}, Works). */
     final VaultKeys keys = new VaultKeys();
     /** The vault code, for {@link VaultAccess#RECORDS_CODE}. */
     final VaultCode code = new VaultCode();

@@ -238,7 +238,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
 
     /**
      * Whether a lift point's lift has power: a landing court on an empty ruins site lifts only while the site's works
-     * feed it ({@code ruins-works.md}). Every lift point has power until the works say otherwise.
+     * feed it ({@code ruins-expedition.md}, Works). Every lift point has power until the works say otherwise.
      */
     public void setLiftPowered(int liftPoint, boolean powered) { liftPowered[liftPoint] = powered; }
 

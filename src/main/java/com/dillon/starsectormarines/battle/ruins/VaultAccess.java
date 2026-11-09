@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * How a ruins site's vault door opens beyond its power ({@code ruins-works.md}, Vault access), drawn per site from a
+ * How a ruins site's vault door opens beyond its power ({@code ruins-expedition.md}, Works), drawn per site from a
  * pool so the same puzzle does not come up every time (owner pick {@code ruins-vault-access}). The draw reads only a
  * seed taken from the site's ground, so a site drawn again from the same ground draws the same way.
  */

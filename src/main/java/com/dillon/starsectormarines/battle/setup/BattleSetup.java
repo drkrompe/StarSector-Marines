@@ -784,7 +784,7 @@ public final class BattleSetup {
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
         // The occupant alone chooses the defenders (RuinsDefence): the scavengers' crew, derelict security's walkers
         // under the security-network director (derelict-security-network.md), the Rav's sleepers under the swarm
-        // director (RuinsSleepers), or, on an empty site, no one: its works are the expedition (ruins-works.md).
+        // director (RuinsSleepers), or, on an empty site, no one: its works are the expedition (ruins-expedition.md, Works).
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
@@ -1324,7 +1324,7 @@ public final class BattleSetup {
             // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
             sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
                     ruinsLayout.liftPoints().get(0).route()));
-            // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
+            // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
             // The vault store: a find per layer at the vault, which comes out with the haul.
             sim.setVaultStore(RuinsVaultStore.of(map.ruinsDelve.layerCount(),

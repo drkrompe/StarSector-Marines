@@ -30,7 +30,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * The vault's locked door and hardened walls ({@code ruins-works.md}; {@code garrisonables.md}, Locked doors and
+ * The vault's locked door and hardened walls ({@code ruins-expedition.md}, Works; {@code garrisonables.md}, Locked doors and
  * hardened walls) through the look preset at 1920x1080 on an empty scattered site, centred on the vault's inner door:
  * the door locked with the hall cold; the same frame with every hardened cell tinted, a review overlay that the game
  * never draws; the door powered once the hall runs and its junction feeds it, its lamp amber while it waits on

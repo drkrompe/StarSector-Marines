@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One preview card per vault-access variant ({@code ruins-works.md}, Vault access), each on a real empty scattered site
+ * One preview card per vault-access variant ({@code ruins-expedition.md}, Works), each on a real empty scattered site
  * that drew it: the look preset at 1920x1080 with roofs lifted, framing the chain from the power hall to the vault's
  * door, its steps numbered on the ground, the power's path drawn, the door's own prompt text in a panel, and the door
  * inset at play zoom once powered. Seeds from {@code -Dsnapshot.ruinsVaultAccess.firstSeed} (default 1) are tried in

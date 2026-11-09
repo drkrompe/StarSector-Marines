@@ -1274,7 +1274,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (!lockedDoors.contains(door)) lockedDoors.add(door);
     }
 
-    /** A ruins site's works ({@code ruins-works.md}), or null on every other battle. */
+    /** A ruins site's works ({@code ruins-expedition.md}, Works), or null on every other battle. */
     public RuinsWorks getRuinsWorks() { return ruinsWorks; }
 
     private RuinsDelveWatch ruinsDelveWatch;

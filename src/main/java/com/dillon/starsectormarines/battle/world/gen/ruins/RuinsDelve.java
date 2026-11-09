@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * A ruins site's ground as a mission reads it ({@code mapgen-nouns.md}, Ruins ground): the delve from the landing area at the
  * map's west end to the vault at its east end, the layers the route crosses, their side rooms and landing courts,
- * and the sites of the ruins' works ({@code ruins-works.md}). Every place carries a stable name; {@link #area}
+ * and the sites of the ruins' works ({@code ruins-expedition.md}, Works). Every place carries a stable name; {@link #area}
  * answers any of them, so a mission can say "the second layer" or "the power hall" without searching the map.
  *
  * <p>Published names, in order:
@@ -94,7 +94,7 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
         GAP,
         /** A breach in a standing wall. */
         BREACH,
-        /** A sealed gate's span: open ground until the works shut it ({@code ruins-works.md}, Seal doors). */
+        /** A sealed gate's span: open ground until the works shut it ({@code ruins-expedition.md}, Works). */
         GATE,
         /** The way round a sealed gate. */
         SIDE,

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 /**
- * The vault code ({@code ruins-works.md}, Vault access, {@link VaultAccess#RECORDS_CODE}): once the records are read
+ * The vault code ({@code ruins-expedition.md}, Works, {@link VaultAccess#RECORDS_CODE}): once the records are read
  * the company knows it, and with the door powered it enters it by holding the vault keypad for
  * {@link #ENTER_SECONDS}. Stepping off starts the entry again; once entered it stays entered.
  */

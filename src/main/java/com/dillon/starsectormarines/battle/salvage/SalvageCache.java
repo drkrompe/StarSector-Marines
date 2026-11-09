@@ -26,7 +26,7 @@ public final class SalvageCache {
     }
 
     /**
-     * Makes this a find inside a room ({@code ruins-works.md}, sealed stores): infantry anywhere in the room, or within
+     * Makes this a find inside a room ({@code ruins-expedition.md}, Works): infantry anywhere in the room, or within
      * {@code margin} cells of its walls, are present at it and see it. A squad told to a small room holds it from its
      * places, which need not be inside, so a find in the room is recovered by holding the room.
      */

@@ -33,7 +33,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Picture cards for two owner picks on the ruins works ({@code ruins-works.md}), through the look preset at 1920x1080
+ * Picture cards for two owner picks on the ruins works ({@code ruins-expedition.md}, Works), through the look preset at 1920x1080
  * with roofs lifted. {@code ruins-court-power}: an empty site's nearest landing court, unpowered beside powered with
  * its lift marker (option a), and always a lift point (option b). {@code ruins-occupied-locks}: an occupied scattered
  * site's vault antechamber with the bunker door and the vault's door both open (a), the bunker open and the vault
