@@ -26,8 +26,8 @@ public enum MapScale {
     MEDIUM(144, 80),
     /**
      * A step between {@link #MEDIUM} and {@link #LARGE}, on the band's 7:4.
-     * No tier answers it from {@link #forTier}; {@link #forRaid} gives it to an
-     * established or veteran Raid.
+     * No tier answers it from {@link #forTier}; {@link #forRaid} gives it to a
+     * first-contract Raid.
      */
     WIDE  (200, 112),
     /**
@@ -106,18 +106,19 @@ public enum MapScale {
     }
 
     /**
-     * Map size for a Raid: one step up the band from {@link #forTier}, so the
-     * search for the prize has ground to search (owner: "Raid maps are too
-     * small"). A first contract raids the established map, an established or
-     * veteran raid gets {@link #WIDE}, and a reinforced or full-strength raid
-     * {@link #VAST}. UNTUNED.
+     * Map size for a Raid: two steps up the band from {@link #forTier}, the
+     * owner's pick ({@code raid-map-size} b, after "Raid maps are too small"),
+     * so the search for the prize has ground to search. A first contract raids
+     * {@link #WIDE}, an established or veteran raid the full-strength map
+     * ({@link #LARGE}), and a reinforced or full-strength raid {@link #VAST}.
+     * UNTUNED.
      */
     public static MapScale forRaid(OperationTier tier) {
         switch (forTier(tier)) {
-            case SMALL:  return MEDIUM;
+            case SMALL:  return WIDE;
             case LARGE:  return VAST;
             case MEDIUM:
-            default:     return WIDE;
+            default:     return LARGE;
         }
     }
 

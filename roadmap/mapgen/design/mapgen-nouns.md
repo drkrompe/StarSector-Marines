@@ -1902,7 +1902,10 @@ pick (`ruins-map-size` b): "The larger maps give us the more interesting
 exploration. The player needs to determine whether they still have the forces
 to continue." 200x112 at scattered, 280x168 (the full-strength map), 400x240
 (the colony map) and 560x336 at vast (Conquest's), at densities 0.55 to 0.85
-so the dead town fills the route and the layers cross ruins, not open country. The profile gives only the
+so the dead town fills the route and the layers cross ruins, not open country. A Raid's
+town takes the same two steps (`MapScale.forRaid`, the owner's pick
+`raid-map-size` b: 200x112, 280x168, 400x240), and its precinct plan derives at
+that size. The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
