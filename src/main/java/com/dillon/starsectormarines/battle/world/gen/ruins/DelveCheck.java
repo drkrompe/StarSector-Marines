@@ -75,6 +75,25 @@ public final class DelveCheck {
         for (RuinsDelve.Junction junction : delve.junctions()) {
             if (!reached(grid, reach, junction.stand())) out.add(junction.name() + " is not reachable");
         }
+        RuinsDelve.Interior interior = delve.interior();
+        if (interior == null) {
+            out.add("no interior");
+        } else {
+            if (delve.layers().size() - interior.firstLayer() != plan.interiorLayers()) {
+                out.add("declared " + plan.interiorLayers() + " interior layers, laid "
+                        + (delve.layers().size() - interior.firstLayer()));
+            }
+            if (interior.entrances().isEmpty()) out.add("the interior has no entrance");
+            for (Area entrance : interior.entrances()) {
+                if (!walkable(grid, entrance)) out.add("an interior entrance at " + entrance + " is not open");
+            }
+            for (int k = 0; k < interior.chambers().size(); k++) {
+                Area chamber = interior.chambers().get(k);
+                if (!reached(grid, reach, new Cell(chamber.centreX(), chamber.centreY()))) {
+                    out.add(RuinsDelve.Interior.chamberName(k) + " is not reachable");
+                }
+            }
+        }
         return out;
     }
 
