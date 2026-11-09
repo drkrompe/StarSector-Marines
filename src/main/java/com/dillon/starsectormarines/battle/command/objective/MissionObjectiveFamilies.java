@@ -77,6 +77,7 @@ public final class MissionObjectiveFamilies {
     }
 
     public static Item raid(RaidObjective raid) {
+        if (raid.works()) return raidWorks(raid);
         State state = state(raid);
         boolean returning = raid.targetSecured();
         String phase = Strings.named("objectivePhase", raid.phase().name());
@@ -106,6 +107,42 @@ public final class MissionObjectiveFamilies {
     static String clock(int ticks) {
         int seconds = Math.max(0, (int) Math.ceil(ticks * BattleSimulation.TICK_DT - 1e-3f));
         return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+    }
+
+    /**
+     * A disrupting raid's works ({@code raid-mission.md}, Break): one marker per machine, wrecked or standing, the
+     * tally of machines wrecked, and the landing zone open from the first.
+     */
+    static Item raidWorks(RaidObjective raid) {
+        State state = state(raid);
+        boolean open = raid.egressOpen();
+        int total = raid.sites().size(), wrecked = raid.sitesDone();
+        String phase = Strings.named("objectivePhase", raid.phase().name());
+        String pickupId = "raid-" + raid.targetId() + "-pickup";
+        List<Marker> markers = new ArrayList<>();
+        String firstStanding = null;
+        for (int i = 0; i < total; i++) {
+            RaidObjective.Site site = raid.sites().get(i);
+            boolean done = raid.siteDone(i);
+            String id = "raid-" + raid.targetId() + "-machine-" + (i + 1);
+            if (!done && firstStanding == null) firstStanding = id;
+            markers.add(new Marker(id, Strings.format("objectiveRaidWorksMachine", i + 1), site.cellX(), site.cellY(),
+                    done ? Strings.get("objectiveRaidWorksWrecked") : phase, done ? State.COMPLETE : state, List.of(),
+                    RaidObjective.TARGET_RADIUS));
+        }
+        markers.add(new Marker(pickupId, Strings.get("objectiveRaidLandingZone"), raid.egressCellX(),
+                raid.egressCellY(), open ? Strings.get("objectiveMarkerReturnHere") : phase, state, List.of(),
+                RaidObjective.EGRESS_RADIUS));
+        return new Item("raid-" + raid.targetId(),
+                Strings.format("objectiveRaidWorksTally", raid.targetName(), wrecked, total), state, phase,
+                Strings.get("objectiveRaidWorksSteps"),
+                state == State.COMPLETE ? Strings.get("objectiveRaidWorksDone")
+                        : open ? Strings.get("objectiveRaidWorksLeave") : Strings.get("objectiveRaidWorksWreck"),
+                state == State.COMPLETE ? Strings.get("objectiveComplete")
+                        : timed(Strings.get("objectiveRaidWorksTimer"), raid.serviceProgress(), raid.serviceDuration()),
+                state == State.COMPLETE ? 1 : (float) wrecked / total,
+                open || raid.marineServicing() ? "" : Strings.get("objectiveRaidWorksBlocker"),
+                markers, firstStanding == null ? pickupId : firstStanding);
     }
 
     public static Item salvage(SalvageRightsSequence sequence) {

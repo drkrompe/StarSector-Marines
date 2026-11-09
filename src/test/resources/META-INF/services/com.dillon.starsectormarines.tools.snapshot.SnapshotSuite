@@ -417,6 +417,7 @@ com.dillon.starsectormarines.battle.world.gen.ruins.RuinsScaleOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidScaleOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidLandingOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidDirectionsSuite
+com.dillon.starsectormarines.ops.RaidWorksLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite
 com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
@@ -427,4 +428,6 @@ com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessPicksSuite
+com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite
 com.dillon.starsectormarines.ops.RuinsRailLookSuite
+com.dillon.starsectormarines.battle.setup.RaidMapgenReviewSuite

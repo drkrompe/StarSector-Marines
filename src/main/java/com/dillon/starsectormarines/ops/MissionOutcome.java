@@ -89,6 +89,11 @@ public final class MissionOutcome {
      * pulling out): not a victory, yet its banked finds come home. Always false for any other mission.
      */
     public final boolean        pulledOut;
+    /**
+     * The share of a disrupting raid's works the company wrecked, 0 to 1 ({@code raid-mission.md}, Break); 1 for
+     * every other mission.
+     */
+    public final float          raidWorksShare;
     public final String         missionId;
     public final String         missionName;
     public final MissionType    missionType;
@@ -256,6 +261,7 @@ public final class MissionOutcome {
         this.sideObjectives = List.copyOf(b.sideObjectives);
         this.victory            = b.victory;
         this.pulledOut          = b.pulledOut;
+        this.raidWorksShare     = b.raidWorksShare;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
         this.missionId          = b.missionId;
@@ -380,6 +386,7 @@ public final class MissionOutcome {
         }
         private boolean victory;
         private boolean pulledOut;
+        private float raidWorksShare = 1f;
         private String missionId;
         private String missionName;
         private MissionType missionType;
@@ -489,6 +496,11 @@ public final class MissionOutcome {
 
         public Builder pulledOut(boolean pulledOut) {
             this.pulledOut = pulledOut;
+            return this;
+        }
+
+        public Builder raidWorksShare(float raidWorksShare) {
+            this.raidWorksShare = raidWorksShare;
             return this;
         }
 

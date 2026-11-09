@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c1a8-b902-7162-b716-cb5edb911436",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c1a8-b902-7162-b716-cb5edb911436\\exec-88d6f431-30f3-4796-95d9-096e3a8b41ca.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\pirates\\warden-master.png",
+    "sha256": "a4db0ed5f04d4c0bf596519dd6c0bec837a2e130a4e95e4daf5588be2fcfb60d",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\pirates\\scrap.prompt.txt",
+  "promptSha256": "8893166a8fac76fcfc8fb0cf9efa2aab154579632977193940b5c1251a5f54ec",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target; keep the outline, canopy, hip bearings and nose channel\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: a PIRATE gang's walking machine, a captured or scavenged Hegemony mech kept running for years with whatever scrap the gang could find.\n\nImage 1 is the sole edit target and the exact geometry authority: an old Hegemony walking machine seen straight from above, facing the top of the canvas. Keep its exact outer outline, canvas registration, scale and transparent padding, and keep every opening and mounting place where it is: the open channel between the nose cheeks stays empty, the round hip bearings stay round and in place, flat mounting plates stay flat, and the faceted pilot canopy stays a canopy in the same place. Inside the outline, rework the surface as repaired scrap.\n\nPrimary request: make it read as REPAIRED, MODDED SCRAP rather than a clean military machine. Replace about half of the original tan plates with mismatched salvaged panels in other paints: faded grey, a scavenged olive panel, a blue-grey civilian panel, a red-oxide primer panel, one patch of bare steel. Weld them on with visible bead seams and over-sized bolts. Rivet small sheet-metal patches over old holes. Add crude bolted-on armour scraps and a piece of welded-on mesh or bar grille in a few places, all inside the outline. Paint over the orange hazard panels with crude, hand-brushed dark red, with drips and missing patches, and add one or two rough painted marks (a tally of scratches, a crude stripe) but no readable text or symbols. Keep it worn and grimy but legible: distinct patchwork panels, not an even coat of rust or noise. Keep the canopy glass dark smoked grey-green, perhaps with one cracked pane taped or barred over.\n\nImage 2 is material and style reference only, never layout: the Hegemony medium tank the original machine served beside, for the rendering style: crisp painted game-sprite finish, rivets, weld seams, light from the upper left.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls.\n\nAvoid: changing the outer outline, moving or covering the canopy, hip bearings or nose channel, an even rust wash, noise speckle, glowing lights, bright blue or cyan, perspective, side view, a second machine, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\warden\\warden-master.png",
+      "sha256": "efb309a37bc2450c0c7f62e01ebc404a7fa2d307afc72fe0eb8496df49b78b82",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target; keep the outline, canopy, hip bearings and nose channel"
+    },
+    {
+      "path": "art-source\\vehicles\\hegemony-concepts\\heg-medium-tank.png",
+      "sha256": "f4001e520bd50342b8c756847772e27aeb3492f367f1b3f6ecc941590d8a1a6e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the exact geometry reference and apply the scrap repairs and patchwork finish within its outline."
+  ],
+  "usage": {
+    "input_tokens": 46191,
+    "cached_input_tokens": 38400,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 570,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.8
+}

@@ -60,6 +60,8 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
    example Nexerelin's disrupt-a-competitor mission) therefore sees an ordinary
    raid. The mod adjusts only the raid record, and only for the outcome:
    - **won**: committed as set up, at the effectiveness the command computed;
+     a disrupting raid's effectiveness is first multiplied by the share of the
+     works the battle wrecked (`raid-mission.md`, Break);
    - **lost or withdrawn**: committed with no objectives. The attack happened
      and is on record, but it takes nothing, disrupts nothing and reports no
      objective achieved.
@@ -91,8 +93,10 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 
 ## Mismatches the design accepts
 
-- **Effectiveness is not graded.** A won battle earns what the command's own
-  strength ratio gives, not more for a clean win; a lost one earns nothing.
+- **Effectiveness is graded only by the works.** A won battle earns what the
+  command's own strength ratio gives, never more for a clean win; a disrupting
+  raid earns that times the share of the works wrecked; a lost one earns
+  nothing.
 - **The story-point secret raid** confirms inside the command, not through a
   rule, so it always resolves the standard way.
 - **Cargo marines still set the odds the menu shows.** The command computes

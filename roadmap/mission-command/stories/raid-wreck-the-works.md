@@ -1,6 +1,6 @@
 # Raid: wreck the works (first slice)
 
-Status: IN PROGRESS
+Status: IN PROGRESS — built and unit-tested on the map's industrial ground; the live pass and the works the Raid generator will lay (`raid-mapgen`) remain.
 
 Written: 2026-11-09
 
@@ -38,11 +38,15 @@ the map, and the share wrecked decides how long the industry stays broken.
 
 ## Acceptance
 
-- [ ] Unit tests: intent from raid type; site selection; multi-site objective
+- [x] Unit tests: intent from raid type; site selection; multi-site objective
   (progress, reset, egress opens after the first site, completion, share);
-  ledger and commit carry the share.
-- [ ] Look shot of a break Raid's works with its machines marked, sent to the
-  parent.
+  ledger and commit carry the share (`RaidWorksObjectiveTest`,
+  `RaidWorksLayoutTest`, `RaidOutcomeCommitTest`, `MarketRaidLedgerTest`,
+  `MissionObjectiveFamiliesTest`).
+- [x] Look shot of a break Raid's works with its machines marked
+  (`createSnapshots -Psnapshot=raid-works-look`), sent to the parent.
+- [ ] The owner's live pass: lead a disrupting raid, wreck some of the works,
+  leave, and see the days down follow the share.
 
 ## Constraints
 
