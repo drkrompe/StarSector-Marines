@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.door.HardenedWalls;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
+import com.dillon.starsectormarines.battle.setup.RuinsDefence;
 import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService.Offer;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService.OfferVerb;
@@ -122,8 +123,11 @@ public final class RuinsWorks {
         this.locks = List.copyOf(built);
     }
 
-    /** The works a delve's published ground carries, wired as the class says. */
-    public static RuinsWorks of(RuinsDelve delve) {
+    /**
+     * The works a delve's published ground carries, wired as the class says. An empty site ({@link RuinsDefence#NONE})
+     * always pays off: its last layer seals both side rooms as stores, so it has a second store.
+     */
+    public static RuinsWorks of(RuinsDelve delve, RuinsDefence defence) {
         List<Consumer> consumers = new ArrayList<>();
         List<SealDoor> doors = new ArrayList<>();
         List<SalvageCache> stores = new ArrayList<>();
@@ -136,19 +140,23 @@ public final class RuinsWorks {
             junctions.add(new Site(JUNCTION + j, Strings.format("ruinsWorksJunctionName", j + 1),
                     box.stand().x(), box.stand().y()));
             initial.add(Branch.ONWARD);
-            RuinsDelve.SideRoom room = layer.rooms().get(0);
-            RuinsDelve.Area f = room.footprint();
-            String storeId = "store-" + (j + 1);
-            doors.add(new SealDoor(storeId, Strings.format("ruinsWorksStoreName", j + 1),
-                    new int[][]{{room.door().x(), room.door().y()}}, room.interior().x(), room.interior().y(),
-                    new int[]{f.left(), f.bottom(), f.right(), f.top()}, true));
-            consumers.add(new Consumer(storeId, j, Branch.STORE));
-            SalvageResource resource = SalvageResource.values()[j % SalvageResource.values().length];
-            // The find lies just inside the door and is recovered by holding the room, as the hall is worked.
-            int cacheX = room.door().x() + Integer.signum(room.interior().x() - room.door().x());
-            int cacheY = room.door().y() + Integer.signum(room.interior().y() - room.door().y());
-            stores.add(new SalvageCache("sealed-" + storeId, cacheX, cacheY, resource, resource.cacheQuantity)
-                    .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN));
+            int sealed = storesIn(j, delve.layerCount(), layer.rooms().size(), defence);
+            for (int r = 0; r < sealed; r++) {
+                RuinsDelve.SideRoom room = layer.rooms().get(r);
+                RuinsDelve.Area f = room.footprint();
+                int n = stores.size() + 1;
+                String storeId = "store-" + n;
+                doors.add(new SealDoor(storeId, Strings.format("ruinsWorksStoreName", n),
+                        new int[][]{{room.door().x(), room.door().y()}}, room.interior().x(), room.interior().y(),
+                        new int[]{f.left(), f.bottom(), f.right(), f.top()}, true));
+                consumers.add(new Consumer(storeId, j, Branch.STORE));
+                SalvageResource resource = SalvageResource.values()[(n - 1) % SalvageResource.values().length];
+                // The find lies just inside the door and is recovered by holding the room, as the hall is worked.
+                int cacheX = room.door().x() + Integer.signum(room.interior().x() - room.door().x());
+                int cacheY = room.door().y() + Integer.signum(room.interior().y() - room.door().y());
+                stores.add(new SalvageCache("sealed-" + storeId, cacheX, cacheY, resource, resource.cacheQuantity)
+                        .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN));
+            }
             for (RuinsDelve.Way way : layer.ways()) {
                 if (way.kind() != RuinsDelve.WayKind.GATE) continue;
                 RuinsDelve.Area span = way.span();
@@ -175,7 +183,7 @@ public final class RuinsWorks {
                 onward++;
             }
         }
-        // The vault's inner door is its seal: power opens it for the powered breach, a charge forces it for the slow one.
+        // The vault's inner door is its seal, hardened: only power opens it, for the powered breach.
         RuinsDelve.Vault vaultPlace = delve.vault();
         int ix = vaultPlace.innerDoor().x(), iy = vaultPlace.innerDoor().y();
         doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"), new int[][]{{ix, iy}},
@@ -200,6 +208,15 @@ public final class RuinsWorks {
                 records, collapse);
         works.vaultShell = box(vaultPlace.footprint());
         return works;
+    }
+
+    /**
+     * How many of a layer's side rooms are sealed stores: its first, and on an empty site's last layer its second too,
+     * so an empty site always has two stores.
+     */
+    static int storesIn(int layer, int layerCount, int rooms, RuinsDefence defence) {
+        int wanted = defence == RuinsDefence.NONE && layer == layerCount - 1 ? 2 : 1;
+        return Math.min(wanted, rooms);
     }
 
     private static int[] box(RuinsDelve.Area a) { return new int[]{a.left(), a.bottom(), a.right(), a.top()}; }

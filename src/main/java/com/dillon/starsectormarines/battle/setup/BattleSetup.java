@@ -1297,7 +1297,7 @@ public final class BattleSetup {
             sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-works.md): seal doors shut as wall, a power hall and a junction per layer.
-            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve));
+            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
