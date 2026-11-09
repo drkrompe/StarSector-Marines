@@ -27,6 +27,16 @@ final class ShipSystemsTree {
             RefitTrack.COMPUTE, List.of(RefitTrack.MECH_CALIBRATION),
             RefitTrack.FABRICATION, List.of(RefitTrack.MECH_ARMOR, RefitTrack.MECH_REPAIR)));
 
+    /** Fleet facilities' tree: the same, with the mock rooms' sizes hung where their work is done. */
+    static final Map<RefitTrack, List<RefitTrack>> FLEET_BRANCHES = new EnumMap<>(Map.of(
+            RefitTrack.POWER, List.of(RefitTrack.MECH_COOLANT),
+            RefitTrack.LIFE_SUPPORT, List.of(RefitTrack.MESS, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE),
+            RefitTrack.STRUCTURE, List.of(RefitTrack.BARRACKS, RefitTrack.BOAT_BERTHS, RefitTrack.RANGE, RefitTrack.RESERVE_HANGAR),
+            RefitTrack.COMPUTE, List.of(RefitTrack.MECH_CALIBRATION),
+            RefitTrack.FABRICATION, List.of(RefitTrack.MECH_GANTRIES, RefitTrack.MECH_ARMOR, RefitTrack.MECH_REPAIR)));
+
+    static Map<RefitTrack, List<RefitTrack>> branches(boolean fleet) { return fleet ? FLEET_BRANCHES : BRANCHES; }
+
     static final String LINE = "#738578", LINE_ON = "#dec58a";
     private static final RefitBand[] TIERS = {RefitBand.RESTORED, RefitBand.IMPROVED_I, RefitBand.IMPROVED_II};
 
@@ -44,11 +54,17 @@ final class ShipSystemsTree {
     }
 
     static List<Map<String, Object>> cores(ShipCondition state, RefitTrack selected, Function<RefitTrack, Runnable> select) {
+        return cores(state, selected, select, false);
+    }
+
+    static List<Map<String, Object>> cores(ShipCondition state, RefitTrack selected, Function<RefitTrack, Runnable> select,
+                                           boolean fleet) {
         var cores = new ArrayList<Map<String, Object>>();
-        var roots = List.copyOf(BRANCHES.keySet());
+        var branches = branches(fleet);
+        var roots = List.copyOf(branches.keySet());
         for (int i = 0; i < roots.size(); i++) {
             RefitTrack core = roots.get(i);
-            var subs = BRANCHES.get(core);
+            var subs = branches.get(core);
             boolean restored = state.band(core).atLeast(RefitBand.RESTORED);
             var m = row(state, core, selected, select, "systems-core");
             String id = (String) m.get("id");

@@ -164,6 +164,36 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
+    // --- Fleet facilities: the mock rooms' sizes (`fleet-facilities.md`) ---
+
+    /** Working gantries in the fleet's Mech Lab: none, one, two, then the full lance of four. */
+    public int mechGantries() {
+        return switch (band(RefitTrack.MECH_GANTRIES)) {
+            case DEFICIT -> 0;
+            case RESTORED -> 1;
+            case IMPROVED_I -> 2;
+            case IMPROVED_II -> 4;
+        };
+    }
+
+    /** Working boat berths in the fleet's bay, each a boat of lift: one to start, then two, then three. */
+    public int boatBerths() {
+        return switch (band(RefitTrack.BOAT_BERTHS)) {
+            case DEFICIT, RESTORED -> 1;
+            case IMPROVED_I -> 2;
+            case IMPROVED_II -> 3;
+        };
+    }
+
+    /** Bunkrooms in the fleet's barracks, nine billets each: two to start, then four, then six. */
+    public int bunkrooms() {
+        return switch (band(RefitTrack.BARRACKS)) {
+            case DEFICIT, RESTORED -> 2;
+            case IMPROVED_I -> 4;
+            case IMPROVED_II -> 6;
+        };
+    }
+
     /** Whole machines the reserve hangar holds; none on a hull this record does not apply to. */
     public int reserveCapacity() {
         if (!applies) return 0;

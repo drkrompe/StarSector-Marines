@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.FleetRooms;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import java.util.Map;
@@ -19,6 +21,17 @@ public final class FleetFacilities {
     static final String RECEIPTS = "sm_fleet_facilities_";
 
     private FleetFacilities() { }
+
+    /** The id the fleet's standard deck and its boat berths are kept under, in place of a hull's. */
+    public static final String HOME_ID = "sm_fleet_facilities";
+
+    /** The sizes {@code condition} has bought for the mock rooms. */
+    public static FleetRooms rooms(ShipCondition condition) {
+        return new FleetRooms(condition.mechGantries(), condition.boatBerths(), condition.bunkrooms());
+    }
+
+    /** The fleet's standard deck as bought now: what the Mech Lab, boat bay and barracks are cropped from. */
+    public static CompanyShip ship() { return CompanyShip.fleet(rooms(condition())); }
 
     /** Whether the campaign's company runs on fleet facilities: any campaign but the Second Wind start's. */
     public static boolean inUse() {
