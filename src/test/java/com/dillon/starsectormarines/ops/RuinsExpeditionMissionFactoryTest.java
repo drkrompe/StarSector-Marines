@@ -16,6 +16,8 @@ class RuinsExpeditionMissionFactoryTest {
         Mission mission = RuinsExpeditionMissionFactory.create(3, "ossuary_market", "Ossuary", RuinsGrade.EXTENSIVE);
 
         assertEquals(MissionSource.RUINS_EXPEDITION, mission.source);
+        assertEquals(MissionType.RUINS, mission.type);
+        assertEquals(RuinsGrade.EXTENSIVE, mission.ruinsGrade);
         assertEquals(new RuinsExpeditionMissionKey(3, "ossuary_market"), RuinsExpeditionMissionKey.parse(mission.id));
         assertEquals(-1L, mission.contractId);
         assertEquals(0, mission.employerShuttles);
@@ -27,7 +29,7 @@ class RuinsExpeditionMissionFactoryTest {
         OperationTier previous = null;
         for (RuinsGrade grade : RuinsGrade.values()) {
             OperationTier tier = RuinsExpeditionMissionFactory.tierFor(grade);
-            assertTrue(tier.compareTo(MissionType.RAID.tierFloor) >= 0, grade + " below Raid's floor");
+            assertTrue(tier.compareTo(MissionType.RUINS.tierFloor) >= 0, grade + " below the family's floor");
             if (previous != null) assertTrue(tier.compareTo(previous) >= 0, grade + " weaker than the grade below");
             previous = tier;
         }

@@ -7,9 +7,9 @@ import com.dillon.starsectormarines.i18n.Strings;
 /**
  * Builds the battle in which the company goes into a world's ruins ({@code ruins-expedition.md}).
  *
- * <p>For now it is a stand-in: a Raid against a pirate scavenger crew, its tier set by the ruins grade. The
- * expedition's own mission family, ground and occupants replace it ({@code ruins-expedition-battle.md}); the commit
- * path around it stays.
+ * <p>It is the Ruins family's battle ({@link MissionType#RUINS}): the vault, its breach time from the grade, and the
+ * haul out to a lift point. The occupant is still a stand-in pirate scavenger crew, its tier set by the grade, until
+ * the site's seeded occupant exists ({@code ruins-occupants.md}).
  *
  * <p>It carries no contract and no employer: no contract economics, no MRB credibility, no salvage entitlement and no
  * employer boats. The ruins' haul comes from the game's own salvage, which a won expedition hands the site to once
@@ -34,7 +34,7 @@ public final class RuinsExpeditionMissionFactory {
         return Mission.builder()
                 .id(RuinsExpeditionMissionKey.encode(serial, marketId))
                 .name(Strings.format("ruinsExpeditionMissionName", planetName))
-                .type(MissionType.RAID)
+                .type(MissionType.RUINS)
                 .source(MissionSource.RUINS_EXPEDITION)
                 .risk(RiskLevel.MEDIUM)
                 .tier(tier)
@@ -46,11 +46,12 @@ public final class RuinsExpeditionMissionFactory {
                 .employerShuttles(0)
                 .targetPlanetName(planetName)
                 .targetFactionId(STAND_IN_OCCUPANT)
+                .ruinsGrade(grade)
                 .contractId(-1L)
                 .build();
     }
 
-    /** Larger ruins hold a stronger occupant, no lower than Raid's own floor. */
+    /** Larger ruins hold a stronger occupant, no lower than the family's own floor. */
     static OperationTier tierFor(RuinsGrade grade) {
         OperationTier tier = switch (grade) {
             case SCATTERED -> OperationTier.FIRST_CONTRACT;
@@ -58,6 +59,6 @@ public final class RuinsExpeditionMissionFactory {
             case EXTENSIVE -> OperationTier.VETERAN;
             case VAST -> OperationTier.REINFORCED;
         };
-        return OperationTier.clampTo(tier, MissionType.RAID.tierFloor);
+        return OperationTier.clampTo(tier, MissionType.RUINS.tierFloor);
     }
 }
