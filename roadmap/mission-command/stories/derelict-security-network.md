@@ -3,7 +3,10 @@
 Status: IN PROGRESS — every mechanics slice is built, with its scenes (What
 is built): zones, the director over walkers and flocks, the derelict heavy
 line, spotting, the node, repair drones, folded posts and power branches. The
-looks for the walker, posts and node wait on owner picks. Feeds slice 5 of
+walker is its own legged chassis on placeholder art while picks
+`derelict-walker-legs` and `derelict-walker-wall-reach` wait; the posts' and
+node's looks ship on the recommended candidates while picks
+`derelict-post-look` and `derelict-node-look` wait. Feeds slice 5 of
 `ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -40,7 +43,7 @@ swarm director, and it commands flocks as units.
    Unit-test the state rules on a zone alone.
 2. **The director.** The security-network director gives each woken zone's
    flock a task (probe, screen, strike, pursue to its leash, return) through
-   the flock model (`derelict-drone-flocks.md`), and holds each walker inside its
+   the flock model (`air-nouns.md`, Flocks), and holds each walker inside its
    perimeter at the layer's chokes and courts, sending it to what the flocks
    have pinned there. In the contingency every flock that can reach the haul's
    escort strikes it and the walkers walk to the egress route and hold it. It
@@ -68,8 +71,8 @@ swarm director, and it commands flocks as units.
 8. **Power branches.** At a site whose power hall feeds the network, a
    junction that cuts a branch powers down the zones on it (`ruins-works.md`).
 9. **Looks.** Domain and contingency looks for the posts and node
-   (`tech-families.md`), with picks. The cradle's look is the flocks' (slice 7
-   of `derelict-drone-flocks.md`).
+   (`tech-families.md`), with picks. The cradle's look is the flocks'
+   (`air-nouns.md`, Flocks).
 
 ## Interiors
 
@@ -80,8 +83,8 @@ the force split along the roofline:
 
 - **Flocks own the exterior and the approaches.** A flock never enters a
   roofed cell; a strike on a unit under a roof holds the threshold, the doorway
-  or breach where its way out meets open ground (`derelict-drone-flocks.md`,
-  Roofs are the flock's limit). The company indoors is out of the flocks'
+  or breach where its way out meets open ground (`air-nouns.md`,
+  Flocks). The company indoors is out of the flocks'
   reach, which is the counter the owner picked.
 - **Heavies and posts hold the interior.** Zones laid along the vault's route
   put the vault's zone, and at the larger grades the next, inside, so their
@@ -142,7 +145,7 @@ Everything is in `battle.derelict`.
   within `ESCORT_RADIUS` of the vault since the breach.
 - **The flock seam.** `FlockCommandPort` (reports in, task and anchor out) is
   the director's only view of flocks; `FlockSystemPort` implements it on the
-  shipped `FlockSystem` (`derelict-drone-flocks.md`), launching one `WASP`
+  shipped `FlockSystem` (`air-nouns.md`, Flocks), launching one `WASP`
   flock of `FLOCK_SIZE` per zone over its node with the zone's perimeter plus
   the leash, and not re-giving an order the flock already stands on.
 - **The heavy line (slice 3).** `MechVariant.SECURITY_WALKER` (`MG-40`, catalog
@@ -151,9 +154,29 @@ Everything is in `battle.derelict`.
   the company never fields, builds or refits it. `DerelictWalkerFrame` gives
   its three loadouts (line: HC-10, AC-6, two SRM-5; siege: two chainguns, two
   LRM-15 frag racks; vault: two HC-10, two SRM-15) and their plate as a share
-  of the chassis's (siege 0.85, vault 1.45). Its art, body plan and sound are
-  the Bulwark's until the line's own are picked; it is two-armed like the
-  Bulwark so the stand-in draws its arms.
+  of the chassis's (siege 0.85, vault 1.45). Nothing of the Bulwark's (owner,
+  2026-11-09): its own chassis appearance (`CHASSIS_DERELICT`), body plan
+  (`MechBodyPlan.DERELICT`: a low torso over legs, struck mostly in the torso)
+  and numbers, all UNTUNED. Its arm guns sit in two side ports of the torso
+  and its racks on its back; shared systems (movement, weapon components, mech
+  doctrine and targeting) are the mechs' own.
+- **The walker's legs.** A torso on reaching legs (owner, 2026-11-09:
+  "a central torso on 3-4 legs that reach out and walk or pull along walls").
+  `DerelictLegRig` is the drawn rig, render-only: hips on a ring about the
+  torso, each foot planted until it strays `RESTEP_CELLS` from where it would
+  rest, then stepping over `STEP_SECONDS` with its gait group (four legs in
+  diagonal pairs, three one at a time); a torso that jumps further than a leg
+  reaches stands fresh. With wall reach a leg marches out along its line up to
+  `MAX_REACH_CELLS` and grips the first wall face it meets, and rests on the
+  floor where none is in reach. The torso still paths, collides and stands on
+  floor cells, so pathing is untouched; moving over or along wall cells would
+  need a passability view of its own, read by both the planner and terrain
+  motion as `HoverSkirt` and `WallCrush` are, and is not built.
+  `DerelictWalkerComposer` draws it from placeholder parts
+  (`art-source/derelict-walker/placeholder.py`). The leg count and wall reach
+  wait on the owner's `derelict-walker-legs` and `derelict-walker-wall-reach`
+  picks, behind the temporary switches `battle.derelictWalker.legs` (4) and
+  `battle.derelictWalker.wallReach` (on).
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none
@@ -190,8 +213,8 @@ Everything is in `battle.derelict`.
   (`openSkyHome`), so a flock whose zone lies indoors waits at the doorway
   rather than under the roof.
 - **The node (slice 5).** `DerelictNode` is each zone's control node, an
-  armoured, unarmed structure (a drone hub's structure until its look is
-  picked), stood by `install` on the nearest cell to the zone's node cell
+  armoured, unarmed structure (a drone hub's structure, drawn as its
+  lineage's relay structure: Looks), stood by `install` on the nearest cell to the zone's node cell
   that is off the route, against a wall and leaves three open cells across
   (`nodeCell`), so it never narrows a corridor below a walker's width. The
   director watches it each pulse (`DerelictNode.watch`): damage to it wakes
@@ -210,8 +233,8 @@ Everything is in `battle.derelict`.
   spent, it stays home. It can be shot down. It flies over walls and roofs,
   unlike a flock.
 - **Posts that wake (slice 7).** `DerelictPost`: each zone stands
-  `PER_ZONE` folded gun posts (the Vulcan emplacement until the post's look
-  and gun are picked), anchored at the interior's entrances and then its
+  `PER_ZONE` folded gun posts (the Vulcan emplacement's gun and durability,
+  drawn as its lineage's folding post: Looks), anchored at the interior's entrances and then its
   chambers that the zone keeps, else beside the zone's route posts, each on a
   wall cell off the route (`besideRoute`) and kept apart. A post's gate is its
   emplacement power: the director powers it only while its zone is awake
@@ -227,6 +250,19 @@ Everything is in `battle.derelict`.
   cradle not rebuilding; thrown back, it comes up dormant. So cutting a
   branch buys a quiet way through a zone at the price of the gates and the
   vault seal on it.
+- **Looks (slice 9, posts and node).** `DerelictLook` is the network's
+  lineage look, set by `install` from the ruin's occupant (Domain security's
+  grey and hazard yellow, contingency security's Tri-Tachyon white gone
+  dull); the director carries it and the renderer reads it, never the
+  battle. A post draws its lineage's base in the paving and, while its power
+  is cut, its shut head square to the map; powered, its gun head turning
+  with the mount, with no recoil layer. A node draws its lineage's relay
+  structure in the hub pass, `NODE_VISUAL_CELLS` long, as the cradle draws
+  its housing. Art from ImageGen geometry guides, three post and four node
+  designs a sheet per lineage (`art-source/derelict-security`); the
+  recommended pop-up post and mast node ship while picks
+  `derelict-post-look` and `derelict-node-look` wait. The walker is drawn
+  by its own leg rig (The walker's legs).
 
 Evidence: `SecurityNetworkTest`, `WalkerPostureTest`, `FlockTaskingTest`,
 `DerelictSecurityTest`; fixtures `ruins-derelict-vast-v1` and
@@ -238,18 +274,25 @@ node-down: it stays home; under-fire: hit, it breaks off home, stays while it
 stands down, then goes out again); `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
 from the first walker contact, then the vast site's vault frame and a line
-frame at their interior posts with the roof lifted).; `sceneEvidence
+frame at their interior posts with the roof lifted); `sceneEvidence
 -Pscene=derelict-network` (relay: a wake alerts the next zone and not the one
 after; pin: a line frame given a contact inside its perimeter comes to it and
 engages; pin-outside: one past its perimeter is held for; contingency: the
 line frame walks to the egress and holds it, the siege frame fires from its
-post, the vault frame stays).
+post, the vault frame stays); `DerelictLegRigTest`;
+`createSnapshots -Psnapshot=derelict-heavies-look
+-Dsnapshot.derelict.interiorOnly=true` with the two walker switches (the
+interior stills alone, closer, and the vault frame stood in a three-cell
+hall: the walker-legs picks); `createSnapshots
+-Psnapshot=derelict-security-look` (a post folded and unfolded and a node, in
+either lineage, the look candidates through `-Dsnapshot.artOverlay`).
 
 Not built yet: a `sceneEvidence` loop for a flock's leash (the flock
-model's own scenes cover its flight; `FlockTasking` is unit-tested); looks
-for the walker, posts and node (3, 9; the cradle's look is
-`derelict-drone-flocks.md`'s), and the repair drone's own look if it should
-differ from the tender's. Strength is not tuned, and is not tuned from
+model's own scenes cover its flight; `FlockTasking` is unit-tested); the
+walker's finished art and sound (after the legs picks), movement over or
+along wall cells, the post's own gun, and the repair drone's own look if it
+should differ from the tender's (the cradle's look is
+`air-nouns.md`, Flocks). Strength is not tuned, and is not tuned from
 autopilot runs: it waits on the owner playing a derelict battle. Both
 fixtures fly the company's real lift (one Hermes, six twelve-seat trips, as
 playBattle's Veteran Company).

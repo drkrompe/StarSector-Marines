@@ -51,7 +51,7 @@ public final class MechFrameBudget {
             case HOUND -> 500f;
             case WARDEN -> 400f;
             case BULWARK -> 950f;
-            case SECURITY_WALKER -> 1100f;
+            case SECURITY_WALKER -> 1200f;
         };
     }
 
@@ -61,7 +61,7 @@ public final class MechFrameBudget {
             case HOUND -> 1.70f;
             case WARDEN -> 1.45f;
             case BULWARK -> 1.15f;
-            case SECURITY_WALKER -> 0.82f;
+            case SECURITY_WALKER -> 0.75f;
         };
     }
 

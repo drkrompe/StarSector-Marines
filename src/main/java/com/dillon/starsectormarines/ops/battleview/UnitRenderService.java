@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
+import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
@@ -24,6 +25,8 @@ import com.dillon.starsectormarines.battle.air.GroundWreck;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
+import com.dillon.starsectormarines.battle.derelict.DerelictLook;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
@@ -40,6 +43,7 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
@@ -380,6 +384,9 @@ public final class UnitRenderService implements RenderSystem {
     /** Structure animation clock, and the accumulated angle of each spinning art layer keyed by structure id and layer index. */
     private float structureClock;
     private final Map<Long, Float> layerAngles = new HashMap<>();
+    /** Each derelict walker's leg rig, and the sim tick it was last advanced on. */
+    private final Map<Long, DerelictLegRig> derelictRigs = new HashMap<>();
+    private final Map<Long, Integer> derelictRigTicks = new HashMap<>();
     private final Stratum footprints = new Stratum();
     private final Stratum turrets = new Stratum();
     private final Stratum hubs = new Stratum();
@@ -486,7 +493,9 @@ public final class UnitRenderService implements RenderSystem {
             float cx = cam.cellToScreenX(world.renderX(id));
             float cy = cam.cellToScreenY(world.renderY(id));
 
-            StructureLook look = structure.look(ctx.sim.structureStyle(id));
+            DerelictLook derelict = derelictPostLook(ctx, id);
+            boolean folded = derelict != null && turretState.unpowered(id);
+            StructureLook look = derelict != null ? derelict.postLook(folded) : structure.look(ctx.sim.structureStyle(id));
             ShuttleSpriteCache base = look != null && look.spritePath() != null
                     ? sprites.spriteByPath(look.spritePath()) : sprites.turretSprites().get(structure.id);
             if (base == null) {
@@ -506,13 +515,15 @@ public final class UnitRenderService implements RenderSystem {
                     structure.mount.recoil.distanceFrac());
 
             ShuttleSpriteCache barrel = look != null && look.recoilSpritePath() != null
-                    ? sprites.spriteByPath(look.recoilSpritePath()) : sprites.turretRecoilSprites().get(structure.id);
+                    ? sprites.spriteByPath(look.recoilSpritePath())
+                    : derelict != null ? null : sprites.turretRecoilSprites().get(structure.id);
             if (barrel != null) {
                 emitWholeSprite(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
                         pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
             }
-            emitWholeSprite(out, base, pose.facingDegrees(), pose.spriteHeightPx(),
-                    pose.baseCenterX(), pose.baseCenterY(), alphaMult);
+            // A folded derelict post lies shut in its well, square to the map rather than turned with the mount.
+            emitWholeSprite(out, base, folded ? 0f : pose.facingDegrees(), pose.spriteHeightPx(),
+                    folded ? cx : pose.baseCenterX(), folded ? cy : pose.baseCenterY(), alphaMult);
             if (structure.art != null) {
                 emitArtLayers(ctx, out, structure, id, cx, cy, cellPx, alphaMult, clock, dt);
             }
@@ -584,7 +595,8 @@ public final class UnitRenderService implements RenderSystem {
     /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */
     private ShuttleSpriteCache structureBase(RenderContext ctx, long id, TurretStateService turretState) {
         StructureDef structure = turretState.structure(id);
-        StructureLook look = structure.look(ctx.sim.structureStyle(id));
+        DerelictLook derelict = derelictPostLook(ctx, id);
+        StructureLook look = derelict != null ? derelict.postLook(false) : structure.look(ctx.sim.structureStyle(id));
         if (look != null && look.basePath() != null) return sprites.spriteByPath(look.basePath());
         if (structure.art == null || structure.art.basePath == null) return null;
         return sprites.spriteByPath(structure.art.basePath);
@@ -785,6 +797,14 @@ public final class UnitRenderService implements RenderSystem {
                     Math.max(DroneHub.VISUAL_CELLS, FlockLivery.CRADLE_VISUAL_CELLS) * AUTHORED_EXTENT_SLACK)) continue;
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
+            // A derelict zone's node wears its lineage's relay structure.
+            DerelictLook nodeLook = derelictNodeLook(ctx, u);
+            ShuttleSpriteCache node = nodeLook == null ? null : sprites.spriteByPath(nodeLook.nodeSpritePath());
+            if (node != null) {
+                float tall = DerelictLook.NODE_VISUAL_CELLS * cellPx / Math.max(1f, node.aspect);
+                emitWholeSprite(out, node, 0f, tall, cx, cy, alphaMult);
+                continue;
+            }
             // A flock's cradle wears its lineage's housing; a plain hub, or a cradle whose art did not load, the hub's.
             FlockLivery livery = ctx.sim.flocks().cradleLivery(u);
             ShuttleSpriteCache cradle = livery == null ? null : sprites.spriteByPath(livery.cradleSpritePath());
@@ -797,6 +817,18 @@ public final class UnitRenderService implements RenderSystem {
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS * cellPx,
                     cx, cy, alphaMult);
         }
+    }
+
+    /** The look of a derelict security network whose node {@code id} is, or null when it is no network's node. */
+    private static DerelictLook derelictNodeLook(RenderContext ctx, long id) {
+        DerelictSecurityDirector director = ctx.sim.derelictSecurity();
+        return director != null && director.nodes().containsValue(id) ? director.look() : null;
+    }
+
+    /** The look of a derelict security network whose gun post {@code id} is, or null when it is no network's post. */
+    private static DerelictLook derelictPostLook(RenderContext ctx, long id) {
+        DerelictSecurityDirector director = ctx.sim.derelictSecurity();
+        return director != null && director.posts().containsKey(id) ? director.look() : null;
     }
 
     /**
@@ -1679,6 +1711,24 @@ public final class UnitRenderService implements RenderSystem {
                 LayeredMechAssets mechAssets = hasMechLayered
                         ? sprites.layeredMechSprites(ctx.sim.identity().faction(entityId))
                         : null;
+                DerelictWalkerAssets walkerArt = mechAssets != null
+                        && mechChassis[r] == LayeredMechAppearance.CHASSIS_DERELICT
+                        ? sprites.derelictWalkerSprites() : null;
+                if (walkerArt != null) {
+                    // The derelict walker is its own chassis: a torso on reaching legs, drawn from its own rig.
+                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> DerelictWalkerLook.newRig());
+                    int tick = ctx.sim.getSimTickIndex();
+                    Integer last = derelictRigTicks.put(entityId, tick);
+                    float dt = last == null ? 0f
+                            : Math.min(0.25f, Math.max(0, tick - last) * BattleSimulation.TICK_DT);
+                    NavigationGrid grid = ctx.sim.getGrid();
+                    rig.advance(rx[r], ry[r], mechHipFacing[r], dt,
+                            (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
+                    DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
+                                    RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
+                            walkerArt, rig, cam, roster.renderScale(entityId), unitAlpha);
+                    continue;
+                }
                 if (mechAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
