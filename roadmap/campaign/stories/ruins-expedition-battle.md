@@ -123,12 +123,11 @@ story's battle plays, it lifts the fork's development-only gate
    *Harness built.* `commanderEvidence -Pmission=ruins` plays one scavenger
    fixture per grade on the ruins ground (`ruins-scavengers-<grade>-v1.json`),
    three seeds each, with the company's real lift: one twelve-seat Hermes, one
-   trip per squad the tier recommends. Every run that sets up reaches a
-   terminal: on the first full run 10 of 11 boarded the haul and one widespread
-   company was beaten in transit, in about 3 minutes (scattered) to 11 minutes
-   (vast) of battle. One extensive seed (91104) cannot lay its ground
-   (`ruins.layer.2 seats no power hall`), so the task fails until the ground
-   does (`ruins-ground.md`).
+   trip per squad the tier recommends. It reports only whether each run set
+   up and whether it ended or stuck: the autopilot company is no player, so
+   its wins and times say nothing. Every run that set up has ended. Extensive
+   seed 91104 cannot lay its ground (`ruins.layer.2 seats no power hall`), so
+   the task fails until the ground does (`ruins-ground.md`).
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change
