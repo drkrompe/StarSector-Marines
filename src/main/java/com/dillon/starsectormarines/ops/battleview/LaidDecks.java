@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.FleetRooms;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
@@ -96,12 +97,14 @@ public final class LaidDecks {
      * that never hits.
      */
     private record Hull(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
-                        int cargo, float aspect, String outline, long seed, boolean conversion, BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
+                        int cargo, float aspect, String outline, long seed, boolean conversion, BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration,
+                        FleetRooms fleetRooms) {
 
         static Hull of(CompanyShip ship, long seed) {
             return new Hull(ship.hullClass(), ship.role(), ship.minCrew(), ship.maxCrew(),
                     ship.cargo(), ship.aspect(),
-                    ship.outline() == null ? null : ship.outline().source(), seed, ship.mercenaryConversion(), ship.boatBay(), ship.workshop(), ship.restoration());
+                    ship.outline() == null ? null : ship.outline().source(), seed, ship.mercenaryConversion(), ship.boatBay(), ship.workshop(), ship.restoration(),
+                    ship.fleetRooms());
         }
     }
 
