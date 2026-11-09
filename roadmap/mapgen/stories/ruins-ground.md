@@ -136,7 +136,12 @@ seal doors with the vault deep inside, and brings the haul back out.
   carves round them.
 - **Roofs.** Every carved cell is a building floor, so the flood fill makes the
   whole interior one roofed building, and a court inside, with no building on
-  it, is a light well open to the sky. `RuinsGroundEvidence` holds the vault,
+  it, is a light well open to the sky. A roof covers a building's floor and the
+  walls beside it, so `RuinsRoofStage` registers the solid hull (every hull
+  cell no open cell touches) as one more building in the interior's tint: one
+  slab roof runs over the whole megastructure, and going in lifts the roof over
+  its halls while the mass stays roofed. Rooms and the power hall inside are
+  built of the hull, not the dead town's materials. `RuinsGroundEvidence` holds the vault,
   every interior room and every chamber under a roof, and every lift point
   under open sky.
 - **The power hall** stands inside at extensive and vast (the first interior
@@ -145,10 +150,11 @@ seal doors with the vault deep inside, and brings the haul back out.
 - **Laws.** `DelveCheck` reaches every chamber and every entrance; the layer
   laws (no single blocked way closes the route) hold on the interior's
   bulkheads as on the lines outside.
-- **Open.** From above the look preset draws the roof, so the interior shows
-  as roof over its corridors and bare hull between: an art question (one roof
-  over the whole mass, or a megastructure roof set) for picks. The chamber
-  count, spine width and hull material are UNTUNED. Seal doors are the works'
+- **Open.** The roof is a picks question (`ruins-interior-roof`: one roof,
+  built; a dedicated megastructure roof set, mocked with the plate row; or
+  strips over the halls); `createSnapshots -Psnapshot=ruins-roof-options`
+  renders the first two. The chamber count, spine width and hull material are
+  UNTUNED. Seal doors are the works'
   (`ruins-works.md`); the ground publishes the gate spans and the bunker door
   they shut.
 

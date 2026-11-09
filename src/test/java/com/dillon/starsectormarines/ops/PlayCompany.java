@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupants;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.campaign.start.OpeningPort;
@@ -80,6 +81,11 @@ final class PlayCompany {
     private static final float READINESS = 0.7f;
     private static final String ARCADIA = "Arcadia";
     private static final Map<String, StarSystemAPI> SYSTEMS = new LinkedHashMap<>();
+    /**
+     * A system's theme tags, as vanilla's generator sets them. Arcadia is a derelict system, so Ossuary's occupant draw
+     * ({@code RuinsOccupants}, seed 0 in the stand-in) gives Domain security and its ruins play derelict security.
+     */
+    private static final Map<String, Set<String>> SYSTEM_TAGS = Map.of(ARCADIA, Set.of(RuinsOccupants.THEME_DERELICT));
     private static final Map<String, List<PlanetAPI>> PLANETS = new HashMap<>();
     /** The story's worlds, by the ids the mod finds them with; Jangala first, where a run starts. */
     private static final List<PlanetAPI> WORLDS = List.of(
@@ -398,6 +404,7 @@ final class PlayCompany {
             Map<String, Object> answers = new HashMap<>();
             answers.put("getBaseName", known);
             answers.put("getName", known);
+            answers.put("getTags", SYSTEM_TAGS.getOrDefault(known, Set.of()));
             answers.put("getPlanets", neighbours);
             return stub(StarSystemAPI.class, answers);
         }));
@@ -431,10 +438,12 @@ final class PlayCompany {
             Map<String, Object> answers = new HashMap<>();
             answers.put("getBaseName", known);
             answers.put("getName", known);
+            answers.put("getTags", SYSTEM_TAGS.getOrDefault(known, Set.of()));
             answers.put("getPlanets", PLANETS.computeIfAbsent(known, unused -> new ArrayList<>()));
             return stub(StarSystemAPI.class, answers);
         }));
         PlanetAPI world = stub(PlanetAPI.class, planet);
+        site.put("getStarSystem", planet.get("getStarSystem"));
         site.put("getPlanetEntity", world);
         site.put("getPrimaryEntity", world);
         return world;

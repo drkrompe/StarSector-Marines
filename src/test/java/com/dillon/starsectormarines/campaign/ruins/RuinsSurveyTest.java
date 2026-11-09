@@ -45,6 +45,15 @@ class RuinsSurveyTest {
     }
 
     @Test
+    void eachOccupantReadsThroughItsOwnInstruments() {
+        Set<String> assessments = new HashSet<>();
+        for (RuinsOccupant occupant : RuinsOccupant.values()) {
+            RuinsSurvey.Pool pool = RuinsSurvey.poolFor(occupant);
+            assertTrue(pool != null && assessments.add(pool.assessmentKey()), occupant + " has no assessment of its own");
+        }
+    }
+
+    @Test
     void aPoolNeedsEnoughDistinctReadings() {
         assertThrows(IllegalArgumentException.class, () -> new RuinsSurvey.Pool("a", "b", List.of("x", "y")));
         assertThrows(IllegalArgumentException.class, () -> new RuinsSurvey.Pool("a", "b", List.of("x", "x", "y")));

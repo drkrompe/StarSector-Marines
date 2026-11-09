@@ -515,6 +515,11 @@ public final class RuinsDelveStage implements GenStage {
         Shell shellIn(Area region, int width, int height, String wall, String floor, BuildingKind kind) {
             int[] at = spot(region, width, height, 2);
             if (at == null) return null;
+            if (insideCell(at[0], at[1])) {
+                // Inside the megastructure a room is built of its hull, not of the dead town's materials.
+                wall = HULL_WALL;
+                floor = HULL_FLOOR;
+            }
             Area area = new Area(at[0], at[1], at[0] + width - 1, at[1] + height - 1);
             open(new Area(area.left() - 1, area.bottom() - 1, area.right() + 1, area.top() + 1), null);
             reserve(area, 2);

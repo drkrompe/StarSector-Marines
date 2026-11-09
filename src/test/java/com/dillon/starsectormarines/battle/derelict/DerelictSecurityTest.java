@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Contact;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DerelictSecurityTest {
@@ -58,5 +62,41 @@ class DerelictSecurityTest {
         assertEquals(2, merged.size());
         assertEquals(1L, merged.get(0).unitId());
         assertEquals(9, merged.get(1).cellX());
+    }
+
+    private static RuinsDelve withInterior(List<Area> chambers) {
+        RuinsDelve.Vault vault = new RuinsDelve.Vault(new Area(90, 40, 99, 60), new Cell(90, 50), new Cell(95, 50),
+                new Cell(88, 50), new Cell(97, 50));
+        RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, new Area(60, 0, 99, 99), 2,
+                List.of(new Area(60, 48, 61, 51)), chambers);
+        return new RuinsDelve(3, new Area(0, 40, 10, 60), List.of(), vault, List.of(), null, List.of(), null, null,
+                interior);
+    }
+
+    @Test
+    void onAnInteriorTheVaultFrameGuardsTheVaultLineFramesHoldChambersAndTheSiegeFrameTheEntrance() {
+        List<DerelictWalkerFrame> heavies = List.of(DerelictWalkerFrame.VAULT, DerelictWalkerFrame.LINE,
+                DerelictWalkerFrame.LINE, DerelictWalkerFrame.SIEGE);
+        int[][] posts = DerelictSecurity.interiorPosts(heavies, withInterior(List.of(new Area(70, 20, 79, 29),
+                new Area(70, 70, 79, 79))));
+        assertArrayEquals(new int[] {88, 50}, posts[0]);
+        assertArrayEquals(new int[] {74, 24}, posts[1]);
+        assertArrayEquals(new int[] {74, 74}, posts[2]);
+        assertArrayEquals(new int[] {60, 49}, posts[3]);
+    }
+
+    @Test
+    void groundWithNoInteriorLeavesTheRoutesPosts() {
+        assertNull(DerelictSecurity.interiorPosts(List.of(DerelictWalkerFrame.LINE), null));
+    }
+
+    @Test
+    void anInteriorZonesFlockIsHomedOnTheFirstOpenSkyCellTowardTheLanding() {
+        int[] route = straight();
+        DerelictSecurity.ZonePlan vaultZone = DerelictSecurity.zonesAlong(route, 3).get(0);
+        int[] home = DerelictSecurity.openSkyHome(route, vaultZone, (x, y) -> x < 30);
+        assertArrayEquals(new int[] {30, 50}, home);
+        DerelictSecurity.ZonePlan outside = DerelictSecurity.zonesAlong(route, 3).get(2);
+        assertEquals(outside.nodeX(), DerelictSecurity.openSkyHome(route, outside, (x, y) -> x < 30)[0]);
     }
 }
