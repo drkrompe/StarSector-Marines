@@ -60,6 +60,7 @@ public final class DerelictSecurityDirector {
     private final int vaultY;
     private FlockCommandPort flocks = FlockCommandPort.NONE;
     private final Map<Integer, Order> issued = new TreeMap<>();
+    private final Map<Integer, Boolean> walking = new TreeMap<>();
     private final Map<Integer, Float> durability = new TreeMap<>();
     private final Map<Integer, int[]> stirredAt = new TreeMap<>();
     private final Set<Long> haul = new TreeSet<>();
@@ -365,20 +366,40 @@ public final class DerelictSecurityDirector {
         }
         Order last = issued.put(walker.squadId(), order);
         Order stand = standing(walker, order);
-        if (last != null) {
+        boolean walk = false;
+        if (sim.squadMemberCount(walker.squadId()) > 0) {
+            long lead = sim.squadMemberAt(walker.squadId(), 0);
+            walk = walksTo(sim.world().x(lead), sim.world().y(lead), stand);
+        }
+        Boolean wasWalking = walking.put(walker.squadId(), walk);
+        if (last != null && wasWalking != null && wasWalking == walk) {
             Order was = standing(walker, last);
             if (was.kind() == stand.kind()
                     && WalkerPosture.chebyshev(was.cellX(), was.cellY(), stand.cellX(), stand.cellY()) < REISSUE_CELLS) {
                 return;
             }
         }
-        ObjectiveAssignment assignment = switch (stand.kind()) {
-            case CLOSE -> ObjectiveAssignment.attackMove(walker.squadId(), stand.cellX(), stand.cellY());
-            case HOLD_EGRESS -> ObjectiveAssignment.defendArea(walker.squadId(), stand.cellX(), stand.cellY(),
-                    EGRESS_RADIUS);
-            default -> ObjectiveAssignment.defendArea(walker.squadId(), stand.cellX(), stand.cellY(), HOLD_RADIUS);
-        };
+        // A walker's own doctrine holds a defended area wherever it stands, so one that is off the cell it is to
+        // hold walks there first, fighting on the way, and holds it once there.
+        ObjectiveAssignment assignment;
+        if (stand.kind() == Kind.CLOSE || walk) {
+            assignment = ObjectiveAssignment.attackMove(walker.squadId(), stand.cellX(), stand.cellY());
+        } else {
+            assignment = ObjectiveAssignment.defendArea(walker.squadId(), stand.cellX(), stand.cellY(),
+                    radius(stand));
+        }
         sim.assignSquadCommand(assignment, CommandAuthority.MISSION_COMMAND, ISSUER, reason(walker, order));
+    }
+
+    /** How near the cell a holding order counts as there. */
+    static int radius(Order stand) {
+        return stand.kind() == Kind.HOLD_EGRESS ? EGRESS_RADIUS : HOLD_RADIUS;
+    }
+
+    /** Whether a walker at {@code (x, y)} must walk to the cell its holding order names before it holds it. */
+    static boolean walksTo(float x, float y, Order stand) {
+        if (stand.kind() == Kind.CLOSE) return false;
+        return Math.max(Math.abs(x - (stand.cellX() + 0.5f)), Math.abs(y - (stand.cellY() + 0.5f))) > radius(stand);
     }
 
     /** Where the order stands the lance: a fire order stands at the post as a hold does; only its target differs. */
