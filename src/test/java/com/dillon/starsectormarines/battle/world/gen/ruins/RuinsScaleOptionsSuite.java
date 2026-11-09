@@ -20,10 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ruins ground set beside the maps the company fights on elsewhere, for the owner's pick on its size
- * ({@code mapgen-nouns.md}, Ruins ground): scattered and extensive ruins at the sizes {@link RuinsGroundPlan#forLayers}
- * gives ({@code one-step}) and a step larger again ({@code two-step}), and a Raid on the established map and an
- * Extraction on the full-strength map. Every map is drawn twice through the look preset, roofs on: fitted to the
+ * Ruins ground set beside the maps the company fights on elsewhere ({@code mapgen-nouns.md}, Ruins ground):
+ * scattered and extensive ruins at the sizes {@link RuinsGroundPlan#forLayers} gives, the owner's pick
+ * ({@code ruins-map-size} b, two steps up the tier band), and a Raid on the established map and an Extraction on the
+ * full-strength map. Every map is drawn twice through the look preset, roofs on: fitted to the
  * frame ({@code *-fit.png}), and at one shared scale, {@value #SHARED_CELLS} cells across, so sizes compare
  * ({@code *-shared.png}). Seed 7, ground only for the ruins, the other missions as they open.
  */
@@ -43,10 +43,8 @@ public final class RuinsScaleOptionsSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
         TileRegistryTestInstaller.install(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
-        ruins(context, "scattered-one-step", RuinsGroundPlan.forLayers(1), out);
-        ruins(context, "scattered-two-step", new RuinsGroundPlan(1, 200, 112, 0.55f), out);
-        ruins(context, "extensive-one-step", RuinsGroundPlan.forLayers(3), out);
-        ruins(context, "extensive-two-step", new RuinsGroundPlan(3, 400, 240, 0.75f), out);
+        ruins(context, "scattered", RuinsGroundPlan.forLayers(1), out);
+        ruins(context, "extensive", RuinsGroundPlan.forLayers(3), out);
         try (BattleSimulation raid = BattleSetup.createRaid(SEED, BattleSetup.defaultManifest(), false,
                 OperationTier.ESTABLISHED, RiskLevel.MEDIUM, TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY)) {
             frames(context, "raid-established", raid, out);
