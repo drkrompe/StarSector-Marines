@@ -58,6 +58,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final MoltenVoidRenderSystem molten;
     /** The drop this instance draws is a lava rift. */
     private boolean lava;
+    /** The drop this instance draws is an open pit: benches, a haul road down them, conveyors out. */
+    private boolean pit;
+    /** An open pit's haul road, and the conveyors it draws over the ground. */
+    private List<PitVoidLook.Ramp> ramps = List.of();
+    private List<NaturalVoid.Belt> belts = List.of();
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -133,6 +138,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         for (int k = n; k >= 0; k--) {
             drawBand(field.bands.get(k), k == n, time);
             if (k >= 1) drawWalls(field.walls.get(k - 1));
+            if (k >= 1 && pit) drawRamps(k - 1);
         }
         drawBridgeSides();
     }
@@ -166,6 +172,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             seed = drop.seed();
         }
         lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
+        pit = !rising && PitVoidLook.pit((NaturalVoid) look);
+        belts = pit ? ((NaturalVoid) look).belts() : List.of();
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -194,6 +202,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             for (int q = 0; q < band.count; q++) {
                 if (rising && k == n) plateau(band, q, seed, c);
                 else if (lava) LavaVoidLook.rock(band, q, k, seed, field.depth[n], c);
+                else if (pit) PitVoidLook.rock(band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
@@ -202,8 +211,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         frayColours = new float[fray.count * 3];
         for (int q = 0; q < fray.count; q++) {
             if (lava) LavaVoidLook.rock(fray, q, 0, seed, field.depth[n], frayColours);
+            else if (pit) PitVoidLook.rock(fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
+        ramps = pit ? PitVoidLook.ramps(field) : List.of();
     }
 
     /**
@@ -248,6 +259,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                         .02f, .03f, .06f, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+            if (pit && !belts.isEmpty()) drawBelts(FireLight.clock(ctx.animationTimeSeconds));
         });
     }
 
@@ -380,7 +392,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             if (!inView(at[o], at[o + 1], s, margin)) continue;
             if (band.step == 0 && !onMap(at[o], at[o + 1])) continue;
             float r, g, b;
-            if (floor) {
+            if (floor && pit) {
+                float[] f = PitVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], at[o + 6], seed);
+                r = f[0]; g = f[1]; b = f[2];
+            } else if (floor) {
                 float x = at[o], y = at[o + 1], light = at[o + 2], edge = at[o + 3];
                 float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6], sunlit = at[o + 7];
                 float along = x * fx + y * fy, across = -x * fy + y * fx;
@@ -493,6 +508,105 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f};
         out.addSheetPatch(RenderLayer.GROUND, rock.sprite, srcX, srcY, srcW, srcH,
                 minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
+    }
+
+    /**
+     * An open pit's haul road down one face: its surface on the bench below, sloping from the bench above's level
+     * to its own, and its inner edge falling to the bench, drawn after the face and before the bench above.
+     */
+    private void drawRamps(int wall) {
+        if (ramps.isEmpty()) return;
+        PolyMesh mesh = poly();
+        float margin = cam.cellPxSize() * 2f;
+        float lit = sun == null ? .9f : .78f + .22f * Math.min(1f, sun.risePerCell());
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        for (PitVoidLook.Ramp ramp : ramps) {
+            if (ramp.wall() != wall) continue;
+            float[] p = ramp.corners();
+            float s0 = scale(p[2]), s1 = scale(p[5]), s2 = scale(p[8]), s3 = scale(p[11]);
+            if (!inView(p[0], p[1], s0, margin)) continue;
+            float r, g, b;
+            if (ramp.side()) { r = .30f; g = .27f; b = .23f; }
+            else if (ramp.lane() == 1) { r = .44f; g = .40f; b = .34f; }
+            else if (ramp.lane() == 2) { r = .60f; g = .56f; b = .49f; }
+            else { r = .54f; g = .50f; b = .43f; }
+            float tint = DEEP_MIX * (p[2] + p[5]) / 2f / floorDepth;
+            r = lerp(r * lit, DEEP_R, tint); g = lerp(g * lit, DEEP_G, tint); b = lerp(b * lit, DEEP_B, tint);
+            mesh.appendQuad(sx(p[0], s0), sy(p[1], s0), sx(p[3], s1), sy(p[4], s1),
+                    sx(p[6], s2), sy(p[7], s2), sx(p[9], s3), sy(p[10], s3), r, g, b, alpha);
+        }
+        if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+    }
+
+    /**
+     * An open pit's conveyors, over the ground tiles and under every unit: each belt climbs from the floor to its
+     * gantry's height over the rim and runs on to the works, its shadow laid on the ground beside it and ore
+     * riding it toward the works.
+     */
+    private void drawBelts(float time) {
+        PolyMesh mesh = poly();
+        float floorDepth = field.depth[field.steps()];
+        float lift = -PitVoidLook.BELT_METERS;
+        float sdx = sun == null ? .7f : -sun.dirX(), sdy = sun == null ? .7f : -sun.dirY();
+        float reach = sun == null || !sun.casts() ? 0f : 1f / Math.max(.25f, sun.risePerCell());
+        float shadeA = sun == null ? .3f : .45f * Math.min(1f, sun.shadowStrength() / .75f);
+        float half = PitVoidLook.BELT_CELLS / 2f;
+        for (NaturalVoid.Belt belt : belts) {
+            float[][] legs = {
+                    {belt.floorX(), belt.floorY(), floorDepth, belt.rimX(), belt.rimY(), lift},
+                    {belt.rimX(), belt.rimY(), lift, belt.endX(), belt.endY(), lift}};
+            float along0 = 0f;
+            for (float[] leg : legs) {
+                float lx = leg[3] - leg[0], ly = leg[4] - leg[1];
+                float len = (float) Math.hypot(lx, ly);
+                if (len < .01f) continue;
+                float ux = lx / len, uy = ly / len, px = -uy * half, py = ux * half;
+                int pieces = Math.max(1, (int) Math.ceil(len / .5f));
+                for (int i = 0; i < pieces; i++) {
+                    float t0 = i / (float) pieces, t1 = (i + 1) / (float) pieces;
+                    float ax = leg[0] + lx * t0 + MARGIN, ay = leg[1] + ly * t0 + MARGIN;
+                    float bx = leg[0] + lx * t1 + MARGIN, by = leg[1] + ly * t1 + MARGIN;
+                    float za = leg[2] + (leg[5] - leg[2]) * t0, zb = leg[2] + (leg[5] - leg[2]) * t1;
+                    float sa = scale(za), sb = scale(zb);
+                    // The shadow on the ground, only where the belt runs over it.
+                    if (za <= 0f && zb <= 0f && reach > 0f) {
+                        float oa = -za * reach, ob = -zb * reach;
+                        mesh.appendQuad(sx(ax + px + sdx * oa, 1f), sy(ay + py + sdy * oa, 1f),
+                                sx(bx + px + sdx * ob, 1f), sy(by + py + sdy * ob, 1f),
+                                sx(bx - px + sdx * ob, 1f), sy(by - py + sdy * ob, 1f),
+                                sx(ax - px + sdx * oa, 1f), sy(ay - py + sdy * oa, 1f),
+                                .02f, .03f, .05f, shadeA * alpha);
+                    }
+                    // The gantry's steel frame, then the belt and the ore riding it.
+                    mesh.appendQuad(sx(ax + px, sa), sy(ay + py, sa), sx(bx + px, sb), sy(by + py, sb),
+                            sx(bx - px, sb), sy(by - py, sb), sx(ax - px, sa), sy(ay - py, sa),
+                            .22f, .23f, .24f, alpha);
+                    float ix = px * .6f, iy = py * .6f;
+                    mesh.appendQuad(sx(ax + ix, sa), sy(ay + iy, sa), sx(bx + ix, sb), sy(by + iy, sb),
+                            sx(bx - ix, sb), sy(by - iy, sb), sx(ax - ix, sa), sy(ay - iy, sa),
+                            .11f, .10f, .09f, alpha);
+                    float run = along0 + len * (t0 + t1) / 2f - time * PitVoidLook.BELT_SPEED;
+                    float lump = NaturalVoidField.Noise.hash((int) Math.floor(run / .5f), 3, seed);
+                    if (lump > .35f) {
+                        float ox = ix * .8f, oy = iy * .8f;
+                        float ore = .32f + .16f * lump;
+                        mesh.appendQuad(sx(ax + ox, sa), sy(ay + oy, sa), sx(bx + ox, sb), sy(by + oy, sb),
+                                sx(bx - ox, sb), sy(by - oy, sb), sx(ax - ox, sa), sy(ay - oy, sa),
+                                ore * 1.25f, ore, ore * .78f, alpha);
+                    }
+                    // A trestle's cross-beam every few cells along the run.
+                    float from = along0 + len * t0, to = along0 + len * t1;
+                    if (Math.floor(from / PitVoidLook.TRESTLE_EVERY) != Math.floor(to / PitVoidLook.TRESTLE_EVERY)) {
+                        float qx = ux * .18f, qy = uy * .18f, wx = px * 1.25f, wy = py * 1.25f;
+                        mesh.appendQuad(sx(ax - qx + wx, sa), sy(ay - qy + wy, sa), sx(ax + qx + wx, sa),
+                                sy(ay + qy + wy, sa), sx(ax + qx - wx, sa), sy(ay + qy - wy, sa),
+                                sx(ax - qx - wx, sa), sy(ay - qy - wy, sa), .30f, .30f, .28f, alpha);
+                    }
+                }
+                along0 += len;
+            }
+        }
+        if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
     }
 
     /** A bridge's deck edge over the drop, lit on the side turned to the sun. */
