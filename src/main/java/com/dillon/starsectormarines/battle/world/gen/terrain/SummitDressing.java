@@ -38,6 +38,8 @@ public final class SummitDressing {
         var pool = palette == SurfacePalette.FROZEN
                 ? new MineralFormation[]{MineralFormation.BOULDERS, MineralFormation.SPIRES,
                     MineralFormation.BOULDERS, MineralFormation.ICE_PINNACLES}
+                : palette == SurfacePalette.IRRADIATED
+                ? new MineralFormation[]{MineralFormation.HUSKS, MineralFormation.HUSK_SPIRES}
                 : new MineralFormation[]{MineralFormation.BOULDERS, MineralFormation.SPIRES};
         for (int y = 2; y < context.height - 5; y += 3) for (int x = 2; x < context.width - 5; x += 3) {
             if (clusters.sample(x, y) > .57f || random.nextFloat() > .32f) continue;
