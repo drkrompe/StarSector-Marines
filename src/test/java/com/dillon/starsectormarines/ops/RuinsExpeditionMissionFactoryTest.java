@@ -3,8 +3,12 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,6 +39,20 @@ class RuinsExpeditionMissionFactoryTest {
             if (previous != null) assertTrue(tier.compareTo(previous) >= 0, grade + " weaker than the grade below");
             previous = tier;
         }
+    }
+
+    @Test
+    void theBriefingIsTheStakesThenTheSurvey() {
+        RuinsSurvey.Reading survey = new RuinsSurvey.Reading("ruinsSurveyScavengersAssessment",
+                RuinsSurvey.Band.HEAVY, "ruinsSurveyScavengersBand",
+                List.of("ruinsSurveyScavengersComms", "ruinsSurveyScavengersHeat"));
+
+        List<MissionDialogue.Turn> turns = RuinsExpeditionMissionFactory.briefing("Ossuary", survey);
+
+        assertEquals(4, turns.size());
+        assertTrue(turns.get(0).speaker().isBlank(), "the stakes are unvoiced prose");
+        assertTrue(turns.get(1).text().contains(Strings.get("ruinsSurveyBandHeavy")), "the assessment carries the band");
+        assertEquals(Strings.get("ruinsSurveyScavengersHeat"), turns.get(3).text());
     }
 
     @Test

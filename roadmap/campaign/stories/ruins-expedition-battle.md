@@ -1,7 +1,7 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slices 1 to 3 built (objective, disclosure, delve
-commander), and the family plays
+Status: IN PROGRESS — slices 1 to 3, 6 and 7 built (objective, disclosure, delve
+commander, deeper caches, briefing), and the family plays
 in battle on interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
@@ -109,6 +109,18 @@ story's battle plays, it lifts the fork's development-only gate
 7. **Briefing.** The assessment, the grade's strength band and the scavengers'
    readings pool (`ruins-expedition.md`, Briefing); the other pools are
    `ruins-occupants.md`'s.
+
+   *Slices 6 and 7 built.* A Ruins battle hands the field-cache placement a
+   `SalvagePlacement.Delve`: the grade's `RuinsDelve.fieldCaches` and the vault
+   route. Two in three finds (rounded up) go on the route's vault half first,
+   the rest anywhere legal, closer spaced than the one-per-resource scatter;
+   resources take turns, and scarce ground yields fewer. The briefing is the
+   mission's dialogue: the stakes, then the orbital survey (`RuinsSurvey`): the
+   assessment with the grade's band (light to severe) read through the
+   occupant's instruments, then two or three readings seeded by the market id.
+   `RuinsSurvey.poolFor` maps an occupant to its pool; only the scavengers have
+   one, and an occupant without one reads as the scavengers its battle still
+   fields.
 8. **Evidence.** `commanderEvidence -Pmission=ruins` with a fixture per grade on
    the stand-in ground, headless: the haul boards, or the expedition loses by
    one of the family's terminals. That proves the mission works, not that it is

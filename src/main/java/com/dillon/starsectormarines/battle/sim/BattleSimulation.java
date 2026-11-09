@@ -678,6 +678,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public FieldSalvage fieldSalvage() { return fieldSalvage; }
     public List<SalvagePlacement.Site> fieldSalvageSites() { return fieldSalvageSites; }
 
+    private SalvagePlacement.Delve fieldCacheDelve;
+
+    /** A Ruins delve's cache count and vault route, or null for the one-per-resource scatter. */
+    public SalvagePlacement.Delve fieldCacheDelve() { return fieldCacheDelve; }
+
+    public void setFieldCacheDelve(SalvagePlacement.Delve delve) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Set the delve's caches before launch installs finds");
+        fieldCacheDelve = delve;
+    }
+
     public void setFieldSalvageSites(List<SalvagePlacement.Site> sites) {
         if (salvageInstalled || simTickIndex != 0)
             throw new IllegalStateException("Author salvage sites before launch installs finds");

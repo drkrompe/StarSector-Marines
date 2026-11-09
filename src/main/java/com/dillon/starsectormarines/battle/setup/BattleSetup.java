@@ -1272,6 +1272,9 @@ public final class BattleSetup {
             sim.addObjective(new RuinsVaultObjective(RUINS_HAUL_ID, RUINS_HAUL_NAME, RUINS_VAULT_NAME,
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
                     ruinsLayout.liftPoints()));
+            // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
+            sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
+                    ruinsLayout.liftPoints().get(0).route()));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
