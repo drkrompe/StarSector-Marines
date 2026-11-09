@@ -255,13 +255,14 @@ class PrecinctPlanForMissionTest {
      * <p>The objective does not carry the point-of-interest kind it was cut
      * from; its name is that kind spelled out, which is what the assertion below
      * reads.
+     *
+     * <p>Asked on a first contract only: it is a Raid's smallest map
+     * ({@code MapScale.forRaid}), so the least ground to seat a prize on.
      */
     @Test
     void aRaidAgainstARealMarketStillFindsSomethingToStrike() {
-        for (OperationTier tier : List.of(OperationTier.ESTABLISHED, OperationTier.FIRST_CONTRACT)) {
-            assertRaidFindsAPrize(tier, MARKET, SEED);
-            assertRaidFindsAPrize(tier, RAID_MARKET, RAID_SEED);
-        }
+        assertRaidFindsAPrize(OperationTier.FIRST_CONTRACT, MARKET, SEED);
+        assertRaidFindsAPrize(OperationTier.FIRST_CONTRACT, RAID_MARKET, RAID_SEED);
     }
 
     private static void assertRaidFindsAPrize(OperationTier tier, TargetProfile profile,

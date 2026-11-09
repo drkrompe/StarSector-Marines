@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.render2d.PolyMesh;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * The towers a map's playing surface is the roof of, stepping down in terraces to the ground far below, the
@@ -69,6 +71,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * many seconds between one craft and the next on a route.
      */
     static final float SKYWAY_METERS = 1600f, SKYWAY_SPEED = 9f, SKYWAY_INTERVAL = 20f;
+    /** Slips: about how fast craft fly in and out of one, and about how many seconds between one and the next. */
+    static final float SLIP_SPEED = 8f, SLIP_INTERVAL = 70f;
     /** Street routes: how many at most and to a skyway, how far right of a street's middle they keep, and a turn's reach. */
     static final int STREET_ROUTES_MAX = 40, STREET_ROUTES_PER_SKYWAY = 5;
     static final float STREET_LANE_OFFSET = 4f, TURN_METERS = 22f;
@@ -83,6 +87,8 @@ final class VoidBackdropRenderSystem implements RenderSystem {
      * of these metres. The terraces below round on the same centres, so each step is a ring of even width.
      */
     static final int[] ROOF_RADII = {0, 6, 10, 14};
+    /** How much of the traffic flies the backdrop's first two hulls, the common ones (owner: mostly shuttles and Hounds). */
+    static final int COMMON_HULL_PERCENT = 80;
     /**
      * How much of the ground image a backdrop with an atmosphere covers in its haze before the city's lights are laid
      * on it: the image carries a daylight haze of its own.
@@ -1144,7 +1150,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             if (z >= backdrop.depthMeters()) continue;
             Level band = null;
             for (Level level : levels) if (level.top <= z && (band == null || level.top > band.top)) band = level;
-            c[4] = (int) c[4] % backdrop.craft().size();
+            c[4] = flyingHull((int) c[4], backdrop.craft().size());
             if (band != null) band.flying.add(c);
         }
         // The lane lights run a chase along each lane, so the lane reads as a lane between the craft.
@@ -1254,6 +1260,38 @@ final class VoidBackdropRenderSystem implements RenderSystem {
                     below.parked.add(new float[]{x, y, heading, hull});
                 }
             }
+        }
+        // Slips: craft fly in down a canyon to berth at its head, slowing, and back out, gathering speed.
+        int slip = 0;
+        for (VoidBackdrop.Slip berth : backdrop.slips()) {
+            float dx = berth.x1() - berth.x0(), dy = berth.y1() - berth.y0();
+            float length = (float) Math.hypot(dx, dy);
+            if (length <= 0f) continue;
+            float ux = dx / length, uy = dy / length;
+            float ex = -uy * 6f, ey = ux * 6f;
+            for (float t = LANE_LIGHT_SPACING / 2f; t < length; t += LANE_LIGHT_SPACING) {
+                float px = berth.x0() + dx * t / length, py = berth.y0() + dy * t / length;
+                laneLights.add(new float[]{px + ex, py + ey, berth.depthMeters(), t});
+                laneLights.add(new float[]{px - ex, py - ey, berth.depthMeters(), t});
+            }
+            float z = berth.depthMeters();
+            // Arrivals keep the right of the canyon, departures the other side; both come down from above it.
+            for (int way = 0; way < 2; way++) {
+                float side = way == 0 ? 2.5f : -2.5f;
+                float sx = -uy * side, sy = ux * side;
+                float[] far = {berth.x0() - ux * APPROACH_METERS + sx, berth.y0() - uy * APPROACH_METERS + sy, z - 25f};
+                float[] mouth = {berth.x0() + sx, berth.y0() + sy, z - 6f};
+                float[] mid = {berth.x0() + dx * .6f + sx, berth.y0() + dy * .6f + sy, z};
+                float[] home = {berth.x1() + sx, berth.y1() + sy, z};
+                if (way == 0) {
+                    traffic.add(new float[][]{far, mouth, mid, home}, SLIP_SPEED, SLIP_INTERVAL,
+                            VoidTraffic.Pace.ARRIVE, 500 + slip * 2);
+                } else {
+                    traffic.add(new float[][]{home, mid, mouth, far}, SLIP_SPEED, SLIP_INTERVAL,
+                            VoidTraffic.Pace.DEPART, 500 + slip * 2 + 1);
+                }
+            }
+            slip++;
         }
         List<VoidBackdrop.Skyway> ways = backdrop.skyways();
         if (!ways.isEmpty()) {
@@ -1418,13 +1456,20 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             anySpan |= spans[k];
         }
         // A tower on a raised tier stands that much higher: its roof is above the surface, its walls start there.
+        // The towers on one tier are one structure, so where their terraces grow into each other below they join
+        // in one podium, as the halls and platforms of a station rise from one base, rather than overlapping.
+        Map<Integer, boolean[]> byTier = new TreeMap<>();
         for (boolean[] footprint : pieces(towers, mw, mh)) {
             int tier = 0;
             for (int k = 0; elevation != null && k < footprint.length; k++) {
                 int x = k % mw - m, y = k / mw - m;
                 if (footprint[k] && elevation.inBounds(x, y)) tier = Math.max(tier, elevation.eyeTier(x, y));
             }
-            addStructure(footprint, mw, mh, m, -tier * ElevationMap.TIER_RISE_METERS, backdrop);
+            boolean[] group = byTier.computeIfAbsent(tier, t -> new boolean[mw * mh]);
+            for (int k = 0; k < footprint.length; k++) group[k] |= footprint[k];
+        }
+        for (Map.Entry<Integer, boolean[]> group : byTier.entrySet()) {
+            addStructure(group.getValue(), mw, mh, m, -group.getKey() * ElevationMap.TIER_RISE_METERS, backdrop);
         }
         if (anySpan) {
             Level span = new Level();
@@ -1491,7 +1536,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         // lays them, and only its terraces round.
         int first = 0;
         while (first < footprint.length && !footprint[first]) first++;
-        int roofRadius = top <= 0f ? 0 : ROOF_RADII[Math.floorMod(first * 31 + first / mw * 17, ROOF_RADII.length)];
+        int roofRadius = top <= 0f ? 0 : roofRadius(first);
         for (int i = 0; i <= tiers.size(); i++) {
             Level level = new Level();
             level.top = i == 0 ? top : tiers.get(i - 1).depthMeters();
@@ -1554,6 +1599,21 @@ final class VoidBackdropRenderSystem implements RenderSystem {
             structure.add(level);
         }
         structures.add(structure);
+    }
+
+    /**
+     * A structure's roof corner radius from {@code key} (where its footprint starts), hashed so towers laid on a
+     * regular grid still take every radius: a plain sum of the key's multiples falls on one radius whenever the
+     * grid's pitch and the mask's width share a factor with the number of radii.
+     */
+    static int roofRadius(int key) {
+        return ROOF_RADII[VoidTraffic.hash(key, 41) % ROOF_RADII.length];
+    }
+
+    /** The hull a craft flies, from its hash: mostly one of the first two, now and then any of them. */
+    static int flyingHull(int hash, int hulls) {
+        int pick = hash >>> 8;
+        return hash % 100 < COMMON_HULL_PERCENT ? pick % Math.min(2, hulls) : pick % hulls;
     }
 
     /**

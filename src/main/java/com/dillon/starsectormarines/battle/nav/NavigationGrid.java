@@ -111,7 +111,13 @@ public class NavigationGrid {
          * Ground of a fort or an objective: a swarm strain's structural hits on what stands here count for less
          * ({@code FortifiedWorks}). Movement, sight and cover never read it.
          */
-        WORKS;
+        WORKS,
+        /**
+         * A wall nothing breaks ({@code HardenedWalls}): no blast, charge, round, crush, ram or strain brings it down,
+         * so a heavy cannot drive through it and a locked door shut as one opens only by its lock. Movement, sight and
+         * cover never read it.
+         */
+        HARDENED;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -280,6 +286,16 @@ public class NavigationGrid {
      */
     public void markWorks(int x, int y) {
         if (inBounds(x, y)) cellFlags[index(x, y)] |= CellTag.WORKS.mask();
+    }
+
+    /**
+     * Marks or clears {@link CellTag#HARDENED}. Like {@link #markWorks} it changes nothing that moves or sees, so it
+     * records no topology change and wakes no rebuild.
+     */
+    public void markHardened(int x, int y, boolean on) {
+        if (!inBounds(x, y)) return;
+        if (on) cellFlags[index(x, y)] |= CellTag.HARDENED.mask();
+        else cellFlags[index(x, y)] &= ~CellTag.HARDENED.mask();
     }
 
     public boolean hasTagAt(int idx, CellTag tag) {
@@ -1231,7 +1247,9 @@ public class NavigationGrid {
      * the routes it cuts.
      */
     public boolean damageCell(int x, int y, int amount) {
-        if (!inBounds(x, y) || amount <= 0 || hasTag(x,y,CellTag.NATURAL_SOLID)) return false;
+        if (!inBounds(x, y) || amount <= 0 || hasTag(x,y,CellTag.NATURAL_SOLID) || hasTag(x, y, CellTag.HARDENED)) {
+            return false;
+        }
         int idx = index(x, y);
         if ((cellFlags[idx] & CellTag.WALKABLE.mask()) != 0L) return false;
         int remaining = wallHp[idx] - amount;

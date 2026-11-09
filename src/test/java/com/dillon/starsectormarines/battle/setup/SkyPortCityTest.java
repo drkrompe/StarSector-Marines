@@ -24,7 +24,7 @@ class SkyPortCityTest {
     void noCityTowerComesWithinAStreetOfThePortOrMeetsAnother() {
         List<VoidBackdrop.Tower> city = SkyPortClusterSetup.city(1f);
         assertFalse(city.isEmpty());
-        int[][] port = {SkyPortClusterSetup.A, SkyPortClusterSetup.B, SkyPortClusterSetup.C, SkyPortClusterSetup.OUTPOST};
+        int[][] port = SkyPortClusterSetup.PORT;
         for (VoidBackdrop.Tower t : city) {
             for (int[] roof : port) {
                 boolean apart = t.x1() - 1 < roof[0] - SkyPortClusterSetup.STREET || t.x0() > roof[2] + SkyPortClusterSetup.STREET

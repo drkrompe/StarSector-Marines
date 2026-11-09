@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -249,6 +250,19 @@ class PrecinctLandingAreaStageTest {
     }
 
     /** Where the landing precinct's claim starts and stops in the fixture above. */
+    /** An inset beachhead stays off the objective's claim: one cell of it is enough to refuse the area. */
+    @Test
+    void anAreaTouchingTheAvoidedClaimIsRefused() {
+        LandingArea area = new LandingArea("a",
+                LandingPad.conquest(10, 10, LandingPad.Approach.SOUTH),
+                LandingPad.conquest(20, 10, LandingPad.Approach.SOUTH));
+        int[][] claim = new int[40][40];
+        assertTrue(PrecinctLandingAreaStage.clearOf(area, claim, 1), "no cell is the objective's");
+        claim[area.right][area.top] = 1;
+        assertFalse(PrecinctLandingAreaStage.clearOf(area, claim, 1), "a corner on the objective's ground");
+        assertTrue(PrecinctLandingAreaStage.clearOf(area, claim, -1), "nothing to avoid when no inset is stated");
+    }
+
     private static final int LANDING_LOW = 30;
     private static final int LANDING_HIGH = 60;
 }

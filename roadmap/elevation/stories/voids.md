@@ -220,7 +220,8 @@ Laws):
    walls show only past the edge of the level the camera is over, so
    scale and movement carry the depth:
    - **Traffic** of vanilla hulls (the owner's suggestion: Hounds,
-     aeroshuttles and the like), planned by `VoidTraffic`: smooth paths
+     aeroshuttles and the like; four in five fly the backdrop's first two
+     hulls, the shuttle and the Hound), planned by `VoidTraffic`: smooth paths
      through control points, each flown now and then on an irregular
      schedule (owner, 2026-11-09: too much, too fast, too close, straight
      lines in a repeated pattern). Whether a slot is flown, when it sets
@@ -251,9 +252,20 @@ Laws):
    crowded tower space with walkways, so a map can start on one tower and
    move to the next. It needs no battle rule: tower roofs are surface, the
    gaps are void, and walkways are bridges.
+   - **The station** (owner, 2026-11-09: towers spread so far apart it was
+     unclear why a city would build them so; take modern train stations
+     for a model). The map grew to 360 by 240 cells and the cluster became
+     one terminus: a landing deck on the map's west edge, where the company
+     lands; a wide and a narrow viaduct climbing to the concourse, the head
+     hall, a tier up; five platforms running east from it, each reached by
+     a stair bridge down; and staggered footbridges across the track
+     canyons between the platforms. Craft fly into the canyons to berth at
+     the platforms' heads, as trains run into a terminus
+     (`VoidBackdrop.slips`), slowing in and gathering speed out.
    - **Towers and walkways by shape.** The renderer opens the surface by a
-     walkway's width (7 cells): whatever survives stands on a tower, one to
-     each connected piece, each with its own walls and terraces; the
+     walkway's width (7 cells): whatever survives stands on a tower, the
+     pieces on one tier together one structure, so where their terraces
+     grow into each other they join in one podium; the
      narrower ground left over is a walkway, drawn as a deck on braced
      girders 2.5 m deep with the drop under it. The map marks neither; a
      generator lays ground and the look follows.
@@ -290,8 +302,9 @@ Laws):
      the sky; the deep one warm, lit by the city below, and thinner, so its
      lights show through.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
-     Each structure's roof takes a corner radius by its place (square, 6, 10
-     or 14 m), and each terrace below rounds on the same centres, its radius
+     Each structure's roof takes a corner radius hashed from its place
+     (square, 6, 10 or 14 m; a plain sum of its position put every tower of
+     the street grid on one radius once the map grew), and each terrace below rounds on the same centres, its radius
      grown by its outset, so every step is a ring of even width; the playing
      surface's own corners stay as the map lays them and only its terraces
      round. A rounded corner's wall is facets textured corner to corner; its
@@ -307,35 +320,39 @@ Laws):
      in the drop reads as walkable; freight bays open only onto terraces at
      least 8 m deep, and freighters park only on ones at least 20 m deep,
      which keeps a cluster's shallow setbacks clear of traffic.
-   - The look suite's default layout is the cluster (`SkyPortClusterSetup`):
-     three roofs, a two-cell catwalk, a catwalk with a corner over the drop
-     and a six-cell skybridge a vehicle could cross, in the city.
+   - The look suite's default layout is the station (`SkyPortClusterSetup`)
+     in the city.
      `-Dsnapshot.skyPort.layout=deck` keeps the single roof deck;
      `-Dsnapshot.skyPort.eyes=120,240,400` compares camera heights.
-   - The cluster ships as a diagnostic battle (`SkyPortClusterSetup`): **Sky
-     Port Towers** on the debug missions' Diagnostics tab, and
-     `playBattle -Pbattle=sky-port`. Two squads land on tower A; no enemy
-     and no end. The look suite and the scene lay the same ground.
-   - **A raised tower.** Tower C stands a tier (4 m) above A and B, written
-     straight into the elevation map (`ElevationMap.of`) rather than
-     stamped by the brush: the drop round every roof is void, so no cliff
-     face is needed, and the only walkable cells of different tiers that
-     meet are a ramp's head and C. The last six cells of the dogleg and of
-     the skybridge are the ramps, the only ways up, and C's holders see down
-     across the drop under the skyline rule. `BuiltStairRenderSystem` draws
+   - The station ships as a diagnostic battle (`SkyPortClusterSetup`): **Sky
+     Port Station** on the debug missions' Diagnostics tab, and
+     `playBattle -Pbattle=sky-port`. Two squads land on the landing deck; no
+     enemy and no end. The look suite and the scene lay the same ground.
+   - **A raised concourse.** The concourse stands a tier (4 m) above the
+     rest, written straight into the elevation map (`ElevationMap.of`)
+     rather than stamped by the brush: the drop round every deck is void, so
+     no cliff face is needed, and the only walkable cells of different tiers
+     that meet are a ramp's head and the concourse. The last six cells of
+     each viaduct and stair bridge are the ramps, the only ways up, and the
+     concourse's holders see down across the drop under the skyline rule.
+     `BuiltStairRenderSystem` draws
      a ramp laid on built ground as treads; the void renderer stands a
      raised tower's roof that much higher, so its walls start above the
      surface.
    - **Walkway routing** is proved by the `walkway-crossing` behaviour scene
-     (`sceneEvidence -Pscene=walkway-crossing`) on the same cluster: a rifle
-     squad sent from A to B crosses the catwalk and no other walkway, A to C
-     takes the dogleg, and with the catwalk cut A to B goes round by the
-     dogleg and the skybridge; in every loop no one stands on a void cell,
-     and no one stands on C's raised roof without having climbed a ramp.
-     The lone roof in the cluster's far corner holds the scene's other side.
+     (`sceneEvidence -Pscene=walkway-crossing`) on the same station: a rifle
+     squad sent from the landing deck to the concourse's north end takes the
+     wide viaduct and not the narrow one; from one platform to the next it
+     crosses the footbridge and never goes up to the concourse, and with
+     that footbridge cut it goes up a stair bridge, across the concourse and
+     down another; in every loop no one stands on a void cell, and no one
+     stands on the concourse without having climbed a ramp. The lone roof in
+     the map's far corner holds the scene's other side.
    Left: **U-shaped stairs** (owner, 2026-11-09): two ramps joined by a
    landing, turning back on themselves, to read as a floor transition
-   inside a building though cells never stack; towers more than a tier up
+   inside a building though cells never stack; craft in the slips standing
+   at their berths a while rather than turning straight round; towers more
+   than a tier up
    (chained ramps, or lifts); the walkway's own surface past the ship-bay grate; cranes and
    gantries. The play area's size and chokepoints will
    change (owner, 2026-11-07); the structures follow whatever footprint the
