@@ -1,11 +1,10 @@
 # Derelict security network
 
-Status: IN PROGRESS — every mechanics slice is built (What is built): zones,
-the director over walkers and flocks, the derelict heavy line, spotting, the
-node, repair drones, folded posts and power branches. The looks for the
-walker, posts and node wait on owner picks, and slice 2's scenes for a wake,
-a relay, a leash, a heavy coming to a pin and the contingency are not built.
-Feeds slice 5 of `ruins-expedition-fork.md` through `ruins-occupants.md`.
+Status: IN PROGRESS — every mechanics slice is built, with its scenes (What
+is built): zones, the director over walkers and flocks, the derelict heavy
+line, spotting, the node, repair drones, folded posts and power branches. The
+looks for the walker, posts and node wait on owner picks. Feeds slice 5 of
+`ruins-expedition-fork.md` through `ruins-occupants.md`.
 
 Written: 2026-11-09
 
@@ -155,6 +154,14 @@ Everything is in `battle.derelict`.
   of the chassis's (siege 0.85, vault 1.45). Its art, body plan and sound are
   the Bulwark's until the line's own are picked; it is two-armed like the
   Bulwark so the stand-in draws its arms.
+- **Walker doctrine.** The line and vault frames run the balanced mech
+  doctrine and the siege frame long-range support. Armored support, which the
+  line first had, paces friendly infantry and holds where it stands with none
+  to pace, so a walker never left its post; `derelict-network` caught it. The
+  director walks a walker to a cell it is to hold (the egress, or its post
+  after a pin) by attack-move, and holds it there by defending the area once
+  within reach (`walksTo`), since the doctrine defends an area where it
+  stands.
 - **Spotting (slice 4).** The director hands a siege frame's squad each fresh
   sighting it fires on as a `BeliefSource.SPOTTED` contact
   (`Squad.observeSpottedContact`). `MechTargeting`, when nothing else is
@@ -231,18 +238,21 @@ node-down: it stays home; under-fire: hit, it breaks off home, stays while it
 stands down, then goes out again); `createSnapshots
 -Psnapshot=derelict-heavies-look` (the walkers at their posts, then the fight
 from the first walker contact, then the vast site's vault frame and a line
-frame at their interior posts with the roof lifted). Played headless through `battleProbe`: line
-frames hold their posts until a pin falls inside their perimeter and then
-attack-move onto it; the siege frame engages from its post at twenty-odd
-cells.
+frame at their interior posts with the roof lifted).; `sceneEvidence
+-Pscene=derelict-network` (relay: a wake alerts the next zone and not the one
+after; pin: a line frame given a contact inside its perimeter comes to it and
+engages; pin-outside: one past its perimeter is held for; contingency: the
+line frame walks to the egress and holds it, the siege frame fires from its
+post, the vault frame stays).
 
-Not built yet: `sceneEvidence` scenes for a wake, a relay, a leash, a heavy
-coming to a pin and the contingency; looks for the walker, posts and node
-(3, 9; the cradle's look is `derelict-drone-flocks.md`'s), and the repair
-drone's own look if it should differ from the tender's. Strength is not
-tuned, and is not tuned from autopilot runs: it waits on the owner playing a
-derelict battle. Both fixtures fly the company's real lift (one Hermes, six
-twelve-seat trips, as playBattle's Veteran Company).
+Not built yet: a `sceneEvidence` loop for a flock's leash (the flock
+model's own scenes cover its flight; `FlockTasking` is unit-tested); looks
+for the walker, posts and node (3, 9; the cradle's look is
+`derelict-drone-flocks.md`'s), and the repair drone's own look if it should
+differ from the tender's. Strength is not tuned, and is not tuned from
+autopilot runs: it waits on the owner playing a derelict battle. Both
+fixtures fly the company's real lift (one Hermes, six twelve-seat trips, as
+playBattle's Veteran Company).
 
 ## Constraints
 

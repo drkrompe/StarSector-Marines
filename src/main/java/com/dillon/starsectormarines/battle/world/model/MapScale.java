@@ -25,6 +25,12 @@ public enum MapScale {
     /** Established/veteran scale. Mid-sized urban fight — recommended 50+ marines. */
     MEDIUM(144, 80),
     /**
+     * A step between {@link #MEDIUM} and {@link #LARGE}, on the band's 7:4.
+     * No tier answers it from {@link #forTier}; {@link #forRaid} gives it to an
+     * established or veteran Raid.
+     */
+    WIDE  (200, 112),
+    /**
      * Reinforced/full-strength scale. Full city push — recommended 100+ marines.
      *
      * <p>Widened from 240x160 when the fortress ward had to seat an airbase lot
@@ -34,6 +40,12 @@ public enum MapScale {
      * measured scale, not because of the ward.
      */
     LARGE (280, 168),
+    /**
+     * A step past {@link #LARGE}, the size the Colony Breach colony measured.
+     * No tier answers it from {@link #forTier}; {@link #forRaid} gives it to a
+     * reinforced or full-strength Raid.
+     */
+    VAST  (400, 240),
 
     /**
      * The Conquest siege, and Conquest alone.
@@ -90,6 +102,22 @@ public enum MapScale {
             case ESTABLISHED:
             case VETERAN:
             default:             return MEDIUM;
+        }
+    }
+
+    /**
+     * Map size for a Raid: one step up the band from {@link #forTier}, so the
+     * search for the prize has ground to search (owner: "Raid maps are too
+     * small"). A first contract raids the established map, an established or
+     * veteran raid gets {@link #WIDE}, and a reinforced or full-strength raid
+     * {@link #VAST}. UNTUNED.
+     */
+    public static MapScale forRaid(OperationTier tier) {
+        switch (forTier(tier)) {
+            case SMALL:  return MEDIUM;
+            case LARGE:  return VAST;
+            case MEDIUM:
+            default:     return WIDE;
         }
     }
 
