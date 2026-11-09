@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
 import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
@@ -720,7 +724,7 @@ public final class BattleSetup {
             PointOfInterest.Kind targetKind) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, targetKind);
+                sprawl, null, 1f, false, targetName, targetKind, null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -742,6 +746,34 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.EXTRACTION, profile, marineFighterSupport,
                 enemyFighterSupport, sprawl);
+    }
+
+    /**
+     * The Ruins Expedition ({@code ruins-expedition.md}): the vault at the far end of the ground, its breach time
+     * from the ruins grade, and the haul out to the landing area. An abandoned site: no civilians, no staffed
+     * buildings and no reinforcements come. The site's occupant chooses who defends it.
+     */
+    public static BattleSimulation createRuins(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
+        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants). Only the scavengers' side
+        // plays yet; each other occupant's side plugs in at its own case, and until it does that site plays the
+        // scavengers' battle (and RuinsExpeditionMissionFactory names their faction to match).
+        switch (occupant) {
+            case SCAVENGERS:
+                break;
+            case NOBODY: // the works chain with no opposing side: ruins-works.md
+            case RAV: // the swarm director's ruins profile: ruins-occupants.md, Rav
+            case DOMAIN_SECURITY: // the security-network director: derelict-security-network.md
+            case CONTINGENCY_SECURITY:
+                LOG.info("createRuins: " + occupant + " has no battle side yet; the scavengers' stand-in plays");
+                break;
+        }
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
+                null, 1f, false, null, null, RuinsDelve.of(grade));
     }
 
     /**
@@ -1122,14 +1154,14 @@ public final class BattleSetup {
                                                      float alliedGarrisonStrengthMult) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
-                alliedGarrisonStrengthMult, false, null, null);
+                alliedGarrisonStrengthMult, false, null, null, null);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
             boolean heavy, OperationTier tier, RiskLevel risk, TargetProfile profile,
             FlybyRoster marineAir, FlybyRoster enemyAir, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, heavy, tier, risk, MissionType.ASSAULT, profile,
-                marineAir, enemyAir, sprawl, null, 1f, true, null, null);
+                marineAir, enemyAir, sprawl, null, 1f, true, null, null, null);
     }
 
     /**
@@ -1159,12 +1191,17 @@ public final class BattleSetup {
         return MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precincts);
     }
 
+    static final String RUINS_HAUL_ID = "RUINS-01";
+    static final String RUINS_HAUL_NAME = "vault haul";
+    static final String RUINS_VAULT_NAME = "The vault";
+    static final String RUINS_LANDING_NAME = "Landing area";
+
     private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
             PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
-            PointOfInterest.Kind raidTargetKind) {
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1199,7 +1236,7 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
                 ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
-        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
+        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION || type == MissionType.RUINS
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
@@ -1221,6 +1258,13 @@ public final class BattleSetup {
                     raidTargetName == null ? raidLayout.targetName() : raidTargetName, raidLayout.targetCellX(),
                     raidLayout.targetCellY(), targetZone,
                     raidLayout.egressCellX(), raidLayout.egressCellY()));
+        } else if (extractionLayout != null && type == MissionType.RUINS) {
+            int vaultZone = sim.getZoneGraph().zoneIdAt(
+                    extractionLayout.sourceCellX(), extractionLayout.sourceCellY());
+            sim.addObjective(new RuinsVaultObjective(RUINS_HAUL_ID, RUINS_HAUL_NAME, RUINS_VAULT_NAME,
+                    vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
+                    List.of(new RuinsVaultObjective.LiftPoint(RUINS_LANDING_NAME, true,
+                            extractionLayout.route()))));
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),
@@ -1284,7 +1328,7 @@ public final class BattleSetup {
         // garrisoned everything else and left the commander with nothing to
         // dispatch.
         int assaultMobileMembers = switch (type) {
-            case ASSAULT, RAID, EXTRACTION -> Math.min(Math.max(0,
+            case ASSAULT, RAID, EXTRACTION, RUINS -> Math.min(Math.max(0,
                     defenders.roster().totalCount - 2),
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
@@ -1295,7 +1339,7 @@ public final class BattleSetup {
                 ? captureDefenderMobileSquads(sim) : Set.of();
         Set<Integer> raidMobileSquads = type == MissionType.RAID
                 ? captureDefenderMobileSquads(sim) : Set.of();
-        Set<Integer> extractionMobileSquads = type == MissionType.EXTRACTION
+        Set<Integer> extractionMobileSquads = type == MissionType.EXTRACTION || type == MissionType.RUINS
                 ? captureDefenderMobileSquads(sim) : Set.of();
         if (type == MissionType.ASSAULT) {
             claimSetupGarrisons(sim, "assault-setup-garrison",
@@ -1309,6 +1353,12 @@ public final class BattleSetup {
             claimMissionMobileSquads(sim, raidMobileSquads,
                     "raid-defender", "initial Raid mobile security");
         }
+        if (type == MissionType.RUINS) {
+            claimSetupGarrisons(sim, "ruins-setup-garrison",
+                    "ruins occupant's posted squads");
+            claimMissionMobileSquads(sim, extractionMobileSquads,
+                    "ruins-occupant", "ruins occupant's patrols");
+        }
         if (type == MissionType.EXTRACTION) {
             claimSetupGarrisons(sim, "extraction-setup-garrison",
                     "authored Extraction strongpoint garrison");
@@ -1321,13 +1371,15 @@ public final class BattleSetup {
         // an ALLY squad can never fall into either.
         installAlliedGarrison(sim, map, profile, alliedGarrisonFactionId,
                 alliedGarrisonStrengthMult, risk, seed);
-        spawnAmbientCivilians(sim, map, rng);
-        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), STAFFED_WAREHOUSES);
-        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.FACTORY), STAFFED_FACTORIES);
-        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), STAFFED_GROCERIES);
-        spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        if (!coldAccount) installReinforcementLayer(sim, map, type, null, groundRoster, risk,
-                null);
+        if (type != MissionType.RUINS) {
+            spawnAmbientCivilians(sim, map, rng);
+            StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), STAFFED_WAREHOUSES);
+            StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.FACTORY), STAFFED_FACTORIES);
+            StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), STAFFED_GROCERIES);
+            spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+        }
+        if (!coldAccount && type != MissionType.RUINS) installReinforcementLayer(sim, map, type, null, groundRoster,
+                risk, null);
         if (type == MissionType.ASSAULT) {
             if (coldAccount) sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(),
                     RaidCommandDisclosure.INSTANCE);
@@ -1344,7 +1396,7 @@ public final class BattleSetup {
                     new RaidDefenderCommand(raidMobileSquads),
                     RaidDefenderCommandDisclosure.INSTANCE);
         }
-        if (type == MissionType.EXTRACTION) {
+        if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);

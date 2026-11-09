@@ -32,7 +32,14 @@ public enum MissionType {
      * coherent thing to offer.
      */
     CONQUEST  ("missionTypeConquest",   'C', new Color(0xB0, 0x50, 0x50),
-               OperationTier.REINFORCED, 2.25f, 1.00f);
+               OperationTier.REINFORCED, 2.25f, 1.00f),
+    /**
+     * The company sent into an uncolonized world's ruins: a delve to the vault, its breach and the haul
+     * out to a lift point ({@code ruins-expedition.md}). Never offered as a contract; only the ruins
+     * fork opens it, and its occupant's strength comes from the ruins grade.
+     */
+    RUINS     ("missionTypeRuins",      'V', new Color(0xB8, 0xA0, 0x70),
+               OperationTier.FIRST_CONTRACT, 0.60f, 0.60f);
 
     public final String displayKey;
     public final char   glyph;

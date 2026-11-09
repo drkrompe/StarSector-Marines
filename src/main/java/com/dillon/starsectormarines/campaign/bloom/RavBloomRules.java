@@ -42,10 +42,18 @@ public final class RavBloomRules {
 
     /** Whether a reservoir lies under this market: hidden, fixed for the save, never stored. */
     public static boolean hasReservoir(long seed, BloomMarket market) {
+        return hasReservoir(seed, market.id, market.ruins, market.habitable);
+    }
+
+    /**
+     * The same fact from the market's id and its two fixed readings, for a world that is not a colony (a ruins
+     * site, {@code ruins-expedition.md}).
+     */
+    public static boolean hasReservoir(long seed, String marketId, boolean ruins, boolean habitable) {
         double chance = BASE_RESERVOIR
-                + (market.ruins ? RUINS_RESERVOIR : 0.0)
-                + (market.habitable ? HABITABLE_RESERVOIR : 0.0);
-        return unit(mix(seed ^ 0x5245534552564FL, market.id.hashCode())) < chance;
+                + (ruins ? RUINS_RESERVOIR : 0.0)
+                + (habitable ? HABITABLE_RESERVOIR : 0.0);
+        return unit(mix(seed ^ 0x5245534552564FL, marketId.hashCode())) < chance;
     }
 
     /**

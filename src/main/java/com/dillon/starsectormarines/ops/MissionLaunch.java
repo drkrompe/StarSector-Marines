@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.fixture.RuinsBattleFixture;
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -409,6 +412,17 @@ public final class MissionLaunch {
                                 m.enemyFighterSupport, sprawl);
                 builder = extractionFixture::build;
                 fixture = extractionFixture;
+                break;
+            case RUINS:
+                RuinsBattleFixture ruinsFixture =
+                        RuinsBattleFixture.fromFactoryInputs(seed,
+                                constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, constructionDetachment.marineWings,
+                                m.enemyFighterSupport,
+                                m.ruinsGrade != null ? m.ruinsGrade : RuinsGrade.SCATTERED,
+                                m.ruinsOccupant != null ? m.ruinsOccupant : RuinsOccupant.SCAVENGERS);
+                builder = ruinsFixture::build;
+                fixture = ruinsFixture;
                 break;
             case ASSAULT:
             default:

@@ -2,23 +2,22 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.i18n.Strings;
 
 /**
  * Builds the battle in which the company goes into a world's ruins ({@code ruins-expedition.md}).
  *
- * <p>For now it is a stand-in: a Raid against a pirate scavenger crew, its tier set by the ruins grade. The
- * expedition's own mission family, ground and occupants replace it ({@code ruins-expedition-battle.md}); the commit
- * path around it stays.
+ * <p>It is the Ruins family's battle ({@link MissionType#RUINS}): the vault, its breach time from the grade, and the
+ * haul out to a lift point. It carries the site's seeded occupant ({@code RuinsOccupants}) for the battle to choose its
+ * defenders by; the tier is set by the grade. Until an occupant's own side plays in battle, its defenders are the
+ * scavengers' pirates ({@code BattleSetup.createRuins}), so the mission names that faction.
  *
  * <p>It carries no contract and no employer: no contract economics, no MRB credibility, no salvage entitlement and no
  * employer boats. The ruins' haul comes from the game's own salvage, which a won expedition hands the site to once
  * the battle ends ({@code RuinsExpeditionLedger}).
  */
 public final class RuinsExpeditionMissionFactory {
-
-    /** The stand-in occupant: a pirate scavenger crew. */
-    static final String STAND_IN_OCCUPANT = "pirates";
 
     private RuinsExpeditionMissionFactory() {}
 
@@ -27,14 +26,17 @@ public final class RuinsExpeditionMissionFactory {
      * @param marketId   the ruins world's market id
      * @param planetName the ruins world, which the battle resolves its target profile from
      * @param grade      the ruins grade, which sets the tier
+     * @param occupant   who holds the site ({@code SectorRuinsOccupants.of}), which chooses the defenders
      */
-    public static Mission create(int serial, String marketId, String planetName, RuinsGrade grade) {
-        if (serial <= 0 || marketId == null || planetName == null || grade == null) return null;
+    public static Mission create(int serial, String marketId, String planetName, RuinsGrade grade,
+                                 RuinsOccupant occupant) {
+        if (serial <= 0 || marketId == null || planetName == null || grade == null || occupant == null) return null;
         OperationTier tier = tierFor(grade);
+        String defenders = defenderFactionId(occupant);
         return Mission.builder()
                 .id(RuinsExpeditionMissionKey.encode(serial, marketId))
                 .name(Strings.format("ruinsExpeditionMissionName", planetName))
-                .type(MissionType.RAID)
+                .type(MissionType.RUINS)
                 .source(MissionSource.RUINS_EXPEDITION)
                 .risk(RiskLevel.MEDIUM)
                 .tier(tier)
@@ -45,12 +47,25 @@ public final class RuinsExpeditionMissionFactory {
                 // Nobody else's boats come into the ruins.
                 .employerShuttles(0)
                 .targetPlanetName(planetName)
-                .targetFactionId(STAND_IN_OCCUPANT)
+                .targetFactionId(defenders)
+                // An uncolonized world's market has no owner to defend it: the occupant's side does.
+                .defenderFactionOverride(defenders)
+                .ruinsGrade(grade)
+                .ruinsOccupant(occupant)
                 .contractId(-1L)
                 .build();
     }
 
-    /** Larger ruins hold a stronger occupant, no lower than Raid's own floor. */
+    /**
+     * The faction the battle's defenders are drawn from. Only the scavengers' side plays in battle yet; every other
+     * occupant's battle is the scavengers' stand-in ({@code BattleSetup.createRuins}), so it fields pirates too. When
+     * an occupant's own side plugs in there, this returns its {@link RuinsOccupant#factionId}.
+     */
+    static String defenderFactionId(RuinsOccupant occupant) {
+        return RuinsOccupant.SCAVENGERS.factionId;
+    }
+
+    /** Larger ruins hold a stronger occupant, no lower than the family's own floor. */
     static OperationTier tierFor(RuinsGrade grade) {
         OperationTier tier = switch (grade) {
             case SCATTERED -> OperationTier.FIRST_CONTRACT;
@@ -58,6 +73,6 @@ public final class RuinsExpeditionMissionFactory {
             case EXTENSIVE -> OperationTier.VETERAN;
             case VAST -> OperationTier.REINFORCED;
         };
-        return OperationTier.clampTo(tier, MissionType.RAID.tierFloor);
+        return OperationTier.clampTo(tier, MissionType.RUINS.tierFloor);
     }
 }

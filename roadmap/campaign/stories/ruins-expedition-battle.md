@@ -1,6 +1,7 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slice 1 (the objective) built. Slice 3 of
+Status: IN PROGRESS — slice 1 (the objective) built, and the family plays
+in battle on interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
@@ -46,6 +47,15 @@ story's battle plays, it lifts the fork's development-only gate
    the powered breach through `setVaultPowered`. `RuinsDelve` maps the grade
    to layers, breach times and caches. A wiped-out or withdrawn company loses
    through the battle's ordinary defeat.
+
+   *The family plays in battle.* `MissionType.RUINS` carries the grade on the
+   mission (`Mission.ruinsGrade`); `RuinsBattleFixture` (kind RUINS) builds it
+   through `BattleSetup.createRuins`, and `MissionLaunch` launches it. Until
+   slices 2 to 5 replace them, the vault and its route are Extraction's source
+   pick (`ExtractionPayloadLayout`), the landing area is the one lift point,
+   Extraction's commanders play both sides, and the rail shows the package
+   wording. The site is abandoned: no civilians, staffed buildings, ground
+   crew or reinforcements.
 2. **Disclosure.** The family's mission disclosure: the company sees the vault,
    its lift points, the haul's state and escort; the occupant's side sees what
    its own perspective allows; the occupant's layout is never in the company's
