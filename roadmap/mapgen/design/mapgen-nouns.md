@@ -1896,7 +1896,11 @@ A mission asks for it with a `RuinsGroundPlan` through
 `MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
 other map). The plan is the layer count, 1 (scattered) to 4 (vast), never the
 campaign's grade, so world generation stays free of campaign types; the map's
-size and the dead town's density follow from it. The profile gives only the
+size and the dead town's density follow from it. The size sits a step up the
+tier band (`MapScale`), so a site stands with the maps the company fights on
+elsewhere: 144x80 at scattered (the established map), 200x112, 280x168 (the
+full-strength map) and 400x240 at vast, at densities 0.50 to 0.80 so the dead
+town fills the route and the layers cross ruins, not open country. The profile gives only the
 world's surface. The seed is the site's, so the same site makes the same ground
 every time. `BattleSetup.createRuins` asks with the campaign's layer count and
 reads the vault's source and the lift points, each with its route from the
@@ -1943,7 +1947,10 @@ and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
 
 **A layer never closes the route.** Every layer line runs edge to edge, so the
-ways are the only crossings, and a way is open ground across the line. Scattered
+ways are the only crossings, and a way is open ground across the line. A line
+is an old wall gone to ruin, never a clean one drawn across the ground: it
+sheds a bed of rubble against both faces, thinning over three cells (four for
+a collapsed street), with scrap where sections came down. Scattered
 ruins may be crossed by one way; every layer at a larger grade has at least two,
 and blocking any single one still leaves the vault reachable. The collapse is a
 way of its own kind, choked and breachable, never counted among the open ones.

@@ -192,10 +192,10 @@ and reward rise together.
 
 | Grade | Map | Layers | Breach time (unpowered / powered) | Occupant strength | Field caches |
 | --- | --- | --- | --- | --- | --- |
-| Scattered | small: a few ruined blocks | 1 | 30 / 10 s | none or light | 2 |
-| Widespread | medium | 2 | 45 / 15 s | light | 3 |
-| Extensive | large | 3 | 60 / 20 s | moderate | 4 |
-| Vast | largest, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
+| Scattered | 144x80: a dead town across the route | 1 | 30 / 10 s | none or light | 2 |
+| Widespread | 200x112 | 2 | 45 / 15 s | light | 3 |
+| Extensive | 280x168 | 3 | 60 / 20 s | moderate | 4 |
+| Vast | 400x240, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
 
 The numbers are starting points, tuned against a player giving orders, not the
 headless autopilot (`CLAUDE.md`, Balance missions against a player). Occupant
@@ -219,8 +219,9 @@ supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
 The ground is mapgen's (`mapgen-nouns.md`, Ruins ground): a landing area at
 one end, the vault at the other, the grade's layers between with their side
 rooms, landing courts and works sites, every place published by name, built
-from mapgen's ruined-lot vocabulary. Its map grows with the grade: 112x64,
-144x80, 200x112 and 280x168 cells.
+from mapgen's ruined-lot vocabulary. Its map grows with the grade, a step up
+the tier band so a site sits with the company's other maps: 144x80, 200x112,
+280x168 and 400x240 cells.
 `BattleSetup.createRuins` plays on it: the vault and every lift point come from
 the ground's published places, never from a search of the map.
 
@@ -437,12 +438,12 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
-- Ruins ground tuning waits on played battles: map sizes, the dead town's
-  densities, layer, room and court sizes, and the interior's chamber count and
-  spine width are first guesses, to be tuned against a player giving orders.
-- On scattered ground the vault's bunker stands in open country, since the dead
-  town grows about the map's middle; growing it toward the vault would ring the
-  bunker with ruins, if the owner wants that.
+- Ruins map size is on the picks page (`ruins-map-size`): one step up the
+  tier band, built, or two. The owner found the first sizes too small and the
+  scattered layer line a stray wall in open desert.
+- Ruins ground tuning waits on played battles: the dead town's densities,
+  layer, room and court sizes, and the interior's chamber count and spine width
+  are first guesses, to be tuned against a player giving orders.
 
 ## Boundaries
 
