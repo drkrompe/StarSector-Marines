@@ -17,10 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Derelict security's heavies in a live ruin (`derelict-security-network.md`): the extensive-grade fixture (eight
- * boats) played under autonomous command, recorded through the look preset: the walkers at their posts before the
- * company comes, from the first tick a walker takes a target following the walkers through the fight, and on the
- * vast site's interior, its vault frame on the vault and a line frame in a chamber. Opt-in.
+ * Derelict security's heavies in a live ruin (`derelict-security-network.md`): the extensive-grade fixture, flown on
+ * the playBattle company's lift (one Hermes making six twelve-seat trips), played under autonomous command and
+ * recorded through the look preset: the walkers at their posts before the company comes, from the first tick a walker
+ * takes a target following the walkers through the fight, and on the vast site's interior, its vault frame on the
+ * vault and a line frame in a chamber. Opt-in.
  */
 public final class DerelictHeaviesLookSuite implements SnapshotSuite {
 

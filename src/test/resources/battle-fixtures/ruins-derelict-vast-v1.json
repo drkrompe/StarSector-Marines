@@ -3,13 +3,14 @@
   "kind": "RUINS",
   "seed": 90917,
   "enemyHasHeavyArmor": false,
-  "tier": "ESTABLISHED",
+  "tier": "VETERAN",
   "risk": "MEDIUM",
   "shuttles": [
-    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
-    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
-    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
-    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 }
+    {
+      "type": "HERMES",
+      "cycles": 6,
+      "seatsPerSortie": 12
+    }
   ],
   "targetProfile": {
     "marketSize": 3,
