@@ -214,9 +214,13 @@ public class MarineOpsContext {
      * remove a parked airframe.
      */
     public CompanyDeck companyDeck() {
-        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        String hull = aboard == null ? null : aboard.getId();
-        String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard);
+        // Fleet facilities have no hull: their deck is the standard one their upgrades size, and it is
+        // rebuilt when an upgrade changes a room (`fleet-facilities.md`).
+        boolean fleet = FleetFacilities.inUse();
+        FleetMemberAPI aboard = fleet ? null : CompanyShipDesignation.aboard();
+        String hull = fleet ? FleetFacilities.HOME_ID : aboard == null ? null : aboard.getId();
+        String held = fleet ? FleetFacilities.rooms(FleetFacilities.condition()) + ":" + boatsHeldSignature()
+                : CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard);
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
             dressFromCondition(aboard);
@@ -225,7 +229,7 @@ public class MarineOpsContext {
         CompanyDeck previous = companyDeck;
         companyDeckShipId = hull;
         companyDeckBoatsHeld = held;
-        CompanyShip ship = CompanyShipResolver.read(aboard);
+        CompanyShip ship = fleet ? FleetFacilities.ship() : CompanyShipResolver.read(aboard);
         companyDeck = ship == null ? null : CompanyDeck.home(ship,
                 CompanyShipDesignation.deckSeedFor(hull),
                 null, null,
@@ -257,12 +261,21 @@ public class MarineOpsContext {
      * core's look changes: how a refit that clears one is seen to happen.
      */
     public void redressCompanyDeck(float seconds) {
+        if (companyDeck == null) return;
+        if (FleetFacilities.inUse()) {
+            companyDeck.dress(CoreDressing.restored(FleetFacilities.condition().restoredCores()), seconds);
+            return;
+        }
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        if (companyDeck == null || aboard == null) return;
+        if (aboard == null) return;
         companyDeck.dress(CoreDressing.restored(ShipRefits.condition(aboard).restoredCores()), seconds);
     }
 
     private void dressFromCondition(FleetMemberAPI aboard) {
+        if (companyDeck != null && FleetFacilities.inUse()) {
+            companyDeck.dress(CoreDressing.restored(FleetFacilities.condition().restoredCores()));
+            return;
+        }
         if (companyDeck == null || aboard == null) return;
         var condition = ShipRefits.condition(aboard);
         companyDeck.dress(CoreDressing.restored(condition.restoredCores()));
