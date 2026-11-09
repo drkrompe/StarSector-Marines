@@ -68,3 +68,4 @@ Design: `extraction-command.md`
 | `generic-extraction-corridor-command.md` | IN PROGRESS | Ship and accept stable Marine payload/escort/screen command for generic Extraction. |
 | `generic-extraction-interdiction-command.md` | IN PROGRESS | Ship and accept bounded source-alarm security and belief-driven defender interdiction. |
 | `silent-colony-expedition-branches.md` | IN PROGRESS | Add headless/live acceptance for the stable Marine archive and survivor branches before choosing the opposing director shape. |
+| `derelict-security-network.md` | PLANNED | Derelict security as a ruins occupant: dormant zones that wake on their sensors, hold their perimeters and run the contingency on a vault breach, under a security-network director (`derelict-lore-guide.md`). |

@@ -7,6 +7,8 @@ Written: 2026-08-26
 Updated: 2026-08-26 — established Remnant adversary, unit, facility, and battlefield direction.
 
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws.
+The automated security still running in the Sector's ruins is not a Remnant
+force; it is `derelict-lore-guide.md`'s.
 
 ## Canon anchors
 
