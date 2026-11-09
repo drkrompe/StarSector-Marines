@@ -54,6 +54,14 @@ class RuinsSurveyTest {
     }
 
     @Test
+    void anEmptySiteAlwaysReadsItsWholeChainInOrder() {
+        for (int i = 0; i < 20; i++) {
+            assertEquals(RuinsSurvey.NOBODY.readingKeys(),
+                    RuinsSurvey.read(RuinsSurvey.NOBODY, "market_" + i, RuinsGrade.SCATTERED).readingKeys());
+        }
+    }
+
+    @Test
     void aPoolNeedsEnoughDistinctReadings() {
         assertThrows(IllegalArgumentException.class, () -> new RuinsSurvey.Pool("a", "b", List.of("x", "y")));
         assertThrows(IllegalArgumentException.class, () -> new RuinsSurvey.Pool("a", "b", List.of("x", "x", "y")));

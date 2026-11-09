@@ -80,6 +80,22 @@ public final class RuinsDelveStage implements GenStage {
         return Math.max(2, width / 10);
     }
 
+    /** An entrance's apron: this deep west of the door and this tall about it. */
+    static final int APRON_DEPTH = 13, APRON_HALF_HEIGHT = 4;
+    /** Columns between the door and the apron's east edge, past any jog in the hull face. */
+    static final int APRON_GAP = 2;
+    /** The nearer berth's centre stands this far in from the apron's east edge. */
+    static final int APRON_BERTH_INSET = 2;
+
+    /**
+     * The apron in front of an entrance whose door is {@code door}, a vertical span in a west-facing wall: the
+     * open ground west of it, clear of the hull face's jogs, centred on the door's rows.
+     */
+    static Area apronFor(Area door) {
+        int right = door.left() - 1 - APRON_GAP, cy = (door.bottom() + door.top()) / 2;
+        return new Area(right - APRON_DEPTH + 1, cy - APRON_HALF_HEIGHT, right, cy + APRON_HALF_HEIGHT);
+    }
+
     static final String[] RUIN_WALLS = {"colony.masonry-wall", "colony.ceramic-wall", "colony.olive-wall"};
     static final String[] RUIN_FLOORS = {"colony.concrete", "colony.timber", "colony.terrazzo", "colony.terracotta"};
     /** A layer line's wall: the ruined-lot walls that read as masonry from above; the olive wall reads as a hedge. */
@@ -213,6 +229,8 @@ public final class RuinsDelveStage implements GenStage {
             List<Area> entrances = new ArrayList<>();
             if (firstInside == layers) entrances.add(bunker(vaultY));
             else entrances.addAll(enclose(drafts, firstInside, zoneEnd, hallLayer));
+            List<RuinsDelve.Apron> aprons = new ArrayList<>();
+            for (Area door : entrances) aprons.add(apron(aprons.size(), door));
 
             List<Layer> laid = new ArrayList<>();
             List<Junction> junctions = new ArrayList<>();
@@ -262,7 +280,7 @@ public final class RuinsDelveStage implements GenStage {
             for (Way way : last.ways) if (way.kind() == WayKind.COLLAPSE) shortWay = way;
             Collapse collapse = new Collapse(RuinsDelve.COLLAPSE, layers - 1, shortWay);
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, chambers);
+                    entrances, aprons, chambers);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }
@@ -1008,6 +1026,27 @@ public final class RuinsDelveStage implements GenStage {
             open(step, null);
             reserve(step, 1);
             return new Area(x, vaultY, x, vaultY + 1);
+        }
+
+        /**
+         * The apron outside entrance {@code index}: open ground cleared west of its door, kept clear of the places
+         * laid after it, with two berths the boat can come to once the mission makes it the entry. Never cleared
+         * into the interior.
+         */
+        RuinsDelve.Apron apron(int index, Area door) {
+            Area ground = apronFor(door);
+            for (int y = Math.max(1, ground.bottom()); y <= Math.min(h - 2, ground.top()); y++) {
+                for (int x = Math.max(1, ground.left()); x <= ground.right(); x++) {
+                    if (insideCell(x, y) || hull[i(x, y)]) continue;
+                    open(new Area(x, y, x, y), null);
+                }
+            }
+            reserve(ground, 1);
+            int cy = ground.centreY();
+            LandingArea lift = new LandingArea("ruins-entrance-" + (index + 1),
+                    LandingPad.civilian(ground.right() - APRON_BERTH_INSET, cy, LandingPad.Approach.WEST),
+                    LandingPad.civilian(ground.left() + APRON_BERTH_INSET, cy, LandingPad.Approach.WEST));
+            return new RuinsDelve.Apron(RuinsDelve.Interior.apronName(index), door, ground, lift);
         }
 
         /** The vault's apron as a roofed hall: every open cell of it but the vault suite itself. */

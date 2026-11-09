@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public final class RuinsSurvey {
 
-    /** The fewest and most readings a briefing shows. */
+    /** The fewest and most readings a briefing draws from a pool; a whole pool shows all of its own. */
     static final int MIN_READINGS = 2;
     static final int MAX_READINGS = 3;
 
@@ -54,15 +54,23 @@ public final class RuinsSurvey {
      *
      * @param assessmentKey the line naming the occupant, always true
      * @param bandKey       the strength line, read through the same instruments; {@code {0}} is the band's name
-     * @param readingKeys   the pool the site's readings are drawn from; at least {@link #MAX_READINGS}
+     * @param readingKeys   the pool the site's readings are drawn from; at least {@link #MAX_READINGS}, or for a whole
+     *                      pool at least {@link #MIN_READINGS}
+     * @param whole         whether every site reads the whole pool, in order, rather than a seeded draw from it
      */
-    public record Pool(String assessmentKey, String bandKey, List<String> readingKeys) {
+    public record Pool(String assessmentKey, String bandKey, List<String> readingKeys, boolean whole) {
         public Pool {
             if (assessmentKey == null || bandKey == null || readingKeys == null
-                    || readingKeys.size() < MAX_READINGS || readingKeys.stream().distinct().count() != readingKeys.size()) {
+                    || readingKeys.size() < (whole ? MIN_READINGS : MAX_READINGS)
+                    || readingKeys.stream().distinct().count() != readingKeys.size()) {
                 throw new IllegalArgumentException("a pool needs an assessment, a band line and enough distinct readings");
             }
             readingKeys = List.copyOf(readingKeys);
+        }
+
+        /** A pool a site's readings are drawn from. */
+        public Pool(String assessmentKey, String bandKey, List<String> readingKeys) {
+            this(assessmentKey, bandKey, readingKeys, false);
         }
     }
 
@@ -76,15 +84,20 @@ public final class RuinsSurvey {
                     "ruinsSurveyScavengersTracks",
                     "ruinsSurveyScavengersSpoil"));
 
-    /** An empty site: quiet, with the structure and power that hint at its works ({@code ruins-works.md}). */
+    /**
+     * An empty site: quiet, and its readings are its puzzle's first hints ({@code ruins-works.md}). Every empty site
+     * reads the whole chain, in the order the company meets it: the power hall, the unpowered vault seal, the collapse
+     * on the short way, and the sealed stores with the records system that marks them. Each is on every ruins ground
+     * ({@code RuinsDelveStage}), so the readings are always true; the wiring is left to the records terminal.
+     */
     public static final Pool NOBODY = new Pool(
             "ruinsSurveyNobodyAssessment",
             "ruinsSurveyNobodyBand",
-            List.of("ruinsSurveyNobodySilent",
-                    "ruinsSurveyNobodyPowerHall",
+            List.of("ruinsSurveyNobodyPowerHall",
                     "ruinsSurveyNobodySeal",
                     "ruinsSurveyNobodyCollapse",
-                    "ruinsSurveyNobodyRecords"));
+                    "ruinsSurveyNobodyStores"),
+            true);
 
     /** An old seeding site's sleepers: biological lifesigns. */
     public static final Pool RAV = new Pool(
@@ -151,6 +164,7 @@ public final class RuinsSurvey {
      */
     public static Reading read(Pool pool, String marketId, RuinsGrade grade) {
         if (pool == null || marketId == null || grade == null) throw new IllegalArgumentException("a reading needs a site");
+        if (pool.whole()) return new Reading(pool.assessmentKey(), Band.of(grade), pool.bandKey(), pool.readingKeys());
         Random rng = new Random(SALT ^ marketId.hashCode() * 0x9E3779B97F4A7C15L ^ pool.assessmentKey().hashCode());
         int count = MIN_READINGS + rng.nextInt(MAX_READINGS - MIN_READINGS + 1);
         List<String> left = new ArrayList<>(pool.readingKeys());
