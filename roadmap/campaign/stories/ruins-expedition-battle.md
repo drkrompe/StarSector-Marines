@@ -1,8 +1,8 @@
 # Ruins expedition battle
 
-Status: IN PROGRESS — slices 1 to 3, 6 and 7 built (objective, disclosure, delve
-commander, deeper caches, briefing), and the family plays
-in battle on interim parts. Slice 3 of
+Status: IN PROGRESS — slices 1, 2, 6 and 7 built (objective, disclosure,
+deeper caches, briefing); slice 3 deferred. The family plays in battle on
+interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
 
 Written: 2026-11-09
@@ -78,23 +78,17 @@ story's battle plays, it lifts the fork's development-only gate
    breach hold, then the haul screened to the nearest held lift point. Played
    battles yield to the player as every mission does.
 
-   *Built.* `RuinsDelveCommand` replaces `ExtractionCommand` on the company's
-   side for `MissionType.RUINS`. It cuts the approach into the grade's layers.
-   A lead element attack-moves to the next layer's end while the body holds the
-   last one, and the layer clears once the lead stands there out of contact.
-   The lead moves on only when the body has settled behind it, and a lead in
-   contact draws the body up. On a quiet layer, one body squad detours to a
-   found cache within 24 route cells, and the lead waits for it; contact calls
-   it back. At the vault one squad holds the breach and the rest screen it. A
-   landing court whose route is shorter than the bound lift point's gets a
-   holder while three squads or more remain. The haul then moves in
-   Extraction's escort formation, now shared as `PayloadEscortFormation`. Squads under
-   the player's order are left alone. Works detours wait for `ruins-works.md`,
-   which has no works yet. A headless `battleProbe` on a Widespread fixture
-   shows the delve leading and supporting, then a two-squad company lost at
-   the first layer: tuning belongs to slices 4 and 8. Shared fix:
-   `EscortPresence` crashed on a Marine emplacement (it has no movement); it
-   now skips one.
+   *Deferred* (owner: planning the company's run is a waste for now). In a
+   played battle the player commands the company, and the ground is still
+   changing, so `ExtractionCommand` stays the company's commander for
+   `MissionType.RUINS`; it is enough for headless evidence. Take this slice up
+   only once `ruins-ground.md` has landed, and only if evidence needs more
+   than `ExtractionCommand`. If it is taken up, it reads the layers and the
+   vault route from what setup publishes, never open streets: a layer may be
+   inside, behind a threshold or seal door.
+
+   *Shared fix kept from this work:* `EscortPresence` crashed on a Marine
+   emplacement, which has no movement; it now skips one.
 4. **The crew commander.** The scavengers' strategy: posted squads at the camp
    and the dig, a patrol pool and the alarm, borrowed from the generic Extraction
    defenders, answering for the dig first and the stash second. The pirate

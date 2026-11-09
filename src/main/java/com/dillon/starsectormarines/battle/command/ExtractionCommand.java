@@ -5,8 +5,12 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot.Squ
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,7 +18,17 @@ import java.util.Set;
 public final class ExtractionCommand implements AutonomousMissionCommand<
         ExtractionCommandFrame, ExtractionCommandSnapshot> {
 
-    private final PayloadEscortFormation formation = new PayloadEscortFormation();
+    private static final List<Role> SCREEN_ROLES = List.of(
+            Role.LEAD_SCREEN, Role.LEFT_SCREEN,
+            Role.RIGHT_SCREEN, Role.REAR_SCREEN);
+    private static final int CLOSE_OFFSET = 2;
+    private static final int SCREEN_FORWARD = 6;
+    private static final int SCREEN_LATERAL = 5;
+    private static final int SCREEN_REAR = 5;
+    private static final int SNAP_RADIUS = 5;
+
+    private final Map<Integer, Role> roles = new HashMap<>();
+    private int payloadSquadId = -1;
     private volatile ExtractionCommandSnapshot extractionSnapshot;
 
     public ExtractionCommandSnapshot extractionSnapshot() {
@@ -36,11 +50,11 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
                 .toList();
         Set<Integer> poolIds = new HashSet<>();
         for (CommandSquadState squad : pool) poolIds.add(squad.squadId());
-        formation.retain(poolIds);
+        roles.keySet().retainAll(poolIds);
 
         int anchorX = objectiveAnchorX(payload);
         int anchorY = objectiveAnchorY(payload);
-        if (!terminal(payload)) formation.assign(pool, anchorX, anchorY, frame.topology());
+        if (!terminal(payload)) assignStableRoles(pool, anchorX, anchorY, frame);
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
@@ -61,9 +75,9 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
                 continue;
             }
 
-            Role role = formation.role(squad.squadId());
+            Role role = roles.get(squad.squadId());
             int[] desired = desiredCell(role, anchorX, anchorY, payload);
-            int[] target = PayloadEscortFormation.nearestReachable(squad, desired[0], desired[1],
+            int[] target = nearestReachable(squad, desired[0], desired[1],
                     anchorX, anchorY, frame.topology(), reservedTargets);
             if (target == null) {
                 proposals.add(releaseOrRetain(squad,
@@ -73,9 +87,9 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
                         squad.localContact()));
                 continue;
             }
-            reservedTargets.add(PayloadEscortFormation.cellKey(target[0], target[1]));
+            reservedTargets.add(cellKey(target[0], target[1]));
 
-            ObjectiveAssignment assignment = PayloadEscortFormation.escortRole(role)
+            ObjectiveAssignment assignment = escortRole(role)
                     ? ObjectiveAssignment.escort(squad.squadId(),
                     target[0], target[1])
                     : ObjectiveAssignment.defendSite(squad.squadId(),
@@ -109,6 +123,60 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
         extractionSnapshot = snapshot.detail();
     }
 
+    private void assignStableRoles(List<CommandSquadState> pool,
+                                   int anchorX, int anchorY,
+                                   ExtractionCommandFrame frame) {
+        CommandSquadState payloadSquad = pool.stream()
+                .filter(squad -> squad.squadId() == payloadSquadId)
+                .findFirst().orElse(null);
+        if (payloadSquad == null || !frame.topology().reachable(
+                payloadSquad.anchorCellX(), payloadSquad.anchorCellY(),
+                anchorX, anchorY)) {
+            roles.entrySet().removeIf(entry ->
+                    entry.getValue() == Role.PAYLOAD_ELEMENT);
+            payloadSquad = pool.stream()
+                    .filter(squad -> frame.topology().reachable(
+                            squad.anchorCellX(), squad.anchorCellY(),
+                            anchorX, anchorY))
+                    .min(Comparator
+                            .comparingInt((CommandSquadState squad) ->
+                                    frame.topology().routeLength(
+                                            squad.anchorCellX(),
+                                            squad.anchorCellY(), anchorX,
+                                            anchorY))
+                            .thenComparingInt(CommandSquadState::squadId))
+                    .orElse(null);
+            payloadSquadId = payloadSquad != null
+                    ? payloadSquad.squadId() : -1;
+        }
+        if (payloadSquad != null) {
+            roles.put(payloadSquad.squadId(), Role.PAYLOAD_ELEMENT);
+        }
+
+        boolean hasClose = roles.containsValue(Role.CLOSE_ESCORT);
+        if (!hasClose && pool.size() > 1) {
+            pool.stream()
+                    .filter(squad -> squad.squadId() != payloadSquadId)
+                    .min(Comparator.comparingInt(CommandSquadState::squadId))
+                    .ifPresent(squad -> roles.put(squad.squadId(),
+                            Role.CLOSE_ESCORT));
+        }
+
+        Map<Role, Integer> loads = new EnumMap<>(Role.class);
+        for (Role role : roles.values()) loads.merge(role, 1, Integer::sum);
+        for (CommandSquadState squad : pool) {
+            if (roles.containsKey(squad.squadId())) continue;
+            Role selected = SCREEN_ROLES.stream()
+                    .min(Comparator
+                            .comparingInt((Role role) ->
+                                    loads.getOrDefault(role, 0))
+                            .thenComparingInt(Enum::ordinal))
+                    .orElse(Role.LEAD_SCREEN);
+            roles.put(squad.squadId(), selected);
+            loads.merge(selected, 1, Integer::sum);
+        }
+    }
+
     private static int objectiveAnchorX(ExtractionObjectiveFacts payload) {
         return switch (payload.phase()) {
             case "AT_SOURCE", "SECURING" -> payload.sourceCellX();
@@ -131,10 +199,73 @@ public final class ExtractionCommand implements AutonomousMissionCommand<
 
     private static int[] desiredCell(Role role, int anchorX, int anchorY,
                                      ExtractionObjectiveFacts payload) {
-        return PayloadEscortFormation.desiredCell(role, anchorX, anchorY,
-                payload.corridorGuideCellX(), payload.corridorGuideCellY(),
-                payload.egressCellX(), payload.egressCellY(),
-                payload.sourceCellX(), payload.sourceCellY());
+        int guideX = payload.corridorGuideCellX() >= 0
+                ? payload.corridorGuideCellX() : payload.egressCellX();
+        int guideY = payload.corridorGuideCellY() >= 0
+                ? payload.corridorGuideCellY() : payload.egressCellY();
+        int dx = Integer.compare(guideX, anchorX);
+        int dy = Integer.compare(guideY, anchorY);
+        if (dx == 0 && dy == 0) {
+            dx = Integer.compare(payload.egressCellX(), payload.sourceCellX());
+            dy = Integer.compare(payload.egressCellY(), payload.sourceCellY());
+        }
+        if (dx == 0 && dy == 0) dx = 1;
+        int leftX = -dy;
+        int leftY = dx;
+        return switch (role) {
+            case PAYLOAD_ELEMENT -> new int[]{anchorX, anchorY};
+            case CLOSE_ESCORT -> new int[]{anchorX - dx * CLOSE_OFFSET,
+                    anchorY - dy * CLOSE_OFFSET};
+            case LEAD_SCREEN -> new int[]{anchorX + dx * SCREEN_FORWARD,
+                    anchorY + dy * SCREEN_FORWARD};
+            case LEFT_SCREEN -> new int[]{anchorX + leftX * SCREEN_LATERAL,
+                    anchorY + leftY * SCREEN_LATERAL};
+            case RIGHT_SCREEN -> new int[]{anchorX - leftX * SCREEN_LATERAL,
+                    anchorY - leftY * SCREEN_LATERAL};
+            case REAR_SCREEN -> new int[]{anchorX - dx * SCREEN_REAR,
+                    anchorY - dy * SCREEN_REAR};
+            default -> new int[]{anchorX, anchorY};
+        };
+    }
+
+    private static int[] nearestReachable(
+            CommandSquadState squad, int desiredX, int desiredY,
+            int fallbackX, int fallbackY, CommandTopology topology,
+            Set<Long> reservedTargets) {
+        int[] nearDesired = searchReachable(squad, desiredX, desiredY,
+                SNAP_RADIUS, topology, reservedTargets);
+        if (nearDesired != null) return nearDesired;
+        int[] nearFallback = searchReachable(squad, fallbackX, fallbackY,
+                SNAP_RADIUS, topology, reservedTargets);
+        if (nearFallback != null) return nearFallback;
+        return searchReachable(squad, fallbackX, fallbackY,
+                SNAP_RADIUS, topology, Set.of());
+    }
+
+    private static int[] searchReachable(
+            CommandSquadState squad, int centerX, int centerY,
+            int radius, CommandTopology topology, Set<Long> reservedTargets) {
+        for (int distance = 0; distance <= radius; distance++) {
+            for (int y = centerY - distance; y <= centerY + distance; y++) {
+                for (int x = centerX - distance; x <= centerX + distance; x++) {
+                    if (Math.abs(x - centerX) + Math.abs(y - centerY)
+                            != distance) continue;
+                    if (reservedTargets.contains(cellKey(x, y))) continue;
+                    if (!topology.isWalkable(x, y)) continue;
+                    if (topology.reachable(squad.anchorCellX(),
+                            squad.anchorCellY(), x, y)) return new int[]{x, y};
+                }
+            }
+        }
+        return null;
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xFFFF_FFFFL);
+    }
+
+    private static boolean escortRole(Role role) {
+        return role == Role.PAYLOAD_ELEMENT || role == Role.CLOSE_ESCORT;
     }
 
     private static String reason(Role role, String phase) {

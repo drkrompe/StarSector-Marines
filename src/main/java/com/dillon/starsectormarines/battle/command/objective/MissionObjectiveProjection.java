@@ -28,7 +28,6 @@ import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPictur
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
-import com.dillon.starsectormarines.battle.command.RuinsDelveSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -395,8 +394,6 @@ public final class MissionObjectiveProjection {
             for (var s : rescue.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), s.locallySlowed()));
         } else if (commander.detail() instanceof SilentColonyCommandSnapshot colony) {
             for (var s : colony.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), false));
-        } else if (commander.detail() instanceof RuinsDelveSnapshot delve) {
-            for (var s : delve.squadIntents()) rows.add(activity(s.squadId(), names, s.role().name(), s.localContact(), false));
         }
         if (rows.isEmpty()) for (var directive : commander.directives()) {
             if (!directive.ownsSquad()) continue;
@@ -422,12 +419,6 @@ public final class MissionObjectiveProjection {
             case "RIGHT_SCREEN" -> Strings.get("objectiveTaskRightScreen");
             case "REAR_SCREEN" -> Strings.get("objectiveTaskRearScreen");
             case "SHELTER_GUARD" -> Strings.get("objectiveTaskShelterGuard");
-            case "DELVE_LEAD" -> Strings.get("objectiveTaskDelveLead");
-            case "DELVE_BODY" -> Strings.get("objectiveTaskDelveBody");
-            case "CACHE_DETOUR" -> Strings.get("objectiveTaskCacheDetour");
-            case "VAULT_HOLD" -> Strings.get("objectiveTaskVaultHold");
-            case "VAULT_SCREEN" -> Strings.get("objectiveTaskVaultScreen");
-            case "COURT_HOLD" -> Strings.get("objectiveTaskCourtHold");
             case "PICKUP_GUARD" -> Strings.get("objectiveTaskPickupGuard");
             case "STRANDED" -> Strings.get("objectiveTaskStranded");
             case "RELEASED" -> Strings.get("objectiveTaskReleased");
