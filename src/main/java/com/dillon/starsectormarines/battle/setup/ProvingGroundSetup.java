@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.air.GroundMarineArrival;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -20,6 +23,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
@@ -27,6 +31,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -39,6 +44,8 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -49,7 +56,9 @@ import java.util.Locale;
  * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
  * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
  * to compare, then the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS})
- * and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Each is the player's,
+ * and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Behind the machines
+ * stands a rank of infantry: one squad for each Marine primary ({@link #SQUAD_PRIMARIES}), all at service grade, whose
+ * seats carry every special between them, so each weapon can be fired under direct control. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
  * {@code gradlew playBattle -Pbattle=proving-ground} opens it straight away.
  *
@@ -71,7 +80,19 @@ public final class ProvingGroundSetup {
     private static final int WIDTH = FILE_SPACING * HULLS_PER_RANK;
     /** The machines' two ranks and the gun ladder's. */
     private static final int RANKS = 3;
-    private static final int HEIGHT = RANK_SPACING * RANKS;
+    /** Cells along the window's south edge for the infantry rank, behind the machines. */
+    private static final int INFANTRY_DEPTH = 6;
+    private static final int HEIGHT = INFANTRY_DEPTH + RANK_SPACING * RANKS;
+    /**
+     * The infantry rank's squads, one per Marine primary; drone weapons are left out. Every marine is issued at
+     * service grade, a regular, so the weapons differ and nothing else does.
+     */
+    private static final String[] SQUAD_PRIMARIES = {WeaponRegistry.STARTER_PRIMARY_ID, WeaponRegistry.PULSE_RIFLE_ID,
+            WeaponRegistry.SMG_ID, WeaponRegistry.SQUAD_AUTOMATIC_ID, WeaponRegistry.DMR_ID};
+    /** Marines in each infantry squad; the specials are dealt round the seats, so there must be one for each. */
+    private static final int SQUAD_SEATS = 4;
+    /** Cells between marines in a squad's line. */
+    private static final int SEAT_SPACING = 2;
     /**
      * The guns a medium tank carries in the third rank, light calibre to medium (mechs-nouns.md, rotary gun): the
      * chaingun, the AC-6 (QS) and the AC-6, each on the same hull, so the difference is only the gun.
@@ -142,6 +163,7 @@ public final class ProvingGroundSetup {
             for (HardpointType colour : OTHER_COLOURS) parkFitted(convoy, site, file++, hull, hull.standardPart(colour));
         }
         for (MechWeaponComponent gun : LASER_VARIANTS) parkFitted(convoy, site, file++, VehicleType.LASER_TANK, gun);
+        spawnInfantry(sim, site);
         spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.
         sim.setGroundMarineArrival(new GroundMarineArrival(site.x(WIDTH / 2), site.y(HEIGHT / 2),
@@ -210,7 +232,43 @@ public final class ProvingGroundSetup {
     }
 
     private static int rankY(int rank) {
-        return RANK_SPACING / 2 + rank * RANK_SPACING;
+        return INFANTRY_DEPTH + RANK_SPACING / 2 + rank * RANK_SPACING;
+    }
+
+    /**
+     * The infantry rank: a squad for each of {@link #SQUAD_PRIMARIES}, each in a line across its share of the window's
+     * width, and every installed special handed to one seat, in turn across the squads, so all of them are on the field.
+     * Like the mechs, each squad holds its ground until ordered.
+     */
+    private static void spawnInfantry(BattleSimulation sim, Site site) {
+        List<SpecialEquipmentDef> specials = new ArrayList<>(SpecialEquipmentRegistry.installed().all());
+        if (specials.size() > SQUAD_PRIMARIES.length * SQUAD_SEATS) {
+            throw new IllegalStateException(specials.size() + " specials do not fit "
+                    + SQUAD_PRIMARIES.length * SQUAD_SEATS + " infantry seats");
+        }
+        int y = site.y(INFANTRY_DEPTH / 2);
+        int share = WIDTH / SQUAD_PRIMARIES.length;
+        for (int s = 0; s < SQUAD_PRIMARIES.length; s++) {
+            int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+            Squad squad = sim.getSquad(squadId);
+            int centre = site.x(s * share + share / 2);
+            int x0 = centre - (SQUAD_SEATS - 1) * SEAT_SPACING / 2;
+            for (int seat = 0; seat < SQUAD_SEATS; seat++) {
+                int dealt = seat * SQUAD_PRIMARIES.length + s;
+                SpecialEquipmentDef special = dealt < specials.size() ? specials.get(dealt) : null;
+                MarineLoadout loadout = new MarineLoadout(UnitRole.COMBATANT, null, SQUAD_PRIMARIES[s],
+                        EquipmentGrade.SERVICE, SoldierProfile.REGULAR,
+                        special != null ? special.id() : null, special != null ? special.startingAmmo() : 0);
+                int x = x0 + seat * SEAT_SPACING;
+                EntitySpec spec = new EntitySpec(SQUAD_PRIMARIES[s] + "-" + (seat + 1), Faction.MARINE,
+                        UnitType.MARINE, x, y).squad(squadId).home(x, y);
+                loadout.seedInto(spec);
+                long id = sim.spawn(spec);
+                if (squad.leaderId == 0L) squad.leaderId = id;
+            }
+            squad.originalSize = SQUAD_SEATS;
+            squad.assignedObjective = ObjectiveAssignment.defendArea(squadId, centre, y);
+        }
     }
 
     /** One standard mech as a lance of its own. Left with no errand it would walk off, so it holds its slot until ordered. */
