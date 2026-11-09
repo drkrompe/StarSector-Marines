@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.raid.MarketRaidMissionKey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsPullOut;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
@@ -427,7 +428,7 @@ public final class MissionResolver {
                 .blindWatch(sim.getBlindWatch()==null?null:sim.getBlindWatch().report())
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
-                .fieldSalvage(sim.fieldSalvage().recovered())
+                .fieldSalvage(RuinsVaultStore.settled(sim.fieldSalvage().recovered(), sim.vaultStore(), victory))
                 .objectives(optionalObjectiveResults(sim))
                 .sideObjectives(sim.getSideObjectives().results(sim.getSimTickIndex()))
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))

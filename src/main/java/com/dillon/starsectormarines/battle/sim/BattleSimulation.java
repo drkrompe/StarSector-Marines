@@ -747,6 +747,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         occupantStash = stash;
     }
 
+    private List<SalvageCache> vaultStore = List.of();
+
+    /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
+    public List<SalvageCache> vaultStore() { return vaultStore; }
+
+    public void setVaultStore(List<SalvageCache> store) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the vault's store before launch installs finds");
+        vaultStore = store == null ? List.of() : List.copyOf(store);
+    }
+
     /** Launch-owned, deterministic optional finds; replay overlays use the same seam. */
     public void installFieldSalvage() {
         if (salvageInstalled) return;
@@ -756,6 +767,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
         fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
+        // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
+        vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
         salvageInstalled = true;
     }
     private DepotHoldSequence depotHold;
