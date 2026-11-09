@@ -512,12 +512,23 @@ The draw, as starting weights:
 - **Only a scattered site can hold nobody.** Anything larger was settled enough
   to leave somebody, or something, behind.
 
+The derelict lineage is part of the occupant (Domain security or contingency
+security), so the briefing and the network read it directly.
+
+**A site fields its occupant's side and nothing else.** No ruins site gets the
+generic garrison, patrols, emplacements or air: the scavengers field their
+crew, derelict security its network, the Rav their sleepers, and an empty site
+no one. The mission names the occupant's faction as the defender, and none for
+an empty site or the Rav, which no campaign faction stands for.
+
 ### Nobody
 
-The ruins are empty, and the expedition is the site's works: a short chain of
-a power hall, junctions, a collapse and seal doors that ends at the vault, with
-two sealed stores off it (Works). The briefing's readings say the site is quiet
-and hint at the chain.
+The ruins are empty and field no one, and the expedition is the site's works: a
+short chain of a power hall, junctions, a collapse and seal doors that ends at
+the vault, with two sealed stores off it (Works). Every expedition gives
+gameplay and a reward (owner): here the puzzle is the gameplay and the stores
+are the reward. The briefing says the site is quiet and names the chain
+(Briefing).
 
 ### Scavengers
 
@@ -541,7 +552,19 @@ the deeper layers that noise (gunfire, a breach under way) and time spent below
 open one by one, each feeding the director's waves. The breach is the loudest
 thing the company does, so pressure peaks on the egress and follows the haul to
 the lift. There is no mother bore, no harvest (nobody lives here) and no
-cohort; the late strains appear only at the larger grades. The expedition never
+cohort; the late strains appear only at the larger grades.
+
+- **Bores by grade:** two at scattered, rising to five at vast, sleeping in the
+  deeper layers (every layer but the landing's), spread apart.
+- **Waking:** each closed bore stirs with time spent below, with company
+  gunfire it hears, and fast while the breach is under way; past its own
+  threshold, staggered so they open one by one, it opens and surges. The breach
+  opens every bore still closed and brings the field to full strength.
+- **Strains by grade:** a bore grows no further than its grade allows: runners
+  only at scattered ruins, brutes and spitters from widespread, the maw's heavy
+  strains at extensive and vast.
+- Restarting the power hall is loud, and wakes the nearest closed bore (Works).
+ The expedition never
 wakes, feeds or ends a campaign bloom and never touches the reservoir's rest
 (Boundaries).
 
@@ -592,15 +615,16 @@ place on the map or a unit count.
 
 | Occupant | Kind of reading | Draft readings |
 | --- | --- | --- |
-| Nobody | Quiet, with structure and power | No lifesigns, no movement, no emissions. Residual charge in a buried power hall. The vault seal reads unpowered. A collapse across the main approach. |
+| Nobody | Quiet, with structure and power | The whole chain, in order, never a draw: residual charge in a buried power hall; the vault seal reads unpowered; a collapse chokes the short way in; sealed rooms, and a records system that still knows what is in them. |
 | Scavengers | Comms, heat and traces | Comms chatter on an unlicensed band. Cooking heat and a generator in the ruins. Fresh landing scars; a transponder-dark boat on the ground. Vehicle tracks to the vault. |
 | Rav | Biological lifesigns | Faint lifesigns below the ruins, clustered, too many and too cold to be people. Seismic chatter under the deep layers. Warm spots that move between scans. |
-| Derelict security | Movement and power | Movement on fixed patrol paths. Power draw from buried halls. Active sensor sweeps that answer the survey's ping. A contingency site's emissions carry Tri-Tachyon codes. |
+| Derelict security | Movement and power | Movement on fixed patrol paths. Power draw from buried halls. Active sensor sweeps that answer the survey's ping. A contingency site names Tri-Tachyon in its assessment, and its emissions carry Tri-Tachyon codes. |
 
 The strength band reads through the same instruments: the lifesign count, the
 power draw, the chatter's volume. An empty site's readings are its puzzle's
-first hints: they say there is a power hall, a dead seal and a collapse, and
-leave the wiring to the records terminal.
+first hints, so it reads its whole chain rather than a draw: a power hall, a
+dead seal, a collapse and the sealed stores, each laid on every ruins ground, so
+the hints are always true. The wiring is left to the records terminal.
 
 The haul range is the Flow's (step 3), and the battle never changes it.
 

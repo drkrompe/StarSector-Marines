@@ -57,7 +57,7 @@ fork and commit path can ship before ruins mapgen exists.
 4. **Ruins ground.** The ruined-settlement delve for mapgen
    (`SettlementLink.NONE`): `mapgen-nouns.md`, Ruins ground.
 5. **Occupants.** The seeded occupant per site and its briefing line:
-   `ruins-occupants.md`, with derelict security in
+   built (`ruins-expedition.md`, Occupants and Briefing), with derelict security in
    `derelict-security-network.md`.
 6. **Live pass.** In the game, on each grade: standard path unchanged; won
    expedition shows vanilla's loot and marks the site explored; lost one leaves

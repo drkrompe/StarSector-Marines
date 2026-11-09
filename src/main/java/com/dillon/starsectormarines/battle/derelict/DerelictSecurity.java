@@ -30,7 +30,7 @@ import java.util.Set;
  * Stands a derelict site's security up in a ruins battle (`derelict-security-network.md`): its zones laid along the
  * ground between the vault and the way out, its walkers posted in them by the grade's strength
  * (`derelict-lore-guide.md`, Strength by grade), and its director installed. The ruins occupant seeding
- * (`ruins-occupants.md`) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
+ * (`ruins-expedition.md`, Occupants) calls {@link #install} for a site whose occupant is derelict security. Each zone puts one flock
  * up from its open-sky home (`derelict-drone-flocks.md`, which stands its cradle) and stands its node
  * ({@link DerelictNode}), its repair drone ({@link RepairDrone}) and its folded posts ({@link DerelictPost}).
  */
