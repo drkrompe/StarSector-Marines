@@ -34,7 +34,8 @@ public final class FleetFacilitiesSnapshotSuite implements SnapshotSuite {
     @Override public String label() { return "Fleet facilities' mock rooms"; }
 
     private static final List<FleetRooms> SIZES = List.of(
-            new FleetRooms(0, 1, 4), new FleetRooms(1, 1, 4), new FleetRooms(2, 2, 6), new FleetRooms(4, 3, 8));
+            new FleetRooms(0, 1, 4), new FleetRooms(0, 2, 4), new FleetRooms(1, 1, 4), new FleetRooms(2, 2, 6),
+            new FleetRooms(4, 2, 6), new FleetRooms(4, 3, 8));
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         ShipDeckSnapshotSuite.installTileRegistry();
@@ -70,11 +71,11 @@ public final class FleetFacilitiesSnapshotSuite implements SnapshotSuite {
                         if (!map.grid.isWalkable(task.cellX(), task.cellY())) throw new AssertionError(size + " work on closed floor");
                     System.out.println("FLEET seed=" + seed + " gantries=" + machines + " berths=" + boats
                             + " bunkrooms=" + bunkrooms + " deck=" + ship.deckPlan().frames() + "x" + ship.deckPlan().height() + " PASS");
-                    if (seed != 42 || size.gantries() == 0) continue;
+                    if (seed != 42) continue;
                     ShipDeckBattleScene scene = deck.scene();
                     scene.advanceTo(30f);
                     String tag = size.gantries() + "g-" + size.boatBerths() + "b-" + size.bunkrooms() + "r";
-                    frames.add(closeUp(renderer, scene, graph.largest(RoomPurpose.VEHICLE_BAY), tag + "-mech-lab.png",
+                    if (size.gantries() > 0) frames.add(closeUp(renderer, scene, graph.largest(RoomPurpose.VEHICLE_BAY), tag + "-mech-lab.png",
                             "Mech Lab / " + size.gantries() + " of 4 gantries working"));
                     int bay = 0;
                     for (var room : graph.compartments()) if (room.purpose() == RoomPurpose.HANGAR)

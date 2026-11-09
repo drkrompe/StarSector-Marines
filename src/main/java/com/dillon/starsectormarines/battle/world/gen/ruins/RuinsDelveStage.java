@@ -92,6 +92,17 @@ public final class RuinsDelveStage implements GenStage {
     static final String HULL_WALL = "installation.dark-concrete-wall";
     static final String HULL_FLOOR = "installation.concrete-floor";
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
+    /** The vault room's floor: the installation's command floor, so the heart of the site reads apart. */
+    static final String VAULT_ROOM_FLOOR = "installation.command-floor";
+    static final String HAUL = "doodad.industrial-crate-stack";
+    /** The dead town's furniture and stores, as the ruined-lot filler leaves them; weathering takes most away. */
+    static final String[] FURNISHINGS = {"doodad.shelf-dam-1", "doodad.shelf-dam-2", "doodad.desk-dam",
+            "doodad.box-dam", "doodad.chair-s-yellow-dam", "doodad.chair-s-green-dam",
+            "doodad.industrial-pallet-stack", "doodad.industrial-crate-stack", "doodad.industrial-drum-cluster",
+            "doodad.industrial-cable-reel"};
+    /** The ruined-lot wall that reads as a hedge from above; a long-dead town's walls are masonry. */
+    static final String HEDGE_WALL = "colony.olive-wall";
+    static final String DEAD_WALL = "colony.masonry-wall";
     /** Hull cells per chamber tried in an interior layer's band, besides its published rooms; at least four. UNTUNED. */
     static final int HULL_PER_CHAMBER = 220;
 
@@ -151,6 +162,7 @@ public final class RuinsDelveStage implements GenStage {
 
         RuinsDelve lay() {
             endStreets();
+            weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
             Area landingGround = new Area(1, Math.max(1, landingY - 16), LANDING_DEPTH, Math.min(h - 2, landingY + 16));
             open(landingGround, null);
@@ -260,6 +272,66 @@ public final class RuinsDelveStage implements GenStage {
             }
         }
 
+        /**
+         * A ruins site has been dead for a long time, longer than a town's freshly ruined lots: its floors are
+         * broken into rubble and earth with patches of the old floor showing through, its standing walls are
+         * masonry (the olive sheet reads as a hedge from above), most of its furniture and stores are gone, and a
+         * share of what went is left as scrap. Runs over the dead settlement before the delve is laid, so
+         * the delve's own shells are untouched; a coordinate hash, drawing nothing from the layout's stream.
+         */
+        void weather() {
+            int dirtFloor = topology.surfaceIndex(TRODDEN);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (HEDGE_WALL.equals(topology.getSurfaceId(x, y)) && !grid.isWalkable(x, y)) {
+                        topology.setSurface(x, y, topology.surfaceIndex(DEAD_WALL));
+                    }
+                    WallRemnant remnant = topology.getWallRemnant(x, y);
+                    if (remnant != null && HEDGE_WALL.equals(remnant.materialId())) {
+                        topology.setWallRemnant(x, y, new WallRemnant(DEAD_WALL, remnant.groundKind(),
+                                remnant.groundSurfaceId(), remnant.exposedFaces()));
+                    }
+                    if (topology.getGroundKind(x, y) != GroundKind.COURTYARD || !grid.isWalkable(x, y)
+                            || remnant != null) continue;
+                    // Patches about three cells across, their edges jittered a cell so they never read as a grid;
+                    // a fifth of the old floor shows through.
+                    int px = (x + hash(x, y, 0x11) % 2) / 3, py = (y + hash(x, y, 0x22) % 2) / 3;
+                    int roll = hash(px, py, 0x5EED) % 20;
+                    if (roll < 11) ground(x, y, GroundKind.RUBBLE);
+                    else if (roll < 16) {
+                        topology.setGroundKind(x, y, GroundKind.DIRT);
+                        if (dirtFloor != 0) topology.setSurface(x, y, dirtFloor);
+                    }
+                }
+            }
+            List<int[]> scrap = new ArrayList<>();
+            for (int k = ctx.doodads.size() - 1; k >= 0; k--) {
+                Doodad d = ctx.doodads.get(k);
+                // Only loose pieces: a blocking store would leave its cell blocked with nothing drawn on it.
+                if (!furnishing(d.definitionId()) || !grid.isWalkable(d.cellX, d.cellY)) continue;
+                int roll = hash(d.cellX, d.cellY, 0xF0) % 3;
+                if (roll == 0) continue;
+                ctx.doodads.remove(k);
+                if (roll == 1) scrap.add(new int[]{d.cellX, d.cellY});
+            }
+            for (int[] at : scrap) loose(SCRAP, at[0], at[1]);
+        }
+
+        static boolean furnishing(String id) {
+            if (id == null) return false;
+            for (String f : FURNISHINGS) if (f.equals(id)) return true;
+            return false;
+        }
+
+        /** A non-negative hash of a cell and the seed, for dressing that must not draw from the layout's stream. */
+        int hash(int x, int y, int salt) {
+            long v = x * 73_856_093L ^ y * 19_349_663L ^ (ctx.seed + salt) * 83_492_791L;
+            v ^= (v >>> 13);
+            v *= 0x5bd1e995L;
+            v ^= (v >>> 15);
+            return (int) Math.floorMod(v, 1_000_003L);
+        }
+
         /** Whether a dead street's cell is rubble rather than earth: patches about three cells across, a third of it. */
         boolean broken(int x, int y) {
             long hash = (x / 3) * 73_856_093L ^ (y / 3) * 19_349_663L ^ ctx.seed * 83_492_791L;
@@ -282,11 +354,31 @@ public final class RuinsDelveStage implements GenStage {
             door(x0, cy);
             door(partition, cy);
             Cell source = new Cell((partition + 1 + x1 - 1) / 2, cy);
+            dressVault(x0, y0, x1, y1, partition, cy);
             Cell approach = new Cell(x0 - 1, cy);
             vaultPoi = new PointOfInterest(PointOfInterest.Kind.DEPOT, x0, y0, x1, y1,
                     approach.x(), approach.y(), source.x(), source.y());
             ctx.pois.add(vaultPoi);
             return new Vault(new Area(x0, y0, x1, y1), new Cell(x0, cy), new Cell(partition, cy), approach, source);
+        }
+
+        /**
+         * The vault as the site's hardened heart rather than a plain box: buttresses stand out from its corners and
+         * along its faces (never on the door's face but at its corners), the vault room is floored apart in the
+         * command floor, the haul stands crated in its corners, and a console stands in the antechamber.
+         */
+        void dressVault(int x0, int y0, int x1, int y1, int partition, int cy) {
+            int[][] buttresses = {{x0 - 1, y0 - 1}, {x0 - 1, y1 + 1}, {x1 + 1, y0 - 1}, {x1 + 1, y1 + 1},
+                    {x0 + 3, y0 - 1}, {x0 + 3, y1 + 1}, {x0 + 7, y0 - 1}, {x0 + 7, y1 + 1},
+                    {x1 + 1, cy - 2}, {x1 + 1, cy + 2}};
+            for (int[] b : buttresses) wall(b[0], b[1], VAULT_WALL, BuildingKind.FORTIFIED);
+            int room = topology.surfaceIndex(VAULT_ROOM_FLOOR);
+            for (int y = y0 + 1; y < y1; y++) for (int x = partition + 1; x < x1; x++) topology.setSurface(x, y, room);
+            prop(HAUL, x1 - 1, y0 + 1);
+            prop(HAUL, x1 - 1, y1 - 1);
+            prop(HAUL, partition + 1, y0 + 1);
+            prop(HAUL, partition + 1, y1 - 1);
+            prop(CONSOLE, x0 + 2, y1 - 1);
         }
 
         // ---- layers --------------------------------------------------------------------------
