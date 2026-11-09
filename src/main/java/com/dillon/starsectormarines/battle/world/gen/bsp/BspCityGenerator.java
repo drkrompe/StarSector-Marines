@@ -13,6 +13,12 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.ruins.DelveCheck;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinedLotsStage;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelveStage;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsKeys;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsLandingStage;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -487,6 +493,59 @@ public final class BspCityGenerator implements MapGenerator {
                 new FrontDepthStage(), new LaneRouteStage());
     }
 
+    /**
+     * A ruins site's ground ({@code ruins-ground.md}): a dead settlement grown at the plan's density with no link
+     * to anything ({@link SettlementLink#NONE}), every lot a ruin, and the delve laid over it before finalize so
+     * its shells and walls are ordinary buildings and walls. No district, compound, market or landing link: none
+     * of them works here.
+     */
+    private GenRecipe ruinsRecipe(RuinsGroundPlan plan) {
+        return new GenRecipe("RuinsGround", List.of(
+                new InitFloorStage(),
+                new GrownTrunkSkeletonStage(GrownTrunkPlan.Profile.of(plan.density(), SettlementLink.NONE)),
+                new BspPartitionStage(),
+                new ZoningOverlayStage(),
+                new LabelLeavesStage(),
+                new RuinedLotsStage(),                      // every lot a ruin; nothing claimed
+                new RoadGraphStage(),
+                new FillDispatchStage(fillers, compoundFillers),
+                new HinterlandFillStage(),
+                new PedestrianFrameStage(),
+                new RuinsDelveStage(),                      // landing, layers, rooms, courts, works, vault
+                new TacticalLinkStage(),
+                new FinalizeStage(),
+                new DoorwayClearanceStage(),
+                new TacticalRegionStage(),
+                new SpawnAnchorStage(),
+                new RuinsLandingStage(),                    // the landing's berths and the spawns
+                new OutdoorLandscapeStage(),
+                new RoadSurfaceStage(),
+                new InteriorAnchorFitStage()));
+    }
+
+    /**
+     * A ruins site's battle ground at the plan's size ({@code ruins-ground.md}). The map carries its
+     * {@link MapResult#ruinsDelve}; {@code profile} supplies the world's surface and nothing else, since a ruin's
+     * size and link are the plan's. A ground that breaks a delve law ({@link DelveCheck}) is a generation error.
+     */
+    @Override
+    public MapResult generateRuins(long seed, TargetProfile profile, RuinsGroundPlan plan) {
+        if (plan == null) throw new IllegalArgumentException("a ruins ground needs its plan");
+        int width = plan.width(), height = plan.height();
+        GenContext ctx = new GenContext(new NavigationGrid(width, height), new CellTopology(width, height),
+                new Random(seed), width, height, seed);
+        ctx.put(BspKeys.MARKET_PROFILE, profile != null ? profile : TargetProfile.NEUTRAL);
+        ctx.put(RuinsKeys.PLAN, plan);
+        ruinsRecipe(plan).run(ctx);
+        MapResult map = assembleResult(ctx);
+        List<String> problems = DelveCheck.problems(map.grid, map.ruinsDelve, plan);
+        if (!problems.isEmpty()) {
+            throw new IllegalStateException("ruins ground seed " + seed + " at " + plan.layers() + " layers: "
+                    + String.join("; ", problems));
+        }
+        return map;
+    }
+
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
         return buildLegacyRecipe(new GrownTrunkSkeletonStage(profile),
                 new HinterlandFillStage(), landingLinkStageFor(profile));
@@ -878,7 +937,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withServiceLanes(ctx.serviceLanes)
                 .withMainStreets(ctx.mainStreets)
                 .withCordonedFacilities(ctx.cordonedFacilities)
-                .withIndustrialZones(ctx.industrialZones);
+                .withIndustrialZones(ctx.industrialZones)
+                .withRuinsDelve(ctx.get(RuinsKeys.DELVE));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

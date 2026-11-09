@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import java.util.Collections;
 import java.util.List;
 
@@ -208,6 +209,11 @@ public final class MapResult {
      * yards' bays and its row's lane; empty on a map with none, and never null.
      */
     public final List<IndustrialZone> industrialZones;
+    /**
+     * A ruins site's delve ({@code ruins-ground.md}): its landing, vault, layers, courts and works sites by name;
+     * null on every map that is not a ruins site's.
+     */
+    public final RuinsDelve ruinsDelve;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -480,67 +486,74 @@ public final class MapResult {
         this.mainStreets = List.of();
         this.cordonedFacilities = List.of();
         this.industrialZones = List.of();
+        this.ruinsDelve = null;
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
     public MapResult withInitialDamage(DamagePlan damage) {
         return new MapResult(this, damage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities, industrialZones);
+                cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the field of fire its landing promised. */
     public MapResult withFieldOfFire(FieldOfFire field) {
         return new MapResult(this, initialDamage, field, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities, industrialZones);
+                cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying what its mission layout laid. */
     public MapResult withLayout(LaidLayout laid) {
         return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid, loadingBays,
-                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the loading bays its set pieces laid. */
     public MapResult withLoadingBays(List<LoadingBay> bays) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, bays == null ? List.of() : List.copyOf(bays),
-                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the open squares its set pieces framed. */
     public MapResult withOpenSquares(List<OpenSquare> squares) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays,
                 squares == null ? List.of() : List.copyOf(squares), serviceLanes, mainStreets, cordonedFacilities,
-                industrialZones);
+                industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the service lanes its factory rows laid. */
     public MapResult withServiceLanes(List<ServiceLane> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares,
-                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities, industrialZones);
+                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the main streets its districts laid. */
     public MapResult withMainStreets(List<MainStreet> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities, industrialZones);
+                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities, industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the cordoned facilities its districts laid. */
     public MapResult withCordonedFacilities(List<CordonedFacility> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, laid == null ? List.of() : List.copyOf(laid), industrialZones);
+                mainStreets, laid == null ? List.of() : List.copyOf(laid), industrialZones, ruinsDelve);
     }
 
     /** The same map, carrying the industrial zones its districts laid. */
     public MapResult withIndustrialZones(List<IndustrialZone> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, cordonedFacilities, laid == null ? List.of() : List.copyOf(laid));
+                mainStreets, cordonedFacilities, laid == null ? List.of() : List.copyOf(laid), ruinsDelve);
+    }
+
+    /** The same map, carrying the delve a ruins site's ground laid. */
+    public MapResult withRuinsDelve(RuinsDelve delve) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
+                mainStreets, cordonedFacilities, industrialZones, delve);
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
                       List<MainStreet> streets, List<CordonedFacility> facilities,
-                      List<IndustrialZone> zones) {
+                      List<IndustrialZone> zones, RuinsDelve delve) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -574,5 +587,6 @@ public final class MapResult {
         mainStreets = streets;
         cordonedFacilities = facilities;
         industrialZones = zones;
+        ruinsDelve = delve;
     }
 }

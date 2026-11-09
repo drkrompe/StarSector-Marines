@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
+
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 /**
@@ -83,5 +85,13 @@ public interface MapGenerator {
             OpeningOperationMapPlan plan) {
         throw new UnsupportedOperationException(getClass().getName()
                 + " cannot build an authored opening-operation place");
+    }
+
+    /**
+     * A ruins site's battle ground ({@code ruins-ground.md}): an abandoned settlement laid as a delve from a
+     * landing area to a vault, at the plan's size, carrying its {@link MapResult#ruinsDelve}.
+     */
+    default MapResult generateRuins(long seed, TargetProfile profile, RuinsGroundPlan plan) {
+        throw new UnsupportedOperationException(getClass().getName() + " cannot build ruins ground");
     }
 }
