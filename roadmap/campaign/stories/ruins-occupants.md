@@ -56,9 +56,10 @@ of the occupant's own kind.
   pressure share from 0.6 to full, so the egress is the peak. A bore's tier is
   capped by grade (`SwarmBores.capTier`): runners only at scattered, brutes and
   spitters from widespread, the maw's heavy strains at extensive and vast. The
-  mission names no faction for the Rav. Rule tests: `RuinsSleepersTest`;
-  played headless in `commanderEvidence -Pmission=ruins` with
-  `ruins-rav-<grade>-v1.json`.
+  mission names no faction for the Rav. Rule tests: `RuinsSleepersTest`.
+  Agents never run these maps to judge them: the owner plays and balances
+  them against a player (owner, 2026-11-09). Fixtures for the owner:
+  `ruins-rav-<grade>-v1.json`, `ruins-nobody-scattered-v1.json`.
 
 ## Slices
 
@@ -68,14 +69,14 @@ of the occupant's own kind.
    that changes over a campaign and stores nothing. Unit-test that it is stable
    across calls, that only a scattered site draws nobody, that a reservoir
    world draws the Rav one time in two, and the theme modifiers.
-2. **Nobody.** (Its side built: no one. The works chain is `ruins-works.md`'s.) An empty site plays the expedition with no opposing side, its
-   way to the vault through the works chain (`ruins-works.md`).
-3. **Rav.** (Built; a `sceneEvidence` scene was not added, as the bore-opening
-   rule is unit-tested where it is decided.) The swarm director's ruins profile: closed bores in the deeper
-   layers that noise and time open, no mother bore, no harvest, no cohort, late
-   strains only at the larger grades, pressure peaking on the egress. It never
-   touches the campaign bloom or the reservoir's rest. `sceneEvidence` for the
-   bore-opening rule; a `commanderEvidence` fixture on the vast grade.
+2. **Nobody.** (Its side built: no one, proved in `RuinsDefenceTest`. The works
+   chain is `ruins-works.md`'s.) An empty site plays the expedition with no
+   opposing side, its way to the vault through the works chain.
+3. **Rav.** (Built; the bore-opening rule is unit-tested where it is decided.)
+   The swarm director's ruins profile: closed bores in the deeper layers that
+   noise and time open, no mother bore, no harvest, no cohort, late strains
+   only at the larger grades, pressure peaking on the egress. It never touches
+   the campaign bloom or the reservoir's rest.
 4. **Derelict security.** Built: a derelict occupant's `createRuins` calls
    `DerelictSecurity.install` in place of the generic squads and
    `ExtractionDefenderCommand`, and the mission names the occupant's faction
