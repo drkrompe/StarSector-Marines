@@ -14,8 +14,9 @@ package com.dillon.starsectormarines.battle.world.gen.ruins;
  * @param width   map width in cells
  * @param height  map height in cells
  * @param density how densely the dead settlement was built, on the 0..1 scale grown settlements take
+ * @param dressing what the interior wears for the site's vault prize ({@link RuinsDressing}); never null
  */
-public record RuinsGroundPlan(int layers, int width, int height, float density) {
+public record RuinsGroundPlan(int layers, int width, int height, float density, RuinsDressing dressing) {
 
     /** The deepest delve: vast ruins. */
     public static final int MAX_LAYERS = 4;
@@ -25,6 +26,17 @@ public record RuinsGroundPlan(int layers, int width, int height, float density) 
             throw new IllegalArgumentException("a ruins delve has 1 to " + MAX_LAYERS + " layers, not " + layers);
         }
         if (width < 96 || height < 56) throw new IllegalArgumentException("ruins ground needs at least 96x56");
+        if (dressing == null) dressing = RuinsDressing.NONE;
+    }
+
+    /** Plain ground, as the ruins stand. */
+    public RuinsGroundPlan(int layers, int width, int height, float density) {
+        this(layers, width, height, density, RuinsDressing.NONE);
+    }
+
+    /** The same ground wearing {@code dressing}. */
+    public RuinsGroundPlan withDressing(RuinsDressing dressing) {
+        return new RuinsGroundPlan(layers, width, height, density, dressing);
     }
 
     /**

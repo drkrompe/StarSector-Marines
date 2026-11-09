@@ -22,6 +22,14 @@ final class DerelictWalkerComposer {
     static final float TORSO_HEIGHT_GROWTH = 0.45f;
     /** The knee joint drawn a little wider than the segments it joins, so it reads as the pivot. */
     static final float JOINT_SCALE = 1.15f;
+    /** A lost leg's shin, darkened. */
+    static final float LOST_SHADE = 0.55f;
+    /** A lost knee's joint, burnt orange. */
+    static final float[] LOST_KNEE = {1f, 0.48f, 0.24f};
+    /** The LEGS marker's pips: size and gap in px, and how far above the body it stands, cells. */
+    static final float PIP_PX = 14f;
+    static final float PIP_GAP_PX = 5f;
+    static final float MARKER_CELLS = 1.6f;
 
     private DerelictWalkerComposer() {
     }
@@ -43,14 +51,21 @@ final class DerelictWalkerComposer {
                 float hy = rig.hipY(i);
                 float hipZ = DerelictLegPose.HIP_HEIGHT_CELLS + rig.bodyHeight();
                 DerelictLegPose.knee(hx, hy, hipZ, rig.footX(i), rig.footY(i), footHeight, knee);
+                // A lost leg is scorched below its broken knee.
+                float shade = rig.lost(i) ? LOST_SHADE : 1f;
                 bone(out, art.shin, cam, knee[0], knee[1], rig.footX(i), rig.footY(i), (knee[2] + footHeight) / 2f,
-                        alpha);
-                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, alpha);
+                        shade, alpha);
+                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, 1f, alpha);
                 float joint = art.joint.pxWidth / DerelictWalkerAssets.PX_PER_CELL * JOINT_SCALE * cam.cellPxSize()
                         * (1f + HEIGHT_GROWTH * knee[2]);
                 float legAngle = (float) Math.toDegrees(Math.atan2(-(rig.footX(i) - hx), rig.footY(i) - hy));
-                out.add(art.joint, cam.cellToScreenX(knee[0]), cam.cellToScreenY(knee[1]), joint, joint, legAngle,
-                        1f, 1f, 1f, alpha);
+                if (rig.lost(i)) {
+                    out.add(art.joint, cam.cellToScreenX(knee[0]), cam.cellToScreenY(knee[1]), joint, joint, legAngle,
+                            LOST_KNEE[0], LOST_KNEE[1], LOST_KNEE[2], alpha);
+                } else {
+                    out.add(art.joint, cam.cellToScreenX(knee[0]), cam.cellToScreenY(knee[1]), joint, joint, legAngle,
+                            1f, 1f, 1f, alpha);
+                }
             }
         }
         float ppc = cam.cellPxSize();
@@ -62,11 +77,36 @@ final class DerelictWalkerComposer {
     }
 
     /**
+     * The LEGS marker over a walker that has lost a knee: a pip a leg, green while it stands and red once lost, in a
+     * dark frame. Nothing over a whole walker.
+     */
+    static void marker(DrawList out, DerelictLegRig rig, BattleCamera cam, float alpha) {
+        int lost = 0;
+        for (int i = 0; i < rig.legs(); i++) if (rig.lost(i)) lost++;
+        if (lost == 0) return;
+        float cx = cam.cellToScreenX(rig.bodyX());
+        // Screen y runs up.
+        float cy = cam.cellToScreenY(rig.bodyY()) + MARKER_CELLS * cam.cellPxSize();
+        float width = rig.legs() * PIP_PX + (rig.legs() - 1) * PIP_GAP_PX;
+        float x = cx - width / 2f;
+        out.addSolidRect(RenderLayer.UNITS, x - 3f, cy - 3f, x + width + 3f, cy + PIP_PX + 3f, 0.06f, 0.06f, 0.07f,
+                0.85f * alpha);
+        // Pips left to right: front left, rear left, rear right, front right, as the legs stand round the body.
+        int[] order = {0, 1, 2, 3};
+        for (int k = 0; k < order.length; k++) {
+            boolean gone = rig.lost(order[k]);
+            float px = x + k * (PIP_PX + PIP_GAP_PX);
+            out.addSolidRect(RenderLayer.UNITS, px, cy, px + PIP_PX, cy + PIP_PX,
+                    gone ? 0.92f : 0.30f, gone ? 0.25f : 0.82f, gone ? 0.20f : 0.38f, alpha);
+        }
+    }
+
+    /**
      * One leg part from its root joint at (x0, y0) to its far end at (x1, y1), cells: its root joint centred on the
      * root, its length the seen distance (a part reaching up or down looks shorter from above), its width as authored.
      */
     private static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
-                             float x0, float y0, float x1, float y1, float height, float alpha) {
+                             float x0, float y0, float x1, float y1, float height, float shade, float alpha) {
         float dx = x1 - x0;
         float dy = y1 - y0;
         float seen = (float) Math.sqrt(dx * dx + dy * dy);
@@ -82,6 +122,6 @@ final class DerelictWalkerComposer {
         // Sprites are authored head-up: turned so the part's top lies along root to far end (0 = +y, counter-clockwise).
         float angle = (float) Math.toDegrees(Math.atan2(-dx, dy));
         out.add(part, cam.cellToScreenX(cx), cam.cellToScreenY(cy), width, length * ppc * grow, angle,
-                1f, 1f, 1f, alpha);
+                shade, shade * 0.92f, shade * 0.88f, alpha);
     }
 }

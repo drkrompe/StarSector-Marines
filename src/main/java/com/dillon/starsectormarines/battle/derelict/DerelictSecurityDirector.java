@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Report;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Kind;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Order;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.FxHash;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -110,6 +112,8 @@ public final class DerelictSecurityDirector {
         float lastY = Float.NaN;
         float[] cycles = new float[0];
         int hits;
+        /** Knees whose loss has already burst, a bit a leg. */
+        int burst;
 
         Body(VaultFrameBrace brace) {
             this.brace = brace;
@@ -156,11 +160,13 @@ public final class DerelictSecurityDirector {
         if (!world.hasMechLoadout(target)) return 1f;
         float dx = world.x(attacker) - world.x(target);
         float dy = world.y(attacker) - world.y(target);
+        // The guns' frame for the brace; the legs hang off the hips, so the knees read the hips' frame.
         float bearing = VaultFrameBrace.bearing(world.mechLoadout(target).torsoFacingDegrees, dx, dy);
+        float legBearing = VaultFrameBrace.bearing(world.mechHipFacingDegrees(target), dx, dy);
         boolean downed = body.knees.downed();
         boolean under = !downed && WalkerFootprint.under(dx, dy);
         boolean braced = body.brace != null && body.brace.stance() == VaultFrameBrace.Stance.BRACED;
-        if (!downed && body.knees.hit(bearing, braced, under, roll(target, attacker, body.hits++), damage) == 0f) {
+        if (!downed && body.knees.hit(legBearing, braced, under, roll(target, attacker, body.hits++), damage) == 0f) {
             return 0f;
         }
         if (body.knees.downed()) return WalkerKnees.DOWNED_SCALE;
@@ -179,14 +185,24 @@ public final class DerelictSecurityDirector {
         return (h >>> 40) / (float) (1 << 24);
     }
 
-    /** Every tick: each vault frame braces or comes free, and its guns cycle at its stance's rate. */
+    /** Ticks between sparks off a lost knee (about a third of a second). */
+    static final int KNEE_SPARK_TICKS = 10;
+
+    /**
+     * Every tick: a lost knee bursts once and throws sparks while the walker stands (presentation only, its cadence
+     * hashed from the walker and the tick, never the battle's random stream), and each vault frame braces or comes
+     * free, its guns cycling at its stance's rate.
+     */
     private void tickBodies(BattleSimulation sim) {
         World world = sim.world();
+        int tick = sim.getSimTickIndex();
         for (Map.Entry<Long, Body> entry : bodies.entrySet()) {
             long id = entry.getKey();
             Body body = entry.getValue();
-            if (body.brace == null || sim.resolveUnit(id) == 0L || !world.hasMechLoadout(id)) continue;
+            if (sim.resolveUnit(id) == 0L || !world.hasMechLoadout(id)) continue;
             MechLoadoutComponent mech = world.mechLoadout(id);
+            sparkKnees(sim, id, body, world.mechHipFacingDegrees(id), tick);
+            if (body.brace == null) continue;
             float x = world.x(id);
             float y = world.y(id);
             boolean moving = !Float.isNaN(body.lastX)
@@ -208,6 +224,28 @@ public final class DerelictSecurityDirector {
                 mount.cycleRemaining = VaultFrameBrace.stretch(body.cycles[i], mount.cycleRemaining,
                         body.brace.fireScale());
                 body.cycles[i] = mount.cycleRemaining;
+            }
+        }
+    }
+
+    private static void sparkKnees(BattleSimulation sim, long id, Body body, float facing, int tick) {
+        if (body.knees.lostCount() == 0) return;
+        EffectsService effects = sim.effects();
+        World world = sim.world();
+        for (int leg = 0; leg < WalkerKnees.LEGS; leg++) {
+            if (!body.knees.lost(leg)) continue;
+            float[] knee = WalkerKnees.kneeAt(world.x(id), world.y(id), facing, leg);
+            float dx = knee[0] - world.x(id);
+            float dy = knee[1] - world.y(id);
+            float d = Math.max(1e-3f, (float) Math.hypot(dx, dy));
+            int bit = 1 << leg;
+            if ((body.burst & bit) == 0) {
+                body.burst |= bit;
+                // The moment it goes: a flare and a puff at the knee.
+                effects.emitFireBurst(knee[0], knee[1], 0.6f);
+                effects.emitSmokePuff(knee[0], knee[1], 0.5f);
+            } else if (FxHash.onCadence(id, tick, KNEE_SPARK_TICKS, 0x4b + leg)) {
+                effects.emitClawStrike(knee[0], knee[1], dx / d, dy / d, 0f);
             }
         }
     }
@@ -242,7 +280,7 @@ public final class DerelictSecurityDirector {
             if (body == null || body.knees.downed()) return 0;
             World world = sim.world();
             if (!world.hasMechLoadout(unit)) return 0;
-            return WalkerFootprint.feet(world.x(unit), world.y(unit), world.mechLoadout(unit).torsoFacingDegrees, out);
+            return WalkerFootprint.feet(world.x(unit), world.y(unit), world.mechHipFacingDegrees(unit), out);
         }
 
         @Override public boolean fitsUnder(long unit) {

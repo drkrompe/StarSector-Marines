@@ -56,6 +56,8 @@ public final class RuinsDelveWatch {
     private final UncontestedHold[] stands;
     private final List<String> signs;
     private final long seed;
+    /** The vault prize's sign, read in place of the occupant's at the stand before the vault's layer; null for none. */
+    private String vaultSign;
 
     private final Set<Long> landed = new HashSet<>();
     private final Set<Long> machines = new HashSet<>();
@@ -117,6 +119,20 @@ public final class RuinsDelveWatch {
     static Band band(int hostiles, boolean vaultLayer) {
         if (vaultLayer || hostiles > HELD_AT_MOST) return Band.STRONGLY_HELD;
         return hostiles > QUIET_AT_MOST ? Band.HELD : Band.QUIET;
+    }
+
+    /**
+     * Names the vault prize's sign ({@code ruins-expedition.md}, The vault and its prize): the close reading of the
+     * vault's layer tells what the site was built round, the tell the survey promised seen up close.
+     */
+    public RuinsDelveWatch withVaultSign(String key) {
+        vaultSign = key;
+        return this;
+    }
+
+    /** The sign a stand reads of layer {@code next}: the vault's own at the last layer when it has one. */
+    static String signAt(List<String> signs, String vaultSign, long seed, int next, int layers) {
+        return vaultSign != null && next == layers - 1 ? vaultSign : sign(signs, seed, next);
     }
 
     /** The occupant's sign in a layer: one reading of the pool, the same for the same battle and layer. */
@@ -184,7 +200,7 @@ public final class RuinsDelveWatch {
         String signKey = null;
         if (next < layers) {
             bandKey = band(hostilesIn(sim, grounds[next]), next == layers - 1).key;
-            signKey = sign(signs, seed, next);
+            signKey = signAt(signs, vaultSign, seed, next, layers);
         }
         stand = new Stand(where, lost - lostAtStand, machinesLost - machinesLostAtStand, finds - findsAtStand,
                 bandKey, signKey);

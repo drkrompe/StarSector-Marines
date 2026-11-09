@@ -42,6 +42,16 @@ class RuinsDelveWatchTest {
     }
 
     @Test
+    void theVaultsLayerReadsThePrizesSignAndEveryOtherTheOccupants() {
+        assertEquals("ruinsInsideServerHall", RuinsDelveWatch.signAt(SIGNS, "ruinsInsideServerHall", 77L, 3, 4));
+        for (int layer = 0; layer < 3; layer++) {
+            assertEquals(RuinsDelveWatch.sign(SIGNS, 77L, layer),
+                    RuinsDelveWatch.signAt(SIGNS, "ruinsInsideServerHall", 77L, layer, 4));
+        }
+        assertEquals(RuinsDelveWatch.sign(SIGNS, 77L, 3), RuinsDelveWatch.signAt(SIGNS, null, 77L, 3, 4));
+    }
+
+    @Test
     void takingTheEntryAndThenALayersJunctionAreStandsWithTheirTallies() {
         NavigationGrid grid = new NavigationGrid(20, 20);
         for (int y = 0; y < 20; y++) for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
