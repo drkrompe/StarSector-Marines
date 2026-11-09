@@ -201,9 +201,10 @@ public final class RaidSiteTemplate {
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
             briefs.add(PrecinctBrief.garrison(GARRISON, oriented(GARRISON_AT, mirrorX, mirrorY),
-                    GrownTrunkPlan.Profile.hamlet(),
-                    PrecinctPlan.garrisonFor(profile).fittedTo(Math.round(PrecinctPlan.FIT * width * height)),
-                    demand.resolve(profile.defenseLevel())));
+                    PrecinctPlan.raidGarrisonGrowth(),
+                    PrecinctPlan.raidGarrison(profile, security.ordinal())
+                            .fittedTo(Math.round(PrecinctPlan.FIT * width * height)),
+                    PrecinctPlan.raidGarrisonWall(demand.resolve(profile.defenseLevel()), security.buffer())));
         }
         briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
