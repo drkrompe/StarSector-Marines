@@ -764,17 +764,13 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, RuinsGrade grade, RuinsOccupant occupant) {
-        // The occupant chooses the defenders ({@code ruins-expedition.md}, Occupants): the scavengers' crew,
-        // derelict security's walkers under the security-network director (derelict-security-network.md), or the
-        // Rav's sleepers under the swarm director (RuinsSleepers). An empty site's works chain (ruins-works.md) is
-        // not built, so it plays the scavengers' battle, and RuinsExpeditionMissionFactory names their faction.
-        if (occupant == RuinsOccupant.NOBODY) {
-            LOG.info("createRuins: NOBODY has no battle side yet; the scavengers' stand-in plays");
-        }
+        // The occupant alone chooses the defenders (RuinsDefence): the scavengers' crew, derelict security's walkers
+        // under the security-network director (derelict-security-network.md), the Rav's sleepers under the swarm
+        // director (RuinsSleepers), or, on an empty site, no one: its works are the expedition (ruins-works.md).
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                occupant == RuinsOccupant.SCAVENGERS || occupant == RuinsOccupant.NOBODY
+                RuinsDefence.of(occupant) == RuinsDefence.CREW
                         ? RuinsCrew.of(grade, GroundRosterRegistry.resolve(RuinsCrew.FACTION_ID)) : null);
     }
 
@@ -1205,9 +1201,10 @@ public final class BattleSetup {
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew) {
-        boolean occupied = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null;
-        boolean liveRuin = occupied && ruinsOccupant.isDerelict();
-        boolean ravRuin = occupied && ruinsOccupant == RuinsOccupant.RAV;
+        RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
+                ? RuinsDefence.of(ruinsOccupant) : null;
+        boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
+        boolean ravRuin = ruinsDefence == RuinsDefence.SLEEPERS;
         // A scavenger crew is on the pirate roster, whoever once owned the world.
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
@@ -1243,6 +1240,9 @@ public final class BattleSetup {
         DefenderForcePlan defenders = coldAccount
                 ? new DefenderForcePlan(ColdAccountForce.roster(risk), List.copyOf(defensePosts), FlybyRoster.EMPTY)
                 : ruinsCrew != null ? new DefenderForcePlan(ruinsCrew.roster(), List.of(), FlybyRoster.EMPTY)
+                // Any other occupant brings its own side, or none: no generic squads, emplacements or air.
+                : ruinsDefence != null ? new DefenderForcePlan(
+                        DefenderRoster.explicit(0, 0, List.of(), 1, risk), List.of(), FlybyRoster.EMPTY)
                 : defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
@@ -1357,7 +1357,7 @@ public final class BattleSetup {
         if (ruinsCrew != null) {
             allocateRuinsCrew(sim, map, ruinsCrew, groundRoster, rng,
                     ruinsLayout.liftPoints().get(0).route(), ruinsCamp);
-        } else if (!liveRuin && !ravRuin) {
+        } else if (ruinsDefence == null) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
         }
@@ -1431,7 +1431,7 @@ public final class BattleSetup {
             else if (ruinsCrew != null) sim.setAutonomousCommander(Faction.DEFENDER,
                     new RuinsCrewCommand(extractionMobileSquads, ruinsCamp[0], ruinsCamp[1]),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
-            else sim.setAutonomousCommander(Faction.DEFENDER,
+            else if (ruinsDefence != RuinsDefence.NONE) sim.setAutonomousCommander(Faction.DEFENDER,
                     new ExtractionDefenderCommand(extractionMobileSquads),
                     ExtractionDefenderCommandDisclosure.INSTANCE);
         }
