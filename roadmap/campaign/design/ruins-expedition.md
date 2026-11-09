@@ -655,6 +655,16 @@ caches, one more than its stake. Goods (three supply bundles) and tech (two tech
 caches) pay the same either way. The better the prize, the more the power
 puzzle is worth solving, and nothing is lost outright.
 
+**Paying it.** The battle records whether the seal had power when the breach
+was held (`RuinsVaultObjective.vaultPoweredAtBreach`, carried on
+`MissionOutcome.ruinsVaultPowered`). When a won expedition's record is written,
+`RuinsPrizeSettlement` pays the prize into the fleet's cargo, once:
+- A colony item as vanilla's special item.
+- A core as its commodity.
+- Goods as supply bundles.
+- Each tech cache as one roll of its drop group through vanilla's salvage
+  roller, rerolled past `nothing`.
+
 **The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
 a). A site built round a core or a colony item keeps the guns that once kept
 it: one at a scattered site, one more per grade up to four at a vast one. They

@@ -107,6 +107,7 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     private int entry = -1;
     private float entrySeconds = -1f;
     private boolean powered;
+    private boolean poweredAtBreach;
     private boolean complete;
     private boolean failed;
     private Failure failure = Failure.NONE;
@@ -199,6 +200,8 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     private void tickBreach(BattleView sim) {
         int zone = sim.getZoneGraph().zoneIdAt(sourceCellX(), sourceCellY());
         breach.tick(sim, sourceCellX(), sourceCellY(), VAULT_RADIUS, zone >= 0 ? zone : vaultZoneId);
+        // Whether power reached the seal decides whether the prize comes out whole (ruins-prize-forced a).
+        if (breach.held()) poweredAtBreach = powered;
         report(breach.contested(), breach.escortPresent(), breach.controllingSquadId());
         if (escortPresent && alarmTick < 0) alarmTick = sim.getSimTickIndex();
     }
@@ -273,6 +276,8 @@ public final class RuinsVaultObjective implements ExtractionPayloadObjective {
     /** The lift point the haul is bound for. */
     public int destination() { return destination; }
     public boolean vaultPowered() { return powered; }
+    /** Whether power reached the vault's seal when the breach was held; false before the breach. */
+    public boolean vaultPoweredAtBreach() { return poweredAtBreach; }
     public boolean breached() { return breach.held(); }
     public float breachProgress() { return breach.progress(); }
     public float breachDuration() { return breach.duration(); }
