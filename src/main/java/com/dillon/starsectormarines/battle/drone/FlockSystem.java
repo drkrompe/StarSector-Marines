@@ -11,13 +11,17 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Keeps every {@link Flock} on the field, in the serial part of the tick: forgets members shot down, sends a flock
+ * Keeps every {@link Flock} on the field, in the serial part of the tick: forgets members shot down, has its cradle
+ * rebuild them slowly while the flock is home ({@link FlockCradle}), sends a flock
  * home when it is under a third of its strength, moves each anchor for its task, rebuilds the field its members
  * descend when the anchor's cell has changed, publishes the roster the members read, and gathers what the members
  * see for the commander.
@@ -25,8 +29,9 @@ import java.util.List;
  * <p>The anchor moves at {@link #ANCHOR_SPEED}, slower than a member flies, and waits while the flock's centre is more
  * than {@link #LAG_CELLS} behind the open cell the field leads to, so a body split round a building is not left behind by its own anchor. On a
  * strike the anchor sits on the target, or on its threshold when the target is under a roof: the open cell where
- * the target's way out meets open ground, so a flock waits at a doorway or breach and never goes in. The field is integrated from the open cell nearest the anchor, so a target
- * under a roof is wrapped from the open ground round it and never reached.
+ * the target's way out meets open ground, so a flock waits at a doorway or breach and never goes in. Any other goal
+ * under a roof (a station, a route point, a home inside a megastructure) is held at its threshold the same way. The
+ * field is integrated from the open cell nearest the anchor.
  */
 public final class FlockSystem {
 
@@ -70,27 +75,62 @@ public final class FlockSystem {
 
     /**
      * Puts a flock of {@code count} swarm drones up at {@code (x, y)} for {@code side}, homed there, on a leash of
-     * {@code leashCells}; it starts screening its home. Members are placed on open cells round the point.
+     * {@code leashCells}; it starts screening its home. Members are placed on open cells round the point. A point under
+     * a roof (a zone node inside a megastructure) puts the flock up at its threshold instead, the entrance its ground
+     * route out comes to, and that is its home.
      */
     public Flock launch(BattleSimulation sim, Faction side, float x, float y, int count, FlockWeights weights,
                         float leashCells) {
+        NavigationGrid grid = sim.getGrid();
+        FlockField.Open open = sky(sim);
+        // A flock is put up outside: a launch point under a roof moves to its threshold, which is then its home.
+        FlockField.Open walk = (cx, cy) -> grid.inBounds(cx, cy) && grid.isWalkable(cx, cy);
+        int[] door = null;
+        if (!open.open((int) Math.floor(x), (int) Math.floor(y))) {
+            // Each flock of a side takes its own entrance where there is more than one; a lone door is shared.
+            FlockField.Open unheld = (cx, cy) -> open.open(cx, cy) && !held(side, cx + .5f, cy + .5f);
+            door = FlockField.threshold((int) Math.floor(x), (int) Math.floor(y), reach(grid), walk, unheld);
+            if (door == null) door = FlockField.threshold((int) Math.floor(x), (int) Math.floor(y), reach(grid), walk, open);
+        }
+        if (door != null) {
+            x = door[0] + .5f;
+            y = door[1] + .5f;
+        }
         Flock flock = new Flock(nextFlock++, side, weights, x, y, leashCells);
         flock.squadId = sim.mintSquad(side, UnitType.DRONE);
         sim.getSquad(flock.squadId).droneAnchor = flock;
-        FlockField.Open open = open(sim.getGrid(), sim.getTopology());
-        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
-        int placed = 0;
-        for (int r = 0; r <= LAUNCH_SEARCH && placed < count; r++) {
-            for (int dy = -r; dy <= r && placed < count; dy++) {
-                for (int dx = -r; dx <= r && placed < count; dx++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r || !open.open(cx + dx, cy + dy)) continue;
-                    if (spawnMember(sim, flock, cx + dx, cy + dy) != 0L) placed++;
-                }
-            }
+        // Members go up on the open cells nearest home by the open ground itself, so a cradle at a cramped entrance
+        // fills from the street beyond it rather than from cells behind a wall; cells are shared when there are few.
+        List<int[]> cells = openAround((int) Math.floor(x), (int) Math.floor(y), open, count);
+        for (int i = 0; i < count && !cells.isEmpty(); i++) {
+            int[] cell = cells.get(i % cells.size());
+            spawnMember(sim, flock, cell[0], cell[1]);
         }
         flocks.add(flock);
+        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side,
+                (int) Math.floor(x), (int) Math.floor(y)));
         publish(flock, sim, true);
         return flock;
+    }
+
+    /** How near another flock's home an entrance counts as already held, cells. */
+    static final float HELD_CELLS = 8f;
+
+    private boolean held(Faction side, float x, float y) {
+        for (Flock other : flocks) {
+            if (other.side() == side && Math.hypot(other.homeX() - x, other.homeY() - y) <= HELD_CELLS) return true;
+        }
+        return false;
+    }
+
+    /** One rebuilt drone from the cradle joins the flock when its clock says so. */
+    void rebuild(Flock flock, float dt, BattleSimulation sim) {
+        boolean cradle = flock.cradleId != 0L && sim.resolveUnit(flock.cradleId) != 0L;
+        boolean home = Math.hypot(flock.anchorX() - flock.homeX(), flock.anchorY() - flock.homeY())
+                <= FlockCradle.HOME_CELLS;
+        if (!flock.rebuild.advance(dt, cradle, flock.nodeStands(), home, flock.size(), flock.strength())) return;
+        int[] cell = nearestOpen(flock.homeX(), flock.homeY(), sky(sim), LAUNCH_SEARCH);
+        if (cell != null) spawnMember(sim, flock, cell[0], cell[1]);
     }
 
     private long spawnMember(BattleSimulation sim, Flock flock, int cx, int cy) {
@@ -114,6 +154,7 @@ public final class FlockSystem {
         for (Iterator<Flock> it = flocks.iterator(); it.hasNext(); ) {
             Flock flock = it.next();
             flock.members.removeIf(m -> sim.resolveUnit(m) == 0L);
+            rebuild(flock, dt, sim);
             if (flock.members.isEmpty()) {
                 flock.disband();
                 it.remove();
@@ -134,7 +175,7 @@ public final class FlockSystem {
         }
     }
 
-    private static void moveAnchor(Flock flock, float dt, BattleSimulation sim) {
+    private void moveAnchor(Flock flock, float dt, BattleSimulation sim) {
         World world = sim.world();
         float tx = flock.anchorX(), ty = flock.anchorY();
         FlockTask task = flock.task();
@@ -157,6 +198,10 @@ public final class FlockSystem {
             }
             return;
         }
+        // A station, route point or home under a roof is kept from its threshold: a flock homed on a zone inside a
+        // megastructure waits at the entrance its ground route out comes to, and never goes in.
+        int[] door = threshold(flock, goal[0], goal[1], sim);
+        if (door != null) goal = new float[]{door[0] + .5f, door[1] + .5f};
         // The lag is to where the members are actually flying: the field's source, the open cell nearest the anchor.
         // Measured to the anchor itself, an anchor over a roof would wait for a flock that can never reach it.
         float[] centre = centre(flock, world);
@@ -177,12 +222,12 @@ public final class FlockSystem {
 
     /**
      * Where a strike on a target under a roof is held: the open cell where the target's way out by the ground meets
-     * open ground ({@link FlockField#threshold}). Null when the target stands in the open, or has no way out within
+     * open ground ({@link FlockField#threshold}). Null when the target stands in the open, or has no way out at all,
      * the field's reach, when the anchor sits on it as on any strike.
      */
-    private static int[] threshold(Flock flock, float tx, float ty, BattleSimulation sim) {
+    private int[] threshold(Flock flock, float tx, float ty, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        FlockField.Open open = open(grid, sim.getTopology());
+        FlockField.Open open = sky(sim);
         int cx = (int) Math.floor(tx), cy = (int) Math.floor(ty);
         if (open.open(cx, cy)) {
             flock.threshold = null;
@@ -191,7 +236,7 @@ public final class FlockSystem {
             return null;
         }
         if (cx != flock.thresholdForX || cy != flock.thresholdForY) {
-            flock.threshold = FlockField.threshold(cx, cy, FIELD_RADIUS,
+            flock.threshold = FlockField.threshold(cx, cy, reach(grid),
                     (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y), open);
             flock.thresholdForX = cx;
             flock.thresholdForY = cy;
@@ -208,7 +253,7 @@ public final class FlockSystem {
         return new float[]{sx / flock.size(), sy / flock.size()};
     }
 
-    private static void publish(Flock flock, BattleSimulation sim, boolean force) {
+    private void publish(Flock flock, BattleSimulation sim, boolean force) {
         World world = sim.world();
         int n = flock.size();
         long[] ids = new long[n];
@@ -223,7 +268,7 @@ public final class FlockSystem {
             vel[2 * i] = body != null ? body.vx : 0f;
             vel[2 * i + 1] = body != null ? body.vy : 0f;
         }
-        FlockField.Open open = open(sim.getGrid(), sim.getTopology());
+        FlockField.Open open = sky(sim);
         int[] source = nearestOpen(flock.anchorX(), flock.anchorY(), open, FIELD_RADIUS / 2);
         FlockField field = flock.field();
         int tick = sim.getSimTickIndex();
@@ -239,6 +284,95 @@ public final class FlockSystem {
         // with no orbit ring to fly round a room they cannot enter.
         long strike = striking && flock.threshold == null ? target : 0L;
         flock.publish(ids, at, vel, field, strike, target);
+    }
+
+    /** A threshold is searched across the whole map: a megastructure's deepest hall may be far from its door. */
+    static int reach(NavigationGrid grid) {
+        return Math.max(grid.getWidth(), grid.getHeight());
+    }
+
+    /** How often the outside is labelled again, ticks: a roof brought down can join a light well to it. */
+    static final int SKY_TICKS = 600;
+    private NavigationGrid skyGrid;
+    private int skyTick = Integer.MIN_VALUE / 2;
+    private boolean[] outside;
+
+    /**
+     * Where a flock may be: open cells of the <b>outside</b>, the largest body of open ground on the map. A light well
+     * or court inside a megastructure is open sky but reached only through its roofed halls, so it is not the
+     * outside, and a flock is never put up, stationed or held there.
+     */
+    FlockField.Open sky(BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        FlockField.Open open = open(grid, sim.getTopology());
+        int tick = sim.getSimTickIndex();
+        if (grid != skyGrid || tick - skyTick >= SKY_TICKS) {
+            outside = outside(grid.getWidth(), grid.getHeight(), open);
+            skyGrid = grid;
+            skyTick = tick;
+        }
+        boolean[] mask = outside;
+        int width = grid.getWidth();
+        return (x, y) -> open.open(x, y) && mask[y * width + x];
+    }
+
+    /** The cells of the largest 4-connected body of {@code open} cells in a {@code width x height} grid. */
+    static boolean[] outside(int width, int height, FlockField.Open open) {
+        int[] label = new int[width * height];
+        int best = 0, bestSize = 0, next = 0;
+        int[] queue = new int[width * height];
+        for (int start = 0; start < label.length; start++) {
+            if (label[start] != 0 || !open.open(start % width, start / width)) continue;
+            int id = ++next, head = 0, tail = 0;
+            label[start] = id;
+            queue[tail++] = start;
+            while (head < tail) {
+                int c = queue[head++], x = c % width, y = c / width;
+                if (x > 0) tail = visit(c - 1, x - 1, y, id, label, queue, tail, open);
+                if (x < width - 1) tail = visit(c + 1, x + 1, y, id, label, queue, tail, open);
+                if (y > 0) tail = visit(c - width, x, y - 1, id, label, queue, tail, open);
+                if (y < height - 1) tail = visit(c + width, x, y + 1, id, label, queue, tail, open);
+            }
+            if (tail > bestSize) {
+                bestSize = tail;
+                best = id;
+            }
+        }
+        boolean[] out = new boolean[label.length];
+        for (int i = 0; i < label.length; i++) out[i] = best != 0 && label[i] == best;
+        return out;
+    }
+
+    private static int visit(int c, int x, int y, int id, int[] label, int[] queue, int tail, FlockField.Open open) {
+        if (label[c] != 0 || !open.open(x, y)) return tail;
+        label[c] = id;
+        queue[tail] = c;
+        return tail + 1;
+    }
+
+    /** Up to {@code max} open cells reached from {@code (x, y)} over open ground, nearest first; empty if it is closed. */
+    static List<int[]> openAround(int x, int y, FlockField.Open open, int max) {
+        List<int[]> out = new ArrayList<>();
+        if (!open.open(x, y)) {
+            int[] near = nearestOpen(x + .5f, y + .5f, open, LAUNCH_SEARCH);
+            if (near == null) return out;
+            x = near[0];
+            y = near[1];
+        }
+        ArrayDeque<int[]> frontier = new ArrayDeque<>();
+        Set<Long> seen = new HashSet<>();
+        frontier.add(new int[]{x, y});
+        seen.add(((long) x << 32) ^ (y & 0xffffffffL));
+        while (!frontier.isEmpty() && out.size() < max) {
+            int[] c = frontier.poll();
+            out.add(c);
+            for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int nx = c[0] + d[0], ny = c[1] + d[1];
+                if (!open.open(nx, ny) || !seen.add(((long) nx << 32) ^ (ny & 0xffffffffL))) continue;
+                frontier.add(new int[]{nx, ny});
+            }
+        }
+        return out;
     }
 
     /** The open cell nearest {@code (x, y)} within {@code maxRadius} rings, or null. */

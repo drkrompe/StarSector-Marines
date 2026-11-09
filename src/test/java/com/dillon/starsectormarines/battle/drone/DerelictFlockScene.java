@@ -30,6 +30,9 @@ import java.util.Set;
  * behind a partition that hides them from it; the flock holds at the door, the threshold of the team's way out, and
  * never comes in.
  *
+ * <p>{@code rebuild}: a flock cut to half strength goes home and its cradle rebuilds it, a drone at a time;
+ * {@code rebuild-no-cradle} is the control with the cradle destroyed.
+ *
  * <p>Each verdict is the mechanism: no member ever in a closed cell, members on both sides of the building at once,
  * the body together again past it, the strike ring round the target on several sides, rounds fired. Who wins is a
  * reading.
@@ -39,6 +42,9 @@ public final class DerelictFlockScene implements BehaviorScene {
     public static final String SPLIT = "split";
     public static final String STRIKE_OPEN = "strike-open";
     public static final String STRIKE_INDOORS = "strike-indoors";
+    public static final String REBUILD = "rebuild";
+    public static final String REBUILD_NO_CRADLE = "rebuild-no-cradle";
+    private static final int REBUILD_TICKS = 1800;
 
     static final int WIDTH = 96;
     static final int HEIGHT = 56;
@@ -84,6 +90,8 @@ public final class DerelictFlockScene implements BehaviorScene {
         reports.add(split(frames));
         reports.add(strike(STRIKE_OPEN, false, frames));
         reports.add(strike(STRIKE_INDOORS, true, frames));
+        reports.add(rebuild(REBUILD, true, frames));
+        reports.add(rebuild(REBUILD_NO_CRADLE, false, frames));
         return reports;
     }
 
@@ -144,6 +152,10 @@ public final class DerelictFlockScene implements BehaviorScene {
                     .wall(60, R_Y0, 60, 31);
         }
         b.squad("team").faction(Faction.MARINE).size(4).inFile(teamX, teamY, 1, 0).primary(RIFLE).stationary().done();
+        // The strike's target: a marker that outlives the fight, so the ring is measured for as long as the strike
+        // runs rather than for as long as the team does.
+        if (!indoors) b.unit("marker", Faction.MARINE, UnitType.MARINE, teamX, teamY - 2,
+                spec -> spec.moveSpeed(0f).health(1.0e5f));
         holdouts(b);
         SceneWorld world = b.build();
         BattleSimulation sim = world.sim();
@@ -151,8 +163,9 @@ public final class DerelictFlockScene implements BehaviorScene {
         long[] team = world.members("team");
         Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, LAUNCH_X, LAUNCH_Y, FLOCK_SIZE, FlockWeights.WASP,
                 LEASH);
-        flock.strike(team[0]);
-        Trace trace = new Trace(flock, team[0]);
+        long target = indoors ? team[0] : world.unit("marker");
+        flock.strike(target);
+        Trace trace = new Trace(flock, target);
         trace.team = team;
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, frameEvery, tick -> loop + " / tick " + tick + " / " + trace.caption())
@@ -173,6 +186,48 @@ public final class DerelictFlockScene implements BehaviorScene {
             v.add(Verdict.of("strafes", trace.rounds > 0, trace.rounds + " rounds fired by members"));
         }
         return new SceneReport(id(), loop, STRIKE_TICKS, v, trace.readings());
+    }
+
+    /**
+     * A flock cut to half strength away from home is sent home, and its cradle rebuilds it there one drone at a time;
+     * the control is the same with the cradle destroyed first.
+     */
+    private SceneReport rebuild(String loop, boolean cradle, FrameSink frames) {
+        SceneBuilder b = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
+        holdouts(b);
+        SceneWorld world = b.build();
+        BattleSimulation sim = world.sim();
+        Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, LAUNCH_X, LAUNCH_Y, FLOCK_SIZE, FlockWeights.WASP,
+                LEASH);
+        flock.probe(40.5f, 28.5f);
+        List<Long> members = flock.memberIds();
+        for (int i = 0; i < FLOCK_SIZE / 2; i++) sim.applyExternalDamage(members.get(i), 1.0e6f, 1.0e6f);
+        if (!cradle) sim.applyExternalDamage(flock.cradle(), 1.0e6f, 1.0e6f);
+        int[] lowest = {Integer.MAX_VALUE};
+        int[] homeTick = {-1};
+        SceneRun.of(world).observe((s, tick) -> {
+                    if (tick == 240) flock.returnHome();
+                    lowest[0] = Math.min(lowest[0], flock.size());
+                    if (homeTick[0] < 0 && tick > 240 && Math.hypot(flock.anchorX() - flock.homeX(),
+                            flock.anchorY() - flock.homeY()) <= FlockCradle.HOME_CELLS) homeTick[0] = tick;
+                })
+                .frames(frames, loop, frameEvery, tick -> loop + " / tick " + tick + " / " + flock.task() + ", "
+                        + flock.size() + " of " + flock.strength())
+                .run(REBUILD_TICKS);
+        sim.close();
+        int rebuilt = flock.size() - lowest[0];
+        List<Verdict> v = new ArrayList<>();
+        if (cradle) {
+            v.add(Verdict.of("rebuilds-at-home", homeTick[0] > 0 && rebuilt >= 2,
+                    rebuilt + " drones rebuilt after the flock came home at tick " + homeTick[0]));
+        } else {
+            v.add(Verdict.of("no-cradle-no-rebuild", rebuilt == 0, rebuilt + " drones rebuilt with the cradle down"));
+        }
+        Map<String, Number> m = new LinkedHashMap<>();
+        m.put("lowest", lowest[0]);
+        m.put("final", flock.size());
+        m.put("homeTick", homeTick[0]);
+        return new SceneReport(id(), loop, REBUILD_TICKS, v, m);
     }
 
     private static float round(float f) {

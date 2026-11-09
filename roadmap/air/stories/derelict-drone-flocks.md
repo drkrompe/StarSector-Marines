@@ -1,12 +1,15 @@
 # Derelict drone flocks
 
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
-behaviors) and heavy mechs"). Slices 1 and 2 built; slice 3's flock unit and
-strike built, its other tasks' scenes and the network's use of them to come.
+behaviors) and heavy mechs"). Slices 1, 2 and 4 built, slice 3's unit, tasks and
+strike built; flocks play in the derelict ruins battle. Cost, counters and look
+to come.
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — owner picks in (`derelict-swarm-size`, `derelict-mech-line`,
+Updated: 2026-11-09 — flocks in the derelict ruins battle: every roofed goal held
+at its threshold, the outside as the flock's ground, one entrance per flock,
+cradles. Earlier: owner picks in (`derelict-swarm-size`, `derelict-mech-line`,
 `derelict-flock-counters`, all option a); roofed-room exclusion is a central
 rule, and a strike on a roofed target is held at its threshold. Earlier the same
 day: the flock built on the drone squad's anchor seam.
@@ -86,6 +89,18 @@ So roofed-room exclusion is a central rule, not an edge case:
   and the flock wraps the open ground round it.
 - So the company's answer inside is to keep out of a door's line, or shut it;
   and a company coming out of a megastructure meets the flock at the door.
+- **The outside is the flock's ground**: the largest body of open cells on the
+  map (`FlockSystem.sky`, relabelled every `SKY_TICKS`). A light well or court
+  inside a megastructure is open sky but reached only through roofed halls, so
+  no flock is put up, stationed or held there.
+- **Any goal under a roof is held at its threshold**, not only a strike
+  target: a station, a probe point or a home inside. A flock launched at a
+  point under a roof (a zone node inside the megastructure) goes up at that
+  point's threshold, which becomes its home, so each interior zone's flock
+  waits at an entrance. A side's flocks take distinct entrances where there is
+  more than one (`HELD_CELLS`) and share a lone door. The threshold search
+  spans the map, since a megastructure's deepest hall may be far from its
+  door.
 
 ## Built
 
@@ -130,6 +145,27 @@ swarm action, which hands them to `FlockFlight` (`DroneAnchor.flock()`).
   is no ring, and members fire on the target whenever they see it
   (`Flock.focusTarget()`).
 
+- `FlockCradle` (slice 4): `launch` stands a cradle at the flock's home, the
+  drone hub's structure (targeted and demolished as a hub is) with no hub
+  behaviour. While it stands, its node stands (`Flock.nodeStands`, set by the
+  network) and the flock is home, it rebuilds one lost drone every
+  `REBUILD_SECONDS` into the flock. A dead cradle or node rebuilds nothing; the
+  drones already up fly on. A flock wiped out entirely is gone. Docking
+  (members landed and out of play while dormant) is not built: a dormant flock
+  holds over its home. The cradle has no art of its own yet (slice 7).
+- Launch fills from the open ground reachable from home
+  (`FlockSystem.openAround`), sharing cells when there are few, so a cradle at
+  a cramped entrance still puts its whole flock up.
+
+**In the derelict ruins battle.** `DerelictSecurity.install` (the heavies
+session's, `derelict-security-network.md`) launches one flock of
+`DerelictSecurity.FLOCK_SIZE` (14) per zone at the zone's node and tasks it
+through `FlockSystemPort`; the rules above put each interior zone's flock at an
+entrance. `createSnapshots -Psnapshot=derelict-flocks-ruins-look` plays the
+extensive derelict fixture (`ruins-derelict-extensive-v1.json`), prints each
+flock's home and the member-ticks under a roof (0 over the battle), and records
+the flocks at the megastructure's entrances and in the fight.
+
 The seam with the network (`derelict-security-network.md`): the network
 launches one flock per zone with `FlockSystem.launch`, homed on the zone's node
 (the cradle point once cradles exist) and leashed to its perimeter plus
@@ -146,14 +182,17 @@ Evidence: `FlockSteeringTest`, `FlockFieldTest`, `FlockFlightTest`; the
 `strike-open` (wraps a fire team on all four sides and strafes),
 `strike-indoors` (the team in a roofed room, hidden from its open door by a
 partition: the flock holds the door's threshold for the whole wait and no
-member is ever under the roof).
+member is ever under the roof), `rebuild` (a flock cut to half strength goes
+home and its cradle rebuilds it) and `rebuild-no-cradle` (the control, cradle
+destroyed: nothing rebuilt). Unit tests also `FlockCradleTest` and
+`FlockSystemTest`.
 `createSnapshots -Psnapshot=derelict-flock` adds the look shot `flock-strike`
 on generated colony ground.
 
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags
 and fences are walls to a flock for now); screen, probe, pursue and return
-scenes; cradles (slice 4); the cost profile (slice 5); counters (slice 6);
-the look (slice 7).
+scenes; docking; the cost profile (slice 5); counters (slice 6); the look
+(slice 7).
 
 ## Slices
 

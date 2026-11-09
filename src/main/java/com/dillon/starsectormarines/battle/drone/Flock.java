@@ -29,6 +29,10 @@ public final class Flock implements DroneAnchor {
     final List<Long> members = new ArrayList<>();
     private int strength;
     int squadId = -1;
+    /** The cradle at the flock's home, or {@code 0L} when it has none. */
+    long cradleId;
+    final FlockCradle.Clock rebuild = new FlockCradle.Clock();
+    private volatile boolean nodeStands = true;
     /** Tick the field was last built, for the rebuild cadence. */
     int fieldTick = Integer.MIN_VALUE / 2;
 
@@ -77,6 +81,17 @@ public final class Flock implements DroneAnchor {
     public float homeY() { return homeY; }
 
     public FlockTask task() { return task; }
+
+    /** The cradle's entity id, or {@code 0L} for a flock put up without one. */
+    public long cradle() { return cradleId; }
+
+    /**
+     * Whether the control node this flock's cradle answers to stands; the network sets it. A cradle whose node is
+     * down rebuilds nothing. Standing until told otherwise.
+     */
+    public void nodeStands(boolean stands) { nodeStands = stands; }
+
+    public boolean nodeStands() { return nodeStands; }
 
     /** Members flying now. */
     public int size() { return members.size(); }
