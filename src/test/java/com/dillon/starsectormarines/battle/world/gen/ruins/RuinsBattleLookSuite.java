@@ -22,7 +22,7 @@ import java.util.Locale;
 /**
  * A Ruins battle as {@code BattleSetup.createRuins} builds it, on its ruins ground ({@code ruins-ground.md}),
  * through the look preset at 1920x1080: per grade, the whole map and the landing at play zoom once the company is
- * down, and the vault. The scavengers hold the site; the default manifest lands. Played
+ * down, the vault, and the interior with its roofs off. The scavengers hold the site; the default manifest lands. Played
  * {@code -Dsnapshot.ruinsBattle.seconds} (default 60) unrecorded first; {@code -Dsnapshot.ruinsBattle.surface}
  * picks the world (default ARID).
  */
@@ -63,6 +63,9 @@ public final class RuinsBattleLookSuite implements SnapshotSuite {
                 out.add(new SnapshotArtifact(dir + "03-vault.png", BattleReviewFrameRenderer.look(context.modRoot(),
                         W, H, width - 16f, height / 2f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.5f)
                         .render(sim, "")));
+                // The interior's east half with the roofs taken off: its halls, corridors and chambers.
+                out.add(new SnapshotArtifact(dir + "04-interior.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                        W, H, width * 0.78f, height / 2f, width * 0.46f).withoutRoofs().render(sim, "")));
             }
         }
         return out;

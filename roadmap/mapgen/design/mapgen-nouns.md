@@ -1893,7 +1893,8 @@ each a wall line across the whole map with its ways through. A mission asks for
 it with a `RuinsGroundPlan` (the layer count, 1 to 4) through
 `MapGenerator.generateRuins`, and reads `MapResult.ruinsDelve`: every place by
 a stable name (`ruins.landing`, `ruins.vault`, `ruins.layer.N`, its ways, rooms
-and court, and the works sites `ruins.works.*`). Five rules hold it together.
+and court, the works sites `ruins.works.*`, and `ruins.interior`). Six rules
+hold it together.
 
 **The ruins are a value, not a branch.** The recipe relabels every lot as a
 ruined lot before the ordinary fill dispatch runs, so the burned-out footprints
@@ -1920,9 +1921,20 @@ against a ruin's standing wall. The pocket is joined back through a wall that is
 not the delve's own; a pocket of a few cells nothing can join is walled in; a
 larger one is a generation error.
 
+**The far end is inside.** The vault's end of the delve is a megastructure,
+sized by the layer count: on scattered ground a bunker round the vault, at
+widespread the last layer, at extensive and vast the last two
+(`RuinsGroundPlan.interiorLayers`). Its band is filled with hull and carved: a
+spine corridor down each interior band, a corridor from every way into it, rooms
+and chambers off it, and the vault's forecourt as a roofed hall. The layer
+lines inside are its walls and bulkheads, so their ways are its entrances and
+doors. A court inside is a light well open to the sky, so every lift point is
+under open sky and everything else inside is under a roof.
+
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
-landing to the vault's source, every way, room, court berth and works cell, and
+landing to the vault's source, every way, room, court berth, works cell and
+interior chamber, and
 generation throws on any failure. There is no fallback map: the site's seed
 names the ground, so the same ruins come back on a second expedition.
 

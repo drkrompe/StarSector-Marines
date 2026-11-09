@@ -87,6 +87,8 @@ class DelveCheckTest {
                 new RuinsDelve.PowerHall(RuinsDelve.POWER_HALL, spot, near, near, 0),
                 List.of(new RuinsDelve.Junction(RuinsDelve.junctionName(0), near, 0)),
                 new RuinsDelve.RecordsTerminal(RuinsDelve.RECORDS, spot, near, near, 0),
-                new RuinsDelve.Collapse(RuinsDelve.COLLAPSE, 0, collapse));
+                new RuinsDelve.Collapse(RuinsDelve.COLLAPSE, 0, collapse),
+                new RuinsDelve.Interior(RuinsDelve.INTERIOR, new Area(32, 6, W - 1, 14), 1,
+                        List.of(new Area(33, 10, 33, 10)), List.of()));
     }
 }

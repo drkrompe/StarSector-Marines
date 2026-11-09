@@ -226,7 +226,9 @@ the ground's published places, never from a search of the map.
 company lands outside, on the landing area or a court, and works into a
 megastructure or bunker, roofed rooms, corridors and seal doors with the vault
 deep inside, then brings the haul back out to a lift point. The interior grows
-with the grade (`ruins-ground.md`, Interior). Inside is where derelict flocks
+with the grade: a bunker round the vault on scattered ground, the last layer
+at widespread, the last two at extensive and vast (`ruins-ground.md`,
+Interior). Inside is where derelict flocks
 cannot follow and heavies hold, and where the works' seal doors and power hall
 stand.
 

@@ -49,4 +49,13 @@ public record RuinsGroundPlan(int layers, int width, int height, float density) 
     public int minOpenWays() {
         return layers == 1 ? 1 : 2;
     }
+
+    /**
+     * Layers at the vault's end that are inside the site's megastructure ({@code ruins-ground.md}, Interior):
+     * none on scattered ground, where only a bunker encloses the vault; the last layer at widespread; the last two
+     * at extensive and vast. The landing and the layers before the interior stay outside.
+     */
+    public int interiorLayers() {
+        return layers == 1 ? 0 : layers == 2 ? 1 : 2;
+    }
 }

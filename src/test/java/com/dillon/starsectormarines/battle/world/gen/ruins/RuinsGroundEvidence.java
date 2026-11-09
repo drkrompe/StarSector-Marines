@@ -25,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Ruins ground over every grade and surface ({@code ruins-ground.md}, slice 5): each map generates, keeps every
  * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it, its streets
- * end short of every edge, and it has no berth but its own landing's. Writes {@code build/reports/ruins-ground/summary.md} with each map's
+ * end short of every edge, and it has no berth but its own landing's. The vault, every room inside the interior
+ * and every chamber is under a roof; every lift point is under open sky. Writes {@code build/reports/ruins-ground/summary.md} with each map's
  * layers, ways, rooms and route length.
  */
 @Tag("generated-space-evidence")
@@ -39,7 +40,7 @@ class RuinsGroundEvidence {
         DiskRegistries.installMapGeneration(root);
         TileRegistryTestInstaller.install(root);
         List<String> failures = new ArrayList<>();
-        StringBuilder out = new StringBuilder("# Ruins ground\n\n| layers | surface | seed | kinds | open ways | rooms | courts | route | ms |\n|---|---|---|---|---|---|---|---|---|\n");
+        StringBuilder out = new StringBuilder("# Ruins ground\n\n| layers | surface | seed | kinds | open ways | rooms | courts | inside | chambers | route | ms |\n|---|---|---|---|---|---|---|---|---|---|---|\n");
         for (int layers = 1; layers <= RuinsGroundPlan.MAX_LAYERS; layers++) {
             RuinsGroundPlan plan = RuinsGroundPlan.forLayers(layers);
             for (SurfacePalette surface : SurfacePalette.values()) {
@@ -51,7 +52,7 @@ class RuinsGroundEvidence {
                     } catch (RuntimeException e) {
                         failures.add(layers + "/" + surface + "/" + seed + ": " + e.getMessage());
                         out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)
-                                .append(" | FAILED: ").append(e.getMessage()).append(" |||||\n");
+                                .append(" | FAILED: ").append(e.getMessage()).append(" |||||||\n");
                         continue;
                     }
                     long ms = (System.nanoTime() - start) / 1_000_000;
@@ -81,11 +82,38 @@ class RuinsGroundEvidence {
                         rooms.append(layer.rooms().size());
                         if (layer.court() != null) courts++;
                     }
+                    String where = layers + "/" + surface + "/" + seed + ": ";
+                    RuinsDelve.Interior interior = delve.interior();
+                    if (!roofed(map, delve.vault().source().x(), delve.vault().source().y())) {
+                        failures.add(where + "the vault is not under a roof");
+                    }
+                    for (Layer layer : delve.layers()) {
+                        if (!interior.contains(layer.index())) continue;
+                        for (RuinsDelve.SideRoom room : layer.rooms()) {
+                            if (!roofed(map, room.interior().x(), room.interior().y())) {
+                                failures.add(where + room.name() + " is inside but not roofed");
+                            }
+                        }
+                    }
+                    for (RuinsDelve.Area chamber : interior.chambers()) {
+                        if (!roofed(map, chamber.centreX(), chamber.centreY())) {
+                            failures.add(where + "a chamber at " + chamber + " is not roofed");
+                        }
+                    }
+                    for (var area : delve.liftPoints()) {
+                        for (var berth : area.berths()) {
+                            if (map.topology.getBuildingId(berth.centerX, berth.centerY) != 0) {
+                                failures.add(where + area.id + " is under a roof");
+                            }
+                        }
+                    }
                     var start0 = delve.landing().get(0).berth(0);
                     boolean[] reach = DelveCheck.reach(map.grid, start0.centerX, start0.centerY, null);
                     out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)
                             .append(" | ").append(kinds).append(" | ").append(ways).append(" | ").append(rooms)
                             .append(" | ").append(courts).append(" | ")
+                            .append(delve.layers().size() - interior.firstLayer()).append(" | ")
+                            .append(interior.chambers().size()).append(" | ")
                             .append(DelveCheck.routeLength(map.grid, start0.centerX, start0.centerY, delve.vault().source()))
                             .append(" | ").append(ms).append(" |\n");
                     assertTrue(reach.length > 0);
@@ -98,6 +126,11 @@ class RuinsGroundEvidence {
         Files.createDirectories(report.getParent());
         Files.writeString(report, out.toString());
         assertTrue(failures.isEmpty(), String.join("\n", failures));
+    }
+
+    /** Whether a cell is a building's floor under an intact roof. */
+    static boolean roofed(MapResult map, int x, int y) {
+        return map.topology.isRoofIntact(x, y);
     }
 
     static TargetProfile profile(SurfacePalette surface) {
