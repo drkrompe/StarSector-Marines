@@ -466,7 +466,9 @@ toward the entrance:
   company that has sat still. Nothing comes up behind the first layer inside.
   Each occupant raises its own: line-frame lances, crew squads called up from
   the dig, or Rav bores woken. Each push is a comms line in the occupant's
-  voice naming the layer.
+  voice naming the layer. A push comes up at its layer's wake point (a
+  service hatch, a crawlway or a bore mound in the side room past the store);
+  a charge collapses one for good, and that layer sends nothing again.
 - **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out

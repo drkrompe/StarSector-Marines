@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RuinsWorksTest {
@@ -127,6 +129,29 @@ class RuinsWorksTest {
         assertEquals(1, RuinsWorks.storesIn(1, 3, 2, RuinsDefence.NONE), "earlier layers keep one");
         assertEquals(1, RuinsWorks.storesIn(2, 3, 2, RuinsDefence.CREW), "an occupied site keeps one per layer");
         assertEquals(1, RuinsWorks.storesIn(0, 1, 1, RuinsDefence.NONE), "never more than the layer's rooms");
+    }
+
+    @Test
+    void aWakePointStandsInALayersFirstRoomPastItsStoresInsideOnly() {
+        RuinsDelve.SideRoom store = new RuinsDelve.SideRoom("a", new RuinsDelve.Area(2, 2, 8, 8),
+                new RuinsDelve.Cell(5, 9), new RuinsDelve.Cell(5, 5));
+        RuinsDelve.SideRoom spare = new RuinsDelve.SideRoom("b", new RuinsDelve.Area(2, 50, 8, 58),
+                new RuinsDelve.Cell(5, 49), new RuinsDelve.Cell(5, 54));
+        assertEquals(spare, RuinsWorks.wakeRoom(layer(1, List.of(store, spare)), 1, 3, RuinsDefence.CREW));
+        assertNull(RuinsWorks.wakeRoom(layer(0, List.of(store, spare)), 1, 3, RuinsDefence.CREW),
+                "nothing comes up outside");
+        assertNull(RuinsWorks.wakeRoom(layer(1, List.of(store)), 1, 3, RuinsDefence.CREW), "its one room is a store");
+    }
+
+    @Test
+    void aChargeCollapsesAWakePointWithinItsBlast() {
+        assertTrue(RuinsWorks.collapses(10, 10, 12f, 10.5f, 2f));
+        assertFalse(RuinsWorks.collapses(10, 10, 14f, 10.5f, 2f));
+    }
+
+    private static RuinsDelve.Layer layer(int index, List<RuinsDelve.SideRoom> rooms) {
+        return new RuinsDelve.Layer(RuinsDelve.layerName(index), index, RuinsDelve.LayerKind.BREACHED_WALL,
+                new RuinsDelve.Area(0, 0, 39, 60), 0, 39, List.of(), rooms, null);
     }
 
     @Test
