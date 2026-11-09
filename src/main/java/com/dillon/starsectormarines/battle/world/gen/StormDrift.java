@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 /**
@@ -12,6 +13,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * so walkability, cover, fire and every placement that reads pavement are exactly as they were. It is a picture of the
  * weather, never terrain. It lies on open ground, yards and paving with no authored surface of their own; a street
  * drifts only on its apron against the wall, never across the carriageway. Coordinate-based: no random draw.
+ *
+ * <p>The weather is the last skin laid ({@code StormDriftStage}, after the streets are finished): a finished road's
+ * pavement is never drifted, since the carriageway finish is laid only on street with no surface of its own and a
+ * drift laid before it would strip the asphalt off the street beside a wall.
  */
 public final class StormDrift {
 
@@ -60,11 +65,22 @@ public final class StormDrift {
 
     /** Whether a drift may lie on this cell, {@code k} cells out from the wall. */
     static boolean drifts(CellTopology topology, int x, int y, int k) {
-        if (topology.isWall(x, y) || topology.getSurface(x, y) != 0) return false;
+        if (topology.isWall(x, y) || topology.getSurface(x, y) != 0 || paved(topology.roadSurface(), x, y)) return false;
         return switch (topology.getGroundKind(x, y)) {
             case DIRT, STONE, SAND, SNOW, GRASS, COURTYARD, BRICK -> true;
             case STREET, SIDEWALK -> k <= STREET_APRON;
             default -> false;
         };
+    }
+
+    /** Whether the finished road draws pavement or its underlay on this cell. */
+    static boolean paved(RoadSurface road, int x, int y) {
+        if (road == null) return false;
+        if (road.underlay(x, y) != null) return true;
+        for (int m = 0; m < RoadSurface.LAYERS; m++) {
+            RoadSurface.Patch patch = road.patch(x, y, m);
+            if (patch != null && patch.area() > 0) return true;
+        }
+        return false;
     }
 }

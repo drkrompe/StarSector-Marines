@@ -75,6 +75,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeS
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadSurfaceStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StormDriftStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
@@ -268,6 +269,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
                 new OutdoorLandscapeStage(),                // finished access owns its clear ground
                 new RoadSurfaceStage(),                     // finish the streets' carriageways over the placed city
+                new StormDriftStage(),                      // the weather's drifts, the last skin on the ground
                 new FrontDepthStage(),                      // the front, as a depth
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
@@ -343,6 +345,7 @@ public final class BspCityGenerator implements MapGenerator {
                 laneRouteStage,                             // precinct-only; the road each lane runs on
                 new OutdoorLandscapeStage(),                // retain those finished lane routes
                 new RoadSurfaceStage(),                     // finish kept roads and street carriageways over the placed city
+                new StormDriftStage(),                      // the weather's drifts, the last skin on the ground
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
