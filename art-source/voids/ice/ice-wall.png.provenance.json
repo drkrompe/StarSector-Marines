@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c210-f6af-7c72-bbbf-caad6e1782cf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c210-f6af-7c72-bbbf-caad6e1782cf\\exec-63e56343-ddae-45bb-8ea5-f3bf6a016e8a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\ice\\ice-wall.png",
+    "sha256": "777aade3678bbefb3b891ee86b5aaaf4a8b2aebe9617bc54fb4642f6c2f477cf",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\ice\\ice-wall.prompt.txt",
+  "promptSha256": "9c47f14468e88007e897d7d6adb6ab60a0b577eb772cdf82b7ed5d429d07ab4d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of the sheer wall of a\nglacial crevasse, as it would be mapped onto a vertical cliff of ice.\nOld glacier ice: horizontal layered strata of blue-white firn and clear\nblue ice running across the tile in bands of uneven thickness, some bands\nmilky white with trapped air, some glassy turquoise-blue, a few thin dark\ngrey bands of wind-blown grit and rock dust. Vertical meltwater streaks and\nrunnels of smoother glazed ice running down across the strata, small icicle\nfringes under the overhanging bands, fine fracture lines and a few\nconchoidal chips. Lit evenly by soft neutral light from straight in front,\nno cast shadows from outside the tile, no bright sky glare. Even density\nacross the whole tile with no focal point, so it repeats horizontally and\nvertically. Palette: blue-white, pale cyan, glacier turquoise, slate blue,\na little grey grit. No snow surface, no sky, no people, no text, no\nborder, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless glacier-ice wall texture using your specifications."
+  ],
+  "usage": {
+    "input_tokens": 35574,
+    "cached_input_tokens": 30336,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 332,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 36.5
+}

@@ -14,6 +14,12 @@ from derive_faction_weapons import DC_4_QS_SQUEEZE, build_faction_weapons, squee
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "sources" / "lowtech"))
 import build as lowtech  # noqa: E402
+import importlib.util  # noqa: E402
+
+_hightech_spec = importlib.util.spec_from_file_location(
+    "hightech_build", Path(__file__).resolve().parent / "sources" / "hightech" / "build.py")
+hightech = importlib.util.module_from_spec(_hightech_spec)
+_hightech_spec.loader.exec_module(hightech)
 
 
 # Raw art lives outside mod/, so the shipped folder never carries pre-pack
@@ -24,9 +30,9 @@ REPOSITORY = HERE.parent.parent
 SOURCES = HERE / "sources"
 ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
 PREVIEWS = REPOSITORY / "build" / "sprite-previews" / "mech"
-# The repainted liveries; the Hegemony, Independents and pirates wear the low-tech bodies (sources/lowtech/build.py).
+# The repainted liveries; the Hegemony, Independents and pirates wear the low-tech bodies (sources/lowtech/build.py),
+# Tri-Tachyon the high-tech row's (sources/hightech/build.py).
 FACTION_SKINS = (
-    "tri-tachyon",
     "persean-league",
     "luddic-church",
     "knights-of-ludd",
@@ -142,6 +148,7 @@ def main() -> None:
                   (208, 208), flip_top_bottom=True,
                   alpha_from="chassis-warden.png")
     lowtech.build()
+    hightech.build()
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.

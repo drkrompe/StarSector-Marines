@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.campaign.ruins.RuinsBatteries;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
@@ -80,13 +79,10 @@ public final class RuinsExpeditionMissionFactory {
     public static Mission create(int serial, String marketId, String planetName, RuinsGrade grade,
                                  RuinsOccupant occupant, Set<String> takenFinds, Long sectorSeed) {
         if (serial <= 0 || marketId == null || planetName == null || grade == null || occupant == null) return null;
-        List<String> tells = List.of();
-        int batteries = 0;
-        if (sectorSeed != null) {
-            RuinsVaultPrize prize = RuinsVaultPrizes.draw(sectorSeed, marketId, grade, occupant);
-            tells = RuinsVaultPrizes.tellKeys(sectorSeed, marketId, prize);
-            batteries = RuinsBatteries.count(grade, prize);
-        }
+        // The vault's prize, drawn beside the occupant from the same site facts.
+        RuinsVaultPrize prize = sectorSeed != null
+                ? RuinsVaultPrizes.draw(sectorSeed, marketId, grade, occupant) : null;
+        List<String> tells = prize != null ? RuinsVaultPrizes.tellKeys(sectorSeed, marketId, prize) : List.of();
         OperationTier tier = tierFor(grade);
         String defenders = defenderFactionId(occupant);
         return Mission.builder()
@@ -108,7 +104,7 @@ public final class RuinsExpeditionMissionFactory {
                 .defenderFactionOverride(defenders)
                 .ruinsGrade(grade)
                 .ruinsTakenFinds(takenFinds == null ? Set.of() : takenFinds)
-                .ruinsBatteries(batteries)
+                .ruinsPrize(prize)
                 // The same ground on every expedition: retry meets the same ruins (ruins-expedition.md).
                 .battleSeed(RuinsSiteFinds.battleSeed(marketId))
                 .ruinsOccupant(occupant)

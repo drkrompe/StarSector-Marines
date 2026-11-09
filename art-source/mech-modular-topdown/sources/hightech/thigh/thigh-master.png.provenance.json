@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c21e-8bbc-7fa0-af1f-e4fa0738e8e7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c21e-8bbc-7fa0-af1f-e4fa0738e8e7\\exec-384ac7e6-d315-4a6c-b964-ba4501931df7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\hightech\\thigh\\thigh-master.png",
+    "sha256": "33b46fd733ad989cd8edf2ed081aa3cf68dc63d971c71769d331ba40eeb130fa",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\hightech\\thigh\\thigh.prompt.txt",
+  "promptSha256": "949bfc277958eb5d024f10f6812e86cc058d63162e4cbb352ea38ddb62b7c595",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target\nImage 2: Family identity only; not layout\nImage 3: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: the THIGH LINK of a Tri-Tachyon high-tech walking machine, seen straight from above: the leg strut running from the hip at the bottom of the canvas to the foot at the top. In the game it is stretched along its length, so keep its detail spread evenly and avoid any one feature that would read wrong when stretched.\n\nImage 1 is the exact silhouette and layout authority, a grey blockout: fill it in, never move, resize or add to its shape, and keep all empty canvas empty. Its round ends are the hip and knee joints: draw them as dark machined bearings with a small blue-lit port. Between them, draw a sleek steel-blue armour sleeve in two or three rounded segments over a dark actuator core that shows along the seams.\n\nImage 2 is family identity reference only, never layout: the accepted heavy-shell body of the Tri-Tachyon high-tech walker this part belongs to. Match it exactly: pale steel-blue armour lobes with cool blue shading, bulging and rounded like carapace, set over dark, busy gunmetal machinery with small blue-lit ports; a little wear and grime in the recesses; crisp painted game-sprite finish at full resolution, not pixel art; light from the upper left. Image 3 is material reference only: Starsector's high-tech hulls.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background; no ground, shadow slab, cast shadow, halo, glow outside the part, border, text or labels.\n\nAvoid: hydraulic pistons, exposed pipes, rivets, tan or olive paint, white plastic, a whole leg or foot, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\thigh\\guide.png",
+      "sha256": "7cb0d59e834b5f425429012aaba7589959606ef8221faa29f03ee0b703331ae2",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\medium\\d-master.png",
+      "sha256": "f2aaf04f2a778cfd57487f498fb5af68137db507b348e1a215671c74b686572d",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Family identity only; not layout"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one thigh-link image, preserving the blockout’s silhouette and matching the reference materials."
+  ],
+  "usage": {
+    "input_tokens": 45559,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 517,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.7
+}

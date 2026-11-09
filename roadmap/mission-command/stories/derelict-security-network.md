@@ -183,6 +183,9 @@ Everything is in `battle.derelict`.
   sentinel), painted after the vanilla Domain derelict ships over `guide.py`'s
   geometry and cut by `export.py` (`walker-sentinel-v3`); the cupola and crab
   candidates stay in `art-source/derelict-walker/`. The vault frame shares it.
+  In battle each leg has a knee with its own structure, and a standing walker
+  blocks small bodies only at its feet, so people pass under its torso
+  (`ruins-guardians.md`, The walker's legs and what passes under it).
 - **Walker doctrine.** The line and vault frames run the balanced mech
   doctrine and the siege frame long-range support. Armored support, which the
   line first had, paces friendly infantry and holds where it stands with none

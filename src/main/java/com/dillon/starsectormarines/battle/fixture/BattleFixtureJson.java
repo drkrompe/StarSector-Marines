@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
@@ -232,7 +234,7 @@ public final class BattleFixtureJson {
             root.put("grade", ruins.grade().name());
             root.put("occupant", ruins.occupant().name());
             if (!ruins.takenFinds().isEmpty()) root.put("takenFinds", new JSONArray(ruins.takenFinds()));
-            if (ruins.batteries() > 0) root.put("batteries", ruins.batteries());
+            if (ruins.prize() != null) root.put("prize", prizeToJson(ruins.prize()));
             return root;
         }
         if (fixture instanceof BloomHeartBattleFixture heart) {
@@ -478,8 +480,23 @@ public final class BattleFixtureJson {
                         ? enumValue(RuinsOccupant.class, root.getString("occupant"), "occupant")
                         : RuinsOccupant.SCAVENGERS,
                 takenFindsFromJson(root),
-                // Fixtures written before the batteries were carried keep none.
-                root.optInt("batteries", 0));
+                // Fixtures written before the prize was carried hold none.
+                root.has("prize") ? prizeFromJson(root.getJSONObject("prize")) : null);
+    }
+
+    /** A vault prize: its theme (which names its family), its vanilla item id when it has one, and its stake. */
+    private static JSONObject prizeToJson(RuinsVaultPrize prize) throws Exception {
+        JSONObject out = new JSONObject();
+        out.put("theme", prize.theme().name());
+        if (prize.itemId() != null) out.put("item", prize.itemId());
+        out.put("stakes", prize.stakes());
+        return out;
+    }
+
+    private static RuinsVaultPrize prizeFromJson(JSONObject json) throws Exception {
+        RuinsVaultTheme theme = enumValue(RuinsVaultTheme.class, json.getString("theme"), "prize theme");
+        return new RuinsVaultPrize(theme.family, theme, json.has("item") ? json.getString("item") : null,
+                json.getInt("stakes"));
     }
 
     /** A ruins site's finds already brought home; none when the fixture names none. */

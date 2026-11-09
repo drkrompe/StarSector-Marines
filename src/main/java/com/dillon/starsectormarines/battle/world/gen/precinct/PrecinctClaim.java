@@ -151,6 +151,11 @@ public interface PrecinctClaim {
                 int side = (int) Math.ceil(Math.sqrt(budget[i])) + 2 * precinct.fortification().glacis();
                 int x0 = Math.max(0, precinct.seedX() - side / 2);
                 int y0 = Math.max(0, precinct.seedY() - side / 2);
+                // A cantonment's rows need their whole square: kept on the map rather than cut by its edge.
+                if (precinct.program().cantonment()) {
+                    x0 = Math.max(0, Math.min(x0, width - side));
+                    y0 = Math.max(0, Math.min(y0, height - side));
+                }
                 for (int x = x0; x < Math.min(width, x0 + side); x++) {
                     for (int y = y0; y < Math.min(height, y0 + side); y++) {
                         if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;

@@ -419,6 +419,7 @@ com.dillon.starsectormarines.battle.setup.RaidScaleOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidLandingOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidDirectionsSuite
 com.dillon.starsectormarines.ops.RaidWorksLookSuite
+com.dillon.starsectormarines.ops.RaidGarrisonLookSuite
 com.dillon.starsectormarines.ops.RaidSiteLookSuite
 com.dillon.starsectormarines.ops.PlanetGroundLookSuite
 com.dillon.starsectormarines.ops.RaidMineSiteLookSuite
@@ -440,6 +441,8 @@ com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite
 com.dillon.starsectormarines.ops.battleview.LavaVoidLookSuite
+com.dillon.starsectormarines.ops.battleview.IceVoidLookSuite
 com.dillon.starsectormarines.ops.RuinsRailLookSuite
 com.dillon.starsectormarines.battle.setup.RaidMapgenReviewSuite
 com.dillon.starsectormarines.ops.battleview.RavineRiseLookSuite
+com.dillon.starsectormarines.ops.RuinsPushCueLookSuite
