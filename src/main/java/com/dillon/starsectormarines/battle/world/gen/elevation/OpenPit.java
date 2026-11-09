@@ -37,15 +37,16 @@ public final class OpenPit {
     static final float ROUNDNESS = 3.2f;
 
     /**
-     * The benches going down, shallowest first: each a working bench 5 m below the last, cut 1.8 cells back from
-     * the face above, to a floor 27 m down. UNTUNED: the owner feels depth out from renders.
+     * The benches going down, shallowest first: each a working bench 7 m below the last, cut 2 cells back from the
+     * face above, to a floor 42 m down. UNTUNED: the owner feels depth out from renders.
      */
     public static final List<NaturalVoid.Step> STEPS = List.of(
-            new NaturalVoid.Step(5f, .45f),
-            new NaturalVoid.Step(10f, 2.25f),
-            new NaturalVoid.Step(15f, 4.05f),
-            new NaturalVoid.Step(21f, 5.85f),
-            new NaturalVoid.Step(27f, 7.65f));
+            new NaturalVoid.Step(7f, .45f),
+            new NaturalVoid.Step(14f, 2.45f),
+            new NaturalVoid.Step(21f, 4.45f),
+            new NaturalVoid.Step(28f, 6.45f),
+            new NaturalVoid.Step(35f, 8.45f),
+            new NaturalVoid.Step(42f, 10.45f));
     /** The camera the natural styles are drawn from (`voids.md`, Gorge river). */
     public static final float EYE_METERS = 120f;
     public static final String WALL_TEXTURE = "graphics/battle/voids/pit-bench-wall.png";
@@ -71,11 +72,22 @@ public final class OpenPit {
         x0 = Math.max(1, x0); y0 = Math.max(1, y0);
         x1 = Math.min(w - 2, x1); y1 = Math.min(h - 2, y1);
         if (x1 - x0 < 2 * OPEN_RADIUS || y1 - y0 < 2 * OPEN_RADIUS) return null;
-        boolean[] cut = new boolean[w * h];
-        float cx = (x0 + x1) / 2f, cy = (y0 + y1) / 2f, hx = (x1 - x0) / 2f + .5f, hy = (y1 - y0) / 2f + .5f;
+        // The outline is rounded within the open ground the site has, not the site itself, which may run to the
+        // map's edge or under a reservation along one side.
+        int fx0 = x1, fy0 = y1, fx1 = x0, fy1 = y0;
+        boolean[] open = new boolean[w * h];
         for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) {
             int i = y * w + x;
             if (!free.test(i) || !walkable.test(i)) continue;
+            open[i] = true;
+            fx0 = Math.min(fx0, x); fx1 = Math.max(fx1, x); fy0 = Math.min(fy0, y); fy1 = Math.max(fy1, y);
+        }
+        if (fx1 - fx0 < 2 * OPEN_RADIUS || fy1 - fy0 < 2 * OPEN_RADIUS) return null;
+        boolean[] cut = new boolean[w * h];
+        float cx = (fx0 + fx1) / 2f, cy = (fy0 + fy1) / 2f, hx = (fx1 - fx0) / 2f + .5f, hy = (fy1 - fy0) / 2f + .5f;
+        for (int y = fy0; y <= fy1; y++) for (int x = fx0; x <= fx1; x++) {
+            int i = y * w + x;
+            if (!open[i]) continue;
             float ax = Math.abs(x - cx) / hx, ay = Math.abs(y - cy) / hy;
             float angle = (float) Math.atan2(y - cy, x - cx);
             float swell = 1f - WANDER * (.5f + .5f * (float) Math.sin(3 * angle + seed % 7)
@@ -138,7 +150,7 @@ public final class OpenPit {
             if (!pit[i]) continue;
             float dx = i % w - tx, dy = i / w - ty;
             // Deep in the pit first, then near the works.
-            float score = Math.min(depth[i], 9) * 100f - (float) Math.sqrt(dx * dx + dy * dy);
+            float score = Math.min(depth[i], 12) * 100f - (float) Math.sqrt(dx * dx + dy * dy);
             if (score > bestScore) { bestScore = score; best = i; }
         }
         if (best < 0) return null;

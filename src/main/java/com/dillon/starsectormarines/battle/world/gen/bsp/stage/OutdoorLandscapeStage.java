@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
@@ -138,29 +139,33 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
             c.topology.setGroundKind(x, y, GroundKind.VOID);
             c.topology.setSurface(x, y, 0);
+            c.topology.setNatureOverlayIndex(x, y, -1);
             reserved[i] = true;
         }
-        float[] works = pitWorks(c, box);
+        float[] works = pitWorks(c, plan, box);
         NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
         c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
     }
 
-    /** Cells from a pit's box a works it feeds may stand. UNTUNED. */
-    static final int PIT_WORKS_REACH = 48;
+    /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
+    static final int PIT_WORKS_REACH = 32;
 
     /**
-     * The point on the wall of the largest non-residential building within {@link #PIT_WORKS_REACH} of a pit's box
-     * that faces the box's centre: where its conveyor ends. Null when none stands near.
+     * Where the pit's conveyor ends: on the wall of the largest non-residential building within
+     * {@link #PIT_WORKS_REACH} of the plan's objective (a mine's head works, whose largest building is its ore mill),
+     * at the point facing the pit's site. Null when the plan has no objective or none stands near it.
      */
-    private static float[] pitWorks(GenContext c, Site box) {
+    private static float[] pitWorks(GenContext c, PrecinctPlan plan, Site box) {
+        Precinct works = plan.objective();
+        if (works == null) return null;
         float cx = (box.x0() + box.x1()) / 2f, cy = (box.y0() + box.y1()) / 2f;
         PointOfInterest best = null;
         int bestArea = 0;
+        int reach = PIT_WORKS_REACH * PIT_WORKS_REACH;
         for (PointOfInterest poi : c.pois) {
             if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;
-            int gapX = Math.max(0, Math.max(box.x0() - poi.right, poi.left - box.x1()));
-            int gapY = Math.max(0, Math.max(box.y0() - poi.bottom, poi.top - box.y1()));
-            if (gapX > PIT_WORKS_REACH || gapY > PIT_WORKS_REACH) continue;
+            int dx = poi.interiorAnchorX - works.seedX(), dy = poi.interiorAnchorY - works.seedY();
+            if (dx * dx + dy * dy > reach) continue;
             int area = (poi.right - poi.left + 1) * (poi.bottom - poi.top + 1);
             if (area > bestArea) { bestArea = area; best = poi; }
         }

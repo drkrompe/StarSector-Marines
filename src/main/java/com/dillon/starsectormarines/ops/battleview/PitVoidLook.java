@@ -60,7 +60,7 @@ final class PitVoidLook {
     static float[] floor(float x, float y, float light, float edge, float sky, int seed) {
         float n = NaturalVoidField.Noise.fbm(x * .11f, y * .11f, seed * 7 + 37);
         float grain = NaturalVoidField.Noise.value(x * 2.3f, y * 2.3f, seed * 7 + 41) * .5f + .5f;
-        float sump = clamp01((n + (edge - 3.5f) * .16f - .05f) * 4f);
+        float sump = clamp01((n + (edge - 5f) * .12f - .2f) * 4f);
         float bright = .62f + .45f * light;
         float r = .36f * bright * (.85f + .3f * grain), g = .31f * bright * (.85f + .3f * grain),
                 b = .26f * bright * (.85f + .3f * grain);

@@ -636,14 +636,20 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     mesh.appendQuad(sx(ax + ix, sa), sy(ay + iy, sa), sx(bx + ix, sb), sy(by + iy, sb),
                             sx(bx - ix, sb), sy(by - iy, sb), sx(ax - ix, sa), sy(ay - iy, sa),
                             .11f, .10f, .09f, alpha);
-                    float run = along0 + len * (t0 + t1) / 2f - time * PitVoidLook.BELT_SPEED;
-                    float lump = NaturalVoidField.Noise.hash((int) Math.floor(run / .5f), 3, seed);
-                    if (lump > .35f) {
-                        float ox = ix * .8f, oy = iy * .8f;
-                        float ore = .32f + .16f * lump;
-                        mesh.appendQuad(sx(ax + ox, sa), sy(ay + oy, sa), sx(bx + ox, sb), sy(by + oy, sb),
-                                sx(bx - ox, sb), sy(by - oy, sb), sx(ax - ox, sa), sy(ay - oy, sa),
-                                ore * 1.25f, ore, ore * .78f, alpha);
+                    // Ore heaped along the belt's middle, broken into lumps that ride toward the works.
+                    float ox = ix * .55f, oy = iy * .55f;
+                    for (int part = 0; part < 2; part++) {
+                        float u0 = t0 + (t1 - t0) * part / 2f, u1 = t0 + (t1 - t0) * (part + 1) / 2f;
+                        float run = along0 + len * (u0 + u1) / 2f - time * PitVoidLook.BELT_SPEED;
+                        float lump = NaturalVoidField.Noise.hash((int) Math.floor(run / .25f), 3, seed);
+                        if (lump < .3f) continue;
+                        float ore = .26f + .14f * lump;
+                        float cx0 = leg[0] + lx * u0 + MARGIN, cy0 = leg[1] + ly * u0 + MARGIN;
+                        float cx1 = leg[0] + lx * u1 + MARGIN, cy1 = leg[1] + ly * u1 + MARGIN;
+                        float s0 = scale(leg[2] + (leg[5] - leg[2]) * u0), s1 = scale(leg[2] + (leg[5] - leg[2]) * u1);
+                        mesh.appendQuad(sx(cx0 + ox, s0), sy(cy0 + oy, s0), sx(cx1 + ox, s1), sy(cy1 + oy, s1),
+                                sx(cx1 - ox, s1), sy(cy1 - oy, s1), sx(cx0 - ox, s0), sy(cy0 - oy, s0),
+                                ore * 1.2f, ore, ore * .82f, alpha);
                     }
                     // A trestle's cross-beam every few cells along the run.
                     float from = along0 + len * t0, to = along0 + len * t1;

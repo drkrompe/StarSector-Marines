@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -75,6 +75,7 @@ generation, never a battle rule, as an emplacement style is
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
+| **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
 A **sea cliff** is not an elevation cliff face. A face holds a plateau up
@@ -598,6 +599,49 @@ Laws):
    a tongue of bank with the drop ending either side; snow bridges drawn as a
    sagging arch rather than a straight deck edge; icicles along the lip and
    seracs or fallen blocks on the floor; a dusk or polar-night sky.
+
+   **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
+   site must read as planetary industry, a centralized works processing more
+   than one dig). A made drop, not an eroded one: an open-cut mine beside a
+   Raid mining site's head works, so the head works reads as the hub its
+   shafts and the pit both feed. Look suite:
+   `createSnapshots -Psnapshot=raid-mine-pit-look`.
+   - **Benches.** `NaturalVoid` with style `OPEN_PIT` and six benches 7 m
+     apart, each cut 2 cells back from the face above, to a floor 42 m down
+     (`OpenPit.STEPS`). Cut, not eroded: the field's wander is a fifth of a
+     natural drop's (`NaturalVoidField.Shape.CUT_WANDER`), so the benches run
+     evenly round the pit. The faces are their own ImageGen image
+     (`pit-bench-wall.png`, blasted rock with presplit drill traces, under
+     `art-source/voids/open-pit/`); the lip is dusty spoil and the benches
+     rolled gravel with scree where they break (`PitVoidLook`).
+   - **The haul road** spirals from the lip to the floor: on each face, over a
+     fixed turn round the pit's middle, a strip on the bench below sloping from
+     the bench above's level to its own, with ruts and a crown, and its inner
+     edge falling to the bench. It is drawn from the field's own walls; the map
+     marks nothing.
+   - **The floor** is wet ore rubble with a still sump where it lies farthest
+     from the walls.
+   - **Conveyors.** `NaturalVoid.belts`: a belt on a gantry from the pit's
+     floor up over the rim and across the ground to the wall of the largest
+     building in the works (the ore mill), drawn after the ground tiles and
+     before every unit, its shadow laid on the ground and ore riding it toward
+     the works. Drawn only: it neither blocks nor covers anyone.
+   - **Placement** (the first generated void, ahead of the rest of slice 2). A
+     plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
+     growth; the Raid mining template lays it beside the head works
+     (`RaidSiteTemplate`). The landscape pass (`OutdoorLandscapeStage`) cuts
+     the pit from the open ground the reservations leave in it, before trees,
+     hills and plateaus, so it never covers a road, building, doorway,
+     fixture, prop, the landing or the routes between required places. Its
+     outline is that ground rounded and opened by six cells, its largest
+     piece kept; then it is proved (`OpenPit.plan`): every walkable cell left
+     outside it stays connected as before, a pocket wholly inside the site on
+     open ground is taken into the pit, and any other stranding refuses the
+     pit and the map keeps none. No bridge is ever needed.
+   - **Battle.** Unchanged: an open pit is a drop like every other style.
+   Left: the owner's pick of depth and bench count; haul trucks on the road and
+   a shovel at the face; more than one conveyor (to the stores, or from the
+   shafts); dust over the working bench.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
