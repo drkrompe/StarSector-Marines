@@ -15,7 +15,7 @@ class RuinsExpeditionLedgerTest {
         CampaignState state = new CampaignState();
         int serial = RuinsExpeditionLedger.issue(state);
 
-        assertTrue(RuinsExpeditionLedger.record(state, serial, true));
+        assertTrue(RuinsExpeditionLedger.record(state, serial, RuinsExpeditionLedger.Pending.WON));
         assertEquals(RuinsExpeditionLedger.Pending.WON, RuinsExpeditionLedger.take(state, serial));
         assertEquals(RuinsExpeditionLedger.Pending.NONE, RuinsExpeditionLedger.take(state, serial));
     }
@@ -25,8 +25,18 @@ class RuinsExpeditionLedgerTest {
         CampaignState state = new CampaignState();
         int serial = RuinsExpeditionLedger.issue(state);
 
-        RuinsExpeditionLedger.record(state, serial, false);
+        RuinsExpeditionLedger.record(state, serial, RuinsExpeditionLedger.Pending.LOST);
         assertEquals(RuinsExpeditionLedger.Pending.LOST, RuinsExpeditionLedger.take(state, serial));
+    }
+
+    @Test
+    void aPulledOutExpeditionIsTakenAsPulledOutOnce() {
+        CampaignState state = new CampaignState();
+        int serial = RuinsExpeditionLedger.issue(state);
+
+        assertTrue(RuinsExpeditionLedger.record(state, serial, RuinsExpeditionLedger.Pending.PULLED_OUT));
+        assertEquals(RuinsExpeditionLedger.Pending.PULLED_OUT, RuinsExpeditionLedger.take(state, serial));
+        assertEquals(RuinsExpeditionLedger.Pending.NONE, RuinsExpeditionLedger.take(state, serial));
     }
 
     @Test
@@ -43,10 +53,10 @@ class RuinsExpeditionLedgerTest {
         int first = RuinsExpeditionLedger.issue(state);
         int second = RuinsExpeditionLedger.issue(state);
 
-        assertTrue(RuinsExpeditionLedger.record(state, second, true));
-        assertFalse(RuinsExpeditionLedger.record(state, second, false), "a replayed result");
-        assertFalse(RuinsExpeditionLedger.record(state, first, false), "an older briefing's result");
-        assertFalse(RuinsExpeditionLedger.record(state, second + 1, true), "a serial never issued");
+        assertTrue(RuinsExpeditionLedger.record(state, second, RuinsExpeditionLedger.Pending.WON));
+        assertFalse(RuinsExpeditionLedger.record(state, second, RuinsExpeditionLedger.Pending.LOST), "a replayed result");
+        assertFalse(RuinsExpeditionLedger.record(state, first, RuinsExpeditionLedger.Pending.LOST), "an older briefing's result");
+        assertFalse(RuinsExpeditionLedger.record(state, second + 1, RuinsExpeditionLedger.Pending.WON), "a serial never issued");
         assertEquals(RuinsExpeditionLedger.Pending.NONE, RuinsExpeditionLedger.take(state, first));
         assertEquals(RuinsExpeditionLedger.Pending.WON, RuinsExpeditionLedger.take(state, second));
     }
