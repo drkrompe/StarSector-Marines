@@ -82,7 +82,7 @@ public final class RuinsOccupants {
         };
     }
 
-    private static long mix(long a, long b) {
+    static long mix(long a, long b) {
         long value = a * 0x9E3779B97F4A7C15L ^ (b + 0x632BE59BD9B4E019L);
         value ^= value >>> 30;
         value *= 0xBF58476D1CE4E5B9L;
@@ -92,7 +92,7 @@ public final class RuinsOccupants {
         return value;
     }
 
-    private static double unit(long hash) {
+    static double unit(long hash) {
         return (hash >>> 11) * 0x1.0p-53;
     }
 }

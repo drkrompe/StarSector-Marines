@@ -1,6 +1,6 @@
 # Campaign story board
 
-Status: ACTIVE — 10 open stories
+Status: ACTIVE — 11 open stories
 
 Written: 2026-08-23
 
@@ -24,3 +24,4 @@ For authored mission sequences and their dedicated arc boards, start with
 | `player-raid-fork.md` | In progress — built and unit-tested, live pass remains | Lead the player's own raid on a market as a Marine Operations battle, or launch it as usual; works with and without Nexerelin (`raid-resolution.md`). |
 | `ruins-expedition-fork.md` | In progress — slices 1 to 5 (fork, commit path, battle, ground, occupants) built, development builds only until the live pass | Send the company into a ruins world's ruins as a Marine Operations battle, or the salvage team as usual; a won expedition commits through vanilla's own salvage (`ruins-expedition.md`). |
 | `ruins-pressure.md` | Planned — slice 1 (the stir) built; owner picks open | Constant pressure in the delve: an occupied site's stir rises with time inside and loud acts, never falls, and each step sends a push out of a finite reserve, hunting the company or, when it sits still, onto the way back. |
+| `ruins-vault-prize.md` | Planned — slice 1 (the draw) built; owner picks open | Each vault holds one seeded prize beside vanilla's haul (goods, tech, an AI core or a colony item) and the site is built round it, so its survey tell, approach, art and works hint what is inside. |
