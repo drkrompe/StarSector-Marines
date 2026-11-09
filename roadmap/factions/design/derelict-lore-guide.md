@@ -137,8 +137,8 @@ the lightly damaged: a slow, heavy anchor that keeps itself running.
 
 | Unit | What it is | Built from |
 | --- | --- | --- |
-| **Swarm drone** | A small, cheap, expendable flier with one light gun. Alone it is nothing; it exists in a flock. | The shipped drone's air body, lighter (`Drone`), steered by the flock (`derelict-drone-flocks.md`) |
-| **Flock** | Twelve to sixteen swarm drones that move, turn and attack as one body. The unit the network commands. | New: the flock model (`derelict-drone-flocks.md`) |
+| **Swarm drone** | A small, cheap, expendable flier with one light gun. Alone it is nothing; it exists in a flock. | The shipped drone's air body, lighter (`Drone`), steered by the flock (`air-nouns.md`, Flocks) |
+| **Flock** | Twelve to sixteen swarm drones that move, turn and attack as one body. The unit the network commands. | New: the flock model (`air-nouns.md`, Flocks) |
 | **Drone cradle** | A launch housing that keeps one flock docked, puts it up when its zone wakes, takes it back, and slowly rebuilds lost drones while its node stands. | The drone hub (`DroneHub`) with a flock's stock |
 | **Security walker** | An unpiloted heavy walker of the derelict line, in three loadouts: the **line frame** (heavy cannon and plate, holds a layer and crushes cover), the **siege frame** (mortar and missile racks, fires on what the flocks see), and the **vault frame** (the heaviest plate, the vault's last guard, an interior guardian that never leaves it). Sized to stand in an interior's corridors. | A new heavy mech line (`mech-lines.md`): one chassis, variants by loadout (`mechs-nouns.md`) |
 | **Sentry post** | A folded gun emplacement that rises when its zone wakes. Secondary now: a few per zone at doors and courts. | Defence post (`DefensePost`) with a wake gate |

@@ -276,7 +276,7 @@ watch spent resting, socialising and exercising; the dead count as idle
   pieces (a member field, a map-wide threshold search, the outside's
   labelling). `build/reports/performance/flock-cost/summary.md`;
   `-Dbattle.flockCost.warmupTicks`, `.measureTicks`. Readings:
-  `derelict-drone-flocks.md`.
+  `air-nouns.md`, Flocks.
 - `profileSwarmFlow`: swarm strategic-movement cost at 280x168, 400x240 and
   560x336 with 64 to 1000 runners, flow field on and off, then two replicas per
   lever side by side for determinism (fails if they differ).

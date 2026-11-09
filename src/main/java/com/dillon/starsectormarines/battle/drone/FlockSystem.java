@@ -71,10 +71,28 @@ public final class FlockSystem {
         return List.copyOf(flocks);
     }
 
-    /** Whether a low flier may be in a cell of this map: open ground, not a wall and not under an intact roof. */
+    /** Whether a low flier may be in a cell of this map: open ground or low cover, never a wall or under an intact roof. */
     public static FlockField.Open open(NavigationGrid grid, CellTopology topology) {
-        return (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
-                && (topology == null || !topology.isRoofIntact(x, y));
+        return (x, y) -> grid.inBounds(x, y) && (topology == null || !topology.isRoofIntact(x, y))
+                && (grid.isWalkable(x, y) || lowObstacle(grid, topology, x, y));
+    }
+
+    /**
+     * Whether a cell is closed to walking only by something a low flier passes over: sandbags, a fence, crates, a
+     * barricade, a parked hull, water. Never a wall, a window, a fixture (a shelf run, a large rock), a tree or boulder
+     * (a natural solid) or the void. A swarm drone crosses low cover; it never crosses walls or goes under a roof.
+     */
+    static boolean lowObstacle(NavigationGrid grid, CellTopology topology, int x, int y) {
+        return topology != null && !topology.isWall(x, y)
+                && !topology.hasTag(x, y, CellTopology.Tag.WINDOW)
+                && !topology.hasTag(x, y, CellTopology.Tag.FIXTURE)
+                && !grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
+                && topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID;
+    }
+
+    /** The ground a cradle may stand on: open to the flock and walkable, so never on the low cover it flies over. */
+    static FlockField.Open ground(NavigationGrid grid, FlockField.Open open) {
+        return (x, y) -> open.open(x, y) && grid.isWalkable(x, y);
     }
 
     /**
@@ -106,6 +124,12 @@ public final class FlockSystem {
             x = door[0] + .5f;
             y = door[1] + .5f;
         }
+        // The cradle stands set back in the open, and is the flock's home: drones land on it and leave from it.
+        int[] site = FlockCradle.site((int) Math.floor(x), (int) Math.floor(y), ground(grid, open), LAUNCH_SEARCH);
+        if (site != null) {
+            x = site[0] + .5f;
+            y = site[1] + .5f;
+        }
         Flock flock = new Flock(nextFlock++, side, weights, x, y, leashCells);
         flock.livery = livery;
         flock.squadId = sim.mintSquad(side, UnitType.DRONE);
@@ -118,9 +142,8 @@ public final class FlockSystem {
             spawnMember(sim, flock, cell[0], cell[1]);
         }
         flocks.add(flock);
-        int[] site = FlockCradle.site((int) Math.floor(x), (int) Math.floor(y), open, LAUNCH_SEARCH);
-        if (site == null) site = new int[]{(int) Math.floor(x), (int) Math.floor(y)};
-        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side, site[0], site[1]));
+        flock.cradleId = sim.spawn(FlockCradle.create("flock-cradle-" + flock.id(), side,
+                (int) Math.floor(x), (int) Math.floor(y)));
         if (flock.cradleId != 0L) cradles.put(flock.cradleId, livery);
         publish(flock, sim, true);
         return flock;
@@ -143,12 +166,45 @@ public final class FlockSystem {
 
     /** One rebuilt drone from the cradle joins the flock when its clock says so. */
     void rebuild(Flock flock, float dt, BattleSimulation sim) {
-        boolean cradle = flock.cradleId != 0L && sim.resolveUnit(flock.cradleId) != 0L;
-        boolean home = Math.hypot(flock.anchorX() - flock.homeX(), flock.anchorY() - flock.homeY())
-                <= FlockCradle.HOME_CELLS;
-        if (!flock.rebuild.advance(dt, cradle, flock.nodeStands(), home, flock.size(), flock.strength())) return;
+        boolean cradle = cradleStands(flock, sim);
+        if (!flock.rebuild.advance(dt, cradle, flock.nodeStands(), home(flock), flock.size() + flock.aboard(),
+                flock.strength())) return;
+        // A flock home to dock takes its new drone aboard; one sent out has it join in the air.
+        if (flock.task() == FlockTask.RETURN) {
+            flock.dock.board();
+            return;
+        }
         int[] cell = nearestOpen(flock.homeX(), flock.homeY(), sky(sim), LAUNCH_SEARCH);
         if (cell != null) spawnMember(sim, flock, cell[0], cell[1]);
+    }
+
+    /**
+     * Docking (`FlockDock`): a flock going home lands each member that reaches its cradle, taking it off the field
+     * (it leaves, it does not die); a flock sent out puts its drones aboard back up from the cradle.
+     */
+    private void dock(Flock flock, float dt, BattleSimulation sim) {
+        boolean cradle = cradleStands(flock, sim);
+        boolean home = home(flock);
+        World world = sim.world();
+        for (Iterator<Long> it = flock.members.iterator(); it.hasNext(); ) {
+            long m = it.next();
+            float d = (float) Math.hypot(world.x(m) - flock.homeX(), world.y(m) - flock.homeY());
+            if (!FlockDock.lands(flock.task(), home, cradle, d)) continue;
+            it.remove();
+            sim.takeOffTheField(m);
+            flock.dock.board();
+        }
+        int up = flock.dock.launches(dt, flock.task(), cradle);
+        for (int i = 0; i < up; i++) spawnMember(sim, flock, (int) Math.floor(flock.homeX()), (int) Math.floor(flock.homeY()));
+    }
+
+    private static boolean cradleStands(Flock flock, BattleSimulation sim) {
+        return flock.cradleId != 0L && sim.resolveUnit(flock.cradleId) != 0L;
+    }
+
+    /** Whether the flock's anchor is at home, where its cradle stands. */
+    private static boolean home(Flock flock) {
+        return Math.hypot(flock.anchorX() - flock.homeX(), flock.anchorY() - flock.homeY()) <= FlockCradle.HOME_CELLS;
     }
 
     private long spawnMember(BattleSimulation sim, Flock flock, int cx, int cy) {
@@ -172,13 +228,20 @@ public final class FlockSystem {
         for (Iterator<Flock> it = flocks.iterator(); it.hasNext(); ) {
             Flock flock = it.next();
             flock.members.removeIf(m -> sim.resolveUnit(m) == 0L);
+            dock(flock, dt, sim);
             rebuild(flock, dt, sim);
             if (flock.members.isEmpty()) {
+                if (flock.aboard() > 0) {
+                    publish(flock, sim, false);
+                    continue;
+                }
                 flock.disband();
                 it.remove();
                 continue;
             }
-            if (flock.task() != FlockTask.RETURN && flock.size() * 3 < flock.strength()) flock.returnHome();
+            if (flock.task() != FlockTask.RETURN && (flock.size() + flock.aboard()) * 3 < flock.strength()) {
+                flock.returnHome();
+            }
             moveAnchor(flock, dt, sim);
             publish(flock, sim, false);
             if (scan) {
