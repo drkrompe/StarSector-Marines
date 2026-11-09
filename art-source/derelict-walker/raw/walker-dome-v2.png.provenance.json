@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c195-7eac-7e80-a8cc-74374ba92217",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c195-7eac-7e80-a8cc-74374ba92217\\exec-69de3996-778a-4fbc-843b-6240a5d77446.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\derelict-walker\\raw\\walker-dome-v2.png",
+    "sha256": "b4b61dd329dc358129385a1d5f862797520d7c7cd7208d0fe8842fef9bb2ea16",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\derelict-walker\\prompts\\walker-dome-v2.prompt.txt",
+  "promptSha256": "acf289d76686f67da7981ca6b1fccab9c8951c660da8e7129dcf2a08d9824560",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: positions, sizes, outlines and orientation of the assembled walker and its parts\nImage 2: Material and rendering style only (vanilla Domain derelict drone ship); not its layout\nImage 3: Material and rendering style only (vanilla Domain derelict drone ship); not its layout\nImage 4: Material and rendering style only (vanilla Domain derelict drone ship); not its layout\n\nGame sprite sheet for a top-down tactical game: a Domain-era AUTOMATED SECURITY WALKER, an unpiloted heavy war machine left guarding an abandoned site for centuries. Heavy, industrial, worn, credible military hardware: a low armoured torso slung between four long armoured legs, like a mechanical crab or spider tank. No cockpit, no canopy, no pilot.\n\nReference image 1 is the GEOMETRY AUTHORITY (a grey block-in). Keep its layout exactly: on the LEFT the whole walker assembled, torso in the middle, four legs reaching out in an X; on the RIGHT the same machine's parts drawn apart, upright: the torso alone (top), one thigh segment (bottom left: hip joint at its lower end, knee end at its top) and one shin segment (bottom right: knee joint at its lower end, a heavy three-toed clamp foot at its top). Keep every part's position, size, outline and orientation as in the guide, so the parts can be cut out by their boxes; keep the gaps between parts empty. The torso on the right must be the same design as the torso on the left. Every leg on the left uses the same thigh and shin as the parts on the right.\n\nImages 2, 3 and 4 are MATERIAL AND RENDERING STYLE ONLY: Starsector's own Domain-era DERELICT drone warships, the faction this walker belongs to. Match their rendering exactly: kitbashed, densely greebled machinery read from directly above; pale sage-green and khaki armour plates with a few broad diagonal yellow hazard stripes; bone-white and tarnished brass segments, pipework and cable runs; round armoured turret mounts; red sensor eyes; mottled grime, rust-brown wear and patchy weathering; fine detail at sprite scale with no heavy black outlines. Do NOT copy their hull outlines, engines or turrets as layout; the walker's layout is image 1's.\n\nDESIGN: a square armoured chassis with cut corners carrying a big round armoured GUN CUPOLA on top: a heavy rotating turret with one long twin-barrelled gun pointing forward (the barrels lie flat in the image plane, the muzzles face away from the camera), machinery and vents crowding the chassis around it, and hazard-striped corner plates over the leg mounts. Legs: heavy segmented armoured limbs with exposed actuators.\n\nCOLOUR: the derelict drones' palette from images 2-4: sage-green and khaki plate, yellow diagonal hazard bands, bone-white and brass machinery, rust-brown grime, red sensor eyes. Muted, old and gritty, never shiny, never toy-like, never cartoon. No text, no letters, no numbers, no logos, no emblems.\n\nStrict overhead orthographic view, the camera straight down, the machine facing the TOP of the canvas. Plain flat light grey background (#b4b4b4) everywhere around and between the parts; no ground, no cast shadow, no shadow slab, no border, no labels.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\derelict-walker\\guides\\dome-guide.png",
+      "sha256": "6b65b56fe327e168eb3b359db723d3dc6ccaa8724db696126d21eccac64c05d3",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: positions, sizes, outlines and orientation of the assembled walker and its parts"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\refs\\derelict_bastillon.png",
+      "sha256": "aa7d5becc1d292d76544ac55d535cef527ace8a4614817ec5d55eaea0ff482cc",
+      "dimensions": [
+        656,
+        560
+      ],
+      "mode": "RGB",
+      "role": "Material and rendering style only (vanilla Domain derelict drone ship); not its layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\refs\\derelict_rampart.png",
+      "sha256": "0732d897dd8c13db3cfe1a5aa3cc5ab27ec66b711dc757d2b99ad7cd6d16e099",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGB",
+      "role": "Material and rendering style only (vanilla Domain derelict drone ship); not its layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\refs\\derelict_guardian.png",
+      "sha256": "7d91c31c57cef55acbf39e29f231a7fedf791d8ed448ae5e640066c31cd005d0",
+      "dimensions": [
+        696,
+        600
+      ],
+      "mode": "RGB",
+      "role": "Material and rendering style only (vanilla Domain derelict drone ship); not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using Image 1 for the exact geometry and Images 2–4 for the materials and rendering style."
+  ],
+  "usage": {
+    "input_tokens": 46322,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 737,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.9
+}
