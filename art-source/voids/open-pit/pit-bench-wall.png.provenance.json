@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c21d-64b0-7352-b6dd-df244062fe74",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c21d-64b0-7352-b6dd-df244062fe74\\exec-0894584c-36d7-44c2-ac42-2ce5a0f1209c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\open-pit\\pit-bench-wall.png",
+    "sha256": "4cbbe25b0259585f4da1136a2308692cc2680a496a6a16180d49d6826847bc08",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\open-pit\\pit-bench-wall.prompt.txt",
+  "promptSha256": "b749279bc3b9deabdd1653ac9ab8c6bbf73cb3d4e526a5f2c9013fa8b768c628",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/style and rendering finish only (straight-on, even daylight, game texture density); not content or palette\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of a blasted bench face\nin an open-cut ore mine, as it would be mapped onto a vertical quarry wall.\nHard grey and rust-brown ore-bearing rock broken by blasting: angular\nfracture planes, blocky slabs, half-barrel drill traces (vertical parallel\ngrooves of presplit drill holes about every metre), iron-oxide staining in\nochre and rust, pale rock-dust coating, small loose scree lodged in cracks,\nfaint horizontal banding of the ore body. No vegetation. Lit evenly by soft\ndaylight from straight in front, no cast shadows from outside the tile.\nEven density across the whole tile with no focal point, so it repeats both\nhorizontally and vertically. Palette: dusty grey, slate, rust, ochre, a\nlittle dark iron. No machines, no water, no sky, no people, no text, no\nborder, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\voids\\gorge-wall.png",
+      "sha256": "2a2efd9f3a64b1789150ecfc74632850b67791d9c6d5fd5bddaff38f0c680cd3",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Material/style and rendering finish only (straight-on, even daylight, game texture density); not content or palette"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one square, seamless mine-wall texture using the reference only for rendering finish and texture density."
+  ],
+  "usage": {
+    "input_tokens": 40033,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 333,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.1
+}
