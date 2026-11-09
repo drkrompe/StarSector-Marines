@@ -2728,6 +2728,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Claw strikes queued this tick; see {@code EffectsService.emitClawStrike}. Drained by the host into {@code ImpactFx.spawnClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
+
+    /** The presentation effects queue: what a frame draws besides the bodies (sparks, smoke, flame). */
+    public EffectsService effects() { return effects; }
     /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
     public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
     /** Queues one puff of ground dust; see {@code EffectsService.emitGroundDust}. Presentation only. */
