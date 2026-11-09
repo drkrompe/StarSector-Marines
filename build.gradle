@@ -172,7 +172,7 @@ void forwardBattleSwitches(task) {
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
-                'swarm-flow-evidence',
+                'swarm-flow-evidence', 'flock-cost-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'ruins-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
@@ -906,6 +906,24 @@ tasks.register('profileSwarmFlow', Test) {
     systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     systemProperty 'battle.swarmFlow.outputDir', System.getProperty('battle.swarmFlow.outputDir',
             layout.buildDirectory.dir('reports/performance/swarm-flow').get().asFile.absolutePath)
+    forwardBattleSwitches(delegate)
+    testLogging { showStandardStreams = true }
+}
+
+tasks.register('profileFlockCost', Test) {
+    group = 'verification'
+    description = 'Measure the per-tick cost of derelict drone flocks: four flocks of sixteen on a vast map, against a control.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'flock-cost-evidence' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
+    systemProperty 'battle.flockCost.outputDir', System.getProperty('battle.flockCost.outputDir',
+            layout.buildDirectory.dir('reports/performance/flock-cost').get().asFile.absolutePath)
     forwardBattleSwitches(delegate)
     testLogging { showStandardStreams = true }
 }

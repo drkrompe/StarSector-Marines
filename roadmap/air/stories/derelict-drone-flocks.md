@@ -1,9 +1,9 @@
 # Derelict drone flocks
 
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
-behaviors) and heavy mechs"). Slices 1, 2 and 4 built, slice 3's unit, tasks and
-strike built; flocks play in the derelict ruins battle. Cost, counters and look
-to come.
+behaviors) and heavy mechs"). Slices 1, 2, 4 and 5 built, slice 3's unit, tasks
+and strike built; flocks play in the derelict ruins battle. Counters and look to
+come.
 
 Written: 2026-11-09
 
@@ -166,6 +166,15 @@ extensive derelict fixture (`ruins-derelict-extensive-v1.json`), prints each
 flock's home and the member-ticks under a roof (0 over the battle), and records
 the flocks at the megastructure's entrances and in the fight.
 
+**Cost** (slice 5, `profileFlockCost`, 2026-11-09, serial unit update): on a
+280x168 map of roofed blocks, four flocks of sixteen, kept whole, add 0.23 ms a
+tick on the mean (0.06 ms a flock); p95 0.71 ms against 0.11 ms for the
+control, max 5.6 ms. A member field (radius 48) builds in 0.24 ms, a map-wide
+threshold search from a building's middle takes 0.18 ms, and labelling the
+outside 0.9 ms (every `SKY_TICKS`). The neighbour search is bounded to the
+flock's own members by construction (`FlockSteering` reads only the flock's
+roster). No further work is needed for the owner's sizes.
+
 The seam with the network (`derelict-security-network.md`): the network
 launches one flock per zone with `FlockSystem.launch`, homed on the zone's node
 (the cradle point once cradles exist) and leashed to its perimeter plus
@@ -191,8 +200,7 @@ on generated colony ground.
 
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags
 and fences are walls to a flock for now); screen, probe, pursue and return
-scenes; docking; the cost profile (slice 5); counters (slice 6); the look
-(slice 7).
+scenes; docking; counters (slice 6); the look (slice 7).
 
 ## Slices
 

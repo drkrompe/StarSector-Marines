@@ -270,6 +270,13 @@ watch spent resting, socialising and exercising; the dead count as idle
   attempts and expansions, and cells derived, in
   `build/reports/performance/convoy-route/summary.json`
   (`-Dbattle.convoyRoute.outputDir=<path>`). Diagnostic timings, not a gate.
+- `profileFlockCost`: derelict drone flocks' tick cost, four flocks of sixteen
+  on a 280x168 map of roofed blocks (two probing, two striking, one target
+  inside a building) against the same map with no flocks, plus the serial
+  pieces (a member field, a map-wide threshold search, the outside's
+  labelling). `build/reports/performance/flock-cost/summary.md`;
+  `-Dbattle.flockCost.warmupTicks`, `.measureTicks`. Readings:
+  `derelict-drone-flocks.md`.
 - `profileSwarmFlow`: swarm strategic-movement cost at 280x168, 400x240 and
   560x336 with 64 to 1000 runners, flow field on and off, then two replicas per
   lever side by side for determinism (fails if they differ).
