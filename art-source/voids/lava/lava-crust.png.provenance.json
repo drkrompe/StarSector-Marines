@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c1b6-c4e8-7251-95e3-fdc2ed26fb3d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c1b6-c4e8-7251-95e3-fdc2ed26fb3d\\exec-410dd78f-8ed8-4146-af32-f1cd0e7e21e8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\lava\\lava-crust.png",
+    "sha256": "78f23f74321496b1038063fab9fc5a56c13cc207c2b9c834fbf210dabb28b89d",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\lava\\lava-crust.prompt.txt",
+  "promptSha256": "606ec41104df9df30b34b7247d7542b5de034096024c8a90a5dab4ac9148dc8d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game, seen straight down (top-down,\northographic, no perspective, no horizon): the surface of a slow river of\nmolten lava crusting over as it cools. Irregular plates of black and\ndark charcoal cooled crust, wrinkled ropy pahoehoe folds and rough\nbroken slabs, from fist-sized fragments to plates several metres across,\nseparated by a branching network of narrow-to-wide cracks and seams of\nincandescent molten rock glowing bright yellow-white at their centres,\nthrough orange to deep red at their edges. Some plates are thin and\nshow a dull red glow through them. Strong contrast: the crust is near\nblack, the cracks are brilliant. Even density across the whole tile with\nno focal point and no flow direction emphasised, so it repeats both\nhorizontally and vertically. No smoke, no flames above the surface, no\nrocks or banks, no sky, no people, no text, no border, no vignette.\nSquare canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square, seamless lava texture with the details you specified."
+  ],
+  "usage": {
+    "input_tokens": 37276,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 287,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.0
+}

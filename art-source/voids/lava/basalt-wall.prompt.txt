@@ -1,0 +1,15 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of a sheer volcanic
+rift wall above a lava river, as it would be mapped onto a vertical cliff.
+Dark basalt: tall columnar joints, hexagonal columns roughly 1 to 2 m
+wide standing vertically and broken into stacked blocks, between bands of
+rough vesicular lava rock and thin layers of reddish-brown scoria and ash.
+Glassy black obsidian veins, sulphur-yellow and rust mineral crusts in
+the cracks, pale grey ash dusting the ledges. The rock itself is cold and
+unlit: no glowing lava, no orange light, no fire in the texture (the game
+adds that light). Lit evenly by soft neutral light from straight in
+front, no cast shadows from outside the tile. Even density across the
+whole tile with no focal point, so it repeats horizontally and
+vertically. Palette: charcoal, blue-black, dark umber, rust, a little
+sulphur yellow. No sky, no people, no text, no border, no vignette.
+Square canvas.

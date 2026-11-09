@@ -54,6 +54,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final BattleSprites sprites;
     /** This instance draws the map's rise rather than its drop. */
     private final boolean rising;
+    /** A lava rift's floor, light and air, drawn into this drop's order and over the ground after it. */
+    private final MoltenVoidRenderSystem molten;
+    /** The drop this instance draws is a lava rift. */
+    private boolean lava;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -81,6 +85,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     NaturalVoidRenderSystem(BattleSprites sprites, boolean rising) {
         this.sprites = sprites;
         this.rising = rising;
+        this.molten = new MoltenVoidRenderSystem(this, sprites);
+    }
+
+    /** A lava rift's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
+    RenderSystem molten() {
+        return molten;
     }
 
     /** The map's drop or rise, whichever this instance draws, or null. */
@@ -155,6 +165,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             eyeMeters = drop.eyeMeters();
             seed = drop.seed();
         }
+        lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -182,13 +193,17 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float[] c = new float[band.count * 3];
             for (int q = 0; q < band.count; q++) {
                 if (rising && k == n) plateau(band, q, seed, c);
+                else if (lava) LavaVoidLook.rock(band, q, k, seed, field.depth[n], c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
         }
         NaturalVoidField.Band fray = field.fray;
         frayColours = new float[fray.count * 3];
-        for (int q = 0; q < fray.count; q++) albedo(fray, q, 0, seed, frayColours);
+        for (int q = 0; q < fray.count; q++) {
+            if (lava) LavaVoidLook.rock(fray, q, 0, seed, field.depth[n], frayColours);
+            else albedo(fray, q, 0, seed, frayColours);
+        }
     }
 
     /**
@@ -214,6 +229,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             for (int q = 0; q < band.count; q++) {
                 int o = q * 8;
                 if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
+                // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it.
+                if (lava && at[o + 7] < 1f) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
@@ -234,28 +251,53 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         });
     }
 
-    // ----- projection -----
+    // ----- projection, shared with the lava rift's drawing -----
 
-    private float scale(float depth) { return eye / (eye + depth); }
+    NaturalVoidField field() { return field; }
+
+    BattleCamera camera() { return cam; }
+
+    DrawList drawList() { return out; }
+
+    float alpha() { return alpha; }
+
+    int seed() { return seed; }
+
+    /**
+     * Readies the projection for a pass drawn later in the frame than this one, as the fray is: false when this map
+     * has no drop or its shape is not yet worked out.
+     */
+    boolean begin(RenderContext ctx, DrawList out) {
+        if (ctx.sim.getTopology().naturalVoid() == null || field == null || builtFor != ctx.sim.getTopology()) return false;
+        this.out = out;
+        this.cam = ctx.camera;
+        this.alpha = ctx.alphaMult;
+        this.eye = eyeMeters;
+        this.cx = cam.cellToScreenX(cam.panCellX());
+        this.cy = cam.cellToScreenY(cam.panCellY());
+        return true;
+    }
+
+    float scale(float depth) { return eye / (eye + depth); }
 
     /** Where a point of the field (map cells shifted by {@link #MARGIN}) stands on screen at scale {@code s}. */
-    private float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX - MARGIN) - cx) * s; }
+    float sx(float cellX, float s) { return cx + (cam.cellToScreenX(cellX - MARGIN) - cx) * s; }
 
-    private float sy(float cellY, float s) { return cy + (cam.cellToScreenY(cellY - MARGIN) - cy) * s; }
+    float sy(float cellY, float s) { return cy + (cam.cellToScreenY(cellY - MARGIN) - cy) * s; }
 
     /** Whether a point of the field lies on the map: surface pieces past its edge are not drawn. */
-    private boolean onMap(float x, float y) {
+    boolean onMap(float x, float y) {
         return x >= MARGIN && y >= MARGIN && x < MARGIN + mapW && y < MARGIN + mapH;
     }
 
     /** Whether a plan point at scale {@code s} lands within the view, with a margin in pixels. */
-    private boolean inView(float x, float y, float s, float margin) {
+    boolean inView(float x, float y, float s, float margin) {
         float px = sx(x, s), py = sy(y, s);
         return px >= cam.vpX() - margin && px <= cam.vpX() + cam.vpW() + margin
                 && py >= cam.vpY() - margin && py <= cam.vpY() + cam.vpH() + margin;
     }
 
-    private PolyMesh poly() {
+    PolyMesh poly() {
         if (polysUsed == polys.size()) polys.add(new PolyMesh(256));
         PolyMesh mesh = polys.get(polysUsed++);
         mesh.reset();
@@ -321,6 +363,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     }
 
     private void drawBand(NaturalVoidField.Band band, boolean floor, float time) {
+        if (floor && lava) {
+            molten.drawFloor(band, time);
+            return;
+        }
         float s = scale(band.depth);
         float tint = rising ? 0f : DEEP_MIX * band.depth / Math.max(1f, field.depth[field.steps()]);
         float margin = cam.cellPxSize() * 2f;
@@ -406,6 +452,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 if (!rising) {
                     float tint = DEEP_MIX * ((za + zb) / 2f) / floorDepth;
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                }
+                if (lava) {
+                    float glow = LavaVoidLook.wallGlow(floorDepth - (za + zb) / 2f);
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, LavaVoidLook.GLOW_R,
+                            LavaVoidLook.GLOW_G, LavaVoidLook.GLOW_B, glow * alpha);
                 }
             }
         }
