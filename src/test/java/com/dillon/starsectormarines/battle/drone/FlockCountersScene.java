@@ -29,7 +29,7 @@ import java.util.Set;
  * onto the street the flock comes down.
  *
  * <p>This confirms the counters fall out of the model; it is not a balance target. So the only verdicts are mechanisms
- * (no member under the roof, both sides fired); who lost what, how fast the flock broke, and how many members one
+ * (no member under the roof, both sides fired, frags thrown at the flock where the team carries them); who lost what, how fast the flock broke, and how many members one
  * tick's fire hurt at once (area fire shows as several) are readings.
  */
 public final class FlockCountersScene implements BehaviorScene {
@@ -104,6 +104,10 @@ public final class FlockCountersScene implements BehaviorScene {
                 trace.closedTicks + " member-ticks in a wall or under the roof"));
         v.add(Verdict.of("both-fired", trace.flockRounds > 0 && trace.teamRounds > 0,
                 trace.flockRounds + " rounds from the flock, " + trace.teamRounds + " from the team"));
+        if (grenades) {
+            v.add(Verdict.of("frags-thrown", trace.grenadesThrown > 0,
+                    trace.grenadesThrown + " frags thrown at the flock"));
+        }
         return new SceneReport(id(), loop, TICKS, v, trace.readings());
     }
 
@@ -112,8 +116,9 @@ public final class FlockCountersScene implements BehaviorScene {
         final long[] men;
         final Set<Long> members = new HashSet<>();
         final Map<Long, Float> hp = new HashMap<>();
+        final Map<Long, Integer> secondaryAmmo = new HashMap<>();
         int closedTicks, flockRounds, teamRounds, mostHurtInOneTick, ticksHurtingSeveral, brokenTick = -1,
-                firstContactTick = -1, menLeft, membersLeft;
+                firstContactTick = -1, menLeft, membersLeft, grenadesThrown;
         private String caption = "";
 
         Trace(Flock flock, long[] men) {
@@ -142,7 +147,14 @@ public final class FlockCountersScene implements BehaviorScene {
             if (hurt >= 2) ticksHurtingSeveral++;
             if (brokenTick < 0 && membersLeft * 3 < members.size()) brokenTick = tick;
             menLeft = 0;
-            for (long man : men) if (sim.resolveUnit(man) != 0L) menLeft++;
+            for (long man : men) {
+                if (sim.resolveUnit(man) == 0L) continue;
+                menLeft++;
+                if (!sim.world().hasSecondaryWeapon(man)) continue;
+                int ammo = sim.world().secondaryAmmo(man);
+                Integer before = secondaryAmmo.put(man, ammo);
+                if (before != null && ammo < before) grenadesThrown += before - ammo;
+            }
             Set<Long> team = new HashSet<>();
             for (long man : men) team.add(man);
             for (ShotEvent shot : sim.getShotsThisFrame()) {
@@ -163,6 +175,7 @@ public final class FlockCountersScene implements BehaviorScene {
             m.put("firstContactTick", firstContactTick);
             m.put("flockRounds", flockRounds);
             m.put("teamRounds", teamRounds);
+            m.put("grenadesThrown", grenadesThrown);
             m.put("mostMembersHurtInOneTick", mostHurtInOneTick);
             m.put("ticksHurtingSeveral", ticksHurtingSeveral);
             m.put("closedTicks", closedTicks);

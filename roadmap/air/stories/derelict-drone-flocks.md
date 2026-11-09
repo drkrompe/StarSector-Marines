@@ -2,12 +2,13 @@
 
 Status: IN PROGRESS — owner direction ("heavy emphasis on drone swarms (flocking
 behaviors) and heavy mechs"). Slices 1, 2, 4, 5 and 6 built, slice 3's unit,
-tasks and strike built; flocks play in the derelict ruins battle. The look is to
-come, and an open question on area fire against fliers.
+tasks and strike built; flocks play in the derelict ruins battle and frags are
+area fire against them. The look is to come (slice 7).
 
 Written: 2026-11-09
 
-Updated: 2026-11-09 — flocks in the derelict ruins battle: every roofed goal held
+Updated: 2026-11-09 — area fire: frags thrown at a flock, led to where its
+drones will be. Earlier: flocks in the derelict ruins battle: every roofed goal held
 at its threshold, the outside as the flock's ground, one entrance per flock,
 cradles. Earlier: owner picks in (`derelict-swarm-size`, `derelict-mech-line`,
 `derelict-flock-counters`, all option a); roofed-room exclusion is a central
@@ -159,9 +160,11 @@ swarm action, which hands them to `FlockFlight` (`DroneAnchor.flock()`).
 
 **In the derelict ruins battle.** `DerelictSecurity.install` (the heavies
 session's, `derelict-security-network.md`) launches one flock of
-`DerelictSecurity.FLOCK_SIZE` (14) per zone at the zone's node and tasks it
-through `FlockSystemPort`; the rules above put each interior zone's flock at an
-entrance. `createSnapshots -Psnapshot=derelict-flocks-ruins-look` plays the
+`DerelictSecurity.FLOCK_SIZE` (14) per zone and tasks it through
+`FlockSystemPort`. It homes the flock on the zone's node, or, for a node under a
+roof, on the first open cell of the route from the node toward the landing
+(`DerelictSecurity.openSkyHome`); the rules above hold any roofed goal at its
+threshold, so each interior zone's flock keeps an entrance. `createSnapshots -Psnapshot=derelict-flocks-ruins-look` plays the
 extensive derelict fixture (`ruins-derelict-extensive-v1.json`), prints each
 flock's home and the member-ticks under a roof (0 over the battle), and records
 the flocks at the megastructure's entrances and in the fight.
@@ -183,24 +186,31 @@ ways. Readings, not a balance target:
 | --- | --- | --- | --- | --- |
 | rifles in the open | 9 | 6 | never | 2 |
 | squad automatics in the open | 11 | 6 | 409 | 1 |
-| rifles with frag grenades | 9 | 6 | never | 2 |
+| rifles with frag grenades (8 thrown) | 16 | 2 | 254 | 5 |
 | rifles indoors, door in the flock's line | 9 | 6 | never | 1 |
 
 - Squad automatics are the counter that works today: the highest volume
   breaks the flock.
-- **Area fire does not fall out of the model yet.** The grenade loop is
-  identical to the rifle loop: frag grenades are thrown only at ground
-  clusters (`FragGrenadeTactics`), never at fliers, and no infantry weapon's
-  blast reaches a low flier, so no tick hurt more than two members. Whether
-  frags, shotguns and other bursts should engage a low flock is an open
-  question for the owner (below).
+- **Frags are area fire against a flock** (the owner's `derelict-flock-counters`
+  pick, area fire and cover). Drones fly low, so a blast already reaches every
+  member in its radius as it reaches a man; the throw is the rule that was
+  missing. `FragGrenadeTactics.tryCommitFlockThrow` leads each directly seen
+  drone by its own velocity over the throw's wind-up and flight and throws
+  where the most led drones fall inside the blast. It runs even while the squad
+  is surviving or on a mission goal, which block every other throw, since a
+  flock closing on a squad is when area fire answers it. Friendly-footprint and
+  overlap checks are the ground throw's. One blast hurt up to five members.
+- **Flock strength waits on a played battle** (owner): these runs and the ruins
+  battle let the autopilot play the company, so they show the counters work,
+  not that a flock is hard enough. Flock size, drone HP and fire are tuned only
+  after a player has fought them (`playBattle -Pbattle=<source>`).
 - Indoors works only out of the door's line: with the door facing the flock,
   the team dies as in the open; hidden behind a partition (`derelict-flock`,
   `strike-indoors`) it is untouched while the flock waits at the door.
 
 The seam with the network (`derelict-security-network.md`): the network
-launches one flock per zone with `FlockSystem.launch`, homed on the zone's node
-(the cradle point once cradles exist) and leashed to its perimeter plus
+launches one flock per zone with `FlockSystem.launch`, homed as above (its cradle stands
+there) and leashed to its perimeter plus
 `FlockTasking.LEASH_CELLS`. The director reads and tasks flocks only through
 `FlockCommandPort` in `battle.derelict`, which `FlockSystemPort` implements over
 `Flock` with this package's `FlockTask`: a report per flock (anchor, strength
@@ -224,14 +234,6 @@ on generated colony ground.
 Not built yet: crossing low cover (the field reads walkable cells, so sandbags
 and fences are walls to a flock for now); screen, probe, pursue and return
 scenes; docking; the look (slice 7).
-
-## Open questions
-
-- **Area fire against a flock** (from slice 6): the owner's counters pick names
-  area fire, but frag grenades never target fliers and no infantry blast
-  reaches one. Should a low flock be a grenade target (an airburst at drone
-  height) and should bursts hit fliers near their point? This touches the
-  shared grenade tactics, so it waits for the owner's answer.
 
 ## Slices
 

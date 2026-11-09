@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -22,6 +23,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.dillon.starsectormarines.battle.sim.BattleSimulation.TICK_DT;
 
@@ -50,7 +54,11 @@ public final class FragGrenadeTactics {
     public static boolean tryCommitThrow(long carrier, SpecialEquipmentDef grenade,
                                          BattleControl sim) {
         Squad squad = sim.squadOf(carrier);
-        if (squad == null || blockedByHigherPriorityWork(carrier, squad)) return false;
+        if (squad == null) return false;
+        if (blockedByHigherPriorityWork(carrier, squad)) {
+            // A squad busy surviving still throws at a flock of drones on top of it: the frag is its area fire.
+            return tryCommitFlockThrow(carrier, grenade, squad, sim);
+        }
         cleanupReservations(sim);
         FireField fire = grenade.weaponDef().incendiaryHeat() > 0 && FireReach.enabled() ? sim.fireField() : null;
         int lit = FireReach.litCells(grenade.aoeRadius(), grenade.hitSpread());
@@ -96,6 +104,65 @@ public final class FragGrenadeTactics {
         sim.world().setSecondaryFired(carrier, false);
         sim.world().setSecondaryAimTargetId(carrier, 0L);
         return true;
+    }
+
+    /**
+     * A throw at a flock of drones (`derelict-drone-flocks.md`, the counters): drones are low fliers, so a frag's
+     * blast reaches them like anyone in its radius, and a tight flock puts several in one. They fly too fast for a
+     * last-seen cell, so each directly seen drone is led by its own velocity over the throw's wind-up and flight
+     * ({@link #leadPoint}), and the throw goes where the most led drones fall inside the blast. Allowed while the squad
+     * is surviving or on a mission goal, since a flock closing on a squad is exactly when area fire answers it.
+     */
+    static boolean tryCommitFlockThrow(long carrier, SpecialEquipmentDef grenade, Squad squad, BattleControl sim) {
+        cleanupReservations(sim);
+        World world = sim.world();
+        float lead = grenade.aimDuration() * 0.5f + grenade.weaponDef().flightSec;
+        List<float[]> led = new ArrayList<>();
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (!usableSoftContact(contact, squad.faction, sim)) continue;
+            long u = contact.unitId();
+            if (!sim.identity().type(u).isDrone() || !world.isAlive(u)) continue;
+            AirBody body = world.kinematics(u);
+            if (body == null) continue;
+            led.add(leadPoint(body.x, body.y, body.vx, body.vy, lead));
+        }
+        if (led.size() < MIN_SOFT_TARGETS) return false;
+        float reach = grenade.aoeRadius();
+        float[] best = null;
+        int bestCount = 0;
+        float bestDistanceSq = Float.MAX_VALUE;
+        for (float[] point : led) {
+            float dx = point[0] - world.x(carrier), dy = point[1] - world.y(carrier);
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq > grenade.range() * grenade.range()) continue;
+            int count = 0;
+            for (float[] other : led) {
+                float ox = other[0] - point[0], oy = other[1] - point[1];
+                if (ox * ox + oy * oy <= reach * reach) count++;
+            }
+            if (count > bestCount || count == bestCount && distanceSq < bestDistanceSq) {
+                best = point;
+                bestCount = count;
+                bestDistanceSq = distanceSq;
+            }
+        }
+        if (best == null || !worthThrowing(false, bestCount)) return false;
+        if (!sim.getGrid().hasLineOfSight(world.cellX(carrier), world.cellY(carrier),
+                (int) Math.floor(best[0]), (int) Math.floor(best[1]))) return false;
+        if (!friendlyFootprintClear(carrier, best[0], best[1], grenade, sim)) return false;
+        if (overlapsCommittedGrenade(best[0], best[1], reach, grenade.weaponId(),
+                sim.identity().faction(carrier), sim)) return false;
+        if (!sim.fragGrenades().tryReserve(carrier, squad.id, sim.identity().faction(carrier), best[0], best[1],
+                reach)) return false;
+        world.setSecondaryActionTimer(carrier, grenade.aimDuration());
+        world.setSecondaryFired(carrier, false);
+        world.setSecondaryAimTargetId(carrier, 0L);
+        return true;
+    }
+
+    /** Where a body at {@code (x, y)} moving at {@code (vx, vy)} cells a second will be in {@code seconds}. */
+    static float[] leadPoint(float x, float y, float vx, float vy, float seconds) {
+        return new float[]{x + vx * seconds, y + vy * seconds};
     }
 
     /**
