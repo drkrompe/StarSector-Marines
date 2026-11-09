@@ -4,7 +4,7 @@ Status: IN PROGRESS — slices 0–3 built and unit-tested; the owner's live pas
 
 Written: 2026-10-15
 
-Updated: 2026-10-16 — Live pass checklist adds the Second Wind custom start.
+Updated: 2026-11-09 — The fork asks every time; the Settings page turns it off (no "always" answer).
 
 Read `nexerelin-nouns.md` in full first. Also read `meta-progression.md` (the
 company and the polity), `architecture.md` (external-state boundary),
@@ -24,8 +24,8 @@ battle had ended that way. Without Nexerelin, nothing changes.
 
 ## Scope
 
-- The ground combat preference: Nexerelin, Marine Operations, or ask each time
-  (the default).
+- The invasion fork setting on the Settings page: ask each invasion (the
+  default), or leave every invasion to Nexerelin.
 - Intercepting Nexerelin's Invade selection (option id `nex_mktInvade`) and
   offering the fork.
 - A Marine Operations invasion briefing against the target market, using the
@@ -150,7 +150,7 @@ which the handoff battle is built.
 5. **Rule precedence (live pass).** Nexerelin's `nex_marketHostileInvadeSel`
    row has no score. Our row is `$option == nex_mktInvade score:100` plus a
    condition command that is false whenever Nexerelin is absent or the
-   preference is Nexerelin. Without Nexerelin the option never exists, so the
+   invasion fork setting is off. Without Nexerelin the option never exists, so the
    row is inert. Our "use Nexerelin" option does not name Nexerelin's command.
    It sets a one-shot bypass flag and re-fires the Invade selection, so
    Nexerelin's own row runs exactly as it would have. The fork's Back reuses
@@ -167,20 +167,19 @@ which the handoff battle is built.
    because it hides signature drift until play; depending on the installed
    jar was rejected because it breaks the build without Nexerelin.
 
-## Slice 1 — preference and fork
+## Slice 1 — fork setting and fork
 
-- The preference is stored per save, in the mod's campaign state, so it
-  survives save and reload and needs no LunaLib dependency. A new save starts
-  at Ask. The fork's "always" answers set it, and the market menu offers "Ask
-  again" whenever it is set. That was chosen over a control on a Marine
-  Operations screen, because the market is where the question is asked.
+- The fork setting is stored per save, in the mod's campaign state, so it
+  survives save and reload and needs no LunaLib dependency. A new save asks.
+  It is a key on the Settings page, shown only when Nexerelin is enabled; the
+  fork has no "always" answer, so the player chooses each invasion (owner).
 - The intercepting rule and its command, gated on `nexerelin` being enabled and
   on the Invade option being supported (the alpha has only one supported entry
   point).
 - The Ask fork text states the trade honestly: a played battle that settles
   now, with no time for fleets to intervene; or Nexerelin's battle over several
   days.
-- Unit tests for the pure decision: preference, entry point and Nexerelin
+- Unit tests for the pure decision: fork setting, entry point and Nexerelin
   presence choose a resolver; an unsupported entry point always chooses
   Nexerelin.
 
@@ -236,9 +235,9 @@ names a Nexerelin type.
 
 Install Nexerelin 0.12.2d with LazyLib and MagicLib, then:
 
-1. Without Nexerelin: the game loads, and no fork or reset option appears.
-2. Invade a planet's market under Ask: the fork shows its four choices and
-   Back. Back returns to the defences menu.
+1. Without Nexerelin: the game loads, no fork appears, and the Settings page
+   shows no invasion key.
+2. Invade a planet's market: the fork shows its two choices and Back. Back returns to the defences menu.
 3. "Leave it to Nexerelin": Nexerelin's own invade menu opens and behaves as
    stock (question 5).
 4. "Fight it with Marine Operations": the briefing opens against the whole
@@ -249,8 +248,9 @@ Install Nexerelin 0.12.2d with LazyLib and MagicLib, then:
    (question 4).
 6. Lose or retreat: the market stays with its owner, company losses are
    recorded, and Nexerelin records the failed invasion.
-7. "Always" answers stick across save and reload, and "Ask again" on the
-   market menu clears them.
+7. Turn "Ask before Nexerelin invasions" off on the Settings page: Invade
+   goes straight to Nexerelin, and stays so across save and reload. Turn it
+   back on: the fork returns.
 8. Save, reload and re-enter the market after each outcome: no repeated
    settlement and no orphaned intel.
 9. A station market goes straight to Nexerelin's own Invade.
@@ -265,9 +265,9 @@ Install Nexerelin 0.12.2d with LazyLib and MagicLib, then:
 
 - Without Nexerelin: the game loads, no new options appear, and the built jar
   holds no Nexerelin classes.
-- With Nexerelin and the preference set to Nexerelin: invading behaves exactly
-  as stock Nexerelin.
-- With Nexerelin and Ask: the fork appears only where Nexerelin enabled
+- With Nexerelin and the fork setting off: invading behaves exactly as stock
+  Nexerelin.
+- With Nexerelin and the fork setting on: the fork appears only where Nexerelin enabled
   Invade. Each branch leads to its resolver.
 - A won Conquest transfers the market, either to the player faction or to the
   commissioning faction, and applies Nexerelin's reputation, stability and

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,8 +23,9 @@ class SettingsViewModelTest {
     void theVoiceOverKeyWritesTheSettingAndShowsIt() throws Exception {
         Reactor reactor = new Reactor();
         boolean[] on = {true};
-        Map<String, Object> props = SettingsViewModel.previewProps(true);
-        new SettingsViewModel(reactor, () -> on[0], value -> on[0] = value).put(props);
+        Map<String, Object> props = SettingsViewModel.previewProps(true, true);
+        new SettingsViewModel(reactor, List.of(new SettingsViewModel.Setting("voiceOver", () -> on[0],
+                value -> on[0] = value)), () -> true).put(props);
         Path mod = Path.of("mod");
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(mod.resolve(path)));
         try {
@@ -55,7 +57,7 @@ class SettingsViewModelTest {
     @Test
     void thePageBarSitsInTheCornerWithItsRoutesCutAtAllFourCorners() throws Exception {
         Reactor reactor = new Reactor();
-        Map<String, Object> props = SettingsViewModel.previewProps(true);
+        Map<String, Object> props = SettingsViewModel.previewProps(true, true);
         Path mod = Path.of("mod");
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(mod.resolve(path)));
         try {
@@ -81,10 +83,16 @@ class SettingsViewModelTest {
     void refreshShowsTheSettingOfAnotherSave() {
         boolean[] on = {true};
         Map<String, Object> props = new LinkedHashMap<>();
-        SettingsViewModel model = new SettingsViewModel(new Reactor(), () -> on[0], value -> on[0] = value);
+        boolean[] nexerelin = {false};
+        SettingsViewModel model = new SettingsViewModel(new Reactor(), List.of(
+                new SettingsViewModel.Setting("raidFork", () -> on[0], value -> on[0] = value)), () -> nexerelin[0]);
         model.put(props);
+        assertEquals("settings-card settings-card-hidden", ((MutableSignal<?>) props.get("nexerelinCardClasses")).peek());
         on[0] = false;
+        nexerelin[0] = true;
         model.refresh();
-        assertEquals("Off", ((MutableSignal<?>) props.get("voiceOverLabel")).peek());
+        assertEquals("Off", ((MutableSignal<?>) props.get("raidForkLabel")).peek());
+        assertEquals("settings-card", ((MutableSignal<?>) props.get("nexerelinCardClasses")).peek(),
+                "Nexerelin's settings show once it is enabled");
     }
 }

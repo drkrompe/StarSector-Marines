@@ -30,7 +30,7 @@ import java.util.Locale;
  * seen moving under the deck. Opt-in: a look review, not part of {@code all}.
  *
  * <p>{@code -Dsnapshot.skyPort.depth=400} picks the depth in metres, the terraces and the ground below scaled
- * with it; {@code -Dsnapshot.skyPort.eyes=1,2} the camera heights to compare, as multiples of the view's width.
+ * with it; {@code -Dsnapshot.skyPort.eyes=150,240} the camera heights to compare, in metres above the roofs.
  *
  * <p>{@code -Dsnapshot.skyPort.layout=cluster} (the default) lays three tower roofs joined by walkways over the
  * drop, neighbouring towers standing lower all round: stills on the catwalk, the skybridge, the dogleg's corner
@@ -56,7 +56,7 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         float f = depth / 400f;
         return SkyPortClusterSetup.industrial(depth, eye, List.of(new VoidBackdrop.Tier(60f * f, 14f),
                 new VoidBackdrop.Tier(130f * f, 34f), new VoidBackdrop.Tier(220f * f, 60f),
-                new VoidBackdrop.Tier(310f * f, 90f)), List.of());
+                new VoidBackdrop.Tier(310f * f, 90f)), List.of(), List.of());
     }
 
     @Override public String id() { return "sky-port-void-look"; }
@@ -72,9 +72,9 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         float depth = Float.parseFloat(System.getProperty("snapshot.skyPort.depth", "400"));
         if (!"deck".equals(System.getProperty("snapshot.skyPort.layout", "cluster"))) {
-            for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
+            for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "240").split(",")) {
                 float eye = Float.parseFloat(eyeText.trim());
-                String tag = String.format(Locale.ROOT, "cluster-%04dm-eye%.1f", Math.round(depth), eye);
+                String tag = String.format(Locale.ROOT, "cluster-%04dm-eye%04dm", Math.round(depth), Math.round(eye));
                 try (BattleSimulation sim = cluster(depth, eye)) {
                     out.add(shot(context, sim, tag + "-1-catwalk.png", 100f, 100f, PLAY));
                     out.add(shot(context, sim, tag + "-2-skybridge.png", 138f, 74f, PLAY));
@@ -87,9 +87,9 @@ public final class SkyPortVoidLookSuite implements SnapshotSuite {
             }
             return out;
         }
-        for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "1").split(",")) {
+        for (String eyeText : System.getProperty("snapshot.skyPort.eyes", "240").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "industrial-%04dm-eye%.1f", Math.round(depth), eye);
+            String tag = String.format(Locale.ROOT, "industrial-%04dm-eye%04dm", Math.round(depth), Math.round(eye));
             try (BattleSimulation sim = deck(industrial(depth, eye))) {
                 out.add(shot(context, sim, tag + "-1-pier.png", PX1 - 6, (PY0 + PY1) / 2f, PLAY));
                 out.add(shot(context, sim, tag + "-2-corner.png", DX0 + 14, DY0 + 6, PLAY));
