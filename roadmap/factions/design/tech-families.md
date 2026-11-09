@@ -33,7 +33,7 @@ Three things are easily confused with tech family, and none of them is it:
 |---|---|---|
 | **Pattern tier** (Common / Advanced / Prestige) | How rare a pattern is and how hard it is to get | The Breakthrough tank is Prestige and low-tech. The Hover scout is Advanced and high-tech. |
 | **Armor tier** (1-4) | How much protection a suit gives | A tier-4 Knights reliquary suit is low-tech. A tier-2 Janus scout suit is high-tech. |
-| **Faction** | Who fields the thing | A faction leans towards one family but fields all of them. The Hegemony runs League Bulwarks and Diktat Wardens. |
+| **Faction** | Who fields the thing | A faction leans towards one family but fields all of them. Tri-Tachyon and the League run the Hegemony's low-tech walkers under shells of their own. |
 
 ## Laws
 
@@ -127,9 +127,14 @@ The three chassis are stand-ins for a grid of mech lines, tech family by weight 
 
 | Chassis | Family | Notes |
 |---|---|---|
-| Hound | Low-tech | Frontier survey walker on commodity running gear |
-| Warden | Midline | Sindrian export-grade standard pattern |
-| Bulwark | Midline | League coalition standards and shared control systems |
+| Hound | Low-tech | Ordnance Board auxiliary walker on commodity running gear |
+| Warden | Low-tech | Ordnance Board support walker; the Diktat builds it under licence |
+| Bulwark | Low-tech | Ordnance Board line walker; the League copies it with replaceable actuators |
+
+All three are drawn as low-tech machines for the Hegemony, Independents and pirates
+(`mechs-nouns.md`, livery: the low-tech bodies). The other factions' sleek bodies are
+those powers' shells hung on the same frames, stand-ins for their own lines
+(`mech-lines.md`).
 
 ### Infantry armor
 
