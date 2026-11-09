@@ -4,8 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
 import com.dillon.starsectormarines.campaign.raid.RaidOutcomeCommit;
-import com.dillon.starsectormarines.campaign.raid.RaidResolutionPreference;
-import com.dillon.starsectormarines.campaign.raid.RaidResolutionPreferenceLedger;
+import com.dillon.starsectormarines.campaign.raid.RaidForkSetting;
 import com.dillon.starsectormarines.campaign.raid.RaidRoute;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
@@ -45,13 +44,11 @@ import java.util.Map;
  *
  * <p>Sub-commands:
  * <ul>
- *   <li>{@code intercept}: condition. This is a raid Marine Operations can fight and the save's preference is not
- *       standard. When false, the raid command's own row handles the confirm untouched.</li>
- *   <li>{@code fork}: under Ask, shows the choice; under Marine Operations, opens the briefing at once.</li>
- *   <li>{@code marine} / {@code marineAlways}: open the raid briefing; the second also remembers the choice.</li>
- *   <li>{@code standard} / {@code standardAlways}: hand the confirm back to the raid command; the second also
- *       remembers the choice.</li>
- *   <li>{@code resetAvailable} / {@code addReset} / {@code reset}: the market menu's way back to Ask.</li>
+ *   <li>{@code intercept}: condition. This is a raid Marine Operations can fight and the save's
+ *       {@link RaidForkSetting} is on. When false, the raid command's own row handles the confirm untouched.</li>
+ *   <li>{@code fork}: shows the choice. It is made every raid; nothing is remembered.</li>
+ *   <li>{@code marine}: opens the raid briefing.</li>
+ *   <li>{@code standard}: hands the confirm back to the raid command.</li>
  * </ul>
  *
  * <p>The raid command's own gating stays authoritative: the raid exists, and its confirm is offered, only where the
@@ -63,10 +60,7 @@ public class MarineRaidCMD extends BaseCommandPlugin {
     private static final Logger LOG = Global.getLogger(MarineRaidCMD.class);
 
     static final String OPTION_MARINE = "smRaidMarine";
-    static final String OPTION_MARINE_ALWAYS = "smRaidMarineAlways";
     static final String OPTION_STANDARD = "smRaidStandard";
-    static final String OPTION_STANDARD_ALWAYS = "smRaidStandardAlways";
-    static final String OPTION_RESET = "smRaidReset";
     /** One-shot local flag that lets a re-fired confirm through to the raid command's own row. */
     static final String BYPASS_FLAG = "$smRaidBypass";
 
@@ -81,29 +75,12 @@ public class MarineRaidCMD extends BaseCommandPlugin {
                 if (bypassed(memoryMap)) return false;
                 return route(dialog, state) != RaidRoute.STANDARD;
             case "fork":
-                if (route(dialog, state) == RaidRoute.MARINE_OPERATIONS) return open(dialog);
                 showFork(dialog);
                 return true;
             case "marine":
                 return open(dialog);
-            case "marineAlways":
-                RaidResolutionPreferenceLedger.write(state, RaidResolutionPreference.MARINE_OPERATIONS);
-                return open(dialog);
             case "standard":
                 return toStandard(dialog, memoryMap);
-            case "standardAlways":
-                RaidResolutionPreferenceLedger.write(state, RaidResolutionPreference.STANDARD);
-                return toStandard(dialog, memoryMap);
-            case "resetAvailable":
-                return RaidResolutionPreferenceLedger.read(state) != RaidResolutionPreference.ASK;
-            case "addReset":
-                dialog.getOptionPanel().addOption(Strings.get("marketRaidResetOption"), OPTION_RESET);
-                return true;
-            case "reset":
-                RaidResolutionPreferenceLedger.write(state, RaidResolutionPreference.ASK);
-                dialog.getTextPanel().addPara(Strings.get("marketRaidResetDone"));
-                refreshMenu(dialog);
-                return true;
             default:
                 LOG.warn("MarineRaidCMD: unknown sub-command " + sub);
                 return false;
@@ -119,7 +96,7 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         TempData temp = RaidOutcomeCommit.raidOn(planetMarket(dialog));
         boolean supported = state != null && temp != null && !temp.nonMarket
                 && (temp.raidType == RaidType.VALUABLE || temp.raidType == RaidType.DISRUPT);
-        return RaidRoute.choose(RaidResolutionPreferenceLedger.read(state), supported);
+        return RaidRoute.choose(RaidForkSetting.asks(state), supported);
     }
 
     private static MarketAPI planetMarket(InteractionDialogAPI dialog) {
@@ -149,8 +126,6 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         options.clearOptions();
         options.addOption(Strings.get("marketRaidForkMarine"), OPTION_MARINE);
         options.addOption(Strings.get("marketRaidForkStandard"), OPTION_STANDARD);
-        options.addOption(Strings.get("marketRaidForkMarineAlways"), OPTION_MARINE_ALWAYS);
-        options.addOption(Strings.get("marketRaidForkStandardAlways"), OPTION_STANDARD_ALWAYS);
         options.addOption(Strings.get("marketRaidForkBack"), MarketCMD.RAID_NEVER_MIND);
         options.setShortcut(MarketCMD.RAID_NEVER_MIND, Keyboard.KEY_ESCAPE, false, false, false, true);
     }

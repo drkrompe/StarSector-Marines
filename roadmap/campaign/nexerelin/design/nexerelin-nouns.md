@@ -6,7 +6,7 @@ its live pass.
 
 Written: 2026-10-15
 
-Updated: 2026-10-16 — The Second Wind start offered through Nexerelin's custom-start list.
+Updated: 2026-11-09 — The invasion fork asks every time; turning it off moves to the Settings page (no "always" answer).
 
 ## Purpose
 
@@ -52,11 +52,12 @@ seam), `architecture.md` (the external-state boundary) and
 - A **supported entry point** is one for which Marine Operations has a mapped
   mission family that can stand in for the Nex battle. In the alpha, only the
   player invasion is supported, and it maps to Conquest.
-- The **ground combat preference** is the player's standing choice for
-  supported entry points: Nexerelin, Marine Operations, or ask each time. It
-  belongs to the save, and a new save starts at Ask. It is never consulted for
-  an unsupported entry point. Choosing an "always" answer at the fork sets it;
-  the market menu offers a way back to Ask whenever it is set.
+- The **invasion fork setting** is the Settings page's "Ask before Nexerelin
+  invasions" key, shown only when Nexerelin is enabled and saved with the
+  game. On (a new save's default), every supported entry point asks; off,
+  Nexerelin resolves it untouched. It is never consulted for an unsupported
+  entry point. The fork has no "always" answer: the player chooses each
+  invasion (owner).
 - A **handoff battle** is the Nex ground battle record created for a
   Marine-resolved invasion. It exists only so that Nexerelin's own
   end-of-battle path can apply the outcome. It never runs a turn, and it is
@@ -131,12 +132,11 @@ seam), `architecture.md` (the external-state boundary) and
 
 1. The player beats the market's defences. Nexerelin offers and enables
    Invade.
-2. The player selects Invade. Our rule fires ahead of Nexerelin's, reads the
-   ground combat preference, and either:
+2. The player selects Invade. Our rule fires ahead of Nexerelin's unless the
+   invasion fork setting is off, and shows both choices:
    - Nexerelin: runs Nexerelin's own invade menu, and the battle is entirely
      Nexerelin's from here;
-   - Marine Operations: opens the Marine Operations invasion briefing;
-   - Ask: shows both choices, each leading to one of the paths above.
+   - Marine Operations: opens the Marine Operations invasion briefing.
 3. The briefing is an ordinary operation against the target market: target
    profile, operation tier, Conquest map, company squads and committed lift.
    Its defenders are the whole garrison estimate (law 7), not a tier's share.

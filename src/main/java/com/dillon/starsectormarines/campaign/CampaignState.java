@@ -584,9 +584,9 @@ public final class CampaignState implements Serializable {
     // ---------- Nexerelin compatibility (see nexerelin-nouns.md) ----------
 
     /*
-     * Which ground combat resolves a supported Nexerelin action in this save, as a
-     * GroundCombatPreference ordinal: 0 is Ask, which a save written before the column
-     * existed loads as. GroundCombatPreferenceLedger is the one reader and writer.
+     * Whether Nexerelin's Invade offers the Marine Operations fork in this save: 2 is off,
+     * anything else asks (a retired "always fight" answer, 1, asks too).
+     * InvasionForkSetting is the one reader and writer.
      *
      * The two invasion serials make a Marine Operations invasion settle exactly once:
      * every briefing opened draws the next serial into its mission key, and a result
@@ -601,9 +601,9 @@ public final class CampaignState implements Serializable {
     // ---------- The player's own raid on a market (see raid-resolution.md) ----------
 
     /*
-     * How the player's raids resolve in this save, as a RaidResolutionPreference ordinal:
-     * 0 is Ask, which a save written before the column existed loads as.
-     * RaidResolutionPreferenceLedger is the one reader and writer.
+     * Whether the player's raids offer the Marine Operations fork in this save: 2 is off,
+     * anything else asks (a retired "always lead" answer, 1, asks too).
+     * RaidForkSetting is the one reader and writer.
      *
      * The raid serials make a Marine Operations raid commit exactly once: every briefing
      * draws the next issued serial, Results records the battle against it, and the raid

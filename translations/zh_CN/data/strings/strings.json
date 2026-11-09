@@ -937,6 +937,10 @@
 		"openingUiSettingsCopy": "随本存档保存。新游戏从默认值开始。",
 		"openingUiSettingsVoiceOver": "语音",
 		"openingUiSettingsVoiceOverDetail": "关闭后任何地方都不再播放配音：战斗无线电和陆战队员喊话、简报、任务汇报和过场动画。字幕仍会显示，音乐和音效照常播放。",
+		"openingUiSettingsRaidFork": "袭击前询问",
+		"openingUiSettingsRaidForkDetail": "开启时，每次在行星上确认袭击都会询问是用陆战队行动亲自带队，还是照常发动。关闭时，袭击照常发动，不再询问。",
+		"openingUiSettingsInvasionFork": "Nexerelin 入侵前询问",
+		"openingUiSettingsInvasionForkDetail": "开启时，每次入侵行星都会询问是用陆战队行动来打，还是交给 Nexerelin。关闭时，Nexerelin 直接进行它自己的地面战斗，不再询问。",
 		"openingUiSettingsOn": "开",
 		"openingUiSettingsOff": "关",
 		"openingCompanyNoticesMaraSIntroductionToTamsinVale": "Zoey 引荐给 Tamsin Vale",
@@ -5033,12 +5037,8 @@
 		# --- Campaign (part 1): Nexerelin invasions ---
 		"nexInvadeForkBack": "返回",
 		"nexInvadeForkMarine": "用陆战队行动来打",
-		"nexInvadeForkMarineAlways": "入侵总是用陆战队行动来打",
 		"nexInvadeForkNexerelin": "交给 Nexerelin 的地面战斗",
-		"nexInvadeForkNexerelinAlways": "入侵总是交给 Nexerelin",
 		"nexInvadeForkText": "这次入侵要怎么打？陆战队行动会让连队立即在地面登陆作战，战斗结束时结果即成定局：舰队没有时间介入。Nexerelin 则会用几天时间进行它自己的地面战斗。",
-		"nexInvadeResetDone": "入侵时会再次询问是用陆战队行动还是 Nexerelin 来打。",
-		"nexInvadeResetOption": "再次询问入侵的作战方式",
 
 		# --- Campaign (part 1): officer traits, colony console and speakers ---
 		"traitSiegeSpecialist": "攻城专家",
