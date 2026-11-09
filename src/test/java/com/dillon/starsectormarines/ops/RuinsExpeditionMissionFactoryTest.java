@@ -57,6 +57,19 @@ class RuinsExpeditionMissionFactoryTest {
     }
 
     @Test
+    void theBriefingEndsOnTheVaultsTell() {
+        RuinsSurvey.Reading survey = new RuinsSurvey.Reading("ruinsSurveyScavengersAssessment",
+                RuinsSurvey.Band.HEAVY, "ruinsSurveyScavengersBand", List.of("ruinsSurveyScavengersComms"));
+
+        List<MissionDialogue.Turn> turns = RuinsExpeditionMissionFactory.briefing("Ossuary", survey,
+                List.of("ruinsTellServerHall", "ruinsTellLikelyBetaCore"));
+
+        assertEquals(5, turns.size());
+        assertEquals(Strings.get("ruinsTellServerHall"), turns.get(3).text());
+        assertEquals(Strings.get("ruinsTellLikelyBetaCore"), turns.get(4).text());
+    }
+
+    @Test
     void everyExpeditionToASiteMeetsTheSameGroundWithoutItsTakenFinds() {
         Mission first = RuinsExpeditionMissionFactory.create(3, "m", "Ossuary", RuinsGrade.VAST,
                 RuinsOccupant.SCAVENGERS);

@@ -27,9 +27,10 @@ import java.util.Locale;
  * heavy-industry market, laid from {@code RaidSiteTemplate}, across two seeds and two market sizes (a size-4 market
  * at Established on the 280x168 map, a size-7 market at Reinforced on the 400x240 map). Each is framed whole
  * ({@code <case>-whole.png}) and at play zoom on the works ({@code <case>-works.png}), look preset, with the
- * battle's own mission markers. Nothing is played.
+ * battle's own mission markers. Nothing is played. Each other industry's site is a subclass naming its industry
+ * ({@link RaidMineSiteLookSuite}).
  */
-public final class RaidSiteLookSuite implements SnapshotSuite {
+public class RaidSiteLookSuite implements SnapshotSuite {
 
     private record Case(String id, long seed, int marketSize, int defence, OperationTier tier) { }
 
@@ -39,9 +40,25 @@ public final class RaidSiteLookSuite implements SnapshotSuite {
             new Case("size7-seed141418", 141_418L, 7, 5, OperationTier.REINFORCED),
             new Case("size7-seed7", 7L, 7, 5, OperationTier.REINFORCED));
 
-    @Override public String id() { return "raid-site-look"; }
+    private final String id;
+    private final String industry;
+    private final EconomicFunction function;
 
-    @Override public String label() { return "The heavy-industry Raid site across seeds and market sizes, look preset"; }
+    public RaidSiteLookSuite() {
+        this("raid-site-look", "heavyindustry", EconomicFunction.HEAVY_INDUSTRY);
+    }
+
+    protected RaidSiteLookSuite(String id, String industry, EconomicFunction function) {
+        this.id = id;
+        this.industry = industry;
+        this.function = function;
+    }
+
+    @Override public String id() { return id; }
+
+    @Override public String label() {
+        return "The " + industry + " Raid site across seeds and market sizes, look preset";
+    }
 
     @Override public boolean inAll() { return false; }
 
@@ -52,12 +69,12 @@ public final class RaidSiteLookSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             for (Case c : CASES) {
                 TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
-                        EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
+                        EnumSet.of(function, EconomicFunction.SPACEPORT,
                                 EconomicFunction.HABITATION),
                         SurfacePalette.ROCK, SettlementLink.ROAD);
                 try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
                         false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
-                        RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
+                        RaidWorksLayout.machinesFor(c.tier()), industry)) {
                     RaidObjective works = null;
                     for (Objective objective : sim.getObjectives()) {
                         if (objective instanceof RaidObjective raid && raid.works()) works = raid;
