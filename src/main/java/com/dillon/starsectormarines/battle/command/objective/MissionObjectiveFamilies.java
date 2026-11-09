@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import java.util.Locale;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
@@ -80,19 +82,31 @@ public final class MissionObjectiveFamilies {
         boolean returning = raid.targetSecured();
         String phase = Strings.named("objectivePhase", raid.phase().name());
         String sourceId = "raid-" + raid.targetId() + "-source", pickupId = "raid-" + raid.targetId() + "-pickup";
+        // A target served only in a window (a freighter at its berth) says how long until it opens or closes.
+        RaidObjective.ServiceWindow window = raid.serviceWindow();
+        boolean waiting = window != null && !returning && raid.lastTick() < window.opensTick();
+        String seize = window == null || returning || state != State.ACTIVE ? Strings.get("objectiveRaidSeize")
+                : waiting ? Strings.format("objectiveRaidBerthsIn", clock(window.opensTick() - raid.lastTick()))
+                : Strings.format("objectiveRaidLeavesIn", clock(window.closesTick() - raid.lastTick()));
         return new Item("raid-" + raid.targetId(), raid.targetName(), state, phase,
                 Strings.get("objectiveRaidSteps"),
                 state == State.COMPLETE ? Strings.get("objectiveRaidDone")
                         : returning ? Strings.get("objectiveRaidReturn")
-                        : Strings.get("objectiveRaidSeize"),
+                        : seize,
                 returning ? state == State.COMPLETE ? Strings.get("objectiveComplete") : Strings.get("objectiveRaidAwaitingReturn")
                         : timed(Strings.get("objectiveRaidTimer"), raid.serviceProgress(), raid.serviceDuration()),
                 state == State.COMPLETE ? 1 : returning ? -1 : raid.serviceProgress() / raid.serviceDuration(),
-                returning || raid.marineServicing() ? "" : Strings.get("objectiveRaidBlocker"),
+                returning || raid.marineServicing() ? "" : waiting ? seize : Strings.get("objectiveRaidBlocker"),
                 List.of(new Marker(sourceId, raid.targetName(), raid.targetCellX(), raid.targetCellY(),
                                 returning ? Strings.get("objectiveMarkerSecured") : phase, returning ? State.COMPLETE : state, List.of(), RaidObjective.TARGET_RADIUS),
                         new Marker(pickupId, Strings.get("objectiveRaidLandingZone"), raid.egressCellX(), raid.egressCellY(),
                                 returning ? phase : Strings.get("objectiveMarkerReturnHere"), state, List.of(), RaidObjective.EGRESS_RADIUS)), returning ? pickupId : sourceId);
+    }
+
+    /** A count of sim ticks as minutes and seconds, {@code m:ss}. */
+    static String clock(int ticks) {
+        int seconds = Math.max(0, (int) Math.ceil(ticks * BattleSimulation.TICK_DT - 1e-3f));
+        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     /**

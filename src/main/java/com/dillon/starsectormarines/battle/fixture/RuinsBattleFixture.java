@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Authored inputs to the Ruins Expedition battle ({@code ruins-expedition-battle.md}): Extraction's inputs plus the
+ * Authored inputs to the Ruins Expedition battle ({@code ruins-expedition.md}, The Ruins mission family): Extraction's inputs plus the
  * ruins grade, which sets the delve's depth and the vault's breach time, and the site's occupant, which chooses the
  * defenders ({@code ruins-expedition.md}, Occupants).
  */

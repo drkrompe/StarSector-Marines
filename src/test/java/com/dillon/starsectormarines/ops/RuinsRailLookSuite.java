@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Ruins rail ({@code ruins-expedition-battle.md}, slice 13) through the look preset with the mission beacons and
+ * The Ruins rail ({@code ruins-expedition.md}, The rail shows the phase) through the look preset with the mission beacons and
  * the HUD: the vault's card and the Delve row in the approach, an entrance's apron being held, the entry taken (the
  * pull-out marker moved to it, the first stand's report and close reading), and a layer's stand. A scavenger site's
  * checked-in fixture, with marines stood on the apron and the junctions as the controlled stand-ins for squads the

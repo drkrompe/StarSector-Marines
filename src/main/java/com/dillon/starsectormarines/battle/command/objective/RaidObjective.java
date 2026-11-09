@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -31,6 +32,25 @@ public final class RaidObjective implements Objective {
 
     public enum Phase { APPROACH, SERVICE, EGRESS, COMPLETE }
 
+    /**
+     * When the target may be worked, in sim ticks: from {@code opensTick} until {@code closesTick}, as a freighter
+     * stands at its berth only so long. Before it opens the target cannot be served; once it closes with the target
+     * not seized, the raid has failed.
+     */
+    public record ServiceWindow(int opensTick, int closesTick) {
+        public ServiceWindow {
+            if (opensTick < 0 || closesTick <= opensTick) {
+                throw new IllegalArgumentException("a service window opens before it closes");
+            }
+        }
+
+        /** Whether the target may be served on {@code tick}. */
+        public boolean open(int tick) { return tick >= opensTick && tick < closesTick; }
+
+        /** Whether the window has closed on {@code tick} without the target seized. */
+        public boolean missed(int tick, boolean secured) { return !secured && tick >= closesTick; }
+    }
+
     /** Identity-free target alarm available to the installation defender. */
     public record TargetAlarm(boolean active, int raisedTick) {
         public static TargetAlarm quiet() { return new TargetAlarm(false, -1); }
@@ -56,7 +76,10 @@ public final class RaidObjective implements Objective {
     private int doneCount;
     private boolean marineServicing;
     private boolean complete;
+    private boolean failed;
     private int alarmRaisedTick = -1;
+    private ServiceWindow window;
+    private int lastTick;
 
     public RaidObjective(String targetId, String targetName,
                          int targetCellX, int targetCellY, int targetZoneId,
@@ -105,9 +128,22 @@ public final class RaidObjective implements Objective {
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
 
+    /** Only within {@code window} may the target be served; a window missed fails the raid. */
+    public RaidObjective withServiceWindow(ServiceWindow window) {
+        this.window = window;
+        return this;
+    }
+
     @Override
     public void tick(BattleView sim) {
-        if (complete) return;
+        if (complete || failed) return;
+        lastTick = sim.getSimTickIndex();
+        if (!targetSecured() && window != null && !window.open(lastTick)) {
+            marineServicing = false;
+            Arrays.fill(progress, 0f);
+            failed = window.missed(lastTick, false);
+            return;
+        }
         marineServicing = false;
         for (int i = 0; i < sites.size(); i++) {
             if (done[i]) continue;
@@ -231,7 +267,13 @@ public final class RaidObjective implements Objective {
     }
 
     @Override public boolean isComplete() { return complete; }
-    @Override public boolean isFailed() { return false; }
+    @Override public boolean isFailed() { return failed; }
+
+    /** The window the target may be served in, or null for one always open. */
+    public ServiceWindow serviceWindow() { return window; }
+
+    /** The sim tick of the last tick judged. */
+    public int lastTick() { return lastTick; }
     @Override public String displayName() {
         return works ? "Wreck " + targetName + " and extract" : "Seize " + targetName + " and extract";
     }

@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c196-3f4b-7140-a76a-2a7cd162037a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c196-3f4b-7140-a76a-2a7cd162037a\\exec-a49ac9e7-2ddc-4baf-be87-5d8399421ca6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\derelict-security\\node-v2b-raw.png",
+    "sha256": "d7912b47e281e80feef3c08fb973001ceaffc93904a229288fbbe9a0319807b7",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\derelict-security\\node-v2b-prompt.txt",
+  "promptSha256": "c6bd0c73443247b1c8b2b9e2a27cf0e45aadb2a196cad9b4941937a93e7c6b54",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Material, palette, weathering and greeble style only (vanilla derelict_rampart, 4x Lanczos); not layout, shape or subject\nImage 3: Material, palette, weathering and greeble style only (vanilla derelict_bastillon, 4x Lanczos); not layout, shape or subject\nImage 4: Material and detail density at small size only (vanilla derelict_sentry, 4x Lanczos); not layout, shape, subject or its turrets\n\nPaint image 1, a flat-colour geometry guide, as a sheet of six finished top-down 2D game sprites: three alternative designs (the three columns) of a CONTROL NODE of an abandoned automated security network, each painted twice, once per livery (the two rows). A control node is an armoured, UNARMED relay and controller box about three metres long that stands against a wall, relays alarms and directs the zone's drones. It carries no weapon of any kind: no barrels, no gun, no turret mount, no weapon ring, no muzzle. It must read at a glance as machinery for signals and control.\n- column 1, CABINET: an armoured relay cabinet; a louvred vent door on the left, a door with a cluster of small round indicator lamps and an access plate on the right, a hazard-striped top band, two whip antennas folded flat along the central spine.\n- column 2, ARRAY: a flat phased-array uplink; a square face of flat antenna tiles in the middle between two radiator fin banks, hazard strips on the short ends, small lamps at two corners.\n- column 3, JUNCTION: a cable junction on a skid; three short capped relay canisters seen from above, joined by thick cable bundles and pipework, hazard-striped skid edges, a whip antenna laid flat on one end.\n\nStyle and material: match images 2, 3 and 4, ship sprites of Starsector's derelict drone faction, upscaled (material, palette, weathering and detail style only; not their shape, layout or subject, and none of their weapon turrets). That look is kitbashed, densely greebled machinery: pale sage-green and khaki armour plates with diagonal yellow hazard stripes, bone-white and brass segments and pipework between the plates, rust-brown machinery and grime in the recesses, small red sensor eyes and lamps, mottled weathering on every plate, painted crisply as a game sprite lit from the upper left. Keep the big armour plates where the guide has pale grey, and put the dense greebles, pipes, bone-white segments and brass in the guide's panels, seams and dark recesses.\nTop row, DOMAIN SECURITY livery: exactly that derelict palette (pale sage-green and khaki plates, yellow hazard stripes, bone-white and brass segments, rust-brown machinery, small glowing red lamps where the guide has red or yellow dots).\nBottom row, CONTINGENCY SECURITY livery: the same three objects with identical shapes and the same density of greebling, but the armour plates are Tri-Tachyon corporate white gone dull and greyish with age, trim pale grey-blue instead of yellow hazard stripes, lamps a small glowing pale cyan; the machinery between the plates stays dark gunmetal and dull brass.\nAbsolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere.\n\nIn the guide pale grey is armour plate, mid grey is panels, seams or the skid, darker grey is the antenna tiles and panel faces, near-black is vents, cables and recesses, the black lines mark silhouette and plate edges, red and yellow dots are status lamps, yellow bars are hazard striping.\nStrict 90-degree overhead orthographic view, no perspective tilt, no visible side walls, lit from the upper left. Keep each drawing exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between them. True transparent background with genuine alpha outside the silhouettes; no ground, floor, wall, cast-shadow slab, labels, text, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\derelict-security\\node-guide-v2.png",
+      "sha256": "ceff09b5aeb772a7cfc9d919094e543b9fa6756b6c7086d4d103163e0d627b93",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_rampart-x4.png",
+      "sha256": "b06e2077778ae9b11dc4d2d68ea065d0934e10ac28ede9d964e43f14c62b99d8",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette, weathering and greeble style only (vanilla derelict_rampart, 4x Lanczos); not layout, shape or subject"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_bastillon-x4.png",
+      "sha256": "e73b8be3f10da896bc03bd98de0892e2d9d57667002458f93049d0557fa26439",
+      "dimensions": [
+        656,
+        560
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette, weathering and greeble style only (vanilla derelict_bastillon, 4x Lanczos); not layout, shape or subject"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\479f51b4c7328049\\7c6eac4b-dc28-412b-9197-2312ce105ac6\\scratchpad\\derelict-refs\\derelict_sentry-x4.png",
+      "sha256": "8aa7d9476a30e3975b73cb75bdd2a59fc1c01c0367c64ec685cc6f813f819831",
+      "dimensions": [
+        208,
+        200
+      ],
+      "mode": "RGBA",
+      "role": "Material and detail density at small size only (vanilla derelict_sentry, 4x Lanczos); not layout, shape, subject or its turrets"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to paint the six sprites, keeping the guide’s geometry and the two requested liveries.\n"
+  ],
+  "usage": {
+    "input_tokens": 45966,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 820,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.9
+}

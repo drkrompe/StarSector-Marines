@@ -34,6 +34,18 @@ public enum VehiclePaint {
         return HEGEMONY;
     }
 
+    /**
+     * The mech livery whose weapon casings a hull in this paint draws its fitted weapon in: the low-tech family's,
+     * whose plate this paint is (owner: weapons take the faction's colours, not army green).
+     */
+    public MechLivery mechLivery() {
+        return switch (this) {
+            case HEGEMONY -> MechLivery.HEGEMONY;
+            case INDEPENDENT -> MechLivery.INDEPENDENT;
+            case PIRATES -> MechLivery.PIRATES;
+        };
+    }
+
     /** Whether {@code type}'s sheet comes in every paint: the Hegemony line. */
     public static boolean paints(VehicleType type) {
         return switch (type) {

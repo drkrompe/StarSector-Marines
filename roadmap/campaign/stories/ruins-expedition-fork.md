@@ -1,6 +1,6 @@
 # Ruins expedition fork
 
-Status: IN PROGRESS — slices 1 and 2 built and unit-tested; development builds only until slice 3.
+Status: IN PROGRESS — slices 1 to 5 built and unit-tested; development builds only until the live pass.
 
 Written: 2026-11-09
 
@@ -46,14 +46,16 @@ fork and commit path can ship before ruins mapgen exists.
    `MissionSource.RUINS_EXPEDITION` recorded in `MissionResolver`, and
    `MarineRuinsCMD` opening the briefing. A won expedition rebuilds the planet
    menu, so vanilla's ruins row seeds its salvage as on arrival, then re-fires
-   `salExplore` through the bypass. The battle behind it is a stand-in until
-   slice 3: `RuinsExpeditionMissionFactory` builds a Raid against pirates,
-   tiered by grade, with no contract and no employer boats. Played in
-   `playBattle` on Ossuary: backing out returns to the fork, a forced win
-   goes through vanilla's salvage to explored, and a confirmed retreat leaves
-   Explore the ruins on the menu.
-3. **Stand-in battle.** The Ruins Expedition mission on an existing map against
-   scavengers sized by grade: `ruins-expedition-battle.md`.
+   `salExplore` through the bypass; a pulled-out one commits as a loss does
+   for the vault, with its own line. `RuinsExpeditionMissionFactory` builds
+   the slice 3 battle, with no contract and no employer boats. Played in
+   `playBattle` on Ossuary (with the earlier stand-in battle): backing out
+   returns to the fork, a forced win goes through vanilla's salvage to
+   explored, and a confirmed retreat leaves Explore the ruins on the menu.
+3. **The battle.** The Ruins Expedition mission family against the site's
+   occupant: built (`ruins-expedition.md`, The Ruins mission family, The
+   entrance and the pull-out point, Pressing on or pulling out). Its deferred
+   delve commander is an open question there.
 4. **Ruins ground.** The ruined-settlement delve for mapgen
    (`SettlementLink.NONE`): `mapgen-nouns.md`, Ruins ground.
 5. **Occupants.** The seeded occupant per site and its briefing line:
@@ -64,6 +66,13 @@ fork and commit path can ship before ruins mapgen exists.
    it unexplored; a hostile fleet nearby still disables the option; derelict
    ship salvage never shows the fork; turning "Ask before exploring ruins" off
    sends the salvage team without asking, across save and reload.
+
+   The owner plays an expedition on each grade (the battle's balance is
+   judged only here). A pulled-out expedition brings its banked finds home
+   and leaves the site unexplored. A second expedition to that site meets the
+   same ground without the finds already taken. A won one also brings the
+   vault store home. Once this pass is played, `MarineRuinsCMD.EXPEDITION_BUILT`
+   lifts the development-only gate.
 
 ## Constraints
 

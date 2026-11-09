@@ -1,0 +1,87 @@
+{
+  "cellPx": 320,
+  "width": 2176,
+  "height": 1216,
+  "pieces": [
+    {
+      "id": "forcible-4",
+      "x": 64,
+      "y": 64,
+      "w": 1280,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "forcible-1",
+      "x": 1408,
+      "y": 64,
+      "w": 320,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "hardened-1",
+      "x": 1792,
+      "y": 64,
+      "w": 320,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "forcible-3",
+      "x": 64,
+      "y": 448,
+      "w": 960,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "forcible-2",
+      "x": 1088,
+      "y": 448,
+      "w": 640,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "forcible-jamb-low",
+      "x": 1792,
+      "y": 448,
+      "w": 128,
+      "h": 320,
+      "kind": "jamb"
+    },
+    {
+      "id": "forcible-jamb-high",
+      "x": 1984,
+      "y": 448,
+      "w": 128,
+      "h": 320,
+      "kind": "jamb"
+    },
+    {
+      "id": "hardened-2",
+      "x": 64,
+      "y": 832,
+      "w": 640,
+      "h": 320,
+      "kind": "shut"
+    },
+    {
+      "id": "hardened-jamb-low",
+      "x": 768,
+      "y": 832,
+      "w": 128,
+      "h": 320,
+      "kind": "jamb"
+    },
+    {
+      "id": "hardened-jamb-high",
+      "x": 960,
+      "y": 832,
+      "w": 128,
+      "h": 320,
+      "kind": "jamb"
+    }
+  ]
+}

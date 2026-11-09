@@ -190,10 +190,10 @@ def base_paint_pixel(rgb: tuple[int, int, int], alpha: int) -> bool:
             and max(red, green, blue) <= 238)
 
 
-# Liveries whose chassis are bodies of their own rather than a repaint of the base outlines (sources/lowtech/build.py):
+# Liveries whose chassis are the low-tech bodies rather than a repaint of the base outlines (sources/lowtech/build.py):
 # their pixels do not line up with the base's, so their paint is read from every opaque pixel, and the dominant cluster
 # keeps the plate colour and drops the glass, pipes and hardware.
-OWN_BODIES = ("hegemony",)
+OWN_BODIES = ("hegemony", "independent", "pirates")
 
 
 def target_samples(faction: str) -> list[tuple[float, float, float]]:

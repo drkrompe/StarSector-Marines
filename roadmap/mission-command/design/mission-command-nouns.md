@@ -413,7 +413,7 @@ the mission means it to give. The Dust Ledger is the first user
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
 | Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Generic paired command, Civilian Rescue, and Silent Colony Marine branches shipped; live acceptance remains | `extraction-command.md` |
-| Ruins | A delve through layered ruins to a vault, the haul out to any held lift point; the company's delve commander against the occupant's own side (a crew commander, the swarm director, the security-network director, or none) | Planned | `ruins-expedition.md` |
+| Ruins | A delve through layered ruins to a vault, the haul out to any held lift point; the company's delve commander against the occupant's own side (a crew commander, the swarm director, the security-network director, or none) | Occupant sides built; the delve commander deferred, so Extraction's company commander plays the company headless; development builds only until the live pass | `ruins-expedition.md` |
 
 Opening Operations reuse the Assault battle type and now apply the shared
 frozen frame/plan/commit envelope to scenario-specific preserve/secure command
