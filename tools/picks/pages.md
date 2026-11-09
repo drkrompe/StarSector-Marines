@@ -17,6 +17,7 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Dust Ledger revamp (Saltwell Cross, side objectives, battle music) | https://claude.ai/artifact/HDbAK1rLgGBysKq84AyNhC (renders: https://claude.ai/artifact/P1MWkkcWVmwYS4kzb8RbVE) |
 | Blind Watch revamp (the Sounding on Warion, hook, side jobs) | https://claude.ai/artifact/5U17x6eWXMDM7P7wEWxN4z (renders: https://claude.ai/artifact/5wJEDtGrRj5B3YDxsasubF) |
 | Reticle ammo cue (manual-fire ammo and readiness at the cursor) | https://claude.ai/artifact/5us7T1cuc1um3SMBeUW4LW |
+| Rounded wall corners (inside and outside corner rounding) | https://claude.ai/artifact/5VzVRkzjYA3SmKnbqG1BDf |
 | Colony Breach coordinator (evac cordon, Asharu placement board) | https://claude.ai/artifact/3ak8D67UjrNmLsr7Zo7GUS (placement board: cordon, bores, objectives) |
 | Base-game UI (button restyle, main menu bar) | https://claude.ai/artifact/LvHWVA1NyfhLJN5qJs195r |
 | Vehicle shared parts (engines, typed gun card, stance, turret art) | https://claude.ai/artifact/Rjh22zrwHUGwK4PAyZuFPp |
@@ -32,3 +33,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | HQ command deck reskin (bridge room, colour, plate versions) | https://claude.ai/artifact/6HMasKcthSGxBwC2fbUZNK |
 | Hegemony armour line (weapon-point variants, the red Onager's emitter) | https://claude.ai/artifact/DH3gtRXwEHXt3tiSmzPWNU |
 | Voids (city drop look: sky port roof deck over the city below) | https://claude.ai/artifact/PcifafuBfp8foX5w1DuBeA |
+| Ruins expedition (ruins fork, expedition battle, derelict AI occupant) | https://claude.ai/artifact/BKUR5jQUjDdA8hrSvFJ5VB |

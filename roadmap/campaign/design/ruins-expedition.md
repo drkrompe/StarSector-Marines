@@ -53,10 +53,11 @@ settlement) and `campaign-nouns.md` (authority boundaries).
   recovered from. Reaching and holding it is what makes the expedition won.
 - The **occupant** is whoever holds the ruins: a fixed, seeded fact of the site,
   hashed from the sector seed and the market and never stored, like a bloom
-  reservoir (`colony-breach-nouns.md`). Candidates are scavengers (pirate or
-  independent salvage crews), the ruins' own automated Domain security, and,
-  on a reservoir world, the Rav. A small scattered site may hold nobody, so its
-  danger is the ground itself.
+  reservoir (`colony-breach-nouns.md`). Candidates are scavengers (a pirate
+  salvage crew), derelict security (`derelict-lore-guide.md`), and, on a
+  reservoir world, the Rav. Only a scattered site may hold nobody; it then
+  offers environmental puzzles in the site's works, and sealed stores to reward
+  them.
 
 ## Laws
 
@@ -107,84 +108,165 @@ settlement) and `campaign-nouns.md` (authority boundaries).
 
 ## Shape of the battle
 
-Proposed. The owner's picks are on the parent's picks page (`ruins-battle-shape`,
-`ruins-empty-site`, `ruins-briefing-disclosure`, `ruins-derelict-identity`,
-`ruins-derelict-doctrine`); the recommended option of each is written here.
+Owner picks (2026-11-09): the expedition is a mission family of its own
+(`ruins-battle-shape` c); a scattered site may hold nobody, and then offers
+environmental puzzles (`ruins-empty-site` a); the briefing names the occupant
+truthfully through survey readings (`ruins-briefing-disclosure` a); derelict
+security is as `derelict-lore-guide.md` describes it (`ruins-derelict-identity`
+a, `ruins-derelict-doctrine` a).
 
-**A Ruins Expedition is an Extraction-family variant.** It plays the generic
-recovery law (`extraction-command.md`): the vault is the source, the haul is the
-abstract package, and the egress is the company's first landing area, where its
-boat comes back for it. The company must hold the vault uncontested for the
-grade's **breach time** (cutting the seals and finding what is worth lifting).
-That releases the haul, which then moves only with a settled escort and boards
-at the landing area. The expedition is won when the haul boards. It is lost when
-the haul is lost to sustained hostile control, when it is abandoned, when the
-company is wiped out, or when the company withdraws.
+**Every expedition gives gameplay and a reward** (owner). Whether the ruins are
+held or empty, the company has something to do on the way to the vault and
+something to bring home besides the vault's haul: a fight and the field caches
+where somebody holds the site, the site's works and their sealed stores where
+nobody does. No expedition is a walk to a box.
 
-The phases are **landfall**, the **delve** (reaching the vault, with detours to
-caches), the **breach** (holding the vault), the **egress** (walking the haul
-out) and the **lift**.
+### The Ruins mission family
 
-Why this shape rather than the others:
+A **Ruins Expedition** is a mission family of its own in `mission-command-nouns.md`
+terms, beside Conquest, Sabotage, Assault, Raid and Extraction. Its geometry is
+a **delve**: layered ground the company works through from its landing to a
+vault, with works and detours off the route, and then a way out. That is
+neither Extraction's corridor (a payload moving between two fixed endpoints)
+nor Assault's search sectors.
 
-- **Not archive-only.** Silent Colony's archive ends on room presence with no
-  egress. A delve needs a way out: the walk back with the haul is where the
-  contingency and the Rav's peak land, and it is the "get out by lift" the
-  feature promises.
-- **Not a family of its own.** The geometry is a corridor with a source and an
-  egress, which is the Extraction family's. The shared payload projection, the
-  disclosure law, the headless corridor commander and the conventional
-  interdiction all carry over unchanged.
+Its phases are **landfall**, the **delve** (through the layers to the vault,
+with detours to caches and works), the **breach** (holding the vault), the
+**egress** (getting the haul to a lift point) and the **lift**.
 
-What the sides know follows the family's law. The company knows the vault (the
-survey located it: public geometry), its own landing area, the haul's progress
-and escort. The occupant's layout is never disclosed. In a played battle the
-player's squads take nothing from mission command (`mission-command-nouns.md`,
-Player and faction extensions); headless runs use the generic corridor
-commander for the company. An expedition has no employer, so it has no allies
-and no employer support; the company's own powers work as in any mission
-(`command-powers-nouns.md`).
+- **The vault and the breach.** The vault is the family's one source. The
+  company must hold it uncontested for the grade's **breach time**. Routing
+  power to the vault's seal shortens the breach (Works).
+- **The haul.** The breach releases the haul, which moves only with a settled
+  escort within its leash. It is lost to sustained hostile control of its cell
+  while unattended, and abandoned if nobody escorts it for long.
+- **Lift points.** The haul boards at a lift point: the landing area, or any
+  **landing court** the company holds, an open court the ruins ground
+  publishes in a layer. Calling the boat to a nearer court shortens the egress
+  but means holding the court while it comes in.
+- **Won and lost.** Won when the haul boards. Lost when the haul is lost or
+  abandoned, the company is wiped out, or it withdraws.
 
-**The grade sets the delve.** The **delve** is the ground between the landing
-area and the vault: how far the route runs and how many **layers** it crosses.
-A layer is a band of ruined ground the route must get through, such as a
-collapsed street, a breached wall or a sealed gate, and it is where an occupant
-holds (a scavenger outpost, a security zone, a nest band). The grade is vanilla's
+**What it borrows from Extraction** (`extraction-command.md`): the source-hold
+rule (uncontested presence for a time releases the package), the escorted
+package with its leash, loss and abandonment, boarding at an egress, the
+payload projection's shape (so the rail and map show the haul like any
+package), and the family's disclosure law: the company knows the vault, its
+lift points and the haul; the occupant's layout is never disclosed.
+
+**What it does not borrow:** the single corridor and its corridor commander;
+the fixed egress (a lift point can be any held court); the generic defenders'
+source-perimeter pool and identity-free alarm as the whole opposition (only the
+scavengers use them, and only in part); and Extraction's assumption that there
+is always an opposing commander.
+
+**The commander pair.** A command duel needs a strategy per side with agency
+(`mission-command-nouns.md`, Command duel). Here:
+
+- **The delve commander** plays the company in headless runs only; in a played
+  battle the player's squads take nothing from mission command. It advances a
+  layer at a time with a lead element ahead of the body, sends a squad to a
+  cache or a works task when its layer is quiet, forms the breach hold on the
+  vault, and after the breach screens the haul to the nearest lift point it
+  holds. It plans from the same frozen frame as every commander.
+- **The occupant's side** is the occupant's own: the **crew commander** for
+  scavengers (a conventional squad commander over a camp and a dig), the swarm
+  director under a ruins profile for the Rav, and the **security-network
+  director** for derelict security (`derelict-lore-guide.md`). An empty site has
+  no opposing side; the delve commander plays alone.
+
+An expedition has no employer, so it has no allies and no employer support. The
+company's own powers work as in any mission (`command-powers-nouns.md`).
+
+### The grade sets the delve
+
+The **delve** is the ground between the landing area and the vault: how far the
+route runs and how many **layers** it crosses. A layer is a band of ruined
+ground the route must get through, such as a collapsed street, a breached wall
+or a sealed gate. It is where an occupant holds (a scavenger outpost, a security
+zone, a nest band) and where the site's works stand. The grade is vanilla's
 proxy for the haul's size (rating 0.25 to 1 in the ruins salvage specs), so risk
 and reward rise together.
 
-| Grade | Map | Layers | Breach time | Occupant strength | Field caches |
+| Grade | Map | Layers | Breach time (unpowered / powered) | Occupant strength | Field caches |
 | --- | --- | --- | --- | --- | --- |
-| Scattered | small: a few ruined blocks, vault close to the landing | 1 | 30 s | none or light | 2 |
-| Widespread | medium | 2 | 45 s | light | 3 |
-| Extensive | large | 3 | 60 s | moderate | 4 |
-| Vast | largest, vault deep in the ruins | 4 | 90 s | heavy | 5 |
+| Scattered | small: a few ruined blocks | 1 | 30 / 10 s | none or light | 2 |
+| Widespread | medium | 2 | 45 / 15 s | light | 3 |
+| Extensive | large | 3 | 60 / 20 s | moderate | 4 |
+| Vast | largest, vault deep in the ruins | 4 | 90 / 30 s | heavy | 5 |
 
-The numbers are starting points for the battle story to tune, and they are tuned
-against a player giving orders, not the headless autopilot (`CLAUDE.md`,
-Balance missions against a player). Occupant strength depends on the grade
-alone, never on the company's size: a vast site is meant to be too much for a
-starter company, and the briefing says so.
+The numbers are starting points, tuned against a player giving orders, not the
+headless autopilot (`CLAUDE.md`, Balance missions against a player). Occupant
+strength depends on the grade alone, never on the company's size: a vast site
+is meant to be too much for a starter company, and the briefing says so.
 
-**Field caches go deeper.** A ruins map places more caches than a contract map's
-three, weighted to the far half of the route and the layers' side rooms. They
-stay optional detours, the ordinary three materials, settled as field finds
-(`loot-nouns.md`). The occupant's only spoils are the scavengers' stash: one
-extra cache at their camp. Derelict security and the Rav leave nothing usable.
-Equipment caches stay behind their own gate in `loot-nouns.md`.
+**Field caches go deeper.** A ruins map places more caches than a contract
+map's three, weighted to the far half of the route and the layers' side rooms.
+They stay optional detours, the ordinary three materials, settled as field
+finds (`loot-nouns.md`). The scavengers' stash is one extra cache at their
+camp; derelict security and the Rav leave nothing usable. Equipment caches stay
+behind their own gate in `loot-nouns.md`.
 
-**Retry meets the same ruins.** The map, the occupant and its strength are all
-seeded from the site and never stored, so a second expedition meets the same
-ground and a full-strength occupant. Nothing the first expedition destroyed
-stays destroyed.
+**Retry meets the same ruins.** The map, the occupant, its strength and the
+works are all seeded from the site and never stored, so a second expedition
+meets the same ground at full strength and its works reset. Nothing the first
+expedition opened, powered or destroyed stays that way.
 
 **Ruined ground.** The map is an abandoned settlement with no road out and no
-supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`). Mapgen does
-not generate ruins yet; `ruins-ground.md` is the mapgen story. Its first need is
-the delve: a landing area at one end, a vault at the other, and the grade's
-layers between, built from mapgen's existing ruined-lot vocabulary
-(`mapgen-nouns.md`: burned-out footprints, rubble ground, authored damage).
+supply link: `SettlementLink.NONE` (`settlement-off-map-link.md`).
+`ruins-ground.md` is the mapgen story: a landing area at one end, the vault at
+the other, the grade's layers between with their side rooms, landing courts and
+works sites, built from mapgen's ruined-lot vocabulary (`mapgen-nouns.md`).
 Before it exists, the stand-in battle plays on an existing map.
+
+### Works
+
+The **works** are the ruins' own machinery, still there and partly working:
+the pieces of a site the company can operate, open or clear. Every ruins map
+carries some. On an empty site they are the expedition: the vault's way in is
+behind them. On an occupied site they are optional detours like the caches.
+
+Each piece is built from something the mod has or nearly has:
+
+| Piece | What it is | Worked by | Built from |
+| --- | --- | --- | --- |
+| **Seal door** | A sealed door on the vault, a store or a passage | Power, or a breaching charge | The sally door's opening span (`garrisonables.md`), shut and locked until powered; the satchel and wall breach for the forced way (`SatchelChargeService`, `WallBreachSystem`) |
+| **Power hall** | The site's generator, cold but charged | Restarting it: infantry hold its console | A mission-owned interaction (the side objective's interact trigger and world prompt, `mission-command-nouns.md`, Side objectives) on the main path |
+| **Junction** | A switch that feeds one of two branches | Infantry at its box, either way, any number of times | Interaction as above, feeding a small power graph the mission owns (new, unit-testable) |
+| **Collapse** | Rubble choking the short way | A breaching charge, or the long way round | A breachable wall run in rubble materials |
+| **Records terminal** | The colony's records, still readable | Infantry hold its console | Interaction; reading it reveals the site's power plan and hidden stores (a discovery, as a hidden side objective's) |
+
+**Power is the puzzle.** The power hall has a fixed **capacity**: it can run
+only so many consumers at once (seal doors, a lift to a landing court, the
+vault's seal). Junctions decide which branches it feeds. A site's puzzle is the
+choice and the order: power the store first and route the vault later, or
+take the vault fast and leave the store; restart the hall, or spend a charge on
+the door and keep moving. The records terminal turns the unknown wiring into a
+plan; without it the company learns each junction by throwing it.
+
+**Charges are the price of skipping it.** A breaching charge forces a seal door
+or clears a collapse at once, but charges are finite issue (`DemolitionKit`),
+and a forced vault seal gets the unpowered breach time. Nothing is ever locked
+for good: every puzzle has a forced way, so a wrong choice costs time and
+charges, never the expedition.
+
+**What the works pay.** A powered vault breaches in a third of the time. Each
+**sealed store** behind a seal door holds an extra field cache. An empty site
+has two stores, where they are its main reward; an occupied site has at most one
+per layer. A hidden store is shown only by the records terminal. All of it
+settles as field finds, preselected and outside vanilla's haul (Law 5).
+
+**On an empty site** the works are laid as one chain that ends at the vault:
+the vault seal is unpowered, the short way is choked by a collapse, the power
+hall stands in a side layer, and the capacity covers the vault and one other
+consumer, so the player chooses between the sealed store and the landing court.
+It is short (scattered is the smallest map) and every step is visible from the
+one before it.
+
+**On an occupied site** the works are fewer and optional, and they touch the
+occupant: restarting a power hall is loud (it wakes the Rav's nearest bores and
+any derelict zone that hears it), and at a derelict site the power hall feeds
+the network, so a junction that cuts a branch powers down the zones on it.
 
 ## Occupants
 
@@ -216,19 +298,21 @@ The draw, as starting weights:
 
 ### Nobody
 
-The ruins are empty. The expedition is the ground, the caches and the breach
-time, and the briefing says so plainly, so a player who wants no walk sends the
-salvage team. The ground is the ruined map's own terrain; this design proposes
-no hazard system.
+The ruins are empty, and the expedition is the site's works: a short chain of
+a power hall, junctions, a collapse and seal doors that ends at the vault, with
+two sealed stores off it (Works). The briefing's readings say the site is quiet
+and hint at the chain.
 
 ### Scavengers
 
 A pirate salvage crew already working the ruins, with its camp near the landing
 end and its dig at the vault (`pirates-lore-guide.md`: loot access and escape
 are a pirate's priorities). It uses the pirate ground roster
-(`target-faction-ground-rosters.md`) and the generic Extraction conventional
-defenders (`extraction-command.md`): posted squads at the camp and the dig, a
-patrol pool, and the identity-free alarm that mobilizes at most three squads.
+(`target-faction-ground-rosters.md`) under the **crew commander**, which
+borrows the generic Extraction defenders' pieces (`extraction-command.md`):
+posted squads at the camp and the dig, a patrol pool, and the identity-free
+alarm that mobilizes at most three squads. What is its own is the two places it
+answers for, the dig first and the stash second.
 Its stash is the one occupant spoil. Independent salvage crews are not
 occupants: shooting a licensed crew would carry a reputation meaning this
 feature does not own.
@@ -274,16 +358,28 @@ holds; a heavy walker guards the vault zone only at the vast grade.
 
 ## Briefing
 
-The briefing states the occupant through what the survey saw. The category is
-always true; its strength is a band set by the grade (light, moderate, heavy,
-severe); its layout is never shown. Draft lines:
+The briefing names the occupant truthfully, and it does so through the
+**survey readings**: what the fleet's sensors picked up from orbit. Each
+occupant has its own kind of reading (owner, 2026-11-09), so a player learns to
+read a site before the assessment line says what it is.
 
-| Occupant | What the survey suggests |
-| --- | --- |
-| Nobody | No sign of anyone below. The ruins are quiet. |
-| Scavengers | Landing scars and cooking heat in the ruins: a salvage crew is already working them. |
-| Rav | Seismic chatter and warm spots under the ruins. Something is asleep down there. |
-| Derelict security | Power signatures and active sensor sweeps: the site's security is still running. A contingency site adds that it answers on Tri-Tachyon codes. |
+The briefing shows the **assessment** (the occupant's kind, always true), a
+**strength band** set by the grade (light, moderate, heavy, severe), and two or
+three readings drawn from that occupant's pool, seeded from the site so a
+revisit reads the same. A reading is always true of the site; it never names a
+place on the map or a unit count.
+
+| Occupant | Kind of reading | Draft readings |
+| --- | --- | --- |
+| Nobody | Quiet, with structure and power | No lifesigns, no movement, no emissions. Residual charge in a buried power hall. The vault seal reads unpowered. A collapse across the main approach. |
+| Scavengers | Comms, heat and traces | Comms chatter on an unlicensed band. Cooking heat and a generator in the ruins. Fresh landing scars; a transponder-dark boat on the ground. Vehicle tracks to the vault. |
+| Rav | Biological lifesigns | Faint lifesigns below the ruins, clustered, too many and too cold to be people. Seismic chatter under the deep layers. Warm spots that move between scans. |
+| Derelict security | Movement and power | Movement on fixed patrol paths. Power draw from buried halls. Active sensor sweeps that answer the survey's ping. A contingency site's emissions carry Tri-Tachyon codes. |
+
+The strength band reads through the same instruments: the lifesign count, the
+power draw, the chatter's volume. An empty site's readings are its puzzle's
+first hints: they say there is a power hall, a dead seal and a collapse, and
+leave the wiring to the records terminal.
 
 The haul range is the Flow's (step 3), and the battle never changes it.
 
@@ -309,6 +405,8 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   lost (`pirates-lore-guide.md`)? The first battle slice has no break rule.
 - Should holding a node, rather than destroying it, put its zone back to sleep?
   The first derelict slice only destroys nodes.
+- Should a sealed store be the first place an equipment cache appears, once
+  `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
 
