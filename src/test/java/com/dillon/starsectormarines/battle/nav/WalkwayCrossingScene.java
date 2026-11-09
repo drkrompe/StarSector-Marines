@@ -19,30 +19,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Does a squad cross between sky port towers by the walkways, and only by them (`voids.md`)? The tower cluster
- * from the sky port look: three roofs over a void, A joined to B by a two-cell catwalk, to C by a catwalk that
- * turns a corner over the drop, and B to C by a six-cell skybridge. A rifle squad on A is sent, unopposed, to a
- * point on another roof, three ways:
+ * Does a squad cross between the sky port station's decks by the walkways, and only by them (`voids.md`)? The
+ * station from the sky port look: the landing deck on the west edge, joined by a wide and a narrow viaduct to the
+ * raised concourse, five platforms running east from it, each reached by a stair bridge down from the concourse,
+ * and footbridges across the track canyons between the platforms. A rifle squad is sent, unopposed, three ways:
  *
  * <ul>
- *   <li>{@code a-to-b}: the catwalk is the short way, and the squad should take it and no other walkway;</li>
- *   <li>{@code a-to-c}: the dogleg is the short way;</li>
- *   <li>{@code catwalk-cut}: the same order as {@code a-to-b} with the catwalk gone, so the only way is round by
- *       the dogleg, across C and over the skybridge.</li>
+ *   <li>{@code up-to-the-concourse}: from the landing deck to the concourse's north end, so the wide viaduct is
+ *       the short way, and the squad should take it and not the narrow one;</li>
+ *   <li>{@code across-the-tracks}: from the second platform to the first, the footbridge between them the short
+ *       way, so it should never go up to the concourse;</li>
+ *   <li>{@code footbridge-cut}: the same order with that footbridge gone, so the only way is back up a stair bridge,
+ *       across the concourse and down another.</li>
  * </ul>
  *
- * <p>Tower C stands a tier above the others, reached by the stairs at the ends of the dogleg and the skybridge.
- * Every loop asserts that no one ever stands over the drop, that no one stands on C's raised roof without having
- * climbed a ramp, that the squad reaches the roof it was sent to,
- * and which walkways it crossed. The other side is one unarmed defender on a lone roof in the far corner, out of
- * sight, so the battle runs; the mission's end is off.
+ * <p>The concourse stands a tier above the rest, reached by the stairs at the ends of the viaducts and the stair
+ * bridges. Every loop asserts that no one ever stands over the drop, that no one stands on the concourse without
+ * having climbed a ramp, that the squad reaches the deck it was sent to, and which walkways it crossed. The other
+ * side is one unarmed defender on a lone roof in the far corner, out of sight, so the battle runs; the mission's
+ * end is off.
  */
 public final class WalkwayCrossingScene implements BehaviorScene {
 
-    static final int MAX_TICKS = 9000, FRAME_EVERY = 45;
+    static final int MAX_TICKS = 12000, FRAME_EVERY = 45;
     /** How near the order's cell every member must come to have arrived. */
     static final float ARRIVED_CELLS = 8f;
-    static final int[] TO_B = {140, 104}, TO_C = {128, 38};
+    static final int[] FROM_LANDING = {14, 150}, TO_CONCOURSE = {100, 160};
+    static final int[] FROM_PLATFORM = {186, 89}, TO_PLATFORM = {210, 60};
 
     @Override public String id() { return "walkway-crossing"; }
 
@@ -51,19 +54,21 @@ public final class WalkwayCrossingScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) {
         List<SceneReport> reports = new ArrayList<>();
-        reports.add(loop("a-to-b", true, TO_B, List.of("catwalk"), List.of("dogleg", "skybridge"), frames));
-        reports.add(loop("a-to-c", true, TO_C, List.of("dogleg"), List.of("catwalk", "skybridge"), frames));
-        reports.add(loop("catwalk-cut", false, TO_B, List.of("dogleg", "skybridge"), List.of(), frames));
+        reports.add(loop("up-to-the-concourse", true, FROM_LANDING, TO_CONCOURSE, List.of("wide-viaduct"),
+                List.of("narrow-viaduct"), frames));
+        reports.add(loop("across-the-tracks", true, FROM_PLATFORM, TO_PLATFORM, List.of("footbridge"),
+                List.of("stair-bridge"), frames));
+        reports.add(loop("footbridge-cut", false, FROM_PLATFORM, TO_PLATFORM, List.of("stair-bridge"), List.of(), frames));
         return reports;
     }
 
-    private SceneReport loop(String loop, boolean catwalk, int[] goal, List<String> crossed, List<String> avoided,
-                             FrameSink frames) {
-        SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(catwalk);
+    private SceneReport loop(String loop, boolean footbridge, int[] from, int[] goal, List<String> crossed,
+                             List<String> avoided, FrameSink frames) {
+        SkyPortClusterSetup.Ground ground = SkyPortClusterSetup.lay(footbridge);
         SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false)
                 .seed(20261109L);
         builder.squad("rifles").faction(Faction.MARINE).size(6).primary("weapon.field-rifle")
-                .inFile(36, 84, 1, 0)
+                .inFile(from[0], from[1], 1, 0)
                 .assigned(id -> ObjectiveAssignment.attackMove(id, goal[0], goal[1]))
                 .done();
         int lx = SkyPortClusterSetup.OUTPOST[0] + 3, ly = SkyPortClusterSetup.OUTPOST[1] + 3;
@@ -75,7 +80,12 @@ public final class WalkwayCrossingScene implements BehaviorScene {
             CellTopology topology = sim.getTopology();
             long[] members = scene.members("rifles");
             Map<String, boolean[]> stoodOn = new LinkedHashMap<>();
-            for (String walkway : List.of("catwalk", "dogleg", "skybridge")) {
+            Map<String, List<int[]>> walkways = new LinkedHashMap<>();
+            walkways.put("wide-viaduct", List.of(SkyPortClusterSetup.VIADUCT_N));
+            walkways.put("narrow-viaduct", List.of(SkyPortClusterSetup.VIADUCT_S));
+            walkways.put("stair-bridge", List.of(SkyPortClusterSetup.STAIRWAYS));
+            walkways.put("footbridge", List.of(SkyPortClusterSetup.FOOTBRIDGES[0]));
+            for (String walkway : walkways.keySet()) {
                 stoodOn.put(walkway, new boolean[members.length]);
             }
             ElevationMap elevation = sim.getGrid().elevation();
@@ -99,10 +109,10 @@ public final class WalkwayCrossingScene implements BehaviorScene {
                     if (topology.getGroundKind(cx, cy) == GroundKind.VOID && overDrop++ == 0) {
                         firstOverDrop = "member " + m + " at (" + cx + ", " + cy + ") on tick " + tick;
                     }
-                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.CATWALK)) stoodOn.get("catwalk")[m] = true;
-                    if (SkyPortClusterSetup.inside(cx, cy, SkyPortClusterSetup.SKYBRIDGE)) stoodOn.get("skybridge")[m] = true;
-                    for (int[] leg : SkyPortClusterSetup.DOGLEG) {
-                        if (SkyPortClusterSetup.inside(cx, cy, leg)) stoodOn.get("dogleg")[m] = true;
+                    for (Map.Entry<String, List<int[]>> way : walkways.entrySet()) {
+                        for (int[] r : way.getValue()) {
+                            if (SkyPortClusterSetup.inside(cx, cy, r)) stoodOn.get(way.getKey())[m] = true;
+                        }
                     }
                     all &= Math.hypot(x - goal[0] - .5f, y - goal[1] - .5f) <= ARRIVED_CELLS;
                 }
@@ -115,8 +125,8 @@ public final class WalkwayCrossingScene implements BehaviorScene {
             }
             List<Verdict> verdicts = new ArrayList<>();
             verdicts.add(Verdict.of("up-by-the-stairs", offStairs == 0, offStairs == 0
-                    ? "no member stood on tower C's raised roof without having climbed a ramp"
-                    : offStairs + " member-ticks on the raised roof never having climbed, first " + firstOffStairs));
+                    ? "no member stood on the raised concourse without having climbed a ramp"
+                    : offStairs + " member-ticks on the raised concourse never having climbed, first " + firstOffStairs));
             verdicts.add(Verdict.of("never-over-the-drop", overDrop == 0, overDrop == 0
                     ? "no member stood on a void cell"
                     : overDrop + " member-ticks over the drop, first " + firstOverDrop));
@@ -135,7 +145,7 @@ public final class WalkwayCrossingScene implements BehaviorScene {
             }
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("arrivedTick", arrivedAt);
-            metrics.put("onRaisedRoofAtEnd", climbed);
+            metrics.put("onConcourseAtEnd", climbed);
             for (Map.Entry<String, boolean[]> e : stoodOn.entrySet()) metrics.put(e.getKey(), count(e.getValue()));
             return new SceneReport(id(), loop, tick, verdicts, metrics);
         }

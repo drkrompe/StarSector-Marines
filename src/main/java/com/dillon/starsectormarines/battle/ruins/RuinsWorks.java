@@ -160,7 +160,25 @@ public final class RuinsWorks {
                 onward++;
             }
         }
-        consumers.add(new Consumer(VAULT_SEAL, delve.layerCount() - 1, Branch.ONWARD));
+        int last = delve.layerCount() - 1;
+        // On scattered ground the interior is only the bunker round the vault: its one door is sealed on the way on.
+        RuinsDelve.Interior interior = delve.interior();
+        if (interior != null && interior.firstLayer() == delve.layerCount()) {
+            for (int e = 0; e < interior.entrances().size(); e++) {
+                RuinsDelve.Area door = interior.entrances().get(e);
+                String id = "bunker-" + (e + 1);
+                doors.add(new SealDoor(id, Strings.get("ruinsWorksBunkerName"), cells(door), door.right() + 1,
+                        door.centreY(), box(door), false));
+                consumers.add(new Consumer(id, last, Branch.ONWARD));
+                onward++;
+            }
+        }
+        // The vault's inner door is its seal: power opens it for the powered breach, a charge forces it for the slow one.
+        RuinsDelve.Vault vaultPlace = delve.vault();
+        int ix = vaultPlace.innerDoor().x(), iy = vaultPlace.innerDoor().y();
+        doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"), new int[][]{{ix, iy}},
+                vaultPlace.source().x(), vaultPlace.source().y(), box(vaultPlace.footprint()), false));
+        consumers.add(new Consumer(VAULT_SEAL, last, Branch.ONWARD));
         onward++;
         RuinsDelve.PowerHall hallPlace = delve.powerHall();
         Site hall = new Site(HALL, Strings.get("ruinsWorksHallName"), hallPlace.console().x(), hallPlace.console().y(),
@@ -181,6 +199,13 @@ public final class RuinsWorks {
     }
 
     private static int[] box(RuinsDelve.Area a) { return new int[]{a.left(), a.bottom(), a.right(), a.top()}; }
+
+    private static int[][] cells(RuinsDelve.Area a) {
+        int[][] out = new int[a.width() * a.height()][];
+        int k = 0;
+        for (int y = a.bottom(); y <= a.top(); y++) for (int x = a.left(); x <= a.right(); x++) out[k++] = new int[]{x, y};
+        return out;
+    }
 
     /** The field caches behind the sealed stores, for the battle's field salvage. */
     public List<SalvageCache> storeCaches() { return stores; }
@@ -367,12 +392,16 @@ public final class RuinsWorks {
             if (!open[d] && breached(sim, door)) {
                 forced[d] = true;
                 open[d] = true;
+                if (vault != null && door.id().equals(VAULT_SEAL)) vault.forceSeal();
                 continue;
             }
             boolean powered = graph.powered(graph.consumer(door.id()));
             if (powered && !open[d]) {
                 for (int[] c : door.cells()) editor.openPassage(c[0], c[1], door.likeX(), door.likeY());
                 open[d] = true;
+            } else if (!powered && open[d] && !door.store() && vault != null && vault.breached()) {
+                // Once the vault is breached the way out stays open: the haul is not shut in behind a lost feed.
+                continue;
             } else if (!powered && open[d] && !occupied(sim, door)) {
                 for (MapEditor.PassageRecord wall : shut[d]) editor.closePassage(wall);
                 open[d] = false;

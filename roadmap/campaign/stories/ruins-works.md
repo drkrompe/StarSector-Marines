@@ -1,8 +1,9 @@
 # Ruins works
 
-Status: IN PROGRESS — slices 1 to 5 built, with the noise hook, a
-`sceneEvidence` scene and the chain played on an empty site; the vault's own
-seal (and the scattered bunker's door) waits on an owner pick. Part of slice 5 of
+Status: IN PROGRESS — slices 1 to 5 built, with the noise hook, the vault's
+seal and the scattered bunker's door (built on the recommended pick while the
+owner decides); whether the chain plays well is the owner's playtest. Part of
+slice 5 of
 `ruins-expedition-fork.md`, beside `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -40,7 +41,14 @@ one, and the sealed stores behind them are the reward.
    wall cell through `MapEditor`. A door opens while powered and shuts again
    once nobody stands in it or the room it keeps, dropping routes through it.
    Any breach of a shut door (any cell walkable again) forces it open for good.
-   Not yet: the bunker door, and a forced vault seal reading the charge rule.
+   The vault's inner door is the vault seal, shut at setup and fed with the
+   way on at the last layer: powered, it opens and the breach takes the
+   powered time; forced, `RuinsVaultObjective.forceSeal` keeps the unpowered
+   time for good. On scattered ground the bunker's one door is a seal door on
+   the same branch. Once the vault is breached, no way-on door shuts again, so
+   the haul is never shut in. Built on the recommended option (a) of the owner
+   pick `ruins-vault-seal` (`ruins-vault-seal-options` suite); option (b) would
+   drop the vault and bunker doors and keep the seal as the breach's length.
 3. **The power hall and junctions.** Mission-owned interactions on the main
    path, drawn with the side objective's world prompt: infantry hold the hall's
    console to restart it, and work a junction either way. Restarting the hall
@@ -87,18 +95,12 @@ one, and the sealed stores behind them are the reward.
    power-down is built (`derelict-security-network.md`, slice 8): each zone is
    fed by its node's layer's junction on the way-on branch, and throwing it
    to the store darkens the zone.
-8. **Evidence.** `sceneEvidence` scenes for the chain: powered and forced vault,
-   store opened, collapse cleared, with look shots for the owner.
-   *Built*: `sceneEvidence -Pscene=ruins-works` (`RuinsWorksScene`): powered
-   (a held console restarts the hall and the fed door opens), forced (the press
-   sets a charge on the door and the cut door is forced) and collapse (likewise
-   cleared). `createSnapshots -Psnapshot=ruins-works-look` shows a store sealed
-   and powered open. `createSnapshots -Psnapshot=ruins-works-chain`
-   (`RuinsWorksChainSuite`, opt-in) plays the chain on an empty scattered site
-   with the company the player's: a squad is ordered to the hall, restarts it,
-   is ordered to junction 1 and throws it to the store, then is ordered to the
-   open store's door and recovers its find (40 metals, seed 31), about two
-   minutes of battle. The vault loops wait on its seal.
+8. **Look shots.** The rules are proven by unit tests where they are decided
+   (`PowerGraphTest`, `RuinsWorksTest`, `RuinsVaultObjectiveTest`,
+   `SalvageCacheTest`, `RuinsSleepersTest`, `SecurityNetworkTest`); no mission
+   run or scene judges whether the company gets through (owner rule).
+   `createSnapshots -Psnapshot=ruins-works-look` shows a store sealed and
+   powered open; `ruins-vault-seal-options` frames the vault seal's pick.
 
 ## Constraints
 

@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — slices 1, 2, 4, 6 and 7 built (objective, disclosure, crew,
 deeper caches, briefing); slice 3 deferred, slice 8 dropped, slices 9 to
-13 (the pull-out and the Delve row) planned. The family
+13 (the two phases, the pull-out and the Delve row) planned. The family
 plays in battle on
 interim parts. Slice 3 of
 `ruins-expedition-fork.md`.
@@ -148,45 +148,61 @@ story's battle plays, it lifts the fork's development-only gate
    (`mapgen-nouns.md`, Ruins ground); balance is a played battle. The
    harness built before the ruling is removed; the per-grade scavenger
    fixtures stay for played battles (`playBattle -Pbattle=<fixture>`).
-9. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
-   pulling out. The family's Retreat becomes **Pull out**: a Ruins battle
-   resolves as pulled out when the retreat is confirmed with a company squad
-   inside a held lift point's circle and no hostile holding that point, and as
-   an ordinary defeat otherwise. A pulled-out resolution keeps its secured finds
-   claimable at Results. This is the one exception to "defeat or withdrawal
-   leaves them behind", and `loot-nouns.md` names it in the same commit. The
-   retreat confirmation lists the banked finds and draws the held lift points'
-   circles. The fork's commit path reads pulled out as it reads lost (nothing
-   salvaged, site unexplored). Unit-test the resolution rule on its inputs:
-   held or unheld lift point, contested or not, squad inside or outside.
-10. **What the site remembers.** The finds recovered at a won or pulled-out
-    commit are written once to the site's market as a set of find ids. A
-    later expedition's placement leaves them out; the occupant, works and
+9. **The entrance and the phases.** `ruins-expedition.md`, The entrance and
+   the pull-out point. The objective reads the interior's entrances from the
+   ground's published places (`ruins.interior`) and gives each an apron, the
+   open cells outside it. An entrance is taken by holding its apron as a
+   landing court is held (`COURT_HOLD_SECONDS`, company infantry present, no
+   hostile); the first taken is the entry and moves the mission from phase A
+   to phase B, and every taken entrance is a lift point. The entry is retaken
+   by hostiles holding its apron for the same time with no company infantry in
+   it, and taken back the same way. The **pull-out point** is the landing in
+   phase A and the entry in phase B. Unit-test the phase change, the retake and
+   the pull-out point on the objective's own inputs.
+10. **Banked finds and the pull-out.** `ruins-expedition.md`, Pressing on or
+    pulling out. The family's Retreat becomes **Pull out**: a Ruins battle
+    resolves as pulled out when the retreat is confirmed while the pull-out
+    point is held, wherever the company stands, and as an ordinary defeat while
+    it is lost. A pulled-out resolution keeps its secured finds claimable at
+    Results. This is the one exception to "defeat or withdrawal leaves them
+    behind", and `loot-nouns.md` names it in the same commit. The casualty roll
+    is Retreat's, with the extraction circles drawn round the pull-out point
+    and every held lift point. The confirmation lists the banked finds and draws
+    those circles. The fork's commit path reads pulled out as it reads lost for
+    the vault (nothing salvaged, site unexplored). Unit-test the resolution
+    rule: pull-out point held or lost, phase A or B.
+11. **What the site remembers.** The finds recovered at a won or pulled-out
+    commit are written once to the site's market as a set of find ids (Law 6).
+    A later expedition's placement leaves them out; the occupant, works and
     every other find are seeded as before. Unit-test the placement filter and
     the exactly-once write.
-11. **The vault store.** One find per layer of the delve, placed at the vault,
+12. **The vault store.** One find per layer of the delve, placed at the vault,
     recovered when the haul boards and settled with the banked finds. It is
-    left behind on a pull-out, and is subject to slice 10 like any find.
-12. **The Delve row.** A rail row beside the vault's card. It shows effectives
+    left behind on a pull-out, and is subject to slice 11 like any find.
+13. **The rail: phase, Delve row and close readings.** The vault's card gains
+    the Entrance step (Entrance > Breach > Escort > Board) and reads "Take the
+    entrance" in phase A, with every entrance and apron marked and an apron's
+    hold timer shown; the pull-out marker moves from the landing to the entry.
+    The Delve row heads with the phase and the pull-out point ("Approach · pull
+    out at the landing", "Delve · pull out at the entry", "Delve · ENTRY LOST"
+    in the alert colour, PULL OUT then dimmed to Retreat). It shows effectives
     against the number landed, squads below half strength, machines lost,
-    charges left, banked finds, stores opened, the nearest held lift point with
-    its route length, the layer count, and, once the vault is sighted, the
-    vault's route to the nearest held lift point. At each layer's stand it
-    reports the tally since the last stand and offers PULL OUT.
-13. **Close readings.** When the company first holds a layer's stand, the next
-    layer's strength band and the occupant's sign are drawn from the occupant's
-    readings pool (`RuinsSurvey`), from the band the occupant's setup gave that
-    layer. They are worded as readings and never name a unit or a place. They
-    are part of the company's disclosure (slice 2), so the occupant's layout
-    stays out of the company's frame.
+    charges left, banked finds, stores opened, the route back to the pull-out
+    point, the layer count, and, once the vault is sighted, the vault's route
+    to the nearest held lift point. Taking the entry and each layer's stand
+    report the tally since the last stand and offer PULL OUT. At each stand
+    the next layer's **close reading** (its strength band and the occupant's
+    sign) is drawn from the occupant's readings pool (`RuinsSurvey`), worded as
+    a reading that names no unit or place, as part of the company's disclosure
+    (slice 2).
 
 ## Constraints
 
 - What the family borrows from Extraction is shared code, not a copy. A change
   the family needs in a shared rule is raised against `extraction-command.md`
   first.
-- The vault's haul stays vanilla's. The battle reports won or lost and field
-  finds, nothing else.
+- The vault's haul stays vanilla's. The battle reports won, pulled out or
+  lost, and field finds, nothing else.
 - Do not touch the fork's rules or `MarineRuinsCMD` beyond lifting the gate and
   reading the outcome the commit path already expects.
 
