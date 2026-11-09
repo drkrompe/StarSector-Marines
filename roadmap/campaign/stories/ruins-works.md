@@ -1,9 +1,8 @@
 # Ruins works
 
-Status: IN PROGRESS — slices 1 to 5 built, with the noise hook and a
-`sceneEvidence` scene; the vault's own seal (and the scattered bunker's door)
-waits on an owner pick, and the full chain is played once an empty site fields
-nobody. Part of slice 5 of
+Status: IN PROGRESS — slices 1 to 5 built, with the noise hook, a
+`sceneEvidence` scene and the chain played on an empty site; the vault's own
+seal (and the scattered bunker's door) waits on an owner pick. Part of slice 5 of
 `ruins-expedition-fork.md`, beside `ruins-occupants.md`.
 
 Written: 2026-11-09
@@ -48,10 +47,15 @@ one, and the sealed stores behind them are the reward.
    is loud: it is a noise event the occupants' stories may read.
    *Built*: the hall's console (hold 6 s) and each junction's box (hold 2 s,
    one verb for the other branch) answer through the side objective's world
-   prompt within 10 cells, worked by company infantry within 2.5 cells; the
+   prompt within 10 cells. A junction is worked by company infantry within 2.5
+   cells; the hall (and the records office) by anyone in the building or within
+   3 cells of its walls, since a squad sent into a building holds it from its
+   tactical places, which need not be inside; the
    objectives rail carries a Site power row with the hall's load, each
    junction's branch and each door's state. Each store is a field cache behind
-   its door (part of slice 5).
+   its door (part of slice 5). Its find lies just inside the door and is
+   recovered by holding the room the same way (`SalvageCache.heldFromRoom`):
+   a squad sent to the open door stands two or three cells short of it.
    *Built*, the noise: a restart wakes the Rav's nearest closed bore at once
    (`RuinsSleepers.loud`) and stirs the derelict zone keeping the hall, or the
    zone whose node is nearest (`SecurityNetwork.loud`).
@@ -87,7 +91,12 @@ one, and the sealed stores behind them are the reward.
    (a held console restarts the hall and the fed door opens), forced (the press
    sets a charge on the door and the cut door is forced) and collapse (likewise
    cleared). `createSnapshots -Psnapshot=ruins-works-look` shows a store sealed
-   and powered open. The vault loops wait on its seal.
+   and powered open. `createSnapshots -Psnapshot=ruins-works-chain`
+   (`RuinsWorksChainSuite`, opt-in) plays the chain on an empty scattered site
+   with the company the player's: a squad is ordered to the hall, restarts it,
+   is ordered to junction 1 and throws it to the store, then is ordered to the
+   open store's door and recovers its find (40 metals, seed 31), about two
+   minutes of battle. The vault loops wait on its seal.
 
 ## Constraints
 

@@ -34,11 +34,23 @@ public final class FieldSalvage {
         return grid.isWalkable(x,y);
     }
 
+    /** Whether company infantry hold the room a find stands in. */
+    private static boolean held(BattleSimulation sim, SalvageCache cache) {
+        if (!cache.inRoom()) return false;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.isRiding(id) || sim.identity().faction(id) != Faction.MARINE
+                    || !sim.identity().type(id).usesInfantryTraining()) continue;
+            if (cache.holds(sim.world().x(id), sim.world().y(id))) return true;
+        }
+        return false;
+    }
+
     public void tick(BattleSimulation sim) {
         if (sim.isComplete()) return;
         for (var cache : caches) {
             if (cache.secured()) continue;
-            boolean visible = sim.playerSeesCell(cache.cellX, cache.cellY);
+            boolean visible = sim.playerSeesCell(cache.cellX, cache.cellY) || held(sim, cache);
             boolean nearby = false, hostile = false;
             if (visible) for (int i = 0; i < sim.liveUnitCount(); i++) {
                 long id = sim.liveUnitAt(i);
@@ -49,8 +61,10 @@ public final class FieldSalvage {
                 float dx = x - cache.cellX - .5f, dy = y - cache.cellY - .5f;
                 float d2 = dx * dx + dy * dy;
                 var faction = sim.identity().faction(id);
-                if (faction == Faction.MARINE && type.usesInfantryTraining() && d2 <= REACH * REACH
-                        && canReach(sim.getGrid(), (int) x, (int) y, cache.cellX, cache.cellY)) nearby = true;
+                if (faction == Faction.MARINE && type.usesInfantryTraining() && (cache.holds(x, y)
+                        || d2 <= REACH * REACH && canReach(sim.getGrid(), (int) x, (int) y, cache.cellX, cache.cellY))) {
+                    nearby = true;
+                }
                 if (Faction.MARINE.hostileTo(faction) && d2 <= CONTEST_RADIUS * CONTEST_RADIUS
                         && sim.getGrid().hasLineOfFire(x, y, cache.cellX + .5f, cache.cellY + .5f)) hostile = true;
             }
