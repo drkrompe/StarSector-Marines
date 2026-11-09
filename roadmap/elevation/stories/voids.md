@@ -264,6 +264,24 @@ Laws):
      clear of the port, three stacked in each street's canyon above the deep
      terraces that narrow it, two streams apiece, the cross streets at other
      depths; marker lights run a chase down each lane's edges.
+   - **Dusk and light** (owner, 2026-11-09: a sickly grey city devoid of
+     light). The drop fades into a deep slate blue, not grey, and the
+     lights already painted in the facade, roof and ground art (windows,
+     lit catwalks, lamps, red beacons) are lifted out as light masks
+     (`*-glow.png`, derived by `derive_glow.py` under
+     `art-source/voids/sky-port/industrial/`) laid over each surface after
+     its haze, so they shine through it. Every roof's edge carries a warm
+     strip and lamps, a structure's crown red beacons at its corners
+     blinking out of step, and each wall standing on a terrace a warm
+     floodlight thrown up from its foot. Unlit metal takes a cool ambient
+     tint against the lights' warmth. All of it is the backdrop's
+     `VoidBackdrop.Atmosphere`; a backdrop without one draws as before.
+   - **Fog** banks at two decks (165 and 300 m in the cluster): soft puffs
+     from vanilla's fog sheet on a drifting grid, thick where a slow noise
+     says so and clear between, drawn in the painter's order at their
+     depth so the towers rise out of them. The shallow deck is cool under
+     the sky; the deep one warm, lit by the city below, and thinner, so its
+     lights show through.
    - **Rounded corners** (owner, 2026-11-09: the buildings read as cubes).
      Each structure's roof takes a corner radius by its place (square, 6, 10
      or 14 m), and each terrace below rounds on the same centres, its radius
