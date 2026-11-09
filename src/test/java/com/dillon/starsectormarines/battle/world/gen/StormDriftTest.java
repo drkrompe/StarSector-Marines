@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,5 +59,17 @@ class StormDriftTest {
         StormDrift.paint(frozen, world(SurfacePalette.FROZEN), StormWind.Side.WEST);
         assertEquals("floors.snow", frozen.getSurfaceId(14, 5));
         assertEquals(0, StormDrift.paint(yard(), world(SurfacePalette.VERDANT), StormWind.Side.WEST));
+    }
+
+    @Test
+    void aFinishedRoadIsNeverDrifted() {
+        CellTopology topology = yard();
+        RoadSurface.Underlay[][] none = new RoadSurface.Underlay[W][H];
+        RoadSurface.Underlay[][] road = new RoadSurface.Underlay[W][H];
+        for (int x = 0; x < W; x++) road[x][2] = new RoadSurface.Underlay(GroundKind.STREET, 0, false, false);
+        topology.setRoadSurface(RoadSurface.generated(List.of(), topology, none).withUnderlays(road));
+        StormDrift.paint(topology, world(SurfacePalette.ARID), StormWind.Side.WEST);
+        assertNull(topology.getSurfaceId(14, 2), "the road's asphalt against the wall stays asphalt");
+        assertEquals("floors.sand", topology.getSurfaceId(14, 3), "the yard beside it drifts");
     }
 }
