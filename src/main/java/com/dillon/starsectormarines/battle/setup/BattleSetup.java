@@ -215,6 +215,8 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -746,9 +748,25 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName, int machines) {
+        return createRaidWorks(seed, manifest, enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, targetName, machines, null);
+    }
+
+    /**
+     * The same, on the named industry's own Raid site ({@code raid-mission.md}, Site templates) where it has one:
+     * the works a walled compound in its own district, its machines in its halls. An industry with no template, or
+     * {@code null}, keeps the market's derived map.
+     */
+    public static BattleSimulation createRaidWorks(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName, int machines,
+            String industryId) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
-                sprawl, null, 1f, false, targetName, null, null, null, null, null, machines);
+                sprawl, null, 1f, false, targetName, null, null, null, null, null, machines,
+                machines > 0 ? RaidSiteTemplate.forIndustry(industryId) : null);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -954,6 +972,25 @@ public final class BattleSetup {
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT))
                 .withStandoff(type == MissionType.RAID ? Standoff.INSET : Standoff.FAR);
+    }
+
+    /**
+     * A Raid on an industry with its own site ({@code raid-mission.md}, Site templates): the template laid on this
+     * map for this market, from the same salted stream a derived plan draws from.
+     */
+    static PrecinctPlan raidSitePlanFor(RaidSiteTemplate site, OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile, MapScale scale, long seed, int machines) {
+        return site.lay(profile, MissionFortification.demand(tier, risk), machines,
+                scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT));
+    }
+
+    /** The works compound's seed on a Raid site's plan, or {@code null} on a plan with none. */
+    static int[] worksSeed(PrecinctPlan plan) {
+        if (plan == null) return null;
+        for (Precinct precinct : plan.precincts()) {
+            if (RaidSiteTemplate.WORKS.equals(precinct.name())) return new int[]{precinct.seedX(), precinct.seedY()};
+        }
+        return null;
     }
 
     /**
@@ -1234,6 +1271,18 @@ public final class BattleSetup {
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, alliedGarrisonFactionId, alliedGarrisonStrengthMult, coldAccount,
+                raidTargetName, raidTargetKind, ruinsDelve, ruinsGrade, ruinsOccupant, ruinsCrew, raidWorks, null);
+    }
+
+    private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
+            TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
+            PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
+            float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1242,7 +1291,9 @@ public final class BattleSetup {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
         MapScale scale = type == MissionType.RAID ? MapScale.forRaid(tier) : MapScale.forTier(tier);
-        PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
+        PrecinctPlan precincts = raidSite != null && profile != null && profile.marketSize() > 0
+                ? raidSitePlanFor(raidSite, tier, risk, profile, scale, seed, raidWorks)
+                : precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
@@ -1281,7 +1332,7 @@ public final class BattleSetup {
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidWorksLayout raidWorksLayout = type == MissionType.RAID && raidWorks > 0
-                ? RaidWorksLayout.select(map, lzCells, raidWorks) : null;
+                ? RaidWorksLayout.select(map, lzCells, raidWorks, worksSeed(precincts)) : null;
         RaidTargetLayout raidLayout = type == MissionType.RAID && raidWorksLayout == null
                 ? RaidTargetLayout.select(map, lzCells, raidTargetKind) : null;
         ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION

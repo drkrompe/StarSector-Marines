@@ -81,9 +81,10 @@ public final class PrecinctWardStage implements GenStage {
             // A square place builds and walls inside its glacis; the strip stays claimed, so
             // no neighbour builds on it, and open.
             boolean square = precinct.fortification() != null && precinct.fortification().square();
-            int[][] own = square ? glacis(claim, i, ctx.width, ctx.height) : claim;
+            int[][] own = square ? glacis(claim, i, ctx.width, ctx.height, precinct.fortification().glacis()) : claim;
             if (square && precinct.isProgrammed()) {
-                reachIn(claim, own, road, i, precinct.fortification().gates(), ctx.width, ctx.height);
+                reachIn(claim, own, road, i, precinct.fortification().gates(), precinct.fortification().glacis(),
+                        ctx.width, ctx.height);
             }
             // Its gates are where roads met the whole claim, carried across the strip to the wall.
             int[][] ownRoad = square ? acrossGlacis(claim, road, i, precinct.fortification(), ctx) : road;
@@ -161,7 +162,7 @@ public final class PrecinctWardStage implements GenStage {
                         paved[x][y] = ownRoad[x][y] != GrownTrunkPlan.UNOWNED;
                     }
                 }
-                roadAcross(ctx, claim, i, strip, paved);
+                roadAcross(ctx, claim, i, strip, paved, precinct.fortification().glacis());
                 InstallationGround.glacis(ctx, strip, paved);
             }
             if (result != null) {
@@ -681,11 +682,10 @@ public final class PrecinctWardStage implements GenStage {
         InstallationWalls.perimeter(ctx, wall);
     }
 
-    /** The claim with the place's outermost {@link Fortification#GLACIS} cells given up. */
-    private static int[][] glacis(int[][] claim, int who, int width, int height) {
+    /** The claim with the place's outermost {@code g} cells, its {@link Fortification#glacis()}, given up. */
+    private static int[][] glacis(int[][] claim, int who, int width, int height, int g) {
         int[][] out = new int[width][];
         for (int x = 0; x < width; x++) out[x] = claim[x].clone();
-        int g = Fortification.GLACIS;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (claim[x][y] != who) continue;
@@ -713,7 +713,8 @@ public final class PrecinctWardStage implements GenStage {
      *
      * @param claim the whole claim, glacis included; {@code own} is the part inside the glacis
      */
-    static void reachIn(int[][] claim, int[][] own, int[][] road, int who, int gates, int width, int height) {
+    static void reachIn(int[][] claim, int[][] own, int[][] road, int who, int gates, int glacis, int width,
+                        int height) {
         int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = -1, b = -1;
         long sumX = 0, sumY = 0, count = 0;
         for (int x = 0; x < width; x++) {
@@ -735,12 +736,13 @@ public final class PrecinctWardStage implements GenStage {
             int bestOff = Integer.MAX_VALUE;
             for (int x = l; x <= r; x++) {
                 for (int y = t; y <= b; y++) {
-                    int steps = toRoad(claim, own, road, who, x, y, out, width, height);
+                    int steps = toRoad(claim, own, road, who, x, y, out, glacis, width, height);
                     if (steps < 0) continue;
                     facing++;
                     boolean wide = true;
                     for (int w = -half; w <= half && wide; w++) {
-                        wide = toRoad(claim, own, road, who, x + out[1] * w, y + out[0] * w, out, width, height) == steps;
+                        wide = toRoad(claim, own, road, who, x + out[1] * w, y + out[0] * w, out, glacis, width,
+                                height) == steps;
                     }
                     int off = out[0] != 0 ? Math.abs(y - cy) : Math.abs(x - cx);
                     if (wide && off < bestOff) {
@@ -773,9 +775,9 @@ public final class PrecinctWardStage implements GenStage {
      * running past, or -1 when there is none within the glacis or the cell is not on that edge.
      */
     private static int toRoad(int[][] claim, int[][] own, int[][] road, int who, int x, int y, int[] out,
-                              int width, int height) {
+                              int glacis, int width, int height) {
         if (x < 0 || y < 0 || x >= width || y >= height || own[x][y] != who) return -1;
-        for (int d = 1; d <= Fortification.GLACIS + 1; d++) {
+        for (int d = 1; d <= glacis + 1; d++) {
             int nx = x + out[0] * d, ny = y + out[1] * d;
             if (nx < 0 || ny < 0 || nx >= width || ny >= height || own[nx][ny] == who) return -1;
             if (road[nx][ny] != GrownTrunkPlan.UNOWNED) return d;
@@ -790,12 +792,13 @@ public final class PrecinctWardStage implements GenStage {
      * crossing kept the skeleton's grass on any world and the road finish, which only draws over paving, stopped
      * either side of it.
      */
-    static void roadAcross(GenContext ctx, int[][] claim, int who, boolean[][] strip, boolean[][] paved) {
+    static void roadAcross(GenContext ctx, int[][] claim, int who, boolean[][] strip, boolean[][] paved,
+                           int glacis) {
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
                 if (!strip[x][y] || !paved[x][y] || ctx.topology.getSurface(x, y) != 0 || ctx.topology.isWall(x, y)
                         || ctx.topology.isFixture(x, y) || !ctx.grid.isWalkable(x, y)) continue;
-                int[] street = streetOutside(ctx, claim, who, x, y);
+                int[] street = streetOutside(ctx, claim, who, x, y, glacis);
                 if (street == null) continue;
                 ctx.topology.setGroundKind(x, y, ctx.topology.getGroundKind(street[0], street[1]));
                 ctx.topology.setSurface(x, y, ctx.topology.getSurface(street[0], street[1]));
@@ -808,8 +811,8 @@ public final class PrecinctWardStage implements GenStage {
      * The nearest paved street cell outside the claim straight out from {@code (x, y)} across the glacis, or
      * {@code null}.
      */
-    private static int[] streetOutside(GenContext ctx, int[][] claim, int who, int x, int y) {
-        for (int d = 1; d <= Fortification.GLACIS + 2; d++) {
+    private static int[] streetOutside(GenContext ctx, int[][] claim, int who, int x, int y, int glacis) {
+        for (int d = 1; d <= glacis + 2; d++) {
             for (int[] step : STEPS) {
                 int nx = x + step[0] * d, ny = y + step[1] * d;
                 if (nx < 0 || ny < 0 || nx >= ctx.width || ny >= ctx.height || claim[nx][ny] == who) continue;
@@ -833,7 +836,7 @@ public final class PrecinctWardStage implements GenStage {
                     int ox = cell[0] - step[0], oy = cell[1] - step[1];
                     if (ox < 0 || oy < 0 || ox >= ctx.width || oy >= ctx.height || claim[ox][oy] == who) continue;
                     int owner = road[cell[0]][cell[1]];
-                    for (int d = 0; d <= Fortification.GLACIS + 1; d++) {
+                    for (int d = 0; d <= fortification.glacis() + 1; d++) {
                         int x = cell[0] + step[0] * d, y = cell[1] + step[1] * d;
                         if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height || claim[x][y] != who) break;
                         if (out[x][y] == GrownTrunkPlan.UNOWNED) out[x][y] = owner;
