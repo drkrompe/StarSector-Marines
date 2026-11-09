@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RuinsGroundEvidence {
 
     static final int SEEDS = Integer.getInteger("ruinsGround.seeds", 6);
+    /** Seeds that once broke a ground, kept so they stay covered: 91104 seated no power hall at extensive grade. */
+    static final long[] REGRESSION_SEEDS = {91104L};
 
     @Test
     void everyGradeAndSurfaceKeepsTheDelve() throws Exception {
@@ -44,7 +46,7 @@ class RuinsGroundEvidence {
         for (int layers = 1; layers <= RuinsGroundPlan.MAX_LAYERS; layers++) {
             RuinsGroundPlan plan = RuinsGroundPlan.forLayers(layers);
             for (SurfacePalette surface : SurfacePalette.values()) {
-                for (long seed = 1; seed <= SEEDS; seed++) {
+                for (long seed : seeds()) {
                     long start = System.nanoTime();
                     MapResult map;
                     try {
@@ -131,6 +133,14 @@ class RuinsGroundEvidence {
     /** Whether a cell is a building's floor under an intact roof. */
     static boolean roofed(MapResult map, int x, int y) {
         return map.topology.isRoofIntact(x, y);
+    }
+
+    /** One to {@link #SEEDS}, then the regression seeds. */
+    static long[] seeds() {
+        long[] out = new long[SEEDS + REGRESSION_SEEDS.length];
+        for (int k = 0; k < SEEDS; k++) out[k] = k + 1;
+        System.arraycopy(REGRESSION_SEEDS, 0, out, SEEDS, REGRESSION_SEEDS.length);
+        return out;
     }
 
     static TargetProfile profile(SurfacePalette surface) {
