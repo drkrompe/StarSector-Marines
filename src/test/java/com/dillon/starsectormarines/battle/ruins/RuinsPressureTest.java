@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ruins.RuinsPressure.Level;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure.Push;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure.ReserveBand;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure.Situation;
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -137,5 +138,29 @@ class RuinsPressureTest {
         still.sample(0f, 0f, 0f);
         for (int t = 5; t <= 50; t += 5) still.sample(t, 40f, 40f);
         assertTrue(still.dugIn());
+    }
+
+    @Test
+    void aWorthierPrizeHoldsADeeperReserveAndStirsFaster() {
+        RuinsPressure plain = RuinsPressure.of(RuinsGrade.WIDESPREAD, 0, null);
+        RuinsPressure rich = RuinsPressure.of(RuinsGrade.WIDESPREAD, 3, null);
+        assertEquals(plain.reserve() + 3, rich.reserve());
+        assertEquals(rich.reserve(), RuinsPressure.of(RuinsGrade.WIDESPREAD, 9, null).reserve(),
+                "a stake past the highest counts as the highest");
+        float seconds = RuinsPressure.STEP / (1f + 3 * RuinsPressure.RATE_PER_STAKE) + 0.01f;
+        assertTrue(plain.advance(seconds, false, MOVING).isEmpty());
+        assertEquals(1, rich.advance(seconds, false, MOVING).size());
+    }
+
+    @Test
+    void stillnessReadsTheForwardElementNotSquadsLandingBehind() {
+        List<int[]> layerOf = List.of(new int[]{2}, new int[]{2}, new int[]{-1}, new int[]{0});
+        List<float[]> at = List.of(new float[]{10f, 4f}, new float[]{12f, 6f}, new float[]{90f, 90f},
+                new float[]{60f, 60f});
+        float[] front = RuinsPressure.forward(layerOf, at);
+        assertEquals(11f, front[0]);
+        assertEquals(5f, front[1]);
+        assertEquals(2f, front[2]);
+        assertNull(RuinsPressure.forward(List.of(), List.of()));
     }
 }
