@@ -36,7 +36,9 @@ or employer stock. Battle launch places up to three caches on existing clear,
 reachable ground away from landing zones and tactical centers. Placement uses
 its own seeded random stream, never carves terrain, and permits fewer caches
 when legal sites are scarce. These are optional detours, not objectives or
-automatic commander assignments.
+automatic commander assignments. A Ruins expedition places its grade's count
+instead (two to five, resources taking turns), two in three of them on the
+vault half of the route (`ruins-expedition.md`).
 
 A mission may author a resource's recovery area and preferred spot. That find
 uses the nearest clear, reachable cell inside its area, overriding generic

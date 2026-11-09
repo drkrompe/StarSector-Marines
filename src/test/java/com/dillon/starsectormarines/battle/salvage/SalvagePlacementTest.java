@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.salvage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,5 +46,28 @@ class SalvagePlacementTest {
         }
         assertFalse(grid.isWalkable(100,40));
         assertTrue(SalvagePlacement.place(grid,List.of(),candidates,targets,42).isEmpty());
+    }
+
+    @Test void delvePlacesTheGradesCountMostlyOnTheVaultHalfOfTheRoute() {
+        var grid = new NavigationGrid(200, 40);
+        for (int y = 0; y < 40; y++) for (int x = 0; x < 200; x++) grid.setWalkableFloor(x, y);
+        var pads = List.of(new LandingPad(5, 20, 2, 2, LandingPad.Approach.WEST));
+        // The route runs from the vault at the east end back to the landing.
+        int[] route = new int[2 * 191];
+        for (int i = 0; i <= 190; i++) { route[i * 2] = 195 - i; route[i * 2 + 1] = 20; }
+        var candidates = new ArrayList<SalvagePlacement.Cell>();
+        for (int x = 40; x < 200; x += 10) candidates.add(new SalvagePlacement.Cell(x, 30));
+        var delve = new SalvagePlacement.Delve(5, route);
+        var finds = SalvagePlacement.placeDelve(grid, pads, candidates, List.of(), 7, delve);
+        assertEquals(5, finds.size());
+        assertTrue(finds.stream().filter(c -> c.cellX >= 100).count() >= 4);
+        assertEquals(5, finds.stream().map(c -> c.id).distinct().count());
+        assertEquals(2, finds.stream().filter(c -> c.resource == SalvageResource.METALS).count());
+
+        // Too few vault-half sites: the near half makes up the count.
+        var nearOnly = List.of(new SalvagePlacement.Cell(40, 30), new SalvagePlacement.Cell(70, 30),
+                new SalvagePlacement.Cell(150, 30));
+        assertEquals(3, SalvagePlacement.placeDelve(grid, pads, nearOnly, List.of(), 7,
+                new SalvagePlacement.Delve(3, route)).size());
     }
 }

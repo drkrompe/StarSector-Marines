@@ -61,7 +61,8 @@ of the occupant's own kind.
 5. **Briefing.** The survey readings pool for nobody, the Rav and derelict
    security (lifesigns; movement and power; quiet with structure and power
    hints), seeded per site, with the contingency lineage's own reading. The
-   scavengers' pool is `ruins-expedition-battle.md`'s.
+   scavengers' pool is `ruins-expedition-battle.md`'s. Each pool is a
+   `RuinsSurvey.Pool` with its case in `RuinsSurvey.poolFor`.
 
 ## Constraints
 
