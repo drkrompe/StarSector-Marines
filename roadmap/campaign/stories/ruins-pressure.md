@@ -9,7 +9,7 @@ into units. Built on the recommended options while the owner's picks
 Written: 2026-11-09
 
 Read `ruins-expedition.md` (Where phase B's threats come from, Pressing on or
-pulling out, Occupants) and `ruins-works.md` first.
+pulling out, Occupants, Works) first.
 
 ## Goal
 

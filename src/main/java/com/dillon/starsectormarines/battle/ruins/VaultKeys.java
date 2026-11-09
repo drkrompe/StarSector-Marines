@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 /**
- * The vault door's two keys ({@code ruins-works.md}, Vault access): once its door is powered, the company turns them
+ * The vault door's two keys ({@code ruins-expedition.md}, Works): once its door is powered, the company turns them
  * by holding the records console and the vault keypad at the same moment for {@link #TURN_SECONDS}. Letting either go
  * starts the count again; once turned they stay turned.
  */

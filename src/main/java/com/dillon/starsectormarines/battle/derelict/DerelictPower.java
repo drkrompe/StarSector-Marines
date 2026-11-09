@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.function.IntFunction;
 
 /**
- * The network's power branches (`derelict-security-network.md`, slice 8; `ruins-works.md`). Each zone is fed through
+ * The network's power branches (`derelict-security-network.md`, slice 8; `ruins-expedition.md`, Works). Each zone is fed through
  * the junction of the layer its node stands in, on that junction's way-on branch: the branch that also powers the
  * layer's gates, and at the last layer the vault's seal. A company that throws the junction to its store powers the
  * zone down; throwing it back powers it up, dormant.
