@@ -33,15 +33,15 @@ import java.util.Set;
  *
  * <p>One schedule, {@link #ARRIVE_SECONDS} to {@link #DEPART_SECONDS} of the battle's clock, is both the raid's
  * {@link RaidObjective.ServiceWindow} and the freighter the backdrop draws in its slip ({@link VoidBackdrop.Call}),
- * so the hold opens exactly while the hull is seen at the berth. Port security holds the viaduct heads and the
+ * so the hold opens exactly while the hull is seen at the berth. Independent customs, the port's security, holds the viaduct heads and the
  * berth; a mobile reserve on the concourse answers the alarm under {@link RaidDefenderCommand}.
  *
  * <p>Every time, place and strength here is a first placement (UNTUNED): balance is the owner's playtest.
  */
 public final class SkyPortHeistSetup {
 
-    /** The station's owner, whose roster port security is drawn from (an open question to the owner). */
-    static final String OWNER = "tritachyon";
+    /** The station's owner, whose roster port security is drawn from: independent customs (owner, 2026-11-09). */
+    static final String OWNER = "independent";
     /** The slip the freighter berths in: the canyon between the third and fourth platforms. */
     public static final int SLIP = 2;
     /** The freighter's hull, one of the backdrop's craft. */
