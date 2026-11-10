@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -139,5 +143,34 @@ class PrecinctInterconnectTest {
         PrecinctInterconnect.Result result = PrecinctInterconnect.weld(owner, W, H, blocked);
         assertEquals(1, result.componentsAfter());
         assertEquals(1, PrecinctInterconnect.components(owner, W, H));
+    }
+
+    /**
+     * A weld between networks that lie off both axes of each other is laid as a planner lays a road, straight runs
+     * and a clean bend, not the staircase a breadth-first flood walks down: across the cells it cuts, the rows start
+     * at no more than a few columns and the columns at no more than a few rows.
+     */
+    @Test
+    void aWeldOffBothAxesRunsStraightAndBends() {
+        int[][] owner = new int[W][H];
+        for (int[] column : owner) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+        for (int x = 5; x <= 7; x++) for (int y = 5; y <= 7; y++) owner[x][y] = 0;
+        for (int x = 50; x <= 52; x++) for (int y = 40; y <= 42; y++) owner[x][y] = 1;
+        boolean[][] before = new boolean[W][H];
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) before[x][y] = owner[x][y] != GrownTrunkPlan.UNOWNED;
+        PrecinctInterconnect.weld(owner, W, H);
+        Set<Integer> rowStarts = new HashSet<>(), columnStarts = new HashSet<>();
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+            if (owner[x][y] == GrownTrunkPlan.UNOWNED || before[x][y]) continue;
+            rowStarts.add(x);
+            break;
+        }
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) {
+            if (owner[x][y] == GrownTrunkPlan.UNOWNED || before[x][y]) continue;
+            columnStarts.add(y);
+            break;
+        }
+        assertTrue(rowStarts.size() <= 3 && columnStarts.size() <= 3,
+                "the weld stepped: rows start at " + rowStarts.size() + " columns, columns at " + columnStarts.size() + " rows");
     }
 }

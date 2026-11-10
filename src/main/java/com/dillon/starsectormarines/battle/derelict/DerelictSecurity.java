@@ -899,6 +899,13 @@ public final class DerelictSecurity {
         return null;
     }
 
+    /** Whether a walker of {@code frame} could be stood near {@code (postX, postY)} now, as {@link #spawn} would. */
+    static boolean standable(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
+        float radius = frame.chassis.radius;
+        return MechSpawnPlacement.nearCell(sim.getGrid(), radius, postX, postY, (x, y) -> true,
+                (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L)) != null;
+    }
+
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
         if (spawnInto(sim, frame, postX, postY, squad) == 0L) return -1;
