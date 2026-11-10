@@ -244,7 +244,9 @@ public final class TileRegistry {
             "data/tilesets/origin-lab-kit.tileset.json",
             "data/tilesets/origin-park-bandstand.tileset.json",
             "data/tilesets/origin-park-pond.tileset.json",
-            "data/tilesets/origin-park-play.tileset.json");
+            "data/tilesets/origin-park-play.tileset.json",
+            "data/tilesets/autoplant-aeroshuttle.tileset.json",
+            "data/tilesets/autoplant-mudskipper.tileset.json");
 
     private static volatile TileRegistry installed;
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -209,5 +210,17 @@ class PrecinctClaimTest {
         }
         assertTrue(cells == side * side && x1 - x0 == side - 1 && y1 - y0 == side - 1,
                 "a " + side + "-cell square, got " + cells + " cells over " + (x1 - x0 + 1) + "x" + (y1 - y0 + 1));
+    }
+
+    /**
+     * A square cut back off held ground keeps the most ground clear of it: a band across its top leaves the rectangle
+     * below the band, and a square clear of it is unchanged.
+     */
+    @Test
+    void aSquareIsCutBackClearOfHeldGround() {
+        boolean[][] off = new boolean[20][20];
+        for (int x = 0; x < 20; x++) for (int y = 14; y <= 15; y++) off[x][y] = true;
+        assertArrayEquals(new int[]{2, 2, 17, 13}, PrecinctClaim.clipOff(off, 2, 2, 17, 17));
+        assertArrayEquals(new int[]{2, 2, 10, 10}, PrecinctClaim.clipOff(off, 2, 2, 10, 10));
     }
 }
