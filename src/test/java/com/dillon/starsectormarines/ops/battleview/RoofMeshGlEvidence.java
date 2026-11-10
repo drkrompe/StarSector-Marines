@@ -148,7 +148,7 @@ class RoofMeshGlEvidence {
                             + mesh.residentQuads() + " buffered");
                     assertEquals(0, resident.sheetQuads(),
                             "a resident roof submits no quads at all");
-                    assertArrayEquals(perCell, fromMesh,
+                    SamePicture.assertSame(perCell, fromMesh, SURFACE_W, "stream against mesh",
                             "the resident roofs must draw what the per-cell stream draws");
 
                     // Now move the world under it: one building's roof caves in
@@ -158,11 +158,14 @@ class RoofMeshGlEvidence {
                     faded(sim).targetAlpha = 0.35f;
                     faded(sim).currentAlpha = 0.35f;
                     byte[] patched = draw(target[0], renderer, camera, sim, null);
+                    // A roofed cell holds RoofTiles.MAX_QUADS slots: an inside corner's two rectangles
+                    // and its trim.
+                    int roofedCells = mesh.residentQuads() / RoofTiles.MAX_QUADS;
                     assertTrue(mesh.lastResolvedCells() > 0
-                                    && mesh.lastResolvedCells() < mesh.residentQuads(),
+                                    && mesh.lastResolvedCells() < roofedCells,
                             "this has to be a patch to be worth comparing, not a rebuild; "
                                     + "resolved " + mesh.lastResolvedCells() + " of "
-                                    + mesh.residentQuads());
+                                    + roofedCells + " cells");
 
                     // And the same world arrived at the other way: dropped and
                     // baked from scratch.
@@ -172,7 +175,7 @@ class RoofMeshGlEvidence {
                     // the mesh merely serving, and resolves nothing at all.
                     int bakedCells = mesh.lastResolvedCells();
                     byte[] fresh = draw(target[0], renderer, camera, sim, null);
-                    assertEquals(mesh.residentQuads(), bakedCells,
+                    assertEquals(mesh.residentQuads() / RoofTiles.MAX_QUADS, bakedCells,
                             "the control has to be a whole bake");
 
                     assertArrayEquals(fresh, patched,
@@ -251,6 +254,11 @@ class RoofMeshGlEvidence {
         buildings.add(block(1, 2, 6, 0.9f, 0.55f, 0.45f));
         buildings.add(block(2, 10, 2, 0.5f, 0.75f, 0.9f));
         buildings.add(block(3, 16, 8, 0.6f, 0.9f, 0.55f));
+        // A roof covers the cells its building owns in the topology (RoofCover.owner), as a generated map's flood
+        // fill tags them; a building the topology does not know of has no roof to draw.
+        for (Building b : buildings.all()) {
+            for (int i = 0; i < b.cellsX.length; i++) topology.setBuildingId(b.cellsX[i], b.cellsY[i], b.id);
+        }
         // One roof already gone before the bake, so the bake itself has to
         // handle a destroyed cell and not only a patch.
         topology.setRoofDestroyed(11, 3, true);
