@@ -188,8 +188,6 @@ public final class RefineryGround {
         final boolean[] racked;
         final Precinct works;
         final int[] claimBox;
-        /** Each unit's column foot, in the order the plots were laid: where the raid sets its charges. */
-        final List<int[]> machines = new ArrayList<>();
 
         Dresser(GenContext c, PrecinctPlan plan, boolean[] reserved, IntPredicate free, TileRegistry registry) {
             this.c = c;
@@ -387,14 +385,6 @@ public final class RefineryGround {
                     stampDisc(sx, sy, stripper);
                     drawOver(COLUMN_ART, column, COLUMN_SPAN, COLUMN_AT, x, y);
                     drawOver(STRIPPER_ART, stripper, COLUMN_SPAN, COLUMN_AT, sx, sy);
-                    // The column's foot on the house's side: where a charge on the unit is set.
-                    int mid = column / 2;
-                    machines.add(switch (side) {
-                        case 0 -> new int[]{x + mid, y - 1};
-                        case 1 -> new int[]{x + mid, y + column};
-                        case 2 -> new int[]{x - 1, y + mid};
-                        default -> new int[]{x + column, y + mid};
-                    });
                     return true;
                 }
             }
