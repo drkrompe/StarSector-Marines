@@ -287,6 +287,17 @@ a whole one is not cut at all. Each side of a link is walked back along the
 flood's own parent pointers, so it bends around what the flood bent around; a
 straight link would be quicker to write and would drive through buildings.
 
+**A link is laid as a planner lays a road.** A breadth-first flood walked back
+toward a road lying off both axes steps a staircase, which reads as a road
+wandering diagonally for no reason. The flood (`BendFlood`) pays for every
+bend, six cells' worth, so the way back is straight runs along the grid's axes
+joined by a few deliberate bends; it still bends round whatever it must. The
+way a layout road is carried in through a gate (`LayoutRoads.enter`, which also
+starts outside the gate's middle so it runs straight in rather than turning
+along the wall's inside) and the drawn joins take it. The weld does not yet:
+taking it moved welds so that four pooled Cordon seeds lost a crest redoubt's
+terrace to built ground, and that seam is open.
+
 **Connected underneath is not connected on screen, and both are owed.** The
 road-owner grid came out whole, yet raid maps read as islands of road: the
 street sweep (`RoadSurfaceStage`) draws pavement only where a band makes a
@@ -297,7 +308,10 @@ Measured over eight raid maps, the drawn road fell into 6–23 pieces each.
 them, flood the road under them from all at once while keeping to the middle
 of its bands, and take the cheapest meetings as a minimum spanning tree, each
 drawn down the road it followed. A piece the road under it does not reach is
-left alone, since joining it would pave ground nobody laid a road on.
+left alone, since joining it would pave ground nobody laid a road on. A join is
+the drawn face of a weld, one class of road: it is drawn three cells wide along
+its whole length, as straight runs along the grid's axes, never as a diagonal
+stroke between its bends.
 
 **A road the layout carves after the weld is welded too.** A feeder from a
 works' far side off the map, kept because it reaches the works' ground, was

@@ -762,7 +762,11 @@ they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
 the same way along its whole length), which would swell the road into the
-yard, and a *pill* (a short band, under four breadths long, met by no
+yard, and narrows a broader band that a narrower street band running the same
+way overlaps to that street's breadth, on the line within it nearest the
+narrower's, so a street holds one width along its length rather than swelling
+where its frontage steps back at an end or where it jogs and widens at once;
+it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
 own, is a *spur*: a dead end off that street into a yard or a lot. It is
@@ -826,6 +830,17 @@ Where two streets grown side by side make the road widen, the one that ends
 beside the other, meeting no crossing street, *tapers* into it over six cells
 with a diagonal stroke instead of stepping square across the carriageway.
 The `city-junctions` snapshot suite frames the junctions as generated.
+
+**A street graph** (`StreetGraph`) reads a road mask as a planner reads it:
+*streets*, maximal straight bands three or more cells broad and at least two
+breadths long, each one width; *junctions* where a horizontal and a vertical
+street share cells, typed by the arms that leave them (bend, tee, cross); and
+*dead ends*, street ends meeting no crossing street, no street running on and
+not the map's edge. It counts what reads as unplanned: dead ends, *offset tees*
+(two tees on one street a few cells apart with side streets on opposite sides,
+a cross pulled apart) and *width steps* (a street running on into one of
+another breadth). It changes no ground; it is the measure street rules are
+judged by.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
@@ -1140,6 +1155,12 @@ represented by an opaque raised mass merely to obtain impassability. A place
 requiring traversable banks or a playable lower floor needs a separate access
 and elevation model; an excavation supplies neither.
 
+A **landform** is a natural drop across a map, or walls sheltering its town,
+that the map's design places (`Landform`; `voids.md`, placed by design). It is
+never rolled: a map has one because its design states it, and the world's
+palette only picks its skin. It is stated with the plan as held ground, so the
+places grow round it, and the landscape pass cuts or raises it on what was held.
+
 ## City, station, and ship families
 
 An opening-operation facility publishes an interior destination from its
@@ -1307,11 +1328,11 @@ spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
 market's size, and the guardroom, corner towers and magazines from its
 security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
 pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
-(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
-the motor pool and flight line stand is the owner's pick `raid-garrison`
-(`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
-the gate with the flight line against the back wall (`YARD`), or one apron
-inside the gate shared by the sheds and the flight line (`APRON`).
+(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. The
+motor yard stands at the gate (the owner's pick `raid-garrison`): sheds flank
+the avenue just inside it, their doors on the hardstand it widens into, so a
+vehicle drives out of its shed and straight out of the gate; the flight line
+stands against the back wall.
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,

@@ -52,7 +52,7 @@ class WalledGroundLandscapeTest {
         OutdoorLandscapeStage.reserveWalled(reserved, places(), claim(), W, H);
         int cut = 0;
         for (int seed = 1; seed <= 8; seed++) {
-            NaturalChasm.Cut drop = NaturalChasm.plan(W, H, i -> !reserved[i], i -> true, seed);
+            NaturalChasm.Cut drop = NaturalChasm.plan(W, H, seed % 2 == 0, .5f, i -> !reserved[i], i -> true, seed);
             if (drop == null) continue;
             cut++;
             for (int i = 0; i < drop.drop().length; i++) {

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -24,20 +25,22 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The crevasse town ({@code voids.md}, the crevasse town): generated frozen maps with
- * {@code battle.mapgen.crevasseTowns=1}, so each that fits is a settlement on the floor of a great crevasse, its
- * terraced ice walls along the long edges. An Assault on a remote garrison and on a balanced town, each framed whole
+ * The crevasse town ({@code voids.md}, the crevasse town): maps whose design shelters the town in a cleft
+ * ({@code Landform.Shelter}, its walls along the long edges), the settlement on the floor and its terrace houses set
+ * into the walls' feet. On a frozen world a great crevasse in ice; the verdant case is the same design in the
+ * ravine's rock. An Assault on a remote garrison and on a balanced town, each framed whole
  * with its mission markers ({@code <case>-whole.png}), on the town's floor ({@code <case>-floor.png}) and at play zoom
  * at the foot of a wall nearest the map's middle ({@code <case>-wall-foot.png}). Look preset; nothing is played.
  * {@code -Dsnapshot.crevasseTown.seeds=7,11} picks the seeds.
  */
 public final class CrevasseTownLookSuite implements SnapshotSuite {
 
-    private record Case(String id, int marketSize, PrecinctPlan.Sprawl sprawl) { }
+    private record Case(String id, int marketSize, PrecinctPlan.Sprawl sprawl, SurfacePalette palette) { }
 
     private static final List<Case> CASES = List.of(
-            new Case("remote", 3, PrecinctPlan.Sprawl.REMOTE),
-            new Case("town", 5, PrecinctPlan.Sprawl.BALANCED));
+            new Case("remote", 3, PrecinctPlan.Sprawl.REMOTE, SurfacePalette.FROZEN),
+            new Case("town", 5, PrecinctPlan.Sprawl.BALANCED, SurfacePalette.FROZEN),
+            new Case("town-verdant", 5, PrecinctPlan.Sprawl.BALANCED, SurfacePalette.VERDANT));
 
     @Override public String id() { return "crevasse-town-look"; }
 
@@ -47,8 +50,6 @@ public final class CrevasseTownLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String was = System.getProperty("battle.mapgen.crevasseTowns");
-        System.setProperty("battle.mapgen.crevasseTowns", "1");
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
@@ -57,19 +58,16 @@ public final class CrevasseTownLookSuite implements SnapshotSuite {
                 for (Case c : CASES) {
                     String id = String.format(Locale.ROOT, "%s-seed%d", c.id(), seed);
                     TargetProfile market = new TargetProfile(c.marketSize(), 5, 2, 1, "independent",
-                            EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.MINING), SurfacePalette.FROZEN,
+                            EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.MINING), c.palette(),
                             SettlementLink.ROAD);
                     try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
                             false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
-                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, c.sprawl())) {
+                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, c.sprawl(), new Landform.Shelter(true))) {
                         render(context, sim, id, out);
                     }
                 }
             }
             return out;
-        } finally {
-            if (was == null) System.clearProperty("battle.mapgen.crevasseTowns");
-            else System.setProperty("battle.mapgen.crevasseTowns", was);
         }
     }
 

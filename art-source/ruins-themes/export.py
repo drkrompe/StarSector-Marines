@@ -32,7 +32,8 @@ RAWS = {
     "vats": ("ruins-vats.raw.png", ("culture-vat", "grow-bed")),
     "patches": ("ruins-patches.raw.png", ("frost-patch-a", "frost-patch-b", "growth-patch-a", "growth-patch-b")),
     "plant-store": ("ruins-plant-store.raw.png", ("rack-stripped", "rack-crates", "dock-door")),
-    "foundry-a": ("ruins-foundry-a.raw.png", ("crucible", "crucible-tipped", "fallen-ladle", "slag-heap", "pour-pulpit")),
+    "foundry-a": ("ruins-foundry-a.raw.png", ("crucible", "fallen-ladle", "slag-heap", "pour-pulpit")),
+    "foundry-tip": ("ruins-foundry-tip.raw.png", ("crucible-tipped",)),
     "foundry-b": ("ruins-foundry-b.raw.png", ("mould-grid", "grate-catwalk")),
     "products-a": ("ruins-products-a.raw.png", tuple(f"{p}-{s}" for p in ("cryo-unit", "vat-unit")
                                                      for s in ("whole", "half", "wrecked"))),

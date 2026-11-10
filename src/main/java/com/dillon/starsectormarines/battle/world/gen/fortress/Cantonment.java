@@ -31,41 +31,6 @@ import java.util.Map;
  */
 public final class Cantonment {
 
-    /**
-     * Where the motor pool stands and how its vehicles reach the gate. Two are offered to the owner (picks
-     * {@code raid-garrison}); the property {@value #PLAN_PROPERTY} chooses one for the cards and is removed, with the
-     * losing plan, once the owner picks.
-     */
-    public enum Plan {
-        /**
-         * The motor pool at the gate: its sheds either side of the avenue just inside the gate, their doors on a
-         * hardstand the avenue widens into, so a vehicle drives out of its shed and straight out of the gate. The
-         * quadrangle stands behind, and the flight line across the back wall.
-         */
-        YARD,
-        /**
-         * One paved apron inside the gate from wall to wall: the motor pool's sheds on one side of the avenue and the
-         * flight line on the other both open on it, so a vehicle drives out of its shed across the apron and out of
-         * the gate. The quadrangle stands behind.
-         */
-        APRON
-    }
-
-    /**
-     * Temporary A/B lever for the garrison-layout cards: {@code YARD} or {@code APRON}. Removed with the losing plan
-     * once the owner picks {@code raid-garrison}.
-     */
-    public static final String PLAN_PROPERTY = "battle.garrison.plan";
-
-    /** The plan the property names, {@link Plan#YARD} when it names none. */
-    public static Plan chosenPlan() {
-        String named = System.getProperty(PLAN_PROPERTY, "");
-        for (Plan plan : Plan.values()) {
-            if (plan.name().equalsIgnoreCase(named.trim())) return plan;
-        }
-        return Plan.YARD;
-    }
-
     /** Cells from the place's edge to the nearest footprint: the wall's own cell and a patrol lane inside it. */
     static final int MARGIN = 3;
     /** Half the main avenue's width beside its centre cell: a five-cell avenue. */
@@ -268,31 +233,28 @@ public final class Cantonment {
      * @param axis      where the road comes in, as a map coordinate across the gate side
      */
     public static Laid lay(boolean[][] buildable, int left, int bottom, int right, int top, Side gate, int axis,
-                           FortressProgram program, Plan plan) {
+                           FortressProgram program) {
         Frame frame = new Frame(left, bottom, right, top, gate);
         int entry = frame.swaps() ? axis - bottom : axis - left;
         Cantonment c = new Cantonment(buildable, frame, frame.across() / 2);
         if (Math.abs(entry - c.axis) > AVENUE_HALF) c.forecourt(entry);
         Order order = Order.of(program);
         for (FortressBuilding b : program.buildings()) c.wanted.putIfAbsent(b.purpose(), new Want(b.purpose(), b.shape()));
-        switch (plan) {
-            case YARD -> c.yard(order);
-            case APRON -> c.apron(order);
-        }
+        c.yard(order);
         c.seatLeftovers();
         return c.result();
     }
 
     /**
-     * The smallest square side whose open ground seats the whole program in its places in this plan, its flight line
-     * at the size the garrison is owed.
+     * The smallest square side whose open ground seats the whole program in its places, its flight line at the size
+     * the garrison is owed.
      */
-    public static int side(FortressProgram program, Plan plan) {
+    public static int side(FortressProgram program) {
         AirbaseLot.Size owed = fieldFor(program);
         for (int s = 40; s < 240; s += 2) {
             boolean[][] open = new boolean[s][s];
             for (boolean[] col : open) Arrays.fill(col, true);
-            Laid laid = lay(open, 0, 0, s - 1, s - 1, Side.SOUTH, s / 2, program, plan);
+            Laid laid = lay(open, 0, 0, s - 1, s - 1, Side.SOUTH, s / 2, program);
             if (laid.unplaced().isEmpty() && laid.strays().isEmpty() && laid.airfieldSize() == owed) return s;
         }
         return 240;
@@ -371,7 +333,7 @@ public final class Cantonment {
     /** Depth of the street along the gate wall where the road in is off the avenue's line. */
     static final int FORECOURT = 6;
 
-    // ---- The plans --------------------------------------------------------------------------------------------
+    // ---- The layout --------------------------------------------------------------------------------------------
 
     /**
      * The motor pool on the avenue. Gate posts either side of the avenue; then the sheds either side of it, each
@@ -405,42 +367,6 @@ public final class Cantonment {
         // The flight line against the back wall, nearest the avenue's line: behind the headquarters where the square
         // is deep enough, beside it where it is not, so the back of the square is used rather than left open.
         if (o.field != null) flightLine(o.field, away(), inLo, inHi, v, back, true);
-        towers(o.towers, inLo, inHi, front, back);
-    }
-
-    /**
-     * One paved apron inside the gate, from wall to wall: the sheds side by side on one side of the avenue with their
-     * door ends on it, the flight line on the other with its sheds on it and its strip toward the back. The quadrangle
-     * stands behind, the depot down both sides of it.
-     */
-    private void apron(Order o) {
-        int inLo = MARGIN, inHi = frame.across() - MARGIN;
-        int av0 = axis - AVENUE_HALF, av1 = axis + AVENUE_HALF + 1;
-        int back = depth() - MARGIN;
-        int v = front;
-        int gate = gateRow(o, v, inLo, inHi);
-        if (gate > 0) v += gate + STREET;
-        int apronV = v;
-        v += STAND;
-        int bandEnd = v;
-        int u = av0 - ALLEY - 1;
-        for (Want w : o.sheds) {
-            Stood s = slide(w, true, u, -1, v, Face.FRONT, inLo, inHi, true);
-            if (s == null) {
-                unplaced.add(w.purpose);
-                continue;
-            }
-            u = s.u - ALLEY - 1;
-            bandEnd = Math.max(bandEnd, s.v + s.deep());
-        }
-        if (o.field != null) {
-            flightLine(o.field, away(), av1 + ALLEY, inHi, v, back, false);
-            if (airfield != null) bandEnd = Math.max(bandEnd, airfield.v + airfield.deep);
-        }
-        pool.add(new Rect(inLo, apronV, inHi - inLo, STAND));
-        int quadV = bandEnd + STREET;
-        streets.add(new Rect(av0, 0, av1 - av0, quadV + 1));
-        quadrangle(o, new ArrayList<>(o.depot), quadV, inLo, inHi, back);
         towers(o.towers, inLo, inHi, front, back);
     }
 
