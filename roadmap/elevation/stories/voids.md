@@ -656,6 +656,17 @@ Laws):
      roof's edge (`BuildingFaces.segments`): the roof covers only the inner
      part of a wall cell, and a foot on the roof's line left the rest of
      the wall cell's flat art showing as a strip along the ground.
+   - **What hangs on a wall hangs on its face** (`WallMounts`): a shop
+     awning, a loading canopy or a wall lamp lies on the ground cell in
+     front of its wall, its rail along the face's foot. Its rail's corners
+     are stood up the face to the height it hangs from (an awning's rail
+     3 m, its valance 2.5 m), at the very point the face is painted there
+     (`BuildingFaces.onFace`); its outer edge takes the plain lift of its
+     own height. So it moves with its wall as the view pans, comes down
+     with the wall when the building is cut away, goes with it when the
+     building is razed, and is drawn between the faces and the roofs, so a
+     roof in front of it hides it. Look suite: `createSnapshots
+     -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80
@@ -674,16 +685,19 @@ Laws):
    worlds, intact, cut away and damaged).
 
    **Cutaway** (owner: "a bit unclear how it will play when we cutaway
-   reveal into structures"). A building's roof fades when the player sees
-   inside it (`BuildingVisibilityPass`). With the fade:
+   reveal into structures"). A building opens while one of the player's
+   units stands in it or the pointer is over it (`BuildingVisibilityPass`,
+   the roof reveal in `fog-of-war-nouns.md`); seeing in no longer opens it,
+   so the street keeps its height where the fighting is, and units seen
+   inside a closed building are marked on its roof. With the fade:
    - the walls turned to the camera drop to knee height
      (`BuildingFaces.standing`, 0.6 m);
    - the far walls' inner sides come up to frame the rooms;
    - nothing pops, and the walls stay opaque.
 
-   A stood-up roof, or a far wall, is drawn over the street just past its
-   building. A unit standing there, outside any building, gets a small mark
-   in its side's colour over the roofs, and fog of war still hides enemies.
+   A closed building's roof is drawn over the street just past it. A unit
+   standing there gets a small mark in its side's colour over the roofs (an
+   open building hides nothing), and fog of war still hides enemies.
    The owner chose the knee stub over a ghosted full-height wall. Look suite:
    `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per

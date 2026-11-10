@@ -7,7 +7,7 @@ generic Raid's map, one per Raid site, laid against a reference market
 (`raid-mission.md`, The owned map). Conquest and the other generic contracts
 stay fully random until they own a map too.
 
-Updated: 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
+Updated: 2026-11-10 — every owned map plays the sealed layout, the Raid's included. Earlier, 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
@@ -125,7 +125,10 @@ world's palette alone.
 
 A world nobody lives on in the open plays the mission's **sealed layout**: the
 same owned seed and patch on the same home palette, generated with every town
-sealed (`SealedTown.seal`), then skinned as any world is. Which worlds is the
+sealed (`SealedTown.seal`), then skinned as any world is. Every owned map plays
+it, the Raid's as well as the story missions', through one rule
+(`PlanetSkin.sealedFor`), decided by the raided or fought-on world and never the
+home or the Raid's reference market. Which worlds is the
 world's alone (`PlanetSkin.sealsTowns`): wherever its habitat is enclosed, so
 irradiated, toxic and airless worlds, and bare rock, which is airless unless its
 profile says otherwise. Every zoned place the mission names (its colony, towns,
@@ -147,7 +150,8 @@ different street plan from the open layout's, from the same seed.
 `createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
 `.worlds=`) frames each mission's map whole under every palette through the
 look preset, with close frames on its fields and woods, and on a world that
-plays the sealed layout a close frame on a lock.
+plays the sealed layout a close frame on a lock (a lock floor beside the
+envelope's own wall, not a compound's striped floor).
 
 **Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
 never on the market behind it, with no re-roll, then skinned for the world the

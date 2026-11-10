@@ -34,13 +34,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Picture options for each theme's works hall ({@code ruins-expedition.md}, A hall is laid out from its process): the
- * hall as built from its plan (a), the plan drawn over that render (a-plan), the theme's process as a chain of today's
- * halls instead (b), and today's line hall for reference. Real renders through the look preset at 1920x1080, roofs
- * off. Every theme whose dressing names a works hall, or those named by {@code -Dsnapshot.works.themes=A,B}.
- * Opt-in: {@code -Psnapshot=ruins-works-hall-picks}.
+ * Each theme's works hall as built ({@code ruins-expedition.md}, Every theme has its works hall; owner picked a for
+ * every theme): the whole hall, its plan drawn over that render, its head and its middle, to check the art as it
+ * lands. Real renders through the look preset at 1920x1080, roofs off. Every theme whose dressing names a works hall, or those named by {@code -Dsnapshot.works.themes=A,B}.
+ * Opt-in: {@code -Psnapshot=ruins-works-hall-look}.
  */
-public final class RuinsWorksHallPicksSuite implements SnapshotSuite {
+public final class RuinsWorksHallLookSuite implements SnapshotSuite {
 
     private static final int W = 1920, H = 1080;
     private static final Color LANE = new Color(150, 105, 60, 120), BAY = new Color(230, 190, 40, 90),
@@ -48,9 +47,9 @@ public final class RuinsWorksHallPicksSuite implements SnapshotSuite {
             FLOW = new Color(120, 230, 255), WRECK = new Color(255, 70, 60), OVER = new Color(255, 255, 255, 170),
             STATION = new Color(255, 255, 255, 230);
 
-    @Override public String id() { return "ruins-works-hall-picks"; }
+    @Override public String id() { return "ruins-works-hall-look"; }
 
-    @Override public String label() { return "Ruins works halls: each theme's hall laid from its process"; }
+    @Override public String label() { return "Ruins works halls: each theme's hall as built, and its plan"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -79,72 +78,27 @@ public final class RuinsWorksHallPicksSuite implements SnapshotSuite {
                 BufferedImage base = whole.render(sim, "");
                 BattleCamera cam = whole.cameraOf(sim);
                 RuinsDelve.Area at = hall;
-                out.add(new SnapshotArtifact(dir + "a-hall.png", base));
-                out.add(card(dir + "a-plan.png", base, g -> {
+                out.add(new SnapshotArtifact(dir + "hall.png", base));
+                out.add(card(dir + "plan.png", base, g -> {
                     drawPlan(g, cam, at, plan);
                     legend(g);
-                    caption(g, "a. " + title(works) + ", laid from its process");
+                    caption(g, title(works) + ", laid from its process");
                 }));
                 // The head close, where the process starts.
                 BattleReviewFrameRenderer head = BattleReviewFrameRenderer.look(context.modRoot(), W, H,
                         hall.centreX() + .5f, hall.top() - 11f, hall.width() + 22f).withoutRoofs();
-                out.add(new SnapshotArtifact(dir + "a-head.png", head.render(sim, "")));
+                out.add(new SnapshotArtifact(dir + "head.png", head.render(sim, "")));
                 BattleReviewFrameRenderer line = BattleReviewFrameRenderer.look(context.modRoot(), W, H,
                         hall.centreX() + .5f, hall.centreY() + .5f, hall.width() + 22f).withoutRoofs();
-                out.add(new SnapshotArtifact(dir + "a-line.png", line.render(sim, "")));
-            }
-            // Today, and (b) the same process as a chain of today's halls.
-            try (BattleSimulation sim = fixture(null).build()) {
-                List<RuinsDelve.PlantHall> halls = sim.getRuinsWorks().delve().interior().halls();
-                RuinsDelve.Area first = null;
-                int l = Integer.MAX_VALUE, b = Integer.MAX_VALUE, r = Integer.MIN_VALUE, t = Integer.MIN_VALUE;
-                List<RuinsDelve.PlantHall> chain = new ArrayList<>();
-                int band = -1;
-                for (RuinsDelve.PlantHall h : halls) {
-                    if (h.stage() == RuinsDelve.PlantStage.STORAGE) continue;
-                    if (first == null) first = h.footprint();
-                    if (chain.size() < 3) {
-                        chain.add(h);
-                        RuinsDelve.Area f = h.footprint();
-                        l = Math.min(l, f.left());
-                        b = Math.min(b, f.bottom());
-                        r = Math.max(r, f.right());
-                        t = Math.max(t, f.top());
-                    }
-                }
-                if (first == null) continue;
-                BattleReviewFrameRenderer near = BattleReviewFrameRenderer.look(context.modRoot(), W, H,
-                        first.centreX() + .5f, first.centreY() + .5f, first.width() + 20f).withoutRoofs();
-                BufferedImage today = near.render(sim, "");
-                out.add(card(dir + "today.png", today, g -> caption(g,
-                        "Today: a line hall of modules on one slab, the same for every theme")));
-                float cx = (l + r) / 2f, cy = (b + t) / 2f;
-                BattleReviewFrameRenderer wide = BattleReviewFrameRenderer.look(context.modRoot(), W, H, cx + .5f,
-                        cy + .5f, Math.max(r - l + 16f, (t - b + 10f) * 16f / 9f)).withoutRoofs();
-                BufferedImage chainBase = wide.render(sim, "");
-                BattleCamera wc = wide.cameraOf(sim);
-                List<String> steps = chainSteps(works);
-                out.add(card(dir + "b-chain.png", chainBase, g -> {
-                    for (int k = 0; k < chain.size(); k++) {
-                        RuinsDelve.Area f = chain.get(k).footprint();
-                        String step = k < steps.size() ? steps.get(k) : "";
-                        box(g, wc, f, new Color(255, 255, 255, 40), (k + 1) + ". " + step);
-                        if (k > 0) {
-                            RuinsDelve.Area e = chain.get(k - 1).footprint();
-                            arrow(g, x(wc, e.centreX() + .5f), y(wc, e.centreY() + .5f), x(wc, f.centreX() + .5f),
-                                    y(wc, f.centreY() + .5f));
-                        }
-                    }
-                    caption(g, "b. " + title(works) + " as a chain of today's halls, one step each");
-                }));
+                out.add(new SnapshotArtifact(dir + "line.png", line.render(sim, "")));
             }
         }
         return out;
     }
 
-    /** The extensive fixture for a theme's prize; a plain site with no prize, its line halls as they stand, for null. */
+    /** The extensive fixture for a theme's prize. */
     private static RuinsBattleFixture fixture(RuinsVaultTheme theme) {
-        RuinsVaultPrize prize = theme == null ? null : new RuinsVaultPrize(theme.family, theme, theme.itemId, 2);
+        RuinsVaultPrize prize = new RuinsVaultPrize(theme.family, theme, theme.itemId, 2);
         return RuinsBattleFixture.fromFactoryInputs(7L, BattleSetup.defaultManifest(), false,
                 OperationTier.VETERAN, RiskLevel.MEDIUM, RuinsGroundEvidence.profile(SurfacePalette.ARID),
                 FlybyRoster.EMPTY, FlybyRoster.EMPTY, RuinsGrade.EXTENSIVE, RuinsOccupant.SCAVENGERS, List.of(), prize);
@@ -165,14 +119,6 @@ public final class RuinsWorksHallPicksSuite implements SnapshotSuite {
             case HIGH_BAY -> "The high bay";
             case FILLING -> "The filling hall";
             default -> works.name();
-        };
-    }
-
-    private static List<String> chainSteps(WorksHall works) {
-        return switch (works) {
-            case COLD -> List.of("COLD PLANT + LATTICE", "CHARGE CELLS", "BURN-IN RACKS");
-            case CULTURE -> List.of("TANK FARM", "VAT HALL (WET BAYS)", "HARVEST + SEALING");
-            default -> List.of("INTAKE", "WORK", "FINISH");
         };
     }
 
@@ -268,17 +214,6 @@ public final class RuinsWorksHallPicksSuite implements SnapshotSuite {
     private static float x(BattleCamera c, float cx) { return c.cellToScreenX(cx); }
 
     private static float y(BattleCamera c, float cy) { return H - c.cellToScreenY(cy); }
-
-    private static void box(Graphics2D g, BattleCamera c, RuinsDelve.Area a, Color fill, String label) {
-        float x0 = x(c, a.left()), x1 = x(c, a.right() + 1), y0 = y(c, a.top() + 1), y1 = y(c, a.bottom());
-        int rx = Math.round(x0), ry = Math.round(y0), rw = Math.round(x1 - x0), rh = Math.round(y1 - y0);
-        g.setColor(fill);
-        g.fillRect(rx, ry, rw, rh);
-        g.setColor(STATION);
-        g.setStroke(new BasicStroke(3f));
-        g.drawRect(rx, ry, rw, rh);
-        tagAt(g, rx + rw / 2, ry + rh / 2, label, 18);
-    }
 
     private static void arrow(Graphics2D g, float ax, float ay, float bx, float by) {
         g.setColor(FLOW);

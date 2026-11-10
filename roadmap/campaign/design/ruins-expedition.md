@@ -719,8 +719,8 @@ from its process, as the forge's is, in the forge's slot. The halls:
 - filling hall (armory).
 
 The prize is unchanged. The model is in `mapgen-nouns.md` (Every other theme has a works hall of its own). The
-designs and the art list are in `ruins-theme-halls.md` in the shared notes. Picks per theme are open (`ruins-<theme>-halls`),
-built on a. Picture cards: `createSnapshots -Psnapshot=ruins-works-hall-picks`.
+designs and the art list are in `ruins-theme-halls.md` in the shared notes. The owner picked a works hall over a chain of halls
+for every theme (`ruins-<theme>-halls` a). Look shots: `createSnapshots -Psnapshot=ruins-works-hall-look`.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
