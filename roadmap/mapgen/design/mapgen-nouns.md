@@ -2101,7 +2101,10 @@ sized by the layer count: on scattered ground a bunker round the vault, at
 widespread the last layer, at extensive and vast the last two
 (`RuinsGroundPlan.interiorLayers`). Its band is filled with hull and carved: a
 spine corridor down each interior band, a corridor from every way into it, rooms
-and chambers off it, and the vault's forecourt as a roofed hall. The layer
+and chambers off it, and the vault's forecourt as a roofed hall. Its ways are
+sized for machines (`ruins-expedition.md`, Ways sized for machines): freight
+ways four wide to the plant halls, the ways through the lines and the
+entrances, service corridors two wide to rooms and chambers. The layer
 lines inside are its walls and bulkheads, so their ways are its entrances and
 doors. A court inside is a light well open to the sky, so every lift point is
 under open sky and everything else inside is under a roof, one roof over the
