@@ -48,6 +48,19 @@ FAMILIES["foundry-a"] = [("crucible", 3, 3, "crucible"), ("crucible-tipped", 3, 
 FAMILIES["foundry-tip"] = [("crucible-tipped", 3, 3, "crucibletip")]
 FAMILIES["foundry-b"] = [("mould-grid", 8, 5, "mould"), None, ("grate-catwalk", 2, 2, "catwalk")]
 
+# The ruins' leaf doors (``ruins-doors``, ``LeafDoorArt``): each leaf runs along x, its jamb end left and its meeting
+# end right, seen straight down; sizes in cells, along x by across. Shipped at 160 px a cell like the ship's leaves, so
+# drawn here at twice that.
+FAMILIES["doors"] = [("ruins-leaf", 1.5, 0.55, "leaf"), ("ruins-leaf-sealed", 1.5, 0.55, "leafsealed"),
+                     ("ruins-cargo-leaf", 1.0, 0.7, "cargoleaf"), ("ruins-blast-leaf", 1.5, 0.9, "blastleaf"), None,
+                     ("ruins-leaf-torn", 1.5, 0.8, "leaftorn"), ("ruins-blast-clamp", 0.9, 0.95, "clamp"),
+                     ("ruins-door-jamb", 0.5, 0.6, "jamb"), ("ruins-door-rubble", 1.0, 1.0, "rubble")]
+# The mega forge hall's head (``ruins-themed-environments``, pick b1): the great crucible, 12x16, its pour spout on
+# the east edge onto the pour line and its control core (the prize) housed on its west flank; and that core cut free
+# on its skid, 3x3. Drawn at a smaller guide scale so the great crucible's guide stays a size ImageGen takes whole.
+FAMILIES["forge-mega"] = [("great-crucible", 12, 16, "greatcrucible"), ("furnace-core", 3, 3, "furnacecore")]
+FAMILY_CELL = {"doors": 320, "forge-mega": 112}
+
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
                      ("products-d", (("catalyst-bed", "catalyst"), ("spool-drum", "spool"))),
@@ -70,9 +83,11 @@ def frames(family):
             x, y, row_h = GUTTER, y + row_h + GUTTER, 0
             continue
         pid, cw, ch, kind = entry
-        out.append((pid, x, y, cw * CELL, ch * CELL, kind))
-        x += cw * CELL + GUTTER
-        row_h = max(row_h, ch * CELL)
+        cell = FAMILY_CELL.get(family, CELL)
+        w, h = round(cw * cell), round(ch * cell)
+        out.append((pid, x, y, w, h, kind))
+        x += w + GUTTER
+        row_h = max(row_h, h)
     return out
 
 
@@ -367,6 +382,76 @@ def draw(family):
                 bd.rectangle((tx - 55, y0 + D, tx + 55, y0 + D + 90), fill=LIGHT, outline=EDGE, width=8)
             im.alpha_composite(body.rotate(-24, center=(x0 + L, y0 + D / 2), resample=Image.BICUBIC), (x, y))
             d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind in ("leaf", "leafsealed", "cargoleaf", "blastleaf"):
+            ribs = {"leaf": 3, "leafsealed": 3, "cargoleaf": 2, "blastleaf": 4}[kind]
+            d.rectangle((x, y, x + w - 1, y + h - 1), fill=BODY, outline=EDGE, width=14)
+            for k in range(1, ribs + 1):
+                rx = x + k * (w * 0.85) / (ribs + 1)
+                d.rectangle((rx - 9, y + 14, rx + 9, y + h - 14), fill=EDGE)
+            d.rectangle((x + w * 0.85, y, x + w - 1, y + h - 1), fill=LIGHT, outline=EDGE, width=8)
+            if kind == "blastleaf":
+                for by in (y + h * 0.3, y + h * 0.7):
+                    d.rectangle((x + w * 0.55, by - 16, x + w * 0.97, by + 16), fill=DARK)
+                for k in range(8):
+                    d.ellipse((x + 30 + k * w * 0.1 - 7, y + 22 - 7, x + 30 + k * w * 0.1 + 7, y + 22 + 7), fill=EDGE)
+                    d.ellipse((x + 30 + k * w * 0.1 - 7, y + h - 22 - 7, x + 30 + k * w * 0.1 + 7, y + h - 22 + 7),
+                              fill=EDGE)
+        elif kind == "leaftorn":
+            leaf = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            ld = ImageDraw.Draw(leaf)
+            ld.polygon([(w * 0.03, h * 0.30), (w * 0.52, h * 0.20), (w * 0.97, h * 0.34), (w * 0.95, h * 0.80),
+                        (w * 0.50, h * 0.72), (w * 0.05, h * 0.84)], fill=BODY, outline=EDGE)
+            for k in range(1, 6):
+                rx = w * k / 6
+                ld.ellipse((rx - 14, h * 0.83 - 14, rx + 14, h * 0.83 + 14), fill=LIGHT, outline=EDGE)
+            ld.rectangle((w * 0.82, h * 0.26, w * 0.95, h * 0.76), fill=LIGHT)
+            im.alpha_composite(leaf, (x, y))
+        elif kind == "clamp":
+            d.rectangle((x, y + h * 0.35, x + w - 1, y + h * 0.65), fill=EDGE)
+            d.rectangle((x + w * 0.22, y, x + w * 0.78, y + h - 1), fill=BODY, outline=EDGE, width=10)
+            d.ellipse((x + w / 2 - 26, y + h * 0.18 - 26, x + w / 2 + 26, y + h * 0.18 + 26), fill=LIGHT)
+        elif kind == "jamb":
+            d.rectangle((x, y, x + w - 1, y + h - 1), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + w * 0.45, y + 20, x + w * 0.8, y + h - 20), fill=DARK)
+            d.ellipse((x + 18, y + 18, x + 58, y + 58), fill=LIGHT, outline=EDGE)
+        elif kind == "rubble":
+            for k in range(26):
+                cx, cy = x + rng.uniform(40, w - 40), y + rng.uniform(40, h - 40)
+                r = rng.uniform(8, 34)
+                d.polygon([(cx + r * math.cos(a), cy + r * math.sin(a) * 0.8) for a in
+                           (rng.uniform(0, 6.28) for _ in range(6))], fill=(DARK, EDGE, BODY)[k % 3])
+            d.rectangle((x + 20, y + h / 2 - 12, x + w - 20, y + h / 2 + 12), fill=EDGE)
+        elif kind == "greatcrucible":
+            c = FAMILY_CELL["forge-mega"]
+            cx, cy, r = x + 6.6 * c, y + 8 * c, 4.6 * c
+            d.rectangle((x + 1.2 * c, y + 0.3 * c, x + w - 0.6 * c, y + h - 0.3 * c), fill=EDGE)
+            for ty in (cy - r - 1.2 * c, cy + r - 0.1 * c):
+                d.rectangle((cx - 1.6 * c, ty, cx + 1.6 * c, ty + 1.3 * c), fill=LIGHT, outline=DARK, width=8)
+            d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=BODY, outline=DARK, width=12)
+            d.polygon([(cx + r - 0.6 * c, cy - 0.9 * c), (x + w, cy - 0.6 * c), (x + w, cy + 0.6 * c),
+                       (cx + r - 0.6 * c, cy + 0.9 * c)], fill=BODY, outline=DARK)
+            d.rectangle((cx + r, cy - 0.3 * c, x + w, cy + 0.3 * c), fill=MELT)
+            d.rectangle((x + 0.2 * c, cy - 1.6 * c, x + 2.4 * c, cy + 1.6 * c), fill=LIGHT, outline=DARK, width=10)
+            d.ellipse((x + 0.6 * c, cy - 0.9 * c, x + 2.0 * c, cy + 0.9 * c), fill=DARK)
+            for k in range(3):
+                d.line((x + 2.4 * c, cy - 0.8 * c + k * 0.8 * c, cx - r + 0.3 * c, cy - 0.8 * c + k * 0.8 * c),
+                       fill=DARK, width=14)
+            d.polygon([(cx + rr * math.cos(a), cy + rr * math.sin(a)) for rr, a in
+                       ((3.5 * c, k * math.pi / 60) for k in range(120))], fill=MELT)
+        elif kind == "furnacecore":
+            d.rectangle((x + 30, y + 30, x + w - 30, y + h - 30), fill=EDGE)
+            for sx in (x + 30, x + w - 70):
+                d.rectangle((sx, y + 30, sx + 40, y + h - 30), fill=DARK)
+            cx, cy, r = x + w / 2, y + h / 2, w * 0.32
+            d.polygon([(cx + r * math.cos(a), cy + r * math.sin(a)) for a in
+                       (k * math.pi / 4 + math.pi / 8 for k in range(8))], fill=BODY, outline=DARK, width=10)
+            for k in range(8):
+                a = k * math.pi / 4
+                d.line((cx + 0.45 * r * math.cos(a), cy + 0.45 * r * math.sin(a), cx + 0.95 * r * math.cos(a),
+                        cy + 0.95 * r * math.sin(a)), fill=EDGE, width=12)
+            d.ellipse((cx - 0.4 * r, cy - 0.4 * r, cx + 0.4 * r, cy + 0.4 * r), fill=LIGHT, outline=DARK, width=8)
+            for lx, ly in ((x + 50, y + 50), (x + w - 50, y + 50), (x + 50, y + h - 50), (x + w - 50, y + h - 50)):
+                d.ellipse((lx - 16, ly - 16, lx + 16, ly + 16), fill=LIGHT)
         elif kind == "ladle":
             d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)
